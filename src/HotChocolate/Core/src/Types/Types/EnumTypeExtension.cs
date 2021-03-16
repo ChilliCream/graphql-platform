@@ -7,12 +7,14 @@ using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public class EnumTypeExtension
         : NamedTypeExtensionBase<EnumTypeDefinition>
     {
-        private readonly Action<IEnumTypeDescriptor> _configure;
+        private Action<IEnumTypeDescriptor>? _configure;
 
         protected EnumTypeExtension()
         {
@@ -30,9 +32,12 @@ namespace HotChocolate.Types
         protected override EnumTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
         {
-            var descriptor = EnumTypeDescriptor.New(
-                context.DescriptorContext);
-            _configure(descriptor);
+            var descriptor =
+                EnumTypeDescriptor.New(context.DescriptorContext);
+
+            _configure!(descriptor);
+            _configure = null;
+
             return descriptor.CreateDefinition();
         }
 
@@ -85,7 +90,7 @@ namespace HotChocolate.Types
             {
                 if (type.RuntimeType.IsAssignableFrom(enumValue.Value.GetType()))
                 {
-                    EnumValueDefinition existingValue =
+                    EnumValueDefinition? existingValue =
                         type.Values.FirstOrDefault(t =>
                             enumValue.Value.Equals(t.Value));
 

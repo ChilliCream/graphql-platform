@@ -17,9 +17,10 @@ namespace HotChocolate.Types
         , IUnionType
     {
         private const string _typeReference = "typeReference";
-        private readonly Action<IUnionTypeDescriptor> _configure;
-        private readonly Dictionary<NameString, ObjectType> _typeMap =
-            new Dictionary<NameString, ObjectType>();
+
+        private readonly Dictionary<NameString, ObjectType> _typeMap = new();
+
+        private Action<IUnionTypeDescriptor>? _configure;
         private ResolveAbstractType? _resolveAbstractType;
 
         protected UnionType()
@@ -77,7 +78,7 @@ namespace HotChocolate.Types
             return _typeMap.ContainsKey(objectType.Name);
         }
 
-        public bool ContainsType(NameString typeName) => 
+        public bool ContainsType(NameString typeName) =>
             _typeMap.ContainsKey(typeName.EnsureNotEmpty(nameof(typeName)));
 
         public ObjectType? ResolveConcreteType(
@@ -93,10 +94,12 @@ namespace HotChocolate.Types
         protected override UnionTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
         {
-            var descriptor = UnionTypeDescriptor.FromSchemaType(
-                context.DescriptorContext,
-                GetType());
-            _configure(descriptor);
+            var descriptor =
+                UnionTypeDescriptor.FromSchemaType(context.DescriptorContext, GetType());
+
+            _configure!(descriptor);
+            _configure = null;
+
             return descriptor.CreateDefinition();
         }
 
@@ -113,7 +116,7 @@ namespace HotChocolate.Types
                 TypeDependencyKind.Default);
 
             context.RegisterDependencyRange(
-                definition.Directives.Select(t => t.TypeReference),
+                definition.GetDirectives().Select(t => t.TypeReference),
                 TypeDependencyKind.Completed);
 
             SetTypeIdentity(typeof(UnionType<>));

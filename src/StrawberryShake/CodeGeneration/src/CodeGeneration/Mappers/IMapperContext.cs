@@ -1,5 +1,9 @@
 using System.Collections.Generic;
 using HotChocolate;
+using HotChocolate.Language;
+using StrawberryShake.CodeGeneration.Descriptors;
+using StrawberryShake.CodeGeneration.Descriptors.Operations;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
@@ -14,11 +18,14 @@ namespace StrawberryShake.CodeGeneration.Mappers
         string Namespace { get; }
 
         /// <summary>
-        /// Gets the client state namespace.
-        /// This namespace is where we have all the store related APIs.
+        /// Gets the client request strategy.
         /// </summary>
-        /// <value></value>
-        string StateNamespace { get; }
+        RequestStrategy RequestStrategy { get; }
+
+        /// <summary>
+        /// Gets the hash provider that is used to hash queries.
+        /// </summary>
+        IDocumentHashProvider HashProvider { get; }
 
         IReadOnlyList<INamedTypeDescriptor> Types { get; }
 
@@ -26,7 +33,13 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         IReadOnlyCollection<OperationDescriptor> Operations { get; }
 
+        IReadOnlyList<TransportProfile> TransportProfiles { get; }
+
         ClientDescriptor Client { get; }
+
+        StoreAccessorDescriptor StoreAccessor { get; }
+
+        EntityIdFactoryDescriptor EntityIdFactory { get; }
 
         void Register(IEnumerable<INamedTypeDescriptor> typeDescriptors);
 
@@ -43,5 +56,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
         void Register(EntityIdFactoryDescriptor entityIdFactoryDescriptor);
 
         void Register(DependencyInjectionDescriptor dependencyInjectionDescriptor);
+
+        void Register(StoreAccessorDescriptor storeAccessorDescriptor);
+
+        bool Register(NameString typeName, TypeKind kind, RuntimeTypeInfo runtimeType);
+
+        RuntimeTypeInfo GetRuntimeType(NameString typeName, TypeKind kind);
     }
 }

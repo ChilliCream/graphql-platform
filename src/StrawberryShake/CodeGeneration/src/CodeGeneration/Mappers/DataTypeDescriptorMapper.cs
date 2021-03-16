@@ -4,6 +4,8 @@ using System.Linq;
 using HotChocolate;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
+using StrawberryShake.CodeGeneration.Descriptors;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
@@ -64,7 +66,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     {
                         yield return new DataTypeDescriptor(
                             dataTypeInterfaceName,
-                            context.StateNamespace,
+                            NamingConventions.CreateStateNamespace(context.Namespace),
                             Array.Empty<ComplexTypeDescriptor>(),
                             Array.Empty<string>(),
                             dataTypeInfo.Description,
@@ -74,7 +76,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
                 yield return new DataTypeDescriptor(
                     dataTypeInfo.Name,
-                    context.StateNamespace,
+                    NamingConventions.CreateStateNamespace(context.Namespace),
                     dataTypeInfo.Components
                         .Select(name => context.Types.Single(t => t.RuntimeType.Name.Equals(name)))
                         .OfType<ComplexTypeDescriptor>()

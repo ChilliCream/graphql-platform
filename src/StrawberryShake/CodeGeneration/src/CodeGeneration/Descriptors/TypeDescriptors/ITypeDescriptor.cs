@@ -1,6 +1,4 @@
-using HotChocolate;
-
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
 {
     public interface ITypeDescriptor : ICodeDescriptor
     {

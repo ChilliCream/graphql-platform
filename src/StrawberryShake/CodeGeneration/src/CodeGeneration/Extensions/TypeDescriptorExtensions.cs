@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using HotChocolate;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
 namespace StrawberryShake.CodeGeneration.Extensions
 {
@@ -23,10 +24,27 @@ namespace StrawberryShake.CodeGeneration.Extensions
                 ListTypeDescriptor listTypeDescriptor =>
                     listTypeDescriptor.InnerType.ContainsEntity(),
                 ComplexTypeDescriptor namedTypeDescriptor =>
-                    namedTypeDescriptor.Properties.Any(
-                        prop => prop.Type.IsEntityType() || prop.Type.ContainsEntity()),
+                    namedTypeDescriptor.Properties
+                        .Any(prop => prop.Type.IsEntityType() || prop.Type.ContainsEntity()),
                 NonNullTypeDescriptor nonNullTypeDescriptor =>
                     nonNullTypeDescriptor.InnerType.ContainsEntity(),
+                _ => false
+            };
+        }
+
+        public static bool IsOrContainsEntityType(this ITypeDescriptor typeDescriptor)
+        {
+            return typeDescriptor switch
+            {
+                ListTypeDescriptor listTypeDescriptor =>
+                    listTypeDescriptor.InnerType.IsOrContainsEntityType(),
+                ComplexTypeDescriptor namedTypeDescriptor =>
+                    namedTypeDescriptor.Properties
+                        .Any(prop => prop.Type.IsEntityType() ||
+                            prop.Type.IsOrContainsEntityType()) ||
+                    namedTypeDescriptor.IsEntityType(),
+                NonNullTypeDescriptor nonNullTypeDescriptor =>
+                    nonNullTypeDescriptor.InnerType.IsOrContainsEntityType(),
                 _ => false
             };
         }

@@ -7,6 +7,7 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class QueryableSortMiddleware<T>
     {
         private readonly SortMiddlewareContext _contextData;

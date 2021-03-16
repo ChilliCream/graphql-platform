@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using HotChocolate;
+using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using StrawberryShake.CodeGeneration.Properties;
 
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors
 {
     /// <summary>
     /// Describes a GraphQL client class, that bundles all operations defined in a single class.

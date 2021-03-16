@@ -1,15 +1,16 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public partial class TypeMapperGenerator
     {
         private const string _entityId = "entityId";
+        private const string _snapshot = "snapshot";
 
         private void AddEntityHandler(
             ClassBuilder classBuilder,
@@ -22,6 +23,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
             method
                 .AddParameter(_entityId)
                 .SetType(TypeNames.EntityId.MakeNullable(!isNonNullable));
+            method
+                .AddParameter(_snapshot)
+                .SetType(TypeNames.IEntityStoreSnapshot);
 
             if (!isNonNullable)
             {
@@ -39,7 +43,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     {
                         var dataMapperType =
                             TypeNames.IEntityMapper.WithGeneric(
-                                CreateEntityTypeName(implementee.Name),
+                                CreateEntityType(
+                                        implementee.Name,
+                                        implementee.RuntimeType.NamespaceWithoutGlobal)
+                                    .ToString(),
                                 implementee.RuntimeType.Name);
 
                         AddConstructorAssignedField(
@@ -70,12 +77,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .New()
                 .SetReturn()
                 .SetWrapArguments()
-                .SetMethodName(dataMapperName, nameof(IEntityMapper<object, object>.Map));
+                .SetMethodName(dataMapperName, "Map");
 
             MethodCallBuilder argument = MethodCallBuilder
                 .Inline()
-                .SetMethodName(StoreFieldName, nameof(IEntityStore.GetEntity))
-                .AddGeneric(CreateEntityTypeName(objectTypeDescriptor.Name))
+                .SetMethodName(_snapshot, "GetEntity")
+                .AddGeneric(CreateEntityType(
+                        objectTypeDescriptor.Name,
+                        objectTypeDescriptor.RuntimeType.NamespaceWithoutGlobal)
+                    .ToString())
                 .AddArgument(isNonNullable ? _entityId : $"{_entityId}.Value");
 
             constructorCall.AddArgument(
@@ -97,14 +107,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                                 ? new[]
                                 {
                                     _entityId,
-                                    nameof(EntityId.Name),
+                                    "Name",
                                     nameof(string.Equals)
                                 }
                                 : new[]
                                 {
                                     _entityId,
-                                    nameof(Nullable<EntityId>.Value),
-                                    nameof(EntityId.Name),
+                                    "Value",
+                                    "Name",
                                     nameof(string.Equals)
                                 })
                         .AddArgument(objectTypeDescriptor.Name.AsStringToken())

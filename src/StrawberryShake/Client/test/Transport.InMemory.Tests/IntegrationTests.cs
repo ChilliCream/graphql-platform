@@ -11,8 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
-using StrawberryShake.Transport.Http;
-using StrawberryShake.Transport.WebSockets.Protocol;
+using StrawberryShake.Transport.WebSockets.Protocols;
 using Xunit;
 
 namespace StrawberryShake.Transport.InMemory
@@ -39,7 +38,6 @@ namespace StrawberryShake.Transport.InMemory
                 .AddInMemorySubscriptions();
 
             serviceCollection
-                .AddProtocol<GraphQLWebSocketProtocolFactory>()
                 .AddInMemoryClient("Foo");
 
             IServiceProvider services =
@@ -54,7 +52,7 @@ namespace StrawberryShake.Transport.InMemory
 
             // act
             var connection =
-                new InMemoryConnection(async ct => await factory.CreateClientAsync("Foo", ct));
+                new InMemoryConnection(async ct => await factory.CreateAsync("Foo", ct));
 
             await foreach (var response in connection.ExecuteAsync(request, ct))
             {
@@ -99,7 +97,7 @@ namespace StrawberryShake.Transport.InMemory
 
             // act
             var connection =
-                new InMemoryConnection(async ct => await factory.CreateClientAsync("Foo", ct));
+                new InMemoryConnection(async ct => await factory.CreateAsync("Foo", ct));
 
             await foreach (var response in connection.ExecuteAsync(request, ct))
             {
@@ -150,7 +148,7 @@ namespace StrawberryShake.Transport.InMemory
 
             // act
             var connection =
-                new InMemoryConnection(async ct => await factory.CreateClientAsync("Foo", ct));
+                new InMemoryConnection(async ct => await factory.CreateAsync("Foo", ct));
 
             await foreach (var response in connection.ExecuteAsync(request, ct))
             {
@@ -195,7 +193,7 @@ namespace StrawberryShake.Transport.InMemory
 
             // act
             var connection =
-                new InMemoryConnection(async ct => await factory.CreateClientAsync("Foo", ct));
+                new InMemoryConnection(async ct => await factory.CreateAsync("Foo", ct));
 
             await foreach (var response in connection.ExecuteAsync(request, ct))
             {
@@ -221,6 +219,8 @@ namespace StrawberryShake.Transport.InMemory
             public OperationKind Kind => OperationKind.Query;
 
             public ReadOnlySpan<byte> Body => _query;
+
+            public DocumentHash Hash { get; } = new("MD5", "ABC");
         }
 
         public class StubInterceptor : IInMemoryRequestInterceptor

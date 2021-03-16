@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake.Transport.WebSockets.Messages;
 
-namespace StrawberryShake.Transport.WebSockets.Protocol
+namespace StrawberryShake.Transport.WebSockets.Protocols
 {
     /// <summary>
     /// A implementation of <see cref="ISocketProtocol"/> that uses graphql-ws protocol to

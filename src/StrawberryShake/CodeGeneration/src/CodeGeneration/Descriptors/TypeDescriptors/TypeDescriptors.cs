@@ -1,8 +1,7 @@
 using System;
-using HotChocolate;
 using HotChocolate.Types;
 
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
 {
     public static class TypeDescriptors
     {

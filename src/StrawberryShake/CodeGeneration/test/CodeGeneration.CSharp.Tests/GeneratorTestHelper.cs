@@ -1,29 +1,31 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using ChilliCream.Testing;
 using HotChocolate;
 using HotChocolate.Language;
+using Snapshooter;
 using Snapshooter.Xunit;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
 using Xunit;
+using Snapshot = Snapshooter.Xunit.Snapshot;
 using static StrawberryShake.CodeGeneration.CSharp.CSharpGenerator;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
     public static class GeneratorTestHelper
     {
-        public static IReadOnlyList<IError> AssertError(
-            params string[] fileNames)
+        public static IReadOnlyList<IError> AssertError(params string[] fileNames)
         {
             CSharpGeneratorResult result = Generate(
                 fileNames,
-                @namespace: "Foo.Bar",
-                clientName: "FooClient");
+                new CSharpGeneratorSettings { Namespace = "Foo.Bar", ClientName = "FooClient" });
 
             Assert.True(
                 result.Errors.Any(),
@@ -35,9 +37,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
         public static void AssertResult(params string[] sourceTexts) =>
             AssertResult(true, sourceTexts);
 
-        public static void AssertResult(bool strictValidation, params string[] sourceTexts)
+        public static void AssertResult(
+            bool strictValidation,
+            params string[] sourceTexts) =>
+            AssertResult(
+                new AssertSettings { StrictValidation = strictValidation },
+                sourceTexts);
+
+        public static void AssertResult(
+            AssertSettings settings,
+            params string[] sourceTexts)
         {
-            ClientModel clientModel = CreateClientModel(sourceTexts, strictValidation);
+            ClientModel clientModel = CreateClientModel(sourceTexts, settings.StrictValidation);
 
             var documents = new StringBuilder();
             var documentNames = new HashSet<string>();
@@ -54,29 +65,74 @@ namespace StrawberryShake.CodeGeneration.CSharp
             documents.AppendLine("// ReSharper disable InconsistentNaming");
             documents.AppendLine();
 
+            if (settings.Profiles.Count == 0)
+            {
+                settings.Profiles.Add(TransportProfile.Default);
+            }
+
             CSharpGeneratorResult result = Generate(
                 clientModel,
-                @namespace: "Foo.Bar",
-                clientName: "FooClient");
+                new CSharpGeneratorSettings
+                {
+                    Namespace = settings.Namespace ?? "Foo.Bar",
+                    ClientName = settings.ClientName ?? "FooClient",
+                    StrictSchemaValidation = settings.StrictValidation,
+                    RequestStrategy = settings.RequestStrategy,
+                    TransportProfiles = settings.Profiles
+                });
 
             Assert.False(
                 result.Errors.Any(),
                 "It is expected that the result has no generator errors!");
 
-            foreach (CSharpDocument document in result.CSharpDocuments)
+            foreach (var document in result.Documents)
             {
                 if (!documentNames.Add(document.Name))
                 {
                     Assert.True(false, $"Document name duplicated {document.Name}");
                 }
 
-                documents.AppendLine("// " + document.Name);
-                documents.AppendLine();
-                documents.AppendLine(document.SourceText);
-                documents.AppendLine();
+                if (document.Kind == SourceDocumentKind.CSharp)
+                {
+                    documents.AppendLine("// " + document.Name);
+                    documents.AppendLine();
+                    documents.AppendLine(document.SourceText);
+                    documents.AppendLine();
+                }
+                else if (document.Kind == SourceDocumentKind.GraphQL)
+                {
+                    documents.AppendLine("// " + document.Name);
+                    documents.AppendLine("// " + document.Hash);
+                    documents.AppendLine();
+
+                    using var reader = new StringReader(document.SourceText);
+                    string? line;
+
+                    do
+                    {
+                        line = reader.ReadLine();
+                        if (line is not null)
+                        {
+                            documents.AppendLine("// " + line);
+                        }
+                    } while (line is not null);
+
+                    documents.AppendLine();
+                }
             }
 
-            documents.ToString().MatchSnapshot();
+            if (settings.SnapshotFile is not null)
+            {
+                documents.ToString()
+                    .MatchSnapshot(
+                        new SnapshotFullName(
+                            settings.SnapshotFile,
+                            Snapshot.FullName().FolderPath));
+            }
+            else
+            {
+                documents.ToString().MatchSnapshot();
+            }
 
             IReadOnlyList<Diagnostic> diagnostics =
                 CSharpCompiler.GetDiagnosticErrors(documents.ToString());
@@ -93,7 +149,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
         }
 
-        public static void AssertStarWarsResult(params string[] sourceTexts)
+        public static void AssertStarWarsResult(params string[] sourceTexts) =>
+            AssertStarWarsResult(
+                new AssertSettings { StrictValidation = true },
+                sourceTexts);
+
+
+        public static void AssertStarWarsResult(
+            AssertSettings settings,
+            params string[] sourceTexts)
         {
             var source = new string[sourceTexts.Length + 2];
 
@@ -107,7 +171,41 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 destinationIndex: 2,
                 length: sourceTexts.Length);
 
-            AssertResult(source);
+            AssertResult(settings, source);
+        }
+
+        public static AssertSettings CreateIntegrationTest(
+            Descriptors.Operations.RequestStrategy requestStrategy =
+                Descriptors.Operations.RequestStrategy.Default,
+            TransportProfile[]? profiles = null,
+            [CallerMemberName] string? testName = null)
+        {
+            SnapshotFullName snapshotFullName = Snapshot.FullName();
+            string testFile = System.IO.Path.Combine(
+                snapshotFullName.FolderPath,
+                testName + "Test.cs");
+            string ns = "StrawberryShake.CodeGeneration.CSharp.Integration." + testName;
+
+            if (!File.Exists(testFile))
+            {
+                File.WriteAllText(
+                    testFile,
+                    FileResource.Open("TestTemplate.txt")
+                        .Replace("{TestName}", testName)
+                        .Replace("{Namespace}", ns));
+            }
+
+            return new AssertSettings
+            {
+                ClientName = testName! + "Client",
+                Namespace = ns,
+                StrictValidation = true,
+                SnapshotFile = System.IO.Path.Combine(
+                    snapshotFullName.FolderPath,
+                    testName + "Test.Client.cs"),
+                RequestStrategy = requestStrategy,
+                Profiles = (profiles ?? new []{TransportProfile.Default }).ToList()
+            };
         }
 
         private static ClientModel CreateClientModel(string[] sourceText, bool strictValidation)
@@ -129,6 +227,22 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             return analyzer.Analyze();
+        }
+
+        public class AssertSettings
+        {
+            public string? ClientName { get; set; }
+
+            public string? Namespace { get; set; }
+
+            public bool StrictValidation { get; set; }
+
+            public string? SnapshotFile { get; set; }
+
+            public List<TransportProfile> Profiles { get; set; } = new();
+
+            public Descriptors.Operations.RequestStrategy RequestStrategy { get; set; } =
+                Descriptors.Operations.RequestStrategy.Default;
         }
     }
 }

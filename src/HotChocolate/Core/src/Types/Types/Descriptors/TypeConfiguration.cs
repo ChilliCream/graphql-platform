@@ -10,8 +10,7 @@ namespace HotChocolate.Types.Descriptors
         : ILazyTypeConfiguration
         where T : DefinitionBase
     {
-        private readonly List<TypeDependency> _dependencies =
-            new List<TypeDependency>();
+        private List<TypeDependency>? _dependencies;
 
         public ApplyConfigurationOn On { get; set; }
 
@@ -19,10 +18,11 @@ namespace HotChocolate.Types.Descriptors
 
         public T Definition { get; set; }
 
-        public ICollection<TypeDependency> Dependencies => _dependencies;
+        public ICollection<TypeDependency> Dependencies =>
+            _dependencies ??= new List<TypeDependency>();
 
         IReadOnlyList<TypeDependency> ILazyTypeConfiguration.Dependencies =>
-            _dependencies;
+            _dependencies ??= new List<TypeDependency>();
 
         void ILazyTypeConfiguration.Configure(ITypeCompletionContext context)
         {
