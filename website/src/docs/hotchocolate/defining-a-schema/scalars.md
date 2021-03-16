@@ -134,7 +134,7 @@ Lists can be accessed generically by getting them as `IReadOnlyList<object>` or 
 HotChocolate converts .Net types to match the types supported by the scalar of the field.
 By default, all standard .Net types have converters registered. 
 You can register converters and reuse the built-in scalar types.
-In case you use a non-standard library, e.g. [NodeTime](https://nodatime.org/), you can register a converter and use the standard `DateTimeType`.
+In case you use a non-standard library, e.g. [Noda Time](https://nodatime.org/), you can register a converter and use the standard `DateTimeType`.
 
 ```csharp
 public class Query 
