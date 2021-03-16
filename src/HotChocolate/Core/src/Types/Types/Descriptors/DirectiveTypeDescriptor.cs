@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
@@ -29,6 +30,8 @@ namespace HotChocolate.Types.Descriptors
                 clrType, TypeKind.Directive);
             Definition.Description = context.Naming.GetTypeDescription(
                 clrType, TypeKind.Directive);
+            Definition.IsPublic =
+                context.Options.DefaultDirectiveVisibility == DirectiveVisibility.Public;
         }
 
         protected internal DirectiveTypeDescriptor(IDescriptorContext context)
@@ -54,7 +57,7 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             DirectiveTypeDefinition definition)
         {
-            if (Definition.RuntimeType is { })
+            if (Definition.RuntimeType != typeof(object))
             {
                 Context.TypeInspector.ApplyAttributes(
                     Context,
@@ -62,8 +65,7 @@ namespace HotChocolate.Types.Descriptors
                     Definition.RuntimeType);
             }
 
-            var arguments =
-                new Dictionary<NameString, DirectiveArgumentDefinition>();
+            var arguments = new Dictionary<NameString, DirectiveArgumentDefinition>();
             var handledMembers = new HashSet<PropertyInfo>();
 
             FieldDescriptorUtilities.AddExplicitFields(
@@ -188,6 +190,18 @@ namespace HotChocolate.Types.Descriptors
         public IDirectiveTypeDescriptor Repeatable()
         {
             Definition.IsRepeatable = true;
+            return this;
+        }
+
+        public IDirectiveTypeDescriptor Public()
+        {
+            Definition.IsPublic = true;
+            return this;
+        }
+
+        public IDirectiveTypeDescriptor Internal()
+        {
+            Definition.IsPublic = false;
             return this;
         }
 

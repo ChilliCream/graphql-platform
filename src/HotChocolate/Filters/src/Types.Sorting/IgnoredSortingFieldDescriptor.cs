@@ -1,8 +1,10 @@
+using System;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete("Use HotChocolate.Data.")]
     internal class IgnoredSortingFieldDescriptor
        : SortOperationDescriptorBase
     {

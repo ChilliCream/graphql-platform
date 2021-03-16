@@ -21,8 +21,8 @@ namespace HotChocolate.Data.Projections.Handlers
             SelectionOptimizerContext context,
             Selection selection)
         {
-            if (!(context.Type is IPageType pageType &&
-                pageType.ItemType is ObjectType itemType))
+            if (!(context.Type.NamedType() is IPageType pageType &&
+                pageType.ItemType.NamedType() is ObjectType itemType))
             {
                 throw new InvalidOperationException();
             }

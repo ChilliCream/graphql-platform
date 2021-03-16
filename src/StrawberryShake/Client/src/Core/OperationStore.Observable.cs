@@ -15,7 +15,11 @@ namespace StrawberryShake
     public sealed partial class OperationStore
     {
         private void BeginProcessOperationUpdates() =>
-            Task.Run(async () => await ProcessOperationUpdates());
+            Task<Task?>.Factory.StartNew(
+                ProcessOperationUpdates,
+                _cts.Token,
+                TaskCreationOptions.LongRunning,
+                TaskScheduler.Default);
 
         private async Task ProcessOperationUpdates()
         {

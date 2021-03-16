@@ -24,7 +24,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         protected internal DirectiveTypeDescriptor(
-            IDescriptorContext context, 
+            IDescriptorContext context,
             DirectiveTypeDefinition definition)
             : base(context, definition)
         {
@@ -166,6 +166,18 @@ namespace HotChocolate.Types.Descriptors
         public new IDirectiveTypeDescriptor<T> Repeatable()
         {
             base.Repeatable();
+            return this;
+        }
+
+        public new IDirectiveTypeDescriptor<T> Public()
+        {
+            base.Public();
+            return this;
+        }
+
+        public new IDirectiveTypeDescriptor<T> Internal()
+        {
+            base.Internal();
             return this;
         }
     }

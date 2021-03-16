@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class SortOperationInvocation
     {
         public SortOperationInvocation(

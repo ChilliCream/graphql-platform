@@ -1,0 +1,144 @@
+﻿{
+  "data": {
+    "a": {
+      "name": "Luke Skywalker",
+      "friends": {
+        "nodes": [
+          {
+            "name": "Han Solo",
+            "friends": {
+              "nodes": [
+                {
+                  "name": "Luke Skywalker"
+                },
+                {
+                  "name": "Leia Organa"
+                },
+                {
+                  "name": "R2-D2"
+                }
+              ]
+            }
+          },
+          {
+            "name": "Leia Organa",
+            "friends": {
+              "nodes": [
+                {
+                  "name": "Luke Skywalker"
+                },
+                {
+                  "name": "Han Solo"
+                },
+                {
+                  "name": "C-3PO"
+                },
+                {
+                  "name": "R2-D2"
+                }
+              ]
+            }
+          },
+          {
+            "name": "C-3PO",
+            "friends": {
+              "nodes": [
+                {
+                  "name": "Luke Skywalker"
+                },
+                {
+                  "name": "Han Solo"
+                },
+                {
+                  "name": "Leia Organa"
+                },
+                {
+                  "name": "R2-D2"
+                }
+              ]
+            }
+          },
+          {
+            "name": "R2-D2",
+            "friends": {
+              "nodes": [
+                {
+                  "name": "Luke Skywalker"
+                },
+                {
+                  "name": "Han Solo"
+                },
+                {
+                  "name": "Leia Organa"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "height": 1.72
+    },
+    "b": {
+      "name": "R2-D2",
+      "friends": {
+        "nodes": [
+          {
+            "name": "Luke Skywalker",
+            "friends": {
+              "nodes": [
+                {
+                  "name": "Han Solo"
+                },
+                {
+                  "name": "Leia Organa"
+                },
+                {
+                  "name": "C-3PO"
+                },
+                {
+                  "name": "R2-D2"
+                }
+              ]
+            }
+          },
+          {
+            "name": "Han Solo",
+            "friends": {
+              "nodes": [
+                {
+                  "name": "Luke Skywalker"
+                },
+                {
+                  "name": "Leia Organa"
+                },
+                {
+                  "name": "R2-D2"
+                }
+              ]
+            }
+          },
+          {
+            "name": "Leia Organa",
+            "friends": {
+              "nodes": [
+                {
+                  "name": "Luke Skywalker"
+                },
+                {
+                  "name": "Han Solo"
+                },
+                {
+                  "name": "C-3PO"
+                },
+                {
+                  "name": "R2-D2"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "height": 1.72
+    }
+  }
+}

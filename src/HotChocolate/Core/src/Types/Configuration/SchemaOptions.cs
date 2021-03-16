@@ -39,6 +39,11 @@ namespace HotChocolate.Configuration
         public bool SortFieldsByName { get; set; }
 
         /// <summary>
+        /// Defines if syntax nodes shall be preserved on the type system objects
+        /// </summary>
+        public bool PreserveSyntaxNodes { get; set; }
+
+        /// <summary>
         /// Defines if types shall be removed from the schema that are
         /// unreachable from the root types.
         /// </summary>
@@ -56,6 +61,17 @@ namespace HotChocolate.Configuration
         public FieldMiddlewareApplication FieldMiddleware { get; set; } =
             FieldMiddlewareApplication.UserDefinedFields;
 
+        /// <summary>
+        /// Defines if the experimental directive introspection feature shall be enabled.
+        /// </summary>
+        public bool EnableDirectiveIntrospection { get; set; } = false;
+
+        /// <summary>
+        /// The default directive visibility when directive introspection is enabled.
+        /// </summary>
+        public DirectiveVisibility DefaultDirectiveVisibility { get; set; } =
+            DirectiveVisibility.Public;
+
         public static SchemaOptions FromOptions(IReadOnlySchemaOptions options)
         {
             return new()
@@ -66,7 +82,10 @@ namespace HotChocolate.Configuration
                 StrictValidation = options.StrictValidation,
                 UseXmlDocumentation = options.UseXmlDocumentation,
                 FieldMiddleware = options.FieldMiddleware,
-                DefaultBindingBehavior = options.DefaultBindingBehavior
+                DefaultBindingBehavior = options.DefaultBindingBehavior,
+                PreserveSyntaxNodes = options.PreserveSyntaxNodes,
+                EnableDirectiveIntrospection = options.EnableDirectiveIntrospection,
+                DefaultDirectiveVisibility = options.DefaultDirectiveVisibility
             };
         }
     }
