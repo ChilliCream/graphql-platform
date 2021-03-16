@@ -4,9 +4,9 @@
   "Data": null,
   "Errors": [
     {
-      "message": "At least an 'operations' and a 'map' field need to be present.",
+      "message": "At least an 'operations' field and a 'map' field need to be present.",
       "extensions": {
-        "code": "// TODO CODE HC"
+        "code": "HC0033"
       }
     }
   ],

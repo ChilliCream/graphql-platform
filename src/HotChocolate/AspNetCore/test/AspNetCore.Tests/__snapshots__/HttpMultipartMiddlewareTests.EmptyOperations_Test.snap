@@ -1,4 +1,4 @@
-{
+﻿{
   "ContentType": "application/json; charset=utf-8",
   "StatusCode": "BadRequest",
   "Data": null,
@@ -6,7 +6,7 @@
     {
       "message": "No 'operations' specified.",
       "extensions": {
-        "code": "// TODO CODE HC"
+        "code": "HC0034"
       }
     }
   ],
