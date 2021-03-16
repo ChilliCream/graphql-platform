@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete]
     public class SortingAttributeTests
     {
         [Fact]

@@ -43,8 +43,7 @@ namespace HotChocolate.Types.Descriptors
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
-        protected internal override ObjectTypeDefinition Definition { get; protected set; } =
-            new ObjectTypeDefinition();
+        protected internal override ObjectTypeDefinition Definition { get; protected set; } = new();
 
         protected ICollection<ObjectFieldDescriptor> Fields { get; } =
             new List<ObjectFieldDescriptor>();

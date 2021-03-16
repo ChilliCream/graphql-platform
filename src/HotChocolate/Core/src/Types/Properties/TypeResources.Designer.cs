@@ -1154,5 +1154,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("UuidType_FormatUnknown", resourceCulture);
             }
         }
+        
+        internal static string Schema_GetDirectiveType_DoesNotExist {
+            get {
+                return ResourceManager.GetString("Schema_GetDirectiveType_DoesNotExist", resourceCulture);
+            }
+        }
     }
 }
