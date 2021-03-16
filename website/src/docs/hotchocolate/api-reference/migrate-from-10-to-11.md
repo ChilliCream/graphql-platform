@@ -311,7 +311,7 @@ descriptor.Field(...).UsePaging(maxPageSize = 100)...
 
 ## Projections
 
-The selection middleware, that was available in `HotChocolate.Types.Selections` was replaced by projection middleware from the `HotChocolate.Data` package. 
+The selection middleware, that was available in `HotChocolate.Types.Selections` was replaced by the projection middleware from `HotChocolate.Data`. 
 
 **Old:**
 
