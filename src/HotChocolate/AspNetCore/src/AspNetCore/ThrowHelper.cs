@@ -64,6 +64,61 @@ namespace HotChocolate.AspNetCore
                     .SetCode(ErrorCodes.Server.MultiPartFieldsMisordered)
                     .Build());
 
-        // public static GraphQLException HttpMultipartMiddleware_
+        public static GraphQLException HttpMultipartMiddleware_NoObjectPath(string filename) =>
+            new GraphQLRequestException(
+                ErrorBuilder.New()
+                    .SetMessage("No object paths specified for key '{0}' in 'map'.", filename)
+                    .SetCode("// TODO CODE HC")
+                    .Build());
+
+        public static GraphQLException HttpMultipartMiddleware_FileMissing(string filename) =>
+            new GraphQLRequestException(
+                ErrorBuilder.New()
+                    .SetMessage("File of key '{0}' is missing.", filename)
+                    .SetCode("// TODO CODE HC")
+                    .Build());
+
+        public static GraphQLException HttpMultipartMiddleware_VariableNotFound(string path) =>
+            new GraphQLRequestException(
+                ErrorBuilder.New()
+                    .SetMessage("The variable path '{0}' is invalid.", path)
+                    .SetCode("// TODO CODE HC")
+                    .Build());
+
+        public static GraphQLException HttpMultipartMiddleware_VariableStructureInvalid() =>
+            new GraphQLRequestException(
+                ErrorBuilder.New()
+                    .SetMessage("The variable structure is invalid.")
+                    .SetCode("// TODO CODE HC")
+                    .Build());
+
+        public static GraphQLException HttpMultipartMiddleware_InvalidPath(string path) =>
+            new GraphQLRequestException(
+                ErrorBuilder.New()
+                    .SetMessage("Invalid variable path `{0}` in `map`.", path)
+                    .SetCode("// TODO CODE HC")
+                    .Build());
+
+        public static GraphQLException HttpMultipartMiddleware_PathMustStartWithVariable() =>
+            new GraphQLRequestException(
+                ErrorBuilder.New()
+                    .SetMessage("The variable path must start with `variables`.")
+                    .SetCode("// TODO CODE HC")
+                    .Build());
+
+        public static GraphQLException HttpMultipartMiddleware_InvalidMapJson() =>
+            new GraphQLRequestException(
+                ErrorBuilder.New()
+                    .SetMessage("Invalid JSON in the `map` multipart field; Expected type of Dictionary<string, string[]>.")
+                    .SetCode("// TODO CODE HC")
+                    .Build());
+
+        public static GraphQLException HttpMultipartMiddleware_MapNotSpecified() =>
+            new GraphQLRequestException(
+                ErrorBuilder.New()
+                    .SetMessage("No `map` specified.")
+                    .SetCode("// TODO CODE HC")
+                    .Build());
+
     }
 }

@@ -4,13 +4,13 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
-using System.Threading;
 
 namespace HotChocolate.AspNetCore
 {
@@ -31,7 +31,7 @@ namespace HotChocolate.AspNetCore
                 throw new ArgumentNullException(nameof(requestParser));
         }
 
-        public async virtual Task InvokeAsync(HttpContext context)
+        public virtual async Task InvokeAsync(HttpContext context)
         {
             if (!HttpMethods.IsPost(context.Request.Method))
             {

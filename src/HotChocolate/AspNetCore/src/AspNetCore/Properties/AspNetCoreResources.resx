@@ -39,4 +39,10 @@
   <data name="ThrowHelper_HttpMultipartMiddleware_Fields_Misordered" xml:space="preserve">
     <value>Misordered multipart fields; 'map' should follow 'operations'.</value>
   </data>
+  <data name="HttpMultipartMiddleware_InsertFilesIntoRequest_VariablesImmutable" xml:space="preserve">
+    <value>The variables are expected to mutable at this point.</value>
+  </data>
+  <data name="VariablePath_Parse_FirstSegmentMustBeKey" xml:space="preserve">
+    <value>The first path segment must be a key.</value>
+  </data>
 </root>

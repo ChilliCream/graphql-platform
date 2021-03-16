@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,10 +8,11 @@ using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.Extensions.Primitives;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
+using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 
 namespace HotChocolate.AspNetCore
 {
@@ -111,12 +113,7 @@ namespace HotChocolate.AspNetCore
                     }
                     catch
                     {
-                        // TODO : throw helper
-                        throw new GraphQLRequestException(
-                            ErrorBuilder.New()
-                                .SetMessage("Invalid JSON in the `map` multipart field; Expected type of Dictionary<string, string[]>.", _map)
-                                .SetCode("// TODO CODE HC")
-                                .Build());
+                        throw ThrowHelper.HttpMultipartMiddleware_InvalidMapJson();
                     }
                 }
             }
@@ -128,12 +125,7 @@ namespace HotChocolate.AspNetCore
 
             if (map is null)
             {
-                // TODO : throw helper
-                throw new GraphQLRequestException(
-                    ErrorBuilder.New()
-                        .SetMessage("No `map` specified.", _map)
-                        .SetCode("// TODO CODE HC")
-                        .Build());
+                throw ThrowHelper.HttpMultipartMiddleware_MapNotSpecified();
             }
 
             // Validate file mappings and bring them in an easy to use format
@@ -150,36 +142,18 @@ namespace HotChocolate.AspNetCore
 
             foreach ((var filename, var objectPaths) in map)
             {
-                if (string.IsNullOrEmpty(filename))
-                {
-                    // TODO : throw helper
-                    throw new GraphQLRequestException(
-                        ErrorBuilder.New()
-                            .SetMessage("Entry with missing key in '{0}'.", _map)
-                            .SetCode("// TODO CODE HC")
-                            .Build());
-                }
-
                 if (objectPaths is null || objectPaths.Length < 1)
                 {
-                    // TODO : throw helper
-                    throw new GraphQLRequestException(
-                        ErrorBuilder.New()
-                            .SetMessage("No object paths specified for key '{0}' in '{1}'.", filename, _map)
-                            .SetCode("// TODO CODE HC")
-                            .Build());
+                    throw ThrowHelper.HttpMultipartMiddleware_NoObjectPath(filename);
                 }
 
-                IFormFile? file = files.GetFile(filename);
+                IFormFile? file = filename is { Length: > 0 }
+                    ? files.GetFile(filename)
+                    : null;
 
                 if (file is null)
                 {
-                    // TODO : throw helper
-                    throw new GraphQLRequestException(
-                        ErrorBuilder.New()
-                            .SetMessage("File of key '{0}' is missing.", filename)
-                            .SetCode("// TODO CODE HC")
-                            .Build());
+                    throw ThrowHelper.HttpMultipartMiddleware_FileMissing(filename);
                 }
 
                 foreach (var objectPath in objectPaths)
@@ -191,94 +165,170 @@ namespace HotChocolate.AspNetCore
             return pathToFileMap;
         }
 
-        // TODO : This is not covered by tests yet
         private static void InsertFilesIntoRequest(
             GraphQLRequest request,
             IDictionary<string, IFile> fileMap)
         {
             if (!(request.Variables is Dictionary<string, object?> mutableVariables))
             {
-                return;
+                throw new InvalidOperationException(
+                    HttpMultipartMiddleware_InsertFilesIntoRequest_VariablesImmutable);
             }
 
             foreach ((string objectPath, IFile file) in fileMap)
             {
-                var pathParts = objectPath.Split('.', System.StringSplitOptions.RemoveEmptyEntries);
+                var path = VariablePath.Parse(objectPath);
 
-                if (pathParts.Length < 2)
+                if (!mutableVariables.TryGetValue(path.Key.Value, out object? value))
                 {
-                    // TODO : throw helper
-                    throw new GraphQLRequestException(
-                        ErrorBuilder.New()
-                            .SetMessage("Invalid object path in '{0}'.", _map)
-                            .SetCode("// TODO CODE HC")
-                            .Build());
+                    throw ThrowHelper.HttpMultipartMiddleware_VariableNotFound(objectPath);
                 }
 
-                if (pathParts[0] != "variables")
+                if (path.Key.Next is null)
                 {
-                    // TODO : This is (hopefully) just a limitation for now.
-                    throw new System.NotSupportedException("Files can currently only be inserted into 'variables'.");
+                    mutableVariables[path.Key.Value] = new FileValueNode(file);
+                    continue;
                 }
 
-                var variableName = pathParts[1];
-
-                if (!mutableVariables.ContainsKey(variableName))
+                if (value is null)
                 {
-                    // TODO : throw helper
-                    throw new GraphQLRequestException(
-                        ErrorBuilder.New()
-                            .SetMessage("No variable with the name '{0}' was specified in the original request.", variableName)
-                            .SetCode("// TODO CODE HC")
-                            .Build());
+                    throw ThrowHelper.HttpMultipartMiddleware_VariableStructureInvalid();
                 }
 
-                switch (pathParts.Length)
-                {
-                    case 2:
-                        // single file upload, e.g. 'variables.file'
-                        mutableVariables[variableName] = file;
-                        break;
-
-                    case 3:
-                        // multi file upload, e.g. 'variables.files.1'
-                        if (!int.TryParse(pathParts[2], out var fileIndex))
-                        {
-                            continue;
-                        }
-
-                        List<IValueNode> list;
-
-                        if (mutableVariables[variableName] is ListValueNode listValueNode &&
-                            listValueNode.Items is List<IValueNode> listValue)
-                        {
-                            list = listValue;
-                        }
-                        else
-                        {
-                            list = new List<IValueNode>();
-                        }
-
-                        // we don't know the size of the file list beforehand so we have to resize dynamically
-                        for (var i = list.Count; i <= fileIndex; i++)
-                        {
-                            list.Add(NullValueNode.Default);
-                        }
-
-                        // list[fileIndex] = file;
-                        throw new NotImplementedException();
-
-                        // TODO : We create a new ListValueNode for every new file that is inserted
-                        mutableVariables[variableName] = new ListValueNode(list);
-                        break;
-
-                    default:
-                        // TODO : This is (hopefully) just a limitation for now.
-                        throw new System.NotSupportedException("Files can currently only be inserted into top-level 'variables'. Input objects are not yet supported.");
-                }
+                mutableVariables[path.Key.Value] = RewriteVariable(
+                    objectPath,
+                    path.Key.Next,
+                    value,
+                    new FileValueNode(file));
             }
         }
 
-        
+        private static IValueNode RewriteVariable(
+            string objectPath,
+            IVariablePathSegment segment,
+            object value,
+            FileValueNode file)
+        {
+            if (segment is KeyPathSegment key &&
+                value is ObjectValueNode ov)
+            {
+                var pos = -1;
+
+                for (var i = 0; i < ov.Fields.Count; i++)
+                {
+                    if (ov.Fields[i].Name.Value.EqualsOrdinal(key.Value))
+                    {
+                        pos = i;
+                        break;
+                    }
+                }
+
+                if (pos == -1)
+                {
+                    throw ThrowHelper.HttpMultipartMiddleware_VariableNotFound(objectPath);
+                }
+
+                ObjectFieldNode[] fields = ov.Fields.ToArray();
+                ObjectFieldNode field = fields[pos];
+                fields[pos] = field.WithValue(
+                    key.Next is not null
+                        ? RewriteVariable(objectPath, key.Next, field.Value, file)
+                        : file);
+                return ov.WithFields(fields);
+            }
+
+            if (segment is IndexPathSegment index &&
+                value is ListValueNode lv)
+            {
+                IValueNode[] items = lv.Items.ToArray();
+                IValueNode item = items[index.Value];
+                items[index.Value] = index.Next is not null
+                    ? RewriteVariable(objectPath, index.Next, item, file)
+                    : file;
+                return lv.WithItems(items);
+            }
+
+            throw ThrowHelper.HttpMultipartMiddleware_VariableNotFound(objectPath);
+        }
+    }
+
+    internal interface IVariablePathSegment
+    {
+        IVariablePathSegment? Next { get; }
+    }
+
+    internal class KeyPathSegment : IVariablePathSegment
+    {
+        public KeyPathSegment(string value, IVariablePathSegment? next)
+        {
+            Value = value;
+            Next = next;
+        }
+
+        public string Value { get; }
+
+        public IVariablePathSegment? Next { get; }
+    }
+
+    internal class IndexPathSegment : IVariablePathSegment
+    {
+        public IndexPathSegment(int value, IVariablePathSegment? next)
+        {
+            Value = value;
+            Next = next;
+        }
+
+        public int Value { get; }
+
+        public IVariablePathSegment? Next { get; }
+    }
+
+    internal class VariablePath
+    {
+        public VariablePath(KeyPathSegment key)
+        {
+            Key = key;
+        }
+
+        public KeyPathSegment Key { get; }
+
+        public static VariablePath Parse(string s)
+        {
+            const string variables = nameof(variables);
+            string[] segments = s.Split('.', StringSplitOptions.RemoveEmptyEntries);
+
+            if (segments.Length < 2)
+            {
+                throw ThrowHelper.HttpMultipartMiddleware_InvalidPath(s);
+            }
+
+            if (!string.Equals(segments[0], variables, StringComparison.Ordinal))
+            {
+                throw ThrowHelper.HttpMultipartMiddleware_PathMustStartWithVariable();
+            }
+
+            IVariablePathSegment? segment = null;
+
+            for (var i = segments.Length - 1; i >= 0; i--)
+            {
+                string item = segments[i];
+
+                if (item.Equals(variables, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                segment = int.TryParse(item, out var index)
+                    ? (IVariablePathSegment)new IndexPathSegment(index, segment)
+                    : new KeyPathSegment(item, segment);
+            }
+
+            if (segment is KeyPathSegment key)
+            {
+                return new VariablePath(key);
+            }
+
+            throw new InvalidOperationException(VariablePath_Parse_FirstSegmentMustBeKey);
+        }
     }
 }

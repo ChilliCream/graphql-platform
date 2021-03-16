@@ -86,5 +86,17 @@ namespace HotChocolate.AspNetCore.Properties {
                 return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_Fields_Misordered", resourceCulture);
             }
         }
+        
+        internal static string HttpMultipartMiddleware_InsertFilesIntoRequest_VariablesImmutable {
+            get {
+                return ResourceManager.GetString("HttpMultipartMiddleware_InsertFilesIntoRequest_VariablesImmutable", resourceCulture);
+            }
+        }
+        
+        internal static string VariablePath_Parse_FirstSegmentMustBeKey {
+            get {
+                return ResourceManager.GetString("VariablePath_Parse_FirstSegmentMustBeKey", resourceCulture);
+            }
+        }
     }
 }
