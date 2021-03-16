@@ -236,7 +236,7 @@ namespace HotChocolate.AspNetCore
             result.MatchSnapshot();
         }
 
-         [Fact]
+        [Fact]
         public async Task Upload_File_In_InputObject()
         {
             // arrange
@@ -262,6 +262,50 @@ namespace HotChocolate.AspNetCore
             {
                 { new StringContent(request), "operations" },
                 { new StringContent("{ \"1\": [\"variables.input.file\"] }"), "map" },
+                { new StringContent("abc"), "1", "foo.bar" },
+            };
+
+            ClientQueryResult result = await server.PostMultipartAsync(form, path: "/upload");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Upload_File_In_List()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            var query = @"
+                query ($input: [[InputWithFileInput!]]) {
+                    listUpload(input: $input)
+                }";
+
+            var request = JsonConvert.SerializeObject(
+                new ClientQueryRequest
+                {
+                    Query = query,
+                    Variables = new Dictionary<string, object>
+                    {
+                        { 
+                            "input", 
+                            new List<object>
+                            {
+                                new List<object> 
+                                { 
+                                    new Dictionary<string, object> { { "file", null } }
+                                }
+                            }  
+                        }
+                    }
+                });
+
+            // act
+            var form = new MultipartFormDataContent
+            {
+                { new StringContent(request), "operations" },
+                { new StringContent("{ \"1\": [\"variables.input.0.0.file\"] }"), "map" },
                 { new StringContent("abc"), "1", "foo.bar" },
             };
 

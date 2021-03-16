@@ -22,6 +22,14 @@ namespace HotChocolate.AspNetCore.Utilities
             using var sr = new StreamReader(stream, Encoding.UTF8);
             return await sr.ReadToEndAsync();
         }
+
+        public async Task<string> ListUpload(
+            InputWithFile[][] input)
+        {
+            await using Stream stream = input[0][0].File.OpenReadStream();
+            using var sr = new StreamReader(stream, Encoding.UTF8);
+            return await sr.ReadToEndAsync();
+        }
     }
 
     public class InputWithFile

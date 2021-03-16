@@ -2,7 +2,7 @@
   "ContentType": "application/json; charset=utf-8",
   "StatusCode": "OK",
   "Data": {
-    "objectUpload": "abc"
+    "listUpload": "abc"
   },
   "Errors": null,
   "Extensions": null
