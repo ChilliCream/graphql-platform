@@ -34,6 +34,8 @@ namespace HotChocolate.Configuration
             DefaultBindingBehavior = options.DefaultBindingBehavior;
             FieldMiddleware = options.FieldMiddleware;
             PreserveSyntaxNodes = options.PreserveSyntaxNodes;
+            EnableDirectiveIntrospection = options.EnableDirectiveIntrospection;
+            DefaultDirectiveVisibility = options.DefaultDirectiveVisibility;
         }
 
         /// <summary>
@@ -87,5 +89,15 @@ namespace HotChocolate.Configuration
         /// Defines on which fields a middleware pipeline can be applied on.
         /// </summary>
         public FieldMiddlewareApplication FieldMiddleware { get; }
+
+        /// <summary>
+        /// Defines if the experimental directive introspection feature shall be enabled.
+        /// </summary>
+        public bool EnableDirectiveIntrospection { get; }
+
+        /// <summary>
+        /// The default directive visibility when directive introspection is enabled.
+        /// </summary>
+        public DirectiveVisibility DefaultDirectiveVisibility { get; }
     }
 }

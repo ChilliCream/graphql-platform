@@ -60,5 +60,15 @@ namespace HotChocolate.Configuration
         /// Defines on which fields a middleware pipeline can be applied on.
         /// </summary>
         FieldMiddlewareApplication FieldMiddleware { get; }
+
+        /// <summary>
+        /// Defines if the experimental directive introspection feature shall be enabled.
+        /// </summary>
+        bool EnableDirectiveIntrospection { get; }
+
+        /// <summary>
+        /// The default directive visibility when directive introspection is enabled.
+        /// </summary>
+        DirectiveVisibility DefaultDirectiveVisibility { get; }
     }
 }

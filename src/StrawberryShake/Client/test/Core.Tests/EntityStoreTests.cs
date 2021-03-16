@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -44,9 +45,10 @@ namespace StrawberryShake
         }
 
         [Fact]
-        public void RemoveEntity()
+        public async Task RemoveEntity()
         {
             // arrange
+            var cts = new CancellationTokenSource(2000);
             var entityStore = new EntityStore();
             var entityId = new EntityId(nameof(MockEntity), 1);
 
@@ -69,6 +71,12 @@ namespace StrawberryShake
             {
                 session.RemoveEntity(entityId);
             });
+
+            while (entityStore.CurrentSnapshot.GetEntityIds().Count > 0 &&
+                !cts.IsCancellationRequested)
+            {
+                await Task.Delay(50, cts.Token);
+            }
 
             // assert
             Assert.Empty(entityStore.CurrentSnapshot.GetEntityIds());

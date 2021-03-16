@@ -445,6 +445,7 @@ namespace HotChocolate.Data
             // assert
             result.ToJson().MatchSnapshot();
         }
+
         [Fact]
         public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField()
         {
