@@ -1,17 +1,17 @@
 using HotChocolate.Language;
-using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.Types
 {
     /// <summary>
     /// The GraphQL Upload scalar.
     /// </summary>
-    public class UploadType : ScalarType<IFormFile>
+    public class UploadType : ScalarType<IFile, FileValueNode>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="UploadType"/> class.
         /// </summary>
-        public UploadType() : this("Upload")
+        public UploadType()
+            : this("Upload")
         {
         }
 
@@ -27,29 +27,49 @@ namespace HotChocolate.Types
             Description = description;
         }
 
-        public override object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
-        {
-            throw new GraphQLException("Upload literal unsupported.");
-        }
-
-        public override bool IsInstanceOfType(IValueNode valueSyntax)
-        {
-            throw new GraphQLException("Upload value invalid.");
-        }
-
         public override IValueNode ParseResult(object? resultValue)
         {
-            throw new GraphQLException("Upload value invalid.");
+            if (resultValue is null)
+            {
+                return NullValueNode.Default;
+            }
+
+            if (resultValue is IFile file)
+            {
+                return new FileValueNode(file);
+            }
+
+            throw base.CreateParseValueError(resultValue);
         }
 
-        public override IValueNode ParseValue(object? runtimeValue)
+        protected override IFile ParseLiteral(FileValueNode valueSyntax) =>
+            valueSyntax.Value;
+
+        protected override FileValueNode ParseValue(IFile runtimeValue) =>
+            new FileValueNode(runtimeValue);
+
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
-            throw new GraphQLException("Upload value invalid.");
+            throw new GraphQLException(
+                "The GraphQL upload scalar is only valid to use as an input type.");
         }
 
-        public override object? Serialize(object? runtimeValue)
+        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
-            throw new GraphQLException("Upload serialization unsupported.");
+            if (resultValue is null)
+            {
+                runtimeValue = null;
+                return true;
+            }
+
+            if (resultValue is IFile file)
+            {
+                runtimeValue = file;
+                return true;
+            }
+
+            runtimeValue = null;
+            return false;
         }
     }
 }

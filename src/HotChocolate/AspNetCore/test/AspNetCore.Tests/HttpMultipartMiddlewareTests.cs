@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Utilities;
 using Microsoft.AspNetCore.TestHost;
+using Newtonsoft.Json;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -200,6 +201,40 @@ namespace HotChocolate.AspNetCore
             result.MatchSnapshot();
         }
 
-        // TODO : How to test whether the files actually end up in the resolver?
+        [Fact]
+        public async Task Upload_File()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            var query = @"
+                query ($upload: Upload!) {
+                    singleUpload(file: $upload)
+                }";
+
+            var request = JsonConvert.SerializeObject(
+                new ClientQueryRequest
+                {
+                    Query = query,
+                    Variables = new Dictionary<string, object>
+                    {
+                        { "upload", null }
+                    }
+                });
+
+            // act
+            var form = new MultipartFormDataContent
+            {
+                { new StringContent(request), "operations" },
+                { new StringContent("{ \"1\": [\"variables.upload\"] }"), "map" },
+                { new StringContent("abc"), "1", "foo.bar" },
+            };
+
+            ClientQueryResult result = await server.PostMultipartAsync(form, path: "/upload");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
     }
 }

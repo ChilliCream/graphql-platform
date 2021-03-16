@@ -251,44 +251,38 @@ namespace HotChocolate.AspNetCore.Utilities
             this TestServer testServer, MultipartFormDataContent content,
             string path)
         {
-            return testServer.CreateClient()
-                .PostAsync(CreateUrl(path),
-                    content);
+            return testServer.CreateClient().PostAsync(CreateUrl(path), content);
         }
 
         public static Task<HttpResponseMessage> SendPostRequestAsync<TObject>(
-            this TestServer testServer, TObject requestBody, string path = "/graphql")
-        {
-            return SendPostRequestAsync(
+            this TestServer testServer,
+            TObject requestBody,
+            string path = "/graphql") =>
+            SendPostRequestAsync(
                 testServer,
                 JsonConvert.SerializeObject(requestBody),
                 path);
-        }
 
         public static Task<HttpResponseMessage> SendPostRequestAsync(
-            this TestServer testServer, string requestBody, string path = null)
-        {
-            return SendPostRequestAsync(
-                testServer, requestBody,
-                "application/json", path);
-        }
+            this TestServer testServer,
+            string requestBody,
+            string path = null) =>
+            SendPostRequestAsync(testServer, requestBody, "application/json", path);
 
         public static Task<HttpResponseMessage> SendPostRequestAsync(
-            this TestServer testServer, string requestBody,
-            string contentType, string path)
-        {
-            return testServer.CreateClient()
-                .PostAsync(CreateUrl(path),
-                    new StringContent(requestBody,
-                        Encoding.UTF8, contentType));
-        }
+            this TestServer testServer,
+            string requestBody,
+            string contentType,
+            string path) =>
+            testServer.CreateClient().PostAsync(
+                CreateUrl(path),
+                new StringContent(requestBody, Encoding.UTF8, contentType));
 
         public static Task<HttpResponseMessage> SendGetRequestAsync(
-            this TestServer testServer, string query, string path = null)
-        {
-            return testServer.CreateClient()
-                .GetAsync($"{CreateUrl(path)}/?{query}");
-        }
+            this TestServer testServer,
+            string query,
+            string path = null) =>
+            testServer.CreateClient().GetAsync($"{CreateUrl(path)}/?{query}");
 
         public static string CreateUrl(string path)
         {

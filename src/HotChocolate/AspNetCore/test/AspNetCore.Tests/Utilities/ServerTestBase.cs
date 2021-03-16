@@ -5,9 +5,13 @@ using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Xunit;
 using System;
+using System.IO;
+using System.Text;
+using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Extensions;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution;
+using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore.Utilities
 {
@@ -65,7 +69,9 @@ namespace HotChocolate.AspNetCore.Utilities
                                 .Argument("d", t => t.Type<DecimalType>())
                                 .Type<DecimalType>()
                                 .Resolve(c => c.ArgumentValue<decimal?>("d"));
-                        });
+                        })
+                        .AddGraphQLServer("upload")
+                        .AddQueryType<UploadQuery>();
 
                     configureServices?.Invoke(services);
                 },
@@ -79,7 +85,19 @@ namespace HotChocolate.AspNetCore.Utilities
                         configureConventions?.Invoke(builder);
                         endpoints.MapGraphQL("/evict", "evict");
                         endpoints.MapGraphQL("/arguments", "arguments");
+                        endpoints.MapGraphQL("/upload", "upload");
                     }));
+        }
+    }
+
+    public class UploadQuery
+    {
+        public async Task<string> SingleUpload(
+            [GraphQLType(typeof(NonNullType<UploadType>))] IFormFile file)
+        {
+            await using Stream stream = file.OpenReadStream();
+            using var sr = new StreamReader(stream, Encoding.UTF8);
+            return await sr.ReadToEndAsync();
         }
     }
 }

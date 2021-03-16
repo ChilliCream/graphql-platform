@@ -40,7 +40,8 @@ namespace HotChocolate.AspNetCore
             }
             else
             {
-                AllowedContentType contentType = ParseContentType(context.Request.ContentType);
+                var contentType = ParseContentType(context.Request.ContentType);
+
                 if (contentType == AllowedContentType.Form)
                 {
                     await HandleRequestAsync(context, contentType);
@@ -70,12 +71,10 @@ namespace HotChocolate.AspNetCore
             }
 
             // Parse the string values of interest from the IFormCollection
-            HttpMultipartRequest parsedRequest = ParseMultipartRequest(form);
+            var parsedRequest = ParseMultipartRequest(form);
+            var requests = RequestParser.ReadOperationsRequest(parsedRequest.Operations);
 
-            IReadOnlyList<GraphQLRequest> requests =
-                RequestParser.ReadOperationsRequest(parsedRequest.Operations);
-
-            foreach (GraphQLRequest request in requests)
+            foreach (var request in requests)
             {
                 InsertFilesIntoRequest(request, parsedRequest.FileMap);
             }
@@ -83,13 +82,12 @@ namespace HotChocolate.AspNetCore
             return requests;
         }
 
-        private static HttpMultipartRequest ParseMultipartRequest(
-            IFormCollection form)
+        private static HttpMultipartRequest ParseMultipartRequest(IFormCollection form)
         {
             string? operations = null;
             Dictionary<string, string[]>? map = null;
 
-            foreach (KeyValuePair<string, StringValues> field in form)
+            foreach (var field in form)
             {
                 if (field.Key == _operations)
                 {
@@ -116,7 +114,7 @@ namespace HotChocolate.AspNetCore
                         // TODO : throw helper
                         throw new GraphQLRequestException(
                             ErrorBuilder.New()
-                                .SetMessage("Invalid JSON in the ‘map’ multipart field; Expected type of Dictionary<string, string[]>.", _map)
+                                .SetMessage("Invalid JSON in the `map` multipart field; Expected type of Dictionary<string, string[]>.", _map)
                                 .SetCode("// TODO CODE HC")
                                 .Build());
                     }
@@ -133,23 +131,22 @@ namespace HotChocolate.AspNetCore
                 // TODO : throw helper
                 throw new GraphQLRequestException(
                     ErrorBuilder.New()
-                        .SetMessage("No '{0}' specified.", _map)
+                        .SetMessage("No `map` specified.", _map)
                         .SetCode("// TODO CODE HC")
                         .Build());
             }
 
             // Validate file mappings and bring them in an easy to use format
-            IDictionary<string, IFormFile> pathToFileMap =
-                MapFilesToObjectPaths(map, form.Files);
+            var pathToFileMap = MapFilesToObjectPaths(map, form.Files);
 
             return new HttpMultipartRequest(operations, pathToFileMap);
         }
 
-        private static IDictionary<string, IFormFile> MapFilesToObjectPaths(
+        private static IDictionary<string, IFile> MapFilesToObjectPaths(
             IDictionary<string, string[]> map,
             IFormFileCollection files)
         {
-            var pathToFileMap = new Dictionary<string, IFormFile>();
+            var pathToFileMap = new Dictionary<string, IFile>();
 
             foreach ((var filename, var objectPaths) in map)
             {
@@ -187,7 +184,7 @@ namespace HotChocolate.AspNetCore
 
                 foreach (var objectPath in objectPaths)
                 {
-                    pathToFileMap.Add(objectPath, file);
+                    pathToFileMap.Add(objectPath, new UploadedFile(file));
                 }
             }
 
@@ -197,14 +194,14 @@ namespace HotChocolate.AspNetCore
         // TODO : This is not covered by tests yet
         private static void InsertFilesIntoRequest(
             GraphQLRequest request,
-            IDictionary<string, IFormFile> fileMap)
+            IDictionary<string, IFile> fileMap)
         {
             if (!(request.Variables is Dictionary<string, object?> mutableVariables))
             {
                 return;
             }
 
-            foreach ((string objectPath, IFormFile file) in fileMap)
+            foreach ((string objectPath, IFile file) in fileMap)
             {
                 var pathParts = objectPath.Split('.', System.StringSplitOptions.RemoveEmptyEntries);
 
@@ -274,11 +271,14 @@ namespace HotChocolate.AspNetCore
                         // TODO : We create a new ListValueNode for every new file that is inserted
                         mutableVariables[variableName] = new ListValueNode(list);
                         break;
+
                     default:
                         // TODO : This is (hopefully) just a limitation for now.
                         throw new System.NotSupportedException("Files can currently only be inserted into top-level 'variables'. Input objects are not yet supported.");
                 }
             }
         }
+
+        
     }
 }
