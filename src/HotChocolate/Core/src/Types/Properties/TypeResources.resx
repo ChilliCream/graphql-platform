@@ -687,4 +687,10 @@ Type: `{0}`</value>
   <data name="__DirectiveArgument_Description" xml:space="preserve">
     <value>Directive arguments can have names and values. The values are in graphql SDL syntax printed as a string. This type is NOT specified by the graphql specification presently.</value>
   </data>
+  <data name="ThrowHelper_UsePagingAttribute_NodeTypeUnknown" xml:space="preserve">
+    <value>Unable to infer the element type from the current resolver. This often happens if the resolver is not an iterable type like IEnumerable, IQueryable, IList etc. Ensure that you either explicitly specify the element type or that the return type of your resolver is an iterable type.</value>
+  </data>
+  <data name="Schema_GetDirectiveType_DoesNotExist" xml:space="preserve">
+    <value>The specified type `{0}` does not exist.</value>
+  </data>
 </root>
