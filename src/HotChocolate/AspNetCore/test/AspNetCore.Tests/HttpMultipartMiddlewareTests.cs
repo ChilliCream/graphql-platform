@@ -236,5 +236,40 @@ namespace HotChocolate.AspNetCore
             result.MatchSnapshot();
         }
 
+         [Fact]
+        public async Task Upload_File_In_InputObject()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            var query = @"
+                query ($input: InputWithFileInput!) {
+                    objectUpload(input: $input)
+                }";
+
+            var request = JsonConvert.SerializeObject(
+                new ClientQueryRequest
+                {
+                    Query = query,
+                    Variables = new Dictionary<string, object>
+                    {
+                        { "input", new Dictionary<string, object> { { "file", null } } }
+                    }
+                });
+
+            // act
+            var form = new MultipartFormDataContent
+            {
+                { new StringContent(request), "operations" },
+                { new StringContent("{ \"1\": [\"variables.input.file\"] }"), "map" },
+                { new StringContent("abc"), "1", "foo.bar" },
+            };
+
+            ClientQueryResult result = await server.PostMultipartAsync(form, path: "/upload");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
     }
 }

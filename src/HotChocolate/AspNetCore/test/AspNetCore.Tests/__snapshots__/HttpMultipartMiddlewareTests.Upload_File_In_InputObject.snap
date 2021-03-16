@@ -1,0 +1,21 @@
+﻿{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "InternalServerError",
+  "Data": null,
+  "Errors": [
+    {
+      "message": "Variable `input` got an invalid value.",
+      "locations": [
+        {
+          "line": 2,
+          "column": 24
+        }
+      ],
+      "extensions": {
+        "code": "HC0016",
+        "variable": "input"
+      }
+    }
+  ],
+  "Extensions": null
+}
