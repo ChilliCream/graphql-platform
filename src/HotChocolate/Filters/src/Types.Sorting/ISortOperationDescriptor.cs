@@ -1,7 +1,9 @@
+using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public interface ISortOperationDescriptor
     {
         /// <summary>
@@ -15,7 +17,7 @@ namespace HotChocolate.Types.Sorting
         /// <summary>
         /// Ignore the specified property.
         /// </summary>
-        /// <param name="ignore">If set to true the field is ignored</param> 
+        /// <param name="ignore">If set to true the field is ignored</param>
         ISortOperationDescriptor Ignore(bool ignore = true);
 
         /// <summary>

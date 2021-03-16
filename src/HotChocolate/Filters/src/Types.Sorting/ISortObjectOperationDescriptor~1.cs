@@ -3,6 +3,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public interface ISortObjectOperationDescriptor<TObject> :
         ISortObjectOperationDescriptor
     {
@@ -17,7 +18,7 @@ namespace HotChocolate.Types.Sorting
         /// <summary>
         /// Ignore the specified property.
         /// </summary>
-        /// <param name="ignore">If set to true the field is ignored</param> 
+        /// <param name="ignore">If set to true the field is ignored</param>
         new ISortObjectOperationDescriptor<TObject> Ignore(bool ignore = true);
 
         /// <summary>
