@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
@@ -12,7 +13,11 @@ namespace StrawberryShake
     public partial class EntityStore
     {
         private void BeginProcessEntityUpdates() =>
-            Task.Run(async () => await ProcessEntityUpdates());
+            Task<Task?>.Factory.StartNew(
+                ProcessEntityUpdates,
+                _cts.Token,
+                TaskCreationOptions.LongRunning,
+                TaskScheduler.Default);
 
         private async Task ProcessEntityUpdates()
         {
