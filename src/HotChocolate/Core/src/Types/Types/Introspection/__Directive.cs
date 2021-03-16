@@ -45,19 +45,19 @@ namespace HotChocolate.Types.Introspection
             descriptor
                 .Field(Names.OnOperation)
                 .Type<NonNullType<BooleanType>>()
-                .Resolve(c => GetOnOperation(c))
+                .Resolve(GetOnOperation)
                 .Deprecated(TypeResources.Directive_UseLocation);
 
             descriptor
                 .Field(Names.OnFragment)
                 .Type<NonNullType<BooleanType>>()
-                .Resolve(c => GetOnFragment(c))
+                .Resolve(GetOnFragment)
                 .Deprecated(TypeResources.Directive_UseLocation);
 
             descriptor
                 .Field(Names.OnField)
                 .Type<NonNullType<BooleanType>>()
-                .Resolve(c => GetOnField(c))
+                .Resolve(GetOnField)
                 .Deprecated(TypeResources.Directive_UseLocation);
         }
 

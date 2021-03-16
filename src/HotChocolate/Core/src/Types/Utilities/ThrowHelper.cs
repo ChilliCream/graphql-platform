@@ -92,8 +92,8 @@ namespace HotChocolate.Utilities
             MemberInfo member) =>
             new SchemaException(
                 SchemaErrorBuilder.New()
-                    .SetMessage("The UsePaging attribute needs a valid node schema type.")
-                    .SetCode("ATTR_USEPAGING_SCHEMATYPE_INVALID")
+                    .SetMessage(TypeResources.ThrowHelper_UsePagingAttribute_NodeTypeUnknown)
+                    .SetCode(ErrorCodes.Types.NodeTypeUnkown)
                     .SetExtension(nameof(member), member)
                     .Build());
 
