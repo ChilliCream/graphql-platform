@@ -1,12 +1,13 @@
 using System;
 using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
+using StrawberryShake;
 using StrawberryShake.Transport.Http;
 
-namespace StrawberryShake
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
-    /// Common extensions of <see cref="IClientBuilder"/> for <see cref="HttpConnection"/>
+    /// Common extensions of <see cref="IClientBuilder{T}"/> for <see cref="HttpConnection"/>
     /// </summary>
     public static class HttpClientBuilderExtensions
     {
