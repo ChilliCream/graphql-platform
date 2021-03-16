@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
@@ -65,18 +66,14 @@ namespace HotChocolate.AspNetCore
             }
             catch
             {
-                // TODO : throw helper
-                throw new GraphQLRequestException(
-                    ErrorBuilder.New()
-                        .SetMessage("At least an 'operations' and a 'map' field need to be present.")
-                        .SetCode("// TODO CODE HC")
-                        .Build());
+                throw ThrowHelper.HttpMultipartMiddleware_Form_Incomplete();
             }
 
             // Parse the string values of interest from the IFormCollection
             HttpMultipartRequest parsedRequest = ParseMultipartRequest(form);
 
-            IReadOnlyList<GraphQLRequest> requests = RequestParser.ReadOperationsRequest(parsedRequest.Operations);
+            IReadOnlyList<GraphQLRequest> requests =
+                RequestParser.ReadOperationsRequest(parsedRequest.Operations);
 
             foreach (GraphQLRequest request in requests)
             {
@@ -98,24 +95,14 @@ namespace HotChocolate.AspNetCore
                 {
                     if (!field.Value.TryPeek(out operations) || string.IsNullOrEmpty(operations))
                     {
-                        // TODO : throw helper
-                        throw new GraphQLRequestException(
-                            ErrorBuilder.New()
-                                .SetMessage("No '{0}' specified.", _operations)
-                                .SetCode("// TODO CODE HC")
-                                .Build());
+                        throw ThrowHelper.HttpMultipartMiddleware_No_Operations_Specified();
                     }
                 }
                 else if (field.Key == _map)
                 {
                     if (string.IsNullOrEmpty(operations))
                     {
-                        // TODO : throw helper
-                        throw new GraphQLRequestException(
-                            ErrorBuilder.New()
-                                .SetMessage("Misordered multipart fields; '{0}' should follow ‘{1}’.", _map, _operations)
-                                .SetCode("// TODO CODE HC")
-                                .Build());
+                        throw ThrowHelper.HttpMultipartMiddleware_Fields_Misordered();
                     }
 
                     field.Value.TryPeek(out var mapString);
@@ -129,12 +116,16 @@ namespace HotChocolate.AspNetCore
                         // TODO : throw helper
                         throw new GraphQLRequestException(
                             ErrorBuilder.New()
-                                .SetMessage(
-                                    "Invalid JSON in the ‘{0}’ multipart field; Expected type of Dictionary<string, string[]>.", _map)
+                                .SetMessage("Invalid JSON in the ‘map’ multipart field; Expected type of Dictionary<string, string[]>.", _map)
                                 .SetCode("// TODO CODE HC")
                                 .Build());
                     }
                 }
+            }
+
+            if (operations is null)
+            {
+                throw ThrowHelper.HttpMultipartMiddleware_No_Operations_Specified();
             }
 
             if (map is null)
@@ -249,8 +240,9 @@ namespace HotChocolate.AspNetCore
                 {
                     case 2:
                         // single file upload, e.g. 'variables.file'
-                        mutableVariables[variableName] = new FileValueNode(file);
+                        mutableVariables[variableName] = file;
                         break;
+
                     case 3:
                         // multi file upload, e.g. 'variables.files.1'
                         if (!int.TryParse(pathParts[2], out var fileIndex))
@@ -276,7 +268,8 @@ namespace HotChocolate.AspNetCore
                             list.Add(NullValueNode.Default);
                         }
 
-                        list[fileIndex] = new FileValueNode(file);
+                        // list[fileIndex] = file;
+                        throw new NotImplementedException();
 
                         // TODO : We create a new ListValueNode for every new file that is inserted
                         mutableVariables[variableName] = new ListValueNode(list);

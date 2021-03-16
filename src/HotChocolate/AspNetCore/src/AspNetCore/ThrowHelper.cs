@@ -42,5 +42,28 @@ namespace HotChocolate.AspNetCore
 
         public static NotSupportedException  DataStartMessageHandler_RequestTypeNotSupported() =>
             new(ThrowHelper_DataStartMessageHandler_RequestTypeNotSupported);
+
+        public static GraphQLException HttpMultipartMiddleware_Form_Incomplete() =>
+            new GraphQLRequestException(
+                ErrorBuilder.New()
+                    .SetMessage(ThrowHelper_HttpMultipartMiddleware_Form_Incomplete)
+                    .SetCode(ErrorCodes.Server.MultiPartFormIncomplete)
+                    .Build());
+
+        public static GraphQLException HttpMultipartMiddleware_No_Operations_Specified() =>
+            new GraphQLRequestException(
+                ErrorBuilder.New()
+                    .SetMessage(ThrowHelper_HttpMultipartMiddleware_No_Operations_Specified)
+                    .SetCode(ErrorCodes.Server.MultiPartNoOperationsSpecified)
+                    .Build());
+
+        public static GraphQLException HttpMultipartMiddleware_Fields_Misordered() =>
+            new GraphQLRequestException(
+                ErrorBuilder.New()
+                    .SetMessage(ThrowHelper_HttpMultipartMiddleware_Fields_Misordered)
+                    .SetCode(ErrorCodes.Server.MultiPartFieldsMisordered)
+                    .Build());
+
+        // public static GraphQLException HttpMultipartMiddleware_
     }
 }

@@ -40,6 +40,21 @@ namespace HotChocolate
             public const string SyntaxError = "HC0011";
             public const string UnexpectedRequestParserError = "HC0012";
             public const string QueryAndIdMissing = "HC0013";
+
+            /// <summary>
+            /// At least an 'operations' field and a 'map' field need to be present.
+            /// </summary>
+            public const string MultiPartFormIncomplete = "HC0033";
+
+            /// <summary>
+            /// No 'operations' specified.
+            /// </summary>
+            public const string MultiPartNoOperationsSpecified = "HC0034";
+
+            /// <summary>
+            /// Misordered multipart fields; 'map' should follow 'operations'.
+            /// </summary>
+            public const string MultiPartFieldsMisordered = "HC0035";
         }
 
         public static class Schema

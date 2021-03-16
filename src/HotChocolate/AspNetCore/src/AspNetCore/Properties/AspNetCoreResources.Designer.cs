@@ -68,5 +68,23 @@ namespace HotChocolate.AspNetCore.Properties {
                 return ResourceManager.GetString("ThrowHelper_DataStartMessageHandler_RequestTypeNotSupported", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_Form_Incomplete {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_Form_Incomplete", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_No_Operations_Specified {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_No_Operations_Specified", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_Fields_Misordered {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_Fields_Misordered", resourceCulture);
+            }
+        }
     }
 }
