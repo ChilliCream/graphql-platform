@@ -7,7 +7,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 {
     internal sealed class InputObjectTypeUsageAnalyzer : QuerySyntaxWalker<object?>
     {
-        private readonly HashSet<InputObjectType> _inputObjectTypes = new();
+        private readonly HashSet<INamedInputType> _inputTypes = new();
         private readonly HashSet<IInputType> _visitedTypes = new();
         private readonly ISchema _schema;
 
@@ -16,7 +16,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             _schema = schema;
         }
 
-        public ISet<InputObjectType> InputObjectTypes => _inputObjectTypes;
+        public ISet<INamedInputType> InputTypes => _inputTypes;
 
         public void Analyze(DocumentNode document)
         {
@@ -59,20 +59,23 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 {
                     VisitInputType(innerType);
                 }
-                else if (type is InputObjectType inputObjectType)
+                else if (type is INamedInputType namedInputType)
                 {
-                    VisitInputObjectType(inputObjectType);
+                    VisitNamedInputType(namedInputType);
                 }
             }
         }
 
-        private void VisitInputObjectType(InputObjectType type)
+        private void VisitNamedInputType(INamedInputType type)
         {
-            if (_inputObjectTypes.Add(type))
+            if (_inputTypes.Add(type))
             {
-                foreach (IInputField field in type.Fields)
+                if (type is InputObjectType inputObjectType)
                 {
-                    VisitInputType(field.Type);
+                    foreach (IInputField field in inputObjectType.Fields)
+                    {
+                        VisitInputType(field.Type);
+                    }
                 }
             }
         }

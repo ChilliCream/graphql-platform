@@ -9,10 +9,12 @@ namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
     {
         public PropertyDescriptor(
             NameString name,
+            NameString fieldName,
             ITypeDescriptor type,
             string? description)
         {
             Name = name;
+            FieldName = fieldName;
             Type = type;
             Description = description;
         }
@@ -21,6 +23,11 @@ namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
         /// The name of the property
         /// </summary>
         public NameString Name { get; }
+
+        /// <summary>
+        /// Gets the GraphQL field name.
+        /// </summary>
+        public NameString FieldName { get; }
 
         /// <summary>
         /// The referenced type

@@ -31,7 +31,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                 .AddCode("<")
                                 .AddCode(
                                     listTypeDescriptor.InnerType
-                                        .ToEntityIdBuilder()
+                                        .ToStateTypeReference()
                                         .SkipTrailingSpace())
                                 .AddCode(">")
                                 .AddCode("()")))

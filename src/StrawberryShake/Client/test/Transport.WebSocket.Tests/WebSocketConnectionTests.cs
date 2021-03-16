@@ -18,8 +18,8 @@ namespace StrawberryShake.Transport.WebSockets
         public void Constructor_AllArgs_CreateObject()
         {
             // arrange
-            Func<Task<ISession>> sessionFactory =
-                () => Task.FromResult(new Mock<ISession>().Object);
+            Func<CancellationToken, ValueTask<ISession>> sessionFactory =
+                (ct) => new(new Mock<ISession>().Object);
 
             // act
             Exception? exception = Record.Exception(() => new WebSocketConnection(sessionFactory));
@@ -32,7 +32,7 @@ namespace StrawberryShake.Transport.WebSockets
         public void Constructor_ManagerNull_CreateObject()
         {
             // arrange
-            Func<Task<ISession>> sessionFactory = null!;
+            Func<CancellationToken, ValueTask<ISession>> sessionFactory = null!;
 
             // act
             Exception? exception = Record.Exception(() => new WebSocketConnection(sessionFactory));
@@ -58,7 +58,8 @@ namespace StrawberryShake.Transport.WebSockets
                 .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
                 .ReturnsAsync(operationMock.Object);
             operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
-            Func<Task<ISession>> sessionFactory = () => Task.FromResult(managerMock.Object);
+            Func<CancellationToken, ValueTask<ISession>> sessionFactory =
+                (ct) => new(managerMock.Object);
             var connection = new WebSocketConnection(sessionFactory);
             var results = new List<Response<JsonDocument>>();
 
@@ -92,7 +93,8 @@ namespace StrawberryShake.Transport.WebSockets
                 .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
                 .ReturnsAsync(operationMock.Object);
             operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
-            Func<Task<ISession>> sessionFactory = () => Task.FromResult(managerMock.Object);
+            Func<CancellationToken, ValueTask<ISession>> sessionFactory =
+                (ct) => new(managerMock.Object);
             var connection = new WebSocketConnection(sessionFactory);
             var results = new List<Response<JsonDocument>>();
 
@@ -123,7 +125,8 @@ namespace StrawberryShake.Transport.WebSockets
                 .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
                 .ReturnsAsync(operationMock.Object);
             operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
-            Func<Task<ISession>> sessionFactory = () => Task.FromResult(managerMock.Object);
+            Func<CancellationToken, ValueTask<ISession>> sessionFactory =
+                (ct) => new(managerMock.Object);
             var connection = new WebSocketConnection(sessionFactory);
             var results = new List<Response<JsonDocument>>();
 
@@ -155,7 +158,8 @@ namespace StrawberryShake.Transport.WebSockets
                 .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
                 .ReturnsAsync(operationMock.Object);
             operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
-            Func<Task<ISession>> sessionFactory = () => Task.FromResult(managerMock.Object);
+            Func<CancellationToken, ValueTask<ISession>> sessionFactory =
+                (ct) => new(managerMock.Object);
             var connection = new WebSocketConnection(sessionFactory);
             var results = new List<Response<JsonDocument>>();
 
@@ -187,7 +191,8 @@ namespace StrawberryShake.Transport.WebSockets
                 .Setup(x => x.StartOperationAsync(operationRequest, CancellationToken.None))
                 .ReturnsAsync(operationMock.Object);
             operationMock.Setup(x => x.ReadAsync(default)).Returns(Producer());
-            Func<Task<ISession>> sessionFactory = () => Task.FromResult(managerMock.Object);
+            Func<CancellationToken, ValueTask<ISession>> sessionFactory =
+                (ct) => new(managerMock.Object);
             var connection = new WebSocketConnection(sessionFactory);
             var results = new List<Response<JsonDocument>>();
 

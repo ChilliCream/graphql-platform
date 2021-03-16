@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Descriptors
         , IDefinitionFactory<T>
         where T : DefinitionBase
     {
-        private readonly List<Action<IDescriptorContext, T>> _modifiers = new();
+        private List<Action<IDescriptorContext, T>>? _modifiers;
 
         protected DescriptorBase(IDescriptorContext context)
         {
@@ -36,9 +36,12 @@ namespace HotChocolate.Types.Descriptors
         {
             OnCreateDefinition(Definition);
 
-            foreach (Action<IDescriptorContext, T> modifier in _modifiers)
+            if (_modifiers is not null)
             {
-                modifier.Invoke(Context, Definition);
+                foreach (Action<IDescriptorContext, T> modifier in _modifiers)
+                {
+                    modifier.Invoke(Context, Definition);
+                }
             }
 
             return Definition;
@@ -79,6 +82,8 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(configure));
             }
 
+            _modifiers ??= new List<Action<IDescriptorContext, T>>();
+
             _modifiers.Add(configure);
         }
 
@@ -104,6 +109,7 @@ namespace HotChocolate.Types.Descriptors
                 On = ApplyConfigurationOn.Naming,
                 Configure = configure
             };
+
             Definition.Configurations.Add(configuration);
 
             return new NamedDependencyDescriptor<T>(Context.TypeInspector, configuration);

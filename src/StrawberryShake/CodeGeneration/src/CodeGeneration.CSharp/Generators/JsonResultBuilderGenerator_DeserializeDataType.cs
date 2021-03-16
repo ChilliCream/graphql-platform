@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
@@ -73,6 +74,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
                 foreach (PropertyDescriptor property in concreteType.Properties)
                 {
+                    if (property.Name.Value.EqualsOrdinal(__typename))
+                    {
+                        continue;
+                    }
+
                     returnStatement.AddArgument(
                         CodeBlockBuilder
                             .New()

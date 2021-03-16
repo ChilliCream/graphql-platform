@@ -2,24 +2,23 @@ namespace HotChocolate.Types
 {
     public static class ScalarNames
     {
-        public const string String = "String";
-        public const string ID = "ID";
-        public const string Boolean = "Boolean";
-        public const string Byte = "Byte";
-        public const string Short = "Short";
-        public const string Int = "Int";
-        public const string Long = "Long";
-        public const string Float = "Float";
-        public const string Decimal = "Decimal";
-        public const string Url = "Url";
-        public const string Uuid = "Uuid";
-        public const string DateTime = "DateTime";
-        public const string Date = "Date";
-        public const string MultiplierPath = "MultiplierPath";
-        public const string Name = "Name";
-        public const string ByteArray = "ByteArray";
-        public const string Any = "Any";
-        public const string TimeSpan = "TimeSpan";
-        public const string File = "File";
+        public const string String = nameof(String);
+        public const string ID = nameof(ID);
+        public const string Boolean = nameof(Boolean);
+        public const string Short = nameof(Short);
+        public const string Int = nameof(Int);
+        public const string Long = nameof(Long);
+        public const string Float = nameof(Float);
+        public const string Decimal = nameof(Decimal);
+        public const string Url = nameof(Url);
+        public const string Uuid = nameof(Uuid);
+        public const string Byte = nameof(Byte);
+        public const string ByteArray = nameof(ByteArray);
+        public const string Any = nameof(Any);
+        public const string DateTime = nameof(DateTime);
+        public const string Date = nameof(Date);
+        public const string TimeSpan = nameof(TimeSpan);
+        public const string MultiplierPath = nameof(MultiplierPath);
+        public const string Name = nameof(Name);
     }
 }

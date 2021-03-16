@@ -24,13 +24,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             InputObjectTypeDescriptor namedTypeDescriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             const string serializerResolver = nameof(serializerResolver);
             const string runtimeValue = nameof(runtimeValue);
             const string value = nameof(value);
 
             fileName = CreateInputValueFormatter(namedTypeDescriptor);
+            path = Serialization;
 
             NameString typeName = namedTypeDescriptor.Name;
 
@@ -95,6 +97,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .SetReturnType(TypeNames.Object.MakeNullable())
                 .AddParameter(runtimeValue, x => x.SetType(TypeNames.Object.MakeNullable()))
                 .AddBody()
+                .AddCode(IfBuilder
+                    .New()
+                    .SetCondition($"{runtimeValue} is null")
+                    .AddCode("return null;"))
+                .AddEmptyLine()
                 .ArgumentException(runtimeValue, $"!({runtimeValue} is {typeName} d)")
                 .AddEmptyLine()
                 .AddArray()
@@ -110,7 +117,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         .Inline()
                         .SetNew()
                         .SetMethodName(_keyValuePair)
-                        .AddArgument(GetParameterName(property.Name).AsStringToken())
+                        .AddArgument(property.FieldName.AsStringToken())
                         .AddArgument(MethodCallBuilder
                             .Inline()
                             .SetMethodName(serializerMethodName)
@@ -118,7 +125,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
                 classBuilder
                     .AddMethod(serializerMethodName)
-                    .AddParameter(value, x => x.SetType(property.Type.ToBuilder()))
+                    .AddParameter(value, x => x.SetType(property.Type.ToTypeReference()))
                     .SetReturnType(TypeNames.Object.MakeNullable())
                     .SetPrivate()
                     .AddCode(GenerateSerializer(property.Type, value));
@@ -136,6 +143,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             string variableName,
             string assignment = "return")
         {
+            RuntimeTypeInfo runtimeType = typeDescriptor.GetRuntimeType();
+            var isValueType = runtimeType.IsValueType;
+
             switch (typeDescriptor)
             {
                 case INamedTypeDescriptor descriptor:
@@ -155,16 +165,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 case NonNullTypeDescriptor descriptor:
                     return CodeBlockBuilder
                         .New()
-                        .AddIf(x =>
-                            x.SetCondition($"{variableName} == default")
-                                .AddCode(
-                                    assignment == "return"
-                                        ? CodeLineBuilder.From("return null;")
-                                        : CodeBlockBuilder
-                                            .New()
-                                            .AddLine($"{assignment}.Add(null);")
-                                            .AddLine("continue;")))
-                        .AddEmptyLine()
+                        .If(!isValueType,
+                            i =>
+                            {
+                                i.AddIf(x => x
+                                        .SetCondition($"{variableName} is null")
+                                        .AddCode(
+                                            ExceptionBuilder
+                                                .New(TypeNames.ArgumentNullException)
+                                                .AddArgument($"nameof({variableName})")))
+                                    .AddEmptyLine();
+                            })
                         .AddCode(
                             GenerateSerializer(
                                 descriptor.InnerType(),

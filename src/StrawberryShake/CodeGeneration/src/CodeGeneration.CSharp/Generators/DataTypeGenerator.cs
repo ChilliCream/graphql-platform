@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors;
@@ -17,9 +18,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             DataTypeDescriptor descriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             fileName = descriptor.RuntimeType.Name;
+            path = State;
+
             AbstractTypeBuilder typeBuilder;
             ConstructorBuilder? constructorBuilder = null;
 
@@ -69,13 +73,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             // Add Properties to class
             foreach (PropertyDescriptor property in descriptor.Properties)
             {
-                TypeReferenceBuilder propertyType = property.Type.Kind switch
+                if (property.Name.Value.EqualsOrdinal(__typename))
                 {
-                    TypeKind.LeafType => property.Type.ToBuilder(),
-                    TypeKind.DataType => property.Type.ToBuilder(property.Type.Name),
-                    TypeKind.EntityType => property.Type.ToEntityIdBuilder(),
-                    _ => throw new ArgumentOutOfRangeException()
-                };
+                    continue;
+                }
+
+                TypeReferenceBuilder propertyType = property.Type.ToStateTypeReference();
 
                 typeBuilder
                     .AddProperty(property.Name)

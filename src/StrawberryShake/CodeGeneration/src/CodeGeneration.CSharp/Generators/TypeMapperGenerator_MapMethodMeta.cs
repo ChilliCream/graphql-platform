@@ -107,7 +107,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .New()
                     .SetAccessModifier(AccessModifier.Private)
                     .SetName(methodName)
-                    .SetReturnType(typeReference.ToBuilder());
+                    .SetReturnType(typeReference.ToTypeReference());
 
                 classBuilder.AddMethod(methodBuilder);
 
@@ -126,7 +126,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         {
             IfBuilder ifBuilder = IfBuilder
                 .New()
-                .SetCondition($"{propertyName} == default")
+                .SetCondition($"{propertyName} is null")
                 .AddCode(
                     isNonNullType
                         ? ExceptionBuilder.New(TypeNames.ArgumentNullException)
@@ -165,9 +165,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                             .SetCode(ExceptionBuilder.Inline(TypeNames.ArgumentNullException));
                     }
 
-                    mapperMethodCall.AddArgument(argString);
-
-                    return mapperMethodCall;
+                    return mapperMethodCall
+                        .AddArgument(argString)
+                        .AddArgument(_snapshot);
 
                 default:
                     throw new ArgumentOutOfRangeException();

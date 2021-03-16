@@ -14,7 +14,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuilderDescriptor>
     {
         private const string _entityStore = "_entityStore";
-        private const string _extractId = "_extractId";
+        private const string _idSerializer = "_idSerializer";
         private const string _resultDataFactory = "_resultDataFactory";
         private const string _serializerResolver = "serializerResolver";
         private const string _entityIds = "entityIds";
@@ -24,7 +24,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             ResultBuilderDescriptor resultBuilderDescriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             InterfaceTypeDescriptor resultTypeDescriptor =
                 resultBuilderDescriptor.ResultNamedType as InterfaceTypeDescriptor
@@ -32,6 +33,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     "A result type can only be generated for complex types");
 
             fileName = resultBuilderDescriptor.RuntimeType.Name;
+            path = State;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -45,7 +47,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .AddImplements(
                     TypeNames.IOperationResultBuilder.WithGeneric(
                         TypeNames.JsonDocument,
-                        resultTypeDescriptor.RuntimeType.Name));
+                        resultTypeDescriptor.RuntimeType.ToString()));
 
             AddConstructorAssignedField(
                 TypeNames.IEntityStore,
@@ -54,14 +56,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 constructorBuilder);
 
             AddConstructorAssignedField(
-                TypeNames.Func.WithGeneric(TypeNames.JsonElement, TypeNames.EntityId),
-                _extractId,
+                TypeNames.IEntityIdSerializer,
+                _idSerializer,
                 classBuilder,
                 constructorBuilder);
 
             AddConstructorAssignedField(
                 TypeNames.IOperationResultDataFactory
-                    .WithGeneric(resultTypeDescriptor.RuntimeType.Name),
+                    .WithGeneric(resultTypeDescriptor.RuntimeType.ToString()),
                 _resultDataFactory,
                 classBuilder,
                 constructorBuilder);
@@ -115,7 +117,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(resultTypeDescriptor.RuntimeType.NamespaceWithoutGlobal)
+                .SetNamespace(resultBuilderDescriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(classBuilder)
                 .Build(writer);
         }
@@ -165,18 +167,24 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 MethodBuilder methodBuilder = classBuilder
                     .AddMethod()
                     .SetPrivate()
-                    .SetReturnType(typeReference.ToEntityIdBuilder())
+                    .SetReturnType(typeReference.ToStateTypeReference())
                     .SetName(methodName);
 
-                methodBuilder
-                    .AddParameter(_obj)
-                    .SetType(TypeNames.JsonElement.MakeNullable());
 
                 if (typeReference.IsEntityType() || typeReference.ContainsEntity())
                 {
                     methodBuilder
-                        .AddParameter(_entityIds)
-                        .SetType(TypeNames.ISet.WithGeneric(TypeNames.EntityId));
+                        .AddParameter(_session, x => x.SetType(TypeNames.IEntityStoreUpdateSession))
+                        .AddParameter(_obj, x => x.SetType(TypeNames.JsonElement.MakeNullable()))
+                        .AddParameter(
+                            _entityIds,
+                            x => x.SetType(TypeNames.ISet.WithGeneric(TypeNames.EntityId)));
+                }
+                else
+                {
+                    methodBuilder
+                        .AddParameter(_obj)
+                        .SetType(TypeNames.JsonElement.MakeNullable());
                 }
 
                 IfBuilder jsonElementNullCheck = IfBuilder
@@ -284,7 +292,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                 ConditionBuilder
                                     .New()
                                     .Set("response.Body.RootElement.TryGetProperty(\"data\"," +
-                                         $" out {TypeNames.JsonElement} dataElement)"))
+                                        $" out {TypeNames.JsonElement} dataElement)"))
                             .AddCode("data = BuildData(dataElement);"))
                     .AddCode(
                         IfBuilder
@@ -293,7 +301,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                 ConditionBuilder
                                     .New()
                                     .Set("response.Body.RootElement.TryGetProperty(\"errors\"," +
-                                         $" out {TypeNames.JsonElement} errorsElement)"))
+                                        $" out {TypeNames.JsonElement} errorsElement)"))
                             .AddCode($"errors = {TypeNames.ParseError}(errorsElement);")));
 
             buildMethod.AddEmptyLine();
@@ -316,7 +324,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .Inline()
                 .SetMethodName(TypeNames.GetPropertyOrNull)
                 .AddArgument(_obj)
-                .AddArgument(GetParameterName(property.Name).AsStringToken());
+                .AddArgument(property.FieldName.AsStringToken());
 
             return BuildUpdateMethodCall(property.Type, propertyAccessor).SetWrapArguments();
         }
@@ -329,11 +337,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .Inline()
                 .SetMethodName(DeserializerMethodNameFromTypeName(property));
 
-            deserializeMethodCaller.AddArgument(argument);
-
             if (property.IsEntityType() || property.ContainsEntity())
             {
-                deserializeMethodCaller.AddArgument(_entityIds);
+                deserializeMethodCaller
+                    .AddArgument(_session)
+                    .AddArgument(argument)
+                    .AddArgument(_entityIds);
+            }
+            else
+            {
+                deserializeMethodCaller.AddArgument(argument);
             }
 
             return deserializeMethodCaller;
@@ -362,10 +375,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 } => parentRuntimeType.Name,
 
                 INamedTypeDescriptor { Kind: TypeKind.EntityType } d =>
-                    CreateEntityTypeName(d.RuntimeType.Name),
+                    CreateEntityType(
+                            d.RuntimeType.Name,
+                            d.RuntimeType.NamespaceWithoutGlobal)
+                        .Name,
 
+                // TODO: we should look a better way to solve the array naming issue.
                 INamedTypeDescriptor d =>
-                    d.RuntimeType.Name,
+                    d.RuntimeType.ToString() == TypeNames.ByteArray
+                        ? "ByteArray"
+                        : d.RuntimeType.Name,
 
                 NonNullTypeDescriptor nonNullTypeDescriptor => parentIsList
                     ? BuildDeserializeMethodName(nonNullTypeDescriptor.InnerType) + "NonNullable"

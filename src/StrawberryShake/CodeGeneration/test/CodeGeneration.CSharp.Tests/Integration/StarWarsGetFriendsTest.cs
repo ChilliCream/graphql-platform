@@ -25,13 +25,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
                 _ => { },
                 out var port);
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddHttpClient(
-                StarWarsGetFriendsClient.ClientName,
-                c => c.BaseAddress = new Uri("http://localhost:" + port + "/graphql"));
-            serviceCollection.AddWebSocketClient(
-                StarWarsGetFriendsClient.ClientName,
-                c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
-            serviceCollection.AddStarWarsGetFriendsClient();
+
+            serviceCollection
+                .AddStarWarsGetFriendsClient()
+                .ConfigureHttpClient(
+                    c => c.BaseAddress = new Uri("http://localhost:" + port + "/graphql"))
+                .ConfigureWebSocketClient(
+                    c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
+
             IServiceProvider services = serviceCollection.BuildServiceProvider();
             StarWarsGetFriendsClient client = services.GetRequiredService<StarWarsGetFriendsClient>();
 

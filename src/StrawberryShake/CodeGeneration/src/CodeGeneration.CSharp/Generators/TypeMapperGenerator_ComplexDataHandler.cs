@@ -26,8 +26,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             method
                 .AddParameter(_dataParameterName)
-                .SetType(complexTypeDescriptor.ParentRuntimeType.ToString())
+                .SetType(complexTypeDescriptor.ParentRuntimeType
+                    .ToString()
+                    .MakeNullable(!isNonNullable))
                 .SetName(_dataParameterName);
+
+            method
+                .AddParameter(_snapshot)
+                .SetType(TypeNames.IEntityStoreSnapshot);
 
             if (!isNonNullable)
             {
@@ -35,7 +41,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             }
 
             const string returnValue = nameof(returnValue);
-            method.AddCode($"{complexTypeDescriptor.RuntimeType.Name} {returnValue} = default!;");
+            method.AddCode($"{complexTypeDescriptor.RuntimeType.Name}? {returnValue};");
             method.AddEmptyLine();
 
             GenerateIfForEachImplementedBy(
@@ -102,7 +108,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 }
                 else
                 {
-                    constructorCall.AddArgument($"{matchedTypeName}.{prop.Name}");
+                    var isNonNullableValueType =
+                        prop.Type is NonNullTypeDescriptor
+                            { InnerType: ILeafTypeDescriptor leaf } &&
+                        leaf.RuntimeType.IsValueType;
+
+                    constructorCall
+                        .AddArgument(
+                            $"{matchedTypeName}.{prop.Name}" +
+                            (isNonNullableValueType ? ".Value" : ""));
                 }
             }
 

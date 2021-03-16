@@ -22,7 +22,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             ITypeDescriptor typeDescriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             ComplexTypeDescriptor complexTypeDescriptor =
                 typeDescriptor as ComplexTypeDescriptor ??
@@ -31,6 +32,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             var className = CreateResultInfoName(complexTypeDescriptor.RuntimeType.Name);
             fileName = className;
+            path = State;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -43,7 +45,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             foreach (var prop in complexTypeDescriptor.Properties)
             {
-                TypeReferenceBuilder propTypeBuilder = prop.Type.ToEntityIdBuilder();
+                TypeReferenceBuilder propTypeBuilder = prop.Type.ToStateTypeReference();
 
                 // Add Property to class
                 classBuilder
@@ -106,7 +108,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(complexTypeDescriptor.RuntimeType.NamespaceWithoutGlobal)
+                .SetNamespace(CreateStateNamespace(
+                    complexTypeDescriptor.RuntimeType.NamespaceWithoutGlobal))
                 .AddType(classBuilder)
                 .Build(writer);
         }
