@@ -420,7 +420,21 @@
           },
           {
             "path": "get-started",
-            "title": "Get Started"
+            "title": "Get Started",
+            "items": [
+              {
+                "path": "index",
+                "title": "Blazor"
+              },
+              {
+                "path": "xamarin",
+                "title": "Xamarin"
+              },
+              {
+                "path": "console",
+                "title": "Console"
+              }
+            ]
           },
           {
             "path": "state-management",

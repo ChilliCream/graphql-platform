@@ -189,15 +189,13 @@ In this section we will perform a simple fetch with our `ConferenceClient`. We w
 2. Add inject the `ConferenceClient` beneath the `@pages` directive.
 
 ```html
-@page "/"
-@inject ConferenceClient ConferenceClient;
+@page "/" @inject ConferenceClient ConferenceClient;
 ```
 
 3. Introduce a code directive at the bottom of the file.
 
 ```html
-@page "/"
-@inject ConferenceClient ConferenceClient;
+@page "/" @inject ConferenceClient ConferenceClient;
 
 <h1>Hello, world!</h1>
 
@@ -205,16 +203,13 @@ Welcome to your new app.
 
 <SurveyPrompt Title="How is Blazor working for you?" />
 
-@code {
-
-}
+@code { }
 ```
 
 4. Now lets fetch the titles with our client.
 
 ```html
-@page "/"
-@inject ConferenceClient ConferenceClient;
+@page "/" @inject ConferenceClient ConferenceClient;
 
 <h1>Hello, world!</h1>
 
@@ -222,28 +217,20 @@ Welcome to your new app.
 
 <SurveyPrompt Title="How is Blazor working for you?" />
 
-@code {
-    private string[] titles = Array.Empty<string>();
-
-    protected override async Task OnInitializedAsync()
-    {
-        // Execute our GetSessions query
-        var result = await ConferenceClient.GetSessions.ExecuteAsync();
-
-        // aggregate the titles from the result
-        titles = result.Data.Sessions.Nodes.Select(t => t.Title).ToArray();
-
-        // signal the components that the state has changed.
-        StateHasChanged();
-    }
-}
+@code { private string[] titles = Array.Empty<string
+  >(); protected override async Task OnInitializedAsync() { // Execute our
+  GetSessions query var result = await
+  ConferenceClient.GetSessions.ExecuteAsync(); // aggregate the titles from the
+  result titles = result.Data.Sessions.Nodes.Select(t => t.Title).ToArray(); //
+  signal the components that the state has changed. StateHasChanged(); }
+  }</string
+>
 ```
 
 5. Last, lets render the titles on our page as a list.
 
 ```html
-@page "/"
-@inject ConferenceClient ConferenceClient;
+@page "/" @inject ConferenceClient ConferenceClient;
 
 <h1>Hello, world!</h1>
 
@@ -252,27 +239,19 @@ Welcome to your new app.
 <SurveyPrompt Title="How is Blazor working for you?" />
 
 <ul>
-    @foreach (string title in titles)
-    {
-        <li>@title</li>
-    }
+  @foreach (string title in titles) {
+  <li>@title</li>
+  }
 </ul>
 
-@code {
-    private string[] titles = Array.Empty<string>();
-
-    protected override async Task OnInitializedAsync()
-    {
-        // Execute our GetSessions query
-        var result = await ConferenceClient.GetSessions.ExecuteAsync();
-
-        // aggregate the titles from the result
-        titles = result.Data.Sessions.Nodes.Select(t => t.Title).ToArray();
-
-        // signal the components that the state has changed.
-        StateHasChanged();
-    }
-}
+@code { private string[] titles = Array.Empty<string
+  >(); protected override async Task OnInitializedAsync() { // Execute our
+  GetSessions query var result = await
+  ConferenceClient.GetSessions.ExecuteAsync(); // aggregate the titles from the
+  result titles = result.Data.Sessions.Nodes.Select(t => t.Title).ToArray(); //
+  signal the components that the state has changed. StateHasChanged(); }
+  }</string
+>
 ```
 
 5. Start the Blazor application with `dotnet run --project ./Demo` and see if your code works.
@@ -395,10 +374,29 @@ The page will look unchanged.
 
 ![Microsoft Edge developer tools show just one network interaction.](../shared/berry_session_list_network.png)
 
-7. Switch between the `Index` and the `Counter` page (back and forth) and watch the console output. 
+7. Switch between the `Index` and the `Counter` page (back and forth) and watch the console output.
 
 The Blazor application just fetched a single time from the network and now only gets the data from the store.
 
 ## Step 7: Using GraphQL mutations
 
-In this step we will introduce a mutation that will allow us to rename a session.
+In this step we will introduce a mutation that will allow us to rename a session. For this we need to change our Blazor page a bit.
+
+1. We need to get the session id for our session so that we can call the `renameSession` mutation. For this we will rewrite our `GetSessions` operation.
+
+```graphql
+query GetSessions {
+  sessions(order: { title: ASC }) {
+    nodes {
+      ...SessionInfo
+    }
+  }
+}
+
+fragment SessionInfo on Session {
+  id
+  title
+}
+```
+
+2. Next we need to restructure the `Index.razor` page.
