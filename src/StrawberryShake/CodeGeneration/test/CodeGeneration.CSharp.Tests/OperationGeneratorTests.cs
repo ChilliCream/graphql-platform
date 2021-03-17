@@ -7,6 +7,17 @@ namespace StrawberryShake.CodeGeneration.CSharp
     public class OperationGeneratorTests
     {
         [Fact]
+        public void Response_Name_Is_Correctly_Cased()
+        {
+            AssertResult(
+                @"query GetSomething{ bar_baz_foo : foo_bar_baz }",
+                @"type Query {
+                    foo_bar_baz: String
+                }",
+                "extend schema @key(fields: \"id\")");
+        }
+
+        [Fact]
         public void Operation_With_MultipleOperations()
         {
             AssertResult(

@@ -1,8 +1,9 @@
 using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class ResultInterfaceGenerator : CodeGenerator<InterfaceTypeDescriptor>
     {
@@ -14,9 +15,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
         protected override void Generate(
             CodeWriter writer,
             InterfaceTypeDescriptor descriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             fileName = descriptor.RuntimeType.Name;
+            path = null;
 
             InterfaceBuilder interfaceBuilder = InterfaceBuilder
                 .New()
@@ -28,7 +31,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 interfaceBuilder
                     .AddProperty(prop.Name)
                     .SetComment(prop.Description)
-                    .SetType(prop.Type.ToBuilder())
+                    .SetType(prop.Type.ToTypeReference())
                     .SetPublic();
             }
 

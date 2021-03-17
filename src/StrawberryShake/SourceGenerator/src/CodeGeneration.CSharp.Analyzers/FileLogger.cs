@@ -54,6 +54,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             _log.AppendLine($"Begin generate code.");
         }
 
+        public void SetGeneratorSettings(CSharpGeneratorSettings settings)
+        {
+            _log.AppendLine(JsonSerializer.Serialize(settings, _settings));
+        }
+
+        public void SetPersistedQueryLocation(string? location)
+        {
+            _log.AppendLine("PersistedQueryLocation: " + location);
+        }
+
         public void EndGenerateCode()
         {
             _log.AppendLine($"End generate code {DateTime.UtcNow - _generateStart}.");

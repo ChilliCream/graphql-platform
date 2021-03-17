@@ -309,6 +309,32 @@ Further, you can override the paging option on the resolver level.
 descriptor.Field(...).UsePaging(maxPageSize = 100)...
 ```
 
+## Projections
+
+The selection middleware, that was available in `HotChocolate.Types.Selections` was replaced by the projection middleware from `HotChocolate.Data`. 
+
+**Old:**
+
+```csharp
+descriptor.Field(...).UseSelection()...
+```
+
+**New:**
+
+```csharp
+descriptor.Field(...).UseProjection()...
+```
+
+Similarly, the attribute `[UseSelection]` was replaced by `[UseProjection]`. 
+
+To use projections with your GraphQL endpoint you have to register it on the schema:
+
+```csharp
+services.AddGraphQLServer()
+  // Your schmea configuration
+  .AddProjections();
+```
+
 ## Enum Type
 
 HotChocolate server 11 now follows the spec recommendation with the new enum name conventions and formats the enum values by default as UPPER_SNAIL_CASE.

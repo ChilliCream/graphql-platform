@@ -1,6 +1,7 @@
 import React, {
   createContext,
   FunctionComponent,
+  ReactNode,
   useContext,
   useMemo,
   useState,
@@ -24,6 +25,7 @@ const TabsContext = createContext<TabsContext | undefined>(undefined);
 
 export interface TabsProps {
   defaultValue: string;
+  children: ReactNode;
 }
 
 export const Tabs: FunctionComponent<TabsProps> & TabsComposition = ({

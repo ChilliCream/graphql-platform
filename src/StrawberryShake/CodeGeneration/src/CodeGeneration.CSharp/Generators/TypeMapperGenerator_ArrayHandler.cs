@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public partial class TypeMapperGenerator
     {
@@ -20,7 +21,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             methodBuilder
                 .AddParameter(_list)
-                .SetType(listTypeDescriptor.ToEntityIdBuilder());
+                .SetType(listTypeDescriptor.ToStateTypeReference());
+            methodBuilder
+                .AddParameter(_snapshot)
+                .SetType(TypeNames.IEntityStoreSnapshot);
 
             var listVarName = GetParameterName(listTypeDescriptor.Name) + "s";
 
@@ -39,7 +43,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                             .AddCode("new ")
                             .AddCode(TypeNames.List)
                             .AddCode("<")
-                            .AddCode(listTypeDescriptor.InnerType.ToBuilder().SkipTrailingSpace())
+                            .AddCode(
+                                listTypeDescriptor.InnerType.ToTypeReference().SkipTrailingSpace())
                             .AddCode(">")
                             .AddCode("()")));
             methodBuilder.AddEmptyLine();
@@ -49,7 +54,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .SetLoopHeader(
                     CodeBlockBuilder
                         .New()
-                        .AddCode(listTypeDescriptor.InnerType.ToEntityIdBuilder())
+                        .AddCode(listTypeDescriptor.InnerType.ToStateTypeReference())
                         .AddCode($"{_child} in {_list}"))
                 .AddCode(
                     MethodCallBuilder
@@ -58,7 +63,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .AddArgument(MethodCallBuilder
                             .Inline()
                             .SetMethodName(MapMethodNameFromTypeName(listTypeDescriptor.InnerType))
-                            .AddArgument(_child)));
+                            .AddArgument(_child)
+                            .AddArgument(_snapshot)));
 
             methodBuilder
                 .AddCode(forEachBuilder)

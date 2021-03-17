@@ -1,6 +1,9 @@
+using System;
+
 namespace HotChocolate.Types.Filters
 {
-    public interface IArrayBooleanFilterOperationDescriptor 
+    [Obsolete("Use HotChocolate.Data.")]
+    public interface IArrayBooleanFilterOperationDescriptor
         : IBooleanFilterOperationDescriptorBase
     {
         /// <summary>

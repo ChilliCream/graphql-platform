@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using StrawberryShake.Transport.InMemory;
@@ -30,7 +31,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <remarks>
         /// <para>
         /// <see cref="InMemoryClient"/> instances that apply the provided configuration can
-        /// be retrieved using <see cref="IInMemoryClientFactory.CreateClientAsync"/>
+        /// be retrieved using <see cref="IInMemoryClientFactory.CreateAsync"/>
         /// and providing the matching name.
         /// </para>
         /// <para>
@@ -78,7 +79,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <para>
         /// <see cref="InMemoryClient"/> instances that apply the provided
         /// configuration can be retrieved using
-        /// <see cref="IInMemoryClientFactory.CreateClientAsync"/> and providing
+        /// <see cref="IInMemoryClientFactory.CreateAsync"/> and providing
         /// the matching name.
         /// </para>
         /// <para>
@@ -134,7 +135,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <para>
         /// <see cref="InMemoryClient"/> instances that apply the provided
         /// configuration can be retrieved using
-        /// <see cref="IInMemoryClientFactory.CreateClientAsync"/> and providing
+        /// <see cref="IInMemoryClientFactory.CreateAsync"/> and providing
         /// the matching name.
         /// </para>
         /// <para>
@@ -190,7 +191,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <para>
         /// <see cref="InMemoryClient"/> instances that apply the provided
         /// configuration can be retrieved using
-        /// <see cref="IInMemoryClientFactory.CreateClientAsync"/> and providing
+        /// <see cref="IInMemoryClientFactory.CreateAsync"/> and providing
         /// the matching name.
         /// </para>
         /// <para>
@@ -246,7 +247,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <para>
         /// <see cref="InMemoryClient"/> instances that apply the provided
         /// configuration can be retrieved using
-        /// <see cref="IInMemoryClientFactory.CreateClientAsync"/> and providing
+        /// <see cref="IInMemoryClientFactory.CreateAsync"/> and providing
         /// the matching name.
         /// </para>
         /// <para>

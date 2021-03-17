@@ -110,6 +110,10 @@ namespace HotChocolate.Configuration
             // the fields resolving all missing parts and then making the types immutable.
             CompleteTypes();
 
+            // at this point everything is completely initialized and we just trigger a type
+            // finalize to allow the type to cleanup any initialization data structures.
+            FinalizeTypes();
+
             // if we do not have any errors we will validate the types for spec violations.
             if (_errors.Count == 0)
             {
@@ -265,7 +269,7 @@ namespace HotChocolate.Configuration
                 foreach (NameString typeName in extensions.Select(t => t.Type.Name).Distinct())
                 {
                     RegisteredType? type = types.FirstOrDefault(t => t.Type.Name.Equals(typeName));
-                    if(type?.Type is INamedType namedType)
+                    if (type?.Type is INamedType namedType)
                     {
                         MergeTypeExtension(
                             extensions.Where(t => t.Type.Name.Equals(typeName)),
@@ -466,6 +470,17 @@ namespace HotChocolate.Configuration
             }
 
             _interceptor.OnAfterCompleteTypes();
+        }
+
+        private void FinalizeTypes()
+        {
+            foreach (var registeredType in _typeRegistry.Types)
+            {
+                if (!registeredType.IsExtension)
+                {
+                    registeredType.Type.FinalizeType(registeredType.CompletionContext);
+                }
+            }
         }
 
         private bool ProcessTypes(

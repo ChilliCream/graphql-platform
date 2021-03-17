@@ -12,9 +12,8 @@ namespace HotChocolate.Types
         : IFieldCollection<T>
         where T : class, IField
     {
-        private readonly Dictionary<NameString, (int Index, T Field)> _fieldsLookup =
-            new Dictionary<NameString, (int Index, T Field)>();
-        private readonly List<T> _fields;
+        private readonly Dictionary<NameString, T> _fieldsLookup;
+        private readonly T[] _fields;
 
         public FieldCollection(IEnumerable<T> fields, bool sortByName = false)
         {
@@ -24,27 +23,35 @@ namespace HotChocolate.Types
             }
 
             _fields = sortByName
-                ? fields.OrderBy(t => t.Name).ToList()
-                : fields is List<T> list ? list : fields.ToList();
+                ? fields.OrderBy(t => t.Name).ToArray()
+                : fields is T[] array ? array : fields.ToArray();
 
-            for (var i = 0; i < _fields.Count; i++)
+            _fieldsLookup = new Dictionary<NameString, T>(_fields.Length);
+
+            foreach (var field in _fields)
             {
-                T field = _fields[i];
-                _fieldsLookup.Add(field.Name, (i, field));
+                _fieldsLookup.Add(field.Name, field);
             }
         }
 
-        public T this[string fieldName] => _fieldsLookup[fieldName].Field;
+        public T this[string fieldName] => _fieldsLookup[fieldName];
 
         public T this[int index] => _fields[index];
 
-        public int Count => _fields.Count;
+        public int Count => _fields.Length;
 
+        [Obsolete("This method will be removed soon.")]
         public int IndexOfField(NameString fieldName)
         {
-            return _fieldsLookup.TryGetValue(fieldName, out (int Index, T Field) item)
-                ? item.Index
-                : -1;
+            for (var i = 0; i < _fields.Length; i++)
+            {
+                if (fieldName.Equals(_fields[i].Name))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
         }
 
         public bool ContainsField(NameString fieldName) =>
@@ -54,9 +61,9 @@ namespace HotChocolate.Types
         {
             if (_fieldsLookup.TryGetValue(
                 fieldName.EnsureNotEmpty(nameof(fieldName)),
-                out (int Index, T Field) item))
+                out var item))
             {
-                field = item.Field;
+                field = item;
                 return true;
             }
 
@@ -64,17 +71,90 @@ namespace HotChocolate.Types
             return false;
         }
 
-        public IEnumerator<T> GetEnumerator()
+        public IEnumerator<T> GetEnumerator() =>
+            _fields.Length == 0
+                ? EmptyFieldEnumerator.Instance
+                : new FieldEnumerator(_fields);
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public static FieldCollection<T> From(IEnumerable<T> fields, bool sortByName = false)
         {
-            return _fields.GetEnumerator();
+            if (fields is IReadOnlyCollection<T> collection)
+            {
+                if (collection.Count == 0)
+                {
+                    return Empty;
+                }
+
+                return new FieldCollection<T>(fields, sortByName);
+            }
+
+            if (fields.Any())
+            {
+                return new FieldCollection<T>(fields, sortByName);
+            }
+
+            return Empty;
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
+        public static FieldCollection<T> Empty { get; } = new(Array.Empty<T>());
+
+        private sealed class FieldEnumerator : IEnumerator<T>
         {
-            return GetEnumerator();
+            private readonly T[] _fields;
+            private int _index = -1;
+
+            public FieldEnumerator(T[] fields)
+            {
+                _fields = fields;
+            }
+
+            public T Current { get; private set; } = default!;
+
+            object? IEnumerator.Current => Current;
+
+            public bool MoveNext()
+            {
+                _index++;
+
+                if (_index < _fields.Length)
+                {
+                    Current = _fields[_index];
+                    return true;
+                }
+
+                Current = default!;
+                return false;
+            }
+
+            public void Reset()
+            {
+                Current = default!;
+                _index = -1;
+            }
+
+            public void Dispose()
+            {
+                Reset();
+            }
         }
 
-        public static FieldCollection<T> Empty { get; } =
-            new FieldCollection<T>(Enumerable.Empty<T>(), false);
+        private sealed class EmptyFieldEnumerator : IEnumerator<T>
+        {
+            private EmptyFieldEnumerator() { }
+
+            public bool MoveNext() => false;
+
+            public void Reset() { }
+
+            public T Current { get; } = default!;
+
+            object IEnumerator.Current => Current;
+
+            public void Dispose() { }
+
+            internal static readonly EmptyFieldEnumerator Instance = new();
+        }
     }
 }

@@ -7,11 +7,22 @@
       "namespace": "StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars",
       "url": "http://localhost:5000",
       "dependencyInjection": true,
-      "protocols": [
-        { "transport": "HTTP", "format": "JSON" },
-        { "transport": "WebSocket", "format": "JSON" },
-        { "transport": "SignalR", "format": "JSON" },
-        { "transport": "gRPC", "format": "Proto" }
+      "requestStrategy": "PersistedQuery",
+      "hashAlgorithm": "md5",
+      "outputDirectoryName": ".generated",
+      "useSingleFile": true,
+      "transportProfiles": [
+        {
+          "name": "Default",
+          "default": "HTTP",
+          "streamTransport": "WebSocket"
+        },
+        {
+          "name": "WebSocket",
+          "default": "HTTP",
+          "query": "WebSocket",
+          "subscription": "WebSocket"
+        }
       ]
     }
   }

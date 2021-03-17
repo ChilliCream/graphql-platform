@@ -27,7 +27,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             Settings = settings;
             Filter = filter;
             ClientDirectory = clientDirectory;
-            OutputDirectory = IOPath.Combine(clientDirectory, "Generated");
+            OutputDirectory = IOPath.Combine(
+                clientDirectory, 
+                settings.OutputDirectoryName ?? ".generated");
+            OutputFiles = settings.OutputDirectoryName is not null;
             _allDocuments = allDocuments;
             Execution = execution;
             Log = log;
@@ -38,6 +41,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         public string Filter { get; }
         public string ClientDirectory { get; }
         public string OutputDirectory { get; }
+        public bool OutputFiles { get; }
         public GeneratorExecutionContext Execution { get; }
         public ILogger Log { get; }
 
@@ -109,6 +113,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
             throw new GraphQLException(
                 $"Specify a namespace for the client `{Settings.Name}`.");
+        }
+
+        public string? GetPersistedQueryDirectory()
+        {
+            if (Execution.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
+                "build_property.StrawberryShake_PersistedQueryDirectory",
+                out string? value) &&
+                !string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+
+            return null;
         }
     }
 }

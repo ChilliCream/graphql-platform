@@ -1,7 +1,8 @@
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class InputTypeGenerator : CodeGenerator<InputObjectTypeDescriptor>
     {
@@ -10,9 +11,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
         protected override void Generate(
             CodeWriter writer,
             InputObjectTypeDescriptor namedTypeDescriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             fileName = namedTypeDescriptor.Name;
+            path = null;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -25,7 +28,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .AddProperty(prop.Name)
                     .SetPublic()
                     .SetComment(prop.Description)
-                    .SetType(prop.Type.ToBuilder())
+                    .SetType(prop.Type.ToTypeReference())
                     .MakeSettable()
                     .SetValue("default!");
             }
