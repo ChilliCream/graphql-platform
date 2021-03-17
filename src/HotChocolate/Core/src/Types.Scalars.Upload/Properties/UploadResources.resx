@@ -21,4 +21,7 @@
   <data name="UploadType_TrySerialize_NotSupported" xml:space="preserve">
     <value>The GraphQL upload scalar is only valid to use as an input type.</value>
   </data>
+  <data name="StreamFile_Constructor_NameCannotBeNullOrEmpty" xml:space="preserve">
+    <value>Value cannot be null or empty.</value>
+  </data>
 </root>

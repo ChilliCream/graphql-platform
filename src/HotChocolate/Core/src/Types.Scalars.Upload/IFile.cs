@@ -17,8 +17,7 @@ namespace HotChocolate.Types
         /// <summary>
         /// Gets the file length in bytes.
         /// </summary>
-        /// <value></value>
-        long Length { get; }
+        long? Length { get; }
 
         /// <summary>
         /// Asynchronously copies the contents of the uploaded file to the target stream.
@@ -30,7 +29,7 @@ namespace HotChocolate.Types
         /// The cancellation token.
         /// </param>
         Task CopyToAsync(
-            Stream target, 
+            Stream target,
             CancellationToken cancellationToken = default);
 
         /// <summary>

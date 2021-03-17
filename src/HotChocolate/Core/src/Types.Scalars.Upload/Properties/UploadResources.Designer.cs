@@ -50,5 +50,11 @@ namespace HotChocolate.Types.Scalars.Upload.Properties {
                 return ResourceManager.GetString("UploadType_TrySerialize_NotSupported", resourceCulture);
             }
         }
+        
+        internal static string StreamFile_Constructor_NameCannotBeNullOrEmpty {
+            get {
+                return ResourceManager.GetString("StreamFile_Constructor_NameCannotBeNullOrEmpty", resourceCulture);
+            }
+        }
     }
 }
