@@ -140,7 +140,7 @@ namespace HotChocolate.Types.Scalars
                 new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc));
 
             // act
-            bool success = type.TryDeserialize(time, out object deserialized);
+            bool success = type.TryDeserialize(time, out object? deserialized);
 
             // assert
             Assert.True(success);
@@ -155,7 +155,7 @@ namespace HotChocolate.Types.Scalars
             var time = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
 
             // act
-            bool success = type.TryDeserialize(time, out object deserialized);
+            bool success = type.TryDeserialize(time, out object? deserialized);
 
             // assert
             Assert.True(success);
@@ -172,7 +172,7 @@ namespace HotChocolate.Types.Scalars
                 new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
 
             // act
-            bool success = type.TryDeserialize(time, out object deserialized);
+            bool success = type.TryDeserialize(time, out object? deserialized);
 
             // assert
             Assert.True(success);
@@ -188,7 +188,7 @@ namespace HotChocolate.Types.Scalars
             DateTime? time = null;
 
             // act
-            bool success = type.TryDeserialize(time, out object deserialized);
+            bool success = type.TryDeserialize(time, out object? deserialized);
 
             // assert
             Assert.True(success);
@@ -202,7 +202,7 @@ namespace HotChocolate.Types.Scalars
             var type = new LocalTimeType();
 
             // act
-            bool success = type.TryDeserialize(null, out object deserialized);
+            bool success = type.TryDeserialize(null, out object? deserialized);
 
             // assert
             Assert.True(success);
@@ -217,7 +217,7 @@ namespace HotChocolate.Types.Scalars
             NullValueNode literal = NullValueNode.Default;
 
             // act
-            object value = dateTimeType.ParseLiteral(literal);
+            object value = dateTimeType.ParseLiteral(literal)!;
 
             // assert
             Assert.Null(value);
