@@ -1,0 +1,14 @@
+﻿{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "BadRequest",
+  "Data": null,
+  "Errors": [
+    {
+      "message": "File of key '' is missing.",
+      "extensions": {
+        "code": "HC00038"
+      }
+    }
+  ],
+  "Extensions": null
+}

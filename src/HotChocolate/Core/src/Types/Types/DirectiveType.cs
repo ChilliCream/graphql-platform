@@ -57,7 +57,7 @@ namespace HotChocolate.Types
             };
 
         private Action<IDirectiveTypeDescriptor>? _configure;
-        private ITypeConverter _converter;
+        private ITypeConverter _converter = default!;
 
         protected DirectiveType()
         {
@@ -70,17 +70,18 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(configure));
         }
 
-        public DirectiveDefinitionNode SyntaxNode { get; private set; }
+        public DirectiveDefinitionNode? SyntaxNode { get; private set; }
 
-        public Type RuntimeType { get; private set; }
+        public Type RuntimeType { get; private set; } = default!;
 
         public bool IsRepeatable { get; private set; }
 
-        public ICollection<DirectiveLocation> Locations { get; private set; }
+        public ICollection<DirectiveLocation> Locations { get; private set; } = default!;
 
-        public FieldCollection<Argument> Arguments { get; private set; }
+        public FieldCollection<Argument> Arguments { get; private set; }  = default!;
 
-        public IReadOnlyList<DirectiveMiddleware> MiddlewareComponents { get; private set; }
+        public IReadOnlyList<DirectiveMiddleware> MiddlewareComponents { get; private set; } =
+            default!;
 
         public bool HasMiddleware { get; private set; }
 
@@ -118,6 +119,8 @@ namespace HotChocolate.Types
         /// INPUT_FIELD_DEFINITION (<see cref="DirectiveLocation.InputFieldDefinition"/>)
         /// </summary>
         public bool IsTypeSystemDirective { get; private set; }
+
+        internal bool IsPublic { get; private set; }
 
         protected override DirectiveTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
@@ -175,6 +178,7 @@ namespace HotChocolate.Types
                     .Select(t => new Argument(t, new FieldCoordinate(Name, t.Name))),
                 context.DescriptorContext.Options.SortFieldsByName);
             HasMiddleware = MiddlewareComponents.Count > 0;
+            IsPublic = definition.IsPublic;
 
             if (Locations.Count == 0)
             {
