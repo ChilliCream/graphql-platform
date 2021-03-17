@@ -397,4 +397,6 @@ services
 | PostalCode       | The `PostalCode` scalar type represents a valid postal code.
 | Port             | The `Port` scalar type represents a field whose value is a valid TCP port within the range of 0 to 65535.
 | Rgb              | The `RGB` scalar type represents a valid CSS RGB color as defined here [MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba()).
+| Rgba             | The `RGBA` scalar type represents a valid CSS RGBA color as defined here [MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba()).
 | UnsignedInt      | The `UnsignedInt` scalar type represents a unsigned 32‐bit numeric non‐fractional value greater than or equal to 0.
+| UnsignedLong     | The `UnsignedLong` scalar type represents a unsigned 64‐bit numeric non‐fractional value greater than or equal to 0.
