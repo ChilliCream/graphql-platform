@@ -65,52 +65,42 @@ namespace HotChocolate.Types.Scalars
 
         public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
-            if (runtimeValue is null)
+            switch (runtimeValue)
             {
-                resultValue = null;
-                return true;
+                case null:
+                    resultValue = null;
+                    return true;
+                case DateTimeOffset dt:
+                    resultValue = Serialize(dt);
+                    return true;
+                default:
+                    resultValue = null;
+                    return false;
             }
-
-            if (runtimeValue is DateTimeOffset dt)
-            {
-                resultValue = Serialize(dt);
-                return true;
-            }
-
-            resultValue = null;
-            return false;
         }
 
         public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
-            if (resultValue is null)
+            switch (resultValue)
             {
-                runtimeValue = null;
-                return true;
+                case null:
+                    runtimeValue = null;
+                    return true;
+                case string s when TryDeserializeFromString(s, out DateTime? d):
+                    runtimeValue = d;
+                    return true;
+                case DateTimeOffset:
+                    runtimeValue = resultValue;
+                    return true;
+                case DateTime dt:
+                    runtimeValue = new DateTimeOffset(
+                        dt.ToUniversalTime(),
+                        TimeSpan.Zero);
+                    return true;
+                default:
+                    runtimeValue = null;
+                    return false;
             }
-
-            if (resultValue is string s && TryDeserializeFromString(s, out DateTime? d))
-            {
-                runtimeValue = d;
-                return true;
-            }
-
-            if (resultValue is DateTimeOffset)
-            {
-                runtimeValue = resultValue;
-                return true;
-            }
-
-            if (resultValue is DateTime dt)
-            {
-                runtimeValue = new DateTimeOffset(
-                    dt.ToUniversalTime(),
-                    TimeSpan.Zero);
-                return true;
-            }
-
-            runtimeValue = null;
-            return false;
         }
 
         private static string Serialize(DateTimeOffset value)
