@@ -33,7 +33,7 @@ namespace HotChocolate.AspNetCore
 
         public virtual async Task InvokeAsync(HttpContext context)
         {
-            if (!HttpMethods.IsPost(context.Request.Method) &&
+            if (HttpMethods.IsPost(context.Request.Method) &&
                 ParseContentType(context) == AllowedContentType.Json)
             {
                 await HandleRequestAsync(context, AllowedContentType.Json);

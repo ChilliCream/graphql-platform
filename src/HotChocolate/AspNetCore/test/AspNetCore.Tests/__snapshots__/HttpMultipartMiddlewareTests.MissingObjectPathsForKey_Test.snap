@@ -6,7 +6,7 @@
     {
       "message": "No object paths specified for key '1' in 'map'.",
       "extensions": {
-        "code": "// TODO CODE HC"
+        "code": "HC0037"
       }
     }
   ],
