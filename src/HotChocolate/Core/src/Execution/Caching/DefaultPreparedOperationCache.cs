@@ -22,6 +22,8 @@ namespace HotChocolate.Execution.Caching
             string operationId,
             [NotNullWhen(true)] out IPreparedOperation? operation) =>
             _cache.TryGet(operationId, out operation!);
+
+        public void Clear() => _cache.Clear();
     }
 }
 
