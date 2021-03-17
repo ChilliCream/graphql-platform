@@ -58,7 +58,7 @@ namespace HotChocolate.Types.Scalars
                 return ParseValue(new DateTimeOffset(dt));
             }
 
-            throw new SerializationException(ScalarResources.LocalTimeType_IsInvalid_ParseValue, this);
+            throw ThrowHelper.LocalTimeType_ParseValue_IsInvalid(this);
         }
 
         protected override DateTime ParseLiteral(StringValueNode valueSyntax)
@@ -68,7 +68,7 @@ namespace HotChocolate.Types.Scalars
                 return value.Value;
             }
 
-            throw new SerializationException(ScalarResources.LocalTimeType_IsInvalid_ParseLiteral, this);
+            throw ThrowHelper.LocalTimeType_ParseLiteral_IsInvalid(this);
         }
 
         protected override StringValueNode ParseValue(DateTime runtimeValue)
