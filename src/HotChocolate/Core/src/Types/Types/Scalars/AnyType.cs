@@ -224,10 +224,11 @@ namespace HotChocolate.Types
             switch (resultValue)
             {
                 case IDictionary<string, object> dictionary:
+                {
                     var result = new Dictionary<string, object?>();
                     foreach (KeyValuePair<string, object> element in dictionary)
                     {
-                        if(TryDeserialize(element.Value, out elementValue ))
+                        if (TryDeserialize(element.Value, out elementValue))
                         {
                             result[element.Key] = elementValue;
                         }
@@ -239,12 +240,14 @@ namespace HotChocolate.Types
 
                     runtimeValue = result;
                     return true;
+                }
 
                 case IList list:
+                {
                     var result = new object?[list.Count];
                     for (var i = 0; i < list.Count; i++)
                     {
-                        if(TryDeserialize(list[i], out elementValue ))
+                        if (TryDeserialize(list[i], out elementValue))
                         {
                             result[i] = elementValue;
                         }
@@ -254,8 +257,10 @@ namespace HotChocolate.Types
                         }
 
                     }
+
                     runtimeValue = result;
                     return true;
+                }
 
                 case IValueNode literal:
                     runtimeValue = ParseLiteral(literal);
