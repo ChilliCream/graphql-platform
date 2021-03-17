@@ -116,7 +116,9 @@ namespace HotChocolate.Types.Scalars
 
             if (resultValue is DateTime dt)
             {
-                runtimeValue = new DateTimeOffset(dt);
+                runtimeValue = new DateTimeOffset(
+                    dt.ToUniversalTime(),
+                    TimeSpan.Zero);
                 return true;
             }
 
