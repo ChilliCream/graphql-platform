@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace HotChocolate
 {
     public static class ErrorCodes
@@ -33,6 +35,9 @@ namespace HotChocolate
             public const string CannotCreateRootValue = "HC0019";
         }
 
+        /// <summary>
+        /// The server error codes.
+        /// </summary>
         public static class Server
         {
             public const string RequestInvalid = "HC0009";
@@ -40,6 +45,62 @@ namespace HotChocolate
             public const string SyntaxError = "HC0011";
             public const string UnexpectedRequestParserError = "HC0012";
             public const string QueryAndIdMissing = "HC0013";
+
+            /// <summary>
+            /// At least an 'operations' field and a 'map' field need to be present.
+            /// </summary>
+            public const string MultiPartFormIncomplete = "HC0033";
+
+            /// <summary>
+            /// No 'operations' specified.
+            /// </summary>
+            public const string MultiPartNoOperationsSpecified = "HC0034";
+
+            /// <summary>
+            /// Misordered multipart fields; 'map' should follow 'operations'.
+            /// </summary>
+            public const string MultiPartFieldsMisordered = "HC0035";
+
+            /// <summary>
+            /// No object paths specified for a key in the 'map'.
+            /// </summary>
+            public const string MultiPartNoObjectPath = "HC0037";
+
+            /// <summary>
+            /// A key is referring to a file that was not provided.
+            /// </summary>
+            public const string MultiPartFileMissing = "HC00038";
+
+            /// <summary>
+            /// The variable path is referring to a variable that does not exist.
+            /// </summary>
+            public const string MultiPartVariableNotFound = "HC0039";
+
+            /// <summary>
+            /// No object paths specified for key in 'map'.
+            /// </summary>
+            public const string MultiPartVariableStructureInvalid = "HC0040";
+
+            /// <summary>
+            /// Invalid variable path in `map`.
+            /// </summary>
+            public const string MultiPartInvalidPath = "HC0041";
+
+            /// <summary>
+            /// The variable path must start with `variables`.
+            /// </summary>
+            public const string MultiPartPathMustStartWithVariable = "HC0042";
+
+            /// <summary>
+            /// Invalid JSON in the `map` multipart field; Expected type of
+            /// <see cref="Dictionary{TKey,TValue}" />.
+            /// </summary>
+            public const string MultiPartInvalidMapJson = "HC0043";
+
+            /// <summary>
+            /// No `map` specified.
+            /// </summary>
+            public const string MultiPartMapNotSpecified = "HC0044";
         }
 
         public static class Schema
