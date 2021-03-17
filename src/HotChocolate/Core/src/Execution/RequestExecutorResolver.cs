@@ -81,8 +81,7 @@ namespace HotChocolate.Execution
                     await CreateSchemaServicesAsync(schemaName, options, cancellationToken)
                         .ConfigureAwait(false);
 
-                re = new RegisteredExecutor
-                (
+                re = new RegisteredExecutor(
                     schemaServices.GetRequiredService<IRequestExecutor>(),
                     schemaServices,
                     schemaServices.GetRequiredService<IDiagnosticEvents>(),
@@ -115,11 +114,17 @@ namespace HotChocolate.Execution
             {
                 re.DiagnosticEvents.ExecutorEvicted(schemaName, re.Executor);
 
-                BeginRunEvictionEvents(re);
+                try
+                {
+                    RequestExecutorEvicted?.Invoke(
+                        this,
+                        new RequestExecutorEvictedEventArgs(schemaName, re.Executor));
+                }
+                finally
+                {
+                }
 
-                RequestExecutorEvicted?.Invoke(
-                    this,
-                    new RequestExecutorEvictedEventArgs(schemaName, re.Executor));
+                BeginRunEvictionEvents(re);
             }
         }
 
@@ -127,18 +132,27 @@ namespace HotChocolate.Execution
         {
             Task.Run(async () =>
             {
-                foreach (OnRequestExecutorEvictedAction action in
-                    registeredExecutor.Setup.OnRequestExecutorEvicted)
+                try
                 {
-                    action.Action?.Invoke(registeredExecutor.Executor);
 
-                    if (action.AsyncAction is not null)
+                    foreach (OnRequestExecutorEvictedAction action in
+                        registeredExecutor.Setup.OnRequestExecutorEvicted)
                     {
-                        await action.AsyncAction.Invoke(
-                            registeredExecutor.Executor,
-                            CancellationToken.None)
-                            .ConfigureAwait(false);
+                        action.Action?.Invoke(registeredExecutor.Executor);
+
+                        if (action.AsyncAction is not null)
+                        {
+                            await action.AsyncAction.Invoke(
+                                    registeredExecutor.Executor,
+                                    CancellationToken.None)
+                                .ConfigureAwait(false);
+                        }
                     }
+                }
+                finally
+                {
+                    await Task.Delay(TimeSpan.FromMinutes(5));
+                    registeredExecutor.Dispose();
                 }
             });
         }
@@ -311,7 +325,10 @@ namespace HotChocolate.Execution
             }
 
             var factoryContext = new RequestCoreMiddlewareContext(
-                schemaName, _applicationServices, schemaServices, options);
+                schemaName,
+                _applicationServices,
+                schemaServices,
+                options);
 
             RequestDelegate next = context => default;
 
@@ -333,7 +350,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private class RegisteredExecutor
+        private class RegisteredExecutor : IDisposable
         {
             public RegisteredExecutor(
                 IRequestExecutor executor,
@@ -354,6 +371,14 @@ namespace HotChocolate.Execution
             public IDiagnosticEvents DiagnosticEvents { get; }
 
             public RequestExecutorSetup Setup { get; }
+
+            public void Dispose()
+            {
+                if (Services is IDisposable d)
+                {
+                    d.Dispose();
+                }
+            }
         }
 
         private sealed class SetSchemaNameInterceptor : TypeInterceptor

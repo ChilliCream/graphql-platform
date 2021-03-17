@@ -9,6 +9,8 @@ using ChilliCream.Testing;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Caching;
+using HotChocolate.Language;
 using HotChocolate.Stitching.Schemas.Accounts;
 using HotChocolate.Stitching.Schemas.Inventory;
 using HotChocolate.Stitching.Schemas.Products;
@@ -132,6 +134,88 @@ namespace HotChocolate.Stitching.Integration
             IRequestExecutor executor = await executorResolver.GetRequestExecutorAsync();
             ObjectType type = executor.Schema.GetType<ObjectType>("User");
             Assert.True(type.Fields.ContainsField("foo"), "foo field exists.");
+        }
+
+        [Fact]
+        public async Task AutoMerge_HotReload_ClearOperationCaches()
+        {
+            // arrange
+            NameString configurationName = "C" + Guid.NewGuid().ToString("N");
+            var schemaDefinitionV2 = FileResource.Open("AccountSchemaDefinition.json");
+            IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas(configurationName);
+            DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
+            var queryHash = "abc";
+
+            IDatabase database = _connection.GetDatabase();
+            for (var i = 0; i < 10; i++)
+            {
+                if (await database.SetLengthAsync(configurationName.Value) == 4)
+                {
+                    break;
+                }
+
+                await Task.Delay(150);
+            }
+
+            var serviceProvider =
+                new ServiceCollection()
+                    .AddSingleton(httpClientFactory)
+                    .AddGraphQL()
+                    .AddQueryType(d => d.Name("Query").Field("foo").Resolver("foo"))
+                    .AddRemoteSchemasFromRedis(configurationName, s => _connection)
+                    .Services
+                    .BuildServiceProvider();
+
+            IRequestExecutorResolver executorResolver =
+                serviceProvider.GetRequiredService<IRequestExecutorResolver>();
+            IDocumentCache documentCache =
+                serviceProvider.GetRequiredService<IDocumentCache>();
+            IPreparedOperationCache preparedOperationCache =
+                serviceProvider.GetRequiredService<IPreparedOperationCache>();
+
+            await executorResolver.GetRequestExecutorAsync();
+            var raised = false;
+
+            executorResolver.RequestExecutorEvicted += (sender, args) =>
+            {
+                if (args.Name.Equals(Schema.DefaultName))
+                {
+                    raised = true;
+                }
+            };
+
+            Assert.False(documentCache.TryGetDocument(queryHash, out _));
+            Assert.False(preparedOperationCache.TryGetOperation(queryHash, out _));
+
+            IRequestExecutor requestExecutor = await executorResolver.GetRequestExecutorAsync();
+
+            await requestExecutor
+                .ExecuteAsync(QueryRequestBuilder
+                    .New()
+                    .SetQuery(document)
+                    .SetQueryHash(queryHash)
+                    .Create());
+
+            Assert.True(documentCache.TryGetDocument(queryHash, out _));
+            Assert.True(preparedOperationCache.TryGetOperation(queryHash, out _));
+
+            // act
+            await database.StringSetAsync($"{configurationName}.{_accounts}", schemaDefinitionV2);
+            await _connection.GetSubscriber().PublishAsync(configurationName.Value, _accounts);
+
+            for (var i = 0; i < 10; i++)
+            {
+                if (raised)
+                {
+                    break;
+                }
+
+                await Task.Delay(150);
+            }
+
+            // assert
+            Assert.False(documentCache.TryGetDocument(queryHash, out _));
+            Assert.False(preparedOperationCache.TryGetOperation(queryHash, out _));
         }
 
         [Fact]

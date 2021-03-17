@@ -437,16 +437,58 @@
             ]
           },
           {
-            "path": "state-management",
-            "title": "State Management"
+            "path": "subscriptions",
+            "title": "Subscriptions"
           },
           {
-            "path": "persisted-queries",
-            "title": "Persisted Queries"
+            "path": "caching",
+            "title": "Caching",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "entities",
+                "title": "Entities"
+              }
+            ]
           },
           {
-            "path": "configuration",
-            "title": "Configuration"
+            "path": "performance",
+            "title": "Performance",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "persisted-state",
+                "title": "Persisted State"
+              },
+              {
+                "path": "persisted-queries",
+                "title": "Persisted Queries"
+              }
+            ]
+          },
+          {
+            "path": "networking",
+            "title": "Networking",
+            "items": [
+              {
+                "path": "index",
+                "title": "Protocols"
+              },
+              {
+                "path": "authentication",
+                "title": "Authentication"
+              }
+            ]
+          },
+          {
+            "path": "scalars",
+            "title": "Scalars"
           }
         ]
       }

@@ -1,14 +1,17 @@
-# Get started with Strawberry Shake
+---
+title: "Get started with Strawberry Shake in a Console application"
+---
 
-In this tutorial we will walk you through the basics of adding a Strawberry Shake GraphQL client to a .NET project. For this example we will create a Blazor for WebAssembly application and fetch some simple data from our demo backend.
+In this tutorial we will walk you through the basics of adding a Strawberry Shake GraphQL client to a console project. For this example we will create a simple console application and fetch some simple data from our demo backend.
 
-Strawberry Shake is not limited to Blazor and can be used with any .NET standard compliant library.
+Strawberry Shake is not limited to console application and can be used with any .NET standard compliant library.
 
 In this tutorial, we will teach you:
 
 - How to add the Strawberry Shake CLI tools.
 - How to generate source code from .graphql files, that contain operations.
 - How to use the generated client in a classical or reactive way.
+- How to disable state management for ASP.NET core use-cases.
 
 ## Step 1: Add the Strawberry Shake CLI tools
 
@@ -28,7 +31,7 @@ dotnet new tool-manifest
 dotnet tool install StrawberryShake.Tools --local
 ```
 
-## Step 2: Create a Blazor WebAssembly project
+## Step 2: Create a console project
 
 Next, we will create our Blazor project so that we have a little playground.
 
@@ -38,10 +41,10 @@ Next, we will create our Blazor project so that we have a little playground.
 dotnet new sln -n Demo
 ```
 
-2. Create a new Blazor for WebAssembly application.
+2. Create a new console application.
 
 ```bash
-dotnet new wasm -n Demo
+dotnet new console -n Demo
 ```
 
 3. Add the project to the solution `Demo.sln`.
@@ -189,15 +192,13 @@ In this section we will perform a simple fetch with our `ConferenceClient`. We w
 2. Add inject the `ConferenceClient` beneath the `@pages` directive.
 
 ```html
-@page "/"
-@inject ConferenceClient ConferenceClient;
+@page "/" @inject ConferenceClient ConferenceClient;
 ```
 
 3. Introduce a code directive at the bottom of the file.
 
 ```html
-@page "/"
-@inject ConferenceClient ConferenceClient;
+@page "/" @inject ConferenceClient ConferenceClient;
 
 <h1>Hello, world!</h1>
 
@@ -205,16 +206,13 @@ Welcome to your new app.
 
 <SurveyPrompt Title="How is Blazor working for you?" />
 
-@code {
-
-}
+@code { }
 ```
 
 4. Now lets fetch the titles with our client.
 
 ```html
-@page "/"
-@inject ConferenceClient ConferenceClient;
+@page "/" @inject ConferenceClient ConferenceClient;
 
 <h1>Hello, world!</h1>
 
@@ -222,28 +220,20 @@ Welcome to your new app.
 
 <SurveyPrompt Title="How is Blazor working for you?" />
 
-@code {
-    private string[] titles = Array.Empty<string>();
-
-    protected override async Task OnInitializedAsync()
-    {
-        // Execute our GetSessions query
-        var result = await ConferenceClient.GetSessions.ExecuteAsync();
-
-        // aggregate the titles from the result
-        titles = result.Data.Sessions.Nodes.Select(t => t.Title).ToArray();
-
-        // signal the components that the state has changed.
-        StateHasChanged();
-    }
-}
+@code { private string[] titles = Array.Empty<string
+  >(); protected override async Task OnInitializedAsync() { // Execute our
+  GetSessions query var result = await
+  ConferenceClient.GetSessions.ExecuteAsync(); // aggregate the titles from the
+  result titles = result.Data.Sessions.Nodes.Select(t => t.Title).ToArray(); //
+  signal the components that the state has changed. StateHasChanged(); }
+  }</string
+>
 ```
 
 5. Last, lets render the titles on our page as a list.
 
 ```html
-@page "/"
-@inject ConferenceClient ConferenceClient;
+@page "/" @inject ConferenceClient ConferenceClient;
 
 <h1>Hello, world!</h1>
 
@@ -252,27 +242,19 @@ Welcome to your new app.
 <SurveyPrompt Title="How is Blazor working for you?" />
 
 <ul>
-    @foreach (string title in titles)
-    {
-        <li>@title</li>
-    }
+  @foreach (string title in titles) {
+  <li>@title</li>
+  }
 </ul>
 
-@code {
-    private string[] titles = Array.Empty<string>();
-
-    protected override async Task OnInitializedAsync()
-    {
-        // Execute our GetSessions query
-        var result = await ConferenceClient.GetSessions.ExecuteAsync();
-
-        // aggregate the titles from the result
-        titles = result.Data.Sessions.Nodes.Select(t => t.Title).ToArray();
-
-        // signal the components that the state has changed.
-        StateHasChanged();
-    }
-}
+@code { private string[] titles = Array.Empty<string
+  >(); protected override async Task OnInitializedAsync() { // Execute our
+  GetSessions query var result = await
+  ConferenceClient.GetSessions.ExecuteAsync(); // aggregate the titles from the
+  result titles = result.Data.Sessions.Nodes.Select(t => t.Title).ToArray(); //
+  signal the components that the state has changed. StateHasChanged(); }
+  }</string
+>
 ```
 
 5. Start the Blazor application with `dotnet run --project ./Demo` and see if your code works.
@@ -395,7 +377,7 @@ The page will look unchanged.
 
 ![Microsoft Edge developer tools show just one network interaction.](../shared/berry_session_list_network.png)
 
-7. Switch between the `Index` and the `Counter` page (back and forth) and watch the console output. 
+7. Switch between the `Index` and the `Counter` page (back and forth) and watch the console output.
 
 The Blazor application just fetched a single time from the network and now only gets the data from the store.
 
@@ -409,7 +391,7 @@ In this step we will introduce a mutation that will allow us to rename a session
 query GetSessions {
   sessions(order: { title: ASC }) {
     nodes {
-      ... SessionInfo
+      ...SessionInfo
     }
   }
 }
