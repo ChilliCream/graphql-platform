@@ -9,7 +9,7 @@ namespace HotChocolate.AspNetCore
 {
     internal sealed class UploadedFile : IFile
     {
-        private IFormFile _file;
+        private readonly IFormFile _file;
 
         public UploadedFile(IFormFile file)
         {
@@ -21,7 +21,7 @@ namespace HotChocolate.AspNetCore
         public long Length => _file.Length;
 
         public Task CopyToAsync(
-            Stream target, 
+            Stream target,
             CancellationToken cancellationToken = default) =>
             _file.CopyToAsync(target, cancellationToken);
 

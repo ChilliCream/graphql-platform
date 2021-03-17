@@ -17,10 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.IO.Pipelines" Version="4.7.0" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Remove="Resources\**\*" />
     <EmbeddedResource Include="Resources\**\*" />
     <EmbeddedResource Update="Properties\AspNetCoreResources.resx">
