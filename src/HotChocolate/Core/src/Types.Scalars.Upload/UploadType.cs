@@ -12,7 +12,7 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="UploadType"/> class.
         /// </summary>
         public UploadType()
-            : this("Upload")
+            : this("Upload", bind: BindingBehavior.Implicit)
         {
         }
 
