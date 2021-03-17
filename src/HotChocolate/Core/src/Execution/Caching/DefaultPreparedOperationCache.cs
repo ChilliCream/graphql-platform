@@ -6,10 +6,12 @@ namespace HotChocolate.Execution.Caching
 {
     internal sealed class DefaultPreparedOperationCache : IPreparedOperationCache
     {
-        private readonly Cache<IPreparedOperation> _cache;
+        private Cache<IPreparedOperation> _cache;
+        private readonly int _capacity;
 
         public DefaultPreparedOperationCache(int capacity = 100)
         {
+            _capacity = capacity;
             _cache = new Cache<IPreparedOperation>(capacity);
         }
 
@@ -22,6 +24,8 @@ namespace HotChocolate.Execution.Caching
             string operationId,
             [NotNullWhen(true)] out IPreparedOperation? operation) =>
             _cache.TryGet(operationId, out operation!);
+
+        public void Clear() => _cache.Clear();
     }
 }
 
