@@ -22,6 +22,11 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public bool IsRepeatable { get; set; }
 
         /// <summary>
+        /// Defines if this directive is visible when directive introspection is enabled.
+        /// </summary>
+        public bool IsPublic { get; set; }
+
+        /// <summary>
         /// Gets or sets the .net type representation of this directive.
         /// </summary>
         public Type RuntimeType
@@ -29,12 +34,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
             get => _clrType;
             set
             {
-                if (value is null)
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
-
-                _clrType = value;
+                _clrType = value ?? throw new ArgumentNullException(nameof(value));
             }
         }
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -151,9 +152,8 @@ namespace HotChocolate
                 return type;
             }
 
-            // TODO : resource
             throw new ArgumentException(
-                $"The specified type `{directiveName}` does not exist.",
+                string.Format(TypeResources.Schema_GetDirectiveType_DoesNotExist, directiveName),
                 nameof(directiveName));
         }
 

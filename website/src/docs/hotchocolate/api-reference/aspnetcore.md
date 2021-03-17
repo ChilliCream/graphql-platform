@@ -286,6 +286,36 @@ services.AddHttpResultSerializer(
 
 > More about batching can be found [here](batching).
 
+## GraphQL multipart request specification
+
+Hot Chocolate implements the GraphQL multipart request specification which allows for file upload streams in your browser.
+
+In order to use file upload streams in your input types or as an argument register the `Upload` scalar like the following.
+
+```csharp
+service
+    .AddGraphQLServer()
+    ...
+    .AddType<UploadType>();
+```
+
+In your resolver or input type you can then use the `IFile` interface to use the upload scalar.
+
+```csharp
+public class Query 
+{
+    public async Task<bool> UploadFile(IFile file)
+    {
+        using Stream stream = file.OpenReadStream();
+        // you can now work with standard stream functionality of .NET to handle the file.
+    }
+}
+```
+
+The GraphQL multipart request specification can be found [here](https://github.com/jaydenseric/graphql-multipart-request-spec).
+
+> Note, that the `Upload` scalar can only be used as an input type and does not work on output types.
+
 # Subscription Transport
 
 Subscriptions are by default delivered over WebSocket. We have implemented the [GraphQL over WebSocket Protocol](https://github.com/apollographql/subscriptions-transport-ws/blob/master/PROTOCOL.md) specified by Apollo.

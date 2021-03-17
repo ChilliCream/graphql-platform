@@ -8,5 +8,7 @@
   "PreserveSyntaxNodes": false,
   "RemoveUnreachableTypes": false,
   "DefaultBindingBehavior": "Implicit",
-  "FieldMiddleware": "UserDefinedFields"
+  "FieldMiddleware": "UserDefinedFields",
+  "EnableDirectiveIntrospection": false,
+  "DefaultDirectiveVisibility": "Public"
 }
