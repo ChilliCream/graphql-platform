@@ -33,26 +33,17 @@ namespace HotChocolate.AspNetCore
 
         public override async Task InvokeAsync(HttpContext context)
         {
-            if (!HttpMethods.IsPost(context.Request.Method) ||
-                !(context.GetGraphQLServerOptions()?.EnableMultipartRequests ?? true))
+            if (HttpMethods.IsPost(context.Request.Method) &&
+                (context.GetGraphQLServerOptions()?.EnableMultipartRequests ?? true) &&
+                ParseContentType(context) == AllowedContentType.Form)
             {
-                // if the request is not a post request or multipart requests are not enabled
-                // we will just invoke the next middleware and do nothing:
-                await NextAsync(context);
+                await HandleRequestAsync(context, AllowedContentType.Form);
             }
             else
             {
-                var contentType = ParseContentType(context);
-
-                if (contentType == AllowedContentType.Form)
-                {
-                    await HandleRequestAsync(context, contentType);
-                }
-                else
-                {
-                    // the content type is unknown so we will invoke the next middleware.
-                    await NextAsync(context);
-                }
+                // if the request is not a post multipart request or multipart requests are not enabled
+                // we will just invoke the next middleware and do nothing:
+                await NextAsync(context);
             }
         }
 

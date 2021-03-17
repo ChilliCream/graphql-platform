@@ -33,25 +33,16 @@ namespace HotChocolate.AspNetCore
 
         public virtual async Task InvokeAsync(HttpContext context)
         {
-            if (!HttpMethods.IsPost(context.Request.Method))
+            if (!HttpMethods.IsPost(context.Request.Method) &&
+                ParseContentType(context) == AllowedContentType.Json)
+            {
+                await HandleRequestAsync(context, AllowedContentType.Json);
+            }
+            else
             {
                 // if the request is not a post request we will just invoke the next
                 // middleware and do nothing:
                 await NextAsync(context);
-            }
-            else
-            {
-                AllowedContentType contentType = ParseContentType(context);
-
-                if (contentType == AllowedContentType.Json)
-                {
-                    await HandleRequestAsync(context, contentType);
-                }
-                else
-                {
-                    // the content type is unknown so we will invoke the next middleware.
-                    await NextAsync(context);
-                }
             }
         }
 
