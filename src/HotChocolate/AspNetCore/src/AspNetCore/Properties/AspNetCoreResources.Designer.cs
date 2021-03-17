@@ -68,5 +68,101 @@ namespace HotChocolate.AspNetCore.Properties {
                 return ResourceManager.GetString("ThrowHelper_DataStartMessageHandler_RequestTypeNotSupported", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_Form_Incomplete {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_Form_Incomplete", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_No_Operations_Specified {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_No_Operations_Specified", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_Fields_Misordered {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_Fields_Misordered", resourceCulture);
+            }
+        }
+        
+        internal static string HttpMultipartMiddleware_InsertFilesIntoRequest_VariablesImmutable {
+            get {
+                return ResourceManager.GetString("HttpMultipartMiddleware_InsertFilesIntoRequest_VariablesImmutable", resourceCulture);
+            }
+        }
+        
+        internal static string VariablePath_Parse_FirstSegmentMustBeKey {
+            get {
+                return ResourceManager.GetString("VariablePath_Parse_FirstSegmentMustBeKey", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_NoObjectPath {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_NoObjectPath", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_FileMissing {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_FileMissing", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_VariableNotFound {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_VariableNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_VariableStructureInvalid {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_VariableStructureInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_InvalidPath {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_InvalidPath", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_PathMustStartWithVariable {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_PathMustStartWithVariable", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_InvalidMapJson {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_InvalidMapJson", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_MapNotSpecified {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_MapNotSpecified", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_InvalidRequest {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InvalidRequest", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_RequestHasNoElements {
+            get {
+                return ResourceManager.GetString("ErrorHelper_RequestHasNoElements", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_ResponseTypeNotSupported {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ResponseTypeNotSupported", resourceCulture);
+            }
+        }
     }
 }

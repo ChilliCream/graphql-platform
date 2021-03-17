@@ -81,10 +81,10 @@ namespace HotChocolate.AspNetCore.Serialization
 
             try
             {
-                DocumentNode? document = string.IsNullOrEmpty(query) 
-                    ? null 
+                DocumentNode? document = string.IsNullOrEmpty(query)
+                    ? null
                     : Utf8GraphQLParser.Parse(query);
-                    
+
                 IReadOnlyDictionary<string, object?>? variables = null;
 
                 // if we find variables we do need to parse them
@@ -116,6 +116,10 @@ namespace HotChocolate.AspNetCore.Serialization
                 throw DefaultHttpRequestParser_UnexpectedError(ex);
             }
         }
+
+        public IReadOnlyList<GraphQLRequest> ReadOperationsRequest(
+            string operations) =>
+            Parse(operations, _parserOptions, _documentCache, _documentHashProvider);
 
         private async ValueTask<IReadOnlyList<GraphQLRequest>> ReadAsync(
             Stream stream,
