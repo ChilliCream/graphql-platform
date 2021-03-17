@@ -20,58 +20,6 @@ namespace HotChocolate.Types.Scalars
             schema.ToString().MatchSnapshot();
         }
 
-        [Theory]
-        [InlineData(typeof(EnumValueNode), TestEnum.Foo, false)]
-        [InlineData(typeof(FloatValueNode), 1d, false)]
-        [InlineData(typeof(IntValueNode), 1, false)]
-        [InlineData(typeof(BooleanValueNode), true, false)]
-        [InlineData(typeof(StringValueNode), "31.10.2008", true)]
-        [InlineData(typeof(StringValueNode), "10/31/2008", true)]
-        [InlineData(typeof(StringValueNode), "31/10/2008", true)]
-        [InlineData(typeof(StringValueNode), "Freitag, 31. Oktober 2008", true)]
-        [InlineData(typeof(StringValueNode), "Friday, October 31, 2008", true)]
-        [InlineData(typeof(StringValueNode), "viernes, 31 de octubre de 2008", true)]
-        [InlineData(typeof(StringValueNode), "vendredi 31 octobre 2008", true)]
-        [InlineData(typeof(StringValueNode), "Freitag, 31. Oktober 2008 17:04", true)]
-        [InlineData(typeof(StringValueNode), "Friday, October 31, 2008 5:04 PM", true)]
-        [InlineData(typeof(StringValueNode), "viernes, 31 de octubre de 2008 17:04", true)]
-        [InlineData(typeof(StringValueNode), "vendredi 31 octobre 2008 17:04", true)]
-        [InlineData(typeof(StringValueNode), "Freitag, 31. Oktober 2008 17:04:32", true)]
-        [InlineData(typeof(StringValueNode), "Friday, October 31, 2008 5:04:32 PM", true)]
-        [InlineData(typeof(StringValueNode), "viernes, 31 de octubre de 2008 17:04:32", true)]
-        [InlineData(typeof(StringValueNode), "vendredi 31 octobre 2008 17:04:32", true)]
-        [InlineData(typeof(StringValueNode), "31.10.2008 17:04", true)]
-        [InlineData(typeof(StringValueNode), "0/31/2008 5:04 PM", true)]
-        [InlineData(typeof(StringValueNode), "31/10/2008 17:04", true)]
-        [InlineData(typeof(StringValueNode), " 31.10.2008 17:04:32", true)]
-        [InlineData(typeof(StringValueNode), "10/31/2008 5:04:32 PM", true)]
-        [InlineData(typeof(StringValueNode), "31/10/2008 17:04:32", true)]
-        [InlineData(typeof(StringValueNode), "31. Oktober", true)]
-        [InlineData(typeof(StringValueNode), "October 31", true)]
-        [InlineData(typeof(StringValueNode), "31 de octubre", true)]
-        [InlineData(typeof(StringValueNode), "31 octobre", true)]
-        [InlineData(typeof(StringValueNode), "2008-10-31T17:04:32.0000000", true)]
-        [InlineData(typeof(StringValueNode), "Fri, 31 Oct 2008 17:04:32 GMT", true)]
-        [InlineData(typeof(StringValueNode), "2008-10-31T17:04:32", true)]
-        [InlineData(typeof(StringValueNode), "17:04", true)]
-        [InlineData(typeof(StringValueNode), "5:04 PM", true)]
-        [InlineData(typeof(StringValueNode), "17:04:32", true)]
-        [InlineData(typeof(StringValueNode), "5:04:32 PM", true)]
-        [InlineData(typeof(StringValueNode), "Freitag, 31. Oktober 2008 09:04:32", true)]
-        [InlineData(typeof(NullValueNode), null, true)]
-        public void IsInstanceOfType_GivenValueNode_MatchExpected(
-            Type type,
-            object value,
-            bool expected)
-        {
-            // arrange
-            IValueNode valueNode = CreateValueNode(type, value);
-
-            // act
-            // assert
-            ExpectIsInstanceOfTypeToMatch<LocalTimeType>(valueNode, expected);
-        }
-
         [Fact]
         public void Serialize_Utc_DateTimeOffset()
         {
@@ -192,7 +140,7 @@ namespace HotChocolate.Types.Scalars
                 new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc));
 
             // act
-            bool success = type.TryDeserialize(time, out object? deserialized);
+            bool success = type.TryDeserialize(time, out object deserialized);
 
             // assert
             Assert.True(success);
@@ -207,7 +155,7 @@ namespace HotChocolate.Types.Scalars
             var time = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
 
             // act
-            bool success = type.TryDeserialize(time, out object? deserialized);
+            bool success = type.TryDeserialize(time, out object deserialized);
 
             // assert
             Assert.True(success);
@@ -224,7 +172,7 @@ namespace HotChocolate.Types.Scalars
                 new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
 
             // act
-            bool success = type.TryDeserialize(time, out object? deserialized);
+            bool success = type.TryDeserialize(time, out object deserialized);
 
             // assert
             Assert.True(success);
@@ -240,7 +188,7 @@ namespace HotChocolate.Types.Scalars
             DateTime? time = null;
 
             // act
-            bool success = type.TryDeserialize(time, out object? deserialized);
+            bool success = type.TryDeserialize(time, out object deserialized);
 
             // assert
             Assert.True(success);
@@ -254,7 +202,7 @@ namespace HotChocolate.Types.Scalars
             var type = new LocalTimeType();
 
             // act
-            bool success = type.TryDeserialize(null, out object? deserialized);
+            bool success = type.TryDeserialize(null, out object deserialized);
 
             // assert
             Assert.True(success);
@@ -269,7 +217,7 @@ namespace HotChocolate.Types.Scalars
             NullValueNode literal = NullValueNode.Default;
 
             // act
-            object value = dateTimeType.ParseLiteral(literal)!;
+            object value = dateTimeType.ParseLiteral(literal);
 
             // assert
             Assert.Null(value);
