@@ -24,4 +24,7 @@
   <data name="StreamFile_Constructor_NameCannotBeNullOrEmpty" xml:space="preserve">
     <value>Value cannot be null or empty.</value>
   </data>
+  <data name="UploadType_Description" xml:space="preserve">
+    <value>The `Upload` scalar type represents a file upload.</value>
+  </data>
 </root>

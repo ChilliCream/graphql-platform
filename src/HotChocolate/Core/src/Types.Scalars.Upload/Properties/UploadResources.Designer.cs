@@ -56,5 +56,11 @@ namespace HotChocolate.Types.Scalars.Upload.Properties {
                 return ResourceManager.GetString("StreamFile_Constructor_NameCannotBeNullOrEmpty", resourceCulture);
             }
         }
+        
+        internal static string UploadType_Description {
+            get {
+                return ResourceManager.GetString("UploadType_Description", resourceCulture);
+            }
+        }
     }
 }

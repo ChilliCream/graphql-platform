@@ -11,6 +11,7 @@ using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Extensions.Primitives;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 
@@ -64,12 +65,13 @@ namespace HotChocolate.AspNetCore
             }
 
             // Parse the string values of interest from the IFormCollection
-            var parsedRequest = ParseMultipartRequest(form);
-            var requests = RequestParser.ReadOperationsRequest(parsedRequest.Operations);
+            HttpMultipartRequest multipartRequest = ParseMultipartRequest(form);
+            IReadOnlyList<GraphQLRequest> requests = RequestParser.ReadOperationsRequest(
+                multipartRequest.Operations);
 
-            foreach (var request in requests)
+            foreach (var graphQLRequest in requests)
             {
-                InsertFilesIntoRequest(request, parsedRequest.FileMap);
+                InsertFilesIntoRequest(graphQLRequest, multipartRequest.FileMap);
             }
 
             return requests;
@@ -80,7 +82,7 @@ namespace HotChocolate.AspNetCore
             string? operations = null;
             Dictionary<string, string[]>? map = null;
 
-            foreach (var field in form)
+            foreach (KeyValuePair<string, StringValues> field in form)
             {
                 if (field.Key == _operations)
                 {
@@ -120,7 +122,7 @@ namespace HotChocolate.AspNetCore
             }
 
             // Validate file mappings and bring them in an easy to use format
-            var pathToFileMap = MapFilesToObjectPaths(map, form.Files);
+            IDictionary<string, IFile> pathToFileMap = MapFilesToObjectPaths(map, form.Files);
 
             return new HttpMultipartRequest(operations, pathToFileMap);
         }
@@ -131,7 +133,7 @@ namespace HotChocolate.AspNetCore
         {
             var pathToFileMap = new Dictionary<string, IFile>();
 
-            foreach ((var filename, var objectPaths) in map)
+            foreach (var (filename, objectPaths) in map)
             {
                 if (objectPaths is null || objectPaths.Length < 1)
                 {
