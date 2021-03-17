@@ -34,7 +34,9 @@ namespace HotChocolate.Execution
             CancellationToken cancellationToken)
         {
             var buffer = Encoding.UTF8.GetBytes(Text);
-            await output.WriteAsync(buffer, cancellationToken).ConfigureAwait(false);
+            await output
+                .WriteAsync(buffer, 0, buffer.Length, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         public ReadOnlySpan<byte> AsSpan()
