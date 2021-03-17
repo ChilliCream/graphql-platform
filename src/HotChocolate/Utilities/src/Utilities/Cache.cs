@@ -60,6 +60,16 @@ namespace HotChocolate.Utilities
             return entry.Value;
         }
 
+        public void Clear()
+        {
+            lock (_sync)
+            {
+                _cache.Clear();
+                _ranking.Clear();
+                _first = null;
+            }
+        }
+
         private void TouchEntry(LinkedListNode<string> rank)
         {
             if (_first != rank)
