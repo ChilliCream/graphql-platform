@@ -7,11 +7,9 @@ namespace HotChocolate.Execution.Caching
     internal sealed class DefaultPreparedOperationCache : IPreparedOperationCache
     {
         private Cache<IPreparedOperation> _cache;
-        private readonly int _capacity;
 
         public DefaultPreparedOperationCache(int capacity = 100)
         {
-            _capacity = capacity;
             _cache = new Cache<IPreparedOperation>(capacity);
         }
 
