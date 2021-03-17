@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using HotChocolate;
 
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors
 {
     /// <summary>
     /// Represents the code descriptor of the entity id factor.
@@ -28,6 +28,7 @@ namespace StrawberryShake.CodeGeneration
             Name = name;
             Entities = entities;
             Namespace = @namespace;
+            Type = new RuntimeTypeInfo(name, @namespace);
         }
 
         /// <summary>
@@ -39,6 +40,11 @@ namespace StrawberryShake.CodeGeneration
         /// Gets the namespace of this factory class.
         /// </summary>
         public string Namespace { get; }
+
+        /// <summary>
+        /// The type of the factory
+        /// </summary>
+        public RuntimeTypeInfo Type { get; }
 
         /// <summary>
         /// Gets the entity descriptors.

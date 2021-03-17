@@ -2,11 +2,12 @@ using System;
 using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class ResultInfoGenerator : ClassBaseGenerator<ITypeDescriptor>
     {
@@ -21,7 +22,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
         protected override void Generate(
             CodeWriter writer,
             ITypeDescriptor typeDescriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             ComplexTypeDescriptor complexTypeDescriptor =
                 typeDescriptor as ComplexTypeDescriptor ??
@@ -30,6 +32,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var className = CreateResultInfoName(complexTypeDescriptor.RuntimeType.Name);
             fileName = className;
+            path = State;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -42,7 +45,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (var prop in complexTypeDescriptor.Properties)
             {
-                TypeReferenceBuilder propTypeBuilder = prop.Type.ToEntityIdBuilder();
+                TypeReferenceBuilder propTypeBuilder = prop.Type.ToStateTypeReference();
 
                 // Add Property to class
                 classBuilder
@@ -105,7 +108,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(complexTypeDescriptor.RuntimeType.NamespaceWithoutGlobal)
+                .SetNamespace(CreateStateNamespace(
+                    complexTypeDescriptor.RuntimeType.NamespaceWithoutGlobal))
                 .AddType(classBuilder)
                 .Build(writer);
         }

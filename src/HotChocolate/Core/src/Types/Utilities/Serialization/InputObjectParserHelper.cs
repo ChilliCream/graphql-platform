@@ -165,19 +165,23 @@ namespace HotChocolate.Utilities.Serialization
             ITypeConverter converter,
             object value)
         {
-            if (value is { }
-                && field.RuntimeType != typeof(object))
+            if (value is not null && field.RuntimeType != typeof(object))
             {
+                if(field.RuntimeType.IsInterface && field.RuntimeType.IsInstanceOfType(value)) 
+                {
+                    return value;
+                }
+
                 Type type = field.RuntimeType;
 
-                if (type.IsGenericType
-                    && type.GetGenericTypeDefinition() == typeof(Optional<>))
+                if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Optional<>))
                 {
                     type = type.GetGenericArguments()[0];
                 }
 
                 value = converter.Convert(value.GetType(), type, value);
             }
+
             return value;
         }
 

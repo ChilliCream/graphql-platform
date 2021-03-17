@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public partial class TypeMapperGenerator
     {
@@ -25,8 +26,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             method
                 .AddParameter(_dataParameterName)
-                .SetType(complexTypeDescriptor.ParentRuntimeType.ToString())
+                .SetType(complexTypeDescriptor.ParentRuntimeType
+                    .ToString()
+                    .MakeNullable(!isNonNullable))
                 .SetName(_dataParameterName);
+
+            method
+                .AddParameter(_snapshot)
+                .SetType(TypeNames.IEntityStoreSnapshot);
 
             if (!isNonNullable)
             {
@@ -34,7 +41,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             const string returnValue = nameof(returnValue);
-            method.AddCode($"{complexTypeDescriptor.RuntimeType.Name} {returnValue} = default!;");
+            method.AddCode($"{complexTypeDescriptor.RuntimeType.Name}? {returnValue};");
             method.AddEmptyLine();
 
             GenerateIfForEachImplementedBy(
@@ -101,7 +108,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }
                 else
                 {
-                    constructorCall.AddArgument($"{matchedTypeName}.{prop.Name}");
+                    var isNonNullableValueType =
+                        prop.Type is NonNullTypeDescriptor
+                            { InnerType: ILeafTypeDescriptor leaf } &&
+                        leaf.RuntimeType.IsValueType;
+
+                    constructorCall
+                        .AddArgument(
+                            $"{matchedTypeName}.{prop.Name}" +
+                            (isNonNullableValueType ? ".Value" : ""));
                 }
             }
 

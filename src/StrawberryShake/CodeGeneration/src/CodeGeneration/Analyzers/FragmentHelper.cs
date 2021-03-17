@@ -10,7 +10,6 @@ using HotChocolate.Types;
 using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
-using static StrawberryShake.CodeGeneration.Utilities.TypeHelpers;
 
 namespace StrawberryShake.CodeGeneration.Analyzers
 {
@@ -113,6 +112,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 .Select(
                     t => new OutputFieldModel(
                         GetPropertyName(t.ResponseName),
+                        t.ResponseName,
                         t.Field.Description,
                         t.Field,
                         t.Field.Type,
@@ -259,6 +259,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     .Select(
                         t => new OutputFieldModel(
                             GetPropertyName(t.ResponseName),
+                            t.ResponseName,
                             t.Field.Description,
                             t.Field,
                             t.Field.Type,

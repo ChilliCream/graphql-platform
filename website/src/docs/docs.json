@@ -406,6 +406,53 @@
     ]
   },
   {
+    "path": "strawberryshake",
+    "title": "Strawberry Shake",
+    "description": "The only GraphQL client you will every need in the .NET ecosystem.",
+    "versions": [
+      {
+        "path": "",
+        "title": "v11 (latest)",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          },
+          {
+            "path": "get-started",
+            "title": "Get Started",
+            "items": [
+              {
+                "path": "index",
+                "title": "Blazor"
+              },
+              {
+                "path": "xamarin",
+                "title": "Xamarin"
+              },
+              {
+                "path": "console",
+                "title": "Console"
+              }
+            ]
+          },
+          {
+            "path": "state-management",
+            "title": "State Management"
+          },
+          {
+            "path": "persisted-queries",
+            "title": "Persisted Queries"
+          },
+          {
+            "path": "configuration",
+            "title": "Configuration"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "path": "greendonut",
     "title": "Green Donut",
     "description": "Configure data loaders and caching for GraphQL endpoints.",

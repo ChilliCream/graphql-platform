@@ -5,14 +5,16 @@
     <AssemblyName>StrawberryShake.Transport.Http</AssemblyName>
     <RootNamespace>StrawberryShake.Transport.Http</RootNamespace>
     <Nullable>enable</Nullable>
+    <Description>GraphQL over HTTP transport implementation for StrawberryShake GraphQL clients.</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="4.7.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.0"/>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.0"/>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\StrawberryShake.Core.csproj" />
+    <ProjectReference Include="..\Core\StrawberryShake.Core.csproj"/>
   </ItemGroup>
 
 </Project>

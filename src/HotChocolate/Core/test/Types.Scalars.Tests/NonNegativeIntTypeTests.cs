@@ -184,5 +184,33 @@ namespace HotChocolate.Types.Scalars
             // assert
             ExpectSerializeToThrowSerializationException<NonNegativeIntType>(value);
         }
+
+        [Theory]
+        [InlineData(typeof(IntValueNode), 0)]
+        [InlineData(typeof(IntValueNode), 1)]
+        [InlineData(typeof(IntValueNode), int.MaxValue)]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToMatchType<NonNegativeIntType>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(true)]
+        [InlineData("foo")]
+        [InlineData(int.MinValue)]
+        [InlineData(-1)]
+        public void ParseResult_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToThrowSerializationException<NonNegativeIntType>(value);
+        }
     }
 }

@@ -6,6 +6,7 @@ using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete]
     public class QueryableFilterVisitorContextComparableTests
         : TypeTestBase
     {

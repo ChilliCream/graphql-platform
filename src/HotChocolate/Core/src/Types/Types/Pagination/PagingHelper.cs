@@ -109,8 +109,8 @@ namespace HotChocolate.Types.Pagination
                 typeInspector.GetOutputReturnTypeRef(member) is ExtendedTypeReference r &&
                 typeInspector.TryCreateTypeInfo(r.Type, out ITypeInfo? typeInfo))
             {
-                // if the member has already associated a schema type with an attribute for instance
-                // we will just take it. Since we want the entity element we are going to take
+                // if the member has already associated a schema type we will just take it.
+                // Since we want the entity element we are going to take
                 // the element type of the list or array as our entity type.
                 if (r.Type.IsSchemaType && r.Type.IsArrayOrList)
                 {
@@ -149,6 +149,8 @@ namespace HotChocolate.Types.Pagination
                         return schemaType.ElementType!;
                     }
                 }
+
+
             }
 
             if (type is null || !typeof(IType).IsAssignableFrom(type))

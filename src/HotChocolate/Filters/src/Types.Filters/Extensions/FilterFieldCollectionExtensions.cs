@@ -6,8 +6,10 @@ using HotChocolate.Types.Filters.Properties;
 
 namespace HotChocolate.Types.Filters.Extensions
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public static class FilterFieldCollectionExtensions
     {
+        [Obsolete("Use HotChocolate.Data.")]
         public static T GetOrAddDescriptor<T>(
             this IList<FilterFieldDescriptorBase> fields,
             PropertyInfo propertyInfo,
@@ -46,6 +48,7 @@ namespace HotChocolate.Types.Filters.Extensions
             return newDescirptor;
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static T GetOrAddOperation<T>(
             this ICollection<FilterOperationDescriptorBase> fields,
             FilterOperationKind operationKind,

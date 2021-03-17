@@ -1,0 +1,35 @@
+﻿{
+  "query": "{ __typename }",
+  "operationName": "abc",
+  "extensions": {
+    "String": "def",
+    "null": null,
+    "Byte": 123,
+    "Int16": 123,
+    "UInt16": 123,
+    "Int32": 123,
+    "UInt32": 123,
+    "Int64": 123,
+    "UInt64": 123,
+    "Single": 123.123,
+    "Double": 123.123,
+    "Decimal": 123.123,
+    "Uri": "http://local/",
+    "ol": [
+      {
+        "s": "def"
+      }
+    ],
+    "sl": [
+      "a",
+      "b",
+      "c"
+    ],
+    "il": [
+      1,
+      2,
+      3
+    ],
+    "tuple": "(a, b)"
+  }
+}

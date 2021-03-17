@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using HotChocolate;
 
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
 {
     public class ObjectTypeDescriptor : ComplexTypeDescriptor
     {
@@ -19,6 +19,13 @@ namespace StrawberryShake.CodeGeneration
             {
                 CompleteProperties(properties);
             }
+        }
+
+        public EntityTypeDescriptor EntityTypeDescriptor { get; private set; }
+
+        public void CompleteEntityType(EntityTypeDescriptor descriptor)
+        {
+            EntityTypeDescriptor = descriptor;
         }
     }
 }

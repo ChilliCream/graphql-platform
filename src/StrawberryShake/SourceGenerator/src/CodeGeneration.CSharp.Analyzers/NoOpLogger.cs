@@ -21,6 +21,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         {
         }
 
+        public void SetGeneratorSettings(CSharpGeneratorSettings settings)
+        {
+        }
+
+        public void SetPersistedQueryLocation(string? location)
+        {
+        }
+
         public void EndGenerateCode()
         {
         }

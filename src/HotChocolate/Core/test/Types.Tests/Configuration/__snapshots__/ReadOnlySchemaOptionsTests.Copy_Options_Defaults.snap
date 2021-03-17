@@ -5,7 +5,10 @@
   "StrictValidation": true,
   "UseXmlDocumentation": true,
   "SortFieldsByName": false,
+  "PreserveSyntaxNodes": false,
   "RemoveUnreachableTypes": false,
   "DefaultBindingBehavior": "Implicit",
-  "FieldMiddleware": "UserDefinedFields"
+  "FieldMiddleware": "UserDefinedFields",
+  "EnableDirectiveIntrospection": false,
+  "DefaultDirectiveVisibility": "Public"
 }

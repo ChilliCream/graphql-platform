@@ -7,50 +7,33 @@ namespace HotChocolate.Types.Scalars
     /// The `HSLA` scalar type represents a valid a CSS HSLA color as defined
     /// in <a href="https://www.w3.org/TR/css-color-3/#hsla-color">W3 HSLA Color</a>
     /// </summary>
-    public class HslaType : HslType
+    public class HslaType : RegexType
     {
+        private const string _validationPattern =
+            "^(?:hsla?)\\((?:\\d+%?(?:deg|rad|grad|turn)?(?:,|\\s)+){2,3}[\\s\\/]*[\\d\\.]+%?\\)";
+
         /// <summary>
         /// Initializes a new instance of the <see cref="HslaType"/> class.
         /// </summary>
         public HslaType()
-            : this(
+            : base(
                 WellKnownScalarTypes.Hsla,
-                ScalarResources.HslaType_Description)
+                _validationPattern,
+                ScalarResources.HslaType_Description,
+                RegexOptions.Compiled | RegexOptions.IgnoreCase)
         {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="HslaType"/> class.
-        /// </summary>
-        public HslaType(
-            NameString name,
-            string? description = null,
-            BindingBehavior bind = BindingBehavior.Explicit)
-            : base(name, description, bind)
-        {
-            Description = description;
         }
 
         /// <inheritdoc />
-        protected override string ParseLiteral(StringValueNode valueSyntax)
+        protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
         {
-            if (!ValidationRegex.IsMatch(valueSyntax.Value))
-            {
-                throw ThrowHelper.HslaType_ParseLiteral_IsInvalid(this);
-            }
-
-            return base.ParseLiteral(valueSyntax);
+            return ThrowHelper.HslaType_ParseLiteral_IsInvalid(this);
         }
 
         /// <inheritdoc />
-        protected override StringValueNode ParseValue(string runtimeValue)
+        protected override SerializationException CreateParseValueError(object runtimeValue)
         {
-            if (!ValidationRegex.IsMatch(runtimeValue))
-            {
-                throw ThrowHelper.HslaType_ParseValue_IsInvalid(this);
-            }
-
-            return base.ParseValue(runtimeValue);
+            return ThrowHelper.HslaType_ParseValue_IsInvalid(this);
         }
     }
 }

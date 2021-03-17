@@ -4,7 +4,7 @@ using HotChocolate.Language;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public class TypeReferenceBuilder : ICodeBuilder
+    public class TypeReferenceBuilder : ICode
     {
         private readonly List<TypeKindToken> _buildOrder = new();
         private string? _name;

@@ -1,0 +1,14 @@
+﻿{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "BadRequest",
+  "Data": null,
+  "Errors": [
+    {
+      "message": "No 'operations' specified.",
+      "extensions": {
+        "code": "HC0034"
+      }
+    }
+  ],
+  "Extensions": null
+}

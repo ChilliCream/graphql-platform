@@ -33,9 +33,10 @@ namespace HotChocolate.Execution
             Stream output,
             CancellationToken cancellationToken)
         {
-            var writer = new StreamWriter(output, Encoding.UTF8);
-            await writer.WriteAsync(Text).ConfigureAwait(false);
-            await writer.FlushAsync().ConfigureAwait(false);
+            var buffer = Encoding.UTF8.GetBytes(Text);
+            await output
+                .WriteAsync(buffer, 0, buffer.Length, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         public ReadOnlySpan<byte> AsSpan()

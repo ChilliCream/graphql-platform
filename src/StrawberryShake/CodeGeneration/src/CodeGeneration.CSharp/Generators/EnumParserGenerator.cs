@@ -1,20 +1,23 @@
 using StrawberryShake.CodeGeneration.CSharp.Builders;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 using static StrawberryShake.CodeGeneration.TypeNames;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class EnumParserGenerator : CodeGenerator<EnumTypeDescriptor>
     {
         protected override void Generate(
             CodeWriter writer,
             EnumTypeDescriptor descriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             const string serializedValue = nameof(serializedValue);
             const string runtimeValue = nameof(runtimeValue);
 
             fileName = CreateEnumParserName(descriptor.Name);
+            path = Serialization;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New(fileName)
