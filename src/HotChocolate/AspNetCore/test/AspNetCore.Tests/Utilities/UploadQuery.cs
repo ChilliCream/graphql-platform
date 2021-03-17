@@ -8,7 +8,8 @@ namespace HotChocolate.AspNetCore.Utilities
     public class UploadQuery
     {
         public async Task<string> SingleUpload(
-            [GraphQLType(typeof(NonNullType<UploadType>))] IFile file)
+            [GraphQLType(typeof(NonNullType<UploadType>))]
+            IFile file)
         {
             await using Stream stream = file.OpenReadStream();
             using var sr = new StreamReader(stream, Encoding.UTF8);
@@ -34,7 +35,7 @@ namespace HotChocolate.AspNetCore.Utilities
 
     public class InputWithFile
     {
-        [GraphQLType(typeof(NonNullType<UploadType>))] 
+        [GraphQLType(typeof(NonNullType<UploadType>))]
         public IFile File { get; set; }
     }
 }
