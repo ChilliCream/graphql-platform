@@ -38,27 +38,14 @@ namespace HotChocolate.Types.Scalars
 
         public override IValueNode ParseResult(object? resultValue)
         {
-            if (resultValue is null)
+            return resultValue switch
             {
-                return NullValueNode.Default;
-            }
-
-            if (resultValue is string s)
-            {
-                return new StringValueNode(s);
-            }
-
-            if (resultValue is DateTimeOffset d)
-            {
-                return ParseValue(d);
-            }
-
-            if (resultValue is DateTime dt)
-            {
-                return ParseValue(new DateTimeOffset(dt));
-            }
-
-            throw ThrowHelper.LocalTimeType_ParseValue_IsInvalid(this);
+                null => NullValueNode.Default,
+                string s => new StringValueNode(s),
+                DateTimeOffset d => ParseValue(d),
+                DateTime dt => ParseValue(new DateTimeOffset(dt)),
+                _ => throw ThrowHelper.LocalTimeType_ParseValue_IsInvalid(this)
+            };
         }
 
         protected override DateTime ParseLiteral(StringValueNode valueSyntax)
