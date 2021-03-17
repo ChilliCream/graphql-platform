@@ -133,29 +133,38 @@ namespace HotChocolate.AspNetCore
                 requestBatch, cancellationToken: context.RequestAborted);
         }
 
-        protected static AllowedContentType ParseContentType(string s)
+        protected static AllowedContentType ParseContentType(HttpContext context)
         {
-            ReadOnlySpan<char> span = s.AsSpan();
+            if (context.Items.TryGetValue(nameof(AllowedContentType), out var value) &&
+                value is AllowedContentType contentType)
+            {
+                return contentType;
+            }
+
+            ReadOnlySpan<char> span = context.Request.ContentType.AsSpan();
 
             for (var i = 0; i < span.Length; i++)
             {
                 if (span[i] == ';')
                 {
-                    span = span.Slice(0, i);
+                    span = span[..i];
                     break;
                 }
             }
 
             if (span.SequenceEqual(ContentType.JsonSpan()))
             {
+                context.Items[nameof(AllowedContentType)] = AllowedContentType.Json;
                 return AllowedContentType.Json;
             }
 
             if (span.SequenceEqual(ContentType.MultiPartSpan()))
             {
+                context.Items[nameof(AllowedContentType)] = AllowedContentType.Form;
                 return AllowedContentType.Form;
             }
 
+            context.Items[nameof(AllowedContentType)] = AllowedContentType.None;
             return AllowedContentType.None;
         }
 

@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types.Scalars.Upload\HotChocolate.Types.Scalars.Upload.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,6 +35,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>AspNetCoreResources.resx</DependentUpon>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Types" />
   </ItemGroup>
 
 </Project>

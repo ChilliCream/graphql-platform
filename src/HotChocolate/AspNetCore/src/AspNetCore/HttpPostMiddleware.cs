@@ -41,7 +41,8 @@ namespace HotChocolate.AspNetCore
             }
             else
             {
-                AllowedContentType contentType = ParseContentType(context.Request.ContentType);
+                AllowedContentType contentType = ParseContentType(context);
+
                 if (contentType == AllowedContentType.Json)
                 {
                     await HandleRequestAsync(context, contentType);

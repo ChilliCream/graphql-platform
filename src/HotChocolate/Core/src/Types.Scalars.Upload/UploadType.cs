@@ -1,4 +1,5 @@
 using HotChocolate.Language;
+using HotChocolate.Types.Scalars.Upload.Properties;
 
 namespace HotChocolate.Types
 {
@@ -46,12 +47,12 @@ namespace HotChocolate.Types
             valueSyntax.Value;
 
         protected override FileValueNode ParseValue(IFile runtimeValue) =>
-            new FileValueNode(runtimeValue);
+            new(runtimeValue);
 
         public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
             throw new GraphQLException(
-                "The GraphQL upload scalar is only valid to use as an input type.");
+                UploadResources.UploadType_TrySerialize_NotSupported);
         }
 
         public override bool TryDeserialize(object? resultValue, out object? runtimeValue)

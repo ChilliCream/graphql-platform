@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Types.Scalars.Upload\HotChocolate.Types.Scalars.Upload.csproj" />
     <ProjectReference Include="..\..\..\Core\test\StarWars\HotChocolate.StarWars.csproj" />
     <ProjectReference Include="..\..\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
   </ItemGroup>
@@ -22,6 +23,9 @@
   <!--For Visual Studio for Mac Test Explorer we need this reference here-->
   <ItemGroup>
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Serialization" />
   </ItemGroup>
 
 </Project>

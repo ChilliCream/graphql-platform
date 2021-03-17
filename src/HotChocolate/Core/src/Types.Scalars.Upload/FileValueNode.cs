@@ -6,7 +6,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     /// <summary>
-    /// This file literal is used in order to allow for 
+    /// This file literal is used in order to allow for
     /// an optimized path through the execution engine.
     /// </summary>
     public class FileValueNode
@@ -25,7 +25,7 @@ namespace HotChocolate.Types
         }
 
         /// <inheritdoc />
-        public SyntaxKind Kind { get; } = SyntaxKind.StringValue;
+        public SyntaxKind Kind => SyntaxKind.StringValue;
 
         /// <inheritdoc />
         public Language.Location? Location => null;
@@ -57,7 +57,7 @@ namespace HotChocolate.Types
             }
 
             if (ReferenceEquals(this, other) ||
-                ReferenceEquals(this.Value, other.Value))
+                ReferenceEquals(Value, other.Value))
             {
                 return true;
             }
