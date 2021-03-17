@@ -1,4 +1,6 @@
-# Get started with Strawberry Shake
+---
+title: "Get started with Strawberry Shake"
+---
 
 In this tutorial we will walk you through the basics of adding a Strawberry Shake GraphQL client to a .NET project. For this example we will create a Blazor for WebAssembly application and fetch some simple data from our demo backend.
 
