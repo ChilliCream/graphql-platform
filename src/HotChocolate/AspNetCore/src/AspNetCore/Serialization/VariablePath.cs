@@ -1,5 +1,5 @@
 using System;
-using HotChocolate.AspNetCore.Properties;
+using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 
 namespace HotChocolate.AspNetCore.Serialization
 {
@@ -48,7 +48,7 @@ namespace HotChocolate.AspNetCore.Serialization
                 return new VariablePath(key);
             }
 
-            throw new InvalidOperationException(AspNetCoreResources.VariablePath_Parse_FirstSegmentMustBeKey);
+            throw new InvalidOperationException(VariablePath_Parse_FirstSegmentMustBeKey);
         }
     }
 }
