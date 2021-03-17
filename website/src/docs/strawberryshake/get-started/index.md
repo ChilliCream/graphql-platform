@@ -399,4 +399,296 @@ fragment SessionInfo on Session {
 }
 ```
 
-2. Next we need to restructure the `Index.razor` page.
+2. Next we need to restructure the `Index.razor` page. We will get rid of the Blazor default content and rework our list to use our fragment `SessionInfo`. Further, we will introduce a button to our list so that we have a hook to start editing items from our list.
+
+```csharp
+@page "/"
+@inject ConferenceClient ConferenceClient;
+@implements IDisposable
+
+<h1>Sessions</h1>
+
+<ul>
+@foreach (ISessionInfo session in sessions)
+{
+    <li><button @onclick="() => OnClickSession(session)"><span class="oi oi-pencil mr-2" aria-hidden="true"></span></button> @session.Title</li>
+}
+</ul>
+
+@code {
+    private IReadOnlyList<ISessionInfo> sessions = Array.Empty<ISessionInfo>();
+    private IDisposable storeSession;
+
+    protected override void OnInitialized()
+    {
+        storeSession =
+            ConferenceClient
+                .GetSessions
+                .Watch(ExecutionStrategy.CacheFirst)
+                .Where(t => !t.Errors.Any())
+                .Select(t => t.Data!.Sessions!.Nodes)
+                .Subscribe(result =>
+                {
+                    sessions = result;
+                    StateHasChanged();
+                });
+    }
+
+    private void OnClickSession(ISessionInfo session)
+    {
+
+    }
+
+    public void Dispose()
+    {
+        storeSession?.Dispose();
+    }
+}
+```
+
+3. Next, we will define the GraphQL mutation by adding a new GraphQL document `RenameSession.graphql`.
+
+```graphql
+mutation RenameSession($sessionId: ID!, $title: String!) {
+  renameSession(input: { sessionId: $sessionId, title: $title }) {
+    session {
+      ...SessionInfo
+    }
+  }
+}
+```
+
+4. Rebuild, the project so that the source generator will create all our new types.
+
+5. Go back to the `Index.razor` page and lets add some state for our edit controls.
+
+```csharp
+private ISessionInfo selectedSession;
+private string title;
+```
+
+The page should now look like the following:
+
+```csharp
+@page "/"
+@inject ConferenceClient ConferenceClient;
+@implements IDisposable
+
+<h1>Sessions</h1>
+
+<ul>
+@foreach (ISessionInfo session in sessions)
+{
+    <li><button @onclick="() => OnClickSession(session)"><span class="oi oi-pencil mr-2" aria-hidden="true"></span></button> @session.Title</li>
+}
+</ul>
+
+@code {
+    private IReadOnlyList<ISessionInfo> sessions = Array.Empty<ISessionInfo>();
+    private IDisposable storeSession;
+    private ISessionInfo selectedSession;
+    private string title;
+
+    protected override void OnInitialized()
+    {
+        storeSession =
+            ConferenceClient
+                .GetSessions
+                .Watch(ExecutionStrategy.CacheFirst)
+                .Where(t => !t.Errors.Any())
+                .Select(t => t.Data!.Sessions!.Nodes)
+                .Subscribe(result =>
+                {
+                    sessions = result;
+                    StateHasChanged();
+                });
+    }
+
+    private void OnClickSession(ISessionInfo session)
+    {
+
+    }
+
+    public void Dispose()
+    {
+        storeSession?.Dispose();
+    }
+}
+```
+
+6. Now, lets put some controls in to let the user edit the title of one of our sessions.
+
+```csharp
+@if (selectedSession is not null)
+{
+    <br />
+    <p>Edit Session Title:</p>
+    <input @bind-value="@title" />
+    <button @onclick="OnSaveTitle">Save</button>
+}
+```
+
+The page should now look like the following:
+
+```csharp
+@page "/"
+@inject ConferenceClient ConferenceClient;
+@implements IDisposable
+
+<h1>Sessions</h1>
+
+<ul>
+@foreach (ISessionInfo session in sessions)
+{
+    <li><button @onclick="() => OnClickSession(session)"><span class="oi oi-pencil mr-2" aria-hidden="true"></span></button> @session.Title</li>
+}
+</ul>
+
+@if (selectedSession is not null)
+{
+    <br />
+    <p>Edit Session Title:</p>
+    <input @bind-value="@title" />
+    <button @onclick="OnSaveTitle">Save</button>
+}
+
+@code {
+    private IReadOnlyList<ISessionInfo> sessions = Array.Empty<ISessionInfo>();
+    private IDisposable storeSession;
+    private ISessionInfo selectedSession;
+    private string title;
+
+    protected override void OnInitialized()
+    {
+        storeSession =
+            ConferenceClient
+                .GetSessions
+                .Watch(ExecutionStrategy.CacheFirst)
+                .Where(t => !t.Errors.Any())
+                .Select(t => t.Data!.Sessions!.Nodes)
+                .Subscribe(result =>
+                {
+                    sessions = result;
+                    StateHasChanged();
+                });
+    }
+
+    private void OnClickSession(ISessionInfo session)
+    {
+
+    }
+
+    public void Dispose()
+    {
+        storeSession?.Dispose();
+    }
+}
+```
+
+7. Next, we want to wire the controls up with the click. For that replace the `OnClickSession` method with the following code:
+
+```csharp
+private void OnClickSession(ISessionInfo session)
+{
+    selectedSession = session;
+    title = session.Title;
+    StateHasChanged();
+}
+```
+
+8. Add, a new method that now executes our new mutation `RenameSession`.
+
+```csharp
+private async Task OnSaveTitle()
+{
+    await ConferenceClient.RenameSession.ExecuteAsync(selectedSession.Id, title);
+    selectedSession = null;
+    title = null;
+    StateHasChanged();
+}
+```
+
+The page should now look like the following:
+
+```csharp
+@page "/"
+@inject ConferenceClient ConferenceClient;
+@implements IDisposable
+
+<h1>Sessions</h1>
+
+<ul>
+@foreach (ISessionInfo session in sessions)
+{
+    <li><button @onclick="() => OnClickSession(session)"><span class="oi oi-pencil mr-2" aria-hidden="true"></span></button> @session.Title</li>
+}
+</ul>
+
+@if (selectedSession is not null)
+{
+    <br />
+    <p>Edit Session Title:</p>
+    <input @bind-value="@title" />
+    <button @onclick="OnSaveTitle">Save</button>
+}
+
+@code {
+    private IReadOnlyList<ISessionInfo> sessions = Array.Empty<ISessionInfo>();
+    private IDisposable storeSession;
+    private ISessionInfo selectedSession;
+    private string title;
+
+    protected override void OnInitialized()
+    {
+        storeSession =
+            ConferenceClient
+                .GetSessions
+                .Watch(ExecutionStrategy.CacheFirst)
+                .Where(t => !t.Errors.Any())
+                .Select(t => t.Data!.Sessions!.Nodes)
+                .Subscribe(result =>
+                {
+                    sessions = result;
+                    StateHasChanged();
+                });
+    }
+
+    private void OnClickSession(ISessionInfo session)
+    {
+        selectedSession = session;
+        title = session.Title;
+        StateHasChanged();
+    }
+
+    private async Task OnSaveTitle()
+    {
+        await ConferenceClient.RenameSession.ExecuteAsync(selectedSession.Id, title);
+        selectedSession = null;
+        title = null;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        storeSession?.Dispose();
+    }
+}
+```
+
+9. Start the Blazor application with `dotnet run --project ./Demo` and see if your code works.
+
+![Started Blazor application in Microsoft Edge](../../shared/berry_mutation_1.png)
+
+10. Click on the edit button of one of the sessions.
+
+![Clicked on session edit button](../../shared/berry_mutation_2.png)
+
+11. Change the title of the session and click save.
+
+![Clicked on session edit button](../../shared/berry_mutation_3.png)
+
+11. The item is now changed in the list although we have not explicitly written any code to update the item in our list component.
+
+![Clicked on session edit button](../../shared/berry_mutation_4.png)
+
+Strawberry Shake knows about your entities and how the connect. Whenever one request updates the state, all components referring to data of that component are updated.
