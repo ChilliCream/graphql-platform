@@ -4,8 +4,6 @@ Strawberry Shake is an open-source GraphQL client that is compliant with the new
 
 Strawberry Shake removes the complexity of state management and lets you interact with local and remote data through GraphQL.
 
-![Platform](../../images/platform.png)
-
 You can use Strawberry Shake to:
 
 - Generate a C# client from your GraphQL queries.
