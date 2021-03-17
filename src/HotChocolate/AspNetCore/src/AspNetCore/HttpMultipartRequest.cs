@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore
 {
-    public class HttpMultipartRequest
+    internal class HttpMultipartRequest
     {
         public HttpMultipartRequest(string operations, IDictionary<string, IFile> fileMap)
         {

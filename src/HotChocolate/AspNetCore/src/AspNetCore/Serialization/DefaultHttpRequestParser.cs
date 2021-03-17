@@ -118,13 +118,8 @@ namespace HotChocolate.AspNetCore.Serialization
         }
 
         public IReadOnlyList<GraphQLRequest> ReadOperationsRequest(
-            string operations)
-        {
-            IReadOnlyList<GraphQLRequest> requests =
-                Parse(operations, _parserOptions, _documentCache, _documentHashProvider);
-
-            return requests;
-        }
+            string operations) =>
+            Parse(operations, _parserOptions, _documentCache, _documentHashProvider);
 
         private async ValueTask<IReadOnlyList<GraphQLRequest>> ReadAsync(
             Stream stream,
