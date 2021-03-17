@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { IsPhablet, IsSmallDesktop } from "../doc-page/shared-style";
+import { IsPhablet, IsSmallDesktop } from "../../shared-style";
 
 export const ArticleHeader = styled.header`
   position: relative;

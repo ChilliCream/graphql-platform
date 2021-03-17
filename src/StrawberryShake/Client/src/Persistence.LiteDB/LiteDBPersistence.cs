@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
@@ -10,7 +9,7 @@ using StrawberryShake.Internal;
 using StrawberryShake.Json;
 using static StrawberryShake.Json.JsonSerializationHelper;
 
-namespace StrawberryShake.Persistence.SQLite
+namespace StrawberryShake.Persistence.LiteDB
 {
     public class LiteDBPersistence : IDisposable
     {
@@ -69,6 +68,7 @@ namespace StrawberryShake.Persistence.SQLite
             _storeAccessor.EntityStore.Update(session =>
             {
                 var collection = _database.GetCollection<EntityDto>(Entities);
+
                 foreach (var entityDto in collection.FindAll())
                 {
                     using var json = JsonDocument.Parse(entityDto.Id);
@@ -124,10 +124,7 @@ namespace StrawberryShake.Persistence.SQLite
             _operationStoreSubscription = _storeAccessor.OperationStore
                 .Watch()
                 .Subscribe(
-                    onNext: update =>
-                    {
-                        _queue.Writer.TryWrite(update);
-                    },
+                    onNext: update => _queue.Writer.TryWrite(update),
                     onCompleted: () => _cts.Cancel());
 
             Task.Run(async () => await WriteAsync(_cts.Token));
@@ -184,31 +181,24 @@ namespace StrawberryShake.Persistence.SQLite
             IEntityStoreSnapshot snapshot,
             ILiteCollection<EntityDto> collection)
         {
-            try
-            {
-                string serializedId = _storeAccessor.EntityIdSerializer.Format(entityId);
+            string serializedId = _storeAccessor.EntityIdSerializer.Format(entityId);
 
-                if (snapshot.TryGetEntity(entityId, out object? entity))
-                {
-                    collection.Upsert(
-                        serializedId,
-                        new EntityDto
-                        {
-                            Id = serializedId,
-                            Entity = JsonConvert.SerializeObject(entity,
-                                _serializerSettings),
-                            TypeName = entity.GetType().FullName!,
-                            Version = snapshot.Version
-                        });
-                }
-                else
-                {
-                    collection.Delete(serializedId);
-                }
+            if (snapshot.TryGetEntity(entityId, out object? entity))
+            {
+                collection.Upsert(
+                    serializedId,
+                    new EntityDto
+                    {
+                        Id = serializedId,
+                        Entity = JsonConvert.SerializeObject(entity,
+                            _serializerSettings),
+                        TypeName = entity.GetType().FullName!,
+                        Version = snapshot.Version
+                    });
             }
-            catch (Exception ex)
+            else
             {
-
+                collection.Delete(serializedId);
             }
         }
 

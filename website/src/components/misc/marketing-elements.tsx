@@ -22,6 +22,7 @@ export const Section = styled.section`
   justify-content: center;
   padding: 70px 0 50px;
   width: 100%;
+  overflow: hidden;
 
   &:nth-child(odd) {
     background-color: #efefef;

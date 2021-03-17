@@ -16,7 +16,6 @@ namespace HotChocolate.Types.Scalars
             "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?" +
             "(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
 
-
         /// <summary>
         /// Initializes a new instance of the <see cref="EmailAddressType"/> class.
         /// </summary>

@@ -1,9 +1,11 @@
+using System;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete]
     public class SortInputObjectTypeTests
         : TypeTestBase
     {
@@ -28,7 +30,7 @@ namespace HotChocolate.Types.Sorting
 
             // assert
             schema.ToString().MatchSnapshot();
-        } 
+        }
 
         [Fact]
         public void Bind_Sort_SortDescirptor_OverrideDescriptor()

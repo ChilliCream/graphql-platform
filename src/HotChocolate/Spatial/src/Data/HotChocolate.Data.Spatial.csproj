@@ -4,6 +4,7 @@
     <PackageId>HotChocolate.Data.Spatial</PackageId>
     <RootNamespace>HotChocolate.Data</RootNamespace>
     <Nullable>enable</Nullable>
+    <Description>Contains extensions for seamless integration of NetTopologySuite into the HotChocolate.Data package</Description>
   </PropertyGroup>
 
   <ItemGroup>
