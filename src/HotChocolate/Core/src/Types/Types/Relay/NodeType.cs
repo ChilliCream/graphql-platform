@@ -1,17 +1,26 @@
-﻿namespace HotChocolate.Types.Relay
+﻿using HotChocolate.Properties;
+
+namespace HotChocolate.Types.Relay
 {
-    public class NodeType
-        : InterfaceType<INode>
+    public class NodeType : InterfaceType<INode>
     {
         protected override void Configure(
             IInterfaceTypeDescriptor<INode> descriptor)
         {
-            // TODO : resources
-            descriptor.Name("Node");
-            descriptor.Description(
-                "The node interface is implemented by entities that have " +
-                "a global unique identifier.");
-            descriptor.Field("id").Type<NonNullType<IdType>>();
+            descriptor
+                .Name(Names.Node)
+                .Description(TypeResources.NodeType_TypeDescription);
+
+            descriptor
+                .Field(Names.Id)
+                .Type<NonNullType<IdType>>();
+        }
+
+        public static class Names
+        {
+            public static NameString Node { get; } = "Node";
+
+            public static NameString Id { get; } = "id";
         }
     }
 }

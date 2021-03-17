@@ -58,7 +58,9 @@ namespace HotChocolate.Utilities.Serialization
                 if (type.Fields.TryGetField(fieldValue.Name.Value, out InputField field))
                 {
                     object value = field.Type.ParseLiteral(fieldValue.Value);
-                    value = field.Formatter is not null ? field.Formatter.OnAfterDeserialize(value) : value;
+                    value = field.Formatter is not null
+                        ? field.Formatter.OnAfterDeserialize(value)
+                        : value;
                     target[field.Name] = ConvertValue(field, converter, value);
                 }
                 else
@@ -163,19 +165,23 @@ namespace HotChocolate.Utilities.Serialization
             ITypeConverter converter,
             object value)
         {
-            if (value is { }
-                && field.RuntimeType != typeof(object))
+            if (value is not null && field.RuntimeType != typeof(object))
             {
+                if(field.RuntimeType.IsInterface && field.RuntimeType.IsInstanceOfType(value)) 
+                {
+                    return value;
+                }
+
                 Type type = field.RuntimeType;
 
-                if (type.IsGenericType
-                    && type.GetGenericTypeDefinition() == typeof(Optional<>))
+                if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Optional<>))
                 {
                     type = type.GetGenericArguments()[0];
                 }
 
                 value = converter.Convert(value.GetType(), type, value);
             }
+
             return value;
         }
 

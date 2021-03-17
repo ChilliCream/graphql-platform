@@ -80,7 +80,9 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return builder.AddDocument(async (sp, ct) =>
             {
-                byte[] buffer = await Task.Run(() => File.ReadAllBytes(filePath), ct);
+                byte[] buffer = await Task
+                    .Run(() => File.ReadAllBytes(filePath), ct)
+                    .ConfigureAwait(false);
                 return Utf8GraphQLParser.Parse(buffer);
             });
         }

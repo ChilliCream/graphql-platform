@@ -13,11 +13,11 @@ namespace HotChocolate.Data.Filters.Expressions
         }
 
         public override bool CanHandle(
-            ITypeDiscoveryContext context,
-            FilterInputTypeDefinition typeDefinition,
-            FilterFieldDefinition fieldDefinition)
+            ITypeCompletionContext context,
+            IFilterInputTypeDefinition typeDefinition,
+            IFilterFieldDefinition fieldDefinition)
         {
-            return context.Type is IEnumOperationFilterInput &&
+            return context.Type is IEnumOperationFilterInputType &&
                 fieldDefinition is FilterOperationFieldDefinition operationField &&
                 operationField.Id == Operation;
         }

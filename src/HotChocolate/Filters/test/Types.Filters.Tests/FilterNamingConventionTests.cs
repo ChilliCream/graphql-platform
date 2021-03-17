@@ -6,6 +6,7 @@ using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete]
     public class FilterNamingConventionTests
         : TypeTestBase
     {
@@ -55,7 +56,7 @@ namespace HotChocolate.Types.Filters
             ISchema schema = CreateSchema(x =>
                 x.AddConvention<IFilterNamingConvention, CustomConvention>()
                 .AddObjectType(x => x.Name("Test")
-                .Field("foo") 
+                .Field("foo")
                 .Type<NonNullType<ListType<NonNullType<ObjectType<Foo>>>>>()
                 .UseFiltering<FilterInputType<Foo>>())
             );

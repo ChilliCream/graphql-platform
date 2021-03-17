@@ -74,7 +74,7 @@ namespace HotChocolate.Data.Filters
                     nameof(filterType));
             }
 
-            Definition.Bindings.Add(runtimeType, filterType);
+            Definition.Bindings[runtimeType] = filterType;
             return this;
         }
 
@@ -83,7 +83,10 @@ namespace HotChocolate.Data.Filters
             ConfigureFilterInputType configure)
             where TFilterType : FilterInputType =>
             Configure(
-                Context.TypeInspector.GetTypeRef(typeof(TFilterType), TypeContext.Input, Definition.Scope),
+                Context.TypeInspector.GetTypeRef(
+                    typeof(TFilterType),
+                    TypeContext.Input,
+                    Definition.Scope),
                 configure);
 
         /// <inheritdoc />
@@ -91,12 +94,16 @@ namespace HotChocolate.Data.Filters
             ConfigureFilterInputType<TRuntimeType> configure)
             where TFilterType : FilterInputType<TRuntimeType> =>
             Configure(
-                Context.TypeInspector.GetTypeRef(typeof(TFilterType), TypeContext.Input, Definition.Scope),
+                Context.TypeInspector.GetTypeRef(
+                    typeof(TFilterType),
+                    TypeContext.Input,
+                    Definition.Scope),
                 d =>
                 {
-                    configure.Invoke(FilterInputTypeDescriptor.From<TRuntimeType>(
-                        (FilterInputTypeDescriptor)d,
-                        Definition.Scope));
+                    configure.Invoke(
+                        FilterInputTypeDescriptor.From<TRuntimeType>(
+                            (FilterInputTypeDescriptor)d,
+                            Definition.Scope));
                 });
 
         protected IFilterConventionDescriptor Configure(
@@ -152,6 +159,20 @@ namespace HotChocolate.Data.Filters
         public IFilterConventionDescriptor ArgumentName(NameString argumentName)
         {
             Definition.ArgumentName = argumentName;
+            return this;
+        }
+
+        public IFilterConventionDescriptor AddProviderExtension<TExtension>()
+            where TExtension : class, IFilterProviderExtension
+        {
+            Definition.ProviderExtensionsTypes.Add(typeof(TExtension));
+            return this;
+        }
+
+        public IFilterConventionDescriptor AddProviderExtension<TExtension>(TExtension provider)
+            where TExtension : class, IFilterProviderExtension
+        {
+            Definition.ProviderExtensions.Add(provider);
             return this;
         }
 

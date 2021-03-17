@@ -4,6 +4,10 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Xunit;
+using System;
+using HotChocolate.AspNetCore.Extensions;
+using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.Execution;
 
 namespace HotChocolate.AspNetCore.Utilities
 {
@@ -14,23 +18,37 @@ namespace HotChocolate.AspNetCore.Utilities
             ServerFactory = serverFactory;
         }
 
-        protected TestServerFactory ServerFactory { get; set; }
+        protected TestServerFactory ServerFactory { get; }
 
-        protected virtual TestServer CreateStarWarsServer(string pattern = "/graphql") =>
-            ServerFactory.Create(
-                services => services
-                    .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
-                    .AddGraphQLServer()
+        protected virtual TestServer CreateStarWarsServer(
+            string pattern = "/graphql",
+            Action<IServiceCollection> configureServices = default,
+            Action<GraphQLEndpointConventionBuilder> configureConventions = default)
+        {
+            return ServerFactory.Create(
+                services =>
+                {
+                    services
+                        .AddRouting()
+                        .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
+                        .AddGraphQLServer()
                         .AddStarWarsTypes()
                         .AddTypeExtension<QueryExtension>()
                         .AddExportDirectiveType()
                         .AddStarWarsRepositories()
                         .AddInMemorySubscriptions()
-                    .AddGraphQLServer("evict")
+                        .UseAutomaticPersistedQueryPipeline()
+                        .ConfigureSchemaServices(services =>
+                            services
+                                .AddSingleton<PersistedQueryCache>()
+                                .AddSingleton<IReadStoredQueries>(
+                                    c => c.GetService<PersistedQueryCache>())
+                                .AddSingleton<IWriteStoredQueries>(
+                                    c => c.GetService<PersistedQueryCache>()))
+                        .AddGraphQLServer("evict")
                         .AddQueryType(d => d.Name("Query"))
                         .AddTypeExtension<QueryExtension>()
-                    .AddGraphQLServer("arguments")
+                        .AddGraphQLServer("arguments")
                         .AddQueryType(d =>
                         {
                             d
@@ -47,15 +65,24 @@ namespace HotChocolate.AspNetCore.Utilities
                                 .Argument("d", t => t.Type<DecimalType>())
                                 .Type<DecimalType>()
                                 .Resolve(c => c.ArgumentValue<decimal?>("d"));
-                        }),
+                        })
+                        .AddGraphQLServer("upload")
+                        .AddQueryType<UploadQuery>();
+
+                    configureServices?.Invoke(services);
+                },
                 app => app
                     .UseWebSockets()
                     .UseRouting()
                     .UseEndpoints(endpoints =>
                     {
-                        endpoints.MapGraphQL(pattern);
-                        endpoints.MapGraphQL("evict", "evict");
-                        endpoints.MapGraphQL("arguments", "arguments");
+                        GraphQLEndpointConventionBuilder builder = endpoints.MapGraphQL(pattern);
+
+                        configureConventions?.Invoke(builder);
+                        endpoints.MapGraphQL("/evict", "evict");
+                        endpoints.MapGraphQL("/arguments", "arguments");
+                        endpoints.MapGraphQL("/upload", "upload");
                     }));
+        }
     }
 }

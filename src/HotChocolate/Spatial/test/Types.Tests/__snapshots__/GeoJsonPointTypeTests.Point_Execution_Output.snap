@@ -1,0 +1,24 @@
+﻿{
+  "Label": null,
+  "Path": null,
+  "Data": {
+    "test": {
+      "type": "Point",
+      "coordinates": [
+        30.0,
+        10.0
+      ],
+      "bbox": [
+        30.0,
+        10.0,
+        30.0,
+        10.0
+      ],
+      "crs": 4326
+    }
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null,
+  "HasNext": null
+}

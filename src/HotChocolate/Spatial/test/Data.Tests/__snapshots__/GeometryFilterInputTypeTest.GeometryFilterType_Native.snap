@@ -1,0 +1,213 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+}
+
+input BooleanOperationFilterInput {
+  eq: Boolean
+  neq: Boolean
+}
+
+input ComparableDoubleOperationFilterInput {
+  eq: Float
+  neq: Float
+  in: [Float!]
+  nin: [Float!]
+  gt: Float
+  ngt: Float
+  gte: Float
+  ngte: Float
+  lt: Float
+  nlt: Float
+  lte: Float
+  nlte: Float
+}
+
+input ComparableInt32OperationFilterInput {
+  eq: Int
+  neq: Int
+  in: [Int!]
+  nin: [Int!]
+  gt: Int
+  ngt: Int
+  gte: Int
+  ngte: Int
+  lt: Int
+  nlt: Int
+  lte: Int
+  nlte: Int
+}
+
+input DimensionOperationFilterInput {
+  eq: Dimension
+  neq: Dimension
+  in: [Dimension!]
+  nin: [Dimension!]
+}
+
+input GeometryContainsOperationFilterInput {
+  geometry: Geometry!
+  buffer: Float
+}
+
+input GeometryDistanceOperationFilterInput {
+  geometry: Geometry!
+  buffer: Float
+  eq: Float
+  neq: Float
+  in: [Float!]
+  nin: [Float!]
+  gt: Float
+  ngt: Float
+  gte: Float
+  ngte: Float
+  lt: Float
+  nlt: Float
+  lte: Float
+  nlte: Float
+}
+
+input GeometryFilterInput {
+  and: [GeometryFilterInput!]
+  or: [GeometryFilterInput!]
+  area: ComparableDoubleOperationFilterInput
+  boundary: GeometryFilterInput
+  centroid: PointFilterInput
+  dimension: DimensionOperationFilterInput
+  envelope: GeometryFilterInput
+  geometryType: StringOperationFilterInput
+  interiorPoint: PointFilterInput
+  isSimple: BooleanOperationFilterInput
+  isValid: BooleanOperationFilterInput
+  length: ComparableDoubleOperationFilterInput
+  numPoints: ComparableInt32OperationFilterInput
+  ogcGeometryType: OgcGeometryTypeOperationFilterInput
+  pointOnSurface: PointFilterInput
+  srid: ComparableInt32OperationFilterInput
+  contains: GeometryContainsOperationFilterInput
+  ncontains: GeometryContainsOperationFilterInput
+  distance: GeometryDistanceOperationFilterInput
+  intersects: GeometryIntersectsOperationFilterInput
+  nintersects: GeometryIntersectsOperationFilterInput
+  overlaps: GeometryOverlapsOperationFilterInput
+  noverlaps: GeometryOverlapsOperationFilterInput
+  touches: GeometryTouchesOperationFilterInput
+  ntouches: GeometryTouchesOperationFilterInput
+  within: GeometryWithinOperationFilterInput
+  nwithin: GeometryWithinOperationFilterInput
+}
+
+input GeometryIntersectsOperationFilterInput {
+  geometry: Geometry!
+  buffer: Float
+}
+
+input GeometryOverlapsOperationFilterInput {
+  geometry: Geometry!
+  buffer: Float
+}
+
+input GeometryTouchesOperationFilterInput {
+  geometry: Geometry!
+  buffer: Float
+}
+
+input GeometryWithinOperationFilterInput {
+  geometry: Geometry!
+  buffer: Float
+}
+
+input OgcGeometryTypeOperationFilterInput {
+  eq: OgcGeometryType
+  neq: OgcGeometryType
+  in: [OgcGeometryType!]
+  nin: [OgcGeometryType!]
+}
+
+input PointFilterInput {
+  and: [PointFilterInput!]
+  or: [PointFilterInput!]
+  m: ComparableDoubleOperationFilterInput
+  x: ComparableDoubleOperationFilterInput
+  y: ComparableDoubleOperationFilterInput
+  z: ComparableDoubleOperationFilterInput
+  area: ComparableDoubleOperationFilterInput
+  boundary: GeometryFilterInput
+  centroid: PointFilterInput
+  dimension: DimensionOperationFilterInput
+  envelope: GeometryFilterInput
+  geometryType: StringOperationFilterInput
+  interiorPoint: PointFilterInput
+  isSimple: BooleanOperationFilterInput
+  isValid: BooleanOperationFilterInput
+  length: ComparableDoubleOperationFilterInput
+  numPoints: ComparableInt32OperationFilterInput
+  ogcGeometryType: OgcGeometryTypeOperationFilterInput
+  pointOnSurface: PointFilterInput
+  srid: ComparableInt32OperationFilterInput
+  contains: GeometryContainsOperationFilterInput
+  ncontains: GeometryContainsOperationFilterInput
+  distance: GeometryDistanceOperationFilterInput
+  intersects: GeometryIntersectsOperationFilterInput
+  nintersects: GeometryIntersectsOperationFilterInput
+  overlaps: GeometryOverlapsOperationFilterInput
+  noverlaps: GeometryOverlapsOperationFilterInput
+  touches: GeometryTouchesOperationFilterInput
+  ntouches: GeometryTouchesOperationFilterInput
+  within: GeometryWithinOperationFilterInput
+  nwithin: GeometryWithinOperationFilterInput
+}
+
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
+  eq: String
+  neq: String
+  contains: String
+  ncontains: String
+  in: [String]
+  nin: [String]
+  startsWith: String
+  nstartsWith: String
+  endsWith: String
+  nendsWith: String
+}
+
+enum Dimension {
+  POINT
+  CURVE
+  SURFACE
+  DONTCARE
+  TRUE
+  FALSE
+}
+
+enum OgcGeometryType {
+  POINT
+  LINE_STRING
+  POLYGON
+  MULTI_POINT
+  MULTI_LINE_STRING
+  MULTI_POLYGON
+  GEOMETRY_COLLECTION
+  CIRCULAR_STRING
+  COMPOUND_CURVE
+  CURVE_POLYGON
+  MULTI_CURVE
+  MULTI_SURFACE
+  CURVE
+  SURFACE
+  POLYHEDRAL_SURFACE
+  TIN
+}
+
+"The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
+directive @defer("If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to." label: String "Deferred when true." if: Boolean) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"The `@stream` directive may be provided for a field of `List` type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. `@include` and `@skip` take precedence over `@stream`."
+directive @stream("If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to." label: String "The initial elements that shall be send down to the consumer." initialCount: Int! "Streamed when true." if: Boolean!) on FIELD
+
+scalar Geometry

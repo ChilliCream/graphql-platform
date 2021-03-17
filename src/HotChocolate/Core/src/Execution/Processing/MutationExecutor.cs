@@ -48,6 +48,11 @@ namespace HotChocolate.Execution.Processing
                             scopedContext));
 
                     await ExecuteTasksAsync(operationContext).ConfigureAwait(false);
+
+                    if (i + 1 < selections.Count)
+                    {
+                        operationContext.Execution.Reset();
+                    }
                 }
             }
 

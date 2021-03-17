@@ -506,10 +506,29 @@ namespace HotChocolate.Types
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
-            int count = type.Fields["name"].Arguments["a"]
+            var count = type.Fields["name"].Arguments["a"]
                 .Directives["dummy_rep"]
                 .Count();
             Assert.Equal(2, count);
+        }
+
+        [Fact]
+        public void ObjectTypeExtension_SetDirectiveOnArgument_Sdl_First()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<FooType>()
+                .AddDocumentFromString(
+                    @"extend type Foo {
+                        name(a: String @dummy): String
+                    }")
+                .AddDirectiveType<DummyDirective>()
+                .Create();
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("Foo");
+            Assert.True(type.Fields["name"].Arguments["a"].Directives.Contains("dummy"));
         }
 
         public class FooType

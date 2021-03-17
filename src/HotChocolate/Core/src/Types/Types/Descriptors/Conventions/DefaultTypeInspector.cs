@@ -23,12 +23,9 @@ namespace HotChocolate.Types.Descriptors
         private const string _equals = "Equals";
         private const string _clone = "<Clone>$";
 
-        private readonly TypeCache _typeCache = new TypeCache();
-
-        private readonly Dictionary<MemberInfo, ExtendedMethodInfo> _methods =
-            new Dictionary<MemberInfo, ExtendedMethodInfo>();
-        private readonly Dictionary<Type, bool> _records =
-            new Dictionary<Type, bool>();
+        private readonly TypeCache _typeCache = new();
+        private readonly Dictionary<MemberInfo, ExtendedMethodInfo> _methods = new();
+        private readonly Dictionary<Type, bool> _records = new();
 
         public DefaultTypeInspector(bool ignoreRequiredAttribute = false)
         {
@@ -241,6 +238,79 @@ namespace HotChocolate.Types.Descriptors
             return null;
         }
 
+        public virtual MemberInfo? GetNodeIdMember(Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            return GetMembers(type)
+                .FirstOrDefault(
+                    member =>
+                        member.Name.Equals("Id", StringComparison.OrdinalIgnoreCase) ||
+                        member.Name.Equals("GetId", StringComparison.OrdinalIgnoreCase) ||
+                        member.Name.Equals("GetIdAsync", StringComparison.OrdinalIgnoreCase));
+        }
+
+        public virtual MethodInfo? GetNodeResolverMethod(Type nodeType, Type? resolverType = null)
+        {
+            if (nodeType == null)
+            {
+                throw new ArgumentNullException(nameof(nodeType));
+            }
+
+            // if we are inspecting the node type itself the method mus be static and does
+            // not need to include the node name.
+            if (resolverType is null)
+            {
+                return nodeType
+                    .GetMembers(BindingFlags.Static | BindingFlags.Public)
+                    .OfType<MethodInfo>()
+                    .FirstOrDefault(m => IsPossibleNodeResolver(m, nodeType));
+            }
+
+            // if we have a resolver type on the other hand the load method must
+            // include the type name and can be an instance method.
+            // first we will check for static load methods.
+            MethodInfo? method = resolverType
+                .GetMembers(BindingFlags.Static | BindingFlags.Public)
+                .OfType<MethodInfo>()
+                .FirstOrDefault(m => IsPossibleExternalNodeResolver(m, nodeType));
+
+            if (method is not null)
+            {
+                return method;
+            }
+
+            // if there is no static load method we will move on the check
+            // for instance load methods.
+            return GetMembers(resolverType)
+                .OfType<MethodInfo>()
+                .FirstOrDefault(m => IsPossibleExternalNodeResolver(m, nodeType));
+        }
+
+        private static bool IsPossibleNodeResolver(
+            MemberInfo member,
+            Type nodeType) =>
+            member.Name.Equals(
+                "Get",
+                StringComparison.OrdinalIgnoreCase) ||
+            member.Name.Equals(
+                "GetAsync",
+                StringComparison.OrdinalIgnoreCase) ||
+            IsPossibleExternalNodeResolver(member, nodeType);
+
+        private static bool IsPossibleExternalNodeResolver(
+            MemberInfo member,
+            Type nodeType) =>
+            member.Name.Equals(
+                $"Get{nodeType.Name}",
+                StringComparison.OrdinalIgnoreCase) ||
+            member.Name.Equals(
+                $"Get{nodeType.Name}Async",
+                StringComparison.OrdinalIgnoreCase);
+
         /// <inheritdoc />
         public Type ExtractNamedType(Type type)
         {
@@ -306,6 +376,11 @@ namespace HotChocolate.Types.Descriptors
             if (TryGetAttribute(property, out CompDefaultValueAttribute? attribute))
             {
                 defaultValue = attribute.Value;
+                return true;
+            }
+
+            if (TryGetDefaultValueFromConstructor(property, out defaultValue))
+            {
                 return true;
             }
 
@@ -510,65 +585,174 @@ namespace HotChocolate.Types.Descriptors
                 return false;
             }
 
-            if (member is PropertyInfo property)
+            if (member.DeclaringType == typeof(object))
             {
-                if (!property.CanRead)
-                {
-                    return false;
-                }
-
-                if (property.DeclaringType == typeof(object)
-                    || property.PropertyType == typeof(object))
-                {
-                    return HasConfiguration(property);
-                }
-
-                return true;
+                return false;
             }
 
-            if (member is MethodInfo method)
+            if (member is PropertyInfo { CanRead: false } ||
+                member is PropertyInfo { IsSpecialName: true } ||
+                member is MethodInfo { IsSpecialName: true })
             {
-                if (method.IsSpecialName
-                    || method.ReturnType == typeof(void)
-                    || method.ReturnType == typeof(Task)
-                    || method.ReturnType == typeof(ValueTask)
-                    || method.DeclaringType == typeof(object))
-                {
-                    return false;
-                }
+                return false;
+            }
 
-                if ((method.ReturnType == typeof(object)
-                    || method.ReturnType == typeof(Task<object>)
-                    || method.ReturnType == typeof(ValueTask<object>))
-                    && !HasConfiguration(method))
-                {
-                    return false;
-                }
+            if (member is PropertyInfo property)
+            {
+                return CanHandleReturnType(member, property.PropertyType) &&
+                    property.GetIndexParameters().Length == 0;
+            }
 
-                if (method.GetParameters().Any(t => t.ParameterType == typeof(object)))
-                {
-                    return method.GetParameters()
-                        .Where(t => t.ParameterType == typeof(object))
-                        .All(t => HasConfiguration(t));
-                }
-
+            if (member is MethodInfo method &&
+                CanHandleReturnType(member, method.ReturnType) &&
+                method.GetParameters().All(CanHandleParameter))
+            {
                 return true;
             }
 
             return false;
         }
 
+        private static bool CanHandleReturnType(MemberInfo member, Type returnType)
+        {
+            if (returnType == typeof(void) ||
+                returnType == typeof(Task) ||
+                returnType == typeof(ValueTask))
+            {
+                return false;
+            }
+
+            if (returnType == typeof(object) ||
+                returnType == typeof(Task<object>) ||
+                returnType == typeof(ValueTask<object>))
+            {
+                return HasConfiguration(member);
+            }
+
+            if (typeof(IAsyncResult).IsAssignableFrom(returnType))
+            {
+                if (returnType.IsGenericType)
+                {
+                    Type returnTypeDefinition = returnType.GetGenericTypeDefinition();
+
+                    if (returnTypeDefinition == typeof(ValueTask<>) ||
+                        returnTypeDefinition == typeof(Task<>))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            // All other types may cause errors and need to have an explicit configuration.
+            if (typeof(ITypeSystemMember).IsAssignableFrom(returnType))
+            {
+                return HasConfiguration(member);
+            }
+
+            // reflection types should also be excluded by default.
+            if (typeof(ICustomAttributeProvider).IsAssignableFrom(returnType))
+            {
+                return HasConfiguration(member);
+            }
+
+#if NETSTANDARD2_0
+            if (returnType.IsByRef)
+
+#else
+            if (returnType.IsByRefLike ||
+                returnType.IsByRef)
+#endif
+            {
+                return false;
+            }
+
+            if (typeof(Delegate).IsAssignableFrom(returnType))
+            {
+                return HasConfiguration(member);
+            }
+
+            return true;
+        }
+
+        private static bool CanHandleParameter(ParameterInfo parameter)
+        {
+            // schema, object type and object field can be injected into a resolver, so
+            // we allow these as parameter type.
+            if (typeof(ISchema).IsAssignableFrom(parameter.ParameterType) ||
+                typeof(IObjectType).IsAssignableFrom(parameter.ParameterType) ||
+                typeof(IOutputField).IsAssignableFrom(parameter.ParameterType))
+            {
+                return true;
+            }
+
+            // All other types may cause errors and need to have an explicit configuration.
+            if (typeof(ITypeSystemMember).IsAssignableFrom(parameter.ParameterType) ||
+                parameter.ParameterType == typeof(object))
+            {
+                return HasConfiguration(parameter);
+            }
+
+            // Async results are not allowed.
+            if (parameter.ParameterType == typeof(ValueTask) ||
+                parameter.ParameterType == typeof(Task) ||
+                typeof(IAsyncResult).IsAssignableFrom(parameter.ParameterType))
+            {
+                return false;
+            }
+
+            if (parameter.ParameterType.IsGenericType)
+            {
+                Type parameterTypeDefinition = parameter.ParameterType.GetGenericTypeDefinition();
+
+                if (parameterTypeDefinition == typeof(ValueTask<>) ||
+                    parameterTypeDefinition == typeof(Task<>))
+                {
+                    return false;
+                }
+            }
+
+            // reflection types should also be excluded by default.
+            if (typeof(ICustomAttributeProvider).IsAssignableFrom(parameter.ParameterType))
+            {
+                return HasConfiguration(parameter);
+            }
+
+            // by ref and out will never be allowed
+            if (parameter.ParameterType.IsByRef ||
+#if !NETSTANDARD2_0
+                parameter.ParameterType.IsByRefLike ||
+#endif
+                parameter.IsOut)
+            {
+                return false;
+            }
+
+            if (typeof(Delegate).IsAssignableFrom(parameter.ParameterType))
+            {
+                return HasConfiguration(parameter);
+            }
+
+            return true;
+        }
+
         private static bool HasConfiguration(ICustomAttributeProvider element)
         {
-            return element.IsDefined(typeof(GraphQLTypeAttribute), true)
-                || element.GetCustomAttributes(typeof(DescriptorAttribute), true).Length > 0;
+            return element.IsDefined(typeof(GraphQLTypeAttribute), true) ||
+                element.IsDefined(typeof(ParentAttribute), true) ||
+                element.IsDefined(typeof(ServiceAttribute), true) ||
+                element.IsDefined(typeof(GlobalStateAttribute), true) ||
+                element.IsDefined(typeof(ScopedServiceAttribute), true) ||
+                element.IsDefined(typeof(LocalStateAttribute), true) ||
+                element.IsDefined(typeof(DescriptorAttribute), true);
         }
 
         private static bool IsIgnored(MemberInfo member)
         {
-            if (IsCloneMember(member) || 
-                IsToString(member) || 
-                IsGetHashCode(member) || 
+            if (IsCloneMember(member) ||
+                IsToString(member) ||
+                IsGetHashCode(member) ||
                 IsEquals(member))
             {
                 return true;
@@ -597,18 +781,20 @@ namespace HotChocolate.Types.Descriptors
                 isRecord = IsRecord(type.GetMembers());
                 _records[type] = isRecord;
             }
+
             return isRecord;
         }
 
         private static bool IsRecord(IReadOnlyList<MemberInfo> members)
         {
-            for (int i = 0; i < members.Count; i++)
+            for (var i = 0; i < members.Count; i++)
             {
                 if (IsCloneMember(members[i]))
                 {
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -633,7 +819,8 @@ namespace HotChocolate.Types.Descriptors
         }
 
         private IEnumerable<T> GetCustomAttributesFromRecord<T>(
-            PropertyInfo property, bool inherit)
+            PropertyInfo property,
+            bool inherit)
             where T : Attribute
         {
             Type recordType = property.DeclaringType!;
@@ -661,7 +848,8 @@ namespace HotChocolate.Types.Descriptors
         }
 
         private T? GetCustomAttributeFromRecord<T>(
-            PropertyInfo property, bool inherit)
+            PropertyInfo property,
+            bool inherit)
             where T : Attribute
         {
             Type recordType = property.DeclaringType!;
@@ -687,7 +875,8 @@ namespace HotChocolate.Types.Descriptors
         }
 
         private static bool IsDefinedOnRecord<T>(
-            PropertyInfo property, bool inherit)
+            PropertyInfo property,
+            bool inherit)
             where T : Attribute
         {
             Type recordType = property.DeclaringType!;
@@ -705,6 +894,30 @@ namespace HotChocolate.Types.Descriptors
                     if (parameter.Name.EqualsOrdinal(property.Name))
                     {
                         return parameter.IsDefined(typeof(T));
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool TryGetDefaultValueFromConstructor(
+            PropertyInfo property,
+            out object? defaultValue)
+        {
+            defaultValue = null;
+            if (IsRecord(property.DeclaringType!))
+            {
+                ConstructorInfo[] constructors = property.DeclaringType!.GetConstructors();
+
+                if (constructors.Length == 1)
+                {
+                    foreach (ParameterInfo parameter in constructors[0].GetParameters())
+                    {
+                        if (parameter.Name.EqualsOrdinal(property.Name))
+                        {
+                            return TryGetDefaultValue(parameter, out defaultValue);
+                        }
                     }
                 }
             }

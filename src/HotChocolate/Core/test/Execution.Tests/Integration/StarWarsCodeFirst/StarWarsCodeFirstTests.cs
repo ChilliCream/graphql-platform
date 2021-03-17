@@ -1,15 +1,17 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using Snapshooter;
 using Snapshooter.Xunit;
+using ChilliCream.Testing;
 using Xunit;
+using Snapshot = Snapshooter.Xunit.Snapshot;
 using static HotChocolate.Tests.TestHelper;
 
-namespace HotChocolate.Integration.StarWarsCodeFirst
+namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
 {
     public class StarWarsCodeFirstTests
     {
@@ -310,6 +312,32 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         }
 
         [Fact]
+        public async Task GraphQLOrgTwoMutationsExample()
+        {
+            Snapshot.FullName();
+            await ExpectValid(@"
+                mutation CreateReviewForEpisode(
+                    $ep: Episode!, $ep2: Episode!, $review: ReviewInput!) {
+                    createReview(episode: $ep, review: $review) {
+                        stars
+                        commentary
+                    }
+                    b: createReview(episode: $ep2, review: $review) {
+                        stars
+                        commentary
+                    }
+                }",
+                request: r => r
+                    .SetVariableValue("ep", new EnumValueNode("JEDI"))
+                    .SetVariableValue("ep2", new EnumValueNode("JEDI"))
+                    .SetVariableValue("review", new ObjectValueNode(
+                        new ObjectFieldNode("stars", new IntValueNode(5)),
+                        new ObjectFieldNode("commentary",
+                            new StringValueNode("This is a great movie!")))))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
         public async Task GraphQLOrgMutationExample_With_ValueVariables()
         {
             Snapshot.FullName();
@@ -533,6 +561,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                     }");
 
             IReadOnlyQueryResult eventResult = null;
+
             using (var cts = new CancellationTokenSource(2000))
             {
                 await foreach (IQueryResult queryResult in
@@ -544,7 +573,51 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 }
             }
 
-            eventResult.MatchSnapshot();
+            eventResult?.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SubscribeToReview_With_Variables()
+        {
+            // arrange
+            IRequestExecutor executor = await CreateExecutorAsync();
+
+            // act
+            var subscriptionResult =
+                (ISubscriptionResult)await executor.ExecuteAsync(
+                    @"subscription ($ep: Episode!) {
+                        onReview(episode: $ep) {
+                            stars
+                        }
+                    }",
+                    new Dictionary<string, object> { { "ep", "NEW_HOPE" } },
+                    CancellationToken.None);
+
+            // assert
+            IExecutionResult result =
+                await executor.ExecuteAsync(@"
+                    mutation {
+                        createReview(episode: NEW_HOPE,
+                            review: { stars: 5 commentary: ""foo"" }) {
+                            stars
+                            commentary
+                        }
+                    }");
+
+            IReadOnlyQueryResult eventResult = null;
+
+            using (var cts = new CancellationTokenSource(2000))
+            {
+                await foreach (IQueryResult queryResult in
+                    subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
+                {
+                    var item = (IReadOnlyQueryResult) queryResult;
+                    eventResult = item;
+                    break;
+                }
+            }
+
+            eventResult?.MatchSnapshot();
         }
 
         /// <summary>
@@ -658,14 +731,45 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         public async Task Skip_With_Variable(bool ifValue)
         {
             Snapshot.FullName(new SnapshotNameExtension(ifValue));
-            await ExpectValid($@"
-                query ($if: Boolean!) {{
-                    human(id: ""1000"") {{
+            await ExpectValid(@"
+                query ($if: Boolean!) {
+                    human(id: ""1000"") {
                         name @skip(if: $if)
                         height
-                    }}
-                }}",
+                    }
+                }",
                 request: r=> r.SetVariableValue("if", ifValue))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task SkipAll()
+        {
+            Snapshot.FullName();
+
+            await ExpectValid(@"
+                query ($if: Boolean!) {
+                    human(id: ""1000"") @skip(if: $if) {
+                        name
+                        height
+                    }
+                }",
+                request: r=> r.SetVariableValue("if", true))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task SkipAllSecondLevelFields()
+        {
+            Snapshot.FullName();
+
+            await ExpectValid(@"
+                query ($if: Boolean!) {
+                    human(id: ""1000"")  {
+                        name @skip(if: $if)
+                    }
+                }",
+                request: r=> r.SetVariableValue("if", true))
                 .MatchSnapshotAsync();
         }
 
@@ -682,6 +786,42 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                         name
                     }
                 }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_Benchmark_Query_GetHeroQuery()
+        {
+            Snapshot.FullName();
+            await ExpectValid(
+                FileResource.Open("GetHeroQuery.graphql"))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_Benchmark_Query_GetHeroWithFriendsQuery()
+        {
+            Snapshot.FullName();
+            await ExpectValid(
+                FileResource.Open("GetHeroWithFriendsQuery.graphql"))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_Benchmark_Query_GetTwoHerosWithFriendsQuery()
+        {
+            Snapshot.FullName();
+            await ExpectValid(
+                FileResource.Open("GetTwoHerosWithFriendsQuery.graphql"))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_Benchmark_Query_LargeQuery()
+        {
+            Snapshot.FullName();
+            await ExpectValid(
+                FileResource.Open("LargeQuery.graphql"))
                 .MatchSnapshotAsync();
         }
     }

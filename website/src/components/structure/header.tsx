@@ -5,7 +5,6 @@ import { GetHeaderDataQuery } from "../../../graphql-types";
 import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
 import { Search } from "../misc/search";
-import { useScroll } from "../misc/useScroll";
 
 import BarsIconSvg from "../../images/bars.svg";
 import GithubIconSvg from "../../images/github.svg";
@@ -14,9 +13,14 @@ import LogoTextSvg from "../../images/chillicream-text.svg";
 import SlackIconSvg from "../../images/slack.svg";
 import TimesIconSvg from "../../images/times.svg";
 import TwitterIconSvg from "../../images/twitter.svg";
+import { useSelector } from "react-redux";
+import { State } from "../../state";
 
 export const Header: FunctionComponent = () => {
-  const [enableShadow, setEnableShadow] = useState<boolean>(false);
+  const showShadow = useSelector<State, boolean>(
+    (state) => state.common.yScrollPosition > 0
+  );
+
   const [topNavOpen, setTopNavOpen] = useState<boolean>(false);
   const data = useStaticQuery<GetHeaderDataQuery>(graphql`
     query getHeaderData {
@@ -46,12 +50,8 @@ export const Header: FunctionComponent = () => {
     setTopNavOpen(false);
   };
 
-  useScroll((top) => {
-    setEnableShadow(top > 0);
-  });
-
   return (
-    <Container enableShadow={enableShadow}>
+    <Container enableShadow={showShadow}>
       <BodyStyle disableScrolling={topNavOpen} />
       <ContainerWrapper>
         <LogoLink to="/">
@@ -112,10 +112,10 @@ export const Header: FunctionComponent = () => {
 
 const Container = styled.header<{ enableShadow: boolean }>`
   position: fixed;
-  z-index: 20;
+  z-index: 30;
   width: 100vw;
   height: 60px;
-  background-color: #f40010;
+  background-color: var(--brand-color);
   ${({ enableShadow }) =>
     enableShadow && "box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);"}
   transition: box-shadow 0.2s ease-in-out;
@@ -202,7 +202,7 @@ const Navigation = styled.nav<{ open: boolean }>`
   flex: 1 1 auto;
   flex-direction: column;
   max-height: 100vh;
-  background-color: #f40010;
+  background-color: var(--brand-color);
   opacity: ${({ open }) => (open ? "1" : "0")};
   box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
   transition: opacity 0.2s ease-in-out;
@@ -297,7 +297,7 @@ const NavLink = styled(Link)`
 
   &.active,
   &:hover {
-    background-color: #b7020a;
+    background-color: var(--brand-color-hover);
   }
 `;
 
@@ -339,7 +339,7 @@ const ToolLink = styled(Link)`
   }
 
   :hover > ${IconContainer} > svg {
-    fill: #b7020a;
+    fill: var(--brand-color-hover);
   }
 `;
 

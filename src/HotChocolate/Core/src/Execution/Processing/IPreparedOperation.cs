@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -43,7 +44,24 @@ namespace HotChocolate.Execution.Processing
         /// </returns>
         ISelectionSet GetSelectionSet(
             SelectionSetNode selectionSet,
-            ObjectType typeContext);
+            IObjectType typeContext);
+
+        /// <summary>
+        /// Gets the types that are possible for the specified <paramref name="selectionSet"/>.
+        /// </summary>
+        /// <param name="selectionSet">
+        /// The selection set for which the possible types shall be inspected.
+        /// </param>
+        /// <returns>
+        /// Returns the types that are possible for the specified <paramref name="selectionSet"/>.
+        /// </returns>
+        IEnumerable<IObjectType> GetPossibleTypes(
+            SelectionSetNode selectionSet);
+
+        /// <summary>
+        /// Gets all selection variants of this operation.
+        /// </summary>
+        IEnumerable<ISelectionVariants> SelectionVariants { get; }
 
         /// <summary>
         /// Prints the prepared operation.

@@ -17,8 +17,7 @@ using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class ObjectTypeTests
-        : TypeTestBase
+    public class ObjectTypeTests : TypeTestBase
     {
         [Fact]
         public void ObjectType_DynamicName()
@@ -634,7 +633,7 @@ namespace HotChocolate.Types
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("C");
-            Assert.Equal(2, type.Interfaces.Count);
+            Assert.Equal(2, type.Implements.Count);
         }
 
         [Fact]
@@ -667,7 +666,7 @@ namespace HotChocolate.Types
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("C");
-            Assert.Equal(2, type.Interfaces.Count);
+            Assert.Equal(2, type.Implements.Count);
         }
 
         [Fact]
@@ -1190,7 +1189,7 @@ namespace HotChocolate.Types
 
             // assert
             Assert.IsType<InterfaceType<IFoo>>(
-                fooType.Interfaces[0]);
+                fooType.Implements[0]);
         }
 
         [Fact]
@@ -1672,9 +1671,16 @@ namespace HotChocolate.Types
         public void Inferred_Interfaces_From_Type_Extensions_Are_Merged()
         {
             SchemaBuilder.New()
-                .AddDocumentFromString("type Query { some: Some } type Some { foo: String }")
+                .AddDocumentFromString(
+                    @"type Query {
+                        some: Some
+                    }
+
+                    type Some {
+                        foo: String
+                    }")
                 .AddType<SomeTypeExtensionWithInterface>()
-                .Use(next => context => default(ValueTask))
+                .Use(_ => _ => default)
                 .EnableRelaySupport()
                 .Create()
                 .ToString()
@@ -1736,6 +1742,28 @@ namespace HotChocolate.Types
                 .MakeExecutable()
                 .Execute("{ foo baz }")
                 .ToJson()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public void ResolveWith_NonGeneric()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<ResolveWithNonGenericObjectType>()
+                .Create()
+                .MakeExecutable()
+                .Execute("{ foo }")
+                .ToJson()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public void IgnoreIndexers()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<QueryWithIndexer>()
+                .Create()
+                .Print()
                 .MatchSnapshot();
         }
 
@@ -1903,8 +1931,7 @@ namespace HotChocolate.Types
         }
 
         [ExtendObjectType(Name = "Some")]
-        public class SomeTypeExtensionWithInterface
-            : INode
+        public class SomeTypeExtensionWithInterface : INode
         {
             [GraphQLType(typeof(NonNullType<IdType>))]
             public string Id { get; }
@@ -1913,13 +1940,7 @@ namespace HotChocolate.Types
         public class QueryWithNestedList
         {
             public List<List<FooIgnore>> FooMatrix =>
-                new List<List<FooIgnore>>
-                {
-                    new List<FooIgnore>
-                    {
-                        new FooIgnore()
-                    }
-                };
+                new() { new() { new() } };
         }
 
         public class ResolveWithQuery
@@ -1941,10 +1962,34 @@ namespace HotChocolate.Types
             }
         }
 
+       public class ResolveWithNonGenericObjectType : ObjectType
+       {
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                Type type = typeof(ResolveWithQuery);
+
+                descriptor.Name("ResolveWithQuery");
+
+                descriptor.Field("foo")
+                    .Type<IntType>()
+                    .ResolveWith(type.GetProperty("Foo"));
+            }
+       }
+
         public class AnnotatedNestedList
         {
             [GraphQLNonNullType(true, false, false)]
             public List<List<string>> NestedList { get; set; }
+        }
+
+        public class QueryWithIndexer
+        {
+            public string this[int i]
+            {
+                get => throw new NotImplementedException();
+            }
+
+            public string GetFoo() => throw new NotImplementedException();
         }
     }
 }

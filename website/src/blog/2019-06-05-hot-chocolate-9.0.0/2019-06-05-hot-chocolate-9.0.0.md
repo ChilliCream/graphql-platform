@@ -8,7 +8,7 @@ authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
-Today we have released version 9 of _Hot Chocolate_. This release was mainly focused on the schema APIs and performance. Furthermore, we started work on the wider _ChilliCream GraphQL Platform_ and today you will get some insides where we are heading with this.
+Today we have released version 9 of Hot Chocolate. This release was mainly focused on the schema APIs and performance. Furthermore, we started work on the wider _ChilliCream GraphQL Platform_ and today you will get some insides where we are heading with this.
 
 ## Schema Builder
 
@@ -100,7 +100,7 @@ public class EntityType
 
 ## Performance
 
-Starting with this version we have begun to invest into making _Hot Chocolate_ one of the fastest GraphQL servers out there. Do not get me wrong, we are not quite there yet, and it will be an ongoing effort for quite a while.
+Starting with this version we have begun to invest into making Hot Chocolate one of the fastest GraphQL servers out there. Do not get me wrong, we are not quite there yet, and it will be an ongoing effort for quite a while.
 
 With version 9 we are introducing the first step on this road with our new UTF-8 GraphQL parser. This new parser is not anymore, a port of the original graphql-js parser but a reimplementation that uses the raw bytes instead of strings, meaning we are using all those nice new `Span<T>` APIs. This makes it use less memory and perform faster. The new UTF-8 GraphQL parser is the fastest and most standard compliant parser on the .Net platform.
 
@@ -138,7 +138,7 @@ With our new version 9.1 parser preview we are hitting about 54000 kitchen sink 
 
 Apart from that we have started making our execution engine more efficient. We are just starting here and there will be a much larger investment with version 9.1 when we are introducing our new UTF-8 request parser and the new execution plans feature.
 
-With our release today _Hot Chocolate_ is depending on the use case at least to times faster in executing queries and uses half of the memory compared to GraphQL-DotNet. If you are using schema-first then the performance gains are more dramatic and you could look at up to 13 times faster execution performance compared to GraphQL-DotNet.
+With our release today Hot Chocolate is depending on the use case at least to times faster in executing queries and uses half of the memory compared to GraphQL-DotNet. If you are using schema-first then the performance gains are more dramatic and you could look at up to 13 times faster execution performance compared to GraphQL-DotNet.
 
 ![Execution Memory](exec_mem.png)
 
@@ -160,7 +160,7 @@ With this release we have published a first draft of the new documentation and w
 
 ## Banana Cakepop
 
-When we released _Hot Chocolate_ version 8 we announced a new _Hot Chocolate Developer Tool_. Since that announcement we were heavily at work building that new tool.
+When we released Hot Chocolate version 8 we announced a new _Hot Chocolate Developer Tool_. Since that announcement we were heavily at work building that new tool.
 
 Today we are anouncing _Banana Cake Pop_, a new tool that will help you explore and query GraphQL schemas.
 
@@ -174,7 +174,7 @@ We will provide a plugin model so that you can add your own extensions.
 
 Moreover, as we are introducing our new schema registry with version 10 you will be able to configure your GraphQL gateway via drag&drop, see how each GraphQL server in your network performs, how long each resolver takes and how much memory a resolver uses.
 
-We will start very soon with a private preview and as the version matures, we will release a public preview probably together with version 9.1. If you want to participate in our private preview head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and send a message to `@rafael`.
+We will start very soon with a private preview and as the version matures, we will release a public preview probably together with version 9.1. If you want to participate in our private preview head over to our slack channel and send a message to `@rafael`.
 
 ## Roadmap
 
@@ -305,7 +305,7 @@ With batching you can do that without having to manage that flow on the client-s
 
 Another feature that is aimed at performance and bandwidth usage is automatic persisted queries and persisted queries.
 
-Persisted queries are queries that you have stored with the hot chocolate service before deploying your application. With relay for instance you could export all your used APIs and export those to _Hot Chocolate_. The _Hot Chocolate_ server could then validate and compile those once.
+Persisted queries are queries that you have stored with the hot chocolate service before deploying your application. With relay for instance you could export all your used APIs and export those to Hot Chocolate. The Hot Chocolate server could then validate and compile those once.
 
 The frontend on the other hand has no longer to send the query to the server that it wants to execute but could just send a hash of that query.
 
@@ -313,7 +313,7 @@ Each execution then would fetch the prepared and optimized query from the cache 
 
 This saves time and bandwidth.
 
-While persisted queries require you to setup some build scripts that extract the queries from your frontend and store them with the _Hot Chocolate_ server, automatic persisted queries is a flow that you could use to add queries to the storage from the deployed frontend at runtime.
+While persisted queries require you to setup some build scripts that extract the queries from your frontend and store them with the Hot Chocolate server, automatic persisted queries is a flow that you could use to add queries to the storage from the deployed frontend at runtime.
 
 The automatic persisted queries work like the following:
 

@@ -1,0 +1,368 @@
+﻿{
+  "Label": null,
+  "Path": null,
+  "Data": null,
+  "Errors": [
+    {
+      "Message": "The specified value type of field `coordinates` does not match the field type.",
+      "Code": null,
+      "Path": {
+        "Parent": null,
+        "Depth": 0,
+        "Name": "test"
+      },
+      "Locations": [
+        {
+          "Line": 1,
+          "Column": 47
+        }
+      ],
+      "Extensions": {
+        "fieldName": "coordinates",
+        "fieldType": "[[Position]]",
+        "locationType": "[[Position]]",
+        "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+      },
+      "Exception": null,
+      "SyntaxNode": {
+        "Kind": "ListValue",
+        "Location": {
+          "Start": 46,
+          "End": 148,
+          "Line": 1,
+          "Column": 47
+        },
+        "Items": [
+          {
+            "Kind": "ListValue",
+            "Location": {
+              "Start": 48,
+              "End": 94,
+              "Line": 1,
+              "Column": 49
+            },
+            "Items": [
+              {
+                "Kind": "ListValue",
+                "Location": {
+                  "Start": 49,
+                  "End": 91,
+                  "Line": 1,
+                  "Column": 50
+                },
+                "Items": [
+                  {
+                    "Kind": "ListValue",
+                    "Location": {
+                      "Start": 50,
+                      "End": 61,
+                      "Line": 1,
+                      "Column": 51
+                    },
+                    "Items": [
+                      {
+                        "Kind": "IntValue",
+                        "Location": {
+                          "Start": 51,
+                          "End": 57,
+                          "Line": 1,
+                          "Column": 52
+                        },
+                        "Value": "30"
+                      },
+                      {
+                        "Kind": "IntValue",
+                        "Location": {
+                          "Start": 55,
+                          "End": 58,
+                          "Line": 1,
+                          "Column": 56
+                        },
+                        "Value": "20"
+                      }
+                    ]
+                  },
+                  {
+                    "Kind": "ListValue",
+                    "Location": {
+                      "Start": 60,
+                      "End": 71,
+                      "Line": 1,
+                      "Column": 61
+                    },
+                    "Items": [
+                      {
+                        "Kind": "IntValue",
+                        "Location": {
+                          "Start": 61,
+                          "End": 67,
+                          "Line": 1,
+                          "Column": 62
+                        },
+                        "Value": "45"
+                      },
+                      {
+                        "Kind": "IntValue",
+                        "Location": {
+                          "Start": 65,
+                          "End": 68,
+                          "Line": 1,
+                          "Column": 66
+                        },
+                        "Value": "40"
+                      }
+                    ]
+                  },
+                  {
+                    "Kind": "ListValue",
+                    "Location": {
+                      "Start": 70,
+                      "End": 81,
+                      "Line": 1,
+                      "Column": 71
+                    },
+                    "Items": [
+                      {
+                        "Kind": "IntValue",
+                        "Location": {
+                          "Start": 71,
+                          "End": 77,
+                          "Line": 1,
+                          "Column": 72
+                        },
+                        "Value": "10"
+                      },
+                      {
+                        "Kind": "IntValue",
+                        "Location": {
+                          "Start": 75,
+                          "End": 78,
+                          "Line": 1,
+                          "Column": 76
+                        },
+                        "Value": "40"
+                      }
+                    ]
+                  },
+                  {
+                    "Kind": "ListValue",
+                    "Location": {
+                      "Start": 80,
+                      "End": 89,
+                      "Line": 1,
+                      "Column": 81
+                    },
+                    "Items": [
+                      {
+                        "Kind": "IntValue",
+                        "Location": {
+                          "Start": 81,
+                          "End": 87,
+                          "Line": 1,
+                          "Column": 82
+                        },
+                        "Value": "30"
+                      },
+                      {
+                        "Kind": "IntValue",
+                        "Location": {
+                          "Start": 85,
+                          "End": 88,
+                          "Line": 1,
+                          "Column": 86
+                        },
+                        "Value": "20"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "Kind": "ListValue",
+            "Location": {
+              "Start": 93,
+              "End": 146,
+              "Line": 1,
+              "Column": 94
+            },
+            "Items": [
+              {
+                "Kind": "ListValue",
+                "Location": {
+                  "Start": 95,
+                  "End": 144,
+                  "Line": 1,
+                  "Column": 96
+                },
+                "Items": [
+                  {
+                    "Kind": "ListValue",
+                    "Location": {
+                      "Start": 96,
+                      "End": 106,
+                      "Line": 1,
+                      "Column": 97
+                    },
+                    "Items": [
+                      {
+                        "Kind": "IntValue",
+                        "Location": {
+                          "Start": 97,
+                          "End": 102,
+                          "Line": 1,
+                          "Column": 98
+                        },
+                        "Value": "15"
+                      },
+                      {
+                        "Kind": "IntValue",
+                        "Location": {
+                          "Start": 101,
+                          "End": 103,
+                          "Line": 1,
+                          "Column": 102
+                        },
+                        "Value": "5"
+                      }
+                    ]
+                  },
+                  {
+                    "Kind": "ListValue",
+                    "Location": {
+                      "Start": 105,
+                      "End": 116,
+                      "Line": 1,
+                      "Column": 106
+                    },
+                    "Items": [
+                      {
+                        "Kind": "IntValue",
+                        "Location": {
+                          "Start": 106,
+                          "End": 112,
+                          "Line": 1,
+                          "Column": 107
+                        },
+                        "Value": "40"
+                      },
+                      {
+                        "Kind": "IntValue",
+                        "Location": {
+                          "Start": 110,
+                          "End": 113,
+                          "Line": 1,
+                          "Column": 111
+                        },
+                        "Value": "10"
+                      }
+                    ]
+                  },
+                  {
+                    "Kind": "ListValue",
+                    "Location": {
+                      "Start": 115,
+                      "End": 126,
+                      "Line": 1,
+                      "Column": 116
+                    },
+                    "Items": [
+                      {
+                        "Kind": "IntValue",
+                        "Location": {
+                          "Start": 116,
+                          "End": 122,
+                          "Line": 1,
+                          "Column": 117
+                        },
+                        "Value": "10"
+                      },
+                      {
+                        "Kind": "IntValue",
+                        "Location": {
+                          "Start": 120,
+                          "End": 123,
+                          "Line": 1,
+                          "Column": 121
+                        },
+                        "Value": "20"
+                      }
+                    ]
+                  },
+                  {
+                    "Kind": "ListValue",
+                    "Location": {
+                      "Start": 125,
+                      "End": 135,
+                      "Line": 1,
+                      "Column": 126
+                    },
+                    "Items": [
+                      {
+                        "Kind": "IntValue",
+                        "Location": {
+                          "Start": 126,
+                          "End": 131,
+                          "Line": 1,
+                          "Column": 127
+                        },
+                        "Value": "5"
+                      },
+                      {
+                        "Kind": "IntValue",
+                        "Location": {
+                          "Start": 129,
+                          "End": 132,
+                          "Line": 1,
+                          "Column": 130
+                        },
+                        "Value": "10"
+                      }
+                    ]
+                  },
+                  {
+                    "Kind": "ListValue",
+                    "Location": {
+                      "Start": 134,
+                      "End": 142,
+                      "Line": 1,
+                      "Column": 135
+                    },
+                    "Items": [
+                      {
+                        "Kind": "IntValue",
+                        "Location": {
+                          "Start": 135,
+                          "End": 140,
+                          "Line": 1,
+                          "Column": 136
+                        },
+                        "Value": "15"
+                      },
+                      {
+                        "Kind": "IntValue",
+                        "Location": {
+                          "Start": 139,
+                          "End": 141,
+                          "Line": 1,
+                          "Column": 140
+                        },
+                        "Value": "5"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "Extensions": null,
+  "ContextData": {
+    "HotChocolate.Execution.ValidationErrors": true
+  },
+  "HasNext": null
+}

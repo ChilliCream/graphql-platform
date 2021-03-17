@@ -7,27 +7,21 @@ namespace HotChocolate.Data.Filters.Expressions
 {
     public static class QueryableFilterVisitorContextExtensions
     {
-        public static FilterScope<Expression> AddIsNullClosure(
-            this QueryableFilterContext context)
-        {
-            var closure = new QueryableScope(
-                context.RuntimeTypes.Peek(),
-                "_s" + context.Scopes.Count,
-                false);
-
-            context.Scopes.Push(closure);
-
-            context.GetLevel()
-                .Enqueue(
-                    FilterExpressionBuilder.Equals(context.GetClosure().Parameter, null));
-
-            return closure;
-        }
-
+        /// <summary>
+        /// Reads the current closure from the context
+        /// </summary>
+        /// <param name="context">The context</param>
+        /// <returns>The current closure</returns>
         public static QueryableScope GetClosure(
             this QueryableFilterContext context) =>
             (QueryableScope)context.GetScope();
 
+        /// <summary>
+        /// Tries to build the an expression based on the items that are stored on the scope
+        /// </summary>
+        /// <param name="context">the context</param>
+        /// <param name="expression">The query that was build</param>
+        /// <returns>True in case the query has been build successfully, otherwise false</returns>
         public static bool TryCreateLambda(
             this QueryableFilterContext context,
             [NotNullWhen(true)] out LambdaExpression? expression)
@@ -45,6 +39,14 @@ namespace HotChocolate.Data.Filters.Expressions
             return false;
         }
 
+
+        /// <summary>
+        /// Tries to build the a typed expression based on the items that are stored on the scope
+        /// </summary>
+        /// <param name="context">the context</param>
+        /// <param name="expression">The query that was build</param>
+        /// <typeparam name="T">The generic type of the expression</typeparam>
+        /// <returns>True in case the query has been build successfully, otherwise false</returns>
         public static bool TryCreateLambda<T>(
             this QueryableFilterContext context,
             [NotNullWhen(true)] out Expression<T>? expression)

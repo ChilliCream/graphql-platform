@@ -1,0 +1,42 @@
+﻿[
+  {
+    "Message": "Operation `Unnamed` has a empty selection set. Root types without subfields are disallowed.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 2,
+        "Column": 17
+      }
+    ],
+    "Extensions": {
+      "operation": "Unnamed",
+      "type": "Mutation",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 17,
+        "End": 42,
+        "Line": 2,
+        "Column": 17
+      },
+      "Name": null,
+      "Operation": "Mutation",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 26,
+          "End": 42,
+          "Line": 2,
+          "Column": 26
+        },
+        "Selections": []
+      }
+    }
+  }
+]

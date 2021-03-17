@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -8,7 +11,7 @@ namespace HotChocolate.Data.Filters
     public class FilterAttributeTests
     {
         [Fact]
-        public void Create_Schema_With_FilterType()
+        public void Create_Schema_With_FilterInput()
         {
             // arrange
             // act
@@ -22,7 +25,7 @@ namespace HotChocolate.Data.Filters
         }
 
         [Fact]
-        public void Create_Schema_With_FilterType_With_Fluent_API_Ctor_Param()
+        public void Create_Schema_With_FilterInput_With_Fluent_API_Ctor_Param()
         {
             // arrange
             // act
@@ -36,12 +39,26 @@ namespace HotChocolate.Data.Filters
         }
 
         [Fact]
-        public void Create_Schema_With_FilterType_With_Fluent_API()
+        public void Create_Schema_With_FilterInput_With_Fluent_API()
         {
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<Query2>()
+                .AddFiltering()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_Schema_With_FilterAttributes()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query4>()
                 .AddFiltering()
                 .Create();
 
@@ -66,7 +83,7 @@ namespace HotChocolate.Data.Filters
 
         public class Query2
         {
-            [UseFiltering(Type = typeof(FooFilterType))]
+            [UseFiltering(Type = typeof(FooFilterInput))]
             public IEnumerable<Foo> Foos { get; } = new[]
             {
                 new Foo { Bar = "aa", Baz = 1, Qux = 1 },
@@ -81,7 +98,7 @@ namespace HotChocolate.Data.Filters
 
         public class Query3
         {
-            [UseFiltering(typeof(FooFilterType))]
+            [UseFiltering(typeof(FooFilterInput))]
             public IEnumerable<Foo> Foos { get; } = new[]
             {
                 new Foo { Bar = "aa", Baz = 1, Qux = 1 },
@@ -94,7 +111,20 @@ namespace HotChocolate.Data.Filters
             };
         }
 
-        public class FooFilterType : FilterInputType<Foo>
+        public class Query4
+        {
+            [UseFiltering]
+            public IEnumerable<Bar> Bars { get; } = new[]
+            {
+                new Bar { Baz = 1 },
+                new Bar { Baz = 2 },
+                new Bar { Baz = 2 },
+                new Bar { Baz = 2 },
+                new Bar { Baz = 2 },
+            };
+        }
+
+        public class FooFilterInput : FilterInputType<Foo>
         {
             protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
             {
@@ -111,6 +141,37 @@ namespace HotChocolate.Data.Filters
 
             [GraphQLType(typeof(IntType))]
             public int? Qux { get; set; }
+        }
+
+        [FilterTest]
+        public class Bar
+        {
+            public long Baz { get; set; }
+
+            [IgnoreFilterField]
+            public int? ShouldNotBeVisible { get; set; }
+        }
+
+        public class FilterTestAttribute : FilterInputTypeDescriptorAttribute
+        {
+            public override void OnConfigure(
+                IDescriptorContext context,
+                IFilterInputTypeDescriptor descriptor,
+                Type type)
+            {
+                descriptor.Name("ItWorks");
+            }
+        }
+
+        public class IgnoreFilterFieldAttribute : FilterFieldDescriptorAttribute
+        {
+            public override void OnConfigure(
+                IDescriptorContext context,
+                IFilterFieldDescriptor descriptor,
+                MemberInfo member)
+            {
+                descriptor.Ignore();
+            }
         }
     }
 }

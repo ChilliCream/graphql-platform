@@ -5,6 +5,7 @@ namespace HotChocolate.Types.Filters
     /// <summary>
     /// Specifies a filter input type.
     /// </summary>
+    [Obsolete("Use HotChocolate.Data.")]
     public interface IFilterInputType
         : INamedInputType
     {

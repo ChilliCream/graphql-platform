@@ -19,17 +19,14 @@ namespace HotChocolate.Types.Pagination
             object source,
             CursorPagingArguments arguments)
         {
-            if (source is IQueryable<TEntity> queryable)
+            CancellationToken ct = context.RequestAborted;
+            return source switch
             {
-                return ResolveAsync(queryable, arguments, context.RequestAborted);
-            }
-
-            if (source is IEnumerable<TEntity> enumerable)
-            {
-                return ResolveAsync(enumerable.AsQueryable(), arguments, context.RequestAborted);
-            }
-
-            throw new GraphQLException("Cannot handle the specified data source.");
+                IQueryable<TEntity> q => ResolveAsync(q, arguments, ct),
+                IEnumerable<TEntity> e => ResolveAsync(e.AsQueryable(), arguments, ct),
+                IExecutable<TEntity> ex => SliceAsync(context, ex.Source, arguments),
+                _ => throw new GraphQLException("Cannot handle the specified data source.")
+            };
         }
 
         private async ValueTask<Connection> ResolveAsync(
@@ -86,7 +83,8 @@ namespace HotChocolate.Types.Pagination
                 allEdges, first, last, after, before,
                 out var offset);
 
-            return await ExecuteQueryableAsync(edges, offset, cancellationToken);
+            return await ExecuteQueryableAsync(edges, offset, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         private IQueryable<TEntity> GetEdgesToReturn(
@@ -144,7 +142,7 @@ namespace HotChocolate.Types.Pagination
             var count = temp.Count();
             var skip = count - last;
 
-            if (skip > 1)
+            if (skip > 0)
             {
                 temp = temp.Skip(skip);
                 offset += count;

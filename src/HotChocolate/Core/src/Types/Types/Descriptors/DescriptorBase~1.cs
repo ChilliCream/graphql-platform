@@ -12,16 +12,13 @@ namespace HotChocolate.Types.Descriptors
         , IDescriptorExtension<T>
         , IDescriptorExtension
         , IDefinitionFactory<T>
-        , IHasDescriptorContext
         where T : DefinitionBase
     {
-        private readonly List<Action<IDescriptorContext, T>> _modifiers =
-            new List<Action<IDescriptorContext, T>>();
+        private List<Action<IDescriptorContext, T>>? _modifiers;
 
         protected DescriptorBase(IDescriptorContext context)
         {
-            Context = context
-                ?? throw new ArgumentNullException(nameof(context));
+            Context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         protected internal IDescriptorContext Context { get; }
@@ -39,12 +36,20 @@ namespace HotChocolate.Types.Descriptors
         {
             OnCreateDefinition(Definition);
 
-            foreach (Action<IDescriptorContext, T> modifier in _modifiers)
+            if (_modifiers is not null)
             {
-                modifier.Invoke(Context, Definition);
+                foreach (Action<IDescriptorContext, T> modifier in _modifiers)
+                {
+                    modifier.Invoke(Context, Definition);
+                }
             }
 
             return Definition;
+        }
+
+        public void ConfigureContextData(Action<ExtensionData> configure)
+        {
+            configure(Definition.ContextData);
         }
 
         protected virtual void OnCreateDefinition(T definition)
@@ -77,6 +82,8 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(configure));
             }
 
+            _modifiers ??= new List<Action<IDescriptorContext, T>>();
+
             _modifiers.Add(configure);
         }
 
@@ -89,7 +96,7 @@ namespace HotChocolate.Types.Descriptors
             OnBeforeNaming(configure);
 
         private INamedDependencyDescriptor OnBeforeNaming(
-           Action<ITypeCompletionContext, T> configure)
+            Action<ITypeCompletionContext, T> configure)
         {
             if (configure is null)
             {
@@ -102,6 +109,7 @@ namespace HotChocolate.Types.Descriptors
                 On = ApplyConfigurationOn.Naming,
                 Configure = configure
             };
+
             Definition.Configurations.Add(configuration);
 
             return new NamedDependencyDescriptor<T>(Context.TypeInspector, configuration);

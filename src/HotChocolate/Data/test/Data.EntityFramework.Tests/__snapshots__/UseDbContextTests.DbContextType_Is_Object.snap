@@ -1,0 +1,3 @@
+﻿For more details look at the `Errors` property.
+
+1. The `System.Object` must inherit from `Microsoft.EntityFrameworkCore`.

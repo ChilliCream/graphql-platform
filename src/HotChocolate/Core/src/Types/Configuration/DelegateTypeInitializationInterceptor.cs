@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
-namespace Microsoft.Extensions.DependencyInjection
+namespace HotChocolate.Configuration
 {
     public class DelegateTypeInterceptor
         : ITypeInitializationInterceptor
@@ -99,12 +98,12 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         public void OnTypesCompletedName(
-            IReadOnlyCollection<ITypeCompletionContext> completionContext)
+            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
         {
         }
 
         public void OnTypesCompleted(
-            IReadOnlyCollection<ITypeCompletionContext> completionContext)
+            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
         {
         }
     }

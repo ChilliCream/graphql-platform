@@ -9,6 +9,7 @@ namespace HotChocolate.Types.Factories
     {
         public UnionType Create(
             IBindingLookup bindingLookup,
+            IReadOnlySchemaOptions schemaOptions,
             UnionTypeDefinitionNode node)
         {
             if (bindingLookup is null)
@@ -26,14 +27,13 @@ namespace HotChocolate.Types.Factories
 
             return new UnionType(d =>
             {
-                d.SyntaxNode(node)
+                d.SyntaxNode(schemaOptions.PreserveSyntaxNodes ? node : null)
                     .Name(node.Name.Value)
                     .Description(node.Description?.Value);
 
                 if (bindingInfo.SourceType != null)
                 {
-                    d.Extend().OnBeforeCreate(
-                        t => t.RuntimeType = bindingInfo.SourceType);
+                    d.Extend().OnBeforeCreate(t => t.RuntimeType = bindingInfo.SourceType);
                 }
 
                 foreach (NamedTypeNode namedType in node.Types)

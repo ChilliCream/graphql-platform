@@ -12,7 +12,7 @@ namespace HotChocolate.Execution.Processing
             ISchema schema,
             IReadOnlyList<VariableDefinitionNode> variableDefinitions,
             IReadOnlyDictionary<string, object?> values,
-            IDictionary<string, VariableValue> coercedValues)
+            IDictionary<string, VariableValueOrLiteral> coercedValues)
         {
             if (schema is null)
             {
@@ -52,7 +52,7 @@ namespace HotChocolate.Execution.Processing
                     {
                         throw ThrowHelper.NonNullVariableIsNull(variableDefinition);
                     }
-                    coercedValues[variableName] = new VariableValue(
+                    coercedValues[variableName] = new VariableValueOrLiteral(
                         variableType, null, NullValueNode.Default);
                 }
                 else
@@ -63,7 +63,7 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        private static VariableValue CoerceVariableValue(
+        private static VariableValueOrLiteral CoerceVariableValue(
             VariableDefinitionNode variableDefinition,
             IInputType variableType,
             object value)
@@ -75,7 +75,7 @@ namespace HotChocolate.Execution.Processing
                     // we are ensuring here that enum values are correctly specified.
                     valueLiteral = Rewrite(variableType, valueLiteral);
 
-                    return new VariableValue(
+                    return new VariableValueOrLiteral(
                         variableType,
                         variableType.ParseLiteral(valueLiteral),
                         valueLiteral);
@@ -88,7 +88,7 @@ namespace HotChocolate.Execution.Processing
 
             if (variableType.TryDeserialize(value, out object? deserialized))
             {
-                return new VariableValue(
+                return new VariableValueOrLiteral(
                     variableType,
                     deserialized,
                     variableType.ParseResult(value));
@@ -155,7 +155,7 @@ namespace HotChocolate.Execution.Processing
 
                 if (fields is not null)
                 {
-                    fields.Add(current);
+                    fields.Add(current.WithValue(value));
                 }
                 else if (!ReferenceEquals(current.Value, value))
                 {
@@ -190,7 +190,7 @@ namespace HotChocolate.Execution.Processing
 
                 if (values is not null)
                 {
-                    values.Add(current);
+                    values.Add(value);
                 }
                 else if (!ReferenceEquals(current.Value, value))
                 {

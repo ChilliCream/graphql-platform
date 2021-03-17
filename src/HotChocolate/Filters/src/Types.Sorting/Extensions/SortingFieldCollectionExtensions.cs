@@ -5,8 +5,10 @@ using System.Reflection;
 
 namespace HotChocolate.Types.Sorting.Extensions
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public static class SortingFieldCollectionExtensions
     {
+        [Obsolete("Use HotChocolate.Data.")]
         public static T GetOrAddDescriptor<T>(
             this ICollection<SortOperationDescriptorBase> fields,
             PropertyInfo propertyInfo,
@@ -25,9 +27,8 @@ namespace HotChocolate.Types.Sorting.Extensions
                 throw new ArgumentNullException(nameof(valueFactory));
             }
 
-            SortOperationDescriptorBase fieldDescriptor =
-                fields.FirstOrDefault(
-                    t => t.Definition?.Operation?.Property.Equals(propertyInfo) ?? false);
+            SortOperationDescriptorBase? fieldDescriptor = fields.FirstOrDefault(
+                t => t.Definition.Operation?.Property.Equals(propertyInfo) ?? false);
 
             if (fieldDescriptor is { })
             {
@@ -35,15 +36,13 @@ namespace HotChocolate.Types.Sorting.Extensions
                 {
                     return descritorOfT;
                 }
-                else
-                {
-                    fields.Remove(fieldDescriptor);
-                }
+
+                fields.Remove(fieldDescriptor);
             }
 
-            T newDescirptor = valueFactory.Invoke();
-            fields.Add(newDescirptor);
-            return newDescirptor;
+            T newDescriptor = valueFactory.Invoke();
+            fields.Add(newDescriptor);
+            return newDescriptor;
         }
     }
 }

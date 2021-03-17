@@ -1,22 +1,22 @@
 ``` ini
 
-BenchmarkDotNet=v0.12.1, OS=macOS Catalina 10.15.6 (19G2021) [Darwin 19.6.0]
-Intel Core i9-9980HK CPU 2.40GHz, 1 CPU, 16 logical and 8 physical cores
-.NET Core SDK=5.0.100-rc.1.20452.10
-  [Host]     : .NET Core 5.0.0 (CoreCLR 5.0.20.45114, CoreFX 5.0.20.45114), X64 RyuJIT
-  DefaultJob : .NET Core 5.0.0 (CoreCLR 5.0.20.45114, CoreFX 5.0.20.45114), X64 RyuJIT
+BenchmarkDotNet=v0.12.1, OS=macOS 11.2.3 (20D91) [Darwin 20.3.0]
+Intel Core i9-10910 CPU 3.60GHz, 1 CPU, 20 logical and 10 physical cores
+.NET Core SDK=5.0.103
+  [Host]     : .NET Core 5.0.3 (CoreCLR 5.0.321.7212, CoreFX 5.0.321.7212), X64 RyuJIT
+  DefaultJob : .NET Core 5.0.3 (CoreCLR 5.0.321.7212, CoreFX 5.0.321.7212), X64 RyuJIT
 
 
 ```
-|                                     Method |      Mean |     Error |    StdDev |    Median | Rank |     Gen 0 |     Gen 1 | Gen 2 |   Allocated |
-|------------------------------------------- |----------:|----------:|----------:|----------:|-----:|----------:|----------:|------:|------------:|
-|                        SchemaIntrospection |  1.101 ms | 0.0213 ms | 0.0228 ms |  1.102 ms |    1 |   58.5938 |    1.9531 |     - |   492.67 KB |
-|    SchemaIntrospectionFiveParallelRequests |  3.207 ms | 0.0611 ms | 0.0628 ms |  3.195 ms |    3 |  320.3125 |  105.4688 |     - |  2611.29 KB |
-|                                    GetHero |  2.748 ms | 0.0541 ms | 0.0722 ms |  2.781 ms |    2 |         - |         - |     - |     7.24 KB |
-|                GetHeroFiveParallelRequests |  2.753 ms | 0.0630 ms | 0.1857 ms |  2.743 ms |    2 |    3.9063 |         - |     - |    36.33 KB |
-|                         GetHeroWithFriends | 10.021 ms | 0.1988 ms | 0.4950 ms | 10.165 ms |    6 |         - |         - |     - |    83.37 KB |
-|     GetHeroWithFriendsFiveParallelRequests |  9.248 ms | 0.1302 ms | 0.3018 ms |  9.190 ms |    4 |   46.8750 |   15.6250 |     - |   416.94 KB |
-|                     GetTwoHerosWithFriends |  9.632 ms | 0.2851 ms | 0.8405 ms |  9.697 ms |    5 |   15.6250 |         - |     - |    180.3 KB |
-| GetTwoHerosWithFriendsFiveParallelRequests | 11.148 ms | 0.2508 ms | 0.7396 ms | 11.037 ms |    7 |   93.7500 |   46.8750 |     - |   878.87 KB |
-|                                 LargeQuery | 21.020 ms | 0.4192 ms | 0.8175 ms | 21.110 ms |    8 |  406.2500 |  187.5000 |     - |  3470.39 KB |
-|             LargeQueryFiveParallelRequests | 50.435 ms | 0.9377 ms | 0.9210 ms | 50.518 ms |    9 | 2181.8182 | 1090.9091 |     - | 17839.82 KB |
+|                                     Method |      Mean |     Error |    StdDev |    Median | Rank |     Gen 0 |    Gen 1 |    Gen 2 |   Allocated |
+|------------------------------------------- |----------:|----------:|----------:|----------:|-----:|----------:|---------:|---------:|------------:|
+|                        SchemaIntrospection |  1.019 ms | 0.0106 ms | 0.0094 ms |  1.017 ms |    1 |   25.3906 |        - |        - |   277.77 KB |
+|    SchemaIntrospectionFiveParallelRequests |  4.872 ms | 0.0636 ms | 0.0595 ms |  4.858 ms |    4 |  132.8125 |        - |        - |  1388.83 KB |
+|                                    GetHero |  2.351 ms | 0.0462 ms | 0.0821 ms |  2.370 ms |    2 |         - |        - |        - |     8.18 KB |
+|                GetHeroFiveParallelRequests |  2.545 ms | 0.0516 ms | 0.1522 ms |  2.525 ms |    3 |    3.9063 |        - |        - |    41.04 KB |
+|                         GetHeroWithFriends |  7.600 ms | 0.0831 ms | 0.0924 ms |  7.593 ms |    5 |         - |        - |        - |    82.35 KB |
+|     GetHeroWithFriendsFiveParallelRequests |  8.239 ms | 0.0953 ms | 0.0796 ms |  8.264 ms |    6 |   31.2500 |  15.6250 |        - |    438.4 KB |
+|                     GetTwoHerosWithFriends |  8.192 ms | 0.1781 ms | 0.5251 ms |  7.965 ms |    6 |   15.6250 |        - |        - |   178.88 KB |
+| GetTwoHerosWithFriendsFiveParallelRequests |  9.350 ms | 0.1801 ms | 0.4139 ms |  9.224 ms |    7 |   78.1250 |  31.2500 |        - |   911.82 KB |
+|                                 LargeQuery | 17.720 ms | 0.3495 ms | 0.6303 ms | 17.664 ms |    8 |  312.5000 | 156.2500 |  31.2500 |  3299.39 KB |
+|             LargeQueryFiveParallelRequests | 40.000 ms | 0.7795 ms | 0.9573 ms | 39.892 ms |    9 | 1538.4615 | 692.3077 | 153.8462 | 16156.59 KB |

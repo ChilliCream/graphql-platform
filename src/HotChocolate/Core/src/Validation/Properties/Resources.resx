@@ -140,6 +140,9 @@
   <data name="ErrorHelper_NoSelectionOnCompositeField" xml:space="preserve">
     <value>`{0}` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed.</value>
   </data>
+  <data name="ErrorHelper_NoSelectionOnRootType" xml:space="preserve">
+    <value>Operation `{0}` has a empty selection set. Root types without subfields are disallowed.</value>
+  </data>
   <data name="ErrorHelper_FieldIsRequiredButNull" xml:space="preserve">
     <value>`{0}` is a required field and cannot be null.</value>
   </data>
@@ -203,7 +206,13 @@
   <data name="ErrorHelper_MaxOperationComplexity" xml:space="preserve">
     <value>The GraphQL document has an operation complexity of {0} which exceeds the max allowed operation complexity of {1}.</value>
   </data>
+  <data name="ErrorHelper_MaxExecutionDepth" xml:space="preserve">
+    <value>The GraphQL document has an execution depth of {0} which exceeds the max allowed execution depth of {1}.</value>
+  </data>
   <data name="HotChocolateValidationBuilderExtensions_MinimumAllowedValue" xml:space="preserve">
     <value>The minimum allowed value is 1.</value>
+  </data>
+  <data name="ErrorHelper_DirectiveMustBeUniqueInLocation" xml:space="preserve">
+    <value>Only one of each directive is allowed per location.</value>
   </data>
 </root>

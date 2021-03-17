@@ -81,7 +81,7 @@ namespace HotChocolate.Data.Sorting
                     nameof(sortType));
             }
 
-            Definition.Bindings.Add(runtimeType, sortType);
+            Definition.Bindings[runtimeType] = sortType;
             return this;
         }
 
@@ -189,6 +189,20 @@ namespace HotChocolate.Data.Sorting
         public ISortConventionDescriptor ArgumentName(NameString argumentName)
         {
             Definition.ArgumentName = argumentName;
+            return this;
+        }
+
+        public ISortConventionDescriptor AddProviderExtension<TExtension>()
+            where TExtension : class, ISortProviderExtension
+        {
+            Definition.ProviderExtensionsTypes.Add(typeof(TExtension));
+            return this;
+        }
+
+        public ISortConventionDescriptor AddProviderExtension<TExtension>(TExtension provider)
+            where TExtension : class, ISortProviderExtension
+        {
+            Definition.ProviderExtensions.Add(provider);
             return this;
         }
 

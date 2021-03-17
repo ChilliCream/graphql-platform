@@ -1,0 +1,1920 @@
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+type Query {
+  contract("The contract's Id" id: ID! = null): Contract
+  customerContract: CustomerContract!
+  node(id: ID! = null): Node
+}
+
+type Mutation {
+  confirmThreeAPaymentSimulation(confirmations: [ThreeAPaymentConfirmationInput!]! = null): [ThreeAPaymentConfirmation!]!
+  portfolioCheck(contractId: ID! = null): Boolean!
+  requestSurrenderValueDocument(request: SurrenderValueDocument! = null): RequestSurrenderValueDocumentInfo
+  setPaperless(paperless: [PaperlessInput!]! = null supressNotification: Boolean = null): [PaperlessResult!]!
+}
+
+type ZmaContract implements Contract & Investment & Paperless & Node {
+  accounts: [ZmaAccount]!
+  accounttransactions(after: String = null before: String = null filter: [FilterInfoInput] = null first: Int = null last: Int = null sortBy: String = null sortDirection: SortDirection = null): ZmaAccountTransactionConnection @deprecated(reason: "Deprecated use accountTransaction instead")
+  accountTransactions(after: String = null before: String = null first: Int = null last: Int = null order_by: ZmaAccountTransactionSort = null where: ZmaAccountTransactionFilter = null): ZmaAccountTransactionConnection
+  active: Boolean!
+  begin: DateTime!
+  category: ContractCategory!
+  contractId: String!
+  currency: String!
+  customer: ZmaCustomer!
+  depositsFromContractStart: Float
+  id: ID!
+  investmentStrategy: InvestmentStrategy!
+  investmentTheme: InvestmentTheme
+  latestContractPerformanceYear: ZmaContractPerformance!
+  number: String!
+  paperlessEnabled: Boolean
+  payoutPeriodicity: PaymentPeriodicity!
+  payoutPeriodicPayment: Float
+  payoutStartMonth: DateTime
+  portfolio: ZmaPortfolio
+  portfolioName: String
+  powerOfAttorney: ZmaPowerOfAttorney
+  product: ZmaProduct!
+  productName: String!
+  sourceSystemName: String
+  totalBalance: Float!
+  uniqueId: String
+  youthAccountDateOfBirth: DateTime
+  youthAccountFirstName: String
+  youthAccountGender: Gender
+  youthAccountLastName: String
+}
+
+interface PensionFundPolicy {
+  active: Boolean!
+  additionalLumpSumDeathBenefitMarried: Float!
+  additionalLumpSumDeathBenefitMarriedAccident: Float!
+  additionalLumpSumDeathBenefitNotMarried: Float!
+  additionalLumpSumDeathBenefitNotMarriedAccident: Float!
+  begin: DateTime!
+  benefits: PensionFundPolicyBenefits!
+  category: ContractCategory!
+  childrensBenefitIvPension: Float!
+  childrensBenefitIvPensionAccident: Float!
+  childrensBenefitIvWaitingPeriod: Int!
+  childrensBenefitPension: Float!
+  contributionEmployee: Float!
+  contributionEmployer: Float!
+  contributionExonerationDelay: Int!
+  contributionTotal: Float!
+  conversionRateMandatory: Float!
+  conversionRateSupplementary: Float!
+  currency: String!
+  deathBenefit: Float!
+  degreeOfDisability: Float!
+  endDate: DateTime
+  "PolicyId"
+  id: ID!
+  insuranceGroup: String
+  interestRateMandatory: Float!
+  interestRateSupplementary: Float!
+  iVPension: Float!
+  iVPensionAccident: Float!
+  iVWaitingPeriod: Int!
+  levelOfEmployment: Float!
+  monthlyRetirementPension: Float!
+  number: String!
+  nvsPortalInsuredPersonId: String!
+  orphansBenefit: Float!
+  orphansBenefitAccident: Float!
+  paperlessEnabled: Boolean
+  pensionPlan: PensionPlan
+  policyId: String!
+  productName: String!
+  purchaseEarlyWithdrawalForHomeOwnership: Float!
+  purchasePensionFund: Float!
+  purchaseTotalPossible: Float!
+  purchaseWithdrawalDivorce: Float!
+  reportedSalary: Float!
+  retirementCapital: Float!
+  retirementPension: Float!
+  retirementSavings: Float!
+  sourceSystemName: String
+  startDateEmployment: DateTime
+  status: PensionFundPolicyStatus!
+  totalBalance: Float!
+  unmarriedPartnersPension: Float!
+  unmarriedPartnersPensionAccident: Float!
+  withdrawalCapital: Float!
+}
+
+interface Address {
+  additional: String
+  careOf: String
+  city: String
+  company: String
+  department: String
+  firstName: String
+  id: String
+  lastName: String
+  postOfficeBox: String
+  salutation: String
+  street: String
+  zipCode: String
+}
+
+type XPlanPolicy implements Contract & PensionFundPolicy & Paperless & Node {
+  active: Boolean!
+  additionalLumpSumDeathBenefitMarried: Float!
+  additionalLumpSumDeathBenefitMarriedAccident: Float!
+  additionalLumpSumDeathBenefitNotMarried: Float!
+  additionalLumpSumDeathBenefitNotMarriedAccident: Float!
+  begin: DateTime!
+  benefits: PensionFundPolicyBenefits!
+  category: ContractCategory!
+  childrensBenefitIvPension: Float!
+  childrensBenefitIvPensionAccident: Float!
+  childrensBenefitIvWaitingPeriod: Int!
+  childrensBenefitPension: Float!
+  contact: XPlanContactInfo
+  contract: XPlanContract!
+  contractId: String!
+  contributionEmployee: Float!
+  contributionEmployer: Float!
+  contributionExonerationDelay: Int!
+  contributionTotal: Float!
+  conversionRateMandatory: Float!
+  conversionRateSupplementary: Float!
+  currency: String!
+  currentFundBalance: XPlanPremiumFundBalance
+  deathBenefit: Float!
+  degreeOfDisability: Float!
+  domicileAddress: XPlanAddress
+  endDate: DateTime
+  fundDevelopments: [XPlanFundDevelopment!]
+  "PolicyId"
+  id: ID!
+  insuranceGroup: String
+  interestRateMandatory: Float!
+  interestRateSupplementary: Float!
+  iVPension: Float!
+  iVPensionAccident: Float!
+  iVWaitingPeriod: Int!
+  levelOfEmployment: Float!
+  maxRetirementCapital: Float!
+  monthlyRetirementPension: Float!
+  number: String!
+  nvsPortalInsuredPersonId: String!
+  orphansBenefit: Float!
+  orphansBenefitAccident: Float!
+  paperlessEnabled: Boolean
+  pensionPlan: PensionPlan
+  policyId: String!
+  productName: String!
+  projectedRetirement: XPlanProjectedRetirement!
+  purchaseEarlyWithdrawalForHomeOwnership: Float!
+  purchasePensionFund: Float!
+  purchaseTotalPossible: Float!
+  purchaseWithdrawalDivorce: Float!
+  reportedSalary: Float!
+  retirementCapital: Float!
+  retirementDevelopment: [XPlanRetirementDevelopment!]!
+  retirementPension: Float!
+  retirementSavings: Float!
+  "Null for inactive policies"
+  simulationParameters: PensionFundSimulationParameters
+  sourceSystemName: String
+  startDateEmployment: DateTime
+  status: PensionFundPolicyStatus!
+  totalBalance: Float!
+  transactions(after: String = null before: String = null first: Int = null last: Int = null order_by: XPlanTransactionSort = null where: XPlanPensionFundTransactionFilterInput = null): XPlanTransactionConnection
+  unmarriedPartnersPension: Float!
+  unmarriedPartnersPensionAccident: Float!
+  withdrawalCapital: Float!
+}
+
+type PensionFundFzPolicy implements Contract & Paperless & Node {
+  active: Boolean!
+  ahvNumber: String
+  benefits: PensionFundFzPolicyBenefits!
+  birthDate: DateTime!
+  category: ContractCategory!
+  contractId: String!
+  currency: String!
+  displayName: String!
+  domicileAddress: XPlanAddress
+  fimCustomerId: String!
+  firstName: String!
+  "PolicyId"
+  id: ID!
+  interestRate: Float!
+  lastName: String!
+  number: String!
+  nvsPortalInsuredPersonId: String!
+  paperlessEnabled: Boolean
+  planType: PensionFundFzPolicyPlanType!
+  "Translated"
+  productName: String!
+  retirementAge: Int!
+  retirementDate: DateTime!
+  "Null for inactive policies"
+  simulationParameters: PensionFundSimulationParameters
+  startDate: DateTime!
+  status: PensionFundPolicyStatus!
+  totalBalance: Float!
+  transactions(after: String = null before: String = null first: Int = null last: Int = null order_by: PensionFundFzPolicyTransactionSort = null where: PensionFundFzPolicyTransactionFilter = null): PensionFundFzPolicyTransactionConnection
+  validFrom: DateTime!
+}
+
+type DigisPolicy implements Contract & PensionFundPolicy & Paperless & Node {
+  active: Boolean!
+  additionalLumpSumDeathBenefitMarried: Float!
+  additionalLumpSumDeathBenefitMarriedAccident: Float!
+  additionalLumpSumDeathBenefitNotMarried: Float!
+  additionalLumpSumDeathBenefitNotMarriedAccident: Float!
+  begin: DateTime!
+  benefits: PensionFundPolicyBenefits!
+  category: ContractCategory!
+  childrensBenefitIvPension: Float!
+  childrensBenefitIvPensionAccident: Float!
+  childrensBenefitIvWaitingPeriod: Int!
+  childrensBenefitPension: Float!
+  contract: DigisContract!
+  contractId: String!
+  contributionEmployee: Float!
+  contributionEmployer: Float!
+  contributionExonerationDelay: Int!
+  contributionTotal: Float!
+  conversionRateMandatory: Float!
+  conversionRateSupplementary: Float!
+  currency: String!
+  customer: DigisCustomer!
+  deathAfterRetirement: DeathAfterRetirement
+  deathBenefit: Float!
+  degreeOfDisability: Float!
+  endDate: DateTime
+  "PolicyId"
+  id: ID!
+  insuranceGroup: String
+  interestRateMandatory: Float!
+  interestRateSupplementary: Float!
+  iVPension: Float!
+  iVPensionAccident: Float!
+  iVWaitingPeriod: Int!
+  lastCalcDate: DateTime!
+  levelOfEmployment: Float!
+  monthlyRetirementPension: Float!
+  number: String!
+  nvsPortalInsuredPersonId: String!
+  orphansBenefit: Float!
+  orphansBenefitAccident: Float!
+  paperlessEnabled: Boolean
+  pensionPlan: PensionPlan
+  policyId: String!
+  policyTypeId: String
+  productName: String!
+  projectedRetirement: DigisProjectedRetirement
+  purchaseEarlyWithdrawalForHomeOwnership: Float!
+  purchasePensionFund: Float!
+  purchaseTotalPossible: Float!
+  purchaseWithdrawalDivorce: Float!
+  reportedSalary: Float!
+  retirementCapital: Float!
+  retirementDevelopment: [DigisRetirementDevelopment!]!
+  retirementPension: Float!
+  retirementSavings: Float!
+  sourceSystemName: String
+  startDateEmployment: DateTime
+  status: PensionFundPolicyStatus!
+  statusId: Int!
+  totalBalance: Float!
+  transactionId: Int!
+  transactions(after: String = null before: String = null first: Int = null last: Int = null order_by: DigisTransactionSort = null where: DigisPensionFundTransactionFilterInput = null): DigisTransactionConnection
+  unmarriedPartnersPension: Float!
+  unmarriedPartnersPensionAccident: Float!
+  withdrawalCapital: Float!
+}
+
+type EvContract implements Contract & ThreeA & ThreeASimulation & Paperless & Node {
+  accountContractId: String @deprecated(reason: "No longer required")
+  accountId: ID
+  active: Boolean!
+  annualPremium: Float!
+  annualPremiumSimulation: Float @deprecated(reason: "Use threeASimulation.annualPremiumSimulation instead")
+  begin: DateTime!
+  beneficiaryClause: String!
+  benefitsUponSurvivalDisclaimer: String @deprecated(reason: "use benefitUponSurvival.Disclaimer instead")
+  benefitUponSurvival: EvBenefitUponSurvival
+  bVGInsured: Boolean
+  bvgMismatch: Boolean!
+  category: ContractCategory!
+  contractEndDate: DateTime
+  contractId: String!
+  currency: String!
+  currencySimulation: String @deprecated(reason: "Use threeASimulation.currencySimulation instead")
+  customer: EvCustomer!
+  customers: [EvCustomer!]!
+  hasAccount: Boolean!
+  hasMonetaryAsset: Boolean!
+  id: ID!
+  "Translatable"
+  insuranceType: String!
+  "Translated"
+  insuranceTypeName: String!
+  isThreeA: Boolean!
+  maximumAmount: Float
+  maximumAmountSimulation: Float @deprecated(reason: "Use threeASimulation.maximumAmountSimulation instead")
+  maximumAnnualSimulation: Float @deprecated(reason: "Use threeASimulation.maximumAnnualSimulation instead")
+  minimumAmountSimulation: Float @deprecated(reason: "Use threeASimulation.minimumAmountSimulation instead")
+  number: String!
+  paperlessEnabled: Boolean
+  partnerId: String!
+  paymentPossibleSimulation: Boolean! @deprecated(reason: "Use threeASimulation.paymentPossibleSimulation instead")
+  "Translatable"
+  pillar: String
+  portfolio: EvPortfolio
+  portfolioCode: String
+  portfolioName: String
+  premium: EvPremium
+  premiumInvoiceProcessing: Boolean!
+  premiuminvoices(after: String = null before: String = null first: Int = null last: Int = null order_by: EvPremiumInvoiceSort = null where: EvPremiumInvoiceFilter = null): EvPremiumInvoiceConnection
+  productGroup: String!
+  "Translatable"
+  productId: String
+  productName: String!
+  productNameCode: String
+  retirementStart: DateTime
+  sourceSystemName: String
+  surrenderValue: EvSurrenderValue
+  surrenderValueDocumentPartnerId: String!
+  tariffs: [EvTariff!]!
+  threeAPaymentInfo(amount: Float! = null): ThreeASimulationPaymentInfo @deprecated(reason: "Use threeASimulation.threeAPaymentInfo instead")
+  threeASimulation: EvContractThreeASimulationType!
+  totalBalance: Float!
+  uniqueId: String
+}
+
+type EvAccount implements Contract & Node {
+  accountBalance: Float!
+  accountCategory: EvAccountCategory!
+  accountdevelopments: [EvAccountDevelopment!]!
+  accounttransactions(after: String = null before: String = null filter: [FilterInfoInput] = null first: Int = null last: Int = null sortBy: String = null sortDirection: SortDirection = null): EvAccountTransactionConnection @deprecated(reason: "Deprecated use accountTransaction instead")
+  accountTransactions(after: String = null before: String = null first: Int = null last: Int = null order_by: EvAccountTransactionSort = null where: EvAccountTransactionFilter = null): EvAccountTransactionConnection
+  "Translatable"
+  accountType: String
+  active: Boolean!
+  availableProducts: [EvAccountProduct!]!
+  category: ContractCategory!
+  connectedContracts: [EvContract!]!
+  contractId: String!
+  currency: String!
+  id: ID!
+  number: String!
+  partner: EvPartner!
+  productName: String!
+  referenceNumber: String
+  totalBalance: Float!
+}
+
+type MortgageContract implements Contract & Node {
+  active: Boolean!
+  amountTotal: Float!
+  begin: DateTime
+  category: ContractCategory!
+  collaterals: [MortgageCollateral]!
+  contractId: String!
+  contractNumber: String!
+  currency: String!
+  id: ID!
+  interests: [MortgageInterest]!
+  mortgages(order_by: MortgageSort = null): [Mortgage]!
+  number: String!
+  object: MortgageObject!
+  productName: String!
+  sourceSystemName: String
+  stakeholders: [MortgageStakeholder]!
+  totalBalance: Float!
+  uniqueId: String
+  yearlyInterestTotal: Float!
+}
+
+type ThreeAStartContract implements Contract & Node & Paperless & ThreeA & ThreeASimulation {
+  accounts: [ThreeAStartFzAccount!]!
+  accounttransactions(after: String = null before: String = null filter: [FilterInfoInput] = null first: Int = null last: Int = null sortBy: String = null sortDirection: SortDirection = null): ThreeAStartFzTransactionConnection @deprecated(reason: "Deprecated use accountTransaction instead")
+  accountTransactions(after: String = null before: String = null first: Int = null last: Int = null order_by: ThreeAStartFzTransactionSort = null where: ThreeAStartFzTransactionFilter = null): ThreeAStartFzTransactionConnection
+  active: Boolean!
+  annualPremium: Float!
+  annualPremiumSimulation: Float @deprecated(reason: "use threeASimulation.annualPremiumSimulation instead.")
+  availableAccountTypes: [ThreeAStartFzAccountType]!
+  begin: DateTime!
+  bvgMismatch: Boolean!
+  category: ContractCategory!
+  closeCode: Int
+  commissionDiscount: Float
+  contractChangeDate: DateTime
+  contractdevelopments: [ThreeAStartFzDevelopment!]!
+  contractId: String!
+  contractProductNumber: String
+  currency: String!
+  currencySimulation: String @deprecated(reason: "use threeASimulation.currencySimulation instead.")
+  customer: ThreeAStartFzCustomer!
+  "ThreeAStartContractId"
+  id: ID!
+  investmentShare: Float
+  latestCalculationDate: DateTime
+  maximumAmount: Float
+  maximumAmountSimulation: Float @deprecated(reason: "Use threeASimulation.maximumAmountSimulation instead")
+  maximumAnnualSimulation: Float @deprecated(reason: "use threeASimulation.maximumAnnualSimulation instead.")
+  minimumAmountSimulation: Float @deprecated(reason: "use threeASimulation.minimumAmountSimulation instead.")
+  modelPortfolioNumber: String
+  number: String!
+  paperlessEnabled: Boolean
+  paymentPossibleSimulation: Boolean! @deprecated(reason: "Use threeASimulation.paymentPossibleSimulation instead")
+  portfolio: ThreeAStartFzPortfolio!
+  "Translatable"
+  productId: String
+  productName: String!
+  sourceSystemName: String
+  threeASimulation: ThreeAStartSimulationType!
+  totalBalance: Float!
+  uniqueId: String
+}
+
+type FzContract implements Contract & Node & Paperless {
+  accounts: [ThreeAStartFzAccount!]!
+  accounttransactions(after: String = null before: String = null filter: [FilterInfoInput] = null first: Int = null last: Int = null sortBy: String = null sortDirection: SortDirection = null): ThreeAStartFzTransactionConnection @deprecated(reason: "Deprecated use accountTransaction instead")
+  accountTransactions(after: String = null before: String = null first: Int = null last: Int = null order_by: ThreeAStartFzTransactionSort = null where: ThreeAStartFzTransactionFilter = null): ThreeAStartFzTransactionConnection
+  active: Boolean!
+  availableAccountTypes: [ThreeAStartFzAccountType]!
+  begin: DateTime!
+  category: ContractCategory!
+  closeCode: Int
+  commissionDiscount: Float
+  contractChangeDate: DateTime
+  contractdevelopments: [ThreeAStartFzDevelopment!]!
+  contractId: String!
+  contractProductNumber: String
+  currency: String!
+  customer: ThreeAStartFzCustomer!
+  "FzContractId"
+  id: ID!
+  investmentShare: Float
+  modelPortfolioNumber: String
+  number: String!
+  paperlessEnabled: Boolean
+  portfolio: ThreeAStartFzPortfolio!
+  "Translatable"
+  productId: String
+  productName: String!
+  sourceSystemName: String
+  totalBalance: Float!
+  uniqueId: String
+}
+
+type NotImplementedContract implements Contract & Node {
+  active: Boolean!
+  category: ContractCategory!
+  contractId: String!
+  currency: String!
+  id: ID!
+  number: String!
+  nvsPortalInsuredPersonId: String
+  productName: String!
+  showDocumentLink: Boolean!
+  sourceSystemName: String
+  totalBalance: Float!
+  uniqueId: String
+}
+
+enum PensionFundPolicyStatus {
+  ACTIVE
+  INACTIVE
+  INACTIVEPAID
+  REVERSAL
+  PENSION
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
+type CustomerContract {
+  contracts(hiddenContracts: [String!] = null tag: [ContractTag] = null): [Contract!]!
+  "PortalCustomerId"
+  id: ID!
+  outline: ContractsOutline
+}
+
+interface Contract {
+  active: Boolean!
+  category: ContractCategory!
+  contractId: String!
+  currency: String!
+  id: ID!
+  number: String!
+  productName: String!
+  totalBalance: Float!
+}
+
+type PaperlessResult {
+  contract: Contract!
+  success: Boolean!
+}
+
+input PaperlessInput {
+  contractId: ID! = null
+  enable: Boolean! = null
+}
+
+input SurrenderValueDocument {
+  contractId: ID! = null
+  customerId: String = null
+  date: Date = null
+  partnerId: String! = null
+}
+
+input ThreeAPaymentConfirmationInput {
+  contractId: ID! = null
+  payment: Float! = null
+}
+
+type RequestSurrenderValueDocumentInfo {
+  jobId: Int!
+}
+
+type ThreeAPaymentConfirmation {
+  contractId: ID!
+  payment: Float!
+}
+
+type ZmaAccountTransaction implements Node {
+  accountBalance: Float!
+  accountTransactionAmount: Float!
+  accountType: ZmaAccountType!
+  accountTypeName: String!
+  bookingDate: DateTime!
+  contractId: String
+  currency: String!
+  iban: String
+  "AccountTransactionId"
+  id: ID!
+  marketPrice: Float!
+  narrativeText: String
+  securityNominal: Float!
+  transactionText: String
+  valueDate: DateTime!
+}
+
+input ZmaAccountTransactionSort {
+  bookingDate: SortOperationKind = null
+  valueDate: SortOperationKind = null
+}
+
+input ZmaAccountTransactionFilter {
+  accountType: ZmaAccountType = null
+  accountType_gt: ZmaAccountType = null
+  accountType_gte: ZmaAccountType = null
+  accountType_in: [ZmaAccountType!] = null
+  accountType_lt: ZmaAccountType = null
+  accountType_lte: ZmaAccountType = null
+  accountType_not: ZmaAccountType = null
+  accountType_not_gt: ZmaAccountType = null
+  accountType_not_gte: ZmaAccountType = null
+  accountType_not_in: [ZmaAccountType!] = null
+  accountType_not_lt: ZmaAccountType = null
+  accountType_not_lte: ZmaAccountType = null
+  AND: [ZmaAccountTransactionFilter!] = null
+  bookingDate: DateTime = null
+  bookingDate_gt: DateTime = null
+  bookingDate_gte: DateTime = null
+  bookingDate_in: [DateTime] = null
+  bookingDate_lt: DateTime = null
+  bookingDate_lte: DateTime = null
+  bookingDate_not: DateTime = null
+  bookingDate_not_gt: DateTime = null
+  bookingDate_not_gte: DateTime = null
+  bookingDate_not_in: [DateTime] = null
+  bookingDate_not_lt: DateTime = null
+  bookingDate_not_lte: DateTime = null
+  OR: [ZmaAccountTransactionFilter!] = null
+}
+
+interface Investment {
+  investmentStrategy: InvestmentStrategy!
+  investmentTheme: InvestmentTheme
+}
+
+interface Paperless {
+  paperlessEnabled: Boolean
+}
+
+enum SortDirection {
+  ASCENDING
+  DESCENDING
+}
+
+input FilterInfoInput {
+  equality: FilterEqualityOperator! = null
+  field: String! = null
+  logical: FilterLogicalOperator = null
+  value: String = null
+}
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime
+
+type ZmaCustomer implements Node {
+  beneficiaryAccountNumber: String
+  correspondenceAddress: ZmaAddress
+  customerId: String!
+  domicileAddress: ZmaAddress
+  firstName: String!
+  id: ID!
+  lastName: String!
+}
+
+type ZmaAccount {
+  accountId: String
+  accountType: ZmaAccountType!
+  accountTypeName: String!
+  calculationDate: DateTime!
+  contractId: String
+  currency: String!
+  currentBalanceAccountCurrency: Float!
+  iban: String!
+  id: ID!
+  standingOrders: [ZmaStandingOrder]!
+}
+
+type ZmaPortfolio {
+  calculationDate: DateTime
+  contractId: String
+  currency: String!
+  factSheetUrl: String
+  history: [ZmaPortfolioHistory!]!
+  id: ID!
+  portfolioId: String!
+  portfolioValueInBalanceSheetCurrency: Float
+  portfolioValueInPortfolioCurrency: Float!
+  positions: [ZmaPortfolioPosition!]!
+}
+
+type ZmaProduct {
+  contractType: ZmaContractType!
+  id: ID!
+  investmentStrategy: String!
+  investmentTheme: String
+  productName: String!
+  productNumber: String!
+}
+
+enum PaymentPeriodicity {
+  SINGLE
+  ANNUALY
+  SEMIANNUALY
+  QUARTERLY
+  MONTHLY
+}
+
+type ZmaContractPerformance {
+  calculationType: ZmaContractPerformanceCalculation!
+  contractPerformanceId: String!
+  historicalPerformance: Float!
+  id: ID!
+  performanceDate: DateTime!
+  referenceCurrency: String!
+  zmaContractId: String
+}
+
+"A connection to a list of items."
+type ZmaAccountTransactionConnection {
+  "A list of edges."
+  edges: [ZmaAccountTransactionEdge!]
+  "A flattened list of the nodes."
+  nodes: [ZmaAccountTransaction]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ZmaPowerOfAttorney {
+  firstName: String!
+  id: ID!
+  lastName: String!
+  powerOfAttorneyId: String!
+}
+
+enum ContractCategory {
+  UNDEFINED
+  PENSIONFUND
+  FZ
+  PERSONALPENSION
+  MORTGAGE
+  FZP
+}
+
+enum InvestmentStrategy {
+  INCOME
+  BALANCED
+  GROWTH
+  EQUITY
+  CERTIFICATE
+}
+
+enum InvestmentTheme {
+  GLOBAL
+  SWISSNESS
+  TRENDS
+  DIVIDEND
+  SWISSLIFE
+  SUSTAINABILITY
+}
+
+enum Gender {
+  UNKNOWN
+  FEMALE
+  MALE
+}
+
+type PensionFundPolicyBenefits {
+  childrensBenefitIvPension: PeriodicalValuesOfDouble!
+  childrensBenefitIvPensionAccident: PeriodicalValuesOfDouble!
+  childrensBenefitIvWaitingPeriod: Int!
+  childrensBenefitPension: PeriodicalValuesOfDouble!
+  "Contribution exoneration delay in months"
+  contributionExonerationDelay: Int!
+  iVPension: PeriodicalValuesOfDouble!
+  iVPensionAccident: PeriodicalValuesOfDouble!
+  iVWaitingPeriod: Int!
+  orphanPension: PeriodicalValuesOfDouble
+  orphanPensionPercent: Float!
+  orphansBenefit: PeriodicalValuesOfDouble!
+  orphansBenefitAccident: PeriodicalValuesOfDouble!
+  retirementPension: PeriodicalValuesOfDouble!
+  unmarriedPartnersPension: PeriodicalValuesOfDouble!
+  unmarriedPartnersPensionAccident: PeriodicalValuesOfDouble!
+  widowPension: PeriodicalValuesOfDouble
+  widowPensionPercent: Float!
+}
+
+type XPlanTransaction implements Node {
+  amount: Float
+  bookingCode: String
+  bookingDate: DateTime!
+  "Translated"
+  bookingText: String!
+  bookingType: String
+  id: ID!
+  processId: String
+  transactionId: String!
+}
+
+input XPlanTransactionSort {
+  bookingDate: SortOperationKind = null
+}
+
+input XPlanPensionFundTransactionFilterInput {
+  amount: Float = null
+  amount_gt: Float = null
+  amount_gte: Float = null
+  amount_in: [Float] = null
+  amount_lt: Float = null
+  amount_lte: Float = null
+  amount_not: Float = null
+  amount_not_gt: Float = null
+  amount_not_gte: Float = null
+  amount_not_in: [Float] = null
+  amount_not_lt: Float = null
+  amount_not_lte: Float = null
+  AND: [XPlanPensionFundTransactionFilterInput!] = null
+  bookingDate: Date = null
+  bookingDate_gt: Date = null
+  bookingDate_gte: Date = null
+  bookingDate_in: [Date] = null
+  bookingDate_lt: Date = null
+  bookingDate_lte: Date = null
+  bookingDate_not: Date = null
+  bookingDate_not_gt: Date = null
+  bookingDate_not_gte: Date = null
+  bookingDate_not_in: [Date] = null
+  bookingDate_not_lt: Date = null
+  bookingDate_not_lte: Date = null
+  OR: [XPlanPensionFundTransactionFilterInput!] = null
+}
+
+type PensionFundSimulationParameters {
+  contractSharedId: Uuid!
+  personSharedId: Uuid!
+  processId: String!
+}
+
+type XPlanProjectedRetirement implements ProjectedRetirement {
+  isPossiblePrepensionDateInFuture: Boolean!
+  lastPossiblePurchaseDate: Date!
+  projectedAge: Int!
+  projectedDate: Date!
+  projectedInterestRate: Float!
+  projectedSavings: Decimal!
+}
+
+type XPlanContract implements Node & PensionFundContract {
+  beginDate: DateTime!
+  contractNumber: String
+  endDate: DateTime
+  foundation: String
+  id: ID!
+  "Translated"
+  insuranceType: String!
+  productCode: String!
+  stakeHolder: String
+}
+
+"A connection to a list of items."
+type XPlanTransactionConnection {
+  "A list of edges."
+  edges: [XPlanTransactionEdge!]
+  "A flattened list of the nodes."
+  nodes: [XPlanTransaction]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type XPlanRetirementDevelopment {
+  retirementCapital: Float!
+  retirementCapitalSupplementary: Float!
+  retirementDate: DateTime!
+  retirementPension: Float!
+  source: String!
+  transactions: [XPlanTransaction!]!
+}
+
+type XPlanAddress implements Address {
+  additional: String
+  careOf: String
+  city: String
+  company: String
+  countryCode: Int
+  countryCodeNumeric: Int @deprecated(reason: "Use CountryCode instead")
+  department: String
+  firstName: String
+  id: String
+  lastName: String
+  postOfficeBox: String
+  "Translated"
+  salutation: String
+  street: String
+  street2: String @deprecated(reason: "Use Additional instead")
+  zipCode: String
+}
+
+type PensionFundFzPolicyTransaction implements Node {
+  amount: Float!
+  "Translated"
+  bookingCode: String
+  bookingDate: DateTime!
+  id: ID!
+  processId: String
+  transactionId: String!
+}
+
+input PensionFundFzPolicyTransactionSort {
+  bookingDate: SortOperationKind = null
+}
+
+input PensionFundFzPolicyTransactionFilter {
+  AND: [PensionFundFzPolicyTransactionFilter!] = null
+  bookingDate: DateTime = null
+  bookingDate_gt: DateTime = null
+  bookingDate_gte: DateTime = null
+  bookingDate_in: [DateTime] = null
+  bookingDate_lt: DateTime = null
+  bookingDate_lte: DateTime = null
+  bookingDate_not: DateTime = null
+  bookingDate_not_gt: DateTime = null
+  bookingDate_not_gte: DateTime = null
+  bookingDate_not_in: [DateTime] = null
+  bookingDate_not_lt: DateTime = null
+  bookingDate_not_lte: DateTime = null
+  OR: [PensionFundFzPolicyTransactionFilter!] = null
+}
+
+type PensionFundFzPolicyPlanType {
+  iV: Boolean!
+  planType: FzPolicyPlanType!
+  planTypeRaw: String!
+  relinquished: Boolean!
+  senior: Boolean!
+  tariffSpecification: Boolean!
+}
+
+type PensionFundFzPolicyBenefits {
+  cumulatedExceeds: Float!
+  deathBenefit: Float!
+  iVCapital: Float!
+  retirementSavings: Float!
+  retirementSavingsProjected: Float!
+  totalDeathBenefit: Float!
+  totalRetirementSavings: Float!
+}
+
+"A connection to a list of items."
+type PensionFundFzPolicyTransactionConnection {
+  "A list of edges."
+  edges: [PensionFundFzPolicyTransactionEdge!]
+  "A flattened list of the nodes."
+  nodes: [PensionFundFzPolicyTransaction!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type DigisTransaction implements Node {
+  amount: Float
+  bookingCode: String
+  bookingDate: DateTime!
+  "Translated"
+  bookingText: String!
+  capital: Decimal!
+  capitalSupplementary: Decimal!
+  id: ID!
+  pension: Decimal!
+}
+
+input DigisTransactionSort {
+  bookingDate: SortOperationKind = null
+}
+
+input DigisPensionFundTransactionFilterInput {
+  amount: Float = null
+  amount_gt: Float = null
+  amount_gte: Float = null
+  amount_in: [Float] = null
+  amount_lt: Float = null
+  amount_lte: Float = null
+  amount_not: Float = null
+  amount_not_gt: Float = null
+  amount_not_gte: Float = null
+  amount_not_in: [Float] = null
+  amount_not_lt: Float = null
+  amount_not_lte: Float = null
+  AND: [DigisPensionFundTransactionFilterInput!] = null
+  bookingDate: DateTime = null
+  bookingDate_gt: DateTime = null
+  bookingDate_gte: DateTime = null
+  bookingDate_in: [DateTime] = null
+  bookingDate_lt: DateTime = null
+  bookingDate_lte: DateTime = null
+  bookingDate_not: DateTime = null
+  bookingDate_not_gt: DateTime = null
+  bookingDate_not_gte: DateTime = null
+  bookingDate_not_in: [DateTime] = null
+  bookingDate_not_lt: DateTime = null
+  bookingDate_not_lte: DateTime = null
+  OR: [DigisPensionFundTransactionFilterInput!] = null
+}
+
+type DigisContract implements Node & PensionFundContract {
+  contractNumber: String
+  foundation: String
+  id: ID!
+  "Translated"
+  insuranceType: String!
+  productCode: String!
+  stakeHolder: String
+}
+
+type DigisRetirementDevelopment implements RetirementDevelopment {
+  retirementAge: Int!
+  retirementCapital: Float!
+  retirementDate: DateTime!
+  retirementPension: Float!
+  transactions: [DigisTransaction!]!
+}
+
+"A connection to a list of items."
+type DigisTransactionConnection {
+  "A list of edges."
+  edges: [DigisTransactionEdge!]
+  "A flattened list of the nodes."
+  nodes: [DigisTransaction]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type DigisProjectedRetirement implements ProjectedRetirement {
+  isPossiblePrepensionDateInFuture: Boolean!
+  lastPossiblePurchaseDate: Date!
+  projectedAge: Int!
+  projectedDate: Date!
+  projectedPension: Decimal!
+  projectedSavings: Decimal!
+}
+
+type DigisCustomer {
+  ahvNumber: String
+  customerId: String
+  customerTypeId: Int!
+  dateOfBirth: DateTime!
+  degreeOfDisability: Decimal!
+  domicileAddress: DigisAddress
+  firstName: String
+  gender: String
+  governmentId: String
+  lastName: String
+  levelOfEmployment: Decimal!
+  nvsPortalInsuredPersonId: String
+  reportedSalary: Decimal!
+  sourceId: String
+  withdrawalCapital: Decimal!
+}
+
+type EvPremiumInvoice {
+  balance: Float
+  bill: Float
+  contractId: String!
+  currency: String!
+  documentNumber: String!
+  dueDate: DateTime
+  "DocumentNumber"
+  id: ID!
+  invoiceNumber: String!
+  invoicePeriodEndDate: DateTime
+  invoicePeriodStartDate: DateTime
+  partnerId: Int!
+  premium: Float
+  settlementBlock: Boolean!
+  status: PremiumInvoiceStatus!
+  "Translated"
+  statusName: String
+}
+
+input EvPremiumInvoiceSort {
+  dueDate: SortOperationKind = null
+}
+
+input EvPremiumInvoiceFilter {
+  AND: [EvPremiumInvoiceFilter!] = null
+  dueDate: DateTime = null
+  dueDate_gt: DateTime = null
+  dueDate_gte: DateTime = null
+  dueDate_in: [DateTime] = null
+  dueDate_lt: DateTime = null
+  dueDate_lte: DateTime = null
+  dueDate_not: DateTime = null
+  dueDate_not_gt: DateTime = null
+  dueDate_not_gte: DateTime = null
+  dueDate_not_in: [DateTime] = null
+  dueDate_not_lt: DateTime = null
+  dueDate_not_lte: DateTime = null
+  OR: [EvPremiumInvoiceFilter!] = null
+}
+
+interface ThreeA {
+  annualPremium: Float!
+  bvgMismatch: Boolean!
+  currency: String!
+  maximumAmount: Float
+}
+
+interface ThreeASimulation {
+  annualPremiumSimulation: Float
+  currencySimulation: String
+  maximumAmountSimulation: Float
+  maximumAnnualSimulation: Float
+  minimumAmountSimulation: Float
+  paymentPossibleSimulation: Boolean!
+}
+
+type EvCustomer implements Node {
+  correspondenceAddress: EvPartnerAddress
+  domicileAddress: EvPartnerAddress
+  firstName: String!
+  gender: Gender!
+  "PartnerId"
+  id: ID!
+  lastName: String!
+  partnerId: String!
+}
+
+type EvTariff {
+  firstName: String!
+  insuredPerson: String!
+  lastName: String!
+  partnerId: String!
+  tariffId: String!
+  "Translated"
+  tariffName: String!
+  tariffPremium: Float!
+  tariffSortOrder: Int!
+}
+
+type EvSurrenderValue {
+  disclaimer: String
+  existingLoan: Float
+  net: Float
+  validityDate: DateTime
+}
+
+type EvBenefitUponSurvival {
+  additionalEstimatedFundAssets: Float
+  disclaimer: String
+  dueDate: DateTime
+  estimatedBonus: Float
+  estimatedFundAssets: Float
+  estimatedSecurityCapital: Float
+  estimatedTotal: Float
+  fundPerformanceUsedForEstimation: Float
+  guaranteed: Float
+}
+
+type EvPremium {
+  annual: Float
+  contractDissolveDate: DateTime
+  paidCalculationDate: DateTime
+  paymentFrequency: PaymentPeriodicity!
+  periodicityName: String!
+  proRata: Float
+  single: Float
+  totalPremiumForYear: Float
+  totalPremiumPayment: Float
+}
+
+type EvPortfolio {
+  contractId: String!
+  currency: String!
+  factSheetUrl: String
+  id: ID!
+  portfolioCode: String
+  portfolioId: String!
+  portfolioTotal: Decimal!
+  portfolioValue: Float!
+  positions: [EvPortfolioPosition!]!
+  securityCapital: Decimal
+}
+
+type ThreeASimulationPaymentInfo {
+  codeLine: String!
+  memberNumber: String!
+  referenceNumber: String!
+}
+
+type EvContractThreeASimulationType implements ThreeASimulation {
+  annualPremiumSimulation: Float
+  currencySimulation: String
+  maximumAmountSimulation: Float
+  maximumAnnualSimulation: Float
+  minimumAmountSimulation: Float
+  paymentPossibleSimulation: Boolean!
+  threeAPaymentInfo(amount: Float! = null): ThreeASimulationPaymentInfo
+}
+
+"A connection to a list of items."
+type EvPremiumInvoiceConnection {
+  "A list of edges."
+  edges: [EvPremiumInvoiceEdge!]
+  "A flattened list of the nodes."
+  nodes: [EvPremiumInvoice!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type EvAccountTransaction implements Node {
+  accountId: String
+  amount: Float!
+  bookingCode: Int
+  bookingDate: DateTime!
+  "Translated"
+  bookingText: String
+  clearingCode: String
+  contractId: String
+  currency: String!
+  currencyDate: DateTime!
+  "AccountTransactionId"
+  id: ID!
+  mainTransactionCode: String
+  partnerId: String
+  "Translatable"
+  productId: String
+  "Translated"
+  productName: String
+  subTransactionCode: String
+}
+
+input EvAccountTransactionSort {
+  bookingDate: SortOperationKind = null
+}
+
+input EvAccountTransactionFilter {
+  AND: [EvAccountTransactionFilter!] = null
+  bookingDate: Date = null
+  bookingDate_gt: Date = null
+  bookingDate_gte: Date = null
+  bookingDate_in: [Date] = null
+  bookingDate_lt: Date = null
+  bookingDate_lte: Date = null
+  bookingDate_not: Date = null
+  bookingDate_not_gt: Date = null
+  bookingDate_not_gte: Date = null
+  bookingDate_not_in: [Date] = null
+  bookingDate_not_lt: Date = null
+  bookingDate_not_lte: Date = null
+  OR: [EvAccountTransactionFilter!] = null
+  productId: String = null
+  productId_contains: String = null
+  productId_ends_with: String = null
+  productId_in: [String] = null
+  productId_not: String = null
+  productId_not_contains: String = null
+  productId_not_ends_with: String = null
+  productId_not_in: [String] = null
+  productId_not_starts_with: String = null
+  productId_starts_with: String = null
+}
+
+type EvPartner {
+  correspondenceAddress: EvPartnerAddress
+  countryCode: String!
+  dateOfBirth: DateTime!
+  domicileAddress: EvPartnerAddress
+  firstName: String!
+  gender: Gender!
+  id: ID!
+  lastName: String!
+  partnerId: String!
+}
+
+"A connection to a list of items."
+type EvAccountTransactionConnection {
+  "A list of edges."
+  edges: [EvAccountTransactionEdge!]
+  "A flattened list of the nodes."
+  nodes: [EvAccountTransaction]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type EvAccountDevelopment {
+  accountDevelopmentId: String!
+  accountValue: Float!
+  bookingDate: DateTime!
+  contractId: String
+  id: ID!
+  partnerId: String
+}
+
+type EvAccountProduct {
+  contractId: String
+  "Translatable"
+  productId: String
+  "Translated"
+  productName: String
+}
+
+enum EvAccountCategory {
+  UNKNOWN
+  HOLDING
+  PREMIUM
+}
+
+input MortgageSort {
+  endDate: SortOperationKind = null
+  isActive: SortOperationKind = null
+  startDate: SortOperationKind = null
+}
+
+type MortgageObject {
+  city: String
+  countryCode: String
+  id: ID!
+  street: String
+  zipCode: String
+}
+
+type Mortgage {
+  amount: Float!
+  "Translated"
+  customerPrivileges: [TranslatedResource!]!
+  endDate: Date
+  "Translatable"
+  interestMaturity: String
+  "Translated"
+  InterestMaturityLabel: String
+  interestRate: Float!
+  isActive: Boolean!
+  number: String!
+  "Translatable"
+  privileges: [String] @deprecated(reason: "Use customerPrivileges instead.")
+  startDate: Date
+  "Translated"
+  type: String
+  "Translatable"
+  typeCode: String!
+  yearlyInterest: Float!
+}
+
+type MortgageCollateral {
+  company: String!
+  id: ID!
+  policy: Contract
+  policyNumber: String!
+}
+
+type MortgageStakeholder {
+  domicilAddress: MortgageStakeholderAddress
+  firstname: String!
+  id: ID!
+  lastname: String!
+}
+
+type MortgageInterest {
+  interest: Float!
+  "Translated"
+  maturity: String!
+  maturityCode: String!
+}
+
+type ThreeAStartFzTransaction {
+  accountBalance: Float!
+  accountTransactionAmount: Float!
+  accountType: ThreeAStartFzAccountType!
+  bookingDate: DateTime!
+  contractId: String!
+  currency: String!
+  iBAN: String
+  "ThreeAStartFzTransactionId"
+  id: ID!
+  marketPrice: Float!
+  narrativeText: String
+  securityNominal: Float!
+  transactionText: String
+  valueDate: DateTime!
+}
+
+input ThreeAStartFzTransactionSort {
+  bookingDate: SortOperationKind = null
+  valueDate: SortOperationKind = null
+}
+
+input ThreeAStartFzTransactionFilter {
+  accountType: ThreeAStartFzAccountType = null
+  accountType_gt: ThreeAStartFzAccountType = null
+  accountType_gte: ThreeAStartFzAccountType = null
+  accountType_in: [ThreeAStartFzAccountType!] = null
+  accountType_lt: ThreeAStartFzAccountType = null
+  accountType_lte: ThreeAStartFzAccountType = null
+  accountType_not: ThreeAStartFzAccountType = null
+  accountType_not_gt: ThreeAStartFzAccountType = null
+  accountType_not_gte: ThreeAStartFzAccountType = null
+  accountType_not_in: [ThreeAStartFzAccountType!] = null
+  accountType_not_lt: ThreeAStartFzAccountType = null
+  accountType_not_lte: ThreeAStartFzAccountType = null
+  AND: [ThreeAStartFzTransactionFilter!] = null
+  bookingDate: DateTime = null
+  bookingDate_gt: DateTime = null
+  bookingDate_gte: DateTime = null
+  bookingDate_in: [DateTime] = null
+  bookingDate_lt: DateTime = null
+  bookingDate_lte: DateTime = null
+  bookingDate_not: DateTime = null
+  bookingDate_not_gt: DateTime = null
+  bookingDate_not_gte: DateTime = null
+  bookingDate_not_in: [DateTime] = null
+  bookingDate_not_lt: DateTime = null
+  bookingDate_not_lte: DateTime = null
+  OR: [ThreeAStartFzTransactionFilter!] = null
+}
+
+type ThreeAStartFzCustomer {
+  contractId: String
+  correspondenceAddress: ThreeAStartFzAddress
+  customerFirstName: String!
+  customerId: String!
+  customerLastName: String!
+  dateOfBirth: DateTime
+  domicileAddress: ThreeAStartFzAddress
+  endDate: DateTime
+  gender: Gender!
+  levelOfEmployment: ThreeAStartFzLevelOfEmployment!
+}
+
+type ThreeAStartFzPortfolio {
+  calculationDate: DateTime!
+  contractId: String!
+  currency: String!
+  id: ID!
+  portfolioId: String!
+  portfolioValueInBalanceSheetCurrency: Float!
+  portfolioValueInPortfolioCurrency: Float!
+  positions: [ThreeAStartFzPortfolioPosition!]!
+}
+
+type ThreeAStartFzAccount {
+  accountType: ThreeAStartFzAccountType!
+  contractId: String!
+  currency: String!
+  currentBalanceAccountCurrency: Float!
+  endDate: DateTime
+  iBAN: String
+  "ThreeAStartFzAccountId"
+  id: ID!
+  offsetFlag: Int!
+  totalTransactionAccountCurrency: Float!
+}
+
+type ThreeAStartFzDevelopment {
+  amountInvestedValue: Float!
+  amountPaidOutValue: Float!
+  calculationDate: DateTime!
+  contractId: String!
+  currency: String!
+  entryAccountValue: Float!
+  "ThreeAStartFzDevelopmentId"
+  id: ID!
+  investmentAccountValue: Float!
+  portfolioValue: Float!
+  totalValue: Float!
+}
+
+"A connection to a list of items."
+type ThreeAStartFzTransactionConnection {
+  "A list of edges."
+  edges: [ThreeAStartFzTransactionEdge!]
+  "A flattened list of the nodes."
+  nodes: [ThreeAStartFzTransaction]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+enum ThreeAStartFzAccountType {
+  INVESTMENT3ANEW
+  INVESTMENTFZMIGRATION
+  INVESTMENT3AMIGRATION
+  INVESTMENTFZNEW
+  ANLAGE3ANEW
+  ANLAGEFZMIGRATION
+  ANLAGE3AMIGRATION
+  ANLAGEFZNEW
+}
+
+type ThreeAStartSimulationType implements ThreeASimulation {
+  annualPremiumSimulation: Float
+  currencySimulation: String
+  maximumAmountSimulation: Float
+  maximumAnnualSimulation: Float
+  minimumAmountSimulation: Float
+  paymentPossibleSimulation: Boolean!
+}
+
+enum TranslatableLanguage {
+  NOTSET
+  DE
+  FR
+  IT
+  EN
+}
+
+enum ApplyPolicy {
+  BEFORE_RESOLVER
+  AFTER_RESOLVER
+}
+
+enum ContractTag {
+  THREEA
+  PENSIONFUND
+  PAPERLESS
+}
+
+type ContractsOutline {
+  pensionFund: PensionFundOutline
+}
+
+"The `Date` scalar represents an ISO-8601 compliant date type."
+scalar Date
+
+enum SortOperationKind {
+  ASC
+  DESC
+}
+
+enum FilterEqualityOperator {
+  EQUALS
+  NOTEQUALS
+  GREATERTHANOREQUALS
+  SMALLERTHANOREQUALS
+  GREATERTHAN
+  SMALLERTHAN
+}
+
+enum FilterLogicalOperator {
+  AND
+  OR
+}
+
+type ZmaAddress implements Address {
+  additional: String
+  careOf: String
+  city: String
+  company: String
+  countryCode: String
+  department: String
+  firstName: String
+  id: String
+  lastName: String
+  postOfficeBox: String
+  "Translated"
+  salutation: String
+  street: String
+  zipCode: String
+}
+
+type ZmaStandingOrder {
+  amount: Float!
+  frequency: PaymentPeriodicity!
+  id: ID!
+  standingOrderId: String!
+}
+
+enum ZmaAccountType {
+  UNKNOWN
+  INVESTMENT
+  ENTRY
+}
+
+type ZmaPortfolioHistory {
+  calculationDate: DateTime!
+  contractId: String
+  id: ID!
+  investmentValueInContractCurrency: Float
+  payoutValueInContractCurrency: Float
+  portfolioHistoryId: String!
+  portfolioId: String
+  portfolioValueInBalanceSheetCurrency: Float
+  portfolioValueInPortfolioCurrency: Float!
+}
+
+type ZmaPortfolioPosition {
+  factSheet: Link
+  factSheetUrl: String @deprecated(reason: "use factSheet instead")
+  investmentCategory: InvestmentCategory!
+  "Translated"
+  investmentCategoryName: String!
+  investmentCategoryPercentage: Float!
+  investmentCurrencyPercentage: Float!
+  isin: String!
+  monetaryAssetName: String!
+  monetaryAssetTitleCurrency: String!
+  nominalValueOrQuantity: Float!
+  portfolioPositionId: String!
+  portfolioShare: Float!
+  position: Int!
+  provider: String
+  valorPerformance: Float!
+  valuationReferenceCurrency: Float!
+}
+
+enum ZmaContractType {
+  UNDEFINED
+  NONWITHDRAWALPLAN
+  WITHDRAWALPLAN
+}
+
+enum ZmaContractPerformanceCalculation {
+  MONTH
+  YEAR
+}
+
+"Information about pagination in a connection."
+type PageInfo {
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+}
+
+"An edge in a connection."
+type ZmaAccountTransactionEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: ZmaAccountTransaction
+}
+
+type PeriodicalValuesOfDouble {
+  monthly: Float!
+  yearly: Float!
+}
+
+interface ProjectedRetirement {
+  projectedAge: Int!
+  projectedDate: Date!
+  projectedSavings: Decimal!
+}
+
+interface PensionFundContract {
+  contractNumber: String
+  foundation: String
+  id: ID!
+  insuranceType: String!
+  productCode: String!
+  stakeHolder: String
+}
+
+"An edge in a connection."
+type XPlanTransactionEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: XPlanTransaction
+}
+
+"An edge in a connection."
+type PensionFundFzPolicyTransactionEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: PensionFundFzPolicyTransaction!
+}
+
+interface RetirementDevelopment {
+  retirementCapital: Float!
+  retirementDate: DateTime!
+  retirementPension: Float!
+}
+
+"An edge in a connection."
+type DigisTransactionEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: DigisTransaction
+}
+
+type DigisAddress implements Address {
+  additional: String
+  careOf: String
+  city: String
+  company: String
+  countryCode: String
+  department: String
+  firstName: String
+  id: String
+  lastName: String
+  postOfficeBox: String
+  "Translated"
+  salutation: String
+  street: String
+  zipCode: String
+}
+
+enum PremiumInvoiceStatus {
+  PENDING
+  PAYED
+}
+
+type EvPartnerAddress implements Address {
+  additional: String
+  careOf: String
+  city: String
+  company: String
+  countryCode: String
+  department: String
+  firstName: String
+  id: String
+  lastName: String
+  postOfficeBox: String
+  "Translated"
+  salutation: String
+  street: String
+  zipCode: String
+}
+
+type EvPortfolioPosition {
+  calculationDate: DateTime!
+  factSheet: Link
+  factSheetUrl: String @deprecated(reason: "use factSheet instead")
+  investmentCategory: InvestmentCategory!
+  "Translated"
+  investmentCategoryName: String!
+  investmentCategoryPercentage: Float!
+  investmentCurrencyPercentage: Float!
+  isin: String!
+  monetaryAssetName: String!
+  monetaryAssetTitleCurrency: String!
+  nominalValueOrQuantity: Float!
+  portfolioPositionId: String!
+  portfolioPositionValue: Float!
+  portfolioShare: Float!
+  position: Int!
+  provider: String
+  valorNumber: Float!
+  valorPerformance: Float!
+}
+
+"An edge in a connection."
+type EvPremiumInvoiceEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: EvPremiumInvoice!
+}
+
+"An edge in a connection."
+type EvAccountTransactionEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: EvAccountTransaction
+}
+
+type TranslatedResource {
+  key: String!
+  label: String!
+}
+
+type MortgageStakeholderAddress implements Address {
+  additional: String
+  careOf: String
+  city: String
+  company: String
+  countryCode: String!
+  department: String
+  firstName: String
+  gender: Gender!
+  id: String
+  lastName: String
+  postOfficeBox: String
+  salutation: String
+  street: String
+  zipCode: String
+}
+
+enum ThreeAStartFzLevelOfEmployment {
+  UNKNOWN
+  EMPLOYEE
+  SELFEMPLOYED
+}
+
+type ThreeAStartFzAddress implements Address {
+  additional: String
+  careOf: String
+  city: String
+  company: String
+  countryCode: String
+  department: String
+  firstName: String
+  id: String
+  lastName: String
+  postOfficeBox: String
+  "Translated"
+  salutation: String
+  street: String
+  zipCode: String
+}
+
+type ThreeAStartFzPortfolioPosition {
+  contractId: String!
+  currency: String!
+  factSheet: Link
+  id: ID!
+  isin: String!
+  monetaryAssetName: String!
+  monetaryAssetShortName: String!
+  nominalValueOrQuantity: Float!
+  portfolioId: String!
+  portfolioPositionId: String!
+  portfolioPositionValue: Float!
+  portfolioShare: Float
+  position: Int!
+  provider: String
+  valorPerformance: Float!
+}
+
+"An edge in a connection."
+type ThreeAStartFzTransactionEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: ThreeAStartFzTransaction
+}
+
+type PensionFundOutline {
+  purchaseOptions: PensionFundPurchaseOptions
+  "Use PensionFundPolicy.projectedRetirement.projectedDate instead"
+  retirementDate: DateTime @deprecated(reason: "Use PensionFundPolicy.projectedRetirement.projectedDate instead")
+}
+
+enum InvestmentCategory {
+  MONEYMARKETFUNDS
+  GUARANTEEFUND
+  CAPITALPROTECTEDFUND
+  CAPITALPROTECTEDNOTE
+  BONDFUND
+  PENSIONFUND
+  REALESTATEFUND
+  CONVERTIBLEBONDS
+  STRATEGYFUNDBALANCEDFUND
+  EQUITYFUND
+  FUNDOFFUNDS
+  SPECIALFUND
+  RAWMATERIALSGOLD
+  HEDGEFUND
+  CERTIFICATE
+}
+
+type Link {
+  title: String!
+  type: LinkDestinationType!
+  url: String!
+}
+
+type PensionFundPurchaseOptions {
+  maxRetirementCapital: Float!
+  pensionPlan: PensionPlan
+  purchaseEarlyWithdrawalForHomeOwnership: Float!
+  purchasePensionFund: Float!
+  purchaseTotalPossible: Float!
+  purchaseWithdrawalDivorce: Float!
+  retirementSavings: Float!
+}
+
+enum LinkDestinationType {
+  DOCUMENT
+  WEBSITE
+}
+
+enum PensionPlan {
+  EMPLOYEE
+  SENIOR
+  IV
+  RETIREMENT
+}
+
+type Subscription {
+  onPaperlessChanged: Boolean!
+}
+
+type XPlanContactInfo {
+  companyName: String
+  department: String
+  firstName: String
+  lastName: String
+  salutationCode: Int
+}
+
+type XPlanFundDevelopment {
+  calculationDate: DateTime!
+  totalCapital: Decimal!
+}
+
+type XPlanPremiumFundBalance {
+  calculationDate: DateTime!
+  fundCapital: Decimal!
+  fundFactSheetUrl: String
+  fundSharePrice: Decimal
+  fundShares: Long!
+  investmentStrategy: String!
+  isinNumber: String
+  liquidityAccountBalance: Decimal!
+  totalCapital: Decimal!
+}
+
+type DeathAfterRetirement {
+  orphanPension: Float
+  widowPension: Float
+}
+
+scalar Uuid
+
+"The built-in `Decimal` scalar type."
+scalar Decimal
+
+enum FzPolicyPlanType {
+  YEARLONG
+  PERENNIALLY
+}
+
+"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+scalar Long
+
+directive @translate(language: TranslatableLanguage = null) on FIELD | FIELD_DEFINITION
+
+directive @translatable(resourceKeyPrefix: String! = null toCodeLabelArray: Boolean! = null) on FIELD_DEFINITION
+
+directive @authorize("Defines when when the resolver shall be executed.By default the resolver is executed after the policy has determined that the current user is allowed to access the field." apply: ApplyPolicy! = BEFORE_RESOLVER "The name of the authorization policy that determines access to the annotated resource." policy: String = null "Roles that are allowed to access the annotated resource." roles: [String!] = null) repeatable on SCHEMA | OBJECT | FIELD_DEFINITION
+
+directive @trackable on FIELD_DEFINITION
+
+directive @track(if: Boolean = null) on FIELD
+
+directive @tracked on FIELD_DEFINITION

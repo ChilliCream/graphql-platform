@@ -8,7 +8,7 @@
     <PackageId>HotChocolate.AspNetCore.Authorization</PackageId>
     <AssemblyName>HotChocolate.AspNetCore.Authorization</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.Authorization</RootNamespace>
-    <Description>Contains the Hot Chocolate GraphQL middleware for ASP .Net core.</Description>
+    <Description>This package contains the ASP.NET Core authorization integrations for Hot Chocolate.</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,8 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="3.1.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="3.1.4" />
   </ItemGroup>
 
 </Project>

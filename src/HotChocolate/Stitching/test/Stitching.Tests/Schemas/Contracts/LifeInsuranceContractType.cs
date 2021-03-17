@@ -1,20 +1,33 @@
 using System;
+using System.Linq;
+using System.Threading.Tasks;
 using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Schemas.Contracts
 {
-    public class LifeInsuranceContractType
-        : ObjectType<LifeInsuranceContract>
+    public class LifeInsuranceContractType : ObjectType<LifeInsuranceContract>
     {
         protected override void Configure(
             IObjectTypeDescriptor<LifeInsuranceContract> descriptor)
         {
+            descriptor
+                .AsNode()
+                .IdField(t => t.Id)
+                .NodeResolver((ctx, id) =>
+                {
+                    return Task.FromResult(
+                        ctx.Service<ContractStorage>()
+                            .Contracts
+                            .OfType<LifeInsuranceContract>()
+                            .FirstOrDefault(t => t.Id.Equals(id)));
+                });
+
             descriptor.Interface<ContractType>();
             descriptor.Field(t => t.Id).Type<NonNullType<IdType>>();
             descriptor.Field(t => t.CustomerId).Type<NonNullType<IdType>>();
             descriptor.Field("foo")
                 .Argument("bar", a => a.Type<StringType>())
-                .Resolver(ctx => ctx.Argument<string>("bar"));
+                .Resolver(ctx => ctx.ArgumentValue<string>("bar"));
             descriptor.Field("error")
                 .Type<StringType>()
                 .Resolver(ctx => ErrorBuilder.New()
@@ -47,7 +60,8 @@ namespace HotChocolate.Stitching.Schemas.Contracts
                 .Resolver(123);
             descriptor.Field("float_field")
                 .Type<FloatType>()
-                .Resolver(123.123);
+                .Argument("f", a => a.Type<FloatType>())
+                .Resolve(ctx => ctx.ArgumentValue<double?>("f") ?? 123.123);
             descriptor.Field("decimal_field")
                 .Type<DecimalType>()
                 .Resolver(123.123);

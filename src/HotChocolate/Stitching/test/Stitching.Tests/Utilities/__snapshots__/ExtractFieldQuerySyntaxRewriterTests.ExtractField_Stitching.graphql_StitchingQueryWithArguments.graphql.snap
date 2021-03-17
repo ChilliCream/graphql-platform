@@ -1,6 +1,0 @@
-query fetch {
-  contracts(id: "Q3VzdG9tZXIKZDE=") {
-    id
-    __typename
-  }
-}

@@ -1,8 +1,10 @@
+using System;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class QueryableSortVisitor
             : SortVisitorBase<QueryableSortVisitorContext>
     {
@@ -29,13 +31,12 @@ namespace HotChocolate.Types.Sorting
             base.Enter(node, context);
 
             if (context.Operations.Peek() is SortOperationField sortField &&
-                sortField?.Operation is { } &&
-                sortField?.Operation?.Property is { })
+                sortField.Operation?.Property != null)
             {
                 context.Closure.EnqueueProperty(sortField.Operation.Property);
                 if (!sortField.Operation.IsObject)
                 {
-                    var kind = (SortOperationKind)sortField.Type.Deserialize(node.Value.Value);
+                    var kind = (SortOperationKind)sortField.Type.Deserialize(node.Value.Value)!;
                     context.SortOperations.Enqueue(context.CreateSortOperation(kind));
                 }
             }

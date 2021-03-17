@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Data.Sorting;
+using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
@@ -156,6 +157,116 @@ namespace HotChocolate.Data.Tests
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void SortInputType_Should_ThrowException_WhenNoConventionIsRegistered()
+        {
+            // arrange
+            ISchemaBuilder builder = SchemaBuilder.New()
+                .AddQueryType(
+                    c =>
+                        c.Name("Query")
+                            .Field("foo")
+                            .Resolve(new List<Foo>())
+                            .UseSorting("Foo"));
+
+            // act
+            // assert
+            SchemaException exception = Assert.Throws<SchemaException>(() => builder.Create());
+            exception.Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void SortInputType_Should_ThrowException_WhenNoConventionIsRegisteredDefault()
+        {
+            // arrange
+            ISchemaBuilder builder = SchemaBuilder.New()
+                .AddQueryType(
+                    c =>
+                        c.Name("Query")
+                            .Field("foo")
+                            .Resolve(new List<Foo>())
+                            .UseSorting());
+
+            // act
+            // assert
+            SchemaException exception = Assert.Throws<SchemaException>(() => builder.Create());
+            exception.Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void SortInputType_Should_UseCustomSortType_When_Nested()
+        {
+            // arrange
+            ISchemaBuilder builder = SchemaBuilder.New()
+                .AddSorting()
+                .AddQueryType<UserQueryType>();
+
+            // act
+            // assert
+            builder.Create().Print().MatchSnapshot();
+        }
+
+        public void SortInputType_Should_IgnoreFieldWithoutCallingConvention()
+        {
+            // arrange
+            ISchemaBuilder builder = SchemaBuilder.New()
+                .AddSorting(
+                    x => x.AddDefaultOperations()
+                        .BindRuntimeType<int, DefaultSortEnumType>()
+                        //should fail when not ignore properly because string is no explicitly bound
+                        .Provider(new QueryableSortProvider(y => y.AddDefaultFieldHandlers())))
+                .AddQueryType(
+                    new ObjectType(
+                        x => x.Name("Query")
+                            .Field("foo")
+                            .Resolve(new List<IgnoreTest>())
+                            .UseSorting<IgnoreTestSortInputType>()));
+
+            // act
+            ISchema schema = builder.Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void FilterInputType_Should_InfereType_When_ItIsAInterface()
+        {
+            // arrange
+            ISchemaBuilder builder = SchemaBuilder.New()
+                .AddFiltering()
+                .AddQueryType<TestingType<ITest<Foo>>>()
+                .AddObjectType<ITest<Foo>>();
+
+            // act
+            ISchema schema = builder.Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+            schema.Print().MatchSnapshot();
+        }
+
+        public class IgnoreTest
+        {
+            public int Id { get; set; }
+
+            public string Name { get; set; } = default!;
+        }
+
+        public class ShouldNotBeVisible : SortInputType
+        {
+
+        }
+
+        public class IgnoreTestSortInputType
+            : SortInputType<IgnoreTest>
+        {
+            protected override void Configure(ISortInputTypeDescriptor<IgnoreTest> descriptor)
+            {
+                descriptor.Ignore(x => x.Name);
+            }
+        }
+
         public class FooDirectiveType
             : DirectiveType<FooDirective>
         {
@@ -205,6 +316,74 @@ namespace HotChocolate.Data.Tests
 
             [GraphQLNonNullType]
             public string Name { get; set; } = default!;
+        }
+
+        public class User
+        {
+            public int Id { get; set; }
+
+            public string Name { get; set; } = default!;
+
+            public List<User> Friends { get; set; } = default!;
+        }
+
+        public interface ITest
+        {
+            public string Prop { get; set; }
+            public string Prop2 { get; set; }
+        }
+
+        public interface ITest<T>
+        {
+            T Prop { get; set; }
+        }
+
+        public class InterfaceImpl1 : ITest
+        {
+            public string Prop { get; set; }
+
+            public string Prop2 { get; set; }
+        }
+
+        public class InterfaceImpl2 : ITest
+        {
+            public string Prop { get; set; }
+
+            public string Prop2 { get; set; }
+        }
+
+        public class UserSortInputType : SortInputType<User>
+        {
+            protected override void Configure(ISortInputTypeDescriptor<User> descriptor)
+            {
+                descriptor.Ignore(x => x.Id);
+            }
+        }
+
+        public class UserQueryType : ObjectType<User>
+        {
+            protected override void Configure(IObjectTypeDescriptor<User> descriptor)
+            {
+                descriptor.Name(nameof(Query));
+                descriptor
+                    .Field("foo")
+                    .Resolve(new List<User>())
+                    .UseSorting<UserSortInputType>();
+            }
+        }
+
+        public class TestObject<T>
+        {
+            public T Root { get; set; }
+        }
+
+        public class TestingType<T> : ObjectType<TestObject<T>>
+        {
+            protected override void Configure(IObjectTypeDescriptor<TestObject<T>> descriptor)
+            {
+                descriptor.Name(nameof(Query));
+                descriptor.Field(x => x.Root).UseFiltering();
+            }
         }
     }
 }

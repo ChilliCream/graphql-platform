@@ -4,22 +4,24 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
-    public sealed class Directive
-        : IDirective
+    public sealed class Directive : IDirective
     {
-        private object _customDirective;
+        private object? _customDirective;
         private DirectiveNode _parsedDirective;
-        private Dictionary<string, ArgumentNode> _arguments;
+        private Dictionary<string, ArgumentNode>? _arguments;
 
         private Directive(
             DirectiveType directiveType,
             DirectiveNode parsedDirective,
-            object customDirective,
+            object? customDirective,
             object source)
         {
             Type = directiveType
@@ -40,8 +42,6 @@ namespace HotChocolate.Types
 
         public IReadOnlyList<DirectiveMiddleware> MiddlewareComponents =>
             Type.MiddlewareComponents;
-
-        public bool IsExecutable => Type.IsExecutable;
 
         public T ToObject<T>()
         {
@@ -102,16 +102,14 @@ namespace HotChocolate.Types
             {
                 if (typeof(T).IsAssignableFrom(arg.Type.RuntimeType))
                 {
-                    return (T)arg.Type.ParseLiteral(argValue.Value);
+                    return (T)arg.Type.ParseLiteral(argValue.Value)!;
                 }
-                else
-                {
-                    return Type.DeserializeArgument<T>(arg, argValue.Value);
-                }
+
+                return Type.DeserializeArgument<T>(arg, argValue.Value);
             }
 
             throw new ArgumentException(
-                "The argument name is invalid.",
+                TypeResources.Directive_GetArgument_ArgumentNameIsInvalid,
                 nameof(argumentName));
         }
 
@@ -131,8 +129,7 @@ namespace HotChocolate.Types
 
             foreach (Argument argument in Type.Arguments)
             {
-                PropertyInfo property = properties[argument.Name]
-                    .FirstOrDefault();
+                PropertyInfo? property = properties[argument.Name].FirstOrDefault();
 
                 if (property != null)
                 {
@@ -172,7 +169,7 @@ namespace HotChocolate.Types
             DirectiveNode directiveNode,
             out T directive)
         {
-            ConstructorInfo constructor = typeof(T).GetTypeInfo()
+            ConstructorInfo? constructor = typeof(T).GetTypeInfo()
                 .DeclaredConstructors.FirstOrDefault(t =>
                 {
                     ParameterInfo[] parameters = t.GetParameters();
@@ -229,17 +226,15 @@ namespace HotChocolate.Types
                     null,
                     source);
             }
-            else
-            {
-                DirectiveNode directiveNode = ParseValue(
-                    directiveType, definition.CustomDirective);
 
-                return new Directive(
-                    directiveType,
-                    CompleteArguments(directiveType, directiveNode),
-                    definition.CustomDirective,
-                    source);
-            }
+            DirectiveNode directiveNode = ParseValue(
+                directiveType, definition.CustomDirective);
+
+            return new Directive(
+                directiveType,
+                CompleteArguments(directiveType, directiveNode),
+                definition.CustomDirective,
+                source);
         }
 
         public static Directive FromAstNode(
@@ -295,11 +290,7 @@ namespace HotChocolate.Types
                     if (argument.DefaultValue is { }
                         && !argumentNames.Contains(argument.Name))
                     {
-                        if (arguments is null)
-                        {
-                            arguments = new List<ArgumentNode>();
-                        }
-
+                        arguments ??= new List<ArgumentNode>();
                         arguments.Add(new ArgumentNode(argument.Name, argument.DefaultValue));
                     }
                 }
@@ -326,8 +317,8 @@ namespace HotChocolate.Types
 
             foreach (Argument argument in directiveType.Arguments)
             {
-                PropertyInfo property = properties[argument.Name].FirstOrDefault();
-                var propertyValue = property?.GetValue(directive);
+                PropertyInfo? property = properties[argument.Name].FirstOrDefault();
+                object? propertyValue = property?.GetValue(directive);
 
                 IValueNode valueNode = argument.Type.ParseValue(propertyValue);
                 arguments.Add(new ArgumentNode(argument.Name, valueNode));

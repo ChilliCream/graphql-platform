@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -51,11 +52,12 @@ namespace HotChocolate.Types
         protected override InputObjectTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
         {
-            var descriptor = InputObjectTypeDescriptor.FromSchemaType(
-                context.DescriptorContext,
-                GetType());
+            var descriptor =
+                InputObjectTypeDescriptor.FromSchemaType(context.DescriptorContext, GetType());
+
             _configure!(descriptor);
             _configure = null;
+
             return descriptor.CreateDefinition();
         }
 
@@ -84,7 +86,7 @@ namespace HotChocolate.Types
             var fields = new List<InputField>();
             OnCompleteFields(context, definition, fields);
 
-            Fields = new FieldCollection<InputField>(
+            Fields = FieldCollection<InputField>.From(
                 fields,
                 context.DescriptorContext.Options.SortFieldsByName);
             FieldInitHelper.CompleteFields(context, definition, Fields);
@@ -114,7 +116,9 @@ namespace HotChocolate.Types
         {
             foreach (InputFieldDefinition fieldDefinition in definition.Fields)
             {
-                fields.Add(new InputField(fieldDefinition));
+                fields.Add(new InputField(
+                    fieldDefinition,
+                    new FieldCoordinate(Name, fieldDefinition.Name)));
             }
         }
     }

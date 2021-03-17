@@ -29,7 +29,7 @@ namespace HotChocolate.Language
         /// Defines if only constant values are allowed;
         /// otherwise, variables are allowed.
         /// </param>
-        private IValueNode ParseValueLiteral(bool isConstant)
+        internal IValueNode ParseValueLiteral(bool isConstant)
         {
             if (_reader.Kind == TokenKind.LeftBracket)
             {

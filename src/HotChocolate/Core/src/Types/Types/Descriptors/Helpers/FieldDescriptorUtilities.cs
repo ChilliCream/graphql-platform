@@ -71,12 +71,13 @@ namespace HotChocolate.Types.Descriptors
 
                 foreach (TMember member in members)
                 {
-                    if (include?.Invoke(members, member) ?? true) 
+                    if (include?.Invoke(members, member) ?? true)
                     {
                         TField fieldDefinition = createdFieldDefinition(member);
 
-                        if (!handledMembers.Contains(member)
-                            && !fields.ContainsKey(fieldDefinition.Name))
+                        if (!handledMembers.Contains(member) &&
+                            !fields.ContainsKey(fieldDefinition.Name) &&
+                            !fieldDefinition.Ignore)
                         {
                             handledMembers.Add(member);
                             fields[fieldDefinition.Name] = fieldDefinition;

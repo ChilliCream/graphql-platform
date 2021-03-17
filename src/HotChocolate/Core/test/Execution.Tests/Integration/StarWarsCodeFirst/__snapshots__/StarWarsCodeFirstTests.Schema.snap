@@ -6,7 +6,7 @@
 
 interface Character {
   id: ID!
-  name: String
+  name: String!
   friends(first: Int after: String last: Int before: String): CharacterConnection
   appearsIn: [Episode]
   height(unit: Unit): Float
@@ -32,20 +32,20 @@ type CharacterEdge {
 
 type Droid implements Character {
   id: ID!
+  name: String!
   appearsIn: [Episode]
   friends(first: Int after: String last: Int before: String): CharacterConnection
   height(unit: Unit): Float
-  name: String
   primaryFunction: String
 }
 
 type Human implements Character {
   id: ID!
+  name: String!
   appearsIn: [Episode]
   friends(first: Int after: String last: Int before: String): CharacterConnection
   otherHuman: Human
   height(unit: Unit): Float
-  name: String
   homePlanet: String
 }
 
@@ -80,9 +80,9 @@ type Review {
 }
 
 type Starship {
-  id: String
-  name: String
-  length: Float!
+  id: ID!
+  name: String!
+  length(unit: Unit): Float!
 }
 
 type Subscription {
@@ -107,17 +107,8 @@ enum Unit {
   METERS
 }
 
-"The `Boolean` scalar type represents `true` or `false`."
-scalar Boolean
+"The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
+directive @defer("If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to." label: String "Deferred when true." if: Boolean) on FRAGMENT_SPREAD | INLINE_FRAGMENT
 
-"The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http:\/\/en.wikipedia.org\/wiki\/IEEE_floating_point)."
-scalar Float
-
-"The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `\"4\"`) or integer (such as `4`) input value will be accepted as an ID."
-scalar ID
-
-"The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."
-scalar Int
-
-"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
-scalar String
+"The `@stream` directive may be provided for a field of `List` type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. `@include` and `@skip` take precedence over `@stream`."
+directive @stream("If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to." label: String "The initial elements that shall be send down to the consumer." initialCount: Int! "Streamed when true." if: Boolean!) on FIELD

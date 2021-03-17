@@ -33,6 +33,22 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void EnumType_GraphQLDescriptionAttribute()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new EnumType<DescriptionTestEnum>());
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            EnumType type = schema.GetType<EnumType>("DescriptionTestEnum");
+            Assert.Equal("TestDescription", type.Description);
+        }
+
+        [Fact]
         public void EnumType_DynamicName_NonGeneric()
         {
             // act
@@ -282,22 +298,22 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () => SchemaBuilder.New()
-                .AddQueryType<Bar>()
-                .AddType(new EnumType<Foo?>(d => d
-                    .Name("Foo")
-                    .Item(null)))
+            void Action() =>
+                SchemaBuilder.New()
+                    .AddQueryType<Bar>()
+                    .AddType(new EnumType<Foo?>(d => d.Name("Foo")
+                        .Item(null)))
                     .Create();
 
             // assert
-#if NETCOREAPP2_1
-            Assert.Throws<SchemaException>(action)
-                .Errors.Single().Message.MatchSnapshot(
-                    new SnapshotNameExtension("NETCOREAPP2_1"));
-#else
-            Assert.Throws<SchemaException>(action)
-                .Errors.Single().Message.MatchSnapshot();
-#endif
+
+            Exception ex =
+                Assert.Throws<SchemaException>(Action)
+                    .Errors.Single().Exception;
+
+            Assert.Equal(
+                "value",
+                Assert.IsType<ArgumentNullException>(ex).ParamName);
         }
 
         [Fact]
@@ -589,6 +605,12 @@ namespace HotChocolate.Types
                 descriptor.Name("Some");
                 descriptor.Value("ABC").Name("DEF");
             }
+        }
+
+        [GraphQLDescription("TestDescription")]
+        public enum DescriptionTestEnum
+        {
+            Foo, Bar
         }
     }
 }

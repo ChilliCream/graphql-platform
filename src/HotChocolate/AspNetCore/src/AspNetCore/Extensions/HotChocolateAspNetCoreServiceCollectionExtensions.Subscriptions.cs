@@ -1,17 +1,26 @@
 using System;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
-using HotChocolate.AspNetCore.Utilities;
-using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Language;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     {
+        /// <summary>
+        /// Adds an interceptor for GraphQL socket sessions to the GraphQL configuration.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <typeparam name="T">
+        /// The <see cref="ISocketSessionInterceptor"/> implementation.
+        /// </typeparam>
+        /// <returns>
+        /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
+        /// </returns>
         public static IRequestExecutorBuilder AddSocketSessionInterceptor<T>(
             this IRequestExecutorBuilder builder)
             where T : class, ISocketSessionInterceptor =>
@@ -19,7 +28,21 @@ namespace Microsoft.Extensions.DependencyInjection
                 .RemoveAll<ISocketSessionInterceptor>()
                 .AddSingleton<ISocketSessionInterceptor, T>());
 
-
+        /// <summary>
+        /// Adds an interceptor for GraphQL socket sessions to the GraphQL configuration.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="factory">
+        /// A factory that creates the interceptor instance.
+        /// </param>
+        /// <typeparam name="T">
+        /// The <see cref="ISocketSessionInterceptor"/> implementation.
+        /// </typeparam>
+        /// <returns>
+        /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
+        /// </returns>
         public static IRequestExecutorBuilder AddSocketSessionInterceptor<T>(
             this IRequestExecutorBuilder builder,
             Func<IServiceProvider, T> factory)

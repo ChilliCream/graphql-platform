@@ -5,6 +5,7 @@ using HotChocolate.Types.Sorting.Properties;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class SortVisitorBase<TContext>
         : SyntaxWalker<TContext>
         where TContext : ISortVisitorContextBase
@@ -19,8 +20,7 @@ namespace HotChocolate.Types.Sorting
         {
             if (context.Types.Peek().NamedType() is InputObjectType inputType)
             {
-                if (inputType.Fields.TryGetField(node.Name.Value,
-                    out IInputField field))
+                if (inputType.Fields.TryGetField(node.Name.Value, out IInputField? field))
                 {
                     context.Operations.Push(field);
                     context.Types.Push(field.Type);

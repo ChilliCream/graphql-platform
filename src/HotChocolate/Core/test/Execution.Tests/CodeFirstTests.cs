@@ -1,13 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution;
 using HotChocolate.Resolvers;
+using HotChocolate.Tests;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate
+namespace HotChocolate.Execution
 {
     public class CodeFirstTests
     {
@@ -44,6 +48,22 @@ namespace HotChocolate
         }
 
         [Fact]
+        public async Task ExecuteOneFieldQueryWithQuery()
+        {
+            // arrange
+            var schema = Schema.Create(
+                c => c.RegisterType<QueryTypeWithMethod>());
+
+            // act
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync("{ query }");
+
+            // assert
+            Assert.Null(result.Errors);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task ExecuteWithUnionType()
         {
             // arrange
@@ -51,13 +71,16 @@ namespace HotChocolate
 
             // act
             IExecutionResult result =
-                await schema.MakeExecutable().ExecuteAsync(
-                    @"{
-                        fooOrBar {
-                            ... on Bar { nameBar }
-                            ... on Foo { nameFoo }
+                await schema.MakeExecutable()
+                    .ExecuteAsync(
+                        @"
+                        {
+                            fooOrBar {
+                                ... on Bar { nameBar }
+                                ... on Foo { nameFoo }
+                            }
                         }
-                    }");
+                        ");
 
             // assert
             Assert.Null(result.Errors);
@@ -242,6 +265,27 @@ namespace HotChocolate
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task CannotCreateRootValue()
+        {
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryPrivateConstructor>()
+                .ExecuteRequestAsync("{ hello }")
+                .MatchSnapshotAsync();
+        }
+
+        // https://github.com/ChilliCream/hotchocolate/issues/2617
+        [Fact]
+        public async Task EnsureThatFieldsWithDifferentCasingAreNotMerged()
+        {
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryFieldCasing>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
         private static Schema CreateSchema()
         {
             return Schema.Create(c =>
@@ -261,6 +305,11 @@ namespace HotChocolate
             public string GetTest()
             {
                 return "Hello World!";
+            }
+
+            public IExecutable<string> GetQuery()
+            {
+                return new MockExecutable<string>(new[] { "foo", "bar" }.AsQueryable());
             }
 
             public string TestProp => "Hello World!";
@@ -285,6 +334,7 @@ namespace HotChocolate
             {
                 descriptor.Name("Query");
                 descriptor.Field(t => t.GetTest()).Name("test");
+                descriptor.Field(t => t.GetQuery()).Name("query");
             }
         }
 
@@ -433,6 +483,55 @@ namespace HotChocolate
                 descriptor.Field(t => t.GetNames())
                     .Type<ListType<StringType>>();
             }
+        }
+
+        public class MockExecutable<T> : IExecutable<T>
+        {
+            private readonly IQueryable<T> _source;
+
+            public MockExecutable(IQueryable<T> source)
+            {
+                _source = source;
+            }
+
+            public object Source => _source;
+
+            public ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
+            {
+                return new ValueTask<IList>(_source.ToList());
+            }
+
+            public ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken)
+            {
+                return new ValueTask<object?>(_source.FirstOrDefault());
+            }
+
+            public ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken)
+            {
+                return new ValueTask<object?>(_source.SingleOrDefault());
+            }
+
+            public string Print()
+            {
+                return _source.ToString();
+            }
+        }
+
+        public class QueryPrivateConstructor
+        {
+            private QueryPrivateConstructor()
+            {
+            }
+
+            public string Hello() => "Hello";
+        }
+
+        public class QueryFieldCasing
+        {
+            public string YourFieldName { get; set; }
+
+            [GraphQLDeprecated("This is deprecated")]
+            public string YourFieldname { get; set; }
         }
     }
 }

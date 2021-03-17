@@ -64,7 +64,7 @@ namespace HotChocolate.Types
                 : typeof(object);
 
             context.RegisterDependencyRange(
-                definition.Directives.Select(t => t.Reference));
+                definition.GetDirectives().Select(t => t.Reference));
         }
 
         protected override void OnCompleteType(
@@ -75,28 +75,24 @@ namespace HotChocolate.Types
 
             _syntaxNode = definition.SyntaxNode;
 
-            var directives = new DirectiveCollection(this, definition.Directives);
-            directives.CompleteCollection(context);
-            _directives = directives;
+            _directives =
+                DirectiveCollection.CreateAndComplete(context,this, definition.GetDirectives());
         }
 
-        protected void SetTypeIdentity(Type typeDefinition)
+        protected void SetTypeIdentity(Type typeDefinitionOrIdentity)
         {
-            if (typeDefinition is null)
+            if (typeDefinitionOrIdentity is null)
             {
-                throw new ArgumentNullException(nameof(typeDefinition));
+                throw new ArgumentNullException(nameof(typeDefinitionOrIdentity));
             }
 
-            if (!typeDefinition.IsGenericTypeDefinition)
+            if (!typeDefinitionOrIdentity.IsGenericTypeDefinition)
             {
-                throw new ArgumentException(
-                    "The type definition must be a generic type definition.",
-                    nameof(typeDefinition));
+                TypeIdentity = typeDefinitionOrIdentity;
             }
-
-            if (RuntimeType != typeof(object))
+            else if (RuntimeType != typeof(object))
             {
-                TypeIdentity = typeDefinition.MakeGenericType(RuntimeType);
+                TypeIdentity = typeDefinitionOrIdentity.MakeGenericType(RuntimeType);
             }
         }
     }

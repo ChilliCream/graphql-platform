@@ -3,9 +3,11 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Execution.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Execution</RootNamespace>
+    <TargetFrameworks>net5.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Execution\HotChocolate.Execution.csproj" />
     <ProjectReference Include="..\..\src\Subscriptions.InMemory\HotChocolate.Subscriptions.InMemory.csproj" />
     <ProjectReference Include="..\StarWars\HotChocolate.StarWars.csproj" />

@@ -21,7 +21,7 @@ namespace HotChocolate.Execution.Instrumentation
         {
             var scopes = new IActivityScope[_listeners.Length];
 
-            for (int i = 0; i < _listeners.Length; i++)
+            for (var i = 0; i < _listeners.Length; i++)
             {
                 scopes[i] = _listeners[i].ExecuteRequest(context);
             }
@@ -31,7 +31,7 @@ namespace HotChocolate.Execution.Instrumentation
 
         public void RequestError(IRequestContext context, Exception exception)
         {
-            for (int i = 0; i < _listeners.Length; i++)
+            for (var i = 0; i < _listeners.Length; i++)
             {
                 _listeners[i].RequestError(context, exception);
             }
@@ -41,7 +41,7 @@ namespace HotChocolate.Execution.Instrumentation
         {
             var scopes = new IActivityScope[_listeners.Length];
 
-            for (int i = 0; i < _listeners.Length; i++)
+            for (var i = 0; i < _listeners.Length; i++)
             {
                 scopes[i] = _listeners[i].ParseDocument(context);
             }
@@ -51,7 +51,7 @@ namespace HotChocolate.Execution.Instrumentation
 
         public void SyntaxError(IRequestContext context, IError error)
         {
-            for (int i = 0; i < _listeners.Length; i++)
+            for (var i = 0; i < _listeners.Length; i++)
             {
                 _listeners[i].SyntaxError(context, error);
             }
@@ -61,7 +61,7 @@ namespace HotChocolate.Execution.Instrumentation
         {
             var scopes = new IActivityScope[_listeners.Length];
 
-            for (int i = 0; i < _listeners.Length; i++)
+            for (var i = 0; i < _listeners.Length; i++)
             {
                 scopes[i] = _listeners[i].ValidateDocument(context);
             }
@@ -71,7 +71,7 @@ namespace HotChocolate.Execution.Instrumentation
 
         public void ValidationErrors(IRequestContext context, IReadOnlyList<IError> errors)
         {
-            for (int i = 0; i < _listeners.Length; i++)
+            for (var i = 0; i < _listeners.Length; i++)
             {
                 _listeners[i].ValidationErrors(context, errors);
             }
@@ -86,7 +86,7 @@ namespace HotChocolate.Execution.Instrumentation
 
             var scopes = new IActivityScope[_resolverListener.Length];
 
-            for (int i = 0; i < _resolverListener.Length; i++)
+            for (var i = 0; i < _resolverListener.Length; i++)
             {
                 scopes[i] = _resolverListener[i].ResolveFieldValue(context);
             }
@@ -96,7 +96,7 @@ namespace HotChocolate.Execution.Instrumentation
 
         public void ResolverError(IMiddlewareContext context, IError error)
         {
-            for (int i = 0; i < _listeners.Length; i++)
+            for (var i = 0; i < _listeners.Length; i++)
             {
                 _listeners[i].ResolverError(context, error);
             }
@@ -111,7 +111,7 @@ namespace HotChocolate.Execution.Instrumentation
 
             var scopes = new IActivityScope[_resolverListener.Length];
 
-            for (int i = 0; i < _resolverListener.Length; i++)
+            for (var i = 0; i < _resolverListener.Length; i++)
             {
                 scopes[i] = _resolverListener[i].RunTask(task);
             }
@@ -121,7 +121,7 @@ namespace HotChocolate.Execution.Instrumentation
 
         public void TaskError(IExecutionTask task, IError error)
         {
-            for (int i = 0; i < _listeners.Length; i++)
+            for (var i = 0; i < _listeners.Length; i++)
             {
                 _listeners[i].TaskError(task, error);
             }
@@ -129,7 +129,7 @@ namespace HotChocolate.Execution.Instrumentation
 
         public void AddedDocumentToCache(IRequestContext context)
         {
-            for (int i = 0; i < _listeners.Length; i++)
+            for (var i = 0; i < _listeners.Length; i++)
             {
                 _listeners[i].AddedDocumentToCache(context);
             }
@@ -137,7 +137,7 @@ namespace HotChocolate.Execution.Instrumentation
 
         public void RetrievedDocumentFromCache(IRequestContext context)
         {
-            for (int i = 0; i < _listeners.Length; i++)
+            for (var i = 0; i < _listeners.Length; i++)
             {
                 _listeners[i].RetrievedDocumentFromCache(context);
             }
@@ -145,7 +145,7 @@ namespace HotChocolate.Execution.Instrumentation
 
         public void RetrievedDocumentFromStorage(IRequestContext context)
         {
-            for (int i = 0; i < _listeners.Length; i++)
+            for (var i = 0; i < _listeners.Length; i++)
             {
                 _listeners[i].RetrievedDocumentFromStorage(context);
             }
@@ -153,7 +153,7 @@ namespace HotChocolate.Execution.Instrumentation
 
         public void AddedOperationToCache(IRequestContext context)
         {
-            for (int i = 0; i < _listeners.Length; i++)
+            for (var i = 0; i < _listeners.Length; i++)
             {
                 _listeners[i].AddedDocumentToCache(context);
             }
@@ -161,7 +161,7 @@ namespace HotChocolate.Execution.Instrumentation
 
         public void RetrievedOperationFromCache(IRequestContext context)
         {
-            for (int i = 0; i < _listeners.Length; i++)
+            for (var i = 0; i < _listeners.Length; i++)
             {
                 _listeners[i].RetrievedDocumentFromCache(context);
             }
@@ -169,7 +169,7 @@ namespace HotChocolate.Execution.Instrumentation
 
         public void BatchDispatched(IRequestContext context)
         {
-            for (int i = 0; i < _listeners.Length; i++)
+            for (var i = 0; i < _listeners.Length; i++)
             {
                 _listeners[i].BatchDispatched(context);
             }
@@ -177,7 +177,7 @@ namespace HotChocolate.Execution.Instrumentation
 
         public void ExecutorCreated(string name, IRequestExecutor executor)
         {
-            for (int i = 0; i < _listeners.Length; i++)
+            for (var i = 0; i < _listeners.Length; i++)
             {
                 _listeners[i].ExecutorCreated(name, executor);
             }
@@ -185,7 +185,7 @@ namespace HotChocolate.Execution.Instrumentation
 
         public void ExecutorEvicted(string name, IRequestExecutor executor)
         {
-            for (int i = 0; i < _listeners.Length; i++)
+            for (var i = 0; i < _listeners.Length; i++)
             {
                 _listeners[i].ExecutorEvicted(name, executor);
             }
@@ -205,7 +205,7 @@ namespace HotChocolate.Execution.Instrumentation
             {
                 if (!_disposed)
                 {
-                    for (int i = 0; i < _scopes.Length; i++)
+                    for (var i = 0; i < _scopes.Length; i++)
                     {
                         _scopes[i].Dispose();
                     }

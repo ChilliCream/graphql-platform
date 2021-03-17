@@ -7,9 +7,11 @@ namespace HotChocolate.Data.Sorting
 {
     public class SortConventionDefinition : IHasScope
     {
+        public static readonly string DefaultArgumentName = "order";
+
         public string? Scope { get; set; }
 
-        public string ArgumentName { get; set; } = "order";
+        public string ArgumentName { get; set; } = DefaultArgumentName;
 
         public Type? Provider { get; set; }
 
@@ -29,5 +31,10 @@ namespace HotChocolate.Data.Sorting
         public IDictionary<ITypeReference, List<ConfigureSortEnumType>> EnumConfigurations { get; }
             = new Dictionary<ITypeReference, List<ConfigureSortEnumType>>(
                 TypeReferenceComparer.Default);
+
+        public IList<ISortProviderExtension> ProviderExtensions { get; } =
+            new List<ISortProviderExtension>();
+
+        public IList<Type> ProviderExtensionsTypes { get; } = new List<Type>();
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -12,8 +13,8 @@ namespace HotChocolate.Configuration
 {
     internal sealed class TypeDiscoverer
     {
-        private readonly List<ITypeReference> _unregistered = new List<ITypeReference>();
-        private readonly List<ISchemaError> _errors = new List<ISchemaError>();
+        private readonly List<ITypeReference> _unregistered = new();
+        private readonly List<ISchemaError> _errors = new();
         private readonly TypeRegistry _typeRegistry;
         private readonly TypeRegistrar _typeRegistrar;
         private readonly ITypeRegistrarHandler[] _handlers;
@@ -109,7 +110,7 @@ namespace HotChocolate.Configuration
 
             if (_errors.Count == 0)
             {
-               _typeRegistry.CompleteDiscovery();
+                _typeRegistry.CompleteDiscovery();
             }
 
             return _errors;
@@ -190,7 +191,7 @@ namespace HotChocolate.Configuration
                     {
                         builder.SetTypeSystemObject(types[0].Type);
                     }
-                    else if(types.Count > 1)
+                    else if (types.Count > 1)
                     {
                         builder
                             .SetTypeSystemObject(types[0].Type)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution.Instrumentation;
@@ -13,9 +14,7 @@ namespace HotChocolate.Execution.Pipeline
     internal static class RequestClassMiddlewareFactory
     {
         private static readonly Type _validatorFactory = typeof(IDocumentValidatorFactory);
-        private static readonly Type _activator = typeof(IActivator);
-        private static readonly Type _errorHandler = typeof(IErrorHandler);
-        private static readonly Type _diagnosticEvents = typeof(IDiagnosticEvents);
+
         private static readonly PropertyInfo _getSchemaName =
             typeof(IRequestCoreMiddlewareContext)
                 .GetProperty(nameof(IRequestCoreMiddlewareContext.SchemaName))!;
@@ -48,7 +47,8 @@ namespace HotChocolate.Execution.Pipeline
                 TMiddleware middleware =
                     MiddlewareCompiler<TMiddleware>
                         .CompileFactory<IRequestCoreMiddlewareContext, RequestDelegate>(
-                            (c, n) => CreateFactoryParameterHandlers(c, context.Options))
+                            (c, n) => CreateFactoryParameterHandlers(
+                                c, context.Options, typeof(TMiddleware)))
                         .Invoke(context, next);
 
                 ClassQueryDelegate<TMiddleware, IRequestContext> compiled =
@@ -61,7 +61,8 @@ namespace HotChocolate.Execution.Pipeline
 
         private static List<IParameterHandler> CreateFactoryParameterHandlers(
             Expression context,
-            IRequestExecutorOptionsAccessor options)
+            IRequestExecutorOptionsAccessor options,
+            Type middleware)
         {
             Expression schemaName = Expression.Property(context, _getSchemaName);
             Expression services = Expression.Property(context, _appServices);
@@ -71,8 +72,23 @@ namespace HotChocolate.Execution.Pipeline
             Expression getValidator = Expression.Call(
                 validatorFactory, _createValidator, schemaName);
 
-            var list = new List<IParameterHandler>();
-            list.Add(new TypeParameterHandler(typeof(IDocumentValidator), getValidator));
+            var list = new List<IParameterHandler>
+            {
+                new TypeParameterHandler(typeof(IDocumentValidator), getValidator)
+            };
+
+            ConstructorInfo? constructor =
+                middleware.GetConstructors().SingleOrDefault(t => t.IsPublic);
+
+            if (constructor is not null)
+            {
+                foreach (ParameterInfo parameter in constructor.GetParameters()
+                    .Where(p => p.IsDefined(typeof(SchemaServiceAttribute))))
+                {
+                    AddService(list, schemaServices, parameter.ParameterType);
+                }
+            }
+
             AddService<IActivator>(list, schemaServices);
             AddService<IErrorHandler>(list, schemaServices);
             AddService<IDiagnosticEvents>(list, schemaServices);
@@ -80,6 +96,7 @@ namespace HotChocolate.Execution.Pipeline
             AddService<IReadStoredQueries>(list, schemaServices);
             AddService<QueryExecutor>(list, schemaServices);
             AddService<MutationExecutor>(list, schemaServices);
+            AddService<IEnumerable<ISelectionOptimizer>>(list, schemaServices);
             AddService<SubscriptionExecutor>(list, schemaServices);
             AddOptions(list, options);
             list.Add(new SchemaNameParameterHandler(schemaName));
@@ -89,12 +106,18 @@ namespace HotChocolate.Execution.Pipeline
 
         private static void AddService<T>(
             ICollection<IParameterHandler> parameterHandlers,
-            Expression service)
+            Expression service) =>
+            AddService(parameterHandlers, service, typeof(T));
+
+        private static void AddService(
+            ICollection<IParameterHandler> parameterHandlers,
+            Expression service,
+            Type serviceType)
         {
-            Expression serviceType = Expression.Constant(typeof(T));
-            Expression getService = Expression.Call(service, _getService, serviceType);
-            Expression castService = Expression.Convert(getService, typeof(T));
-            parameterHandlers.Add(new TypeParameterHandler(typeof(T), castService));
+            Expression serviceTypeConst = Expression.Constant(serviceType);
+            Expression getService = Expression.Call(service, _getService, serviceTypeConst);
+            Expression castService = Expression.Convert(getService, serviceType);
+            parameterHandlers.Add(new TypeParameterHandler(serviceType, castService));
         }
 
         private static List<IParameterHandler> CreateDelegateParameterHandlers(
@@ -127,7 +150,7 @@ namespace HotChocolate.Execution.Pipeline
 
         private class SchemaNameParameterHandler : IParameterHandler
         {
-            private Expression _schemaName;
+            private readonly Expression _schemaName;
 
             public SchemaNameParameterHandler(Expression schemaName)
             {

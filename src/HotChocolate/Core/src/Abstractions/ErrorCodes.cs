@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace HotChocolate
 {
     public static class ErrorCodes
@@ -19,11 +21,86 @@ namespace HotChocolate
             public const string AutoMapVarError = "EXEC_BATCH_AUTO_MAP_VAR_TYPE";
             public const string Incomplete = "EXEC_MIDDLEWARE_INCOMPLETE";
             public const string Timeout = "EXEC_TIMEOUT";
-            public const string NonNullViolation = "EXEC_NON_NULL_VIOLATION";
-            public const string MustBeInputType = "EXEC_INPUT_TYPE_REQUIRED";
-            public const string InvalidType = "EXEC_INVALID_TYPE";
-            public const string SyntaxError = "EXEC_SYNTAX_ERROR";
-            public const string QueryNotFound = "QUERY_NOT_FOUND";
+            public const string NonNullViolation = "HC0018";
+            public const string MustBeInputType = "HC0017";
+            public const string InvalidType = "HC0016";
+            public const string QueryNotFound = "HC0015";
+
+            /// <summary>
+            /// A persisted query was not found when using the active persisted query pipeline.
+            /// </summary>
+            public const string PersistedQueryNotFound = "HC0020";
+            public const string TaskProcessingError = "HC0008";
+            public const string SyntaxError = "HC0014";
+            public const string CannotCreateRootValue = "HC0019";
+        }
+
+        /// <summary>
+        /// The server error codes.
+        /// </summary>
+        public static class Server
+        {
+            public const string RequestInvalid = "HC0009";
+            public const string MaxRequestSize = "HC0010";
+            public const string SyntaxError = "HC0011";
+            public const string UnexpectedRequestParserError = "HC0012";
+            public const string QueryAndIdMissing = "HC0013";
+
+            /// <summary>
+            /// At least an 'operations' field and a 'map' field need to be present.
+            /// </summary>
+            public const string MultiPartFormIncomplete = "HC0033";
+
+            /// <summary>
+            /// No 'operations' specified.
+            /// </summary>
+            public const string MultiPartNoOperationsSpecified = "HC0034";
+
+            /// <summary>
+            /// Misordered multipart fields; 'map' should follow 'operations'.
+            /// </summary>
+            public const string MultiPartFieldsMisordered = "HC0035";
+
+            /// <summary>
+            /// No object paths specified for a key in the 'map'.
+            /// </summary>
+            public const string MultiPartNoObjectPath = "HC0037";
+
+            /// <summary>
+            /// A key is referring to a file that was not provided.
+            /// </summary>
+            public const string MultiPartFileMissing = "HC00038";
+
+            /// <summary>
+            /// The variable path is referring to a variable that does not exist.
+            /// </summary>
+            public const string MultiPartVariableNotFound = "HC0039";
+
+            /// <summary>
+            /// No object paths specified for key in 'map'.
+            /// </summary>
+            public const string MultiPartVariableStructureInvalid = "HC0040";
+
+            /// <summary>
+            /// Invalid variable path in `map`.
+            /// </summary>
+            public const string MultiPartInvalidPath = "HC0041";
+
+            /// <summary>
+            /// The variable path must start with `variables`.
+            /// </summary>
+            public const string MultiPartPathMustStartWithVariable = "HC0042";
+
+            /// <summary>
+            /// Invalid JSON in the `map` multipart field; Expected type of
+            /// <see cref="Dictionary{TKey,TValue}" />.
+            /// </summary>
+            public const string MultiPartInvalidMapJson = "HC0043";
+
+            /// <summary>
+            /// No `map` specified.
+            /// </summary>
+            public const string MultiPartMapNotSpecified = "HC0044";
         }
 
         public static class Schema
@@ -40,38 +117,84 @@ namespace HotChocolate
             public const string InterfaceNotImplemented = "SCHEMA_INTERFACE_NO_IMPL";
         }
 
+        public static class Scalars
+        {
+            /// <summary>
+            /// The runtime type is not supported by the scalars ParseValue method.
+            /// </summary>
+            public const string InvalidRuntimeType = "HC0001";
+
+            /// <summary>
+            /// Either the syntax node is invalid when parsing the literal or the syntax
+            /// node value has an invalid format.
+            /// </summary>
+            public const string InvalidSyntaxFormat = "HC0002";
+        }
+
         public static class Filtering
         {
             public const string FilterObjectType = "FILTER_OBJECT_TYPE";
             public const string FilterFieldDescriptorType = "FILTER_FIELD_DESCRIPTOR_TYPE";
-            public const string NoOperationNameFound = "FILTER_CONVENTION_NO_OPERATION_NAME_FOUND";
         }
 
-        public static class Sorting
+        public static class Stitching
         {
-            public const string SortObjectType = "SORT_OBJECT_TYPE";
+            public const string HttpRequestException = "HC0006";
+
+            public const string UnknownRequestException = "HC0007";
+
+            public const string ArgumentNotDefined = "STITCHING_ARG_NOT_DEFINED";
+            public const string FieldNotDefined = "STITCHING_FLD_NOT_DEFINED";
+            public const string VariableNotDefined = "STITCHING_VAR_NOT_DEFINED";
+            public const string ScopeNotDefined = "STITCHING_SCOPE_NOT_DEFINED";
+            public const string TypeNotDefined = "STITCHING_TYPE_NOT_DEFINED";
+            public const string ArgumentNotFound = "STITCHING_DEL_ARGUMENT_NOT_FOUND";
         }
 
-        public static class Serialization
+        public static class Spatial
         {
-            public const string ResultTypeNotSupported = "RESULT_TYPE_NOT_SUPPORTED";
+            /// <summary>
+            /// The coordinate reference system is not supported by this server
+            /// </summary>
+            public const string UnknowCrs = "HC0029";
+
+            /// <summary>
+            /// Coordinates with M values cannot be reprojected
+            /// </summary>
+            public const string CoordinateMNotSupported = "HC0030";
         }
 
-        public static class Server
+        public static class Data
         {
-            public const string RequestInvalid = "INVALID_REQUEST";
-            public const string MaxRequestSize = "MAX_REQUEST_SIZE";
+            public const string NonNullError = "HC0026";
+            public const string ListNotSupported = "HC0021";
+            public const string MoreThanOneElement = "HC0022";
+            public const string FilteringProjectionFailed = "HC0023";
+            public const string SortingProjectionFailed = "HC0024";
+            public const string NoPagingationProviderFound = "HC0025";
+
+            /// <summary>
+            /// Type does not contain a valid node field. Only `items` and `nodes` are supported
+            /// </summary>
+            public const string NodeFieldWasNotFound = "HC0028";
         }
 
-        public static class Validation
+        public static class Types
         {
-            public const string UnknownType = "VALIDATION_UNKNOWN_TYPE";
-        }
+            /// <summary>
+            /// Unable to infer the element type from the current resolver.
+            /// This often happens if the resolver is not an iterable type like
+            /// IEnumerable, IQueryable, IList etc. Ensure that you either
+            /// explicitly specify the element type or that the return type of your resolver
+            /// is an iterable type.
+            /// </summary>
+            public const string NodeTypeUnkown = "HC0031";
 
-        public static class Utilities
-        {
-            public const string UnknownField = "EXEC_VAR_UNKNOWN_FIELD";
-            public const string NoConverter = "EXEC_VAR_NO_CONVERTER";
+            /// <summary>
+            /// The element schema type for pagination must be a valid GraphQL output type
+            /// (ObjectType, InterfaceType, UnionType, EnumType, ScalarType).
+            /// </summary>
+            public const string SchemaTypeInvalid = "HC0032";
         }
     }
 }

@@ -3,8 +3,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Schemas.Contracts
 {
-    public class QueryType
-        : ObjectType<Query>
+    public class QueryType : ObjectType<Query>
     {
         protected override void Configure(
             IObjectTypeDescriptor<Query> descriptor)
@@ -22,7 +21,7 @@ namespace HotChocolate.Stitching.Schemas.Contracts
                 .Type<DateTimeType>()
                 .Resolver(ctx =>
                 {
-                    DateTime dateTime = ctx.Argument<DateTime>("d");
+                    DateTime dateTime = ctx.ArgumentValue<DateTime>("d");
                     return dateTime;
                 });
         }

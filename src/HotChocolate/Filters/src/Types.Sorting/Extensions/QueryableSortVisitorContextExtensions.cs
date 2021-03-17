@@ -4,8 +4,10 @@ using System.Linq.Expressions;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public static class QueryableSortVisitorContextExtensions
     {
+        [Obsolete("Use HotChocolate.Data.")]
         public static SortOperationInvocation CreateSortOperation(
             this QueryableSortVisitorContext context,
             SortOperationKind kind)
@@ -14,9 +16,11 @@ namespace HotChocolate.Types.Sorting
             {
                 return context.Closure.CreateInMemorySortOperation(kind);
             }
+
             return context.Closure.CreateSortOperation(kind);
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static IQueryable<TSource> Sort<TSource>(
             this QueryableSortVisitorContext context,
             IQueryable<TSource> source)
@@ -29,6 +33,7 @@ namespace HotChocolate.Types.Sorting
             return source.Provider.CreateQuery<TSource>(context.Compile(source.Expression));
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static Expression Compile(
             this QueryableSortVisitorContext context,
             Expression source)
@@ -59,12 +64,13 @@ namespace HotChocolate.Types.Sorting
         {
             private bool _orderingMethodFound = false;
 
-            public override Expression Visit(Expression node)
+            public override Expression? Visit(Expression? node)
             {
                 if (_orderingMethodFound)
                 {
                     return node;
                 }
+
                 return base.Visit(node);
             }
 

@@ -13,7 +13,7 @@ module.exports = {
       },
       {
         name: `Docs`,
-        link: `/docs/hotchocolate/v10/`,
+        link: `/docs/hotchocolate/`,
       },
       {
         name: `Support`,
@@ -30,7 +30,7 @@ module.exports = {
     ],
     tools: {
       github: `https://github.com/ChilliCream/hotchocolate`,
-      slack: `https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q`,
+      slack: `http://bit.ly/joinchilli`,
       twitter: `https://twitter.com/Chilli_Cream`,
     },
   },
@@ -38,6 +38,31 @@ module.exports = {
     `gatsby-plugin-ts`,
     `gatsby-plugin-styled-components`,
     `gatsby-plugin-react-helmet`,
+    `gatsby-remark-reading-time`,
+    {
+      resolve: `gatsby-plugin-mdx`,
+      options: {
+        extensions: [`.mdx`, `.md`],
+        gatsbyRemarkPlugins: [
+          {
+            resolve: `gatsby-remark-mermaid`,
+            options: {
+              mermaidOptions: {
+                fontFamily: "sans-serif",
+              },
+            },
+          },
+          {
+            resolve: `gatsby-remark-images`,
+            options: {
+              maxWidth: 800,
+              quality: 90,
+              backgroundColor: 'transparent',
+            },
+          },
+        ],
+      },
+    },
     {
       resolve: `gatsby-plugin-react-redux`,
       options: {
@@ -80,56 +105,6 @@ module.exports = {
       },
     },
     `gatsby-transformer-json`,
-    {
-      resolve: `gatsby-transformer-remark`,
-      options: {
-        plugins: [
-          {
-            resolve: `gatsby-remark-autolink-headers`,
-            options: {
-              offsetY: 60,
-            },
-          },
-          `gatsby-remark-reading-time`,
-          {
-            resolve: `gatsby-remark-code-buttons`,
-            options: {
-              tooltipText: `Copy`,
-              toasterText: "Copied code example",
-            },
-          },
-          {
-            resolve: `gatsby-remark-mermaid`,
-            options: {
-              mermaidOptions: {
-                fontFamily: "sans-serif",
-              },
-            },
-          },
-          {
-            resolve: `gatsby-remark-prismjs`,
-            options: {
-              showLineNumbers: false,
-              inlineCodeMarker: `±`,
-              languageExtensions: [
-                {
-                  language: "sdl",
-                  extend: "graphql",
-                  definition: {},
-                  insertBefore: {},
-                },
-              ],
-            },
-          },
-          {
-            resolve: `gatsby-remark-images`,
-            options: {
-              maxWidth: 800,
-            },
-          },
-        ],
-      },
-    },
     `gatsby-transformer-sharp`,
     `gatsby-plugin-sharp`,
     {
@@ -213,7 +188,7 @@ module.exports = {
         feeds: [
           {
             query: `{
-              allMarkdownRemark(
+              allMdx(
                 limit: 100
                 filter: { frontmatter: { path: { regex: "//blog(/.*)?/" } } }
                 sort: { order: DESC, fields: [frontmatter___date] },
@@ -230,7 +205,7 @@ module.exports = {
                       path
                       featuredImage {
                         childImageSharp {
-                          fluid(maxWidth: 800) {
+                          fluid(maxWidth: 800, pngQuality: 90) {
                             src
                           }
                         }
@@ -242,14 +217,14 @@ module.exports = {
             }`,
             serialize: ({
               query: {
-                allMarkdownRemark,
+                allMdx,
                 site: {
                   pathPrefix,
                   siteMetadata: { siteUrl },
                 },
               },
             }) =>
-              allMarkdownRemark.edges.map(({ node }) => {
+              allMdx.edges.map(({ node }) => {
                 const date = new Date(Date.parse(node.frontmatter.date));
                 const imgSrcPattern = new RegExp(
                   `(${pathPrefix})?/static/`,

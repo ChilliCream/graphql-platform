@@ -1,0 +1,53 @@
+﻿[
+  {
+    "Message": "`pet` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 3,
+        "Column": 21
+      }
+    ],
+    "Extensions": {
+      "declaringType": "Query",
+      "field": "pet",
+      "type": "Human",
+      "responseName": "pet",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 88,
+          "End": 108,
+          "Line": 3,
+          "Column": 25
+        },
+        "Selections": []
+      },
+      "Location": {
+        "Start": 84,
+        "End": 108,
+        "Line": 3,
+        "Column": 21
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 84,
+          "End": 89,
+          "Line": 3,
+          "Column": 21
+        },
+        "Value": "pet"
+      },
+      "Directives": []
+    }
+  }
+]

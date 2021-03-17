@@ -1,9 +1,12 @@
 using System;
 using System.Linq;
 using HotChocolate.Data.Filters;
+using HotChocolate.Data.Projections;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Types.Pagination;
 
 namespace HotChocolate.Data
 {
@@ -22,56 +25,11 @@ namespace HotChocolate.Data
                     context.Operations.Peek().Name,
                     filterType.Visualize())
                 .AddLocation(value)
+                .SetCode(ErrorCodes.Data.NonNullError)
                 .SetExtension("expectedType", new NonNullType(field.Type).Visualize())
                 .SetExtension("filterType", filterType.Visualize())
                 .Build();
         }
-
-        public static ISchemaError FilterField_RuntimeType_Unknown(FilterField field) =>
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    DataResources.FilterField_FilterField_TypeUnknown,
-                    field.DeclaringType.Name,
-                    field.Name)
-                .SetTypeSystemObject(field.DeclaringType)
-                .SetExtension(nameof(field), field)
-                .Build();
-
-        public static ISchemaError FilterProvider_UnableToCreateFieldHandler(
-            IFilterProvider filterProvider,
-            Type fieldHandler) =>
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    DataResources.FilterProvider_UnableToCreateFieldHandler,
-                    fieldHandler.FullName ?? fieldHandler.Name,
-                    filterProvider.GetType().FullName ?? filterProvider.GetType().Name)
-                .SetExtension(nameof(filterProvider), filterProvider)
-                .SetExtension(nameof(fieldHandler), fieldHandler)
-                .Build();
-
-        public static ISchemaError SortProvider_UnableToCreateFieldHandler(
-            ISortProvider sortProvider,
-            Type fieldHandler) =>
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    DataResources.SortProvider_UnableToCreateFieldHandler,
-                    fieldHandler.FullName ?? fieldHandler.Name,
-                    sortProvider.GetType().FullName ?? sortProvider.GetType().Name)
-                .SetExtension(nameof(sortProvider), sortProvider)
-                .SetExtension(nameof(fieldHandler), fieldHandler)
-                .Build();
-
-        public static ISchemaError SortProvider_UnableToCreateOperationHandler(
-            ISortProvider sortProvider,
-            Type operationHandler) =>
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    DataResources.SortProvider_UnableToCreateOperationHandler,
-                    operationHandler.FullName ?? operationHandler.Name,
-                    sortProvider.GetType().FullName ?? sortProvider.GetType().Name)
-                .SetExtension(nameof(sortProvider), sortProvider)
-                .SetExtension(nameof(operationHandler), operationHandler)
-                .Build();
 
         public static IError SortingVisitor_ListValues(ISortField field, ListValueNode node) =>
             ErrorBuilder.New()
@@ -80,6 +38,7 @@ namespace HotChocolate.Data
                     field.DeclaringType.Name,
                     field.Name)
                 .AddLocation(node)
+                .SetCode(ErrorCodes.Data.ListNotSupported)
                 .SetExtension(nameof(field), field)
                 .Build();
 
@@ -96,9 +55,57 @@ namespace HotChocolate.Data
                     context.Fields.Peek().Name,
                     sortType.Visualize())
                 .AddLocation(value)
+                .SetCode(ErrorCodes.Data.NonNullError)
                 .SetExtension("expectedType", new NonNullType(field.Type).Visualize())
                 .SetExtension("sortType", sortType.Visualize())
                 .Build();
         }
+
+        public static ISchemaError ProjectionConvention_UnableToCreateFieldHandler(
+            IProjectionProvider convention,
+            Type fieldHandler) =>
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    DataResources.FilterProvider_UnableToCreateFieldHandler,
+                    fieldHandler.FullName ?? fieldHandler.Name,
+                    convention.GetType().FullName ?? convention.GetType().Name)
+                .SetExtension(nameof(convention), convention)
+                .SetExtension(nameof(fieldHandler), fieldHandler)
+                .Build();
+
+        public static IError ProjectionProvider_CreateMoreThanOneError(IResolverContext context) =>
+            ErrorBuilder.New()
+                .SetMessage(DataResources.ProjectionProvider_CreateMoreThanOneError)
+                .SetCode(ErrorCodes.Data.MoreThanOneElement)
+                .SetPath(context.Path)
+                .AddLocation(context.Selection.SyntaxNode)
+                .Build();
+
+        public static IError ProjectionProvider_CreateMoreThanOneError() =>
+            ErrorBuilder.New()
+                .SetMessage(DataResources.ProjectionProvider_CreateMoreThanOneError)
+                .SetCode(ErrorCodes.Data.MoreThanOneElement)
+                .Build();
+
+        public static IError ProjectionProvider_CouldNotProjectFiltering(IValueNode node) =>
+            ErrorBuilder.New()
+                .SetMessage(DataResources.ProjectionProvider_CouldNotProjectFiltering)
+                .AddLocation(node)
+                .SetCode(ErrorCodes.Data.FilteringProjectionFailed)
+                .Build();
+
+        public static IError ProjectionProvider_CouldNotProjectSorting(IValueNode node) =>
+            ErrorBuilder.New()
+                .SetMessage(DataResources.ProjectionProvider_CouldNotProjectSorting)
+                .SetCode(ErrorCodes.Data.SortingProjectionFailed)
+                .AddLocation(node)
+                .Build();
+
+        public static IError ProjectionVisitor_NodeFieldWasNotFound(IPageType pageType) =>
+            ErrorBuilder.New()
+                .SetMessage(DataResources.ProjectionVisitor_NodeFieldWasNotFound,
+                    pageType.Name)
+                .SetCode(ErrorCodes.Data.NodeFieldWasNotFound)
+                .Build();
     }
 }

@@ -1,5 +1,8 @@
 using System;
+using HotChocolate;
+using HotChocolate.Data;
 using HotChocolate.Data.Filters;
+using HotChocolate.Data.Projections;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution.Configuration;
 
@@ -119,5 +122,66 @@ namespace Microsoft.Extensions.DependencyInjection
             string? name = null)
             where TConvention : class, ISortConvention =>
             builder.ConfigureSchema(s => s.AddSorting<TConvention>(name));
+
+        /// <summary>
+        /// Adds filtering support.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IRequestExecutorBuilder"/>.
+        /// </returns>
+        public static IRequestExecutorBuilder AddProjections(
+            this IRequestExecutorBuilder builder) =>
+            AddProjections(builder, x => x.AddDefaults());
+
+        /// <summary>
+        /// Adds filtering support.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="configure">
+        /// Configures the convention.
+        /// </param>
+        /// <param name="name">
+        /// The filter convention name.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IRequestExecutorBuilder"/>.
+        /// </returns>
+        public static IRequestExecutorBuilder AddProjections(
+            this IRequestExecutorBuilder builder,
+            Action<IProjectionConventionDescriptor> configure,
+            string? name = null) =>
+            builder.ConfigureSchema(s => s
+                .TryAddTypeInterceptor<ProjectionTypeInterceptor>()
+                .TryAddConvention<IProjectionConvention>(
+                    sp => new ProjectionConvention(configure),
+                    name));
+
+        /// <summary>
+        /// Adds filtering support.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="name">
+        /// The filter convention name.
+        /// </param>
+        /// <typeparam name="TConvention">
+        /// The concrete filter convention type.
+        /// </typeparam>
+        /// <returns>
+        /// Returns the <see cref="IRequestExecutorBuilder"/>.
+        /// </returns>
+        public static IRequestExecutorBuilder AddProjections<TConvention>(
+            this IRequestExecutorBuilder builder,
+            string? name = null)
+            where TConvention : class, IProjectionConvention =>
+            builder.ConfigureSchema(s => s
+                .TryAddTypeInterceptor<ProjectionTypeInterceptor>()
+                .TryAddConvention<IProjectionConvention, TConvention>(name));
     }
 }

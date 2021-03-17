@@ -5,13 +5,14 @@
   "Errors": [
     {
       "Message": "The query request contains no document.",
-      "Code": "QUERY_NOT_FOUND",
+      "Code": "HC0015",
       "Path": null,
       "Locations": null,
       "Extensions": {
-        "code": "QUERY_NOT_FOUND"
+        "code": "HC0015"
       },
-      "Exception": null
+      "Exception": null,
+      "SyntaxNode": null
     }
   ],
   "Extensions": null,

@@ -1,0 +1,94 @@
+﻿[
+  {
+    "Message": "Encountered fields for the same object that cannot be merged.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 5,
+        "Column": 29
+      },
+      {
+        "Line": 10,
+        "Column": 29
+      }
+    ],
+    "Extensions": {
+      "declaringTypeA": "IntBox",
+      "declaringTypeB": "StringBox",
+      "fieldA": "stringBox",
+      "fieldB": "listStringBox",
+      "typeA": "StringBox",
+      "typeB": "[StringBox]",
+      "responseNameA": "box",
+      "responseNameB": "box",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 300,
+          "End": 304,
+          "Line": 10,
+          "Column": 29
+        },
+        "Value": "box"
+      },
+      "Arguments": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 319,
+          "End": 415,
+          "Line": 10,
+          "Column": 48
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 353,
+              "End": 389,
+              "Line": 11,
+              "Column": 33
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 353,
+                "End": 389,
+                "Line": 11,
+                "Column": 33
+              },
+              "Value": "scalar"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 300,
+        "End": 415,
+        "Line": 10,
+        "Column": 29
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 305,
+          "End": 320,
+          "Line": 10,
+          "Column": 34
+        },
+        "Value": "listStringBox"
+      },
+      "Directives": []
+    }
+  }
+]

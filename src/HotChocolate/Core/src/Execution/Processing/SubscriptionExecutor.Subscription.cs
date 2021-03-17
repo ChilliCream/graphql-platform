@@ -12,8 +12,7 @@ namespace HotChocolate.Execution.Processing
 {
     internal sealed partial class SubscriptionExecutor
     {
-        private sealed class Subscription
-            : IAsyncDisposable
+        private sealed class Subscription : IAsyncDisposable
         {
             private readonly ObjectPool<OperationContext> _operationContextPool;
             private readonly QueryExecutor _queryExecutor;
@@ -21,8 +20,9 @@ namespace HotChocolate.Execution.Processing
             private readonly IRequestContext _requestContext;
             private readonly ObjectType _subscriptionType;
             private readonly ISelectionSet _rootSelections;
+            private readonly Func<object> _resolveQueryRootValue;
             private ISourceStream _sourceStream = default!;
-            private object? _cachedRootValue = null;
+            private object? _cachedRootValue;
             private bool _disposed;
 
             private Subscription(
@@ -31,6 +31,7 @@ namespace HotChocolate.Execution.Processing
                 IRequestContext requestContext,
                 ObjectType subscriptionType,
                 ISelectionSet rootSelections,
+                Func<object> resolveQueryRootValue,
                 IDiagnosticEvents diagnosticEvents)
             {
                 _operationContextPool = operationContextPool;
@@ -38,6 +39,7 @@ namespace HotChocolate.Execution.Processing
                 _requestContext = requestContext;
                 _subscriptionType = subscriptionType;
                 _rootSelections = rootSelections;
+                _resolveQueryRootValue = resolveQueryRootValue;
                 _diagnosticEvents = diagnosticEvents;
             }
 
@@ -47,7 +49,8 @@ namespace HotChocolate.Execution.Processing
                 IRequestContext requestContext,
                 ObjectType subscriptionType,
                 ISelectionSet rootSelections,
-                IDiagnosticEvents diagnosicEvents)
+                Func<object> resolveQueryRootValue,
+                IDiagnosticEvents diagnosticsEvents)
             {
                 var subscription = new Subscription(
                     operationContextPool,
@@ -55,9 +58,12 @@ namespace HotChocolate.Execution.Processing
                     requestContext,
                     subscriptionType,
                     rootSelections,
-                    diagnosicEvents);
+                    resolveQueryRootValue,
+                    diagnosticsEvents);
 
-                subscription._sourceStream = await subscription.SubscribeAsync();
+                subscription._sourceStream =  await subscription
+                    .SubscribeAsync()
+                    .ConfigureAwait(false);
 
                 return subscription;
             }
@@ -103,7 +109,7 @@ namespace HotChocolate.Execution.Processing
                         ImmutableDictionary<string, object?>.Empty
                             .SetItem(WellKnownContextData.EventMessage, payload);
 
-                    object? rootValue = RootValueResolver.TryResolve(
+                    object? rootValue = RootValueResolver.Resolve(
                         _requestContext,
                         eventServices,
                         _subscriptionType,
@@ -114,8 +120,9 @@ namespace HotChocolate.Execution.Processing
                         eventServices,
                         dispatcher,
                         _requestContext.Operation!,
+                        _requestContext.Variables!,
                         rootValue,
-                        _requestContext.Variables!);
+                        _resolveQueryRootValue);
 
                     return await _queryExecutor
                         .ExecuteAsync(operationContext, scopedContext)
@@ -127,45 +134,78 @@ namespace HotChocolate.Execution.Processing
                 }
             }
 
+            // subscribe will use the subscribe resolver to create a source stream that yields
+            // the event messages from the underlying pub/sub-system.
             private async ValueTask<ISourceStream> SubscribeAsync()
             {
                 OperationContext operationContext = _operationContextPool.Get();
 
                 try
                 {
-                    object? rootValue = RootValueResolver.TryResolve(
+                    // first we will create the root value which essentially
+                    // is the subscription object. In some cases this object is null.
+                    object? rootValue = RootValueResolver.Resolve(
                         _requestContext,
                         _requestContext.Services,
                         _subscriptionType,
                         ref _cachedRootValue);
 
+                    // next we need to initialize our operation context so that we have access to
+                    // variables services and other things.
+                    // The subscribe resolver will use a noop dispatcher and all DataLoader are
+                    // dispatched immediately.
                     operationContext.Initialize(
                         _requestContext,
                         _requestContext.Services,
                         NoopBatchDispatcher.Default,
                         _requestContext.Operation!,
+                        _requestContext.Variables!,
                         rootValue,
-                        _requestContext.Variables!);
+                        _resolveQueryRootValue);
 
+                    // next we need a result map so that we can store the subscribe temporarily
+                    // while executing the subscribe pipeline.
                     ResultMap resultMap = operationContext.Result.RentResultMap(1);
                     ISelection rootSelection = _rootSelections.Selections[0];
 
+                    // we create a temporary middleware context so that we can use the standard
+                    // resolver pipeline.
                     var middlewareContext = new MiddlewareContext();
                     middlewareContext.Initialize(
                         operationContext,
-                        _rootSelections.Selections[0],
+                        rootSelection,
                         resultMap,
                         1,
                         rootValue,
-                        Path.New(_rootSelections.Selections[0].ResponseName),
+                        Path.New(rootSelection.ResponseName),
                         ImmutableDictionary<string, object?>.Empty);
 
+                    // it is important that we correctly coerce the arguments before
+                    // invoking subscribe.
+                    if (!rootSelection.Arguments.TryCoerceArguments(
+                        middlewareContext.Variables,
+                        middlewareContext.ReportError,
+                        out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs))
+                    {
+                        // the middleware context reports errors to the operation context,
+                        // this means if we failed, we need to grab the coercion errors from there
+                        // and just throw a GraphQLException.
+                        throw new GraphQLException(operationContext.Result.Errors);
+                    }
+
+                    // if everything is fine with the arguments we still need to assign them.
+                    middlewareContext.Arguments = coercedArgs;
+
+                    // last but not least we can invoke the subscribe resolver which will subscribe
+                    // to the underlying pub/sub-system yielding the source stream.
                     ISourceStream sourceStream =
                         await rootSelection.Field.SubscribeResolver!.Invoke(middlewareContext)
                             .ConfigureAwait(false);
 
                     if (operationContext.Result.Errors.Count > 0)
                     {
+                        // again if we have any errors we will just throw them and not opening
+                        // any subscription context.
                         throw new GraphQLException(operationContext.Result.Errors);
                     }
 

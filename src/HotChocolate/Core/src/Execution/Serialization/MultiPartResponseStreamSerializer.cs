@@ -2,6 +2,7 @@ using System;
 using System.Buffers;
 using System.Buffers.Text;
 using System.IO;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Utilities;
@@ -9,11 +10,24 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Execution.Serialization
 {
     // https://github.com/graphql/graphql-over-http/blob/master/rfcs/IncrementalDelivery.md
-    public sealed partial class MultiPartResponseStreamSerializer
-        : IResponseStreamSerializer
+    public sealed partial class MultiPartResponseStreamSerializer : IResponseStreamSerializer
     {
-        private readonly JsonQueryResultSerializer _payloadSerializer =
-            new JsonQueryResultSerializer();
+        private readonly JsonQueryResultSerializer _payloadSerializer;
+
+        /// <summary>
+        /// Creates a new instance of <see cref="MultiPartResponseStreamSerializer" />.
+        /// </summary>
+        /// <param name="indented">
+        /// Defines whether the underlying <see cref="Utf8JsonWriter"/>
+        /// should pretty print the JSON which includes:
+        /// indenting nested JSON tokens, adding new lines, and adding
+        /// white space between property names and values.
+        /// By default, the JSON is written without any extra white space.
+        /// </param>
+        public MultiPartResponseStreamSerializer(bool indented = false)
+        {
+            _payloadSerializer = new(indented);
+        }
 
         public Task SerializeAsync(
             IResponseStream responseStream,

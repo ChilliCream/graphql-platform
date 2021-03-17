@@ -105,6 +105,12 @@ namespace HotChocolate.Data {
             }
         }
         
+        internal static string Sorting_TypeOfInvalidFormat {
+            get {
+                return ResourceManager.GetString("Sorting_TypeOfInvalidFormat", resourceCulture);
+            }
+        }
+        
         internal static string SortConventionDescriptor_MustInheritFromSortInputOrEnumType {
             get {
                 return ResourceManager.GetString("SortConventionDescriptor_MustInheritFromSortInputOrEnumType", resourceCulture);
@@ -189,6 +195,12 @@ namespace HotChocolate.Data {
             }
         }
         
+        internal static string FilterDescriptorContextExtensions_NoConvention_Default {
+            get {
+                return ResourceManager.GetString("FilterDescriptorContextExtensions_NoConvention_Default", resourceCulture);
+            }
+        }
+        
         internal static string SortProvider_NoFieldHandlersConfigured {
             get {
                 return ResourceManager.GetString("SortProvider_NoFieldHandlersConfigured", resourceCulture);
@@ -204,6 +216,12 @@ namespace HotChocolate.Data {
         internal static string SortDescriptorContextExtensions_NoConvention {
             get {
                 return ResourceManager.GetString("SortDescriptorContextExtensions_NoConvention", resourceCulture);
+            }
+        }
+        
+        internal static string SortDescriptorContextExtensions_NoConvention_Default {
+            get {
+                return ResourceManager.GetString("SortDescriptorContextExtensions_NoConvention_Default", resourceCulture);
             }
         }
         
@@ -243,6 +261,12 @@ namespace HotChocolate.Data {
             }
         }
         
+        internal static string FilterConvention_TypeIsUnknown {
+            get {
+                return ResourceManager.GetString("FilterConvention_TypeIsUnknown", resourceCulture);
+            }
+        }
+        
         internal static string SortConvention_OperationNameNotFound {
             get {
                 return ResourceManager.GetString("SortConvention_OperationNameNotFound", resourceCulture);
@@ -270,6 +294,12 @@ namespace HotChocolate.Data {
         internal static string FilterInterceptor_NoHandlerFoundForField {
             get {
                 return ResourceManager.GetString("FilterInterceptor_NoHandlerFoundForField", resourceCulture);
+            }
+        }
+        
+        internal static string FilterInterceptor_OperationHasNoTypeSpecified {
+            get {
+                return ResourceManager.GetString("FilterInterceptor_OperationHasNoTypeSpecified", resourceCulture);
             }
         }
         
@@ -324,6 +354,78 @@ namespace HotChocolate.Data {
         internal static string FilterVisitor_InvalidField {
             get {
                 return ResourceManager.GetString("FilterVisitor_InvalidField", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionProvider_NoConfigurationSpecified {
+            get {
+                return ResourceManager.GetString("ProjectionProvider_NoConfigurationSpecified", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionProvider_UnableToCreateFieldHandler {
+            get {
+                return ResourceManager.GetString("ProjectionProvider_UnableToCreateFieldHandler", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionProvider_NoHandlersConfigured {
+            get {
+                return ResourceManager.GetString("ProjectionProvider_NoHandlersConfigured", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionConvention_NoConfigurationSpecified {
+            get {
+                return ResourceManager.GetString("ProjectionConvention_NoConfigurationSpecified", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionConvention_NoProviderFound {
+            get {
+                return ResourceManager.GetString("ProjectionConvention_NoProviderFound", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionConventionDescriptor_MustImplementIProjectionProvider {
+            get {
+                return ResourceManager.GetString("ProjectionConventionDescriptor_MustImplementIProjectionProvider", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionProvider_CreateMoreThanOneError {
+            get {
+                return ResourceManager.GetString("ProjectionProvider_CreateMoreThanOneError", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionProvider_CouldNotProjectFiltering {
+            get {
+                return ResourceManager.GetString("ProjectionProvider_CouldNotProjectFiltering", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionProvider_CouldNotProjectSorting {
+            get {
+                return ResourceManager.GetString("ProjectionProvider_CouldNotProjectSorting", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionConvention_CouldNotProject {
+            get {
+                return ResourceManager.GetString("ProjectionConvention_CouldNotProject", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionVisitor_NodeFieldWasNotFound {
+            get {
+                return ResourceManager.GetString("ProjectionVisitor_NodeFieldWasNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string FilterConvention_ProviderHasToBeInitializedByConvention {
+            get {
+                return ResourceManager.GetString("FilterConvention_ProviderHasToBeInitializedByConvention", resourceCulture);
             }
         }
     }

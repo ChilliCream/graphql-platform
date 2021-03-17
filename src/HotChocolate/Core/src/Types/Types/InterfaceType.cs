@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Types.CompleteInterfacesHelper;
 
 #nullable enable
 
@@ -14,9 +16,8 @@ namespace HotChocolate.Types
     public class InterfaceType
         : NamedTypeBase<InterfaceTypeDefinition>
         , IInterfaceType
-        , IHasRuntimeType
     {
-        private readonly List<InterfaceType> _interfaces = new List<InterfaceType>();
+        private InterfaceType[] _implements = Array.Empty<InterfaceType>();
         private Action<IInterfaceTypeDescriptor>? _configure;
         private ResolveAbstractType? _resolveAbstractType;
 
@@ -36,9 +37,9 @@ namespace HotChocolate.Types
 
         ISyntaxNode? IHasSyntaxNode.SyntaxNode => SyntaxNode;
 
-        public IReadOnlyList<InterfaceType> Interfaces => _interfaces;
+        public IReadOnlyList<InterfaceType> Implements => _implements;
 
-        IReadOnlyList<IInterfaceType> IComplexOutputType.Interfaces => _interfaces;
+        IReadOnlyList<IInterfaceType> IComplexOutputType.Implements => _implements;
 
         public InterfaceTypeDefinitionNode? SyntaxNode { get; private set; }
 
@@ -47,13 +48,14 @@ namespace HotChocolate.Types
         IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
 
         public bool IsImplementing(NameString interfaceTypeName) =>
-            _interfaces.Any(t => t.Name.Equals(interfaceTypeName));
+            _implements.Any(t => t.Name.Equals(interfaceTypeName));
 
         public bool IsImplementing(InterfaceType interfaceType) =>
-            _interfaces.IndexOf(interfaceType) != -1;
+            Array.IndexOf(_implements, interfaceType) != -1;
 
         public bool IsImplementing(IInterfaceType interfaceType) =>
-            interfaceType is InterfaceType i && _interfaces.IndexOf(i) != -1;
+            interfaceType is InterfaceType i &&
+            Array.IndexOf(_implements, i) != -1;
 
         public override bool IsAssignableFrom(INamedType namedType)
         {
@@ -91,11 +93,12 @@ namespace HotChocolate.Types
         protected override InterfaceTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
         {
-            var descriptor = InterfaceTypeDescriptor.FromSchemaType(
-                context.DescriptorContext,
-                GetType());
-            _configure!.Invoke(descriptor);
+            var descriptor =
+                InterfaceTypeDescriptor.FromSchemaType(context.DescriptorContext, GetType());
+
+            _configure!(descriptor);
             _configure = null;
+
             return descriptor.CreateDefinition();
         }
 
@@ -120,16 +123,33 @@ namespace HotChocolate.Types
 
             SyntaxNode = definition.SyntaxNode;
             var sortFieldsByName = context.DescriptorContext.Options.SortFieldsByName;
-            Fields = new FieldCollection<InterfaceField>(
-                definition.Fields.Select(t => new InterfaceField(t, sortFieldsByName)),
+
+            Fields = FieldCollection<InterfaceField>.From(
+                definition.Fields.Select(
+                    t => new InterfaceField(
+                        t,
+                        new FieldCoordinate(Name, t.Name),
+                        sortFieldsByName)),
                 sortFieldsByName);
 
-            CompleteAbstractTypeResolver(
-                context,
-                definition.ResolveAbstractType);
+            CompleteAbstractTypeResolver(context, definition.ResolveAbstractType);
 
-            CompleteInterfacesHelper.Complete(
-                context, definition, RuntimeType, _interfaces, this, SyntaxNode);
+            IReadOnlyList<ITypeReference> interfaces = definition.GetInterfaces();
+
+            if (interfaces.Count > 0)
+            {
+                var implements = new List<InterfaceType>();
+
+                CompleteInterfaces(
+                    context,
+                    interfaces,
+                    RuntimeType,
+                    implements,
+                    this,
+                    SyntaxNode);
+
+                _implements = implements.ToArray();
+            }
 
             FieldInitHelper.CompleteFields(context, definition, Fields);
         }

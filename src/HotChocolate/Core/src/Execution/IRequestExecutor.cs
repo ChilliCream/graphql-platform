@@ -34,16 +34,16 @@ namespace HotChocolate.Execution
         /// Returns the execution result of the given GraphQL <paramref name="request" />.
         ///
         /// If the request operation is a simple query or mutation the result is a
-        /// <see cref="global::HotChocolate.Execution.IReadOnlyQueryResult" />.
+        /// <see cref="IQueryResult" />.
         ///
         /// If the request operation is a query or mutation where data is deferred, streamed or
-        /// includes live data the result is a <see cref="global::HotChocolate.Execution.IResponseStream" /> where each result
-        /// that the <see cref="global::HotChocolate.Execution.IResponseStream" /> yields is a <see cref="global::HotChocolate.Execution.IReadOnlyQueryResult" />.
+        /// includes live data the result is a <see cref="IResponseStream" /> where each result
+        /// that the <see cref="IResponseStream" /> yields is a <see cref="IQueryResult" />.
         ///
         /// If the request operation is a subscription the result is a
-        /// <see cref="global::HotChocolate.Execution.IResponseStream" /> where each result that the
-        /// <see cref="global::HotChocolate.Execution.IResponseStream" /> yields is a
-        /// <see cref="global::HotChocolate.Execution.IReadOnlyQueryResult" />.
+        /// <see cref="IResponseStream" /> where each result that the
+        /// <see cref="IResponseStream" /> yields is a
+        /// <see cref="IQueryResult" />.
         /// </returns>
         Task<IExecutionResult> ExecuteAsync(
             IQueryRequest request,

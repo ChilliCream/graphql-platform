@@ -7,12 +7,14 @@ import { GetBlogPostVersion11ImageQuery } from "../../../graphql-types";
 export const BlogPostVersion11: FunctionComponent = () => {
   const data = useStaticQuery<GetBlogPostVersion11ImageQuery>(graphql`
     query getBlogPostVersion11Image {
-      placeholderImage: file(
-        relativePath: { eq: "2020-07-16-version-11/banner-v11.png" }
+      file(
+        relativePath: {
+          eq: "2020-11-23-hot-chocolate-11/hot-chocolate-11-banner.png"
+        }
         sourceInstanceName: { eq: "blog" }
       ) {
         childImageSharp {
-          fluid(maxWidth: 1200) {
+          fluid(maxWidth: 1200, pngQuality: 90) {
             ...GatsbyImageSharpFluid
           }
         }
@@ -22,7 +24,7 @@ export const BlogPostVersion11: FunctionComponent = () => {
 
   return (
     <Container>
-      <Img fluid={data.placeholderImage?.childImageSharp?.fluid as any} />
+      <Img fluid={data.file?.childImageSharp?.fluid as any} />
     </Container>
   );
 };

@@ -278,5 +278,35 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("ThrowHelper_OperationExecutionMiddleware_NoBatchDispatcher_Message", resourceCulture);
             }
         }
+        
+        internal static string OperationCompiler_Compile_SelectionSetIsEmpty {
+            get {
+                return ResourceManager.GetString("OperationCompiler_Compile_SelectionSetIsEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty {
+            get {
+                return ResourceManager.GetString("ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string RequestExecutorBuilder_Convention_NotSuppported {
+            get {
+                return ResourceManager.GetString("RequestExecutorBuilder_Convention_NotSuppported", resourceCulture);
+            }
+        }
+        
+        internal static string RootValueResolver_Resolve_CannotCreateInstance {
+            get {
+                return ResourceManager.GetString("RootValueResolver_Resolve_CannotCreateInstance", resourceCulture);
+            }
+        }
+        
+        internal static string OperationContext_GetQueryRoot_InvalidCast {
+            get {
+                return ResourceManager.GetString("OperationContext_GetQueryRoot_InvalidCast", resourceCulture);
+            }
+        }
     }
 }

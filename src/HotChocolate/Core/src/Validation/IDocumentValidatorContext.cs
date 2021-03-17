@@ -35,6 +35,11 @@ namespace HotChocolate.Validation
         /// A dictionary to store field infos per selection set.
         /// </summary>
         IDictionary<SelectionSetNode, IList<FieldInfo>> FieldSets { get; }
+        
+        /// <summary>
+        /// A set of field tuples.
+        /// </summary>
+        ISet<(FieldNode, FieldNode)> FieldTuples { get; }
 
         /// <summary>
         /// Gets a set of already visited fragment names.

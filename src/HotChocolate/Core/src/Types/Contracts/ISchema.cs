@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Language;
 using HotChocolate.Types;
+using IHasDirectives = HotChocolate.Types.IHasDirectives;
+using IHasName = HotChocolate.Types.IHasName;
 
 #nullable enable
 
@@ -16,6 +19,7 @@ namespace HotChocolate
         : IHasDirectives
         , IHasName
         , IHasDescription
+        , IHasReadOnlyContextData
         , ITypeSystemMember
     {
         /// <summary>
@@ -131,6 +135,11 @@ namespace HotChocolate
         bool TryGetDirectiveType(
             NameString directiveName,
             [NotNullWhen(true)]out DirectiveType? directiveType);
+
+        /// <summary>
+        /// Generates a schema document.
+        /// </summary>
+        DocumentNode ToDocument(bool includeSpecScalars = false);
 
         /// <summary>
         /// Prints the schema SDL representation.

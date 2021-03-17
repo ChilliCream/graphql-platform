@@ -1,0 +1,152 @@
+﻿[
+  {
+    "Message": "The field `isAtLocation` does not exist on the type `Dog`.",
+    "Code": null,
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "catOrDog"
+    },
+    "Locations": [
+      {
+        "Line": 9,
+        "Column": 21
+      }
+    ],
+    "Extensions": {
+      "type": "Dog",
+      "field": "isAtLocation",
+      "responseName": "isAtLocation",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [
+        {
+          "Kind": "Argument",
+          "Location": {
+            "Start": 218,
+            "End": 223,
+            "Line": 9,
+            "Column": 34
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 218,
+              "End": 220,
+              "Line": 9,
+              "Column": 34
+            },
+            "Value": "x"
+          },
+          "Value": {
+            "Kind": "IntValue",
+            "Location": {
+              "Start": 221,
+              "End": 223,
+              "Line": 9,
+              "Column": 37
+            },
+            "Value": "0"
+          }
+        }
+      ],
+      "SelectionSet": null,
+      "Location": {
+        "Start": 205,
+        "End": 256,
+        "Line": 9,
+        "Column": 21
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 205,
+          "End": 218,
+          "Line": 9,
+          "Column": 21
+        },
+        "Value": "isAtLocation"
+      },
+      "Directives": []
+    }
+  },
+  {
+    "Message": "The field `isAtLocation` does not exist on the type `Dog`.",
+    "Code": null,
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "catOrDog"
+    },
+    "Locations": [
+      {
+        "Line": 10,
+        "Column": 21
+      }
+    ],
+    "Extensions": {
+      "type": "Dog",
+      "field": "isAtLocation",
+      "responseName": "isAtLocation",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [
+        {
+          "Kind": "Argument",
+          "Location": {
+            "Start": 257,
+            "End": 262,
+            "Line": 10,
+            "Column": 34
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 257,
+              "End": 259,
+              "Line": 10,
+              "Column": 34
+            },
+            "Value": "y"
+          },
+          "Value": {
+            "Kind": "IntValue",
+            "Location": {
+              "Start": 260,
+              "End": 262,
+              "Line": 10,
+              "Column": 37
+            },
+            "Value": "0"
+          }
+        }
+      ],
+      "SelectionSet": null,
+      "Location": {
+        "Start": 244,
+        "End": 280,
+        "Line": 10,
+        "Column": 21
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 244,
+          "End": 257,
+          "Line": 10,
+          "Column": 21
+        },
+        "Value": "isAtLocation"
+      },
+      "Directives": []
+    }
+  }
+]

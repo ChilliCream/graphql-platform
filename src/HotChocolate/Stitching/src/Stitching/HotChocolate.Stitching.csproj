@@ -5,22 +5,16 @@
     <AssemblyName>HotChocolate.Stitching</AssemblyName>
     <RootNamespace>HotChocolate.Stitching</RootNamespace>
     <Description>Contains the Hot Chocolate GraphQL schema stitching layer.</Description>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\Stitching.Abstractions\HotChocolate.Stitching.Abstractions.csproj" />
   </ItemGroup>
-
+  
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.0" />
-    <PackageReference Include="System.Text.Json" Version="4.7.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="Resources\introspection_phase_1.graphql" />
-    <None Remove="Resources\introspection_phase_2.graphql" />
-    <EmbeddedResource Include="Resources\introspection_phase_1.graphql" />
-    <EmbeddedResource Include="Resources\introspection_phase_2.graphql" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.4" />
   </ItemGroup>
 
   <ItemGroup>

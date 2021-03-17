@@ -3,6 +3,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public abstract class FilterNamingConventionBase : IFilterNamingConvention
     {
         public abstract NameString ArgumentName { get; }

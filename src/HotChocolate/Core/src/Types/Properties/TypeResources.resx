@@ -261,7 +261,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     <value>The inner value of enum value cannot be null or empty.</value>
   </data>
   <data name="FieldInitHelper_InvalidDefaultValue" xml:space="preserve">
-    <value>Could not parse the native value of input field `{0}.{1}`.</value>
+    <value>Could not parse the native value of input field `{0}`.</value>
   </data>
   <data name="FieldInitHelper_NoFields" xml:space="preserve">
     <value>{0} `{1}` has no fields declared.</value>
@@ -340,6 +340,12 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   </data>
   <data name="ObjectTypeDescriptor_MustBePropertyOrMethod" xml:space="preserve">
     <value>A field-expression must be a property-expression or a method-call-expression.</value>
+  </data>
+  <data name="NodeDescriptor_MustBeMethod" xml:space="preserve">
+    <value>A node-resolver-expression must be a method-call-expression.</value>
+  </data>
+  <data name="NodeDescriptor_IdMember" xml:space="preserve">
+    <value>An ID-member must be a property-expression or a method-call-expression.</value>
   </data>
   <data name="ObjectTypeDescriptor_Resolver_SchemaType" xml:space="preserve">
     <value>Schema types cannot be used as resolver types.</value>
@@ -631,5 +637,60 @@ Type: `{0}`</value>
   </data>
   <data name="StreamDirectiveType_If_Description" xml:space="preserve">
     <value>Streamed when true.</value>
+  </data>
+  <data name="SchemaBuilder_AddRootType_TypeAlreadyRegistered" xml:space="preserve">
+    <value>The root type `{0}` has already been registered.</value>
+  </data>
+  <data name="NodeDescriptor_IdField_MustBePropertyOrMethod" xml:space="preserve">
+    <value>The ID field must be a property or a method.</value>
+  </data>
+  <data name="DeprecatedDirectiveType_TypeDescription" xml:space="preserve">
+    <value>The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values.</value>
+  </data>
+  <data name="DeprecatedDirectiveType_ReasonDescription" xml:space="preserve">
+    <value>Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark).</value>
+  </data>
+  <data name="IncludeDirectiveType_TypeDescription" xml:space="preserve">
+    <value>Directs the executor to include this field or fragment only when the `if` argument is true.</value>
+  </data>
+  <data name="IncludeDirectiveType_IfDescription" xml:space="preserve">
+    <value>Included when true.</value>
+  </data>
+  <data name="SkipDirectiveType_TypeDescription" xml:space="preserve">
+    <value>Directs the executor to skip this field or fragment when the `if` argument is true.</value>
+  </data>
+  <data name="SkipDirectiveType_IfDescription" xml:space="preserve">
+    <value>Skipped when true.</value>
+  </data>
+  <data name="SpecifiedByDirectiveType_TypeDescription" xml:space="preserve">
+    <value>The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions.</value>
+  </data>
+  <data name="SpecifiedByDirectiveType_UrlDescription" xml:space="preserve">
+    <value>The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types.</value>
+  </data>
+  <data name="NodeType_TypeDescription" xml:space="preserve">
+    <value>The node interface is implemented by entities that have a global unique identifier.</value>
+  </data>
+  <data name="AnyType_CycleInObjectGraph" xml:space="preserve">
+    <value>Cycle in object graph detected.</value>
+  </data>
+  <data name="UuidType_FormatUnknown" xml:space="preserve">
+    <value>Unknown format. Guid supports the following format chars: {{ `N`, `D`, `B`, `P` }}.
+ https://docs.microsoft.com/en-us/dotnet/api/system.buffers.text.utf8parser.tryparse?view=netcore-3.1#System_Buffers_Text_Utf8Parser_TryParse_System_ReadOnlySpan_System_Byte__System_Guid__System_Int32__System_Char</value>
+  </data>
+  <data name="Directive_GetArgument_ArgumentNameIsInvalid" xml:space="preserve">
+    <value>The argument name is invalid.</value>
+  </data>
+  <data name="__AppliedDirective_Description" xml:space="preserve">
+    <value>An Applied Directive is an instances of a directive as applied to a schema element. This type is NOT specified by the graphql specification presently.</value>
+  </data>
+  <data name="__DirectiveArgument_Description" xml:space="preserve">
+    <value>Directive arguments can have names and values. The values are in graphql SDL syntax printed as a string. This type is NOT specified by the graphql specification presently.</value>
+  </data>
+  <data name="ThrowHelper_UsePagingAttribute_NodeTypeUnknown" xml:space="preserve">
+    <value>Unable to infer the element type from the current resolver. This often happens if the resolver is not an iterable type like IEnumerable, IQueryable, IList etc. Ensure that you either explicitly specify the element type or that the return type of your resolver is an iterable type.</value>
+  </data>
+  <data name="Schema_GetDirectiveType_DoesNotExist" xml:space="preserve">
+    <value>The specified type `{0}` does not exist.</value>
   </data>
 </root>

@@ -8,8 +8,8 @@ namespace HotChocolate.Data.Filters
         : FilterFieldHandler<QueryableFilterContext, Expression>
     {
         public override bool CanHandle(
-            ITypeDiscoveryContext context,
-            FilterInputTypeDefinition typeDefinition,
-            FilterFieldDefinition fieldDefinition) => true;
+            ITypeCompletionContext context,
+            IFilterInputTypeDefinition typeDefinition,
+            IFilterFieldDefinition fieldDefinition) => true;
     }
 }

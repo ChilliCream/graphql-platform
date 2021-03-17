@@ -32,7 +32,7 @@ namespace HotChocolate.Execution.Processing
                 operationContext, Path.Root, scopedContext,
                 operationContext.RootValue);
 
-            await ExecuteTasksAsync(operationContext);
+            await ExecuteTasksAsync(operationContext).ConfigureAwait(false);
 
             return operationContext
                 .TrySetNext()

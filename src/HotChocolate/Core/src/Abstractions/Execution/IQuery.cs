@@ -6,13 +6,14 @@ using System.Threading;
 namespace HotChocolate.Execution
 {
     /// <summary>
-    /// Represent a executable query.
+    /// Represents an executable query.
     /// </summary>
     public interface IQuery
     {
         /// <summary>
         /// Writes the current query to the output stream.
         /// </summary>
+        [Obsolete("Use WriteToAsync")]
         void WriteTo(Stream output);
 
         /// <summary>

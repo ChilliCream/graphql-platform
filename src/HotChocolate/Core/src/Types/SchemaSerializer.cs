@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using HotChocolate.Types;
+using HotChocolate.Utilities.Introspection;
 
 namespace HotChocolate
 {
@@ -17,15 +21,8 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(schema));
             }
 
-            var sb = new StringBuilder();
-            using (var stringWriter = new StringWriter(sb))
-            using (var documentWriter = new DocumentWriter(stringWriter))
-            {
-                DocumentNode document = SerializeSchema(schema);
-                var serializer = new SchemaSyntaxSerializer(true);
-                serializer.Visit(document, documentWriter);
-            }
-            return sb.ToString();
+            DocumentNode document = SerializeSchema(schema);
+            return document.Print();
         }
 
         public static void Serialize(ISchema schema, TextWriter textWriter)
@@ -40,51 +37,72 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(textWriter));
             }
 
-            using (var documentWriter = new DocumentWriter(textWriter))
-            {
-                DocumentNode document = SerializeSchema(schema);
-                var serializer = new SchemaSyntaxSerializer(true);
-                serializer.Visit(document, documentWriter);
-            }
+            DocumentNode document = SerializeSchema(schema);
+            textWriter.Write(document.Print());
         }
 
-        public static DocumentNode SerializeSchema(
-            ISchema schema)
+        public static async ValueTask SerializeAsync(
+            ISchema schema,
+            Stream stream,
+            bool indented = true,
+            CancellationToken cancellationToken = default)
         {
             if (schema is null)
             {
                 throw new ArgumentNullException(nameof(schema));
             }
 
-            var referenced = new ReferencedTypes();
+            if (stream is null)
+            {
+                throw new ArgumentNullException(nameof(stream));
+            }
+
+            DocumentNode document = SerializeSchema(schema);
+            await document.PrintToAsync(stream, indented, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static DocumentNode SerializeSchema(
+            ISchema schema,
+            bool includeSpecScalars = false)
+        {
+            if (schema is null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
 
             var typeDefinitions = GetNonScalarTypes(schema)
-                .Select(t => SerializeNonScalarTypeDefinition(t, referenced))
+                .Select(SerializeNonScalarTypeDefinition)
                 .OfType<IDefinitionNode>()
                 .ToList();
 
-            if (schema.QueryType != null
-                || schema.MutationType != null
-                || schema.SubscriptionType != null)
+            if (schema.QueryType is not null
+                || schema.MutationType is not null
+                || schema.SubscriptionType is not null)
             {
-                typeDefinitions.Insert(0,
-                    SerializeSchemaTypeDefinition(schema, referenced));
+                typeDefinitions.Insert(0, SerializeSchemaTypeDefinition(schema));
             }
+
+            var builtInDirectives = new HashSet<NameString>
+            {
+                WellKnownDirectives.Skip,
+                WellKnownDirectives.Include,
+                WellKnownDirectives.Deprecated
+            };
 
             IEnumerable<DirectiveDefinitionNode> directiveTypeDefinitions =
                 schema.DirectiveTypes
-                .Where(t => referenced.DirectiveNames.Contains(t.Name))
+                    .Where(directive => !builtInDirectives.Contains(directive.Name))
                 .OrderBy(t => t.Name.ToString(), StringComparer.Ordinal)
-                .Select(t => SerializeDirectiveTypeDefinition(t, referenced));
+                .Select(SerializeDirectiveTypeDefinition);
 
             typeDefinitions.AddRange(directiveTypeDefinitions);
 
             IEnumerable<ScalarTypeDefinitionNode> scalarTypeDefinitions =
                 schema.Types
                 .OfType<ScalarType>()
-                .Where(t => referenced.TypeNames.Contains(t.Name))
+                .Where(t => includeSpecScalars || !BuiltInTypes.IsBuiltInType(t.Name))
                 .OrderBy(t => t.Name.ToString(), StringComparer.Ordinal)
-                .Select(t => SerializeScalarType(t));
+                .Select(SerializeScalarType);
 
             typeDefinitions.AddRange(scalarTypeDefinitions);
 
@@ -95,7 +113,7 @@ namespace HotChocolate
             ISchema schema)
         {
             return schema.Types
-               .Where(t => IsPublicAndNoScalar(t))
+               .Where(IsPublicAndNoScalar)
                .OrderBy(t => t.Name.ToString(), StringComparer.Ordinal)
                .GroupBy(t => (int)t.Kind)
                .OrderBy(t => t.Key)
@@ -104,8 +122,7 @@ namespace HotChocolate
 
         private static bool IsPublicAndNoScalar(INamedType type)
         {
-            if (type.IsIntrospectionType()
-                || type is ScalarType scalarType)
+            if (type.IsIntrospectionType() || type is ScalarType)
             {
                 return false;
             }
@@ -114,12 +131,11 @@ namespace HotChocolate
         }
 
         private static DirectiveDefinitionNode SerializeDirectiveTypeDefinition(
-            DirectiveType directiveType,
-            ReferencedTypes referenced)
+            DirectiveType directiveType)
         {
             var arguments = directiveType.Arguments
-               .Select(t => SerializeInputField(t, referenced))
-               .ToList();
+                .Select(SerializeInputField)
+                .ToList();
 
             var locations = directiveType.Locations
                 .Select(l => new NameNode(l.MapDirectiveLocation().ToString()))
@@ -137,37 +153,33 @@ namespace HotChocolate
         }
 
         private static SchemaDefinitionNode SerializeSchemaTypeDefinition(
-            ISchema schema,
-            ReferencedTypes referenced)
+            ISchema schema)
         {
             var operations = new List<OperationTypeDefinitionNode>();
 
-            if (schema.QueryType != null)
+            if (schema.QueryType is not null)
             {
                 operations.Add(SerializeOperationType(
                     schema.QueryType,
-                    OperationType.Query,
-                    referenced));
+                    OperationType.Query));
             }
 
-            if (schema.MutationType != null)
+            if (schema.MutationType is not null)
             {
                 operations.Add(SerializeOperationType(
                     schema.MutationType,
-                    OperationType.Mutation,
-                    referenced));
+                    OperationType.Mutation));
             }
 
-            if (schema.SubscriptionType != null)
+            if (schema.SubscriptionType is not null)
             {
                 operations.Add(SerializeOperationType(
                     schema.SubscriptionType,
-                    OperationType.Subscription,
-                    referenced));
+                    OperationType.Subscription));
             }
 
             var directives = schema.Directives
-                .Select(t => SerializeDirective(t, referenced))
+                .Select(SerializeDirective)
                 .ToList();
 
             return new SchemaDefinitionNode
@@ -181,58 +193,40 @@ namespace HotChocolate
 
         private static OperationTypeDefinitionNode SerializeOperationType(
            ObjectType type,
-           OperationType operation,
-           ReferencedTypes referenced)
+           OperationType operation)
         {
-            return new OperationTypeDefinitionNode
-            (
+            return new(
                 null,
                 operation,
-                SerializeNamedType(type, referenced)
-            );
+                SerializeNamedType(type));
         }
 
         private static ITypeDefinitionNode SerializeNonScalarTypeDefinition(
-            INamedType namedType,
-            ReferencedTypes referenced)
-        {
-            switch (namedType)
+            INamedType namedType) =>
+            namedType switch
             {
-                case ObjectType type:
-                    return SerializeObjectType(type, referenced);
-
-                case InterfaceType type:
-                    return SerializeInterfaceType(type, referenced);
-
-                case InputObjectType type:
-                    return SerializeInputObjectType(type, referenced);
-
-                case UnionType type:
-                    return SerializeUnionType(type, referenced);
-
-                case EnumType type:
-                    return SerializeEnumType(type, referenced);
-
-                default:
-                    throw new NotSupportedException();
-            }
-        }
+                ObjectType type => SerializeObjectType(type),
+                InterfaceType type => SerializeInterfaceType(type),
+                InputObjectType type => SerializeInputObjectType(type),
+                UnionType type => SerializeUnionType(type),
+                EnumType type => SerializeEnumType(type),
+                _ => throw new NotSupportedException()
+            };
 
         private static ObjectTypeDefinitionNode SerializeObjectType(
-            ObjectType objectType,
-            ReferencedTypes referenced)
+            ObjectType objectType)
         {
             var directives = objectType.Directives
-                .Select(t => SerializeDirective(t, referenced))
+                .Select(SerializeDirective)
                 .ToList();
 
-            var interfaces = objectType.Interfaces
-                .Select(t => SerializeNamedType(t, referenced))
+            var interfaces = objectType.Implements
+                .Select(SerializeNamedType)
                 .ToList();
 
             var fields = objectType.Fields
                 .Where(t => !t.IsIntrospectionField)
-                .Select(t => SerializeObjectField(t, referenced))
+                .Select(SerializeObjectField)
                 .ToList();
 
             return new ObjectTypeDefinitionNode
@@ -247,15 +241,18 @@ namespace HotChocolate
         }
 
         private static InterfaceTypeDefinitionNode SerializeInterfaceType(
-            InterfaceType interfaceType,
-            ReferencedTypes referenced)
+            InterfaceType interfaceType)
         {
             var directives = interfaceType.Directives
-                .Select(t => SerializeDirective(t, referenced))
+                .Select(SerializeDirective)
+                .ToList();
+
+            var interfaces = interfaceType.Implements
+                .Select(SerializeNamedType)
                 .ToList();
 
             var fields = interfaceType.Fields
-                .Select(t => SerializeObjectField(t, referenced))
+                .Select(SerializeObjectField)
                 .ToList();
 
             return new InterfaceTypeDefinitionNode
@@ -264,21 +261,20 @@ namespace HotChocolate
                 new NameNode(interfaceType.Name),
                 SerializeDescription(interfaceType.Description),
                 directives,
-                Array.Empty<NamedTypeNode>(),
+                interfaces,
                 fields
             );
         }
 
         private static InputObjectTypeDefinitionNode SerializeInputObjectType(
-            InputObjectType inputObjectType,
-            ReferencedTypes referenced)
+            InputObjectType inputObjectType)
         {
             var directives = inputObjectType.Directives
-                .Select(t => SerializeDirective(t, referenced))
+                .Select(SerializeDirective)
                 .ToList();
 
             var fields = inputObjectType.Fields
-                .Select(t => SerializeInputField(t, referenced))
+                .Select(SerializeInputField)
                 .ToList();
 
             return new InputObjectTypeDefinitionNode
@@ -291,16 +287,14 @@ namespace HotChocolate
             );
         }
 
-        private static UnionTypeDefinitionNode SerializeUnionType(
-            UnionType unionType,
-            ReferencedTypes referenced)
+        private static UnionTypeDefinitionNode SerializeUnionType(UnionType unionType)
         {
             var directives = unionType.Directives
-                .Select(t => SerializeDirective(t, referenced))
+                .Select(SerializeDirective)
                 .ToList();
 
             var types = unionType.Types.Values
-                .Select(t => SerializeNamedType(t, referenced))
+                .Select(SerializeNamedType)
                 .ToList();
 
             return new UnionTypeDefinitionNode
@@ -313,16 +307,14 @@ namespace HotChocolate
             );
         }
 
-        private static EnumTypeDefinitionNode SerializeEnumType(
-            EnumType enumType,
-            ReferencedTypes referenced)
+        private static EnumTypeDefinitionNode SerializeEnumType(EnumType enumType)
         {
             var directives = enumType.Directives
-                .Select(t => SerializeDirective(t, referenced))
+                .Select(SerializeDirective)
                 .ToList();
 
             var values = enumType.Values
-                .Select(t => SerializeEnumValue(t, referenced))
+                .Select(SerializeEnumValue)
                 .ToList();
 
             return new EnumTypeDefinitionNode
@@ -336,12 +328,10 @@ namespace HotChocolate
         }
 
 
-        private static EnumValueDefinitionNode SerializeEnumValue(
-            IEnumValue enumValue,
-            ReferencedTypes referenced)
+        private static EnumValueDefinitionNode SerializeEnumValue(IEnumValue enumValue)
         {
             var directives = enumValue.Directives
-                .Select(t => SerializeDirective(t, referenced))
+                .Select(SerializeDirective)
                 .ToList();
 
             return new EnumValueDefinitionNode
@@ -356,25 +346,25 @@ namespace HotChocolate
         private static ScalarTypeDefinitionNode SerializeScalarType(
             ScalarType scalarType)
         {
-            return new ScalarTypeDefinitionNode
-            (
+            var directives = scalarType.Directives
+                .Select(SerializeDirective)
+                .ToList();
+
+            return new(
                 null,
                 new NameNode(scalarType.Name),
                 SerializeDescription(scalarType.Description),
-                Array.Empty<DirectiveNode>()
-            );
+                directives);
         }
 
-        private static FieldDefinitionNode SerializeObjectField(
-            IOutputField field,
-            ReferencedTypes referenced)
+        private static FieldDefinitionNode SerializeObjectField(IOutputField field)
         {
             var arguments = field.Arguments
-                .Select(t => SerializeInputField(t, referenced))
+                .Select(SerializeInputField)
                 .ToList();
 
             var directives = field.Directives
-                .Select(t => SerializeDirective(t, referenced))
+                .Select(SerializeDirective)
                 .ToList();
 
             return new FieldDefinitionNode
@@ -383,79 +373,50 @@ namespace HotChocolate
                 new NameNode(field.Name),
                 SerializeDescription(field.Description),
                 arguments,
-                SerializeType(field.Type, referenced),
+                SerializeType(field.Type),
                 directives
             );
         }
 
         private static InputValueDefinitionNode SerializeInputField(
-            IInputField inputValue,
-            ReferencedTypes referenced)
-        {
-            return new InputValueDefinitionNode
-            (
+            IInputField inputValue) =>
+            new(
                 null,
                 new NameNode(inputValue.Name),
                 SerializeDescription(inputValue.Description),
-                SerializeType(inputValue.Type, referenced),
+                SerializeType(inputValue.Type),
                 inputValue.DefaultValue,
-                inputValue.Directives.Select(t =>
-                    SerializeDirective(t, referenced)).ToList()
-            );
-        }
+                inputValue.Directives.Select(SerializeDirective).ToList());
 
-        private static ITypeNode SerializeType(
-            IType type,
-            ReferencedTypes referenced)
+        private static ITypeNode SerializeType(IType type)
         {
             if (type is NonNullType nt)
             {
-                return new NonNullTypeNode(null,
-                    (INullableTypeNode)SerializeType(
-                        nt.Type, referenced));
+                return new NonNullTypeNode(null, (INullableTypeNode)SerializeType(nt.Type));
             }
 
             if (type is ListType lt)
             {
-                return new ListTypeNode(null,
-                    SerializeType(lt.ElementType, referenced));
+                return new ListTypeNode(null, SerializeType(lt.ElementType));
             }
 
             if (type is INamedType namedType)
             {
-                return SerializeNamedType(namedType, referenced);
+                return SerializeNamedType(namedType);
             }
 
             throw new NotSupportedException();
         }
 
-        private static NamedTypeNode SerializeNamedType(
-            INamedType namedType,
-            ReferencedTypes referenced)
-        {
-            referenced.TypeNames.Add(namedType.Name);
-            return new NamedTypeNode(null, new NameNode(namedType.Name));
-        }
+        private static NamedTypeNode SerializeNamedType(INamedType namedType) =>
+            new(null, new NameNode(namedType.Name));
 
-        private static DirectiveNode SerializeDirective(
-            IDirective directiveType,
-            ReferencedTypes referenced)
-        {
-            referenced.DirectiveNames.Add(directiveType.Name);
-            return directiveType.ToNode(true);
-        }
+        private static DirectiveNode SerializeDirective(IDirective directiveType) =>
+            directiveType.ToNode(true);
 
-        private static StringValueNode SerializeDescription(string description)
-        {
-            return string.IsNullOrEmpty(description)
+        private static StringValueNode SerializeDescription(string description) =>
+            string.IsNullOrEmpty(description)
                 ? null
                 : new StringValueNode(description);
-        }
-
-        private class ReferencedTypes
-        {
-            public ISet<string> TypeNames { get; } = new HashSet<string>();
-            public ISet<string> DirectiveNames { get; } = new HashSet<string>();
-        }
     }
 }

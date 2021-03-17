@@ -9,14 +9,14 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing
 {
-    public sealed class Selection : ISelection
+    public class Selection : ISelection
     {
         private static readonly ArgumentMap _emptyArguments =
-            new ArgumentMap(new Dictionary<NameString, ArgumentValue>());
+            new(new Dictionary<NameString, ArgumentValue>());
 
-        private static readonly IReadOnlyList<FieldNode> _emptySelections = new FieldNode[0];
         private List<SelectionIncludeCondition>? _includeConditions;
         private List<FieldNode>? _selections;
+        private IReadOnlyList<FieldNode>? _syntaxNodes;
         private bool _isReadOnly;
 
         public Selection(
@@ -36,15 +36,13 @@ namespace HotChocolate.Execution.Processing
             SyntaxNode = selection
                 ?? throw new ArgumentNullException(nameof(selection));
             ResponseName = responseName ??
-                (selection.Alias is null
-                    ? selection.Name.Value
-                    : selection.Alias.Value);
+                selection.Alias?.Value ??
+                selection.Name.Value;
             ResolverPipeline = resolverPipeline ??
                 throw new ArgumentNullException(nameof(resolverPipeline));
             Arguments = arguments is null
                 ? _emptyArguments
                 : new ArgumentMap(arguments);
-            SyntaxNodes = _emptySelections;
             InclusionKind = internalSelection
                 ? SelectionInclusionKind.Internal
                 : SelectionInclusionKind.Always;
@@ -54,6 +52,22 @@ namespace HotChocolate.Execution.Processing
                 _includeConditions = new List<SelectionIncludeCondition> { includeCondition };
                 ModifyCondition(true);
             }
+        }
+
+        public Selection(Selection selection)
+        {
+            _includeConditions = selection._includeConditions;
+            _selections = selection._selections;
+            _isReadOnly = selection._isReadOnly;
+            DeclaringType = selection.DeclaringType;
+            Field = selection.Field;
+            SyntaxNode = selection.SyntaxNode;
+            _selections = selection._selections;
+            _syntaxNodes = selection._syntaxNodes;
+            ResponseName = selection.ResponseName;
+            ResolverPipeline = selection.ResolverPipeline;
+            Arguments = selection.Arguments;
+            InclusionKind = selection.InclusionKind;
         }
 
         /// <inheritdoc />
@@ -68,7 +82,17 @@ namespace HotChocolate.Execution.Processing
         public SelectionSetNode? SelectionSet => SyntaxNode.SelectionSet;
 
         /// <inheritdoc />
-        public IReadOnlyList<FieldNode> SyntaxNodes { get; private set; }
+        public IReadOnlyList<FieldNode> SyntaxNodes
+        {
+            get
+            {
+                if (_syntaxNodes is null)
+                {
+                    _syntaxNodes = _selections ?? (IReadOnlyList<FieldNode>)new[] { SyntaxNode };
+                }
+                return _syntaxNodes;
+            }
+        }
 
         IReadOnlyList<FieldNode> IFieldSelection.Nodes => SyntaxNodes;
 
@@ -177,7 +201,6 @@ namespace HotChocolate.Execution.Processing
 
             _isReadOnly = true;
             SyntaxNode = MergeField(SyntaxNode, _selections);
-            SyntaxNodes = _selections ?? _emptySelections;
         }
 
         private static FieldNode MergeField(
@@ -189,8 +212,7 @@ namespace HotChocolate.Execution.Processing
                 return first;
             }
 
-            return new FieldNode
-            (
+            return new FieldNode(
                 first.Location,
                 first.Name,
                 first.Alias,
@@ -219,8 +241,7 @@ namespace HotChocolate.Execution.Processing
                 }
             }
 
-            return new SelectionSetNode
-            (
+            return new SelectionSetNode(
                 selections[0].SelectionSet!.Location,
                 children
             );
@@ -269,7 +290,7 @@ namespace HotChocolate.Execution.Processing
         private void ModifyCondition(bool hasConditions) =>
             InclusionKind =
                 (InclusionKind == SelectionInclusionKind.Internal
-                || InclusionKind == SelectionInclusionKind.InternalConditional)
+                    || InclusionKind == SelectionInclusionKind.InternalConditional)
                     ? (hasConditions
                         ? SelectionInclusionKind.InternalConditional
                         : SelectionInclusionKind.Internal)

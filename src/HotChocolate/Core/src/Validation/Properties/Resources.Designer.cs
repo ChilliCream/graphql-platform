@@ -184,13 +184,22 @@ namespace HotChocolate.Validation.Properties {
                 return ResourceManager.GetString("ErrorHelper_FragmentDoesNotExist", resourceCulture);
             }
         }
+
+        internal static string ErrorHelper_NoSelectionOnRootType {
+            get {
+                return ResourceManager.GetString("ErrorHelper_NoSelectionOnRootType", resourceCulture);
+            }
+        }
         
-        /// <summary>
-        ///   Looks up a localized string similar to There are multiple fragments with the name `{0}`..
-        /// </summary>
         internal static string ErrorHelper_FragmentNameNotUnique {
             get {
                 return ResourceManager.GetString("ErrorHelper_FragmentNameNotUnique", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_FieldIsRequiredButNull {
+            get {
+                return ResourceManager.GetString("ErrorHelper_FieldIsRequiredButNull", resourceCulture);
             }
         }
         
@@ -374,9 +383,21 @@ namespace HotChocolate.Validation.Properties {
             }
         }
         
+        internal static string ErrorHelper_MaxExecutionDepth {
+            get {
+                return ResourceManager.GetString("ErrorHelper_MaxExecutionDepth", resourceCulture);
+            }
+        }
+        
         internal static string HotChocolateValidationBuilderExtensions_MinimumAllowedValue {
             get {
                 return ResourceManager.GetString("HotChocolateValidationBuilderExtensions_MinimumAllowedValue", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_DirectiveMustBeUniqueInLocation {
+            get {
+                return ResourceManager.GetString("ErrorHelper_DirectiveMustBeUniqueInLocation", resourceCulture);
             }
         }
     }

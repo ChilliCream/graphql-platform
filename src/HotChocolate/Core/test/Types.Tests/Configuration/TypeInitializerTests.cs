@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Introspection;
 using Snapshooter.Xunit;
 using Xunit;
@@ -15,8 +16,9 @@ namespace HotChocolate.Configuration
         public void Register_SchemaType_ClrTypeExists()
         {
             // arrange
-            IDescriptorContext context = DescriptorContext.Create();
-            var typeRegistry = new TypeRegistry();
+            IDescriptorContext context = DescriptorContext.Create(
+                typeInterceptor: new AggregateTypeInterceptor(new IntrospectionTypeInterceptor()));
+            var typeRegistry = new TypeRegistry(context.TypeInterceptor);
 
             var typeInitializer = new TypeInitializer(
                 context,
@@ -26,8 +28,8 @@ namespace HotChocolate.Configuration
                     context.TypeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
                 },
                 new List<Type>(),
-                new AggregateTypeInitializationInterceptor(new IntrospectionTypeInterceptor()),
                 null,
+                t => t is FooType,
                 t => t is FooType);
 
             // act
@@ -61,8 +63,9 @@ namespace HotChocolate.Configuration
         public void Register_ClrType_InferSchemaTypes()
         {
             // arrange
-            IDescriptorContext context = DescriptorContext.Create();
-            var typeRegistry = new TypeRegistry();
+            IDescriptorContext context = DescriptorContext.Create(
+                typeInterceptor: new AggregateTypeInterceptor(new IntrospectionTypeInterceptor()));
+            var typeRegistry = new TypeRegistry(context.TypeInterceptor);
 
             var typeInitializer = new TypeInitializer(
                 context,
@@ -72,9 +75,9 @@ namespace HotChocolate.Configuration
                     context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
                 },
                 new List<Type>(),
-                new AggregateTypeInitializationInterceptor(new IntrospectionTypeInterceptor()),
                 null,
-                t => t is ObjectType<Foo>);
+                t => t is ObjectType<Foo>,
+                t => t is FooType);
 
             // act
             typeInitializer.Initialize(() => null, new SchemaOptions());
@@ -107,8 +110,9 @@ namespace HotChocolate.Configuration
         public void Initializer_SchemaResolver_Is_Null()
         {
             // arrange
-            IDescriptorContext context = DescriptorContext.Create();
-            var typeRegistry = new TypeRegistry();
+            IDescriptorContext context = DescriptorContext.Create(
+                typeInterceptor: new AggregateTypeInterceptor(new IntrospectionTypeInterceptor()));
+            var typeRegistry = new TypeRegistry(context.TypeInterceptor);
 
             var typeInitializer = new TypeInitializer(
                 context,
@@ -118,9 +122,9 @@ namespace HotChocolate.Configuration
                     context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
                 },
                 new List<Type>(),
-                new AggregateTypeInitializationInterceptor(new IntrospectionTypeInterceptor()),
                 null!,
-                t => t is ObjectType<Foo>);
+                t => t is ObjectType<Foo>,
+                t => t is FooType);
 
             // act
             void Action() => typeInitializer.Initialize(null!, new SchemaOptions());
@@ -133,8 +137,9 @@ namespace HotChocolate.Configuration
         public void Initializer_SchemaOptions_Are_Null()
         {
             // arrange
-            IDescriptorContext context = DescriptorContext.Create();
-            var typeRegistry = new TypeRegistry();
+            IDescriptorContext context = DescriptorContext.Create(
+                typeInterceptor: new AggregateTypeInterceptor(new IntrospectionTypeInterceptor()));
+            var typeRegistry = new TypeRegistry(context.TypeInterceptor);
 
             var typeInitializer = new TypeInitializer(
                 context,
@@ -144,15 +149,35 @@ namespace HotChocolate.Configuration
                     context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
                 },
                 new List<Type>(),
-                new AggregateTypeInitializationInterceptor(new IntrospectionTypeInterceptor()),
                 null!,
-                t => t is ObjectType<Foo>);
+                t => t is ObjectType<Foo>,
+                t => t is FooType);
 
             // act
             void Action() => typeInitializer.Initialize(() => null, null!);
 
             // assert
             Assert.Throws<ArgumentNullException>(Action);
+        }
+
+        [Fact]
+        public void Detect_Duplicate_Types()
+        {
+            // arrange
+            var type = new ObjectType(d => d.Name("Abc").Field("def").Resolve("ghi"));
+
+            // the interceptor will add multiple types references to type and count
+            // how many times the type is registered.
+            var interceptor = new TypeRegInterceptor(type);
+
+            // act
+            SchemaBuilder.New()
+                .AddQueryType(type)
+                .TryAddTypeInterceptor(interceptor)
+                .Create();
+
+            // assert
+            Assert.Equal(1, interceptor.Count);
         }
 
         public class FooType
@@ -178,6 +203,38 @@ namespace HotChocolate.Configuration
         public class Bar
         {
             public string Baz { get; }
+        }
+
+        private class TypeRegInterceptor : TypeInterceptor
+        {
+            private readonly IType _watch;
+
+            public TypeRegInterceptor(IType watch)
+            {
+                _watch = watch;
+            }
+
+            public int Count { get; private set; }
+
+            public override void OnBeforeInitialize(ITypeDiscoveryContext discoveryContext)
+            {
+                if (!ReferenceEquals(_watch, discoveryContext.Type))
+                {
+                    discoveryContext.RegisterDependency(
+                        new TypeDependency(TypeReference.Create(_watch)));
+
+                    discoveryContext.RegisterDependency(
+                        new TypeDependency(TypeReference.Create(new ListType(_watch))));
+                }
+            }
+
+            public override void OnTypeRegistered(ITypeDiscoveryContext discoveryContext)
+            {
+                if (ReferenceEquals(_watch, discoveryContext.Type))
+                {
+                    Count++;
+                }
+            }
         }
     }
 }

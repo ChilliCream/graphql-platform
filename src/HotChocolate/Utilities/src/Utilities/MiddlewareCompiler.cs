@@ -148,9 +148,9 @@ namespace HotChocolate.Utilities
                 {
                     throw new NotSupportedException(
                         string.Format(
+                            CultureInfo.InvariantCulture,
                             UtilityResources.MiddlewareActivator_ParameterNotSupported,
-                            parameter.Name,
-                            CultureInfo.InvariantCulture));
+                            parameter.Name));
                 }
             }
 

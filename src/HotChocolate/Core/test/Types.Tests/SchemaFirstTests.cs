@@ -2,6 +2,8 @@ using System;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
+using HotChocolate.Types.Introspection;
+using Microsoft.VisualBasic.CompilerServices;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -111,7 +113,7 @@ namespace HotChocolate
                 await executor.ExecuteAsync("{ hello }");
             result.ToJson().MatchSnapshot();
         }
-        
+
         [Fact]
         public async Task SchemaBuilder_AddResolver()
         {
@@ -307,6 +309,53 @@ namespace HotChocolate
 
             // assert
             schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void ListTypesAreRecognized()
+        {
+            // arrange
+            string sourceText = @"
+                type Query {
+                    foo: Foo
+                }
+
+                type Foo {
+                    single_int: Int
+                    list_int: [Int]
+                    matrix_int: [[Int]]
+                    nullable_single_int: Int!
+                    nullable_list_int: [Int!]!
+                    nullable_matrix_int: [[Int!]!]!
+                }
+            ";
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(sourceText)
+                .Use(next => context => default(ValueTask))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SchemaBuilder_AnyType()
+        {
+            // arrange
+            string sourceText = "type Query { hello: Any }";
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(sourceText)
+                .BindComplexType<Query>()
+                .Create();
+
+            // assert
+            IRequestExecutor executor = schema.MakeExecutable();
+            IExecutionResult result = await executor.ExecuteAsync("{ hello }");
+            result.ToJson().MatchSnapshot();
         }
 
         public class Query

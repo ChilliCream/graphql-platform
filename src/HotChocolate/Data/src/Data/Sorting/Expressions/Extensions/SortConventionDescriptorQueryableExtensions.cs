@@ -1,6 +1,7 @@
+using HotChocolate.Data.Sorting;
 using HotChocolate.Data.Sorting.Expressions;
 
-namespace HotChocolate.Data.Sorting
+namespace HotChocolate.Data
 {
     public static class SortConventionDescriptorQueryableExtensions
     {
@@ -13,7 +14,7 @@ namespace HotChocolate.Data.Sorting
         {
             descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
             descriptor.AddOperationHandler<QueryableDescendingSortOperationHandler>();
-            descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+            descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
             return descriptor;
         }
     }

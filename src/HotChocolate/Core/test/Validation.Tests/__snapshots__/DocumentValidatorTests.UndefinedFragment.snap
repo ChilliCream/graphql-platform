@@ -17,6 +17,26 @@
       "fragment": "undefinedFragment",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-target-defined"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentSpread",
+      "Location": {
+        "Start": 69,
+        "End": 111,
+        "Line": 4,
+        "Column": 25
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 72,
+          "End": 111,
+          "Line": 4,
+          "Column": 28
+        },
+        "Value": "undefinedFragment"
+      },
+      "Directives": []
+    }
   }
 ]

@@ -10,9 +10,9 @@
     <Product>Hot Chocolate</Product>
     <Authors>ChilliCream authors and contributors</Authors>
     <Company>ChilliCream</Company>
-    <Copyright>Copyright &#169; 2019 ChilliCream (Michael &amp; Rafael Staib)</Copyright>
+    <Copyright>Copyright &#169; 2021 ChilliCream (Michael &amp; Rafael Staib)</Copyright>
     <PackageLicenseUrl>https://github.com/ChilliCream/hotchocolate/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://hotchocolate.io</PackageProjectUrl>
+    <PackageProjectUrl>https://chillicream.com</PackageProjectUrl>
     <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/hotchocolate/releases/$(PackageVersion)</PackageReleaseNotes>
     <PackageTags>GraphQL ChilliCream</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
@@ -29,8 +29,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <LibraryTargetFrameworks>netcoreapp5.0; netcoreapp3.1; netstandard2.0</LibraryTargetFrameworks>
-    <TestTargetFrameworks>netcoreapp5.0; netcoreapp3.1; netcoreapp2.1</TestTargetFrameworks>
+    <LibraryTargetFrameworks>net6.0; net5.0; netcoreapp3.1; netstandard2.0</LibraryTargetFrameworks>
+    <TestTargetFrameworks>net6.0; net5.0; netcoreapp3.1</TestTargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>

@@ -9,7 +9,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
-using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
 
 namespace HotChocolate.Data.Filters
@@ -21,7 +20,8 @@ namespace HotChocolate.Data.Filters
         : Convention<FilterConventionDefinition>
         , IFilterConvention
     {
-        private const string _typePostFix = "FilterInput";
+        private const string _inputPostFix = "FilterInput";
+        private const string _inputTypePostFix = "FilterInputType";
 
         private Action<IFilterConventionDescriptor>? _configure;
         private INamingConventions _namingConventions = default!;
@@ -44,62 +44,80 @@ namespace HotChocolate.Data.Filters
                 throw new ArgumentNullException(nameof(configure));
         }
 
-        protected override FilterConventionDefinition CreateDefinition(
-            IConventionContext context)
+        internal new FilterConventionDefinition? Definition => base.Definition;
+
+        /// <inheritdoc />
+        protected override FilterConventionDefinition CreateDefinition(IConventionContext context)
         {
             if (_configure is null)
             {
-                throw new InvalidOperationException(FilterConvention_NoConfigurationSpecified);
+                throw new InvalidOperationException(
+                    DataResources.FilterConvention_NoConfigurationSpecified);
             }
 
             var descriptor = FilterConventionDescriptor.New(
                 context.DescriptorContext,
                 context.Scope);
 
-            _configure(descriptor);
+            _configure!(descriptor);
             _configure = null;
 
             return descriptor.CreateDefinition();
         }
 
+        /// <summary>
+        /// This method is called on initialization of the convention but before the convention is
+        /// completed. The default implementation of this method does nothing. It can be overriden
+        /// by a derived class such that the convention can be further configured before it is
+        /// completed
+        /// </summary>
+        /// <param name="descriptor">
+        /// The descriptor that can be used to configure the convention
+        /// </param>
         protected virtual void Configure(IFilterConventionDescriptor descriptor)
         {
         }
 
-        protected override void OnComplete(
-            IConventionContext context,
-            FilterConventionDefinition definition)
+        /// <inheritdoc />
+        protected override void Complete(IConventionContext context)
         {
-            if (definition.Provider is null)
+            if (Definition?.Provider is null)
             {
-                throw FilterConvention_NoProviderFound(GetType(), definition.Scope);
+                throw FilterConvention_NoProviderFound(GetType(), Definition?.Scope);
             }
 
-            if (definition.ProviderInstance is null)
+            if (Definition.ProviderInstance is null)
             {
                 _provider =
-                    context.Services.GetOrCreateService<IFilterProvider>(definition.Provider) ??
-                    throw FilterConvention_NoProviderFound(GetType(), definition.Scope);
+                    context.Services.GetOrCreateService<IFilterProvider>(Definition.Provider) ??
+                    throw FilterConvention_NoProviderFound(GetType(), Definition.Scope);
             }
             else
             {
-                _provider = definition.ProviderInstance;
+                _provider = Definition.ProviderInstance;
             }
 
             _namingConventions = context.DescriptorContext.Naming;
-            _operations = definition.Operations.ToDictionary(
-                x => x.Id,
-                FilterOperation.FromDefinition);
-            _bindings = definition.Bindings;
-            _configs = definition.Configurations;
-            _argumentName = definition.ArgumentName;
+            _operations =
+                Definition.Operations.ToDictionary(x => x.Id, FilterOperation.FromDefinition);
+            _bindings = Definition.Bindings;
+            _configs = Definition.Configurations;
+            _argumentName = Definition.ArgumentName;
 
             if (_provider is IFilterProviderConvention init)
             {
-                init.Initialize(context);
+                IReadOnlyList<IFilterProviderExtension> extensions =
+                    CollectExtensions(context.Services, Definition);
+                init.Initialize(context, this);
+                MergeExtensions(context, init, extensions);
+                init.Complete(context);
             }
 
             _typeInspector = context.DescriptorContext.TypeInspector;
+
+            // It is important to always call base to continue the cleanup and the disposal of the
+            // definition
+            base.Complete(context);
         }
 
 
@@ -111,11 +129,64 @@ namespace HotChocolate.Data.Filters
                 throw new ArgumentNullException(nameof(runtimeType));
             }
 
+            if (typeof(IEnumOperationFilterInputType).IsAssignableFrom(runtimeType) &&
+                runtimeType.GenericTypeArguments.Length == 1 &&
+                runtimeType.GetGenericTypeDefinition() == typeof(EnumOperationFilterInputType<>))
+            {
+                NameString genericName =
+                    _namingConventions.GetTypeName(runtimeType.GenericTypeArguments[0]);
+
+                return genericName.Value + "OperationFilterInput";
+            }
+
+            if (typeof(IComparableOperationFilterInputType).IsAssignableFrom(runtimeType) &&
+                runtimeType.GenericTypeArguments.Length == 1 &&
+                runtimeType.GetGenericTypeDefinition() ==
+                typeof(ComparableOperationFilterInputType<>))
+            {
+                NameString genericName =
+                    _namingConventions.GetTypeName(runtimeType.GenericTypeArguments[0]);
+
+                return $"Comparable{genericName.Value}OperationFilterInput";
+            }
+
+            if (typeof(IListFilterInputType).IsAssignableFrom(runtimeType) &&
+                runtimeType.GenericTypeArguments.Length == 1 &&
+                runtimeType.GetGenericTypeDefinition() == typeof(ListFilterInputType<>))
+            {
+                Type genericType = runtimeType.GenericTypeArguments[0];
+                NameString genericName;
+                if (typeof(FilterInputType).IsAssignableFrom(genericType))
+                {
+                    genericName = GetTypeName(genericType);
+                }
+                else
+                {
+                    genericName = _namingConventions.GetTypeName(genericType);
+                }
+
+                return "List" + genericName.Value;
+            }
+
             string name = _namingConventions.GetTypeName(runtimeType);
 
-            if (!name.EndsWith(_typePostFix, StringComparison.Ordinal))
+            var isInputObjectType = typeof(FilterInputType).IsAssignableFrom(runtimeType);
+            var isEndingInput = name.EndsWith(_inputPostFix, StringComparison.Ordinal);
+            var isEndingInputType = name.EndsWith(_inputTypePostFix, StringComparison.Ordinal);
+
+            if (isInputObjectType && isEndingInputType)
             {
-                name += _typePostFix;
+                return name.Substring(0, name.Length - 4);
+            }
+
+            if (isInputObjectType && !isEndingInput && !isEndingInputType)
+            {
+                return name + _inputPostFix;
+            }
+
+            if (!isInputObjectType && !isEndingInput)
+            {
+                return name + _inputPostFix;
             }
 
             return name;
@@ -187,21 +258,19 @@ namespace HotChocolate.Data.Filters
                 {
                     configure(descriptor);
                 }
-
-                if (descriptor is FilterInputTypeDescriptor inputTypeDescriptor)
-                {
-                    inputTypeDescriptor.CreateDefinition();
-                }
             }
         }
 
         public FieldMiddleware CreateExecutor<TEntityType>() =>
             _provider.CreateExecutor<TEntityType>(_argumentName);
 
+        public virtual void ConfigureField(IObjectFieldDescriptor descriptor) =>
+            _provider.ConfigureField(_argumentName, descriptor);
+
         public bool TryGetHandler(
-            ITypeDiscoveryContext context,
-            FilterInputTypeDefinition typeDefinition,
-            FilterFieldDefinition fieldDefinition,
+            ITypeCompletionContext context,
+            IFilterInputTypeDefinition typeDefinition,
+            IFilterFieldDefinition fieldDefinition,
             [NotNullWhen(true)] out IFilterFieldHandler? handler)
         {
             foreach (IFilterFieldHandler filterFieldHandler in _provider.FieldHandlers)
@@ -228,21 +297,22 @@ namespace HotChocolate.Data.Filters
 
             if (runtimeType.IsArrayOrList)
             {
-                if (runtimeType.ElementType is {} &&
+                if (runtimeType.ElementType is { } &&
                     TryCreateFilterType(runtimeType.ElementType, out Type? elementType))
                 {
-                    type = typeof(ListFilterInput<>).MakeGenericType(elementType);
+                    type = typeof(ListFilterInputType<>).MakeGenericType(elementType);
                     return true;
                 }
             }
 
             if (runtimeType.Type.IsEnum)
             {
-                type = typeof(EnumOperationFilterInput<>).MakeGenericType(runtimeType.Source);
+                type = typeof(EnumOperationFilterInputType<>).MakeGenericType(runtimeType.Source);
                 return true;
             }
 
-            if (runtimeType.Type.IsClass)
+            if (runtimeType.Type.IsClass ||
+                runtimeType.Type.IsInterface)
             {
                 type = typeof(FilterInputType<>).MakeGenericType(runtimeType.Source);
                 return true;
@@ -250,6 +320,44 @@ namespace HotChocolate.Data.Filters
 
             type = null;
             return false;
+        }
+
+        private static IReadOnlyList<IFilterProviderExtension> CollectExtensions(
+            IServiceProvider serviceProvider,
+            FilterConventionDefinition definition)
+        {
+            List<IFilterProviderExtension> extensions = new List<IFilterProviderExtension>();
+            extensions.AddRange(definition.ProviderExtensions);
+            foreach (var extensionType in definition.ProviderExtensionsTypes)
+            {
+                if (serviceProvider.TryGetOrCreateService<IFilterProviderExtension>(
+                    extensionType,
+                    out var createdExtension))
+                {
+                    extensions.Add(createdExtension);
+                }
+            }
+
+            return extensions;
+        }
+
+        private void MergeExtensions(
+            IConventionContext context,
+            IFilterProviderConvention provider,
+            IReadOnlyList<IFilterProviderExtension> extensions)
+        {
+            if (provider is Convention providerConvention)
+            {
+                for (var m = 0; m < extensions.Count; m++)
+                {
+                    if (extensions[m] is IFilterProviderConvention extensionConvention)
+                    {
+                        extensionConvention.Initialize(context, this);
+                        extensions[m].Merge(context, providerConvention);
+                        extensionConvention.Complete(context);
+                    }
+                }
+            }
         }
     }
 }

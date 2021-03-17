@@ -1,19 +1,33 @@
+using System;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
+using Microsoft.Extensions.Options;
 using GreenDonut;
+using HotChocolate.DataLoader;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
+using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
-using HotChocolate.DataLoader;
 using HotChocolate.Types.Relay;
+using HotChocolate.Utilities;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     internal static class InternalServiceCollectionExtensions
     {
+        internal static IServiceCollection TryAddRequestExecutorFactoryOptionsMonitor(
+            this IServiceCollection services)
+        {
+            services.TryAddSingleton<IRequestExecutorOptionsMonitor>(
+                sp => new DefaultRequestExecutorOptionsMonitor(
+                    sp.GetRequiredService<IOptionsMonitor<RequestExecutorSetup>>(),
+                    sp.GetServices<IRequestExecutorOptionsProvider>()));
+            return services;
+        }
+
         internal static IServiceCollection TryAddVariableCoercion(
             this IServiceCollection services)
         {
@@ -26,33 +40,39 @@ namespace Microsoft.Extensions.DependencyInjection
             int maximumRetained = 512)
         {
             services.TryAddSingleton<ObjectPool<ResultObjectBuffer<ResultMap>>>(
-                sp => new ResultMapPool(maximumRetained));
+                _ => new ResultMapPool(maximumRetained));
             services.TryAddSingleton<ObjectPool<ResultObjectBuffer<ResultMapList>>>(
-                sp => new ResultMapListPool(maximumRetained));
+                _ => new ResultMapListPool(maximumRetained));
             services.TryAddSingleton<ObjectPool<ResultObjectBuffer<ResultList>>>(
-                sp => new ResultListPool(maximumRetained));
+                _ => new ResultListPool(maximumRetained));
             services.TryAddSingleton<ResultPool>();
             return services;
         }
 
         internal static IServiceCollection TryAddResolverTaskPool(
             this IServiceCollection services,
-            int maximumRetained = 16)
+            int maximumRetained = 256)
         {
             services.TryAddSingleton<ObjectPool<ResolverTask>>(
-                sp => new BufferedObjectPool<ResolverTask>(t => t.Reset()));
+                _ => new ResolverTaskPool(
+                    maximumRetained));
             return services;
         }
 
         internal static IServiceCollection TryAddOperationContextPool(
             this IServiceCollection services,
-            int maximumRetained = 16)
+            int maximumRetained = -1)
         {
+            if (maximumRetained < 1)
+            {
+                maximumRetained = Environment.ProcessorCount * 2;
+            }
+
             services.TryAddTransient<OperationContext>();
             services.TryAddSingleton<ObjectPool<OperationContext>>(
-                sp => new OperationContextPool(
-                    () => sp.GetRequiredService<OperationContext>(),
-                maximumRetained));
+                sp => new DefaultObjectPool<OperationContext>(
+                    new OperationContextPoolPolicy(sp.GetRequiredService<OperationContext>),
+                    maximumRetained));
             return services;
         }
 
@@ -67,7 +87,11 @@ namespace Microsoft.Extensions.DependencyInjection
         internal static IServiceCollection TryAddRequestExecutorResolver(
             this IServiceCollection services)
         {
-            services.TryAddSingleton<IRequestExecutorResolver, RequestExecutorResolver>();
+            services.TryAddSingleton<RequestExecutorResolver>();
+            services.TryAddSingleton<IRequestExecutorResolver>(
+                sp => sp.GetRequiredService<RequestExecutorResolver>());
+            services.TryAddSingleton<IInternalRequestExecutorResolver>(
+                sp => sp.GetRequiredService<RequestExecutorResolver>());
             return services;
         }
 
@@ -75,9 +99,9 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services)
         {
             services.TryAddSingleton<IDocumentCache>(
-                sp => new DefaultDocumentCache());
+                _ => new DefaultDocumentCache());
             services.TryAddSingleton<IPreparedOperationCache>(
-                sp => new DefaultPreparedOperationCache());
+                _ => new DefaultPreparedOperationCache());
             return services;
         }
 
@@ -85,7 +109,7 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services)
         {
             services.TryAddSingleton<IDocumentHashProvider>(
-                sp => new MD5DocumentHashProvider());
+                _ => new MD5DocumentHashProvider());
             return services;
         }
 
@@ -95,6 +119,15 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddScoped<BatchScheduler>();
             services.TryAddScoped<IBatchScheduler>(sp => sp.GetRequiredService<BatchScheduler>());
             services.TryAddScoped<IBatchDispatcher>(sp => sp.GetRequiredService<BatchScheduler>());
+            return services;
+        }
+
+        internal static IServiceCollection TryAddRequestContextAccessor(
+            this IServiceCollection services)
+        {
+            services.TryAddSingleton<DefaultRequestContextAccessor>();
+            services.TryAddSingleton<IRequestContextAccessor>(
+                sp => sp.GetRequiredService<DefaultRequestContextAccessor>());
             return services;
         }
 

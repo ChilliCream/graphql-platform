@@ -1,6 +1,7 @@
 using System;
 using System.Linq.Expressions;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters.Expressions
@@ -15,7 +16,7 @@ namespace HotChocolate.Data.Filters.Expressions
             CanBeNull = false;
         }
 
-        protected override int Operation => DefaultOperations.In;
+        protected override int Operation => DefaultFilterOperations.In;
 
         public override Expression HandleOperation(
             QueryableFilterContext context,
@@ -32,11 +33,9 @@ namespace HotChocolate.Data.Filters.Expressions
             }
 
             return FilterExpressionBuilder.In(
-                    property,
-                    context.RuntimeTypes.Peek().Source,
-                    parsedValue);
-
-            throw new InvalidOperationException();
+                property,
+                context.RuntimeTypes.Peek().Source,
+                parsedValue);
         }
     }
 }

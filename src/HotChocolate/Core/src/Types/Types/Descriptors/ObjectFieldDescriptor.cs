@@ -46,13 +46,15 @@ namespace HotChocolate.Types.Descriptors
             Definition.Member = member ??
                 throw new ArgumentNullException(nameof(member));
             Definition.Name = context.Naming.GetMemberName(
-                member, MemberKind.ObjectField);
+                member,
+                MemberKind.ObjectField);
             Definition.Description = context.Naming.GetMemberDescription(
-                member, MemberKind.ObjectField);
+                member,
+                MemberKind.ObjectField);
             Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
             Definition.SourceType = sourceType;
             Definition.ResolverType = resolverType == sourceType ? null : resolverType;
-            
+
             if (context.Naming.IsDeprecated(member, out var reason))
             {
                 Deprecated(reason);
@@ -60,8 +62,7 @@ namespace HotChocolate.Types.Descriptors
 
             if (member is MethodInfo m)
             {
-                Parameters = m.GetParameters().ToDictionary(
-                    t => new NameString(t.Name));
+                Parameters = m.GetParameters().ToDictionary(t => new NameString(t.Name));
                 Definition.ResultType = m.ReturnType;
             }
             else if (member is PropertyInfo p)
@@ -87,9 +88,11 @@ namespace HotChocolate.Types.Descriptors
             if (member is { })
             {
                 Definition.Name = context.Naming.GetMemberName(
-                    member, MemberKind.ObjectField);
+                    member,
+                    MemberKind.ObjectField);
                 Definition.Description = context.Naming.GetMemberDescription(
-                    member, MemberKind.ObjectField);
+                    member,
+                    MemberKind.ObjectField);
                 Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
 
                 if (context.Naming.IsDeprecated(member, out string? reason))
@@ -127,7 +130,6 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             ObjectFieldDefinition definition)
         {
-
             if (Definition.Member is { })
             {
                 Context.TypeInspector.ApplyAttributes(
@@ -143,7 +145,7 @@ namespace HotChocolate.Types.Descriptors
 
         private void CompleteArguments(ObjectFieldDefinition definition)
         {
-            if (!_argumentsInitialized)
+            if (!_argumentsInitialized && Parameters.Any())
             {
                 FieldDescriptorUtilities.DiscoverArguments(
                     Context,
@@ -175,7 +177,7 @@ namespace HotChocolate.Types.Descriptors
 
         [Obsolete("Use `Deprecated`.")]
         public IObjectFieldDescriptor DeprecationReason(string? reason) =>
-           Deprecated(reason);
+            Deprecated(reason);
 
         public new IObjectFieldDescriptor Deprecated(string? reason)
         {
@@ -287,7 +289,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public IObjectFieldDescriptor ResolveWith<TResolver>(
-            Expression<Func<TResolver, object>> propertyOrMethod)
+            Expression<Func<TResolver, object?>> propertyOrMethod)
         {
             if (propertyOrMethod is null)
             {
@@ -329,6 +331,7 @@ namespace HotChocolate.Types.Descriptors
                 Definition.ResolverMember = propertyOrMethod;
                 Definition.Resolver = null;
                 Definition.ResultType = propertyOrMethod.GetReturnType();
+                return this;
             }
 
             throw new ArgumentException(
@@ -372,6 +375,13 @@ namespace HotChocolate.Types.Descriptors
             params ArgumentNode[] arguments)
         {
             base.Directive(name, arguments);
+            return this;
+        }
+
+        public new IObjectFieldDescriptor ConfigureContextData(
+            Action<ExtensionData> configure)
+        {
+            base.ConfigureContextData(configure);
             return this;
         }
 

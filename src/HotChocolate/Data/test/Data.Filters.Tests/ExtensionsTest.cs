@@ -16,14 +16,14 @@ namespace HotChocolate.Data.Tests
             // act
             var convention = new FilterConvention(
                 x => x.UseMock()
-                    .Configure<StringOperationFilterInput>(
-                        y => y.Operation(DefaultOperations.Like).Type<StringType>())
-                    .Operation(DefaultOperations.Like)
+                    .Configure<StringOperationFilterInputType>(
+                        y => y.Operation(DefaultFilterOperations.Like).Type<StringType>())
+                    .Operation(DefaultFilterOperations.Like)
                     .Name("like"));
 
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<IFilterConvention>(convention)
-                .AddTypeInterceptor<FilterTypeInterceptor>()
+                .TryAddTypeInterceptor<FilterTypeInterceptor>()
                 .AddQueryType(
                     c =>
                         c.Name("Query")
@@ -81,7 +81,7 @@ namespace HotChocolate.Data.Tests
                 .AddFiltering()
                 .AddQueryType<Query>(
                     c =>
-                        c.Field(x => x.GetFoos()).UseFiltering<BarFilterType>());
+                        c.Field(x => x.GetFoos()).UseFiltering<BarFilterInput>());
 
             ISchema schema = builder.Create();
 
@@ -115,7 +115,7 @@ namespace HotChocolate.Data.Tests
                 .AddFiltering()
                 .AddQueryType<Query>(
                     c =>
-                        c.Field(x => x.GetFoos()).UseFiltering(typeof(BarFilterType)));
+                        c.Field(x => x.GetFoos()).UseFiltering(typeof(BarFilterInput)));
 
             ISchema schema = builder.Create();
 
@@ -146,11 +146,11 @@ namespace HotChocolate.Data.Tests
         {
             protected override void Configure(IFilterInputTypeDescriptor descriptor)
             {
-                descriptor.Field("test").Type<StringOperationFilterInput>();
+                descriptor.Field("test").Type<StringOperationFilterInputType>();
             }
         }
 
-        public class BarFilterType : FilterInputType<Bar>
+        public class BarFilterInput : FilterInputType<Bar>
         {
             protected override void Configure(IFilterInputTypeDescriptor<Bar> descriptor)
             {

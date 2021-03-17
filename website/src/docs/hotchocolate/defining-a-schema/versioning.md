@@ -2,84 +2,53 @@
 title: "Versioning"
 ---
 
-Use this section as an introduction to explain what a reader can expect of this document.
+import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-# Headlines
+GraphQL versioning works differently as the versioning you know from REST.
+While nothing stops you from versioning a GraphQL API like a REST API, it is not best practice to do so and most often is not needed.
 
-Use headlines to separate a document into several sections. First level headlines will appear in the left hand navigation. This will help the reader to quickly skip sections or jump to a particular section.
+A GraphQL API can evolve. Many changes to a GraphQL Schema are non-breaking changes.
+You are free to add fields to a type for example. This does not break existing queries.
 
-# Use Diagrams
+If you remove fields or change the nullability of a field, the contract with existing queries is broken.
+In GraphQL it is possible to deprecate fields.
+You can mark a field as deprecated to signal API consumers that a field is obsolete and will be removed in the future.
 
-Use [mermaid diagrams](https://mermaid-js.github.io/mermaid) to help a reader understand complex problems. Jump over to the [mermaid playground](https://mermaid-js.github.io/mermaid-live-editor) to test your diagrams.
-
-```mermaid
-graph TD
-  A[Christmas] -->|Get money| B(Go shopping)
-  B --> C{Let me think}
-  C -->|One| D[Laptop]
-  C -->|Two| E[iPhone]
-  C -->|Three| F[fa:fa-car Car]
-```
-
-# Use Code Examples
-
-A code example is another tool to help readers following the document and understanding the problem. Here is an list of code blocks that are used often with the ChilliCream GraphQL platform.
-
-Use `sdl` to describe GraphQL schemas.
-
-```sdl
-type Author {
-  name: String!
-}
-```
-
-Use `graphql` to describe GraphQL operations.
-
-```graphql
-query {
-  author(id: 1) {
-    name
-  }
-}
-```
-
-Use `json` for everything JSON related for example a GraphQL result.
-
-```json
-{
-  "data": {
-    "author": {
-      "name": "ChilliCream"
-    }
-  }
-}
-```
-
-Use `sql` for SQL queries.
-
-```sql
-SELECT id FROM Authors WHERE id = 1
-```
-
-Use `csharp` for C# code.
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
 ```csharp
-public interface Author
+public class Query
 {
-    int Id { get; }
+    [Deprecated("Use `persons` field instead")]
+    public User[] GetUsers() { ... }
 
-    string Name { get; }
+    public User[] GetPersons() { ... }
 }
 ```
 
-# Use Images
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
 
-When using images make sure it's a PNG file which is at least 800 pixels wide.
+```csharp
+public class Query : QueryType<Query>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    {
+        descriptor.Field(x => x.GetUsers()).Deprecated("Use `persons` field instead");
+    }
+}
+```
 
-# Use Tables
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
 
-When using tables make sure you always use titles.
+```sdl
+type Query {
+    users: [Users] @deprecated("Use `persons` field instead")
+    persons: [Users]
+}
+```
 
-| Name        | Description        |
-| ----------- | ------------------ |
-| ChilliCream | A GraphQL platform |
+</ExampleTabs.Schema>
+</ExampleTabs>

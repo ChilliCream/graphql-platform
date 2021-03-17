@@ -12,7 +12,7 @@ Hot Chocolate provides you with some basic strategies to make your backend more 
 
 # Pagination Amount
 
-The first an most simple way to protect your api is to define how many items a page can have when you are using pagination. We added for this the scalar type `PaginationAmount`.
+The first and most simple way to protect your api is to define how many items a page can have when you are using pagination. We added for this the scalar type `PaginationAmount`.
 
 ```csharp
 SchemaBuilder.New()
@@ -130,4 +130,4 @@ public readonly struct ComplexityContext
 }
 ```
 
-All of the execution options are listed [here](/docs/hotchocolate/v10/schema/options).
+All of the execution options are listed [here](/docs/hotchocolate/v10/execution-engine/execution-options/).

@@ -35,11 +35,12 @@ namespace HotChocolate.Execution.Pipeline
 
         public async ValueTask InvokeAsync(IRequestContext context)
         {
-            if (context.Operation is { })
+            if (context.Operation is not null)
             {
                 await _next(context).ConfigureAwait(false);
             }
-            else if (context.Document is { } && context.ValidationResult is { HasErrors: false })
+            else if (context.Document is not null &&
+                context.ValidationResult is { HasErrors: false })
             {
                 OperationDefinitionNode operation =
                     context.Document.GetOperation(context.Request.OperationName);
@@ -52,17 +53,13 @@ namespace HotChocolate.Execution.Pipeline
                     return;
                 }
 
-                var fragments = new FragmentCollection(context.Schema, context.Document);
-
-                IReadOnlyDictionary<SelectionSetNode, SelectionVariants> selectionSets =
-                    Compile(context.Schema, fragments, operation, _optimizers);
-
-                context.Operation = new Operation(
+                context.Operation = Compile(
                     context.OperationId ?? Guid.NewGuid().ToString("N"),
                     context.Document,
                     operation,
+                    context.Schema,
                     rootType,
-                    selectionSets);
+                    _optimizers);
                 context.OperationId = context.Operation.Id;
 
                 await _next(context).ConfigureAwait(false);

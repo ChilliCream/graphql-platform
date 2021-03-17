@@ -6,7 +6,7 @@ using Xunit;
 
 namespace HotChocolate.Data.Filters
 {
-    public class FilterTypeAttributeTests
+    public class FilterInputAttributeTests
     {
         [Fact]
         public void GenericTypeDescriptorAttribute_Changes_Name()
@@ -59,7 +59,7 @@ namespace HotChocolate.Data.Filters
         {
             public static string TypeName { get; } = "ThisIsATest";
 
-            protected override void TryConfigure(
+            protected internal override void TryConfigure(
                 IDescriptorContext context,
                 IDescriptor d,
                 ICustomAttributeProvider element)
@@ -76,7 +76,7 @@ namespace HotChocolate.Data.Filters
         {
             public static string Field { get; } = "FieldField";
 
-            protected override void TryConfigure(
+            protected internal override void TryConfigure(
                 IDescriptorContext context,
                 IDescriptor descriptor,
                 ICustomAttributeProvider element)

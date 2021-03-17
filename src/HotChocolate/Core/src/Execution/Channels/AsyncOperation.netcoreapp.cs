@@ -1,4 +1,4 @@
-﻿#if NETCOREAPP3_1 || NETCOREAPP5_0
+﻿#if NETCOREAPP3_1 || NET5_0 || NET6_0
 
 using System;
 using System.Threading;

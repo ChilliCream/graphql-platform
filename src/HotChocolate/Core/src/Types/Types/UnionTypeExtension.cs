@@ -1,16 +1,19 @@
 using System;
 using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
     public class UnionTypeExtension
         : NamedTypeExtensionBase<UnionTypeDefinition>
     {
-        private readonly Action<IUnionTypeDescriptor> _configure;
+        private Action<IUnionTypeDescriptor>? _configure;
 
         public UnionTypeExtension()
         {
@@ -28,9 +31,12 @@ namespace HotChocolate.Types
         protected override UnionTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
         {
-            var descriptor = UnionTypeDescriptor.New(
-                context.DescriptorContext);
-            _configure(descriptor);
+            var descriptor =
+                UnionTypeDescriptor.New( context.DescriptorContext);
+
+            _configure!(descriptor);
+            _configure = null;
+
             return descriptor.CreateDefinition();
         }
 
@@ -47,7 +53,7 @@ namespace HotChocolate.Types
                 TypeDependencyKind.Default);
 
             context.RegisterDependencyRange(
-                definition.Directives.Select(t => t.TypeReference),
+                definition.GetDirectives().Select(t => t.TypeReference),
                 TypeDependencyKind.Completed);
         }
 

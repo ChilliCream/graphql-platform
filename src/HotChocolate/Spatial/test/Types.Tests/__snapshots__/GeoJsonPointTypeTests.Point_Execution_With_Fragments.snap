@@ -1,0 +1,164 @@
+﻿{
+  "Label": null,
+  "Path": null,
+  "Data": null,
+  "Errors": [
+    {
+      "Message": "Unknown type `Point`.",
+      "Code": null,
+      "Path": {
+        "Parent": null,
+        "Depth": 0,
+        "Name": "test"
+      },
+      "Locations": [
+        {
+          "Line": 1,
+          "Column": 10
+        }
+      ],
+      "Extensions": {
+        "typeCondition": "Point",
+        "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-Spread-Type-Existence"
+      },
+      "Exception": null,
+      "SyntaxNode": {
+        "Kind": "InlineFragment",
+        "Location": {
+          "Start": 9,
+          "End": 52,
+          "Line": 1,
+          "Column": 10
+        },
+        "TypeCondition": {
+          "Kind": "NamedType",
+          "Location": {
+            "Start": 16,
+            "End": 23,
+            "Line": 1,
+            "Column": 17
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 16,
+              "End": 23,
+              "Line": 1,
+              "Column": 17
+            },
+            "Value": "Point"
+          }
+        },
+        "Directives": [],
+        "SelectionSet": {
+          "Kind": "SelectionSet",
+          "Location": {
+            "Start": 22,
+            "End": 52,
+            "Line": 1,
+            "Column": 23
+          },
+          "Selections": [
+            {
+              "Kind": "Field",
+              "Alias": null,
+              "Arguments": [],
+              "SelectionSet": null,
+              "Location": {
+                "Start": 24,
+                "End": 40,
+                "Line": 1,
+                "Column": 25
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 24,
+                  "End": 40,
+                  "Line": 1,
+                  "Column": 25
+                },
+                "Value": "type"
+              },
+              "Directives": []
+            },
+            {
+              "Kind": "Field",
+              "Alias": null,
+              "Arguments": [],
+              "SelectionSet": null,
+              "Location": {
+                "Start": 29,
+                "End": 45,
+                "Line": 1,
+                "Column": 30
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 29,
+                  "End": 45,
+                  "Line": 1,
+                  "Column": 30
+                },
+                "Value": "coordinates"
+              },
+              "Directives": []
+            },
+            {
+              "Kind": "Field",
+              "Alias": null,
+              "Arguments": [],
+              "SelectionSet": null,
+              "Location": {
+                "Start": 41,
+                "End": 49,
+                "Line": 1,
+                "Column": 42
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 41,
+                  "End": 49,
+                  "Line": 1,
+                  "Column": 42
+                },
+                "Value": "bbox"
+              },
+              "Directives": []
+            },
+            {
+              "Kind": "Field",
+              "Alias": null,
+              "Arguments": [],
+              "SelectionSet": null,
+              "Location": {
+                "Start": 46,
+                "End": 51,
+                "Line": 1,
+                "Column": 47
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 46,
+                  "End": 51,
+                  "Line": 1,
+                  "Column": 47
+                },
+                "Value": "crs"
+              },
+              "Directives": []
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "Extensions": null,
+  "ContextData": {
+    "HotChocolate.Execution.ValidationErrors": true
+  },
+  "HasNext": null
+}

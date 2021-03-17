@@ -1,15 +1,18 @@
 using System;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
     public class ObjectTypeExtension
         : NamedTypeExtensionBase<ObjectTypeDefinition>
     {
-        private readonly Action<IObjectTypeDescriptor> _configure;
+        private Action<IObjectTypeDescriptor>? _configure;
 
         protected ObjectTypeExtension()
         {
@@ -26,9 +29,12 @@ namespace HotChocolate.Types
         protected override ObjectTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
         {
-            var descriptor = ObjectTypeDescriptor.New(
-                context.DescriptorContext);
-            _configure(descriptor);
+            var descriptor =
+                ObjectTypeDescriptor.New(context.DescriptorContext);
+
+            _configure!(descriptor);
+            _configure = null;
+
             return descriptor.CreateDefinition();
         }
 

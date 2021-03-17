@@ -4,7 +4,7 @@ title: Filtering
 
 **What are filters?**
 
-With _Hot Chocolate_ filters, you can expose complex filter objects through your GraphQL API that translates to native database queries.
+With Hot Chocolate filters, you can expose complex filter objects through your GraphQL API that translates to native database queries.
 
 The default filter implementation translates filters to expression trees and applies these on `IQueryable`.
 
@@ -12,7 +12,7 @@ The default filter implementation translates filters to expression trees and app
 
 Filters by default work on `IQueryable` but you can also easily customize them to use other interfaces.
 
-_Hot Chocolate_ by default will inspect your .NET model and infer the possible filter operations from it.
+Hot Chocolate by default will inspect your .NET model and infer the possible filter operations from it.
 
 The following type would yield the following filter operations:
 
@@ -46,11 +46,11 @@ Getting started with filters is very easy, especially if you do not want to expl
 
 Hot Chocolate will infer the filters directly from your .Net Model and then use a Middleware to apply filters to `IQueryable<T>` or `IEnumerable<T>` on execution.
 
-> ⚠️ **Note:** If you use more than middleware, keep in mind that **ORDER MATTERS** _Why order matters_ <<Add link >>
+> ⚠️ **Note:** If you use more than middleware, keep in mind that **ORDER MATTERS**.
 
 > ⚠️ **Note:** Be sure to install the `HotChocolate.Types.Filters` NuGet package.
 
-In the following example, the person resolver returns the `IQueryable` representing the data source. The `IQueryable` represents a not executed database query on which _Hot Chocolate_ can apply filters.
+In the following example, the person resolver returns the `IQueryable` representing the data source. The `IQueryable` represents a not executed database query on which Hot Chocolate can apply filters.
 
 **Code First**
 
@@ -98,7 +98,7 @@ public class Query
 
 # Customizing Filters
 
-A `FilterInputType<T>` defines a GraphQL input type, that _Hot Chocolate_ uses for filtering. You can customize these similar to a normal input type. You can change the name of the type; add, remove, or change operations or directive; and configure the binding behavior. To define and customize a filter we must inherit from `FilterInputType<T>` and configure it like any other type by overriding the `Configure` method.
+A `FilterInputType<T>` defines a GraphQL input type, that Hot Chocolate uses for filtering. You can customize these similar to a normal input type. You can change the name of the type; add, remove, or change operations or directive; and configure the binding behavior. To define and customize a filter we must inherit from `FilterInputType<T>` and configure it like any other type by overriding the `Configure` method.
 
 ```csharp
 public class PersonFilterType
@@ -460,7 +460,7 @@ public class UserFilterType : FilterInputType<User>
 
 In this example, we look at the filter configuration of an object filter.
 
-_Hot Chocolate_ generated object filters for all objects. Since Version 11, _Hot Chocolate_ also generates filter types for nested objects. You can also use object filters to filter over database relations.
+Hot Chocolate generated object filters for all objects. Since Version 11, Hot Chocolate also generates filter types for nested objects. You can also use object filters to filter over database relations.
 
 As an example, we will use the following model:
 
@@ -587,11 +587,11 @@ public class UserFilterType : FilterInputType<User>
 
 In this example, we look at the filter configuration of a list filter.
 
-_Hot Chocolate_ can also generate filters for IEnumerables. Like object filter, _Hot Chocolate_ generates filters for the whole object tree. List filter addresses scalars and object values differently.
-In the case the field is a scalar value, _Hot Chocolate_ creates and object type to address the different operations of this scalar. e.g. If you specify filters for a list of strings, _Hot Chocolate_ creates an object type that contains all operations of the string filter.
+Hot Chocolate can also generate filters for IEnumerables. Like object filter, Hot Chocolate generates filters for the whole object tree. List filter addresses scalars and object values differently.
+In the case the field is a scalar value, Hot Chocolate creates and object type to address the different operations of this scalar. e.g. If you specify filters for a list of strings, Hot Chocolate creates an object type that contains all operations of the string filter.
 In case the list holds a complex object, it generates an object filter for this object instead.
 
-_Hot Chocolate_ implicitly generates filters for all properties that implement `IEnumerable`.
+Hot Chocolate implicitly generates filters for all properties that implement `IEnumerable`.
 e.g. `csharp±string[]`, `csharp±List<Foo>`, `csharp±IEnumerable<Bar>`...
 
 As an example, we will use the following model:
@@ -711,7 +711,7 @@ public class UserFilterType : FilterInputType<User>
 
 # Naming Conventions
 
-\_Hot Chocolate already provides two naming schemes for filters. If you would like to define your own naming scheme or extend existing ones have a look at the documentation of <<LINk FILTER CONVENTIONS>>
+\_Hot Chocolate already provides two naming schemes for filters. If you would like to define your own naming scheme or extend existing ones have a look at the documentation of TODO:Link-Filtering
 
 ## Snake Case
 
@@ -889,7 +889,7 @@ Hot Chocolate provides different APIs to customize filtering. You can write cust
 
 # Custom&nbsp;FilterInputType
 
-Under the hood, filtering is based on top of normal _Hot Chocolate_ input types. You can easily customize them with a very familiar fluent interface. The filter input types follow the same `descriptor` scheme as you are used to from the normal filter input types. Just extend the base class `FilterInputType<T>` and override the descriptor method.
+Under the hood, filtering is based on top of normal Hot Chocolate input types. You can easily customize them with a very familiar fluent interface. The filter input types follow the same `descriptor` scheme as you are used to from the normal filter input types. Just extend the base class `FilterInputType<T>` and override the descriptor method.
 
 ```csharp
 public class User
@@ -908,7 +908,7 @@ public class UserFilterType
 }
 ```
 
-`IFilterInputTypeDescriptor<T>` supports most of the methods of `IInputTypeDescriptor<T>` and adds the configuration interface for the filters. By default, _Hot Chocolate_ generates filters for all properties of the type.
+`IFilterInputTypeDescriptor<T>` supports most of the methods of `IInputTypeDescriptor<T>` and adds the configuration interface for the filters. By default, Hot Chocolate generates filters for all properties of the type.
 If you do want to specify the filters by yourself you can change this behavior with `BindFields`, `BindFieldsExplicitly` or `BindFieldsImplicitly`.
 
 ```csharp
@@ -942,9 +942,9 @@ input UserFilter {
 To add or customize a filter you must use `Filter(x => x.Foo)` for scalars `List(x => x.Bar)` for lists and `Object(x => x.Baz)` for nested objects.
 These methods will return fluent interfaces to configure the filter for the selected field.
 
-A field has different filter operations that you can configure. You will find more about filter types and filter operations here <<LINK>>
+A field has different filter operations that you can configure. You will find more about filter types and filter operations here TODO:Link
 When fields are bound implicitly, meaning filters are added for all properties, you may want to hide a few fields. You can do this with `Ignore(x => Bar)`.
-Operations on fields can again be bound implicitly or explicitly. By default, _Hot Chocolate_ generates operations for all fields of the type.
+Operations on fields can again be bound implicitly or explicitly. By default, Hot Chocolate generates operations for all fields of the type.
 If you do want to specify the operations by yourself you can change this behavior with `BindFilters`, `BindFiltersExplicitly` or `BindFiltersImplicitly`.
 
 It is also possible to customize the GraphQL field of the operation further. You can change the name, add a description or directive.
@@ -1030,14 +1030,12 @@ SchemaBuilder.New().AddConvention(new FilterConvention(x => /* Config */));
 In this section, we will take a look at the basic features of the filter convention.
 The documentation will reference often to `descriptor`. Imagine this `descriptor` as the parameter of the Configure method of the filter convention in the following context:
 
-```csharp
+```csharp {5}
 public class CustomConvention
     : FilterConvention
 {
     protected override void Configure(
-        /**highlight-start**/
         IFilterConventionDescriptor descriptor
-        /**highlight-end**/
     ) { }
 }
 
@@ -1097,7 +1095,7 @@ input ISingleFilterOfInt16Filter {
 
 ### Configure Filter Type Name Globally
 
-You can change the way _Hot Chocolate_ names the types by supplying a delegate.
+You can change the way Hot Chocolate names the types by supplying a delegate.
 
 This delgate must be of the following type:
 
@@ -1157,7 +1155,7 @@ input UserFilter {
 
 ### Reset Configuration
 
-_Hot Chocolate_ shippes with well-defined defaults. To start from scratch, you need to call `Reset()`first.
+Hot Chocolate shippes with well-defined defaults. To start from scratch, you need to call `Reset()`first.
 
 **Configuration**
 
@@ -1202,7 +1200,7 @@ You can drill up with `And()`.
 
 ### Configuration of the type system
 
-In this section, we will focus on the generation of the schema. If you are interested in changing how filters translate to the database, you have to look here <<INSERT LINK HERE>>
+In this section, we will focus on the generation of the schema. If you are interested in changing how filters translate to the database, you have to look here TODO:Link
 
 #### Configure Filter Operations
 
@@ -1265,7 +1263,7 @@ public delegate NameString CreateFieldName(
 
 **Configuration**
 
-```csharp{1, 6}
+```csharp {1, 6}
  // (A)
  // specifies that all not equals operations should be extended with _nada
  descriptor
@@ -1282,7 +1280,7 @@ public delegate NameString CreateFieldName(
 
 **result**
 
-```graphql{8,18}
+```graphql {8,18}
 input UserFilter {
   loggingCount: Int
   loggingCount_gt: Int
@@ -1333,7 +1331,7 @@ You can either set the description for all operations of this kind or only for a
 
 **result**
 
-```graphql{2-4,11-14, 20-22,27-29}
+```graphql {2-4,11-14, 20-22,27-29}
 input UserFilter {
   """
   has to be equal
@@ -1376,7 +1374,7 @@ input UserFilter {
 
 ##### Hide Operations
 
-_Hot Chocolate_ comes preconfigured with a set of operations. If you like to hide operations globally, you can use `Ignore` for it.
+Hot Chocolate comes preconfigured with a set of operations. If you like to hide operations globally, you can use `Ignore` for it.
 If your database provider does not support certain `IQueryable` methods you can just ignore the operation. Ignored operations do not generate filter input types.
 
 There are multiple ways to ignore an operation:
@@ -1396,7 +1394,7 @@ There are multiple ways to ignore an operation:
 
 **result**
 
-```graphql{2,4, 8,14,18}
+```graphql {2,4, 8,14,18}
 input UserFilter {
   ↵
   loggingCount_gt: Int
@@ -1427,9 +1425,9 @@ input UserFilter {
 
 ##### Configure Implicit Filter
 
-The default binding behavior of _Hot Chocolate_ is implicit. Filter types are no exception.
+The default binding behavior of Hot Chocolate is implicit. Filter types are no exception.
 This first may seem like magic, but unfortunately, there is none. It is just code. With `AddImplicitFilter` you can add this pinch of magic to your extension too.
-_Hot Chocolate_ creates the filters as it builds the input type. The type iterates over a list of factories sequentially and tries to create a definition for each property. The first factory that can handle the property wins and creates a definition for the filter.
+Hot Chocolate creates the filters as it builds the input type. The type iterates over a list of factories sequentially and tries to create a definition for each property. The first factory that can handle the property wins and creates a definition for the filter.
 
 To configure you have to use the following delegate:
 
@@ -1478,13 +1476,13 @@ private static bool TryCreateStringFilter(
 
 ##### Creating a fluent filter extension
 
-_Hot Chocolate_ provides fluent interfaces for all its APIs. If you want to create an extension that integrates seamlessly with _Hot Chocolate_ it makes sense to also provide fluent interfaces. It makes sense to briefly understand how `Type -> Descriptor -> Definition` work. You can read more about it here //TODO LINK
+Hot Chocolate provides fluent interfaces for all its APIs. If you want to create an extension that integrates seamlessly with Hot Chocolate it makes sense to also provide fluent interfaces. It makes sense to briefly understand how `Type -> Descriptor -> Definition` work. You can read more about it here //TODO LINK
 
 Here a quick introduction:
 
 _Type_
 
-A type is a description of a GraphQL Type System Object. _Hot Chocolate_ builds types during schema creation. Types specify how a GraphQL Type looks like. It holds, for example, the definition, fields, interfaces, and all life cycle methods. Type do only exist on startup; they do not exist on runtime.
+A type is a description of a GraphQL Type System Object. Hot Chocolate builds types during schema creation. Types specify how a GraphQL Type looks like. It holds, for example, the definition, fields, interfaces, and all life cycle methods. Type do only exist on startup; they do not exist on runtime.
 
 _Type Definition_
 
@@ -1549,7 +1547,7 @@ public class CustomConvention : FilterConvention
 ```
 
 **Explicit Binding**
-By extending the filter descriptor of the string filter you can add a fluent extension that seamlessly integrated with the _Hot Chocolate_ API.
+By extending the filter descriptor of the string filter you can add a fluent extension that seamlessly integrated with the Hot Chocolate API.
 
 //TODO: currently there `StringFilterOperationDescriptor` requires `StringFilterFieldDescriptor` instead of `StringFilterFieldDescriptor` and there is no way to `Allow<T>`
 //TODO: TYPO ! FilterFieldDefintion
@@ -1645,7 +1643,7 @@ public static class DateTimeFilterConventionExtensions
 
 **Create Date Time Filter Implicitly**
 
-`DateTime` is a new filter. _Hot Chocolate_ is only aware of its existence because of the delegate passed to `AddImplicitFilter`
+`DateTime` is a new filter. Hot Chocolate is only aware of its existence because of the delegate passed to `AddImplicitFilter`
 
 ```csharp
 private static bool TryCreateDateTimeFiler(
@@ -1671,7 +1669,7 @@ private static bool TryCreateDateTimeFiler(
 TODO: make filters name based
 **Filter Field**
 
-A filter field is a collection of operations. It holds the configuration of the different operations like _“from”_ and _“to”_. In classic _Hot Chocolate_ fashion there is a descriptor that describes these collections. _Hot Chocolate_ provides the base class `FilterFieldDescriptorBase` you can use as an extension point. There is quite a lot of boilerplate code you need to write. e.g. it makes sense to define an interface for the descriptor.
+A filter field is a collection of operations. It holds the configuration of the different operations like _“from”_ and _“to”_. In classic Hot Chocolate fashion there is a descriptor that describes these collections. Hot Chocolate provides the base class `FilterFieldDescriptorBase` you can use as an extension point. There is quite a lot of boilerplate code you need to write. e.g. it makes sense to define an interface for the descriptor.
 You find an example here: //TODO LINK
 
 For the explicit binding, we need to override `CreateOperationDefinition`. In case the filter is bound implicitly, this method is invoked for each operation.
@@ -1758,7 +1756,7 @@ public interface IDateTimeFilterOperationDescriptor
 You can find the implementation of this interface here: //TODO link
 
 **Filter Type Extension**
-The last missing piece to complete the integration into _Hot Chocolate_ is an extension of `FilterInputType<T>`. This can again be done as a extension method.
+The last missing piece to complete the integration into Hot Chocolate is an extension of `FilterInputType<T>`. This can again be done as a extension method.
 
 ```csharp
 public IStringFilterFieldDescriptor Filter(
@@ -1806,7 +1804,7 @@ A _GraphQL_ query might look like this.
 
 _GraphQL_ input fields cannot have arguments. To work around this issue a data structure is needed that combines the filter payload and the operation. The input type for this example has the following structure.
 
-````csharp
+```csharp
 public class FilterDistance
 {
 
@@ -1820,6 +1818,7 @@ public class FilterDistance
 
     public double Is { get; set; }
 }
+```
 
 ```graphql
 input FilterDistanceInput {
@@ -1837,11 +1836,11 @@ input FilterDistanceInput {
   is_not_lte: Float
   is_not_in: Float
 }
-````
+```
 
 //TODO: Add skip / inopfield!
 
-_Hot Chocolate_ would generate nested filters for the payload property "From" by default. This can be avoided by declaring the field as input payload.
+Hot Chocolate would generate nested filters for the payload property "From" by default. This can be avoided by declaring the field as input payload.
 
 ```csharp
 public class DistanceFilterType
@@ -1864,7 +1863,7 @@ The configuration of the convention, the implicit type factory and the descirpto
 
 ## Translating Filters
 
-_Hot Chocolate_ can translate incoming filters requests directly onto collections or even on to the database. In the default implementation, the output of this translation is a Linq expression that can be applied to `IQueryable` and `IEnumerable`. You can choose to change the expression that is generated or can even create custom output. _Hot Chocolate_ is using visitors to translate input objects. [You find more information about visitors here.](TODO://ADDLINK).
+Hot Chocolate can translate incoming filters requests directly onto collections or even on to the database. In the default implementation, the output of this translation is a Linq expression that can be applied to `IQueryable` and `IEnumerable`. You can choose to change the expression that is generated or can even create custom output. Hot Chocolate is using visitors to translate input objects. [You find more information about visitors here.](TODO://ADDLINK).
 
 ### Expression Filters
 
@@ -1968,7 +1967,7 @@ This delegate might seem intimidating first, but it is not bad as it looks. If t
 
 Operations handlers can be configured like the following:
 
-```csharp{10,13}
+```csharp {10,13}
 public class CustomConvention : FilterConvention
 {
     protected override void Configure(

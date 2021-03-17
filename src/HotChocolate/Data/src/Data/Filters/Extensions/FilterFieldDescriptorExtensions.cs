@@ -1,19 +1,22 @@
 using System;
+using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Types
 {
     public static class FilterFieldDescriptorExtensions
     {
         public static void MakeNullable(this IFilterFieldDescriptor descriptor) =>
-            descriptor.Extend().OnBeforeCreate(
-                (c, def) => def.Type = RewriteTypeToNullableType(def, c.TypeInspector));
+            descriptor.Extend()
+                .OnBeforeCreate(
+                    (c, def) => def.Type = RewriteTypeToNullableType(def, c.TypeInspector));
 
         public static void MakeNullable(this IFilterOperationFieldDescriptor descriptor) =>
-            descriptor.Extend().OnBeforeCreate(
-                (c, def) => def.Type = RewriteTypeToNullableType(def, c.TypeInspector));
+            descriptor.Extend()
+                .OnBeforeCreate(
+                    (c, def) => def.Type = RewriteTypeToNullableType(def, c.TypeInspector));
 
         private static ITypeReference RewriteTypeToNullableType(
             FilterFieldDefinition definition,
@@ -25,7 +28,8 @@ namespace HotChocolate.Data.Filters
             {
                 return extendedTypeRef.Type.IsNullable
                     ? extendedTypeRef
-                    : extendedTypeRef.WithType(typeInspector.ChangeNullability(extendedTypeRef.Type, true));
+                    : extendedTypeRef.WithType(
+                        typeInspector.ChangeNullability(extendedTypeRef.Type, true));
             }
 
             if (reference is SchemaTypeReference schemaRef)

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -6,10 +7,11 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Execution.ThrowHelper;
+using static HotChocolate.Execution.Properties.Resources;
 
 namespace HotChocolate.Execution.Processing
 {
-    internal sealed partial class OperationCompiler
+    public sealed partial class OperationCompiler
     {
         private readonly ISchema _schema;
         private readonly FragmentCollection _fragments;
@@ -22,15 +24,47 @@ namespace HotChocolate.Execution.Processing
             _fragments = fragments;
         }
 
-        public static IReadOnlyDictionary<SelectionSetNode, SelectionVariants> Compile(
-            ISchema schema,
-            FragmentCollection fragments,
+        public static IPreparedOperation Compile(
+            string operationId,
+            DocumentNode document,
             OperationDefinitionNode operation,
+            ISchema schema,
+            ObjectType rootType,
             IEnumerable<ISelectionOptimizer>? optimizers = null)
         {
+            if (operationId == null)
+            {
+                throw new ArgumentNullException(nameof(operationId));
+            }
+
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
+            if (operation == null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
+
+            if (schema == null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
+            if (rootType == null)
+            {
+                throw new ArgumentNullException(nameof(rootType));
+            }
+
+            if (operation.SelectionSet.Selections.Count == 0)
+            {
+                throw OperationCompiler_NoOperationSelections(operation);
+            }
+
+            var fragments = new FragmentCollection(schema, document);
             var compiler = new OperationCompiler(schema, fragments);
             var selectionSetLookup = new Dictionary<SelectionSetNode, SelectionVariants>();
-            ObjectType rootType = schema.GetOperationType(operation.Operation);
             var backlog = new Stack<CompilerContext>();
 
             // creates and enqueues the root compiler context.
@@ -44,7 +78,7 @@ namespace HotChocolate.Execution.Processing
             // processes the backlog and by doing so traverses the query graph.
             compiler.Visit(backlog);
 
-            return selectionSetLookup;
+            return new Operation(operationId, document, operation,rootType, selectionSetLookup);
         }
 
         private void Visit(Stack<CompilerContext> backlog)
@@ -175,6 +209,13 @@ namespace HotChocolate.Execution.Processing
 
             if (context.Type.Fields.TryGetField(fieldName, out IObjectField? field))
             {
+                if ((selection.SelectionSet is null ||
+                    selection.SelectionSet.Selections.Count == 0) &&
+                    field.Type.NamedType().IsCompositeType())
+                {
+                    throw OperationCompiler_NoCompositeSelections(selection);
+                }
+
                 if (context.Fields.TryGetValue(responseName, out Selection? preparedSelection))
                 {
                     preparedSelection.AddSelection(selection, includeCondition);
@@ -224,6 +265,11 @@ namespace HotChocolate.Execution.Processing
             {
                 FragmentDefinitionNode fragmentDefinition = fragmentInfo.FragmentDefinition!;
 
+                if (fragmentDefinition.SelectionSet.Selections.Count == 0)
+                {
+                    throw OperationCompiler_FragmentNoSelections(fragmentDefinition);
+                }
+
                 if (fragmentSpread.IsDeferrable() &&
                     AllowFragmentDeferral(context, fragmentSpread, fragmentDefinition))
                 {
@@ -242,7 +288,10 @@ namespace HotChocolate.Execution.Processing
                 {
                     CollectFields(
                         context,
-                        fragmentInfo.SelectionSet,
+                        context.IsInternalSelection
+                            ? CloneSelectionSetVisitor.Default.CloneSelectionNode(
+                                fragmentInfo.SelectionSet)
+                            : fragmentInfo.SelectionSet,
                         includeCondition);
                 }
             }
@@ -253,6 +302,11 @@ namespace HotChocolate.Execution.Processing
             InlineFragmentNode inlineFragment,
             SelectionIncludeCondition? includeCondition)
         {
+            if (inlineFragment.SelectionSet.Selections.Count == 0)
+            {
+                throw OperationCompiler_FragmentNoSelections(inlineFragment);
+            }
+
             if (_fragments.GetFragment(context.Type, inlineFragment) is { } fragmentInfo &&
                 DoesTypeApply(fragmentInfo.TypeCondition, context.Type))
             {
@@ -524,7 +578,7 @@ namespace HotChocolate.Execution.Processing
                 DirectiveNode directive = selection.Directives[i];
                 if (_schema.TryGetDirectiveType(directive.Name.Value,
                     out DirectiveType? directiveType)
-                    && directiveType.IsExecutable)
+                    && directiveType.HasMiddleware)
                 {
                     yield return Directive.FromDescription(
                         directiveType,
@@ -660,7 +714,7 @@ namespace HotChocolate.Execution.Processing
 
             for (var i = directives.Count - 1; i >= 0; i--)
             {
-                if (directives[i] is { IsExecutable: true } directive)
+                if (directives[i] is { Type: { HasMiddleware: true } } directive)
                 {
                     next = BuildComponent(directive, next);
                 }
@@ -694,5 +748,24 @@ namespace HotChocolate.Execution.Processing
 
         private static bool HasErrors(object? result) =>
             result is IError || result is IEnumerable<IError>;
+
+        private class CloneSelectionSetVisitor : QuerySyntaxRewriter<object>
+        {
+            private static readonly object _context = new();
+
+            protected override SelectionSetNode RewriteSelectionSet(
+                SelectionSetNode node,
+                object context)
+            {
+                return new(base.RewriteSelectionSet(node, context).Selections);
+            }
+
+            public SelectionSetNode CloneSelectionNode(SelectionSetNode selection)
+            {
+                return RewriteSelectionSet(selection, _context);
+            }
+
+            public static readonly CloneSelectionSetVisitor Default = new();
+        }
     }
 }

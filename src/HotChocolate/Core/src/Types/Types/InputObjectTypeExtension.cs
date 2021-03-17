@@ -1,15 +1,18 @@
 using System;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
     public class InputObjectTypeExtension
         : NamedTypeExtensionBase<InputObjectTypeDefinition>
     {
-        private readonly Action<IInputObjectTypeDescriptor> _configure;
+        private Action<IInputObjectTypeDescriptor>? _configure;
 
         protected InputObjectTypeExtension()
         {
@@ -27,9 +30,12 @@ namespace HotChocolate.Types
         protected override InputObjectTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
         {
-            var descriptor = InputObjectTypeDescriptor.New(
-                context.DescriptorContext);
+            var descriptor =
+                InputObjectTypeDescriptor.New(context.DescriptorContext);
+
             _configure(descriptor);
+            _configure = null;
+
             return descriptor.CreateDefinition();
         }
 

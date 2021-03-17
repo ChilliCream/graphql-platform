@@ -28,13 +28,14 @@ namespace HotChocolate.Data.Filters
         protected IRequestExecutor CreateSchema<TEntity, T>(
             TEntity[] entities,
             FilterConvention? convention = null,
-            bool withPaging = false)
+            bool withPaging = false,
+            Action<ISchemaBuilder>? configure = null)
             where TEntity : class
             where T : FilterInputType<TEntity>
         {
             convention ??= new FilterConvention(x => x.AddDefaults().BindRuntimeType<TEntity, T>());
 
-            Func<IResolverContext, IEnumerable<TEntity>>? resolver = BuildResolver(entities);
+            Func<IResolverContext, IEnumerable<TEntity>> resolver = BuildResolver(entities);
 
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<IFilterConvention>(convention)
@@ -53,7 +54,21 @@ namespace HotChocolate.Data.Filters
                         }
 
                         field.UseFiltering<T>();
+
+                        field = c
+                            .Name("Query")
+                            .Field("rootExecutable")
+                            .Resolver(ctx => resolver(ctx).AsExecutable());
+
+                        if (withPaging)
+                        {
+                            field.UsePaging<ObjectType<TEntity>>();
+                        }
+
+                        field.UseFiltering<T>();
                     });
+
+            configure?.Invoke(builder);
 
             ISchema schema = builder.Create();
 

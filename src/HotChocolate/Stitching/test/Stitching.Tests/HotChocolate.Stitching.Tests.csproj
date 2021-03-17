@@ -6,12 +6,23 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\AspNetCore\test\AspNetCore.Tests.Utilities\HotChocolate.AspNetCore.Tests.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\test\AspNetCore.Tests\HotChocolate.AspNetCore.Tests.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\test\AspNetCore.Authorization.Tests\HotChocolate.AspNetCore.Authorization.Tests.csproj" />
+    <ProjectReference Include="..\..\..\Core\test\Utilities\HotChocolate.Tests.Utilities.csproj" />
+    <ProjectReference Include="..\..\src\Stitching.Redis\HotChocolate.Stitching.Redis.csproj" />
     <ProjectReference Include="..\..\src\Stitching\HotChocolate.Stitching.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="__resources__\DummyDirective.graphql" />
+    <EmbeddedResource Include="__resources__\DummyDirective.graphql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 
   <!--For Visual Studio for Mac Test Explorer we need this reference here-->
   <ItemGroup>
+    <PackageReference Include="Squadron.Redis" Version="0.5.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
   </ItemGroup>
 

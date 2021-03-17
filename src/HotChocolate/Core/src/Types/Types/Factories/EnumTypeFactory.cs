@@ -10,6 +10,7 @@ namespace HotChocolate.Types.Factories
     {
         public EnumType Create(
             IBindingLookup bindingLookup,
+            IReadOnlySchemaOptions schemaOptions,
             EnumTypeDefinitionNode node)
         {
             if (bindingLookup is null)
@@ -27,7 +28,7 @@ namespace HotChocolate.Types.Factories
 
             return new EnumType(d =>
             {
-                d.SyntaxNode(node)
+                d.SyntaxNode(schemaOptions.PreserveSyntaxNodes ? node : null)
                     .Name(node.Name.Value)
                     .Description(node.Description?.Value);
 
@@ -56,13 +57,14 @@ namespace HotChocolate.Types.Factories
             foreach (EnumValueDefinitionNode value in values)
             {
                 IEnumValueDescriptor valueDescriptor =
-                    typeDescriptor.Value(value.Name.Value)
-                        .Description(value.Description?.Value);
+                    typeDescriptor
+                        .Value(value.Name.Value)
+                        .Description(value.Description?.Value)
+                        .Name(value.Name.Value);
 
-                string deprecactionReason = value.DeprecationReason();
-                if (!string.IsNullOrEmpty(deprecactionReason))
+                if (value.DeprecationReason() is { Length: > 0 } s)
                 {
-                    valueDescriptor.Deprecated(deprecactionReason);
+                    valueDescriptor.Deprecated(s);
                 }
 
                 foreach (DirectiveNode directive in value.Directives)

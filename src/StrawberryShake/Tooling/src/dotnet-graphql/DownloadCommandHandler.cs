@@ -12,20 +12,16 @@ namespace StrawberryShake.Tools
         public DownloadCommandHandler(
             IFileSystem fileSystem,
             IHttpClientFactory httpClientFactory,
-            IConfigurationStore configurationStore,
             IConsoleOutput output)
         {
             FileSystem = fileSystem;
             HttpClientFactory = httpClientFactory;
-            ConfigurationStore = configurationStore;
             Output = output;
         }
 
         public IFileSystem FileSystem { get; }
 
         public IHttpClientFactory HttpClientFactory { get; }
-
-        public IConfigurationStore ConfigurationStore { get; }
 
         public IConsoleOutput Output { get; }
 

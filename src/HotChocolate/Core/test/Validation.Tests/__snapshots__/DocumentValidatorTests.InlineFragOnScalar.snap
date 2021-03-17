@@ -17,6 +17,69 @@
       "typeCondition": "Boolean",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragments-On-Composite-Types"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "InlineFragment",
+      "Location": {
+        "Start": 205,
+        "End": 299,
+        "Line": 9,
+        "Column": 21
+      },
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 212,
+          "End": 221,
+          "Line": 9,
+          "Column": 28
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 212,
+            "End": 221,
+            "Line": 9,
+            "Column": 28
+          },
+          "Value": "Boolean"
+        }
+      },
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 220,
+          "End": 299,
+          "Line": 9,
+          "Column": 36
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 246,
+              "End": 281,
+              "Line": 10,
+              "Column": 25
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 246,
+                "End": 281,
+                "Line": 10,
+                "Column": 25
+              },
+              "Value": "somethingElse"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
   }
 ]

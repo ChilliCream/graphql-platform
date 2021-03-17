@@ -33,25 +33,16 @@ namespace HotChocolate.Types.Pagination
             descriptor
                 .Use(placeholder)
                 .Extend()
-                .OnBeforeCreate((c, d) =>
+                .OnBeforeCreate(definition =>
                 {
-                    MemberInfo? member = d.ResolverMember ?? d.Member;
-                    IExtendedType schemaType = GetSchemaType(c.TypeInspector, member, type);
-
-                    var configuration = new TypeConfiguration<ObjectFieldDefinition>
-                    {
-                        Definition = d,
-                        On = ApplyConfigurationOn.Completion,
-                        Configure = (c, d) => ApplyConfiguration(
-                            c, d, entityType, resolvePagingProvider, options, placeholder)
-                    };
-
-                    configuration.Dependencies.Add(
-                        new TypeDependency(
-                            TypeReference.Create(schemaType, TypeContext.Output),
-                            TypeDependencyKind.Named));
-
-                    d.Configurations.Add(configuration);
+                    definition.Configurations.Add(
+                        new TypeConfiguration<ObjectFieldDefinition>
+                        {
+                            Definition = definition,
+                            On = ApplyConfigurationOn.Completion,
+                            Configure = (c, d) => ApplyConfiguration(
+                                c, d, entityType, resolvePagingProvider, options, placeholder)
+                        });
                 });
 
             return descriptor;
@@ -118,18 +109,18 @@ namespace HotChocolate.Types.Pagination
                 typeInspector.GetOutputReturnTypeRef(member) is ExtendedTypeReference r &&
                 typeInspector.TryCreateTypeInfo(r.Type, out ITypeInfo? typeInfo))
             {
-                // if the member has already associated a schema type with an attribute for instance
-                // we will just take it. Since we want the entity element we are going to take
+                // if the member has already associated a schema type we will just take it.
+                // Since we want the entity element we are going to take
                 // the element type of the list or array as our entity type.
                 if (r.Type.IsSchemaType && r.Type.IsArrayOrList)
                 {
                     return r.Type.ElementType!;
                 }
 
-                // if the member type is unknown we will try to infer it by extracting 
-                // the named type component from it and running the type inference. 
-                // It might be that we either are unable to infer or get the wrong type 
-                // in special cases. In the case we are getting it wrong the user has 
+                // if the member type is unknown we will try to infer it by extracting
+                // the named type component from it and running the type inference.
+                // It might be that we either are unable to infer or get the wrong type
+                // in special cases. In the case we are getting it wrong the user has
                 // to explicitly bind the type.
                 if (SchemaTypeResolver.TryInferSchemaType(
                     typeInspector,
@@ -158,6 +149,8 @@ namespace HotChocolate.Types.Pagination
                         return schemaType.ElementType!;
                     }
                 }
+
+
             }
 
             if (type is null || !typeof(IType).IsAssignableFrom(type))

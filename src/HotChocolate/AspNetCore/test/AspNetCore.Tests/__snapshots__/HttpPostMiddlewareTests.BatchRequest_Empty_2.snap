@@ -6,7 +6,7 @@
     {
       "message": "The GraphQL batch request has no elements.",
       "extensions": {
-        "code": "INVALID_REQUEST"
+        "code": "HC0009"
       }
     }
   ],

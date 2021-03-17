@@ -8,27 +8,40 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
-    public sealed class DateTimeType
-        : ScalarType<DateTimeOffset, StringValueNode>
+    /// <summary>
+    /// This GraphQL Scalar represents an exact point in time.
+    /// This point in time is specified by having an offset to UTC and does not use time zone.
+    ///
+    /// https://www.graphql-scalars.com/date-time/
+    /// </summary>
+    public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
     {
         private const string _utcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffZ";
         private const string _localFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz";
+        private const string _specifiedBy = "https://www.graphql-scalars.com/date-time";
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DateTimeType"/> class.
+        /// </summary>
         public DateTimeType()
-            : base(ScalarNames.DateTime, BindingBehavior.Implicit)
-        {
-            Description = TypeResources.DateTimeType_Description;
-        }
-
-        public DateTimeType(NameString name)
-            : base(name, BindingBehavior.Implicit)
+            : this(
+                ScalarNames.DateTime,
+                TypeResources.DateTimeType_Description,
+                BindingBehavior.Implicit)
         {
         }
 
-        public DateTimeType(NameString name, string description)
-            : base(name, BindingBehavior.Implicit)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DateTimeType"/> class.
+        /// </summary>
+        public DateTimeType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name, bind)
         {
             Description = description;
+            SpecifiedBy = new Uri(_specifiedBy);
         }
 
         protected override DateTimeOffset ParseLiteral(StringValueNode valueSyntax)
@@ -45,7 +58,7 @@ namespace HotChocolate.Types
 
         protected override StringValueNode ParseValue(DateTimeOffset runtimeValue)
         {
-            return new StringValueNode(Serialize(runtimeValue));
+            return new(Serialize(runtimeValue));
         }
 
         public override IValueNode ParseResult(object? resultValue)

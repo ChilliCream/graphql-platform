@@ -4,11 +4,13 @@
     <PackageId>HotChocolate.Data</PackageId>
     <AssemblyName>HotChocolate.Data</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>
+    <Nullable>enable</Nullable>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types.CursorPagination\HotChocolate.Types.CursorPagination.csproj" />
   </ItemGroup>
 
   <ItemGroup>

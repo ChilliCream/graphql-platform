@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data.Filters
@@ -65,7 +66,7 @@ namespace HotChocolate.Data.Filters
         /// The member from which a field shall be inferred.
         /// </param>
         /// <returns>
-        /// Returns a <see cref="ClrTypeReference"/> that represents the field type.
+        /// Returns a <see cref="RuntimeTypeReference"/> that represents the field type.
         /// </returns>
         ExtendedTypeReference GetFieldType(MemberInfo member);
 
@@ -113,9 +114,9 @@ namespace HotChocolate.Data.Filters
             IFilterInputTypeDescriptor descriptor);
 
         bool TryGetHandler(
-            ITypeDiscoveryContext context,
-            FilterInputTypeDefinition typeDefinition,
-            FilterFieldDefinition fieldDefinition,
+            ITypeCompletionContext context,
+            IFilterInputTypeDefinition typeDefinition,
+            IFilterFieldDefinition fieldDefinition,
             [NotNullWhen(true)] out IFilterFieldHandler? handler);
 
         /// <summary>
@@ -130,5 +131,14 @@ namespace HotChocolate.Data.Filters
         /// for the specified entity type.
         /// </returns>
         FieldMiddleware CreateExecutor<TEntityType>();
+
+        /// <summary>
+        /// Configures the field where the filters are applied. This can be used to add context
+        /// data to the field.
+        /// </summary>
+        /// <param name="fieldDescriptor">
+        /// the field descriptor where the filtering is applied
+        /// </param>
+        void ConfigureField(IObjectFieldDescriptor fieldDescriptor);
     }
 }
