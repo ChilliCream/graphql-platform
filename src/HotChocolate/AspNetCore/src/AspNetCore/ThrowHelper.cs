@@ -4,6 +4,9 @@ using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 
 namespace HotChocolate.AspNetCore
 {
+    /// <summary>
+    /// An internal helper class that centralizes the server exceptions.
+    /// </summary>
     internal static class ThrowHelper
     {
         public static GraphQLRequestException DefaultHttpRequestParser_QueryAndIdMissing() =>
@@ -67,58 +70,57 @@ namespace HotChocolate.AspNetCore
         public static GraphQLException HttpMultipartMiddleware_NoObjectPath(string filename) =>
             new GraphQLRequestException(
                 ErrorBuilder.New()
-                    .SetMessage("No object paths specified for key '{0}' in 'map'.", filename)
-                    .SetCode("// TODO CODE HC")
+                    .SetMessage(ThrowHelper_HttpMultipartMiddleware_NoObjectPath, filename)
+                    .SetCode(ErrorCodes.Server.MultiPartNoObjectPath)
                     .Build());
 
         public static GraphQLException HttpMultipartMiddleware_FileMissing(string filename) =>
             new GraphQLRequestException(
                 ErrorBuilder.New()
-                    .SetMessage("File of key '{0}' is missing.", filename)
-                    .SetCode("// TODO CODE HC")
+                    .SetMessage(ThrowHelper_HttpMultipartMiddleware_FileMissing, filename)
+                    .SetCode(ErrorCodes.Server.MultiPartFileMissing)
                     .Build());
 
         public static GraphQLException HttpMultipartMiddleware_VariableNotFound(string path) =>
             new GraphQLRequestException(
                 ErrorBuilder.New()
-                    .SetMessage("The variable path '{0}' is invalid.", path)
-                    .SetCode("// TODO CODE HC")
+                    .SetMessage(ThrowHelper_HttpMultipartMiddleware_VariableNotFound, path)
+                    .SetCode(ErrorCodes.Server.MultiPartVariableNotFound)
                     .Build());
 
         public static GraphQLException HttpMultipartMiddleware_VariableStructureInvalid() =>
             new GraphQLRequestException(
                 ErrorBuilder.New()
-                    .SetMessage("The variable structure is invalid.")
-                    .SetCode("// TODO CODE HC")
+                    .SetMessage(ThrowHelper_HttpMultipartMiddleware_VariableStructureInvalid)
+                    .SetCode(ErrorCodes.Server.MultiPartVariableStructureInvalid)
                     .Build());
 
         public static GraphQLException HttpMultipartMiddleware_InvalidPath(string path) =>
             new GraphQLRequestException(
                 ErrorBuilder.New()
-                    .SetMessage("Invalid variable path `{0}` in `map`.", path)
-                    .SetCode("// TODO CODE HC")
+                    .SetMessage(ThrowHelper_HttpMultipartMiddleware_InvalidPath, path)
+                    .SetCode(ErrorCodes.Server.MultiPartInvalidPath)
                     .Build());
 
         public static GraphQLException HttpMultipartMiddleware_PathMustStartWithVariable() =>
             new GraphQLRequestException(
                 ErrorBuilder.New()
-                    .SetMessage("The variable path must start with `variables`.")
-                    .SetCode("// TODO CODE HC")
+                    .SetMessage(ThrowHelper_HttpMultipartMiddleware_PathMustStartWithVariable)
+                    .SetCode(ErrorCodes.Server.MultiPartPathMustStartWithVariable)
                     .Build());
 
         public static GraphQLException HttpMultipartMiddleware_InvalidMapJson() =>
             new GraphQLRequestException(
                 ErrorBuilder.New()
-                    .SetMessage("Invalid JSON in the `map` multipart field; Expected type of Dictionary<string, string[]>.")
-                    .SetCode("// TODO CODE HC")
+                    .SetMessage(ThrowHelper_HttpMultipartMiddleware_InvalidMapJson)
+                    .SetCode(ErrorCodes.Server.MultiPartInvalidMapJson)
                     .Build());
 
         public static GraphQLException HttpMultipartMiddleware_MapNotSpecified() =>
             new GraphQLRequestException(
                 ErrorBuilder.New()
-                    .SetMessage("No `map` specified.")
-                    .SetCode("// TODO CODE HC")
+                    .SetMessage(ThrowHelper_HttpMultipartMiddleware_MapNotSpecified)
+                    .SetCode(ErrorCodes.Server.MultiPartMapNotSpecified)
                     .Build());
-
     }
 }
