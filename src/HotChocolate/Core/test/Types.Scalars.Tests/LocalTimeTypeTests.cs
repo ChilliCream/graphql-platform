@@ -80,7 +80,7 @@ namespace HotChocolate.Types.Scalars
             Thread.CurrentThread.CurrentCulture =
                 CultureInfo.GetCultureInfo(cultureName);
 
-            var dateTimeType = new LocalTimeType();
+            ScalarType scalar = new LocalTimeType();
             var literal = new StringValueNode(
                 "2018-06-29T08:46:14+04:00");
             var expectedDateTime = new DateTimeOffset(
@@ -88,7 +88,7 @@ namespace HotChocolate.Types.Scalars
                 new TimeSpan(4, 0, 0));
 
             // act
-            var dateTime = (DateTime)dateTimeType
+            var dateTime = (DateTime)scalar
                 .ParseLiteral(literal)!;
 
             // assert
@@ -141,14 +141,14 @@ namespace HotChocolate.Types.Scalars
         protected void LocalTime_ExpectSerializeUTCToMatch()
         {
             // arrange
-            var dateTimeType = new LocalTimeType();
+            ScalarType scalar = new LocalTimeType();
             DateTimeOffset dateTime = new DateTime(
                 2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
 
             string expectedValue = "08:46:14";
 
             // act
-            string serializedValue = (string)dateTimeType.Serialize(dateTime)!;
+            string serializedValue = (string)scalar.Serialize(dateTime)!;
 
             // assert
             Assert.Equal(expectedValue, serializedValue);
@@ -158,14 +158,14 @@ namespace HotChocolate.Types.Scalars
         protected void LocalTime_ExpectSerializeDateTimeOffsetToMatch()
         {
             // arrange
-            var dateTimeType = new LocalTimeType();
+            ScalarType scalar = new LocalTimeType();
             var dateTime = new DateTimeOffset(
                 new DateTime(2018, 6, 11, 8, 46, 14),
                 new TimeSpan(4, 0, 0));
             string expectedValue = "08:46:14";
 
             // act
-            string serializedValue = (string)dateTimeType.Serialize(dateTime)!;
+            string serializedValue = (string)scalar.Serialize(dateTime)!;
 
             // assert
             Assert.Equal(expectedValue, serializedValue);
@@ -175,10 +175,10 @@ namespace HotChocolate.Types.Scalars
         protected void LocalTime_ExpectDeserializeNullToMatch()
         {
             // arrange
-            var type = new LocalTimeType();
+            ScalarType scalar = new LocalTimeType();
 
             // act
-            bool success = type.TryDeserialize(null, out object deserialized);
+            var success = scalar.TryDeserialize(null, out object deserialized);
 
             // assert
             Assert.True(success);
@@ -243,7 +243,7 @@ namespace HotChocolate.Types.Scalars
         public void LocalTime_ExpectDeserializeNullToNull()
         {
             // arrange
-            var scalar = new LocalTimeType();
+            ScalarType scalar = new LocalTimeType();
 
             // act
             var success = scalar.TryDeserialize(null, out object? deserialized);
@@ -284,7 +284,7 @@ namespace HotChocolate.Types.Scalars
         protected void LocalTime_ExpectParseResultToMatchNull()
         {
             // arrange
-            var scalar = new LocalTimeType();
+            ScalarType scalar = new LocalTimeType();
 
             // act
             IValueNode result = scalar.ParseResult(null);
@@ -297,8 +297,8 @@ namespace HotChocolate.Types.Scalars
         protected void LocalTime_ExpectParseResultToMatchStringValueNode()
         {
             // arrange
-            var scalar = new LocalTimeType();
-            var valueSyntax = "2018-06-29T08:46:14+04:00";
+            ScalarType scalar = new LocalTimeType();
+            const string valueSyntax = "2018-06-29T08:46:14+04:00";
 
             // act
             IValueNode result = scalar.ParseResult(valueSyntax);
@@ -311,8 +311,8 @@ namespace HotChocolate.Types.Scalars
         protected void LocalTime_ExpectParseResultToThrowSerializationException()
         {
             // arrange
-            var scalar = new LocalTimeType();
-            var runtimeValue = new IntValueNode(1);
+            ScalarType scalar = new LocalTimeType();
+            IValueNode runtimeValue = new IntValueNode(1);
 
             // act
             Exception? result = Record.Exception(() => scalar.ParseResult(runtimeValue));
