@@ -7,7 +7,7 @@ namespace HotChocolate.Types.Scalars
 {
     /// <summary>
     /// The `LocalTime` scalar type is a local time string (i.e., with no associated timezone)
-    /// in 24-hr HH:mm[:ss[.SSS]].
+    /// in 24-hr HH:mm:ss.
     /// </summary>
     public class LocalTimeType : ScalarType<DateTime, StringValueNode>
     {
