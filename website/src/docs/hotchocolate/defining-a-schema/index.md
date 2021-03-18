@@ -387,7 +387,8 @@ public class Startup
         services
             .AddRouting()
             .AddGraphQLServer()
-            .AddQueryType<Query>();
+            .AddQueryType<Query>()
+            .AddMutationType<Mutation>();
     }
 
     // Omitted code for brevity
