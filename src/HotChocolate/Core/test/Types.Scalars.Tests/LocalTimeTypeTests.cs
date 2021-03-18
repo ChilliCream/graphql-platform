@@ -270,14 +270,13 @@ namespace HotChocolate.Types.Scalars
         protected void LocalTime_ExpectParseResultToMatchNull()
         {
             // arrange
-            var type = new LocalTimeType();
+            var scalar = new LocalTimeType();
 
             // act
-            var success = type.TryDeserialize(null, out object? deserialized);
+            IValueNode result = scalar.ParseResult(null);
 
             // assert
-            Assert.True(success);
-            Assert.Null(deserialized);
+            Assert.Equal(typeof(NullValueNode), result.GetType());
         }
 
         [Fact]
