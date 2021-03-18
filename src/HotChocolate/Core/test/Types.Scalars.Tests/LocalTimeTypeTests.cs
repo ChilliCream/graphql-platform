@@ -35,7 +35,7 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        protected void LocalTime_ExpectIsStringValueNodeToMatch()
+        protected void LocalTime_ExpectIsStringValueToMatch()
         {
             // arrange
             ScalarType scalar = CreateType<LocalTimeType>();
@@ -50,7 +50,7 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        protected void LocalTime_ExpectIsDateTimeNodeToMatch()
+        protected void LocalTime_ExpectIsDateTimeToMatch()
         {
             // arrange
             ScalarType scalar = CreateType<LocalTimeType>();
@@ -86,7 +86,7 @@ namespace HotChocolate.Types.Scalars
         [InlineData("de-CH")]
         [InlineData("de-de")]
         [Theory]
-        public void LocalTime_ParseLiteralStringValueNodeDifferentCulture(
+        public void LocalTime_ParseLiteralStringValueDifferentCulture(
             string cultureName)
         {
             // arrange
@@ -151,7 +151,7 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        protected void LocalTime_ExpectSerializeUTCToMatch()
+        protected void LocalTime_ExpectSerializeUtcToMatch()
         {
             // arrange
             ScalarType scalar = new LocalTimeType();
@@ -274,7 +274,7 @@ namespace HotChocolate.Types.Scalars
             ScalarType scalar = new LocalTimeType();
 
             // act
-            bool success = scalar.TryDeserialize("abc", out object? deserialized);
+            var success = scalar.TryDeserialize("abc", out object? deserialized);
 
             // assert
             Assert.False(success);
@@ -335,7 +335,7 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        protected void LocalTime_ExpectParseResultToMatchStringValueNode()
+        protected void LocalTime_ExpectParseResultToMatchStringValue()
         {
             // arrange
             ScalarType scalar = new LocalTimeType();
