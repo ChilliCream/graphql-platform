@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,18 +12,6 @@ using Xunit;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 {
-public class CustomConnectionInterceptor
-    : ISocketConnectionInterceptor
-{
-    public ValueTask<object?> CreateConnectionInitPayload(
-        ISocketProtocol protocol,
-        CancellationToken cancellationToken)
-    {
-        return new ValueTask<object?>(
-            new Dictionary<string, string> { ["authToken"] = "..." });
-    }
-}
-
     public class StarWarsGetHeroTest : ServerTestBase
     {
         public StarWarsGetHeroTest(TestServerFactory serverFactory) : base(serverFactory)
@@ -46,13 +33,7 @@ public class CustomConnectionInterceptor
                 .ConfigureHttpClient(
                     c => c.BaseAddress = new Uri("http://localhost:" + port + "/graphql"))
                 .ConfigureWebSocketClient(
-                    c =>
-                    {
-                        c.Uri = new Uri("ws://localhost:" + port + "/graphql");
-                        c.Socket.Options.SetRequestHeader("Authorization", "Bearer ...");
-                    },
-                    builder =>
-                        builder.ConfigureConnectionInterceptor<CustomConnectionInterceptor>());
+                    c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
             StarWarsGetHeroClient client = services.GetRequiredService<StarWarsGetHeroClient>();
