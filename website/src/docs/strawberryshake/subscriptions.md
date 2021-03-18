@@ -7,5 +7,9 @@ Subscriptions in GraphQL represent real-time events that are represented as a st
 GraphQL subscriptions can be used through async enumerables and our reactive interface.
 
 ```graphql
-
+subscription OnSessionUpdated {
+  onSessionScheduled {
+    title
+  }
+}
 ```
