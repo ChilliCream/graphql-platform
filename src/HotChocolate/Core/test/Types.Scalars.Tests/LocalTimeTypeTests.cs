@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
 using HotChocolate.Language;
@@ -10,7 +11,7 @@ namespace HotChocolate.Types.Scalars
     public class LocalTimeTypeTests : ScalarTypeTestBase
     {
         [Fact]
-        public void Schema_WithScalar_IsMatch()
+        protected void Schema_WithScalar_IsMatch()
         {
             // arrange
             ISchema schema = BuildSchema<LocalTimeType>();
@@ -21,69 +22,49 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        public void Serialize_Utc_DateTimeOffset()
+        protected void LocalTime_ExpectIsStringValueNodeToMatch()
         {
             // arrange
-            var dateTimeType = new LocalTimeType();
-            DateTimeOffset dateTime = new DateTime(
-                2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-
-            string expectedValue = "08:46:14";
-
-            // act
-            string serializedValue = (string)dateTimeType.Serialize(dateTime)!;
-
-            // assert
-            Assert.Equal(expectedValue, serializedValue);
-        }
-
-        [Fact]
-        public void Serialize_DateTimeOffset()
-        {
-            // arrange
-            var dateTimeType = new LocalTimeType();
-            var dateTime = new DateTimeOffset(
-                new DateTime(2018, 6, 11, 8, 46, 14),
-                new TimeSpan(4, 0, 0));
-            string expectedValue = "08:46:14";
-
-            // act
-            string serializedValue = (string)dateTimeType.Serialize(dateTime)!;
-
-            // assert
-            Assert.Equal(expectedValue, serializedValue);
-        }
-
-        [Fact]
-        public void Serialize_String_Exception()
-        {
-            // arrange
-            var dateTimeType = new LocalTimeType();
-
-            // act
-            Action err = () => dateTimeType.Serialize("foo");
-
-            // assert
-            Assert.Throws<SerializationException>(err);
-        }
-
-        [Fact]
-        public void ParseLiteral_StringValueNode()
-        {
-            // arrange
-            var dateTimeType = new LocalTimeType();
-            var literal = new StringValueNode(
+            ScalarType scalar = CreateType<LocalTimeType>();
+            var valueSyntax = new StringValueNode(
                 "2018-06-29T08:46:14+04:00");
-            var expectedDateTime = new DateTimeOffset(
-                new DateTime(2018, 6, 29, 8, 46, 14),
-                new TimeSpan(4, 0, 0));
 
             // act
-            var dateTime = (DateTime)dateTimeType
-                .ParseLiteral(literal)!;
+            var result = scalar.IsInstanceOfType(valueSyntax);
 
             // assert
-            Assert.Equal(expectedDateTime, dateTime);
+            Assert.True(result);
+        }
+
+        [Fact]
+        protected void LocalTime_ExpectIsDateTimeNodeToMatch()
+        {
+            // arrange
+            ScalarType scalar = CreateType<LocalTimeType>();
+            var valueSyntax = new DateTime(2018, 6, 29, 8, 46, 14);
+
+            // act
+            var result = scalar.IsInstanceOfType(valueSyntax);
+
+            // assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        protected void LocalTime_ExpectParseLiteralToMatch()
+        {
+            // arrange
+            ScalarType scalar = CreateType<LocalTimeType>();
+            var valueSyntax = new StringValueNode(
+                "2018-06-29T08:46:14");
+            var expectedResult = new DateTime(
+                2018, 6, 29, 8, 46, 14);
+
+            // act
+            object result = (DateTime)scalar.ParseLiteral(valueSyntax)!;
+
+            // assert
+            Assert.Equal(expectedResult, result);
         }
 
         [InlineData("en-US")]
@@ -92,7 +73,7 @@ namespace HotChocolate.Types.Scalars
         [InlineData("de-CH")]
         [InlineData("de-de")]
         [Theory]
-        public void ParseLiteral_StringValueNode_DifferentCulture(
+        public void LocalTime_ParseLiteralStringValueNodeDifferentCulture(
             string cultureName)
         {
             // arrange
@@ -115,88 +96,83 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        public void Deserialize_IsoString_DateTimeOffset()
+        protected void LocalTime_ExpectParseLiteralToThrowSerializationException()
+        {
+            // arrange
+            ScalarType scalar = CreateType<LocalTimeType>();
+            var valueSyntax = new StringValueNode("foo");
+
+            // act
+            Exception? result = Record.Exception(() => scalar.ParseLiteral(valueSyntax));
+
+            // assert
+            Assert.IsType<SerializationException>(result);
+        }
+
+        [Fact]
+        protected void LocalTime_ExpectParseValueToMatchType()
+        {
+            // arrange
+            ScalarType scalar = CreateType<LocalTimeType>();
+            var valueSyntax = new DateTime(2018, 6, 29, 8, 46, 14);
+
+            // act
+            IValueNode result = scalar.ParseValue(valueSyntax);
+
+            // assert
+            Assert.Equal(typeof(StringValueNode), result.GetType());
+        }
+
+        [Fact]
+        protected void LocalTime_ExpectParseValueToThrowSerializationException()
+        {
+            // arrange
+            ScalarType scalar = CreateType<LocalTimeType>();
+            var runtimeValue = new StringValueNode("foo");
+
+            // act
+            Exception? result = Record.Exception(() => scalar.ParseValue(runtimeValue));
+
+            // assert
+            Assert.IsType<SerializationException>(result);
+        }
+
+        [Fact]
+        protected void LocalTime_ExpectSerializeUTCToMatch()
+        {
+            // arrange
+            var dateTimeType = new LocalTimeType();
+            DateTimeOffset dateTime = new DateTime(
+                2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
+
+            string expectedValue = "08:46:14";
+
+            // act
+            string serializedValue = (string)dateTimeType.Serialize(dateTime)!;
+
+            // assert
+            Assert.Equal(expectedValue, serializedValue);
+        }
+
+        [Fact]
+        protected void LocalTime_ExpectSerializeDateTimeOffsetToMatch()
         {
             // arrange
             var dateTimeType = new LocalTimeType();
             var dateTime = new DateTimeOffset(
                 new DateTime(2018, 6, 11, 8, 46, 14),
                 new TimeSpan(4, 0, 0));
+            string expectedValue = "08:46:14";
 
             // act
-            var deserializedValue = (DateTime)dateTimeType
-                .Deserialize("2018-06-11T08:46:14+04:00")!;
+            string serializedValue = (string)dateTimeType.Serialize(dateTime)!;
 
             // assert
-            Assert.Equal(dateTime, deserializedValue);
+            Assert.Equal(expectedValue, serializedValue);
         }
 
         [Fact]
-        public void Deserialize_DateTimeOffset_To_DateTimeOffset()
-        {
-            // arrange
-            var type = new LocalTimeType();
-            var time = new DateTimeOffset(
-                new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc));
-
-            // act
-            bool success = type.TryDeserialize(time, out object deserialized);
-
-            // assert
-            Assert.True(success);
-            Assert.Equal(time, deserialized);
-        }
-
-        [Fact]
-        public void Deserialize_DateTime_To_DateTimeOffset()
-        {
-            // arrange
-            var type = new LocalTimeType();
-            var time = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-
-            // act
-            bool success = type.TryDeserialize(time, out object deserialized);
-
-            // assert
-            Assert.True(success);
-            Assert.Equal(time,
-                Assert.IsType<DateTimeOffset>(deserialized).UtcDateTime);
-        }
-
-        [Fact]
-        public void Deserialize_NullableDateTime_To_DateTimeOffset()
-        {
-            // arrange
-            var type = new LocalTimeType();
-            DateTime? time =
-                new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-
-            // act
-            bool success = type.TryDeserialize(time, out object deserialized);
-
-            // assert
-            Assert.True(success);
-            Assert.Equal(time,
-                Assert.IsType<DateTimeOffset>(deserialized).UtcDateTime);
-        }
-
-        [Fact]
-        public void Deserialize_NullableDateTime_To_DateTimeOffset_2()
-        {
-            // arrange
-            var type = new LocalTimeType();
-            DateTime? time = null;
-
-            // act
-            bool success = type.TryDeserialize(time, out object deserialized);
-
-            // assert
-            Assert.True(success);
-            Assert.Null(deserialized);
-        }
-
-        [Fact]
-        public void Deserialize_Null_To_Null()
+        protected void LocalTime_ExpectDeserializeNullToMatch()
         {
             // arrange
             var type = new LocalTimeType();
@@ -210,30 +186,112 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        public void ParseLiteral_NullValueNode()
+        protected void LocalTime_ExpectDeserializeStringToMatch()
         {
             // arrange
-            var dateTimeType = new LocalTimeType();
-            NullValueNode literal = NullValueNode.Default;
+            ScalarType scalar = CreateType<LocalTimeType>();
+            var runtimeValue = new DateTimeOffset(
+                new DateTime(2018, 6, 11, 8, 46, 14),
+                new TimeSpan(4, 0, 0));
 
             // act
-            object value = dateTimeType.ParseLiteral(literal);
+            var deserializedValue = (DateTime)scalar
+                .Deserialize("2018-06-11T08:46:14+04:00")!;
 
             // assert
-            Assert.Null(value);
+            Assert.Equal(runtimeValue, deserializedValue);
         }
 
         [Fact]
-        public void ParseValue_Null()
+        protected void LocalTime_ExpectDeserializeDateTimeOffsetToMatch()
         {
             // arrange
-            var dateTimeType = new LocalTimeType();
+            ScalarType scalar = CreateType<LocalTimeType>();
+            object? resultValue = new DateTimeOffset(
+                new DateTime(2018, 6, 11, 8, 46, 14),
+                new TimeSpan(4, 0, 0));
+            object? runtimeValue = new DateTimeOffset(
+                new DateTime(2018, 6, 11, 8, 46, 14),
+                new TimeSpan(4, 0, 0));
 
             // act
-            IValueNode literal = dateTimeType.ParseValue(null);
+            object? result = scalar.Deserialize(resultValue);
 
             // assert
-            Assert.IsType<NullValueNode>(literal);
+            Assert.Equal(resultValue, runtimeValue);
+        }
+
+        [Fact]
+        protected void LocalTime_ExpectDeserializeDateTimeToMatch()
+        {
+            // arrange
+            ScalarType scalar = CreateType<LocalTimeType>();
+            object? resultValue =  new DateTime(
+                2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
+            object? runtimeValue = new DateTime(
+                2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
+
+
+            // act
+            object? result = scalar.Deserialize(resultValue);
+
+            // assert
+            Assert.Equal(resultValue, runtimeValue);
+        }
+
+        [Fact]
+        protected void LocalTime_ExpectSerializeToThrowSerializationException()
+        {
+            // arrange
+            ScalarType scalar = CreateType<LocalTimeType>();
+
+            // act
+            Exception? result = Record.Exception(() => scalar.Serialize("runtimeValue"));
+
+            // assert
+            Assert.IsType<SerializationException>(result);
+        }
+
+        [Fact]
+        protected void LocalTime_ExpectDeserializeToThrowSerializationException()
+        {
+            // arrange
+            ScalarType scalar = CreateType<LocalTimeType>();
+            object? runtimeValue = new IntValueNode(1);
+
+            // act
+            Exception? result = Record.Exception(() => scalar.Deserialize(runtimeValue));
+
+            // assert
+            Assert.IsType<SerializationException>(result);
+        }
+
+        [Fact]
+        protected void LocalTime_ExpectParseResultToMatchNull()
+        {
+            // arrange
+            var type = new LocalTimeType();
+
+            // act
+            var success = type.TryDeserialize(null, out object? deserialized);
+
+            // assert
+            Assert.True(success);
+            Assert.Null(deserialized);
+        }
+
+        [Fact]
+        protected void LocalTime_ExpectParseResultToMatchStringValueNode()
+        {
+            // arrange
+            var scalar = new LocalTimeType();
+            var valueSyntax = "2018-06-29T08:46:14+04:00";
+
+            // act
+            IValueNode result = scalar.ParseResult(valueSyntax);
+
+            // assert
+            Assert.Equal(typeof(StringValueNode), result.GetType());
         }
     }
 }
