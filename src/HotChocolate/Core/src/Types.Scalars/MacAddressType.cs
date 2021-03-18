@@ -18,12 +18,25 @@ namespace HotChocolate.Types.Scalars
         /// Initializes a new instance of the <see cref="MacAddressType"/> class.
         /// </summary>
         public MacAddressType()
-            : base(
+            : this(
                 WellKnownScalarTypes.MacAddress,
+                ScalarResources.MacAddressType_Description)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MacAddressType"/> class.
+        /// </summary>
+        public MacAddressType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name,
                 _validationPattern,
                 ScalarResources.MacAddressType_Description,
                 RegexOptions.Compiled | RegexOptions.IgnoreCase)
         {
+            Description = description;
         }
 
         /// <inheritdoc />

@@ -16,12 +16,25 @@ namespace HotChocolate.Types.Scalars
         /// Initializes a new instance of the <see cref="RgbaType"/> class.
         /// </summary>
         public RgbaType()
-            : base(
+            : this(
                 WellKnownScalarTypes.Rgba,
+                ScalarResources.RgbaType_Description)
+        {
+        }
+        
+         /// <summary>
+        /// Initializes a new instance of the <see cref="RgbaType"/> class.
+        /// </summary>
+        public RgbaType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name,
                 _validationPattern,
                 ScalarResources.RgbaType_Description,
                 RegexOptions.Compiled | RegexOptions.IgnoreCase)
         {
+            Description = description;
         }
 
         /// <inheritdoc />

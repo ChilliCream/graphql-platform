@@ -38,12 +38,25 @@ namespace HotChocolate.Types.Scalars
         /// Initializes a new instance of the <see cref="IPv6Type"/> class.
         /// </summary>
         public IPv6Type()
-            : base(
+            : this(
                 WellKnownScalarTypes.IPv6,
+                ScalarResources.IPv6Type_Description)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IPv6Type"/> class.
+        /// </summary>
+        public IPv6Type(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name,
                 _validationPattern,
                 ScalarResources.IPv6Type_Description,
                 RegexOptions.Compiled | RegexOptions.IgnoreCase)
         {
+            Description = description;
         }
 
         /// <inheritdoc />
