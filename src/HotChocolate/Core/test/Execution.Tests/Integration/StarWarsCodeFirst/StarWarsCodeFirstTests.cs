@@ -6,7 +6,9 @@ using HotChocolate.Language;
 using HotChocolate.Tests;
 using Snapshooter;
 using Snapshooter.Xunit;
+using ChilliCream.Testing;
 using Xunit;
+using Snapshot = Snapshooter.Xunit.Snapshot;
 using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
@@ -729,14 +731,45 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
         public async Task Skip_With_Variable(bool ifValue)
         {
             Snapshot.FullName(new SnapshotNameExtension(ifValue));
-            await ExpectValid($@"
-                query ($if: Boolean!) {{
-                    human(id: ""1000"") {{
+            await ExpectValid(@"
+                query ($if: Boolean!) {
+                    human(id: ""1000"") {
                         name @skip(if: $if)
                         height
-                    }}
-                }}",
+                    }
+                }",
                 request: r=> r.SetVariableValue("if", ifValue))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task SkipAll()
+        {
+            Snapshot.FullName();
+
+            await ExpectValid(@"
+                query ($if: Boolean!) {
+                    human(id: ""1000"") @skip(if: $if) {
+                        name
+                        height
+                    }
+                }",
+                request: r=> r.SetVariableValue("if", true))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task SkipAllSecondLevelFields()
+        {
+            Snapshot.FullName();
+
+            await ExpectValid(@"
+                query ($if: Boolean!) {
+                    human(id: ""1000"")  {
+                        name @skip(if: $if)
+                    }
+                }",
+                request: r=> r.SetVariableValue("if", true))
                 .MatchSnapshotAsync();
         }
 
@@ -753,6 +786,42 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                         name
                     }
                 }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_Benchmark_Query_GetHeroQuery()
+        {
+            Snapshot.FullName();
+            await ExpectValid(
+                FileResource.Open("GetHeroQuery.graphql"))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_Benchmark_Query_GetHeroWithFriendsQuery()
+        {
+            Snapshot.FullName();
+            await ExpectValid(
+                FileResource.Open("GetHeroWithFriendsQuery.graphql"))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_Benchmark_Query_GetTwoHerosWithFriendsQuery()
+        {
+            Snapshot.FullName();
+            await ExpectValid(
+                FileResource.Open("GetTwoHerosWithFriendsQuery.graphql"))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_Benchmark_Query_LargeQuery()
+        {
+            Snapshot.FullName();
+            await ExpectValid(
+                FileResource.Open("LargeQuery.graphql"))
                 .MatchSnapshotAsync();
         }
     }

@@ -14,7 +14,6 @@ namespace HotChocolate.Types.Scalars
         /// </summary>
         private const string _validationPattern = "^\\+[1-9]\\d{1,14}$";
 
-
         /// <summary>
         /// Initializes a new instance of the <see cref="PhoneNumberType"/>
         /// </summary>

@@ -5,22 +5,22 @@ import { SalesCardPerk } from "../components/support/sales-card-perk";
 import { SalesCardPerkItem } from "../components/support/sales-card-perk-item";
 import { IsMobile, IsSmallDesktop, IsPhablet } from "../shared-style";
 
-type Cycle = "monthly" | "biannualy" | "annualy";
+type Cycle = "monthly" | "biannually" | "annually";
 type Plan = "Basic" | "Enterprise";
 
 export const SalesPartial: FunctionComponent = () => {
-  const [cycle, setCycle] = useState<Cycle>("annualy");
+  const [cycle, setCycle] = useState<Cycle>("annually");
 
   const planPrices: Record<Plan, Record<Cycle, number>> = {
     Basic: {
       monthly: 325,
-      biannualy: 300,
-      annualy: 275,
+      biannually: 300,
+      annually: 275,
     },
     Enterprise: {
       monthly: 2250,
-      biannualy: 2000,
-      annualy: 1750,
+      biannually: 2000,
+      annually: 1750,
     },
   };
 
@@ -41,17 +41,17 @@ export const SalesPartial: FunctionComponent = () => {
           </CyclePlan>
           <CyclePlan
             style={{ marginLeft: "0.125rem" }}
-            isActive={cycle === "biannualy"}
-            onClick={() => setCycle("biannualy")}
+            isActive={cycle === "biannually"}
+            onClick={() => setCycle("biannually")}
           >
-            Biannualy
+            Biannually
           </CyclePlan>
           <CyclePlan
             style={{ marginLeft: "0.125rem" }}
-            isActive={cycle === "annualy"}
-            onClick={() => setCycle("annualy")}
+            isActive={cycle === "annually"}
+            onClick={() => setCycle("annually")}
           >
-            Annualy
+            Annually
           </CyclePlan>
         </CycleContainer>
       </SwiterContainer>

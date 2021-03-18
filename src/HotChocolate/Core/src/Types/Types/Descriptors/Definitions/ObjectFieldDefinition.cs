@@ -14,6 +14,8 @@ namespace HotChocolate.Types.Descriptors.Definitions
     /// </summary>
     public class ObjectFieldDefinition : OutputFieldDefinitionBase
     {
+        private List<FieldMiddleware>? _middlewareComponents;
+
         /// <summary>
         /// The object runtime type.
         /// </summary>
@@ -58,12 +60,25 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// <summary>
         /// A list of middleware components which will be used to form the field pipeline.
         /// </summary>
-        public IList<FieldMiddleware> MiddlewareComponents { get; } =
-            new List<FieldMiddleware>();
+        public IList<FieldMiddleware> MiddlewareComponents =>
+            _middlewareComponents ??= new List<FieldMiddleware>();
 
         /// <summary>
         /// Defines if this field configuration represents an introspection field.
         /// </summary>
         public bool IsIntrospectionField { get; internal set; }
+
+        /// <summary>
+        /// A list of middleware components which will be used to form the field pipeline.
+        /// </summary>
+        internal IReadOnlyList<FieldMiddleware> GetMiddlewareComponents()
+        {
+            if (_middlewareComponents is null)
+            {
+                return Array.Empty<FieldMiddleware>();
+            }
+
+            return _middlewareComponents;
+        }
     }
 }

@@ -82,8 +82,16 @@ namespace HotChocolate
                 typeDefinitions.Insert(0, SerializeSchemaTypeDefinition(schema));
             }
 
+            var builtInDirectives = new HashSet<NameString>
+            {
+                WellKnownDirectives.Skip,
+                WellKnownDirectives.Include,
+                WellKnownDirectives.Deprecated
+            };
+
             IEnumerable<DirectiveDefinitionNode> directiveTypeDefinitions =
                 schema.DirectiveTypes
+                    .Where(directive => !builtInDirectives.Contains(directive.Name))
                 .OrderBy(t => t.Name.ToString(), StringComparer.Ordinal)
                 .Select(SerializeDirectiveTypeDefinition);
 

@@ -3,7 +3,7 @@
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:element name="root" msdata:IsDataSet="true">
-      
+
     </xsd:element>
   </xsd:schema>
   <resheader name="resmimetype">
@@ -22,6 +22,6 @@
     <value>The cursor cannot be null or empty.</value>
   </data>
   <data name="PagingObjectFieldDescriptorExtensions_SchemaTypeNotValid" xml:space="preserve">
-    <value>The schema type must be a valid output type.</value>
+    <value>The element schema type for pagination must be a valid GraphQL output type (ObjectType, InterfaceType, UnionType, EnumType, ScalarType).</value>
   </data>
 </root>

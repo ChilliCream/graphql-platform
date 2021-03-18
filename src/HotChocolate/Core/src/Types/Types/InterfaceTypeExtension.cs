@@ -5,12 +5,14 @@ using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public class InterfaceTypeExtension
         : NamedTypeExtensionBase<InterfaceTypeDefinition>
     {
-        private readonly Action<IInterfaceTypeDescriptor> _configure;
+        private Action<IInterfaceTypeDescriptor>? _configure;
 
         protected InterfaceTypeExtension()
         {
@@ -28,9 +30,12 @@ namespace HotChocolate.Types
         protected override InterfaceTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
         {
-            var descriptor = InterfaceTypeDescriptor.New(
-                context.DescriptorContext);
-            _configure(descriptor);
+            var descriptor =
+                InterfaceTypeDescriptor.New(context.DescriptorContext);
+
+            _configure!(descriptor);
+            _configure = null;
+
             return descriptor.CreateDefinition();
         }
 
