@@ -294,34 +294,6 @@ namespace HotChocolate.Types.Scalars
             Assert.Equal(typeof(StringValueNode), result.GetType());
         }
 
-        // [Fact]
-        // protected void LocalTime_ExpectParseResultToMatchDateTimeOffset()
-        // {
-        //     // arrange
-        //     var scalar = new LocalTimeType();
-        //     DateTimeOffset valueSyntax = new DateTime(2018, 6, 29, 8, 46, 14);
-        //
-        //     // act
-        //     object? result = scalar.ParseResult(valueSyntax);
-        //
-        //     // assert
-        //     Assert.Equal(typeof(StringValueNode), result.GetType());
-        // }
-
-        // [Fact]
-        // protected void LocalTime_ExpectParseResultToMatchDateTime()
-        // {
-        //     // arrange
-        //     var scalar = new LocalTimeType();
-        //     var valueSyntax = new DateTime(2018, 6, 11, 8, 46, 14);
-        //
-        //     // act
-        //     IValueNode? result = scalar.ParseResult(valueSyntax);
-        //
-        //     // assert
-        //     Assert.Equal(typeof(StringValueNode), result.GetType());
-        // }
-
         [Fact]
         protected void LocalTime_ExpectParseResultToThrowSerializationException()
         {
