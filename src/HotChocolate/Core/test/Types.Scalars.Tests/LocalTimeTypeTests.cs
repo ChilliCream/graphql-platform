@@ -240,6 +240,20 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
+        public void LocalTime_ExpectDeserializeNullToNull()
+        {
+            // arrange
+            var scalar = new LocalTimeType();
+
+            // act
+            var success = scalar.TryDeserialize(null, out object? deserialized);
+
+            // assert
+            Assert.True(success);
+            Assert.Null(deserialized);
+        }
+
+        [Fact]
         protected void LocalTime_ExpectSerializeToThrowSerializationException()
         {
             // arrange
