@@ -2,6 +2,8 @@
 title: "Get started with Strawberry Shake and Blazor"
 ---
 
+> We are still working on the documentation for Strawberry Shake so help us by finding typos, missing things or write some additional docs with us.
+
 In this tutorial we will walk you through the basics of adding a Strawberry Shake GraphQL client to a Blazor for WebAssembly project. For this example we will create a Blazor for WebAssembly application and fetch some simple data from our demo backend.
 
 Strawberry Shake is not limited to Blazor and can be used with any .NET standard compliant library.
@@ -693,4 +695,4 @@ The page should now look like the following:
 
 ![Clicked on session edit button](../../shared/berry_mutation_4.png)
 
-Strawberry Shake knows about your entities and how the connect. Whenever one request updates the state, all components referring to data of that component are updated.
+Strawberry Shake knows about your entities and how they are connected. Whenever one request updates the state, all components referring to data of the linked entities are updated.
