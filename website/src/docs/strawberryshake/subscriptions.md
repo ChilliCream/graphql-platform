@@ -2,6 +2,8 @@
 title: "Subscriptions"
 ---
 
+> We are still working on the documentation for Strawberry Shake so help us by finding typos, missing things or write some additional docs with us.
+
 Subscriptions in GraphQL represent real-time events that are represented as a stream of query responses. In most cases subscriptions are used over WebSockets but can also used with other protocols. For transport questions please head over to the [network docs](../strawberryshake/networking).
 
 GraphQL subscriptions can be used through the reactive APIs like queries. Instead of a single network request the store will subscribe to the GraphQL result stream and update the store for each new result that comes in.

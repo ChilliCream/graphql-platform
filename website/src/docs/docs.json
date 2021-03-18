@@ -441,6 +441,10 @@
             "title": "Subscriptions"
           },
           {
+            "path": "tooling",
+            "title": "Tooling / CLI"
+          },
+          {
             "path": "caching",
             "title": "Caching",
             "items": [
