@@ -246,7 +246,7 @@ namespace HotChocolate.Types.Scalars
             ScalarType scalar = CreateType<LocalTimeType>();
 
             // act
-            Exception? result = Record.Exception(() => scalar.Serialize("runtimeValue"));
+            Exception? result = Record.Exception(() => scalar.Serialize("foo"));
 
             // assert
             Assert.IsType<SerializationException>(result);
