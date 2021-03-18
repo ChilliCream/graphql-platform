@@ -13,9 +13,6 @@
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
 
-using System;
-using System.Text.Json;
-
 #nullable enable
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
@@ -2510,24 +2507,23 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
             {
                 if (response.Body != null)
                 {
-                    if (response.Body.RootElement.TryGetProperty("data",
-                        out global::System.Text.Json.JsonElement dataElement) &&
-                        dataElement.ValueKind == JsonValueKind.Object)
+                    if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
                     {
                         data = BuildData(dataElement);
                     }
-
-                    if (response.Body.RootElement.TryGetProperty("errors",
-                        out global::System.Text.Json.JsonElement errorsElement))
+                    if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
                     {
-                        errors =
-                            global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
                     }
                 }
             }
-            catch (Exception ex)
+            catch(global::System.Exception ex)
             {
-                errors = new global::StrawberryShake.IClientError[] {new ClientError(ex.Message, exception: ex)};
+                errors = new global::StrawberryShake.IClientError[] {
+                    new global::StrawberryShake.ClientError(
+                        ex.Message,
+                        exception: ex)
+                };
             }
 
             return new global::StrawberryShake.OperationResult<IGetHeroResult>(
@@ -2543,7 +2539,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
             global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
 
             global::StrawberryShake.EntityId? heroId = default!;
-            _entityStore.Update(session =>
+            _entityStore.Update(session => 
             {
                 heroId = UpdateIGetHero_HeroEntity(
                     session,
@@ -2854,16 +2850,27 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
             (IOnReviewSubResult Result, OnReviewSubResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
-            if (response.Body != null)
+            try
             {
-                if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
+                if (response.Body != null)
                 {
-                    data = BuildData(dataElement);
+                    if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                    {
+                        data = BuildData(dataElement);
+                    }
+                    if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                    {
+                        errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                    }
                 }
-                if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
-                {
-                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
-                }
+            }
+            catch(global::System.Exception ex)
+            {
+                errors = new global::StrawberryShake.IClientError[] {
+                    new global::StrawberryShake.ClientError(
+                        ex.Message,
+                        exception: ex)
+                };
             }
 
             return new global::StrawberryShake.OperationResult<IOnReviewSubResult>(
@@ -2878,7 +2885,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
             global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
 
-            _entityStore.Update(session =>
+            _entityStore.Update(session => 
             {
 
                 snapshot = session.CurrentSnapshot;
@@ -3003,16 +3010,27 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
             (ICreateReviewMutResult Result, CreateReviewMutResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
-            if (response.Body != null)
+            try
             {
-                if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
+                if (response.Body != null)
                 {
-                    data = BuildData(dataElement);
+                    if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                    {
+                        data = BuildData(dataElement);
+                    }
+                    if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                    {
+                        errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                    }
                 }
-                if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
-                {
-                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
-                }
+            }
+            catch(global::System.Exception ex)
+            {
+                errors = new global::StrawberryShake.IClientError[] {
+                    new global::StrawberryShake.ClientError(
+                        ex.Message,
+                        exception: ex)
+                };
             }
 
             return new global::StrawberryShake.OperationResult<ICreateReviewMutResult>(
@@ -3027,7 +3045,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
             global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
 
-            _entityStore.Update(session =>
+            _entityStore.Update(session => 
             {
 
                 snapshot = session.CurrentSnapshot;
@@ -3337,7 +3355,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp =>
+                sp => 
                 {
                     var serviceCollection = profile switch
                     {
@@ -3401,7 +3419,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp =>
+                sp => 
                 {
                     var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.InMemory.IInMemoryClientFactory>(parentServices);
                     return new global::StrawberryShake.Transport.InMemory.InMemoryConnection(async ct => await clientFactory.CreateAsync(
@@ -3504,7 +3522,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp =>
+                sp => 
                 {
                     var sessionPool = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.WebSockets.ISessionPool>(parentServices);
                     return new global::StrawberryShake.Transport.WebSockets.WebSocketConnection(async ct => await sessionPool.CreateAsync(
@@ -3513,7 +3531,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp =>
+                sp => 
                 {
                     var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
                     return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("MultiProfileClient"));
