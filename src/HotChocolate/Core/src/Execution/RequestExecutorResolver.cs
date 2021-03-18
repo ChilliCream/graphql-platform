@@ -26,7 +26,9 @@ namespace HotChocolate.Execution
         private readonly ConcurrentDictionary<string, RegisteredExecutor> _executors = new();
         private readonly IRequestExecutorOptionsMonitor _optionsMonitor;
         private readonly IServiceProvider _applicationServices;
+        private ulong _version;
         private bool _disposed;
+
 
         public event EventHandler<RequestExecutorEvictedEventArgs>? RequestExecutorEvicted;
 
@@ -122,9 +124,8 @@ namespace HotChocolate.Execution
                 }
                 finally
                 {
+                    BeginRunEvictionEvents(re);
                 }
-
-                BeginRunEvictionEvents(re);
             }
         }
 
@@ -134,23 +135,24 @@ namespace HotChocolate.Execution
             {
                 try
                 {
-
                     foreach (OnRequestExecutorEvictedAction action in
                         registeredExecutor.Setup.OnRequestExecutorEvicted)
                     {
                         action.Action?.Invoke(registeredExecutor.Executor);
 
-                        if (action.AsyncAction is not null)
+                        if (action.AsyncAction is { } task)
                         {
-                            await action.AsyncAction.Invoke(
-                                    registeredExecutor.Executor,
-                                    CancellationToken.None)
+                            await task.Invoke(
+                                registeredExecutor.Executor,
+                                CancellationToken.None)
                                 .ConfigureAwait(false);
                         }
                     }
                 }
                 finally
                 {
+                    // we will give the request executor some grace period to finish all request
+                    // in the pipeline
                     await Task.Delay(TimeSpan.FromMinutes(5));
                     registeredExecutor.Dispose();
                 }
@@ -162,6 +164,13 @@ namespace HotChocolate.Execution
             RequestExecutorSetup options,
             CancellationToken cancellationToken)
         {
+            var version = 0UL;
+
+            unchecked
+            {
+                version = ++_version;
+            }
+
             var lazy = new SchemaBuilder.LazySchema();
 
             RequestExecutorOptions executorOptions =
@@ -171,9 +180,9 @@ namespace HotChocolate.Execution
             var serviceCollection = new ServiceCollection();
 
             serviceCollection.AddSingleton<IApplicationServiceProvider>(
-                s => new DefaultApplicationServiceProvider(_applicationServices));
+                _ => new DefaultApplicationServiceProvider(_applicationServices));
 
-            serviceCollection.AddSingleton(s => lazy.Schema);
+            serviceCollection.AddSingleton(_ => lazy.Schema);
 
             serviceCollection.AddSingleton(executorOptions);
             serviceCollection.AddSingleton<IRequestExecutorOptionsAccessor>(
@@ -207,7 +216,7 @@ namespace HotChocolate.Execution
             }
 
             serviceCollection.AddSingleton<IActivator>(
-                sp => new DefaultActivator(_applicationServices));
+                _ => new DefaultActivator(_applicationServices));
 
             serviceCollection.AddSingleton(
                 sp => CreatePipeline(
@@ -226,7 +235,8 @@ namespace HotChocolate.Execution
                     _applicationServices.GetRequiredService<ITypeConverter>(),
                     sp.GetRequiredService<IActivator>(),
                     sp.GetRequiredService<IDiagnosticEvents>(),
-                    sp.GetRequiredService<RequestDelegate>())
+                    sp.GetRequiredService<RequestDelegate>(),
+                    version)
             );
 
             foreach (Action<IServiceCollection> configureServices in options.SchemaServices)
@@ -281,7 +291,7 @@ namespace HotChocolate.Execution
             return schema;
         }
 
-        private void AssertSchemaNameValid(ISchema schema, NameString expectedSchemaName)
+        private static void AssertSchemaNameValid(ISchema schema, NameString expectedSchemaName)
         {
             if (!schema.Name.Equals(expectedSchemaName))
             {
@@ -291,7 +301,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private async ValueTask<RequestExecutorOptions> CreateExecutorOptionsAsync(
+        private static async ValueTask<RequestExecutorOptions> CreateExecutorOptionsAsync(
             RequestExecutorSetup options,
             CancellationToken cancellationToken)
         {
@@ -330,7 +340,7 @@ namespace HotChocolate.Execution
                 schemaServices,
                 options);
 
-            RequestDelegate next = context => default;
+            RequestDelegate next = _ => default;
 
             for (var i = pipeline.Count - 1; i >= 0; i--)
             {

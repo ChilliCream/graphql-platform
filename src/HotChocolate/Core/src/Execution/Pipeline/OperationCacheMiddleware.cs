@@ -44,7 +44,7 @@ namespace HotChocolate.Execution.Pipeline
                     context.OperationId = operationId;
                 }
 
-                string cacheId = $"{context.Schema.Name}-{operationId}";
+                string cacheId = $"{context.Schema.Name}-{context.ExecutorVersion}-{operationId}";
 
                 if (_operationCache.TryGetOperation(cacheId, out IPreparedOperation? operation))
                 {

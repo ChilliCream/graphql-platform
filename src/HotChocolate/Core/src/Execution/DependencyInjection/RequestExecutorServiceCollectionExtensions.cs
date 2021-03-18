@@ -86,12 +86,9 @@ namespace Microsoft.Extensions.DependencyInjection
             return new DefaultRequestExecutorBuilder(services, schemaName)
                 .Configure((sp, e) =>
                     e.OnRequestExecutorEvicted.Add(
+                        // when ever we evict this schema we will clear the caches.
                         new OnRequestExecutorEvictedAction(
-                            _ =>
-                            {
-                                sp.GetRequiredService<IDocumentCache>().Clear();
-                                sp.GetRequiredService<IPreparedOperationCache>().Clear();
-                            })));
+                            _ => sp.GetRequiredService<IPreparedOperationCache>().Clear())));
         }
 
         /// <summary>
