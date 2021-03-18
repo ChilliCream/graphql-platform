@@ -467,12 +467,12 @@
                 "title": "Overview"
               },
               {
-                "path": "persisted-state",
-                "title": "Persisted State"
-              },
-              {
                 "path": "persisted-queries",
                 "title": "Persisted Queries"
+              },
+              {
+                "path": "persisted-state",
+                "title": "Persisted State"
               }
             ]
           },
