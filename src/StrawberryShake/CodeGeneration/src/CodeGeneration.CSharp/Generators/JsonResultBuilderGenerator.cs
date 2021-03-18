@@ -279,30 +279,55 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             buildMethod.AddEmptyLine();
             buildMethod.AddCode(
-                IfBuilder
+                TryCatchBuilder
                     .New()
-                    .SetCondition(
-                        ConditionBuilder
-                            .New()
-                            .Set("response.Body != null"))
-                    .AddCode(
+                    .AddTryCode(
                         IfBuilder
                             .New()
                             .SetCondition(
                                 ConditionBuilder
                                     .New()
-                                    .Set("response.Body.RootElement.TryGetProperty(\"data\"," +
-                                        $" out {TypeNames.JsonElement} dataElement)"))
-                            .AddCode("data = BuildData(dataElement);"))
-                    .AddCode(
-                        IfBuilder
-                            .New()
-                            .SetCondition(
-                                ConditionBuilder
+                                    .Set("response.Body != null"))
+                            .AddCode(
+                                IfBuilder
                                     .New()
-                                    .Set("response.Body.RootElement.TryGetProperty(\"errors\"," +
-                                        $" out {TypeNames.JsonElement} errorsElement)"))
-                            .AddCode($"errors = {TypeNames.ParseError}(errorsElement);")));
+                                    .SetCondition(
+                                        ConditionBuilder
+                                            .New()
+                                            .Set("response.Body.RootElement.TryGetProperty(" +
+                                                 $"\"data\", out {TypeNames.JsonElement} " +
+                                                 "dataElement) && dataElement.ValueKind == " +
+                                                 $"{TypeNames.JsonValueKind}.Object"))
+                                    .AddCode("data = BuildData(dataElement);"))
+                            .AddCode(
+                                IfBuilder
+                                    .New()
+                                    .SetCondition(
+                                        ConditionBuilder
+                                            .New()
+                                            .Set(
+                                                "response.Body.RootElement.TryGetProperty(" +
+                                                $"\"errors\", out {TypeNames.JsonElement} " +
+                                                "errorsElement)"))
+                                    .AddCode($"errors = {TypeNames.ParseError}(errorsElement);")))
+                    .AddCatchBlock(
+                        CatchBlockBuilder
+                            .New()
+                            .SetExceptionVariable("ex")
+                            .AddCode(
+                                AssignmentBuilder.New()
+                                    .SetLefthandSide("errors")
+                                    .SetRighthandSide(
+                                        ArrayBuilder.New()
+                                            .SetDetermineStatement(false)
+                                            .SetType(TypeNames.IClientError)
+                                            .AddAssigment(
+                                                MethodCallBuilder
+                                                    .Inline()
+                                                    .SetNew()
+                                                    .SetMethodName(TypeNames.ClientError)
+                                                    .AddArgument("ex.Message")
+                                                    .AddArgument("exception: ex"))))));
 
             buildMethod.AddEmptyLine();
             buildMethod.AddCode(

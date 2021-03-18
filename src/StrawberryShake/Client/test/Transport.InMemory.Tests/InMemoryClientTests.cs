@@ -128,6 +128,8 @@ namespace StrawberryShake.Transport.InMemory
         {
             public IQueryRequest Request { get; private set; }
 
+            public ulong Version { get; }
+
             public Task<IExecutionResult> ExecuteAsync(
                 IQueryRequest request,
                 CancellationToken cancellationToken = default)
