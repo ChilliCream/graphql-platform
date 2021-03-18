@@ -693,4 +693,4 @@ The page should now look like the following:
 
 ![Clicked on session edit button](../../shared/berry_mutation_4.png)
 
-Strawberry Shake knows about your entities and how the connect. Whenever one request updates the state, all components referring to data of that component are updated.
+Strawberry Shake knows about your entities and how they are connected. Whenever one request updates the state, all components referring to data of the linked entities are updated.
