@@ -186,6 +186,21 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
+        public void LocalTime_ExpectDeserializeNullableDateTimeToDateTimeOffset()
+        {
+            // arrange
+            ScalarType scalar = new LocalTimeType();
+            DateTime? time = null;
+
+            // act
+            var success = scalar.TryDeserialize(time, out object? deserialized);
+
+            // assert
+            Assert.True(success);
+            Assert.Null(deserialized);
+        }
+
+        [Fact]
         protected void LocalTime_ExpectDeserializeStringToMatch()
         {
             // arrange
