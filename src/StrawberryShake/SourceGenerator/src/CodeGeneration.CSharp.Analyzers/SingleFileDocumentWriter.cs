@@ -26,7 +26,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             {
                 _fileName = IOPath.Combine(
                     context.OutputDirectory,
-                    "Generated.StrawberryShake.cs");
+                    $"{context.Settings.Name}.StrawberryShake.cs");
                 context.FileNames.Add(_fileName);
             }
 
