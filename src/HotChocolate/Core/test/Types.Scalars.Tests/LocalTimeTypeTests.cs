@@ -81,7 +81,7 @@ namespace HotChocolate.Types.Scalars
                 CultureInfo.GetCultureInfo(cultureName);
 
             ScalarType scalar = new LocalTimeType();
-            var literal = new StringValueNode(
+            var valueSyntax = new StringValueNode(
                 "2018-06-29T08:46:14+04:00");
             var expectedDateTime = new DateTimeOffset(
                 new DateTime(2018, 6, 29, 8, 46, 14),
@@ -89,7 +89,7 @@ namespace HotChocolate.Types.Scalars
 
             // act
             var dateTime = (DateTime)scalar
-                .ParseLiteral(literal)!;
+                .ParseLiteral(valueSyntax)!;
 
             // assert
             Assert.Equal(expectedDateTime, dateTime);
