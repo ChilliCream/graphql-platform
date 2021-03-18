@@ -451,6 +451,10 @@
               {
                 "path": "entities",
                 "title": "Entities"
+              },
+              {
+                "path": "invalidation",
+                "title": "Invalidation"
               }
             ]
           },
