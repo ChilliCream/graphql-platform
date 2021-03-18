@@ -22,6 +22,19 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
+        public void LocalTime_EnsureDateTimeTypeKindIsCorret()
+        {
+            // arrange
+            var type = new LocalTimeType();
+
+            // act
+            TypeKind kind = type.Kind;
+
+            // assert
+            Assert.Equal(TypeKind.Scalar, type.Kind);
+        }
+
+        [Fact]
         protected void LocalTime_ExpectIsStringValueNodeToMatch()
         {
             // arrange
@@ -110,7 +123,7 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        protected void LocalTime_ExpectParseValueToMatchType()
+        protected void LocalTime_ExpectParseValueToMatchDateTime()
         {
             // arrange
             ScalarType scalar = CreateType<LocalTimeType>();
@@ -186,7 +199,7 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        public void LocalTime_ExpectDeserializeNullableDateTimeToDateTimeOffset()
+        public void LocalTime_ExpectDeserializeNullableDateTimeToDateTime()
         {
             // arrange
             ScalarType scalar = new LocalTimeType();
@@ -252,6 +265,19 @@ namespace HotChocolate.Types.Scalars
 
             // assert
             Assert.Equal(resultValue, runtimeValue);
+        }
+
+        [Fact]
+        public void LocalTime_ExpectDeserializeInvalidStringToDateTime()
+        {
+            // arrange
+            ScalarType scalar = new LocalTimeType();
+
+            // act
+            bool success = scalar.TryDeserialize("abc", out object? deserialized);
+
+            // assert
+            Assert.False(success);
         }
 
         [Fact]
