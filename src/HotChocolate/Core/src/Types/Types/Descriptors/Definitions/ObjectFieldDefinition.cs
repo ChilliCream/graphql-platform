@@ -118,10 +118,17 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// <param name="type">
         /// The binding type.
         /// </param>
-        public ObjectFieldBinding(NameString name, ObjectFieldBindingType type)
+        /// <param name="replace">
+        /// Defines if the bound property shall be replaced.
+        /// </param>
+        public ObjectFieldBinding(
+            NameString name, 
+            ObjectFieldBindingType type,
+            bool replace = true)
         {
             Name = name;
             Type = type;
+            Replace = replace;
         }
 
         /// <summary>
@@ -133,6 +140,13 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// Gets the binding type.
         /// </summary>
         public ObjectFieldBindingType Type { get; }
+
+
+        /// <summary>
+        /// Defines if the bound property shall be replaced.
+        /// </summary>
+        /// <value></value>
+        public bool Replace { get; }
     }
 
     /// <summary>

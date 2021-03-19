@@ -49,12 +49,19 @@ namespace HotChocolate.Types.Descriptors
                     {
                         var descriptor = ObjectFieldDescriptor.New(
                             Context, p, Definition.RuntimeType, Definition.FieldBindingType);
+
+                        if(Definition.IsExtension && p.IsDefined(typeof(GraphQLIgnoreAttribute)))
+                        {
+                            descriptor.Ignore();
+                        }
+
                         Fields.Add(descriptor);
                         return descriptor.CreateDefinition();
                     },
                     fields,
                     handledMembers,
-                    include: IncludeField);
+                    include: IncludeField,
+                    includeIgnoredMembers: Definition.IsExtension);
             }
 
             base.OnCompleteFields(fields, handledMembers);

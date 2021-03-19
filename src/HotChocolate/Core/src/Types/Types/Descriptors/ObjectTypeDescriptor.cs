@@ -8,6 +8,8 @@ using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 
+#nullable enable
+
 namespace HotChocolate.Types.Descriptors
 {
     public class ObjectTypeDescriptor

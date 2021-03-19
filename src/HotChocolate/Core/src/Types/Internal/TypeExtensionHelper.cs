@@ -29,19 +29,34 @@ namespace HotChocolate.Internal
                     _ => typeFields.FirstOrDefault(t => extensionField.Name.Equals(t.Name))
                 };
 
+                var replaceField = extensionField.BindTo?.Replace ?? false;
+                var removeField = extensionField.Ignore;
+
                 if (extensionField?.Member is MethodInfo p &&
                     p.GetParameters() is { Length: > 0 } parameters)
                 {
                     ParameterInfo parent = parameters.FirstOrDefault(
                         t => t.IsDefined(typeof(ParentAttribute), true));
-                    if (!parent.ParameterType.IsAssignableFrom(sourceType))
+                    if (parent is not null && !parent.ParameterType.IsAssignableFrom(sourceType))
                     {
                         continue;
                     }
                 }
 
-                if (typeField is null)
+                if (removeField)
                 {
+                    if(typeField is not null)
+                    {
+                        typeFields.Remove(typeField);
+                    }
+                }
+                else if (typeField is null || replaceField)
+                {
+                    if(typeField is not null)
+                    {
+                        typeFields.Remove(typeField);
+                    }
+
                     var newField = new ObjectFieldDefinition();
                     extensionField.CopyTo(newField);
                     newField.SourceType = sourceType;

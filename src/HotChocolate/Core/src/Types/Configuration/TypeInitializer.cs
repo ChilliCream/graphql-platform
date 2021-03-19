@@ -290,7 +290,7 @@ namespace HotChocolate.Configuration
 
                 foreach (var extension in extensions.Except(processed))
                 {
-                    if (extension.Type is INamedTypeExtension { 
+                    if (extension.Type is INamedTypeExtension {
                         ExtendsType: { } extendsType } namedTypeExtension)
                     {
                         var isSchemaType = typeof(INamedType).IsAssignableFrom(extendsType);
@@ -311,8 +311,7 @@ namespace HotChocolate.Configuration
                                     (INamedType)possibleMatchingType.Type,
                                     processed);
                             }
-                            else if (!isSchemaType && 
-                                possibleMatchingType.RuntimeType is not null &&
+                            else if (!isSchemaType &&
                                 possibleMatchingType.RuntimeType != typeof(object) &&
                                 extendsType.IsAssignableFrom(possibleMatchingType.RuntimeType))
                             {

@@ -1,9 +1,10 @@
 ﻿schema {
-  query: BindResolver_With_Property_PersonDto
+  query: Remove_Fields_Globally_PersonDto
 }
 
-type BindResolver_With_Property_PersonDto {
-  friends: [BindResolver_With_Property_PersonDto]
+type Remove_Fields_Globally_PersonDto {
+  friendId: Int!
+  internalId: Int!
 }
 
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."

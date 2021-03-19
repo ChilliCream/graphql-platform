@@ -558,7 +558,76 @@ namespace HotChocolate.Types
 
             // assert
             schema.Print().MatchSnapshot();
+        }
 
+        [Fact]
+        public void Remove_Properties_Globally()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Remove_Properties_Globally_PersonDto>()
+                .AddType<Remove_Properties_Globally_PersonResolvers>()
+                .Create();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Remove_Fields_Globally()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Remove_Fields_Globally_PersonDto>()
+                .AddType<Remove_Fields_Globally_PersonResolvers>()
+                .Create();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Remove_Fields()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Remove_Fields_PersonDto>()
+                .AddType<Remove_Fields_PersonResolvers>()
+                .Create();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Remove_Fields_BindField()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Remove_Fields_BindProperty_PersonDto>()
+                .AddType<Remove_Fields_BindProperty_PersonResolvers>()
+                .Create();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Replace_Field()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Replace_Field_PersonDto>()
+                .AddType<Replace_Field_PersonResolvers>()
+                .Create();
+
+            // assert
+            schema.Print().MatchSnapshot();
         }
 
         public class FooType
@@ -720,6 +789,77 @@ namespace HotChocolate.Types
             [BindProperty(nameof(BindResolver_With_Property_PersonDto.FriendId))]
             public List<BindResolver_With_Property_PersonDto> Friends() =>
                 new List<BindResolver_With_Property_PersonDto>();
+        }
+
+        public class Remove_Properties_Globally_PersonDto
+        {
+            public int FriendId { get; } = 1;
+
+            public int InternalId { get; } = 1;
+        }
+
+        [ExtendObjectType(
+            typeof(Remove_Properties_Globally_PersonDto),
+            IgnoreProperties = new[] { nameof(Remove_Properties_Globally_PersonDto.InternalId) })]
+        public class Remove_Properties_Globally_PersonResolvers
+        {
+        }
+
+        public class Remove_Fields_Globally_PersonDto
+        {
+            public int FriendId { get; } = 1;
+
+            public int InternalId { get; } = 1;
+        }
+
+        [ExtendObjectType(
+            typeof(Remove_Fields_Globally_PersonDto),
+            IgnoreProperties = new[] { "internalId" })]
+        public class Remove_Fields_Globally_PersonResolvers
+        {
+        }
+
+        public class Remove_Fields_PersonDto
+        {
+            public int FriendId { get; } = 1;
+
+            public int InternalId { get; } = 1;
+        }
+
+        [ExtendObjectType(typeof(Remove_Fields_PersonDto))]
+        public class Remove_Fields_PersonResolvers
+        {
+            [GraphQLIgnore]
+            public int InternalId { get; } = 1;
+        }
+
+        public class Remove_Fields_BindProperty_PersonDto
+        {
+            public int FriendId { get; } = 1;
+
+            public int InternalId { get; } = 1;
+        }
+
+        [ExtendObjectType(typeof(Remove_Fields_BindProperty_PersonDto))]
+        public class Remove_Fields_BindProperty_PersonResolvers
+        {
+            [GraphQLIgnore]
+            [BindProperty(nameof(Remove_Fields_BindProperty_PersonDto.InternalId))]
+            public int SomeId { get; } = 1;
+        }
+
+        public class Replace_Field_PersonDto
+        {
+            public int FriendId { get; } = 1;
+
+            public int InternalId { get; } = 1;
+        }
+
+        [ExtendObjectType(typeof(Replace_Field_PersonDto))]
+        public class Replace_Field_PersonResolvers
+        {
+            [BindProperty(nameof(Replace_Field_PersonDto.InternalId))]
+            public string SomeId { get; } = "abc";
         }
     }
 }

@@ -24,9 +24,9 @@ namespace HotChocolate.Types
 
         public Type? ExtendsType { get; }
 
-        public string[] IgnoreFields { get; set; }
+        public string[]? IgnoreFields { get; set; }
 
-        public string[] IgnoreProperties { get; set; }
+        public string[]? IgnoreProperties { get; set; }
 
         public override void OnConfigure(
             IDescriptorContext context,
@@ -36,12 +36,37 @@ namespace HotChocolate.Types
             if (ExtendsType is not null)
             {
                 descriptor.ExtendsType(ExtendsType);
-                descriptor.Name("_" + Guid.NewGuid().ToString("N"));
             }
 
             if (!string.IsNullOrEmpty(Name))
             {
                 descriptor.Name(Name);
+            }
+
+            if (IgnoreFields is not null)
+            {
+                descriptor.Extend().OnBeforeCreate(d => 
+                {
+                    foreach (string fieldName in IgnoreFields)
+                    {
+                        d.FieldIgnores.Add(new ObjectFieldBinding(
+                            fieldName, 
+                            ObjectFieldBindingType.Field));
+                    }
+                });
+            }
+
+            if (IgnoreProperties is not null)
+            {
+                descriptor.Extend().OnBeforeCreate(d => 
+                {
+                    foreach (string fieldName in IgnoreProperties)
+                    {
+                        d.FieldIgnores.Add(new ObjectFieldBinding(
+                            fieldName, 
+                            ObjectFieldBindingType.Property));
+                    }
+                });
             }
         }
     }
@@ -55,6 +80,8 @@ namespace HotChocolate.Types
 
         public string Name { get; }
 
+        public bool Replace { get; set; } = true;
+
         public override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
@@ -63,7 +90,10 @@ namespace HotChocolate.Types
             if (!string.IsNullOrEmpty(Name))
             {
                 descriptor.Extend().OnBeforeCreate(
-                    d => d.BindTo = new ObjectFieldBinding(Name, ObjectFieldBindingType.Property));
+                    d => d.BindTo = new ObjectFieldBinding(
+                        Name,
+                        ObjectFieldBindingType.Property,
+                        Replace));
             }
         }
     }
@@ -77,6 +107,8 @@ namespace HotChocolate.Types
 
         public string Name { get; }
 
+        public bool Replace { get; set; } = true;
+
         public override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
@@ -85,7 +117,10 @@ namespace HotChocolate.Types
             if (!string.IsNullOrEmpty(Name))
             {
                 descriptor.Extend().OnBeforeCreate(
-                    d => d.BindTo = new ObjectFieldBinding(Name, ObjectFieldBindingType.Field));
+                    d => d.BindTo = new ObjectFieldBinding(
+                        Name,
+                        ObjectFieldBindingType.Field,
+                        Replace));
             }
         }
     }
