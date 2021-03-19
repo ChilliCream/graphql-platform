@@ -412,7 +412,7 @@
     "versions": [
       {
         "path": "",
-        "title": "v11 (latest)",
+        "title": "v11 (preview)",
         "items": [
           {
             "path": "index",
@@ -441,6 +441,10 @@
             "title": "Subscriptions"
           },
           {
+            "path": "tooling",
+            "title": "Tooling / CLI"
+          },
+          {
             "path": "caching",
             "title": "Caching",
             "items": [
@@ -451,6 +455,10 @@
               {
                 "path": "entities",
                 "title": "Entities"
+              },
+              {
+                "path": "invalidation",
+                "title": "Invalidation"
               }
             ]
           },
@@ -463,12 +471,12 @@
                 "title": "Overview"
               },
               {
-                "path": "persisted-state",
-                "title": "Persisted State"
-              },
-              {
                 "path": "persisted-queries",
                 "title": "Persisted Queries"
+              },
+              {
+                "path": "persisted-state",
+                "title": "Persisted State"
               }
             ]
           },
