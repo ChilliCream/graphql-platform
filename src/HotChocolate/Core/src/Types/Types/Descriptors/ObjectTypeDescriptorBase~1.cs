@@ -7,25 +7,25 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
 {
-    public class ObjectTypeDescriptorBase<T>
+    public abstract class ObjectTypeDescriptorBase<T>
         : ObjectTypeDescriptor
         , IObjectTypeDescriptor<T>
         , IHasRuntimeType
     {
-        protected internal ObjectTypeDescriptorBase(
+        protected ObjectTypeDescriptorBase(
             IDescriptorContext context,
             Type clrType)
             : base(context, clrType)
         {
         }
 
-        protected internal ObjectTypeDescriptorBase(
+        protected ObjectTypeDescriptorBase(
             IDescriptorContext context)
             : base(context)
         {
         }
 
-        protected internal ObjectTypeDescriptorBase(
+        protected ObjectTypeDescriptorBase(
             IDescriptorContext context,
             ObjectTypeDefinition definition)
             : base(context, definition)

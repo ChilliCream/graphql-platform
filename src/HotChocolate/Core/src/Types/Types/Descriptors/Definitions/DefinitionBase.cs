@@ -85,5 +85,14 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
             return _contextData;
         }
+
+        protected void CopyTo(DefinitionBase target)
+        {
+            target._dependencies = _dependencies;
+            target._configurations = _configurations;
+            target._contextData = _contextData;
+            target.Name = Name;
+            target.Description = Description;
+        }
     }
 }

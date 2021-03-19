@@ -262,11 +262,18 @@ namespace HotChocolate.Configuration
 
             if (extensions.Count > 0)
             {
+                var processed = new HashSet<RegisteredType>();
+
                 var types = _typeRegistry.Types
                     .Where(t => t.IsNamedType)
                     .ToList();
 
-                foreach (NameString typeName in extensions.Select(t => t.Type.Name).Distinct())
+                foreach (NameString typeName in extensions
+                    .Select(t => t.Type)
+                    .OfType<INamedTypeExtension>()
+                    .Where(t => t.ExtendsType is null)
+                    .Select(t => t.Name)
+                    .Distinct())
                 {
                     RegisteredType? type = types.FirstOrDefault(t => t.Type.Name.Equals(typeName));
                     if (type?.Type is INamedType namedType)
@@ -274,7 +281,48 @@ namespace HotChocolate.Configuration
                         MergeTypeExtension(
                             extensions.Where(t => t.Type.Name.Equals(typeName)),
                             type,
-                            namedType);
+                            namedType,
+                            processed);
+                    }
+                }
+
+                var extensionArray = new RegisteredType[1];
+
+                foreach (var extension in extensions.Except(processed))
+                {
+                    if (extension.Type is INamedTypeExtension { 
+                        ExtendsType: { } extendsType } namedTypeExtension)
+                    {
+                        var isSchemaType = typeof(INamedType).IsAssignableFrom(extendsType);
+                        extensionArray[0] = extension;
+
+                        foreach (var possibleMatchingType in types
+                            .Where(t =>
+                                t.Type is INamedType n &&
+                                n.Kind == namedTypeExtension.Kind))
+
+                        {
+                            if (isSchemaType &&
+                                extendsType.IsInstanceOfType(possibleMatchingType))
+                            {
+                                MergeTypeExtension(
+                                    extensionArray,
+                                    possibleMatchingType,
+                                    (INamedType)possibleMatchingType.Type,
+                                    processed);
+                            }
+                            else if (!isSchemaType && 
+                                possibleMatchingType.RuntimeType is not null &&
+                                possibleMatchingType.RuntimeType != typeof(object) &&
+                                extendsType.IsAssignableFrom(possibleMatchingType.RuntimeType))
+                            {
+                                MergeTypeExtension(
+                                    extensionArray,
+                                    possibleMatchingType,
+                                    (INamedType)possibleMatchingType.Type,
+                                    processed);
+                            }
+                        }
                     }
                 }
             }
@@ -285,10 +333,13 @@ namespace HotChocolate.Configuration
         private void MergeTypeExtension(
             IEnumerable<RegisteredType> extensions,
             RegisteredType registeredType,
-            INamedType namedType)
+            INamedType namedType,
+            HashSet<RegisteredType> processed)
         {
             foreach (RegisteredType extension in extensions)
             {
+                processed.Add(extension);
+
                 if (extension.Type is INamedTypeExtensionMerger m)
                 {
                     if (m.Kind != namedType.Kind)
@@ -305,8 +356,8 @@ namespace HotChocolate.Configuration
                     TypeDiscoveryContext initContext = extension.DiscoveryContext;
                     foreach (FieldReference reference in initContext.Resolvers.Keys)
                     {
-                        _resolvers[reference]
-                            = initContext.Resolvers[reference].WithSourceType(registeredType.RuntimeType);
+                        _resolvers[reference] = initContext.Resolvers[reference]
+                            .WithSourceType(registeredType.RuntimeType);
                     }
 
                     // merge

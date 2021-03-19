@@ -347,6 +347,18 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        public IObjectTypeDescriptor ExtendsType(Type extendsType)
+        {
+            Definition.ExtendsType = extendsType;
+            return this;
+        }
+
+        public IObjectTypeDescriptor ExtendsType<T>()
+        {
+            Definition.ExtendsType = typeof(T);
+            return this;
+        }
+
         public static ObjectTypeDescriptor New(
             IDescriptorContext context) =>
             new(context);
@@ -367,7 +379,7 @@ namespace HotChocolate.Types.Descriptors
         public static ObjectTypeDescriptor FromSchemaType(
             IDescriptorContext context,
             Type schemaType) =>
-            new ObjectTypeDescriptor(context, schemaType)
+            new(context, schemaType)
             {
                 Definition = { RuntimeType = typeof(object) }
             };

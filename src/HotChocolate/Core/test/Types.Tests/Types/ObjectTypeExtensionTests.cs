@@ -531,6 +531,36 @@ namespace HotChocolate.Types
             Assert.True(type.Fields["name"].Arguments["a"].Directives.Contains("dummy"));
         }
 
+        [Fact]
+        public void BindByType()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .AddType<Query>()
+                .AddType<Extensions>()
+                .Create();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public void BindResolver_With_Property()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<BindResolver_With_Property_PersonDto>()
+                .AddType<BindResolver_With_Property_PersonResolvers>()
+                .Create();
+
+            // assert
+            schema.Print().MatchSnapshot();
+
+        }
+
         public class FooType
             : ObjectType<Foo>
         {
@@ -627,6 +657,69 @@ namespace HotChocolate.Types
                 descriptor.Location(DirectiveLocation.FieldDefinition);
                 descriptor.Location(DirectiveLocation.ArgumentDefinition);
             }
+        }
+
+        public class Query : IMarker
+        {
+            public string Foo { get; } = "abc";
+        }
+
+        public class Bar : IMarker
+        {
+            public string Baz { get; } = "def";
+        }
+
+        [ExtendObjectType(
+            // extends all types that inherit this type.
+            extendsType: typeof(IMarker))]
+        public class Extensions
+        {
+            // introduces a new field on all types that apply the parent
+            public string Any([Parent] object parent)
+            {
+                if (parent is Query q)
+                {
+                    return q.Foo;
+                }
+
+                if (parent is Bar b)
+                {
+                    return b.Baz;
+                }
+
+                return null;
+            }
+
+            // replaces the original field baz on bar
+            [GraphQLName("baz")]
+            public string BazEx([Parent] Bar bar)
+            {
+                return bar.Baz;
+            }
+
+            // introduces a new field to query
+            public Bar FooEx([Parent] Query query)
+            {
+                return new Bar();
+            }
+        }
+
+        public interface IMarker
+        {
+
+        }
+
+        public class BindResolver_With_Property_PersonDto
+        {
+            public int FriendId { get; } = 1;
+        }
+
+        [ExtendObjectType(typeof(BindResolver_With_Property_PersonDto))]
+        public class BindResolver_With_Property_PersonResolvers
+        {
+            [BindProperty(nameof(BindResolver_With_Property_PersonDto.FriendId))]
+            public List<BindResolver_With_Property_PersonDto> Friends() =>
+                new List<BindResolver_With_Property_PersonDto>();
         }
     }
 }

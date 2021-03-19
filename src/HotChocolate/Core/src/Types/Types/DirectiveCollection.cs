@@ -87,7 +87,9 @@ namespace HotChocolate.Types
             ISet<string> processed,
             [NotNullWhen(true)] out Directive? directive)
         {
-            if (!context.TryGetDirectiveType(definition.Reference, out DirectiveType directiveType))
+            if (!context.TryGetDirectiveType(
+                definition.Reference, 
+                out DirectiveType? directiveType))
             {
                 directive = null;
                 return false;
@@ -158,7 +160,7 @@ namespace HotChocolate.Types
             foreach (Argument argument in directive.Type.Arguments
                 .Where(a => a.Type.IsNonNullType()))
             {
-                if (!arguments.TryGetValue(argument.Name, out ArgumentNode arg)
+                if (!arguments.TryGetValue(argument.Name, out ArgumentNode? arg)
                     || arg.Value is NullValueNode)
                 {
                     context.ReportError(
