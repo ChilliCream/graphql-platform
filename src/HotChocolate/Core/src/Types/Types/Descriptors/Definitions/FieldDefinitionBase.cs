@@ -45,7 +45,11 @@ namespace HotChocolate.Types.Descriptors.Definitions
         {
             base.CopyTo(target);
 
-            target._directives = _directives;
+            if (_directives is not null)
+            {
+                target._directives = new List<DirectiveDefinition>(_directives);
+            }
+
             target.Type = Type;
             target.Ignore = Ignore;
         }

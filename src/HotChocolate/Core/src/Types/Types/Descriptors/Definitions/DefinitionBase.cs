@@ -88,9 +88,21 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         protected void CopyTo(DefinitionBase target)
         {
-            target._dependencies = _dependencies;
-            target._configurations = _configurations;
-            target._contextData = _contextData;
+            if (_dependencies is not null)
+            {
+                target._dependencies = new List<TypeDependency>(_dependencies);
+            }
+
+            if (_configurations is not null)
+            {
+                target._configurations = new List<ILazyTypeConfiguration>(_configurations);
+            }
+
+            if (_contextData is not null)
+            {
+                target._contextData = new ExtensionData(_contextData);
+            }
+
             target.Name = Name;
             target.Description = Description;
         }

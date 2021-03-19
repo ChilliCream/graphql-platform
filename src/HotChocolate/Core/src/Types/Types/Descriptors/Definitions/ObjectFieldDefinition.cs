@@ -86,11 +86,15 @@ namespace HotChocolate.Types.Descriptors.Definitions
             return _middlewareComponents;
         }
 
-        public void CopyTo(ObjectFieldDefinition target)
+        internal void CopyTo(ObjectFieldDefinition target)
         {
             base.CopyTo(target);
 
-            target._middlewareComponents = _middlewareComponents;
+            if (_middlewareComponents is not null)
+            {
+                target._middlewareComponents = new List<FieldMiddleware>(_middlewareComponents);
+            }
+
             target.SourceType = SourceType;
             target.ResolverType = ResolverType;
             target.Member = Member;
@@ -102,66 +106,5 @@ namespace HotChocolate.Types.Descriptors.Definitions
             target.SubscribeResolver = SubscribeResolver;
             target.IsIntrospectionField = IsIntrospectionField;
         }
-    }
-
-    /// <summary>
-    /// Describes a binding to an object field.
-    /// </summary>
-    public readonly struct ObjectFieldBinding
-    {
-        /// <summary>
-        /// Creates a new instance of <see cref="ObjectFieldBinding"/>.
-        /// </summary>
-        /// <param name="name">
-        /// The binding name.
-        /// </param>
-        /// <param name="type">
-        /// The binding type.
-        /// </param>
-        /// <param name="replace">
-        /// Defines if the bound property shall be replaced.
-        /// </param>
-        public ObjectFieldBinding(
-            NameString name, 
-            ObjectFieldBindingType type,
-            bool replace = true)
-        {
-            Name = name;
-            Type = type;
-            Replace = replace;
-        }
-
-        /// <summary>
-        /// Gets the binding name.
-        /// </summary>
-        public NameString Name { get; }
-
-        /// <summary>
-        /// Gets the binding type.
-        /// </summary>
-        public ObjectFieldBindingType Type { get; }
-
-
-        /// <summary>
-        /// Defines if the bound property shall be replaced.
-        /// </summary>
-        /// <value></value>
-        public bool Replace { get; }
-    }
-
-    /// <summary>
-    /// Describes what a field filter binds to.
-    /// </summary>
-    public enum ObjectFieldBindingType
-    {
-        /// <summary>
-        /// Binds to a property
-        /// </summary>
-        Property,
-
-        /// <summary>
-        /// Binds to a GraphQL field
-        /// </summary>
-        Field
     }
 }

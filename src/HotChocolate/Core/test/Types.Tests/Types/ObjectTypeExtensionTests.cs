@@ -430,8 +430,7 @@ namespace HotChocolate.Types
                 .AddType(new ObjectTypeExtension(d => d
                     .Name("Foo")
                     .Field("name")
-                    .Argument("a", a =>
-                        a.Directive("dummy_arg", new ArgumentNode("a", "b")))))
+                    .Argument("a", a => a.Directive("dummy_arg", new ArgumentNode("a", "b")))))
                 .AddDirectiveType<DummyWithArgDirective>()
                 .Create();
 

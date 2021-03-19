@@ -83,6 +83,18 @@ namespace HotChocolate.Internal
                             typeField.MiddlewareComponents.Add(component);
                         }
                     }
+
+                    if (extensionField.IsDeprecated)
+                    {
+                        typeField.DeprecationReason =
+                            extensionField.DeprecationReason;
+                    }
+
+                    MergeFields(
+                        context,
+                        extensionField.Arguments,
+                        typeField.Arguments,
+                        (args, extensionArg, typeArg) => { });
                 }
             }
         }
