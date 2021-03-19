@@ -1,0 +1,44 @@
+﻿{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "OK",
+  "Data": {
+    "human": {
+      "friends": {
+        "edges": [
+          {
+            "node": {
+              "__typename": "Human",
+              "name": "Han Solo",
+              "otherHuman": {
+                "__typename": "Human",
+                "name": "Luke Skywalker"
+              }
+            }
+          },
+          {
+            "node": {
+              "__typename": "Human",
+              "name": "Leia Organa",
+              "otherHuman": {
+                "__typename": "Human",
+                "name": "Luke Skywalker"
+              }
+            }
+          },
+          {
+            "node": {
+              "__typename": "Droid"
+            }
+          },
+          {
+            "node": {
+              "__typename": "Droid"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "Errors": null,
+  "Extensions": null
+}
