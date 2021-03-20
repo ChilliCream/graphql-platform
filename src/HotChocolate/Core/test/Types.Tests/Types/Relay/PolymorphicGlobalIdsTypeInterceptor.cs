@@ -101,8 +101,7 @@ namespace HotChocolate.Types.Relay
                     return null;
                 }
 
-                idType = typeInspector.GetReturnType(inputField.Property, true);
-                
+                idType = typeInspector.GetReturnType(inputField.Property, true);                
             }
             else if (definition.Parameter is not null)
             {
@@ -114,18 +113,7 @@ namespace HotChocolate.Types.Relay
                     return null;
                 }
 
-                idType = typeInspector.GetArgumentType(definition.Parameter, true);
-                
-            }
-            else if (definition.Type is ExtendedTypeReference typeReference)
-            {
-                if (typeReference.Type.Kind == ExtendedTypeKind.Schema)
-                {
-                    return null;
-                }
-
-                throw new NotImplementedException("TODO: Equivalent for IDAttribute here?");
-                idType = typeReference.Type;
+                idType = typeInspector.GetArgumentType(definition.Parameter, true);                
             }
             else
             {
