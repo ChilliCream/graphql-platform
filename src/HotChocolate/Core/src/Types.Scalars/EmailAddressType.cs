@@ -4,112 +4,40 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Scalars
 {
     /// <summary>
-    /// The `EmailAddress` scalar type represents a email address, represented as UTF-8 character
-    /// sequences. The scalar follows the specification defined in RFC 5322.
+    /// The `EmailAddress` scalar type constitutes a valid email address, represented as a UTF-8
+    /// character sequence. The scalar follows the specification defined by the
+    /// <a href="https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address">
+    /// HTML Spec
+    /// </a>
     /// </summary>
-    public class EmailAddressType : StringType
+    public class EmailAddressType : RegexType
     {
-        /// <summary>
-        /// Well established regex for email validation
-        /// Source : https://emailregex.com/
-        /// </summary>
-        private static readonly string _validationPattern =
-            ScalarResources.EmailAddressType_ValidationPattern;
-
-        private static readonly Regex _validationRegex =
-            new(_validationPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-        public EmailAddressType()
-            : this(
-                WellKnownScalarTypes.EmailAddress,
-                ScalarResources.EmailAddressType_Description)
-        {
-        }
+        private const string _validationPattern =
+            "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?" +
+            "(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EmailAddressType"/> class.
         /// </summary>
-        public EmailAddressType(
-            NameString name,
-            string? description = null,
-            BindingBehavior bind = BindingBehavior.Explicit)
-            : base(name, description, bind)
+        public EmailAddressType()
+            : base(
+                WellKnownScalarTypes.EmailAddress,
+                _validationPattern,
+                ScalarResources.EmailAddressType_Description,
+                RegexOptions.Compiled | RegexOptions.IgnoreCase)
         {
-            Description = description;
         }
 
         /// <inheritdoc />
-        protected override bool IsInstanceOfType(string runtimeValue)
+        protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
         {
-            return _validationRegex.IsMatch(runtimeValue);
+            return ThrowHelper.EmailAddressType_ParseLiteral_IsInvalid(this);
         }
 
         /// <inheritdoc />
-        protected override bool IsInstanceOfType(StringValueNode valueSyntax)
+        protected override SerializationException CreateParseValueError(object runtimeValue)
         {
-            return _validationRegex.IsMatch(valueSyntax.Value);
-        }
-
-        /// <inheritdoc />
-        protected override string ParseLiteral(StringValueNode valueSyntax)
-        {
-            if(!_validationRegex.IsMatch(valueSyntax.Value))
-            {
-                throw ThrowHelper.EmailAddressType_ParseLiteral_IsInvalid(this);
-            }
-
-            return base.ParseLiteral(valueSyntax);
-        }
-
-        /// <inheritdoc />
-        protected override StringValueNode ParseValue(string runtimeValue)
-        {
-            if(!_validationRegex.IsMatch(runtimeValue))
-            {
-                throw ThrowHelper.EmailAddressType_ParseValue_IsInvalid(this);
-            }
-
-            return base.ParseValue(runtimeValue);
-        }
-
-        /// <inheritdoc />
-        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
-        {
-            if (runtimeValue is null)
-            {
-                resultValue = null;
-                return true;
-            }
-
-            if(runtimeValue is string s &&
-               _validationRegex.IsMatch(s))
-            {
-                resultValue = s;
-                return true;
-            }
-
-            resultValue = null;
-            return false;
-        }
-
-        /// <inheritdoc />
-        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
-        {
-            if (resultValue is null)
-            {
-                runtimeValue = null;
-                return true;
-            }
-
-            if(resultValue is string s &&
-               _validationRegex.IsMatch(s))
-            {
-                runtimeValue = s;
-                return true;
-            }
-
-            runtimeValue = null;
-            return false;
+            return ThrowHelper.EmailAddressType_ParseValue_IsInvalid(this);
         }
     }
 }

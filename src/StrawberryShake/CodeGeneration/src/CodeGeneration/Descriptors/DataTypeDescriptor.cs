@@ -1,10 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors
 {
     public class DataTypeDescriptor : ICodeDescriptor
     {
@@ -21,12 +20,14 @@ namespace StrawberryShake.CodeGeneration
         /// The types that are subsets of the DataType represented by this descriptor.
         /// </param>
         /// <param name="implements"></param>
+        /// <param name="documentation"></param>
         /// <param name="isInterface"></param>
         public DataTypeDescriptor(
             NameString name,
             string @namespace,
             IReadOnlyList<ComplexTypeDescriptor> operationTypes,
             IReadOnlyList<string> implements,
+            string? documentation,
             bool isInterface = false)
         {
             var allProperties = new Dictionary<string, PropertyDescriptor>();
@@ -42,7 +43,9 @@ namespace StrawberryShake.CodeGeneration
                             namedTypeReferenceDescriptor.Name,
                             new PropertyDescriptor(
                                 namedTypeReferenceDescriptor.Name,
-                                nonNull.InnerType));
+                                namedTypeReferenceDescriptor.Name,
+                                nonNull.InnerType,
+                                namedTypeReferenceDescriptor.Description));
                     }
                     else
                     {
@@ -58,13 +61,14 @@ namespace StrawberryShake.CodeGeneration
             RuntimeType = new(NamingConventions.CreateDataTypeName(name), @namespace);
             Implements = implements;
             IsInterface = isInterface;
+            Documentation = documentation;
         }
 
         /// <summary>
         /// Gets the GraphQL type name which this entity represents.
         /// </summary>
         public NameString Name { get; }
-        
+
         /// <summary>
         /// Gets the entity name.
         /// </summary>
@@ -75,7 +79,11 @@ namespace StrawberryShake.CodeGeneration
         /// </summary>
         public bool IsInterface { get; }
 
-        
+        /// <summary>
+        /// The documentation of this type
+        /// </summary>
+        public string? Documentation { get; }
+
         /// <summary>
         /// Gets the properties of this entity.
         /// </summary>

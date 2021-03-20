@@ -1,89 +1,135 @@
+using System;
 using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public partial class JsonResultBuilderGenerator
     {
+        private const string _session = "session";
+        private const string _resultInfo = "resultInfo";
+        private const string _snapshot = "snapshot";
+
         private void AddBuildDataMethod(
             InterfaceTypeDescriptor resultNamedType,
             ClassBuilder classBuilder)
         {
-            var objParameter = "obj";
-
             var concreteType =
-                CreateResultInfoName(resultNamedType.ImplementedBy.First().RuntimeType.Name);
+                CreateResultInfoName(
+                    resultNamedType.ImplementedBy.First().RuntimeType.Name);
 
-            var buildDataMethod = MethodBuilder.New()
-                .SetAccessModifier(AccessModifier.Private)
+            MethodBuilder buildDataMethod = classBuilder
+                .AddMethod()
+                .SetPrivate()
                 .SetName("BuildData")
                 .SetReturnType($"({resultNamedType.RuntimeType.Name}, {concreteType})")
-                .AddParameter(objParameter, x => x.SetType(TypeNames.JsonElement));
+                .AddParameter(_obj, x => x.SetType(TypeNames.JsonElement))
+                .AddCode(
+                    AssignmentBuilder
+                        .New()
+                        .SetLefthandSide($"var {_entityIds}")
+                        .SetRighthandSide(MethodCallBuilder
+                            .Inline()
+                            .SetNew()
+                            .SetMethodName(TypeNames.HashSet)
+                            .AddGeneric(TypeNames.EntityId)))
+                .AddCode(
+                    AssignmentBuilder
+                        .New()
+                        .SetLefthandSide($"{TypeNames.IEntityStoreSnapshot} {_snapshot}")
+                        .SetRighthandSide("default!"))
+                .AddEmptyLine();
 
-            var sessionName = "session";
-            buildDataMethod.AddCode(
-                CodeLineBuilder.New()
-                    .SetLine(
-                        CodeBlockBuilder.New()
-                            .AddCode(
-                                $"using {TypeNames.IEntityUpdateSession} {sessionName} = ")
-                            .AddCode(_entityStoreFieldName + ".BeginUpdate();")));
 
-            var entityIdsName = "entityIds";
-            buildDataMethod.AddCode(
-                CodeLineBuilder.New()
-                    .SetLine(
-                        $"var {entityIdsName} = new {TypeNames.HashSet}<{TypeNames.EntityId}>();"));
+            CodeBlockBuilder storeUpdateBody = CodeBlockBuilder.New();
 
-            buildDataMethod.AddEmptyLine();
             foreach (PropertyDescriptor property in
-                resultNamedType.Properties.Where(prop => prop.Type.IsEntityType()))
+                resultNamedType.Properties.Where(prop => prop.Type.IsOrContainsEntityType()))
             {
-                buildDataMethod.AddCode(
-                    AssignmentBuilder.New()
-                        .SetLefthandSide(CodeBlockBuilder.New()
-                            .AddCode(property.Type.ToEntityIdBuilder())
-                            .AddCode($"{GetParameterName(property.Name)}Id"))
-                        .SetRighthandSide(BuildUpdateMethodCall(property, "")));
+                var variableName = $"{GetParameterName(property.Name)}Id";
+
+                buildDataMethod
+                    .AddCode(AssignmentBuilder
+                        .New()
+                        .SetLefthandSide(CodeBlockBuilder
+                            .New()
+                            .AddCode(property.Type.ToStateTypeReference())
+                            .AddCode(variableName))
+                        .SetRighthandSide("default!"));
+
+                storeUpdateBody
+                    .AddCode(AssignmentBuilder
+                        .New()
+                        .SetLefthandSide(variableName)
+                        .SetRighthandSide(BuildUpdateMethodCall(property)));
             }
 
-            var resultInfoConstructor = MethodCallBuilder.New()
-                .SetMethodName($"new {concreteType}")
-                .SetDetermineStatement(false);
+            storeUpdateBody
+                .AddEmptyLine()
+                .AddCode(AssignmentBuilder
+                    .New()
+                    .SetLefthandSide(_snapshot)
+                    .SetRighthandSide($"{_session}.CurrentSnapshot"));
+
+            buildDataMethod
+                .AddCode(MethodCallBuilder
+                    .New()
+                    .SetMethodName(_entityStore, "Update")
+                    .AddArgument(LambdaBuilder
+                        .New()
+                        .AddArgument(_session)
+                        .SetBlock(true)
+                        .SetCode(storeUpdateBody)));
+
+            buildDataMethod
+                .AddEmptyLine()
+                .AddCode(
+                    AssignmentBuilder
+                        .New()
+                        .SetLefthandSide($"var {_resultInfo}")
+                        .SetRighthandSide(
+                            CreateResultInfoMethodCall(resultNamedType, concreteType)))
+                .AddEmptyLine()
+                .AddCode(
+                    TupleBuilder
+                        .Inline()
+                        .SetDetermineStatement(true)
+                        .SetReturn()
+                        .AddMember(MethodCallBuilder
+                            .Inline()
+                            .SetMethodName(_resultDataFactory, "Create")
+                            .AddArgument(_resultInfo))
+                        .AddMember(_resultInfo));
+        }
+
+        private MethodCallBuilder CreateResultInfoMethodCall(
+            InterfaceTypeDescriptor resultNamedType,
+            string concreteType)
+        {
+            MethodCallBuilder resultInfoConstructor = MethodCallBuilder
+                .Inline()
+                .SetMethodName($"new {concreteType}");
 
             foreach (PropertyDescriptor property in resultNamedType.Properties)
             {
-                if (property.Type.IsEntityType())
+                if (property.Type.IsOrContainsEntityType())
                 {
                     resultInfoConstructor.AddArgument($"{GetParameterName(property.Name)}Id");
                 }
                 else
                 {
-                    resultInfoConstructor.AddArgument(BuildUpdateMethodCall(property, ""));
+                    resultInfoConstructor.AddArgument(BuildUpdateMethodCall(property));
                 }
             }
 
-            resultInfoConstructor.AddArgument(entityIdsName);
-            resultInfoConstructor.AddArgument(
-                $"{sessionName}.{TypeNames.IEntityUpdateSession_Version}");
-
-            buildDataMethod.AddEmptyLine();
-            var resultInfoName = "resultInfo";
-            buildDataMethod.AddCode(
-                AssignmentBuilder.New()
-                    .SetLefthandSide($"var {resultInfoName}")
-                    .SetRighthandSide(resultInfoConstructor));
-
-            buildDataMethod.AddEmptyLine();
-            buildDataMethod.AddCode(
-                $"return ({_resultDataFactoryFieldName}" +
-                $".Create({resultInfoName}), {resultInfoName});");
-
-            classBuilder.AddMethod(buildDataMethod);
+            return resultInfoConstructor
+                .AddArgument(_entityIds)
+                .AddArgument($"{_snapshot}.Version");
         }
     }
 }

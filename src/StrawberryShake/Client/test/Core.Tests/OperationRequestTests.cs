@@ -118,7 +118,8 @@ namespace StrawberryShake
             IReadOnlyDictionary<string, object?> vars;
             IReadOnlyDictionary<string, object?>? ext;
             IReadOnlyDictionary<string, object?>? contextData;
-            (id, name, doc, vars, ext, contextData) = request;
+            RequestStrategy strategy;
+            (id, name, doc, vars, ext, contextData, strategy) = request;
 
             // assert
             Assert.Equal(request.Id, id);
@@ -127,6 +128,7 @@ namespace StrawberryShake
             Assert.Equal(request.Variables, vars);
             Assert.Null(ext);
             Assert.Null(contextData);
+            Assert.Equal(request.Strategy, strategy);
         }
     }
 }

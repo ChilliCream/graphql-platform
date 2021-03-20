@@ -4,6 +4,8 @@ using System.Linq;
 using HotChocolate;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
+using StrawberryShake.CodeGeneration.Descriptors;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
@@ -41,7 +43,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
                 if (!dataTypeInfos.TryGetValue(dataType.Name, out var dataTypeInfo))
                 {
-                    dataTypeInfo = new DataTypeInfo(dataType.Name);
+                    dataTypeInfo = new DataTypeInfo(dataType.Name, dataType.Description);
                     dataTypeInfo.AbstractTypeParentName.AddRange(
                         abstractTypes.Select(abstractType => abstractType.Name.Value));
                     dataTypeInfos.Add(dataType.Name, dataTypeInfo);
@@ -64,34 +66,39 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     {
                         yield return new DataTypeDescriptor(
                             dataTypeInterfaceName,
-                            context.StateNamespace,
+                            NamingConventions.CreateStateNamespace(context.Namespace),
                             Array.Empty<ComplexTypeDescriptor>(),
                             Array.Empty<string>(),
+                            dataTypeInfo.Description,
                             true);
                     }
                 }
 
                 yield return new DataTypeDescriptor(
                     dataTypeInfo.Name,
-                    context.StateNamespace,
+                    NamingConventions.CreateStateNamespace(context.Namespace),
                     dataTypeInfo.Components
                         .Select(name => context.Types.Single(t => t.RuntimeType.Name.Equals(name)))
                         .OfType<ComplexTypeDescriptor>()
                         .ToList(),
-                    implements);
+                    implements,
+                    dataTypeInfo.Description);
             }
         }
 
         private class DataTypeInfo
         {
-            public DataTypeInfo(NameString name)
+            public DataTypeInfo(NameString name, string? description)
             {
                 Name = name;
                 Components = new HashSet<NameString>();
                 AbstractTypeParentName = new List<string>();
+                Description = description;
             }
 
             public NameString Name { get; }
+
+            public string? Description { get; }
 
             public HashSet<NameString> Components { get; }
 

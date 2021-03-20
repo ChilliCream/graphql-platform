@@ -4,6 +4,7 @@ using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
 
 namespace StrawberryShake.CodeGeneration.Mappers
@@ -25,7 +26,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         inputType,
                         new InputObjectTypeDescriptor(
                             inputType.Type.Name,
-                            new (inputType.Name, context.Namespace)));
+                            new (inputType.Name, context.Namespace),
+                            inputType.Description));
 
                     typeDescriptors.Add(inputType.Name, descriptorModel);
                 }
@@ -59,9 +61,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     properties.Add(
                         new PropertyDescriptor(
                             field.Name,
+                            field.Field.Name,
                             BuildFieldType(
                                 field.Type,
-                                fieldType)));
+                                fieldType),
+                            field.Description));
                 }
 
                 typeDescriptorModel.Descriptor.CompleteProperties(properties);

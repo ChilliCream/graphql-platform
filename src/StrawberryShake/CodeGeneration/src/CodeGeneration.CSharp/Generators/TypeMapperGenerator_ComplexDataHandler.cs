@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public partial class TypeMapperGenerator
     {
@@ -23,29 +24,32 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 throw new InvalidOperationException();
             }
 
-            method.AddParameter(
-                ParameterBuilder.New()
-                    .SetType(complexTypeDescriptor.ParentRuntimeType.ToString())
-                    .SetName(_dataParameterName));
+            method
+                .AddParameter(_dataParameterName)
+                .SetType(complexTypeDescriptor.ParentRuntimeType
+                    .ToString()
+                    .MakeNullable(!isNonNullable))
+                .SetName(_dataParameterName);
+
+            method
+                .AddParameter(_snapshot)
+                .SetType(TypeNames.IEntityStoreSnapshot);
 
             if (!isNonNullable)
             {
-                method.AddCode(
-                    EnsureProperNullability(
-                        _dataParameterName,
-                        isNonNullable));
+                method.AddCode(EnsureProperNullability(_dataParameterName, isNonNullable));
             }
 
-            var variableName = "returnValue";
-            method.AddCode($"{complexTypeDescriptor.RuntimeType.Name} {variableName} = default!;");
+            const string returnValue = nameof(returnValue);
+            method.AddCode($"{complexTypeDescriptor.RuntimeType.Name}? {returnValue};");
             method.AddEmptyLine();
 
             GenerateIfForEachImplementedBy(
                 method,
                 complexTypeDescriptor,
-                o => GenerateComplexDataInterfaceIfClause(o, variableName));
+                o => GenerateComplexDataInterfaceIfClause(o, returnValue));
 
-            method.AddCode($"return {variableName};");
+            method.AddCode($"return {returnValue};");
 
             AddRequiredMapMethods(
                 _dataParameterName,
@@ -66,19 +70,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 return;
             }
 
-            var ifChain = generator(interfaceTypeDescriptor.ImplementedBy.First());
+            IfBuilder ifChain = generator(interfaceTypeDescriptor.ImplementedBy.First());
 
             foreach (ObjectTypeDescriptor objectTypeDescriptor in
                 interfaceTypeDescriptor.ImplementedBy.Skip(1))
             {
-                ifChain.AddIfElse(
-                    generator(objectTypeDescriptor)
-                        .SkipIndents());
+                ifChain.AddIfElse(generator(objectTypeDescriptor).SkipIndents());
             }
 
-            ifChain.AddElse(
-                CodeInlineBuilder.New()
-                    .SetText($"throw new {TypeNames.NotSupportedException}();"));
+            ifChain.AddElse(ExceptionBuilder.New(TypeNames.NotSupportedException));
 
             method.AddCode(ifChain);
         }
@@ -87,40 +87,47 @@ namespace StrawberryShake.CodeGeneration.CSharp
             ObjectTypeDescriptor objectTypeDescriptor,
             string variableName)
         {
-            var ifCorrectType = IfBuilder.New();
             var matchedTypeName = GetParameterName(objectTypeDescriptor.Name);
-            
+
             // since we want to create the data name we will need to craft the type name
             // by hand by using the GraphQL type name and the state namespace.
-            // TODO : state namespace should be available here!
             var dataTypeName = new RuntimeTypeInfo(
                 CreateDataTypeName(objectTypeDescriptor.Name),
                 $"{objectTypeDescriptor.RuntimeType.Namespace}.State");
 
-            ifCorrectType.SetCondition(
-                $"{_dataParameterName} is {dataTypeName} {matchedTypeName}");
-
-            var constructorCall = MethodCallBuilder.New()
-                .SetPrefix($"{variableName} = new ")
+            MethodCallBuilder constructorCall = MethodCallBuilder
+                .Inline()
+                .SetNew()
                 .SetMethodName(objectTypeDescriptor.RuntimeType.ToString());
 
             foreach (PropertyDescriptor prop in objectTypeDescriptor.Properties)
             {
-                var propAccess = $"{matchedTypeName}.{prop.Name}";
                 if (prop.Type.IsEntityType())
                 {
-                    constructorCall.AddArgument(
-                        BuildMapMethodCall(
-                            matchedTypeName,
-                            prop));
+                    constructorCall.AddArgument(BuildMapMethodCall(matchedTypeName, prop));
                 }
                 else
                 {
-                    constructorCall.AddArgument(propAccess);
+                    var isNonNullableValueType =
+                        prop.Type is NonNullTypeDescriptor
+                            { InnerType: ILeafTypeDescriptor leaf } &&
+                        leaf.RuntimeType.IsValueType;
+
+                    constructorCall
+                        .AddArgument(
+                            $"{matchedTypeName}.{prop.Name}" +
+                            (isNonNullableValueType ? ".Value" : ""));
                 }
             }
 
-            return ifCorrectType.AddCode(constructorCall);
+            return IfBuilder
+                .New()
+                .SetCondition($"{_dataParameterName} is {dataTypeName} {matchedTypeName}")
+                .AddCode(
+                    AssignmentBuilder
+                        .New()
+                        .SetLefthandSide(variableName)
+                        .SetRighthandSide(constructorCall));
         }
     }
 }

@@ -1,25 +1,57 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using ChilliCream.Testing;
+using HotChocolate;
 using HotChocolate.Language;
+using Snapshooter;
 using Snapshooter.Xunit;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
 using Xunit;
+using Snapshot = Snapshooter.Xunit.Snapshot;
+using static StrawberryShake.CodeGeneration.CSharp.CSharpGenerator;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
     public static class GeneratorTestHelper
     {
-        public static void AssertResult(params string[] sourceTexts)
+        public static IReadOnlyList<IError> AssertError(params string[] fileNames)
         {
-            ClientModel clientModel = CreateClientModel(sourceTexts);
+            CSharpGeneratorResult result = Generate(
+                fileNames,
+                new CSharpGeneratorSettings { Namespace = "Foo.Bar", ClientName = "FooClient" });
+
+            Assert.True(
+                result.Errors.Any(),
+                "It is expected that the result has no generator errors!");
+
+            return result.Errors;
+        }
+
+        public static void AssertResult(params string[] sourceTexts) =>
+            AssertResult(true, sourceTexts);
+
+        public static void AssertResult(
+            bool strictValidation,
+            params string[] sourceTexts) =>
+            AssertResult(
+                new AssertSettings { StrictValidation = strictValidation },
+                sourceTexts);
+
+        public static void AssertResult(
+            AssertSettings settings,
+            params string[] sourceTexts)
+        {
+            ClientModel clientModel = CreateClientModel(sourceTexts, settings.StrictValidation);
 
             var documents = new StringBuilder();
             var documentNames = new HashSet<string>();
-            var generator = new CSharpGeneratorExecutor();
 
             documents.AppendLine("// ReSharper disable BuiltInTypeReferenceStyle");
             documents.AppendLine("// ReSharper disable RedundantNameQualifier");
@@ -33,20 +65,74 @@ namespace StrawberryShake.CodeGeneration.CSharp
             documents.AppendLine("// ReSharper disable InconsistentNaming");
             documents.AppendLine();
 
-            foreach (CSharpDocument document in generator.Generate(clientModel, "Foo", "FooClient"))
+            if (settings.Profiles.Count == 0)
+            {
+                settings.Profiles.Add(TransportProfile.Default);
+            }
+
+            CSharpGeneratorResult result = Generate(
+                clientModel,
+                new CSharpGeneratorSettings
+                {
+                    Namespace = settings.Namespace ?? "Foo.Bar",
+                    ClientName = settings.ClientName ?? "FooClient",
+                    StrictSchemaValidation = settings.StrictValidation,
+                    RequestStrategy = settings.RequestStrategy,
+                    TransportProfiles = settings.Profiles
+                });
+
+            Assert.False(
+                result.Errors.Any(),
+                "It is expected that the result has no generator errors!");
+
+            foreach (var document in result.Documents)
             {
                 if (!documentNames.Add(document.Name))
                 {
                     Assert.True(false, $"Document name duplicated {document.Name}");
                 }
 
-                documents.AppendLine("// " + document.Name);
-                documents.AppendLine();
-                documents.AppendLine(document.SourceText);
-                documents.AppendLine();
+                if (document.Kind == SourceDocumentKind.CSharp)
+                {
+                    documents.AppendLine("// " + document.Name);
+                    documents.AppendLine();
+                    documents.AppendLine(document.SourceText);
+                    documents.AppendLine();
+                }
+                else if (document.Kind == SourceDocumentKind.GraphQL)
+                {
+                    documents.AppendLine("// " + document.Name);
+                    documents.AppendLine("// " + document.Hash);
+                    documents.AppendLine();
+
+                    using var reader = new StringReader(document.SourceText);
+                    string? line;
+
+                    do
+                    {
+                        line = reader.ReadLine();
+                        if (line is not null)
+                        {
+                            documents.AppendLine("// " + line);
+                        }
+                    } while (line is not null);
+
+                    documents.AppendLine();
+                }
             }
 
-            documents.ToString().MatchSnapshot();
+            if (settings.SnapshotFile is not null)
+            {
+                documents.ToString()
+                    .MatchSnapshot(
+                        new SnapshotFullName(
+                            settings.SnapshotFile,
+                            Snapshot.FullName().FolderPath));
+            }
+            else
+            {
+                documents.ToString().MatchSnapshot();
+            }
 
             IReadOnlyList<Diagnostic> diagnostics =
                 CSharpCompiler.GetDiagnosticErrors(documents.ToString());
@@ -63,25 +149,100 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
         }
 
-        private static ClientModel CreateClientModel(params string[] sourceText)
+        public static void AssertStarWarsResult(params string[] sourceTexts) =>
+            AssertStarWarsResult(
+                new AssertSettings { StrictValidation = true },
+                sourceTexts);
+
+
+        public static void AssertStarWarsResult(
+            AssertSettings settings,
+            params string[] sourceTexts)
         {
-            var documents = sourceText
-                .Select(sourceText => (string.Empty, Utf8GraphQLParser.Parse(sourceText)))
+            var source = new string[sourceTexts.Length + 2];
+
+            source[0] = FileResource.Open("Schema.graphql");
+            source[1] = FileResource.Open("Schema.extensions.graphql");
+
+            Array.Copy(
+                sourceTexts,
+                sourceIndex: 0,
+                source,
+                destinationIndex: 2,
+                length: sourceTexts.Length);
+
+            AssertResult(settings, source);
+        }
+
+        public static AssertSettings CreateIntegrationTest(
+            Descriptors.Operations.RequestStrategy requestStrategy =
+                Descriptors.Operations.RequestStrategy.Default,
+            TransportProfile[]? profiles = null,
+            [CallerMemberName] string? testName = null)
+        {
+            SnapshotFullName snapshotFullName = Snapshot.FullName();
+            string testFile = System.IO.Path.Combine(
+                snapshotFullName.FolderPath,
+                testName + "Test.cs");
+            string ns = "StrawberryShake.CodeGeneration.CSharp.Integration." + testName;
+
+            if (!File.Exists(testFile))
+            {
+                File.WriteAllText(
+                    testFile,
+                    FileResource.Open("TestTemplate.txt")
+                        .Replace("{TestName}", testName)
+                        .Replace("{Namespace}", ns));
+            }
+
+            return new AssertSettings
+            {
+                ClientName = testName! + "Client",
+                Namespace = ns,
+                StrictValidation = true,
+                SnapshotFile = System.IO.Path.Combine(
+                    snapshotFullName.FolderPath,
+                    testName + "Test.Client.cs"),
+                RequestStrategy = requestStrategy,
+                Profiles = (profiles ?? new []{TransportProfile.Default }).ToList()
+            };
+        }
+
+        private static ClientModel CreateClientModel(string[] sourceText, bool strictValidation)
+        {
+            var files = sourceText
+                .Select(s => new GraphQLFile(Utf8GraphQLParser.Parse(s)))
                 .ToList();
 
-            var typeSystemDocs = documents.GetTypeSystemDocuments().ToList();
-            var executableDocs = documents.GetExecutableDocuments().ToList();
+            var typeSystemDocs = files.GetTypeSystemDocuments().ToList();
+            var executableDocs = files.GetExecutableDocuments().ToList();
 
             var analyzer = new DocumentAnalyzer();
 
-            analyzer.SetSchema(SchemaHelper.Load(typeSystemDocs));
+            analyzer.SetSchema(SchemaHelper.Load(typeSystemDocs, strictValidation));
 
-            foreach (DocumentNode executable in executableDocs.Select(doc => doc.document))
+            foreach (DocumentNode executable in executableDocs.Select(file => file.Document))
             {
                 analyzer.AddDocument(executable);
             }
 
             return analyzer.Analyze();
+        }
+
+        public class AssertSettings
+        {
+            public string? ClientName { get; set; }
+
+            public string? Namespace { get; set; }
+
+            public bool StrictValidation { get; set; }
+
+            public string? SnapshotFile { get; set; }
+
+            public List<TransportProfile> Profiles { get; set; } = new();
+
+            public Descriptors.Operations.RequestStrategy RequestStrategy { get; set; } =
+                Descriptors.Operations.RequestStrategy.Default;
         }
     }
 }

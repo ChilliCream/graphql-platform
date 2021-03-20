@@ -102,22 +102,16 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         public void RegisterType(INamedType type)
         {
-            if (type is ILeafType leafType)
+            if (type is ILeafType leafType && !_typeModels.ContainsKey(type.Name))
             {
-                if (!_typeModels.ContainsKey(type.Name))
-                {
-                    string runtimeType = leafType.GetRuntimeType();
-                    string serializationType = leafType.GetSerializationType();
-
-                    _typeModels.Add(
+                _typeModels.Add(
+                    leafType.Name,
+                    new LeafTypeModel(
                         leafType.Name,
-                        new LeafTypeModel(
-                            leafType.Name,
-                            leafType.Description,
-                            leafType,
-                            serializationType,
-                            runtimeType));
-                }
+                        leafType.Description,
+                        leafType,
+                        leafType.GetSerializationType(),
+                        leafType.GetRuntimeType()));
             }
         }
 

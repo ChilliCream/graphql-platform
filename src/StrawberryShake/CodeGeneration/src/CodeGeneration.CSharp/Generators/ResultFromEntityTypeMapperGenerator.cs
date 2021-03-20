@@ -2,15 +2,18 @@ using System;
 using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class ResultFromEntityTypeMapperGenerator : TypeMapperGenerator
     {
-        private const string _entityParamName = "entity";
-        private const string _mapMethodName = "Map";
+        private const string _entity = "entity";
+        private const string _entityStore = "_entityStore";
+        private const string _map = "Map";
+        private const string _snapshot = "snapshot";
 
         protected override bool CanHandle(ITypeDescriptor descriptor)
         {
@@ -20,27 +23,33 @@ namespace StrawberryShake.CodeGeneration.CSharp
         protected override void Generate(
             CodeWriter writer,
             ITypeDescriptor typeDescriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
-            var (classBuilder, constructorBuilder) = CreateClassBuilder(false);
-
+            // Setup class
             ComplexTypeDescriptor descriptor =
                 typeDescriptor as ComplexTypeDescriptor ??
                 throw new InvalidOperationException(
                     "A result entity mapper can only be generated for complex types");
 
-            // Setup class
             fileName = descriptor.ExtractMapperName();
+            path = State;
+            var containsEntity = descriptor.ContainsEntity();
 
-            classBuilder
+            ClassBuilder classBuilder = ClassBuilder
+                .New()
                 .AddImplements(
                     TypeNames.IEntityMapper
-                        .WithGeneric(descriptor.ExtractTypeName(), descriptor.RuntimeType.Name))
+                        .WithGeneric(
+                            descriptor.ExtractType().ToString(),
+                            descriptor.RuntimeType.Name))
                 .SetName(fileName);
 
-            constructorBuilder.SetTypeName(descriptor.Name);
+            ConstructorBuilder constructorBuilder = ConstructorBuilder
+                .New()
+                .SetTypeName(descriptor.Name);
 
-            if (descriptor.ContainsEntity())
+            if (containsEntity)
             {
                 AddConstructorAssignedField(
                     TypeNames.IEntityStore,
@@ -50,28 +59,52 @@ namespace StrawberryShake.CodeGeneration.CSharp
             }
 
             // Define map method
-            MethodBuilder mapMethod = MethodBuilder.New()
-                .SetName(_mapMethodName)
+            MethodBuilder mapMethod = MethodBuilder
+                .New()
+                .SetName(_map)
                 .SetAccessModifier(AccessModifier.Public)
                 .SetReturnType(descriptor.RuntimeType.Name)
                 .AddParameter(
-                    ParameterBuilder.New()
+                    ParameterBuilder
+                        .New()
                         .SetType(
                             descriptor.Kind == TypeKind.EntityType
-                                ? CreateEntityTypeName(descriptor.Name)
+                                ? CreateEntityType(
+                                        descriptor.Name,
+                                        descriptor.RuntimeType.NamespaceWithoutGlobal)
+                                    .ToString()
                                 : descriptor.Name)
-                        .SetName(_entityParamName));
+                        .SetName(_entity))
+                .AddParameter(
+                    _snapshot,
+                    b => b.SetDefault("null")
+                        .SetType(TypeNames.IEntityStoreSnapshot.MakeNullable()));
 
-            var constructorCall =
+            if (containsEntity)
+            {
+                mapMethod
+                    .AddCode(IfBuilder
+                        .New()
+                        .SetCondition($"{_snapshot} is null")
+                        .AddCode(AssignmentBuilder
+                            .New()
+                            .SetLefthandSide(_snapshot)
+                            .SetRighthandSide($"{_entityStore}.CurrentSnapshot")))
+                    .AddEmptyLine();
+            }
+
+            MethodCallBuilder constructorCall =
                 MethodCallBuilder
                     .New()
-                    .SetMethodName($"return new {descriptor.RuntimeType.Name}");
+                    .SetReturn()
+                    .SetNew()
+                    .SetMethodName(descriptor.RuntimeType.Name);
 
             if (typeDescriptor is ComplexTypeDescriptor complexTypeDescriptor)
             {
                 foreach (PropertyDescriptor property in complexTypeDescriptor.Properties)
                 {
-                    constructorCall.AddArgument(BuildMapMethodCall(_entityParamName, property));
+                    constructorCall.AddArgument(BuildMapMethodCall(_entity, property));
                 }
             }
 
@@ -85,7 +118,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             classBuilder.AddMethod(mapMethod);
 
             AddRequiredMapMethods(
-                _entityParamName,
+                _entity,
                 descriptor,
                 classBuilder,
                 constructorBuilder,
@@ -93,7 +126,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
+                .SetNamespace(CreateStateNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal))
                 .AddType(classBuilder)
                 .Build(writer);
         }

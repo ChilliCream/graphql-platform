@@ -1,9 +1,9 @@
-using HotChocolate;
+using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
-using StrawberryShake.CodeGeneration.Extensions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class ResultInterfaceGenerator : CodeGenerator<InterfaceTypeDescriptor>
     {
@@ -15,23 +15,27 @@ namespace StrawberryShake.CodeGeneration.CSharp
         protected override void Generate(
             CodeWriter writer,
             InterfaceTypeDescriptor descriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             fileName = descriptor.RuntimeType.Name;
-            InterfaceBuilder interfaceBuilder =
-                InterfaceBuilder.New().SetName(fileName);
+            path = null;
+
+            InterfaceBuilder interfaceBuilder = InterfaceBuilder
+                .New()
+                .SetComment(descriptor.Description)
+                .SetName(fileName);
 
             foreach (var prop in descriptor.Properties)
             {
-                interfaceBuilder.AddProperty(
-                    prop.Name,
-                    x => x.SetType(prop.Type.ToBuilder()).SetAccessModifier(AccessModifier.Public));
+                interfaceBuilder
+                    .AddProperty(prop.Name)
+                    .SetComment(prop.Description)
+                    .SetType(prop.Type.ToTypeReference())
+                    .SetPublic();
             }
 
-            foreach (NameString implement in descriptor.Implements)
-            {
-                interfaceBuilder.AddImplements(implement);
-            }
+            interfaceBuilder.AddImplementsRange(descriptor.Implements.Select(x => x.Value));
 
             CodeFileBuilder
                 .New()

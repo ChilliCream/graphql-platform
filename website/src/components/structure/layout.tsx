@@ -1,5 +1,5 @@
 import React, { FunctionComponent, useEffect } from "react";
-import { GlobalStyle } from "../misc/global-style";
+import { GlobalLayoutStyle, GlobalStyle } from "../misc/global-style";
 import { Header } from "./header";
 import { CookieConsent } from "../misc/cookie-consent";
 import { MainContentContainer } from "./main-content-container/main-content-container";
@@ -36,6 +36,7 @@ export const Layout: FunctionComponent = ({ children }) => {
   return (
     <>
       <GlobalStyle />
+      <GlobalLayoutStyle />
       <Header />
       <MDXProvider components={components}>
         <MainContentContainer>{children}</MainContentContainer>

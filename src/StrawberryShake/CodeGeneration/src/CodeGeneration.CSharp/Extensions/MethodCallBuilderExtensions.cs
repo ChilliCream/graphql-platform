@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 
@@ -14,6 +15,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 builder.AddArgument(argument);
             }
 
+            return builder;
+        }
+
+        public static MethodCallBuilder Chain(
+            this MethodCallBuilder builder,
+            Action<MethodCallBuilder> configure)
+        {
+            var chainedMethod = MethodCallBuilder.Inline();
+            configure(chainedMethod);
+            builder.AddChainedCode(chainedMethod);
             return builder;
         }
     }

@@ -36,6 +36,21 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return builder;
         }
 
+        public static ParameterBuilder AddParameter(
+            this ConstructorBuilder builder,
+            string? name = null)
+        {
+            ParameterBuilder parameterBuilder = ParameterBuilder.New();
+
+            if (name is not null)
+            {
+                parameterBuilder.SetName(name);
+            }
+
+            builder.AddParameter(parameterBuilder);
+            return parameterBuilder;
+        }
+
         public static CodeBlockBuilder AddBody(this ConstructorBuilder method)
         {
             var code = CodeBlockBuilder.New();

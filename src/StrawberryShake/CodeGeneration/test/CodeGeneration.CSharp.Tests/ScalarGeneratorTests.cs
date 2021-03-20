@@ -1,4 +1,3 @@
-using System.IO;
 using ChilliCream.Testing;
 using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
@@ -17,12 +16,29 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "extend schema @key(fields: \"id\")");
 
         [Fact]
+        public void ByteArray_ScalarType() =>
+            AssertResult(
+                "query GetAttachment { byteArray }",
+                "type Query { byteArray: ByteArray! }",
+                "scalar ByteArray",
+                "extend schema @key(fields: \"id\")");
+
+        [Fact]
         public void Only_Custom_Scalars() =>
             AssertResult(
                 "query GetPerson { person { email } }",
                 "type Query { person: Person }",
                 "type Person { email: Email }",
                 "scalar Email",
+                "extend schema @key(fields: \"id\")");
+
+        [Fact]
+        public void Any_Type() =>
+            AssertResult(
+                "query GetPerson { person { name email } }",
+                "type Query { person: Person }",
+                "type Person { name: String! email: Any }",
+                "scalar Any",
                 "extend schema @key(fields: \"id\")");
 
         [Fact]
@@ -52,7 +68,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "type Query { person: Person }",
                 "type Person { name: String! email: Email }",
                 "scalar Email",
-                @"extend scalar Email 
+                @"extend scalar Email
                     @runtimeType(name: ""global::System.Int64"")
                     @serializationType(name: ""global::System.Int32"")",
                 "extend schema @key(fields: \"id\")");
@@ -63,7 +79,25 @@ namespace StrawberryShake.CodeGeneration.CSharp
             AssertResult(
                 FileResource.Open("AllExpenses.graphql"),
                 FileResource.Open("Expenses.extensions.graphql"),
-                FileResource.Open("Expenses.graphql"));  
+                FileResource.Open("Expenses.graphql"));
+        }
+
+        [Fact]
+        public void TimeSpan_Not_Detected()
+        {
+            AssertResult(
+                strictValidation: false,
+                @"
+                    query GetSessions {
+                      sessions(order: { title: ASC }) {
+                        nodes {
+                          title
+                        }
+                      }
+                    }
+                ",
+                FileResource.Open("Workshop.Schema.graphql"),
+                "extend schema @key(fields: \"id\")");
         }
     }
 }

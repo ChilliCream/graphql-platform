@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate;
 
@@ -5,17 +6,34 @@ namespace StrawberryShake.CodeGeneration.CSharp
 {
     public class CSharpGeneratorResult
     {
+        public CSharpGeneratorResult()
+            : this(Array.Empty<SourceDocument>(), Array.Empty<IError>())
+        {
+        }
+
         public CSharpGeneratorResult(
-            IReadOnlyList<CSharpDocument> cSharpDocuments,
+            IReadOnlyList<IError> errors)
+            : this(Array.Empty<SourceDocument>(), errors)
+        {
+        }
+
+        public CSharpGeneratorResult(
+            IReadOnlyList<SourceDocument> documents)
+            : this(documents, Array.Empty<IError>())
+        {
+        }
+
+        public CSharpGeneratorResult(
+            IReadOnlyList<SourceDocument> documents,
             IReadOnlyList<IError> errors)
         {
-            CSharpDocuments = cSharpDocuments;
+            Documents = documents;
             Errors = errors;
         }
 
-        public IReadOnlyList<CSharpDocument> CSharpDocuments;
+        public IReadOnlyList<SourceDocument> Documents { get; }
 
-        public IReadOnlyList<IError> Errors;
+        public IReadOnlyList<IError> Errors { get; }
 
         public bool HasErrors() => Errors.Count > 0;
     }

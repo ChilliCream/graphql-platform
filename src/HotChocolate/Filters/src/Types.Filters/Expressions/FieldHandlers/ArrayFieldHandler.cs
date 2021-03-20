@@ -5,6 +5,7 @@ using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class ArrayFieldHandler
         : IExpressionFieldHandler
     {

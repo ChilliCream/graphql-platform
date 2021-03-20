@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
-using StrawberryShake.CodeGeneration.Utilities;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public partial class TypeMapperGenerator
     {
@@ -60,9 +60,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         private static string MapMethodNameFromTypeName(ITypeDescriptor typeDescriptor)
         {
-            var ret = "Map";
-            ret += BuildMapMethodName(typeDescriptor);
-            return ret;
+            return "Map" + BuildMapMethodName(typeDescriptor);
         }
 
         private static string BuildMapMethodName(
@@ -105,12 +103,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             if (!typeReference.IsLeafType() && processed.Add(methodName))
             {
-                var returnType = typeReference.ToBuilder();
-
-                var methodBuilder = MethodBuilder.New()
+                MethodBuilder methodBuilder = MethodBuilder
+                    .New()
                     .SetAccessModifier(AccessModifier.Private)
                     .SetName(methodName)
-                    .SetReturnType(returnType);
+                    .SetReturnType(typeReference.ToTypeReference());
 
                 classBuilder.AddMethod(methodBuilder);
 
@@ -127,27 +124,24 @@ namespace StrawberryShake.CodeGeneration.CSharp
             string propertyName,
             bool isNonNullType = false)
         {
-            var ifBuilder = IfBuilder
+            IfBuilder ifBuilder = IfBuilder
                 .New()
-                .SetCondition(
-                    ConditionBuilder.New()
-                        .Set($"{propertyName} == default"));
-            ifBuilder.AddCode(
-                isNonNullType
-                    ? $"throw new {TypeNames.ArgumentNullException}();"
-                    : "return null;");
+                .SetCondition($"{propertyName} is null")
+                .AddCode(
+                    isNonNullType
+                        ? ExceptionBuilder.New(TypeNames.ArgumentNullException)
+                        : CodeLineBuilder.From("return null;"));
 
-            var codeBuilder = CodeBlockBuilder.New()
+            return CodeBlockBuilder
+                .New()
                 .AddCode(ifBuilder)
                 .AddEmptyLine();
-
-            return codeBuilder;
         }
 
         protected ICode BuildMapMethodCall(
             string objectName,
             PropertyDescriptor property,
-            bool wasCalledFromDataHandler = false)
+            bool addNullCheck = false)
         {
             switch (property.Type.Kind)
             {
@@ -157,36 +151,27 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 case TypeKind.ComplexDataType:
                 case TypeKind.DataType:
                 case TypeKind.EntityType:
-                    var mapperMethodCall =
+                    MethodCallBuilder mapperMethodCall =
                         MethodCallBuilder
-                            .New()
-                            .SetDetermineStatement(false)
+                            .Inline()
                             .SetMethodName(MapMethodNameFromTypeName(property.Type));
 
-                    var argString = $"{objectName}.{property.Name}";
-                    if (wasCalledFromDataHandler && property.Type.IsNonNullableType())
+                    ICode argString = CodeInlineBuilder.From($"{objectName}.{property.Name}");
+                    if (addNullCheck && property.Type.IsNonNullableType())
                     {
-                        argString += $" ?? throw new {TypeNames.ArgumentNullException}()";
+                        argString = NullCheckBuilder
+                            .Inline()
+                            .SetCondition(argString)
+                            .SetCode(ExceptionBuilder.Inline(TypeNames.ArgumentNullException));
                     }
 
-                    mapperMethodCall.AddArgument(argString);
-
-                    return mapperMethodCall;
+                    return mapperMethodCall
+                        .AddArgument(argString)
+                        .AddArgument(_snapshot);
 
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-        }
-
-        protected MethodCallBuilder BuildMapMethodCall(ITypeDescriptor property, string firstArg)
-        {
-            var deserializeMethodCaller = MethodCallBuilder.New()
-                .SetDetermineStatement(false)
-                .SetMethodName(MapMethodNameFromTypeName(property));
-
-            deserializeMethodCaller.AddArgument(firstArg);
-
-            return deserializeMethodCaller;
         }
 
         private void AddMapMethodBody(
@@ -209,46 +194,37 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         isNonNullable);
                     break;
 
-                case ComplexTypeDescriptor complexTypeDescriptor:
-                    switch (typeDescriptor.Kind)
-                    {
-                        case TypeKind.LeafType:
-                            break;
+                case ComplexTypeDescriptor { Kind: TypeKind.LeafType }:
+                    break;
 
-                        case TypeKind.ComplexDataType:
-                            AddComplexDataHandler(
-                                classBuilder,
-                                constructorBuilder,
-                                methodBuilder,
-                                complexTypeDescriptor,
-                                processed,
-                                isNonNullable);
-                            break;
+                case ComplexTypeDescriptor { Kind: TypeKind.ComplexDataType } d:
+                    AddComplexDataHandler(
+                        classBuilder,
+                        constructorBuilder,
+                        methodBuilder,
+                        d,
+                        processed,
+                        isNonNullable);
+                    break;
 
-                        case TypeKind.DataType:
-                            AddDataHandler(
-                                classBuilder,
-                                constructorBuilder,
-                                methodBuilder,
-                                complexTypeDescriptor,
-                                processed,
-                                isNonNullable);
-                            break;
+                case ComplexTypeDescriptor { Kind: TypeKind.DataType } d:
+                    AddDataHandler(
+                        classBuilder,
+                        constructorBuilder,
+                        methodBuilder,
+                        d,
+                        processed,
+                        isNonNullable);
+                    break;
 
-                        case TypeKind.EntityType:
-                            AddEntityHandler(
-                                classBuilder,
-                                constructorBuilder,
-                                methodBuilder,
-                                complexTypeDescriptor,
-                                processed,
-                                isNonNullable);
-                            break;
-
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-
+                case ComplexTypeDescriptor { Kind: TypeKind.EntityType } d:
+                    AddEntityHandler(
+                        classBuilder,
+                        constructorBuilder,
+                        methodBuilder,
+                        d,
+                        processed,
+                        isNonNullable);
                     break;
 
                 case NonNullTypeDescriptor nonNullTypeDescriptor:

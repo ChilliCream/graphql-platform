@@ -76,6 +76,7 @@ namespace Microsoft.AspNetCore.Builder
             requestPipeline
                 .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault)
                 .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
+                .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
                 .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault)
                 .UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, path)
                 .UseMiddleware<ToolOptionsFileMiddleware>(schemaNameOrDefault, path)
@@ -130,6 +131,7 @@ namespace Microsoft.AspNetCore.Builder
                 {
                     app.UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault);
                     app.UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault);
+                    app.UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault);
                     app.UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault);
                     app.UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault);
                 });

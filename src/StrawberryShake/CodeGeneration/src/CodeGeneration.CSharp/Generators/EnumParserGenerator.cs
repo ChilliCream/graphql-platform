@@ -1,45 +1,42 @@
-using System.Text;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
-using static StrawberryShake.CodeGeneration.NamingConventions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 using static StrawberryShake.CodeGeneration.TypeNames;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class EnumParserGenerator : CodeGenerator<EnumTypeDescriptor>
     {
         protected override void Generate(
             CodeWriter writer,
             EnumTypeDescriptor descriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
+            const string serializedValue = nameof(serializedValue);
+            const string runtimeValue = nameof(runtimeValue);
+
             fileName = CreateEnumParserName(descriptor.Name);
+            path = Serialization;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New(fileName)
                 .AddImplements(IInputValueFormatter)
                 .AddImplements(ILeafValueParser.WithGeneric(String, descriptor.Name));
 
-            const string serializedValueParamName = "serializedValue";
-
             classBuilder
                 .AddMethod("Parse")
-                .AddParameter(ParameterBuilder.New()
-                    .SetName(serializedValueParamName)
-                    .SetType(String))
+                .AddParameter(serializedValue, x => x.SetType(String))
                 .SetAccessModifier(AccessModifier.Public)
                 .SetReturnType(descriptor.Name)
-                .AddCode(CreateEnumParsingSwitch(serializedValueParamName, descriptor));
+                .AddCode(CreateEnumParsingSwitch(serializedValue, descriptor));
 
-            const string runtimeValueParamName = "runtimeValue";
-            
             classBuilder
                 .AddMethod("Format")
                 .SetAccessModifier(AccessModifier.Public)
-                .SetReturnType("object")
-                .AddParameter(ParameterBuilder.New()
-                    .SetType(Object.MakeNullable())
-                    .SetName(runtimeValueParamName))
-                .AddCode(CreateEnumFormattingSwitch(runtimeValueParamName, descriptor));
+                .SetReturnType(Object)
+                .AddParameter(runtimeValue, x => x.SetType(Object.MakeNullable()))
+                .AddCode(CreateEnumFormattingSwitch(runtimeValue, descriptor));
 
             classBuilder
                 .AddProperty("TypeName")
@@ -54,41 +51,44 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .Build(writer);
         }
 
-        private CodeBlockBuilder CreateEnumParsingSwitch(
-            string paramName,
+        private ICode CreateEnumParsingSwitch(
+            string serializedValue,
             EnumTypeDescriptor descriptor)
         {
-            StringBuilder sourceText = new StringBuilder()
-                .AppendLine($"return {paramName} switch")
-                .AppendLine("{")
-                .AppendLineForEach(
-                    descriptor.Values,
-                    x => $"    \"{x.Name}\" => {descriptor.Name}.{x.RuntimeValue},")
-                .AppendLine($"    _ => throw new {TypeNames.GraphQLClientException}()")
-                .AppendLine("};");
-
-            return CodeBlockBuilder.From(sourceText);
-        }
-
-        private CodeBlockBuilder CreateEnumFormattingSwitch(
-            string paramName,
-            EnumTypeDescriptor descriptor)
-        {
-            var sourceText = new StringBuilder();
-
-            sourceText.AppendLine($"return {paramName} switch");
-            sourceText.AppendLine("{");
+            SwitchExpressionBuilder switchExpression = SwitchExpressionBuilder
+                .New()
+                .SetReturn()
+                .SetExpression(serializedValue)
+                .SetDefaultCase(ExceptionBuilder.Inline(TypeNames.GraphQLClientException));
 
             foreach (var enumValue in descriptor.Values)
             {
-                sourceText.AppendLine(
-                    $"    {descriptor.Name}.{enumValue.RuntimeValue} => \"{enumValue.Name}\",");
+                switchExpression.AddCase(
+                    enumValue.Name.AsStringToken(),
+                    $"{descriptor.Name}.{enumValue.RuntimeValue}");
             }
 
-            sourceText.AppendLine($"    _ => throw new {TypeNames.GraphQLClientException}()");
-            sourceText.AppendLine("};");
+            return switchExpression;
+        }
 
-            return CodeBlockBuilder.From(sourceText);
+        private ICode CreateEnumFormattingSwitch(
+            string runtimeValue,
+            EnumTypeDescriptor descriptor)
+        {
+            SwitchExpressionBuilder switchExpression =
+                SwitchExpressionBuilder.New()
+                    .SetReturn()
+                    .SetExpression(runtimeValue)
+                    .SetDefaultCase(ExceptionBuilder.Inline(TypeNames.GraphQLClientException));
+
+            foreach (var enumValue in descriptor.Values)
+            {
+                switchExpression.AddCase(
+                    $"{descriptor.Name}.{enumValue.RuntimeValue}",
+                    enumValue.Name.AsStringToken());
+            }
+
+            return switchExpression;
         }
     }
 }

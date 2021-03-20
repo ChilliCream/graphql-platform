@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using HotChocolate;
 
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
 {
     public class EnumTypeDescriptor : ILeafTypeDescriptor
     {
@@ -9,7 +9,8 @@ namespace StrawberryShake.CodeGeneration
             NameString name,
             RuntimeTypeInfo runtimeType,
             RuntimeTypeInfo? underlyingType,
-            IReadOnlyList<EnumValueDescriptor> values)
+            IReadOnlyList<EnumValueDescriptor> values,
+            string? documentation)
         {
             Name = name;
             RuntimeType = runtimeType;
@@ -48,5 +49,10 @@ namespace StrawberryShake.CodeGeneration
         /// Gets the enum values.
         /// </summary>
         public IReadOnlyList<EnumValueDescriptor> Values { get; }
+
+        /// <summary>
+        /// The documentation of this enum
+        /// </summary>
+        public string? Documentation { get; }
     }
 }

@@ -5,8 +5,12 @@ using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
+using StrawberryShake.CodeGeneration.Descriptors;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
+using TypeKind = StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.TypeKind;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
@@ -179,7 +183,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         mostAbstractTypeModel = mostAbstractTypeModel.Implements[0];
                     }
 
-                    parentRuntimeTypeName = 
+                    parentRuntimeTypeName =
                         mostAbstractTypeModel.Type.IsAbstractType()
                             ? GetInterfaceName(mostAbstractTypeModel.Type.Name)
                             : mostAbstractTypeModel.Type.Name;
@@ -196,38 +200,66 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 parentRuntimeType =
                     new RuntimeTypeInfo(
                         NamingConventions.CreateDataTypeName(parentRuntimeTypeName),
-                        context.StateNamespace);
+                        CreateStateNamespace(context.Namespace));
             }
         }
 
         private static IReadOnlyList<NameString> ExtractImplementsBy(
-            OutputTypeModel outputType,
-            TypeKind kind)
-        {
-            if (kind != TypeKind.ResultType)
-            {
-                return outputType.Implements
-                    .Select(t => t.Name)
-                    .ToList();
-            }
-            return outputType.Implements
-                .Select(t => (NameString)NamingConventions.CreateResultRootTypeName(t.Name))
-                .ToList();
-        }
-
-        private static RuntimeTypeInfo ExtractRuntimeType(
+            ClientModel clientModel,
             IMapperContext context,
             OutputTypeModel outputType,
             TypeKind kind)
         {
-            if (kind == TypeKind.ResultType)
+            if (kind == TypeKind.ResultType && outputType.Implements.Count > 0)
             {
-                return new RuntimeTypeInfo(
-                    NamingConventions.CreateResultRootTypeName(outputType.Name),
-                    context.Namespace);
+                RuntimeTypeInfo runtimeType =
+                    ExtractRuntimeType(
+                        clientModel,
+                        context,
+                        outputType.Implements.Single(),
+                        kind);
+
+                return new NameString[] { runtimeType.Name };
             }
 
-            return new RuntimeTypeInfo(outputType.Name, context.Namespace);
+            return outputType.Implements
+                .Select(t => t.Name)
+                .ToList();
+        }
+
+        private static RuntimeTypeInfo ExtractRuntimeType(
+            ClientModel clientModel,
+            IMapperContext context,
+            OutputTypeModel outputType,
+            TypeKind kind)
+        {
+            RuntimeTypeInfo runtimeType;
+
+            if (kind == TypeKind.ResultType)
+            {
+                NameString resultTypeName = CreateResultRootTypeName(outputType.Name);
+                if (clientModel.OutputTypes.Any(t => t.Name.Equals(resultTypeName)))
+                {
+                    resultTypeName = CreateResultRootTypeName(outputType.Name, outputType.Type);
+                    if (clientModel.OutputTypes.Any(t => t.Name.Equals(resultTypeName)))
+                    {
+                        throw ThrowHelper.ResultTypeNameCollision(resultTypeName);
+                    }
+                }
+
+                runtimeType = new RuntimeTypeInfo(resultTypeName, context.Namespace);
+                context.Register(outputType.Name, kind, runtimeType);
+                return runtimeType;
+            }
+
+            runtimeType = new RuntimeTypeInfo(outputType.Name, context.Namespace);
+
+            if (!context.Register(outputType.Name, kind, runtimeType))
+            {
+               throw ThrowHelper.TypeNameCollision(runtimeType.Name);
+            }
+
+            return runtimeType;
         }
 
         private static TypeDescriptorModel CreateInterfaceTypeModel(
@@ -256,17 +288,19 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             var typeKind = kind ?? extractedKind;
 
-            IReadOnlyList<NameString> implements = ExtractImplementsBy(outputType, typeKind);
-            RuntimeTypeInfo runtimeTypeInfo = ExtractRuntimeType(context, outputType, typeKind);
+            IReadOnlyList<NameString> implements =
+                ExtractImplementsBy(model, context, outputType, typeKind);
+            RuntimeTypeInfo runtimeType = ExtractRuntimeType(model, context, outputType, typeKind);
 
             return new TypeDescriptorModel(
                 outputType,
                 new InterfaceTypeDescriptor(
                     outputType.Type.Name,
                     typeKind,
-                    runtimeTypeInfo,
+                    runtimeType,
                     implementedBy,
                     implements,
+                    outputType.Description,
                     parentRuntimeType));
         }
 
@@ -287,16 +321,18 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             var typeKind = kind ?? extractedKind;
 
-            IReadOnlyList<NameString> implements = ExtractImplementsBy(outputType, typeKind);
-            RuntimeTypeInfo runtimeTypeInfo = ExtractRuntimeType(context, outputType, typeKind);
+            IReadOnlyList<NameString> implements =
+                ExtractImplementsBy(model, context, outputType, typeKind);
+            RuntimeTypeInfo runtimeType = ExtractRuntimeType(model, context, outputType, typeKind);
 
             return new TypeDescriptorModel(
                 outputType,
                 new ObjectTypeDescriptor(
                     outputType.Type.Name,
                     typeKind,
-                    runtimeTypeInfo,
+                    runtimeType,
                     implements,
+                    outputType.Description,
                     parentRuntimeType));
         }
 
@@ -356,9 +392,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     properties.Add(
                         new PropertyDescriptor(
                             field.Name,
+                            field.ResponseName,
                             BuildFieldType(
                                 field.Type,
-                                fieldType)));
+                                fieldType),
+                            field.Description));
                 }
 
                 typeDescriptorModel.Descriptor.CompleteProperties(properties);
@@ -383,8 +421,10 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             ? null
                             : TypeInfos.From(enumTypeModel.UnderlyingType),
                         enumTypeModel.Values
-                            .Select(t => new EnumValueDescriptor(t.Name, t.Value.Name))
-                            .ToList());
+                            .Select(
+                                t => new EnumValueDescriptor(t.Name, t.Value.Name, t.Description))
+                            .ToList(),
+                        enumTypeModel.Description);
 
                     leafTypeDescriptors.Add(leafType.Name, descriptor);
                 }

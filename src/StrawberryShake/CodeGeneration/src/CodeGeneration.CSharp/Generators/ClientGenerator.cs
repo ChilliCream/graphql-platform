@@ -1,36 +1,50 @@
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.Descriptors;
+using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class ClientGenerator : ClassBaseGenerator<ClientDescriptor>
     {
         protected override void Generate(
             CodeWriter writer,
             ClientDescriptor descriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
-            var (classBuilder, constructorBuilder) = CreateClassBuilder();
-
             fileName = descriptor.Name;
-            classBuilder.SetName(fileName);
-            constructorBuilder.SetTypeName(fileName);
+            path = null;
+
+            ClassBuilder classBuilder = ClassBuilder
+                .New()
+                .SetName(fileName)
+                .SetComment(descriptor.Documentation);
+
+            ConstructorBuilder constructorBuilder = classBuilder
+                .AddConstructor()
+                .SetTypeName(fileName);
+
+            classBuilder
+                .AddProperty("ClientName")
+                .SetPublic()
+                .SetStatic()
+                .SetType(TypeNames.String)
+                .AsLambda(descriptor.Name.Value.AsStringToken());
 
             foreach (OperationDescriptor operation in descriptor.Operations)
             {
                 AddConstructorAssignedField(
-                    operation.Name,
+                    operation.RuntimeType.ToString(),
                     GetFieldName(operation.Name),
                     classBuilder,
                     constructorBuilder);
 
-                classBuilder.AddProperty(
-                    PropertyBuilder
-                        .New()
-                        .SetAccessModifier(AccessModifier.Public)
-                        .SetType(operation.Name)
-                        .SetName(operation.Name)
-                        .AsLambda(GetFieldName(operation.Name)));
+                classBuilder
+                    .AddProperty(GetPropertyName(operation.Name))
+                    .SetPublic()
+                    .SetType(operation.RuntimeType.ToString())
+                    .AsLambda(GetFieldName(operation.Name));
             }
 
             CodeFileBuilder

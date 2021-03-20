@@ -24,6 +24,7 @@ The GraphQL specification defines the following scalars
 | `ID`      | Unique identifier                                           |
 
 In addition to the scalars defined by the specification, HotChocolate also supports the following set of scalar types:
+
 | Type        | Description                                                 |
 | ----------- | ----------------------------------------------------------- |
 | `Byte`      |                                                             |
@@ -66,6 +67,29 @@ public void ConfigureServices(IServiceCollection services)
         .BindRuntimeType<byte[], ByteArrayType>()
         .AddQueryType<Query>();
 }
+```
+
+# Uuid Type
+
+The `Uuid` scalar supports the following serialization formats.
+
+| Specifier   | Format                                                               |
+| ----------- | -------------------------------------------------------------------- |
+| N (default) | 00000000000000000000000000000000                                     |
+| D           | 00000000-0000-0000-0000-000000000000                                 |
+| B           | {00000000-0000-0000-0000-000000000000}                               |
+| P           | (00000000-0000-0000-0000-000000000000)                               |
+| X           | {0x00000000,0x0000,0x0000,{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}} |
+
+The `UuidType` will always return the value in the specified format. In case it is used as an input type, it will first try to parse the result in the specified format. If the parsing does not succeed, it will try to parse the value in other formats.
+
+To change the default format you have to register the `UuidType` with the specfier on the schema:
+
+```csharp
+services
+   .AddGraphQLServer()
+   ... // your configuration
+   .AddType(new UuidType('D'));
 ```
 
 # Any Type
@@ -133,7 +157,7 @@ Lists can be accessed generically by getting them as `IReadOnlyList<object>` or 
 HotChocolate converts .Net types to match the types supported by the scalar of the field.
 By default, all standard .Net types have converters registered. 
 You can register converters and reuse the built-in scalar types.
-In case you use a non-standard library, e.g. [NodeTime](https://nodatime.org/), you can register a converter and use the standard `DateTimeType`.
+In case you use a non-standard library, e.g. [Noda Time](https://nodatime.org/), you can register a converter and use the standard `DateTimeType`.
 
 ```csharp
 public class Query 
@@ -371,122 +395,28 @@ services
   .AddType<NonEmptyStringType>()
 ```
 
-## EmailAddress
-```sdl
-"""
-The EmailAddress scalar type represents a email address, represented as UTF-8 character sequences that follows the specification defined in RFC 5322
-"""
-scalar EmailAddress
-```
+**Available Scalars:**
 
-## HexColorCode
-```sdl
-"""
-The HexColorCode scalar type represents a valid hex color code.
-"""
-scalar HexColorCode
-```
-
-## HslColorCode
-```sdl
-"""
-The `HslColorCode` scalar type represents a valid a CSS HSL color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.
-"""
-scalar HslColorCode
-```
-
-## NegativeFloat
-```sdl
-"""
-The NegativeFloat scalar type represents a double‐precision fractional value less than 0
-"""
-scalar NegativeFloat
-```
-
-## NegativeInt
-```sdl
-"""
-The NegativeIntType scalar type represents a signed 32-bit numeric non-fractional with a maximum of -1.
-"""
-scalar NegativeInt
-```
-
-## NonEmptyString
-```sdl
-"""
-The NonNullString scalar type represents non empty textual data, represented as UTF‐8 character sequences with at least one character
-"""
-scalar NonEmptyString
-```
-
-## NonNegativeFloat
-```sdl
-"""
-The NonNegativeFloat scalar type represents a double‐precision fractional value greater than or equal to 0.
-"""
-scalar NonNegativeFloat
-```
-
-## NonNegativeInt
-```sdl
-"""
-The NonNegativeIntType scalar type represents a unsigned 32-bit numeric non-fractional value greater than or equal to 0.
-"""
-scalar NonNegativeInt
-```
-
-## NonPositiveFloat
-```sdl
-"""
-The NonPositiveFloat scalar type represents a double‐precision fractional value less than or equal to 0.
-"""
-scalar NonPositiveFloat
-```
-
-## NonPositiveInt
-```sdl
-"""
-The NonPositiveInt scalar type represents a signed 32-bit numeric non-fractional value less than or equal to 0.
-"""
-scalar NonPositiveInt
-```
-
-## PhoneNumber
-```sdl
-"""
-The PhoneNumber scalar type represents a value that conforms to the standard E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.
-"""
-scalar PhoneNumber
-```
-
-## PositiveInt
-```sdl
-"""
-The PositiveInt scalar type represents a signed 32‐bit numeric non‐fractional value of at least the value 1.
-"""
-scalar PositiveInt
-```
-
-## PostalCode
-```sdl
-"""
-The PostalCode scalar type represents a valid postal code.
-"""
-scalar PostalCode
-```
-
-## UnsignedInt
-```sdl
-"""
-The UnsignedInt scalar type represents a unsigned 32‐bit numeric non‐fractional value greater than or equal to 0.
-"""
-scalar UnsignedInt
-```
-
-## IPv4
-```sdl
-"""
-The `IPv4` scalar type represents a valid a IPv4 address as defined here https://en.wikipedia.org/wiki/IPv4.
-"""
-scalar IPv4
-```
+| Type             | Description                                                                                                                                                                                                            |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| EmailAddress     | The `EmailAddress` scalar type represents a email address, represented as UTF-8 character sequences that follows the specification defined in RFC 5322                                                                 |
+| HexColor         | The `HexColor` scalar type represents a valid HEX color code.                                                                                                                                                          |
+| Hsl              | The `Hsl` scalar type represents a valid a CSS HSL color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.                                                                      |
+| Hsla             | The `Hsla` scalar type represents a valid a CSS HSLA color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.                                                                    |
+| IPv4             | The `IPv4` scalar type represents a valid a IPv4 address as defined here https://en.wikipedia.org/wiki/IPv4.                                                                                                           |
+| IPv6             | The `IPv6` scalar type represents a valid a IPv6 address as defined here [RFC8064](https://tools.ietf.org/html/rfc8064).                                                                                               |
+| Isbn             | The `ISBN` scalar type is a ISBN-10 or ISBN-13 number: https:\/\/en.wikipedia.org\/wiki\/International_Standard_Book_Number.                                                                                           |
+| MacAddress       | The `MacAddess` scalar type represents a IEEE 802 48-bit Mac address, represented as UTF-8 character sequences. The scalar follows the specification defined in [RFC7042](https://tools.ietf.org/html/rfc7042#page-19) |
+| NegativeFloat    | The `NegativeFloat` scalar type represents a double‐precision fractional value less than 0                                                                                                                             |
+| NegativeInt      | The `NegativeIntType` scalar type represents a signed 32-bit numeric non-fractional with a maximum of -1.                                                                                                              |
+| NonEmptyString   | The `NonNullString` scalar type represents non empty textual data, represented as UTF‐8 character sequences with at least one character                                                                                |
+| NonNegativeFloat | The `NonNegativeFloat` scalar type represents a double‐precision fractional value greater than or equal to 0.                                                                                                          |
+| NonNegativeInt   | The `NonNegativeIntType` scalar type represents a unsigned 32-bit numeric non-fractional value greater than or equal to 0.                                                                                             |
+| NonPositiveFloat | The `NonPositiveFloat` scalar type represents a double‐precision fractional value less than or equal to 0.                                                                                                             |
+| NonPositiveInt   | The `NonPositiveInt` scalar type represents a signed 32-bit numeric non-fractional value less than or equal to 0.                                                                                                      |
+| PhoneNumber      | The `PhoneNumber` scalar type represents a value that conforms to the standard E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.                                                                      |
+| PositiveInt      | The `PositiveInt` scalar type represents a signed 32‐bit numeric non‐fractional value of at least the value 1.                                                                                                         |
+| PostalCode       | The `PostalCode` scalar type represents a valid postal code.                                                                                                                                                           |
+| Port             | The `Port` scalar type represents a field whose value is a valid TCP port within the range of 0 to 65535.                                                                                                              |
+| Rgb              | The `RGB` scalar type represents a valid CSS RGB color as defined here [MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba())
+| UnsignedInt      | The `UnsignedInt` scalar type represents a unsigned 32‐bit numeric non‐fractional value greater than or equal to 0.                                                                                                    |

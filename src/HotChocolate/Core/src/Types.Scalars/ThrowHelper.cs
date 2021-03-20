@@ -13,50 +13,6 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
-        public static SerializationException HexColorCodeType_ParseValue_IsInvalid(IType type)
-        {
-            return new SerializationException(
-                ErrorBuilder.New()
-                    .SetMessage(ScalarResources.HexColorCodeType_IsInvalid_ParseValue)
-                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", WellKnownScalarTypes.HexColorCode)
-                    .Build(),
-                type);
-        }
-
-        public static SerializationException HexColorCodeType_ParseLiteral_IsInvalid(IType type)
-        {
-            return new SerializationException(
-                ErrorBuilder.New()
-                    .SetMessage(ScalarResources.HexColorCodeType_IsInvalid_ParseLiteral)
-                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                    .SetExtension("actualType", WellKnownScalarTypes.HexColorCode)
-                    .Build(),
-                type);
-        }
-
-        public static SerializationException HslColorCodeType_ParseValue_IsInvalid(IType type)
-        {
-            return new SerializationException(
-                ErrorBuilder.New()
-                    .SetMessage(ScalarResources.HslColorCodeType_IsInvalid_ParseValue)
-                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", WellKnownScalarTypes.HslColorCode)
-                    .Build(),
-                type);
-        }
-
-        public static SerializationException HslColorCodeType_ParseLiteral_IsInvalid(IType type)
-        {
-            return new SerializationException(
-                ErrorBuilder.New()
-                    .SetMessage(ScalarResources.HslColorCodeType_IsInvalid_ParseLiteral)
-                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                    .SetExtension("actualType", WellKnownScalarTypes.HslColorCode)
-                    .Build(),
-                type);
-        }
-
         public static SerializationException EmailAddressType_ParseValue_IsInvalid(IType type)
         {
             return new SerializationException(
@@ -64,6 +20,160 @@ namespace HotChocolate.Types.Scalars
                     .SetMessage(ScalarResources.EmailAddressType_IsInvalid_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
                     .SetExtension("actualType", WellKnownScalarTypes.EmailAddress)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException HexColorType_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.HexColorType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.HexColor)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException HexColorType_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.HexColorType_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.HexColor)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException HslType_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.HslType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.Hsl)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException HslType_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.HslType_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.Hsl)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException HslaType_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.HslaType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.Hsla)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException HslaType_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.HslaType_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.Hsla)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException IPv4Type_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.IPv4Type_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.IPv4)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException IPv4Type_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.IPv4Type_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.IPv4)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException IPv6Type_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.IPv6Type_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.IPv6)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException IPv6Type_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.IPv6Type_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.IPv6)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException IsbnType_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.IsbnType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.Isbn)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException IsbnType_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.IsbnType_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.Isbn)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException MacAddressType_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.MacAddressType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.MacAddress)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException MacAddressType_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.MacAddressType_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.MacAddress)
                     .Build(),
                 type);
         }
@@ -253,6 +363,28 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
+        public static SerializationException PortType_ParseLiteral_OutOfRange(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.PortType_OutOfRange_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.Port)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException PortType_ParseValue_OutOfRange(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.PortType_OutOfRange_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.Port)
+                    .Build(),
+                type);
+        }
+
         public static SerializationException PositiveIntType_ParseLiteral_ZeroOrLess(IType type)
         {
             return new SerializationException(
@@ -271,28 +403,6 @@ namespace HotChocolate.Types.Scalars
                     .SetMessage(ScalarResources.PositiveIntType_ZeroOrLess_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
                     .SetExtension("actualType", WellKnownScalarTypes.PositiveInt)
-                    .Build(),
-                type);
-        }
-
-        public static SerializationException UnsignedIntType_ParseLiteral_IsNotUnsigned(IType type)
-        {
-            return new SerializationException(
-                ErrorBuilder.New()
-                    .SetMessage(ScalarResources.UnsignedIntType_IsNotUnsigned_ParseLiteral)
-                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                    .SetExtension("actualType", WellKnownScalarTypes.UnsignedInt)
-                    .Build(),
-                type);
-        }
-
-        public static SerializationException UnsignedIntType_ParseValue_IsNotUnsigned(IType type)
-        {
-            return new SerializationException(
-                ErrorBuilder.New()
-                    .SetMessage(ScalarResources.UnsignedIntType_IsNotUnsigned_ParseValue)
-                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", WellKnownScalarTypes.UnsignedInt)
                     .Build(),
                 type);
         }
@@ -319,24 +429,76 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
-        public static SerializationException IPv4Type_ParseValue_IsInvalid(IType type)
+        public static SerializationException RegexType_ParseValue_IsInvalid(
+            IType type,
+            string name)
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.IPv4Type_IsInvalid_ParseValue)
+                    .SetMessage(
+                        string.Format(
+                            ScalarResources.RegexType_IsInvalid_ParseValue,
+                            name))
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", WellKnownScalarTypes.IPv4)
                     .Build(),
                 type);
         }
 
-        public static SerializationException IPv4Type_ParseLiteral_IsInvalid(IType type)
+        public static SerializationException RegexType_ParseLiteral_IsInvalid(
+            IType type,
+            string name)
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.IPv4Type_IsInvalid_ParseLiteral)
+                    .SetMessage(
+                        string.Format(
+                            ScalarResources.RegexType_IsInvalid_ParseLiteral,
+                            name))
                     .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
-                    .SetExtension("actualType", WellKnownScalarTypes.IPv4)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException RgbType_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.RgbType_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.Rgb)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException RgbType_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.RgbType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.Rgb)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException UnsignedIntType_ParseLiteral_IsNotUnsigned(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.UnsignedIntType_IsNotUnsigned_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.UnsignedInt)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException UnsignedIntType_ParseValue_IsNotUnsigned(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.UnsignedIntType_IsNotUnsigned_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.UnsignedInt)
                     .Build(),
                 type);
         }

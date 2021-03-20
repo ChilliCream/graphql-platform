@@ -9,7 +9,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private string? _lambdaResolver;
         private TypeReferenceBuilder? _type;
         private string? _name;
+        private XmlCommentBuilder? _xmlComment;
         private string? _value;
+        private string? _interface;
         private bool _isStatic;
 
         public static PropertyBuilder New() => new();
@@ -38,6 +40,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public PropertyBuilder SetComment(string? xmlComment)
+        {
+            if (xmlComment is not null)
+            {
+                _xmlComment = XmlCommentBuilder.New().SetSummary(xmlComment);
+            }
+
+            return this;
+        }
+
         public PropertyBuilder SetType(TypeReferenceBuilder value)
         {
             _type = value;
@@ -47,6 +59,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         public PropertyBuilder SetName(string value)
         {
             _name = value;
+            return this;
+        }
+
+        public PropertyBuilder SetInterface(string value)
+        {
+            _interface = value;
             return this;
         }
 
@@ -76,15 +94,28 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             string modifier = _accessModifier.ToString().ToLowerInvariant();
 
+            _xmlComment?.Build(writer);
+
             writer.WriteIndent();
-            writer.Write(modifier);
-            writer.WriteSpace();
-            if (_isStatic)
+            if (_interface is null)
             {
-                writer.Write("static");
+                writer.Write(modifier);
                 writer.WriteSpace();
+                if (_isStatic)
+                {
+                    writer.Write("static");
+                    writer.WriteSpace();
+                }
             }
+
             _type.Build(writer);
+
+            if (_interface is not null)
+            {
+                writer.Write(_interface);
+                writer.Write(".");
+            }
+
             writer.Write(_name);
 
             if (_lambdaResolver is not null)

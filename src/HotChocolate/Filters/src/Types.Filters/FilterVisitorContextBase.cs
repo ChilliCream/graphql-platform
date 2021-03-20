@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class FilterVisitorContextBase
         : IFilterVisitorContextBase
     {
