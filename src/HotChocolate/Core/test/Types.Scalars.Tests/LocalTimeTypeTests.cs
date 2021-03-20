@@ -22,7 +22,7 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        public void LocalTime_EnsureDateTimeTypeKindIsCorret()
+        public void LocalTime_EnsureLocalTimeTypeKindIsCorrect()
         {
             // arrange
             var type = new LocalTimeType();
