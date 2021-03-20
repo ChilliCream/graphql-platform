@@ -101,7 +101,7 @@ namespace HotChocolate.Types.Relay
                     return null;
                 }
 
-                idType = typeInspector.GetReturnType(inputField.Property, true);                
+                idType = typeInspector.GetReturnType(inputField.Property, true);
             }
             else if (definition.Parameter is not null)
             {
@@ -113,7 +113,7 @@ namespace HotChocolate.Types.Relay
                     return null;
                 }
 
-                idType = typeInspector.GetArgumentType(definition.Parameter, true);                
+                idType = typeInspector.GetArgumentType(definition.Parameter, true);
             }
             else
             {
