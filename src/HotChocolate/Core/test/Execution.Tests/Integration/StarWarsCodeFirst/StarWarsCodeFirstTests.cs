@@ -827,19 +827,17 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                     }
                 }
                 fragment Human3 on Human {
-                    name # this works
+                    # This works
+                    name 
 
-                    # this is rturned as an empty object but should be populated
-                    # interestingly it seems like this passes in this test, but
-                    # if run against the StarWars asp.net core sample app, this
-                    # is an empty object!
+                    # This is returned as an empty object but should be populated
                     otherHuman {
                       __typename
                       name
                     }
                 }
                 ",
-                request: r => r.SetVariableValue("if", false))
+                request: r => r.SetVariableValue("if", true))
                 .MatchSnapshotAsync();
         }
     }
