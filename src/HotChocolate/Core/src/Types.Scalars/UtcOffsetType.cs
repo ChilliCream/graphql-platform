@@ -10,6 +10,7 @@ namespace HotChocolate.Types.Scalars
     /// </summary>
     public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
     {
+        private const string _utcFormat = "HH\\:mm";
         /// <summary>
         /// Initializes a new instance of the <see cref="UtcOffsetType"/> class.
         /// </summary>
@@ -67,7 +68,7 @@ namespace HotChocolate.Types.Scalars
                     resultValue = null;
                     return true;
                 case TimeSpan timeSpan:
-                    resultValue = timeSpan.ToString("c");
+                    resultValue = Serialize(timeSpan);
                     return true;
                 default:
                     resultValue = null;
@@ -102,7 +103,7 @@ namespace HotChocolate.Types.Scalars
 
         private static string Serialize(TimeSpan value)
         {
-            return value.ToString("c");
+            return value.ToString(_utcFormat, CultureInfo.InvariantCulture);
         }
 
         private static bool TryDeserializeFromString(
