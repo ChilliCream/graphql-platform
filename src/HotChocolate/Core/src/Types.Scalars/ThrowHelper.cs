@@ -1,4 +1,4 @@
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     internal static class ThrowHelper
     {

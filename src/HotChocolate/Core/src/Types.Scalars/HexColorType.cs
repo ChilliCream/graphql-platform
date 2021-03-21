@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The `HexColor` scalar type represents a valid HEX color code as defined in

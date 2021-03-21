@@ -2,7 +2,7 @@ using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The `IPv6` scalar type represents a valid a IPv6 address as defined in

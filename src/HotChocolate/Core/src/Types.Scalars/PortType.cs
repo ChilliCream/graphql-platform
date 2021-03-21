@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The `Port` scalar type represents a field whose value is a valid TCP port within the
