@@ -3567,7 +3567,7 @@ namespace Foo.Bar.State
                                     obj,
                                     "level")),
                             entity.CanBeLearnedMoreThanOnce,
-                            UpdateNonNullableIGetFeatsPage_Feats_Items_DetailsEntityNonNullableArray(
+                            UpdateNonNullableIGetFeatById_Feats_Items_DetailsEntityNonNullableArray(
                                 session,
                                 global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                                     obj,
@@ -3606,7 +3606,7 @@ namespace Foo.Bar.State
                                     obj,
                                     "level")),
                             default!,
-                            UpdateNonNullableIGetFeatsPage_Feats_Items_DetailsEntityNonNullableArray(
+                            UpdateNonNullableIGetFeatById_Feats_Items_DetailsEntityNonNullableArray(
                                 session,
                                 global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                                     obj,
