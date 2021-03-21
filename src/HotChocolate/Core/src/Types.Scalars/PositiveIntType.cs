@@ -1,7 +1,6 @@
 using HotChocolate.Language;
-using HotChocolate.Types.Scalars;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The PositiveInt scalar type represents a signed 32‐bit numeric non‐fractional
