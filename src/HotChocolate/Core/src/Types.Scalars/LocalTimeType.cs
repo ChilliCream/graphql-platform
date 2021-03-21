@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The `LocalTime` scalar type is a local time string (i.e., with no associated timezone)
@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Scalars
     /// </summary>
     public class LocalTimeType : ScalarType<DateTime, StringValueNode>
     {
-        private const string _localFormat = "HH:mm:ss";
+        private const string _localFormat = "hh:mm:ss";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LocalTimeType"/> class.
