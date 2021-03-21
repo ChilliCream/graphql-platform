@@ -803,7 +803,14 @@ namespace Foo.Bar
 
         private global::System.Object? FormatEpisode(global::Foo.Bar.Episode? value)
         {
-            return _episodeFormatter.Format(value);
+            if (!(value is null))
+            {
+                return _episodeFormatter.Format(value);
+            }
+            else
+            {
+                return value;
+            }
         }
 
         global::StrawberryShake.OperationRequest global::StrawberryShake.IOperationRequestFactory.Create(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)

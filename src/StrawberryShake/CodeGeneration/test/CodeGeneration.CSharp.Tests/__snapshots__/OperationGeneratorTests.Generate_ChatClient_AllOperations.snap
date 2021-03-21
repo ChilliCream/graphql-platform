@@ -5085,7 +5085,14 @@ namespace Foo.Bar
 
         private global::System.Object? FormatClientMutationId(global::System.String? value)
         {
-            return _stringFormatter.Format(value);
+            if (!(value is null))
+            {
+                return _stringFormatter.Format(value);
+            }
+            else
+            {
+                return value;
+            }
         }
 
         private global::System.Object? FormatRecipientEmail(global::System.String value)
