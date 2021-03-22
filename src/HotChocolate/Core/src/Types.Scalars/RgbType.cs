@@ -32,12 +32,13 @@ namespace HotChocolate.Types.Scalars
             NameString name,
             string? description = null,
             BindingBehavior bind = BindingBehavior.Explicit)
-            : base(name,
+            : base(
+                name,
                 _validationPattern,
                 ScalarResources.RgbType_Description,
-                RegexOptions.Compiled | RegexOptions.IgnoreCase)
+                RegexOptions.Compiled | RegexOptions.IgnoreCase,
+                bind)
         {
-            Description = description;
         }
 
         /// <inheritdoc />
