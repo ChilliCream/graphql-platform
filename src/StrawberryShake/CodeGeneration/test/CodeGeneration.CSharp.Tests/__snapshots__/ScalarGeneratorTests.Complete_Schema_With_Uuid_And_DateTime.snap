@@ -356,7 +356,7 @@ namespace Foo.Bar.State
                     "Tag",
                     global::System.StringComparison.Ordinal) ?? false)
             {
-                returnValue = new AllExpenses_Expense_Tags_Tag(data.Name ?? throw new global::System.ArgumentNullException());
+                returnValue = new AllExpenses_Expense_Tags_Tag(data.Name);
             }
             else
             {

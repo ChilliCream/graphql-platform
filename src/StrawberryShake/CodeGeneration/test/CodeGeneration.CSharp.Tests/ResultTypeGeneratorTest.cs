@@ -64,5 +64,58 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }",
                 "extend schema @key(fields: \"id\")");
         }
+
+        [Fact]
+        public void Operation_With_NullableData()
+        {
+            AssertResult(
+                @"
+                schema {
+                    query: Query
+                    subscription: Subscription
+                }
+
+                type Query { foo: String }
+
+                type Subscription {
+                  onFooUpdated: FooNotification!
+                }
+
+                type FooNotification {
+                  action: String!
+                  data: FooNotificationData!
+                }
+
+                type FooNotificationData {
+                  barGUID: String!
+                  documentID: String
+                  documentNAME: String
+                  thingGUID: String!
+                  thingDATE: String!
+                  thingDATA: String
+                  thingSTATUS: String
+                  fooGUID: String!
+                  fooAUTHOR: String
+                  fooDATE: String!
+                  fooTEXT: String
+                }",
+                @"
+                subscription OnFooUpdated {
+                  onFooUpdated {
+                    action
+                    data {
+                      barGUID
+                      thingGUID
+                      thingDATE
+                      thingSTATUS
+                      fooGUID
+                      fooAUTHOR
+                      fooDATE
+                      fooTEXT
+                    }
+                  }
+                }",
+                "extend schema @key(fields: \"id\")");
+        }
     }
 }
