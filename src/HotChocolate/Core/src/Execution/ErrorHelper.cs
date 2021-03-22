@@ -148,9 +148,13 @@ namespace HotChocolate.Execution
 
         public static IError ValueCompletion_CouldNotResolveAbstractType(
             FieldNode field,
-            Path path) =>
+            Path path,
+            object result) =>
             ErrorBuilder.New()
-                .SetMessage(ErrorHelper_ValueCompletion_CouldNotResolveAbstractType_Message)
+                .SetMessage(
+                    ErrorHelper_ValueCompletion_CouldNotResolveAbstractType_Message,
+                    result.GetType().FullName ?? result.GetType().Name,
+                    field.Name)
                 .SetPath(path)
                 .AddLocation(field)
                 .Build();

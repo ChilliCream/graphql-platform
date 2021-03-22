@@ -87,6 +87,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 {
                     constructorCall.AddArgument(BuildMapMethodCall(_dataParameterName, prop, true));
                 }
+                else if (prop.Type.IsNullableType())
+                {
+                    constructorCall.AddArgument(propAccess);
+                }
                 else
                 {
                     constructorCall

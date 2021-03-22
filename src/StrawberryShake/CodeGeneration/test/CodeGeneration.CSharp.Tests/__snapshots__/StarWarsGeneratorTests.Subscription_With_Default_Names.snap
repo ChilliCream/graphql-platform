@@ -62,7 +62,7 @@ namespace Foo.Bar.State
             {
                 returnValue = new OnReviewSub_OnReview_Review(
                     data.Stars ?? throw new global::System.ArgumentNullException(),
-                    data.Commentary ?? throw new global::System.ArgumentNullException());
+                    data.Commentary);
             }
             else
             {
