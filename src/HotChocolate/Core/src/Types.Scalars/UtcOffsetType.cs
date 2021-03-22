@@ -1,16 +1,14 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The `UtcOffset` scalar type represents a value of format `±hh:mm`.
     /// </summary>
     public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
     {
-        private const string _utcFormat = "HH\\:mm";
         /// <summary>
         /// Initializes a new instance of the <see cref="UtcOffsetType"/> class.
         /// </summary>
@@ -39,7 +37,7 @@ namespace HotChocolate.Types.Scalars
             return resultValue switch
             {
                 null => NullValueNode.Default,
-                string s when TryDeserializeFromString(s, _utcFormat, out TimeSpan? timeSpan) => ParseValue(timeSpan),
+                string s when TryDeserializeFromString(s, out TimeSpan? timeSpan) => ParseValue(timeSpan),
                 TimeSpan ts => ParseValue(ts),
                 _ => throw ThrowHelper.UtcOffset_ParseValue_IsInvalid(this)
             };
@@ -47,7 +45,7 @@ namespace HotChocolate.Types.Scalars
 
         protected override TimeSpan ParseLiteral(StringValueNode valueSyntax)
         {
-            if (TryDeserializeFromString(valueSyntax.Value, _utcFormat, out TimeSpan? value))
+            if (TryDeserializeFromString(valueSyntax.Value, out TimeSpan? value))
             {
                 return value.Value;
             }
@@ -85,7 +83,7 @@ namespace HotChocolate.Types.Scalars
             }
 
             if (resultValue is string s &&
-                TryDeserializeFromString(s, _utcFormat, out TimeSpan? timeSpan))
+                TryDeserializeFromString(s, out TimeSpan? timeSpan))
             {
                 runtimeValue = timeSpan;
                 return true;
@@ -108,7 +106,6 @@ namespace HotChocolate.Types.Scalars
 
         private static bool TryDeserializeFromString(
             string? serialized,
-            string format,
             [NotNullWhen(true)]out TimeSpan? value)
         {
             if (serialized is not null
