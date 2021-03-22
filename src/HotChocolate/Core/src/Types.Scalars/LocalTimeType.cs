@@ -11,7 +11,7 @@ namespace HotChocolate.Types
     /// </summary>
     public class LocalTimeType : ScalarType<DateTime, StringValueNode>
     {
-        private const string _localFormat = "hh:mm:ss";
+        private const string _localFormat = "HH:mm:ss";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LocalTimeType"/> class.

@@ -69,9 +69,9 @@ namespace HotChocolate.Types.Scalars
             // arrange
             ScalarType scalar = CreateType<LocalTimeType>();
             var valueSyntax = new StringValueNode(
-                "2018-06-29T08:46:14");
+                "2018-06-29T14:46:14");
             var expectedResult = new DateTime(
-                2018, 6, 29, 8, 46, 14);
+                2018, 6, 29, 14, 46, 14);
 
             // act
             object result = (DateTime)scalar.ParseLiteral(valueSyntax)!;
