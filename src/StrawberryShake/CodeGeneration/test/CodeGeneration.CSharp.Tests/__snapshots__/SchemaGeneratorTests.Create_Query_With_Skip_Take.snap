@@ -773,12 +773,26 @@ namespace Foo.Bar
 
         private global::System.Object? FormatSkip(global::System.Int32? value)
         {
-            return _intFormatter.Format(value);
+            if (!(value is null))
+            {
+                return _intFormatter.Format(value);
+            }
+            else
+            {
+                return value;
+            }
         }
 
         private global::System.Object? FormatTake(global::System.Int32? value)
         {
-            return _intFormatter.Format(value);
+            if (!(value is null))
+            {
+                return _intFormatter.Format(value);
+            }
+            else
+            {
+                return value;
+            }
         }
 
         global::StrawberryShake.OperationRequest global::StrawberryShake.IOperationRequestFactory.Create(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)

@@ -33,6 +33,10 @@
                 "title": "Unions and Interfaces"
               },
               {
+                "path": "extending-types",
+                "title": "Extending types"
+              }
+              {
                 "path": "scalars",
                 "title": "Scalars"
               },

@@ -549,7 +549,14 @@ namespace Foo.Bar
 
             foreach (var value_elm in value)
             {
-                value_list.Add(_updateProjectMemberInputFormatter.Format(value_elm));
+                if (!(value_elm is null))
+                {
+                    value_list.Add(_updateProjectMemberInputFormatter.Format(value_elm));
+                }
+                else
+                {
+                    value_list.Add(value_elm);
+                }
             }
             return value_list;
         }

@@ -19,8 +19,12 @@ namespace HotChocolate
             public const string CannotResolveAbstractType = "EXEC_UNABLE_TO_RESOLVE_ABSTRACT_TYPE";
             public const string ListTypeNotSupported = "EXEC_LIST_TYPE_NOT_SUPPORTED";
             public const string AutoMapVarError = "EXEC_BATCH_AUTO_MAP_VAR_TYPE";
-            public const string Incomplete = "EXEC_MIDDLEWARE_INCOMPLETE";
-            public const string Timeout = "EXEC_TIMEOUT";
+            
+            /// <summary>
+            /// The request exceeded the configured timeout.
+            /// </summary>
+            public const string Timeout = "HC0045";
+            
             public const string NonNullViolation = "HC0018";
             public const string MustBeInputType = "HC0017";
             public const string InvalidType = "HC0016";

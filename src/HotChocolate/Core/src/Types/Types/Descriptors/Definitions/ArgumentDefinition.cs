@@ -30,5 +30,15 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
             return _formatters;
         }
+
+        internal void CopyTo(ArgumentDefinition target)
+        {
+            base.CopyTo(target);
+
+            target._formatters = _formatters;
+            target.DefaultValue = DefaultValue;
+            target.NativeDefaultValue = NativeDefaultValue;
+            target.Parameter = Parameter;
+        }
     }
 }

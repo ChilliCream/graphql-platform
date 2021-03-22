@@ -175,5 +175,11 @@ namespace HotChocolate.Execution
                 {
                     { WellKnownContextData.OperationNotAllowed, null }
                 });
+
+        public static IQueryResult RequestTimeout(TimeSpan timeout) =>
+            QueryResultBuilder.CreateError(
+                new Error(
+                    string.Format(ErrorHelper_RequestTimeout, timeout),
+                    ErrorCodes.Execution.Timeout));
     }
 }

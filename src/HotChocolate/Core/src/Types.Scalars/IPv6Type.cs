@@ -1,5 +1,5 @@
-using System;
 using System.Text.RegularExpressions;
+using HotChocolate.Types.Scalars;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
@@ -38,11 +38,25 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="IPv6Type"/> class.
         /// </summary>
         public IPv6Type()
-            : base(
+            : this(
                 WellKnownScalarTypes.IPv6,
+                ScalarResources.IPv6Type_Description)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IPv6Type"/> class.
+        /// </summary>
+        public IPv6Type(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(
+                name,
                 _validationPattern,
-                ScalarResources.IPv6Type_Description,
-                RegexOptions.Compiled | RegexOptions.IgnoreCase)
+                description,
+                RegexOptions.Compiled | RegexOptions.IgnoreCase,
+                bind)
         {
         }
 

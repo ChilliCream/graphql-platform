@@ -37,6 +37,20 @@ namespace HotChocolate.Types.Descriptors
         IEnumerable<MemberInfo> GetMembers(Type type);
 
         /// <summary>
+        /// Gets the relevant members of a object or input object.
+        /// </summary>
+        /// <param name="type">
+        /// The type that represents the object type.
+        /// </param>
+        /// <param name="includeIgnored">
+        /// The type that represents the object type.
+        /// </param>
+        /// <returns>
+        /// Returns the relevant members of a object or input object.
+        /// </returns>
+        IEnumerable<MemberInfo> GetMembers(Type type, bool includeIgnored);
+
+        /// <summary>
         /// Gets the field type reference from a <see cref="MemberInfo" />.
         /// </summary>
         /// <param name="member">

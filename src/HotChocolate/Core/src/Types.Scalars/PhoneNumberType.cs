@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using HotChocolate.Types.Scalars;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
@@ -15,14 +16,28 @@ namespace HotChocolate.Types
         private const string _validationPattern = "^\\+[1-9]\\d{1,14}$";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PhoneNumberType"/>
+        /// Initializes a new instance of the <see cref="PhoneNumberType"/> class.
         /// </summary>
         public PhoneNumberType()
-            : base(
+            : this(
                 WellKnownScalarTypes.PhoneNumber,
+                ScalarResources.PhoneNumberType_Description)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PhoneNumberType"/>
+        /// </summary>
+        public PhoneNumberType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(
+                name,
                 _validationPattern,
-                ScalarResources.PhoneNumberType_Description,
-                RegexOptions.Compiled | RegexOptions.IgnoreCase)
+                description,
+                RegexOptions.Compiled | RegexOptions.IgnoreCase,
+                bind)
         {
         }
 

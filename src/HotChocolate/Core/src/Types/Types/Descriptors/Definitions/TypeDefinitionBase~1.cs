@@ -6,6 +6,10 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {
+    /// <summary>
+    /// A definition that represents a type.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class TypeDefinitionBase<T>
         : DefinitionBase<T>
         , ITypeDefinition
@@ -15,7 +19,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         protected TypeDefinitionBase() { }
 
-        private Type? _clrType;
+        private Type _clrType = typeof(object);
 
         /// <summary>
         /// Gets or sets the .net type representation of this type.
@@ -28,6 +32,11 @@ namespace HotChocolate.Types.Descriptors.Definitions
                 _clrType = value ?? throw new ArgumentNullException(nameof(value));
             }
         }
+
+        /// <summary>
+        /// If this is a type definition extension this is the type we want to extend.
+        /// </summary>
+        public Type? ExtendsType { get; set; }
 
         /// <summary>
         /// Gets the list of directives that are annotated to this type.

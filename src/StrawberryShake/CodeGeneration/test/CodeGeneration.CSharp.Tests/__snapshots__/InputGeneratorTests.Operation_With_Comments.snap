@@ -261,7 +261,14 @@ namespace Foo.Bar
 
         private global::System.Object? FormatStr(global::System.String? value)
         {
-            return _stringFormatter.Format(value);
+            if (!(value is null))
+            {
+                return _stringFormatter.Format(value);
+            }
+            else
+            {
+                return value;
+            }
         }
 
         private global::System.Object? FormatStrNonNullable(global::System.String value)
@@ -276,7 +283,14 @@ namespace Foo.Bar
 
         private global::System.Object? FormatNested(global::Foo.Bar.Bar? value)
         {
-            return _barFormatter.Format(value);
+            if (!(value is null))
+            {
+                return _barFormatter.Format(value);
+            }
+            else
+            {
+                return value;
+            }
         }
 
         private global::System.Object? FormatNestedList(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> value)
@@ -302,19 +316,40 @@ namespace Foo.Bar
 
         private global::System.Object? FormatNestedMatrix(global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar?>?>? value)
         {
-            var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
-
-            foreach (var value_elm in value)
+            if (!(value is null))
             {
-                var value_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
+                var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
 
-                foreach (var value_elm_elm in value_elm)
+                foreach (var value_elm in value)
                 {
-                    value_elm_list.Add(_barFormatter.Format(value_elm_elm));
+                    if (!(value_elm is null))
+                    {
+                        var value_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
+
+                        foreach (var value_elm_elm in value_elm)
+                        {
+                            if (!(value_elm_elm is null))
+                            {
+                                value_elm_list.Add(_barFormatter.Format(value_elm_elm));
+                            }
+                            else
+                            {
+                                value_elm_list.Add(value_elm_elm);
+                            }
+                        }
+                        value_list.Add(value_elm_list);
+                    }
+                    else
+                    {
+                        value_list.Add(value_elm);
+                    }
                 }
-                value_list.Add(value_elm_list);
+                return value_list;
             }
-            return value_list;
+            else
+            {
+                return value;
+            }
         }
     }
 }
@@ -537,24 +572,38 @@ namespace Foo.Bar
 
         private global::System.Object? FormatNestedList(global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? value)
         {
-            var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
-
-            foreach (var value_elm in value)
+            if (!(value is null))
             {
-                var value_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
+                var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
 
-                foreach (var value_elm_elm in value_elm)
+                foreach (var value_elm in value)
                 {
-                    if (value_elm_elm is null)
+                    if (!(value_elm is null))
                     {
-                        throw new global::System.ArgumentNullException(nameof(value_elm_elm));
-                    }
+                        var value_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
 
-                    value_elm_list.Add(_barFormatter.Format(value_elm_elm));
+                        foreach (var value_elm_elm in value_elm)
+                        {
+                            if (value_elm_elm is null)
+                            {
+                                throw new global::System.ArgumentNullException(nameof(value_elm_elm));
+                            }
+
+                            value_elm_list.Add(_barFormatter.Format(value_elm_elm));
+                        }
+                        value_list.Add(value_elm_list);
+                    }
+                    else
+                    {
+                        value_list.Add(value_elm);
+                    }
                 }
-                value_list.Add(value_elm_list);
+                return value_list;
             }
-            return value_list;
+            else
+            {
+                return value;
+            }
         }
 
         global::StrawberryShake.OperationRequest global::StrawberryShake.IOperationRequestFactory.Create(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
