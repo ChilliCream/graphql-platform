@@ -88,17 +88,22 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         protected void CopyTo(DefinitionBase target)
         {
-            if (_dependencies is not null)
+            if (_dependencies is not null && _dependencies.Count > 0)
             {
                 target._dependencies = new List<TypeDependency>(_dependencies);
             }
 
-            if (_configurations is not null)
+            if (_configurations is not null && _configurations.Count > 0)
             {
-                target._configurations = new List<ILazyTypeConfiguration>(_configurations);
+                target._configurations = new List<ILazyTypeConfiguration>();
+
+                foreach (ILazyTypeConfiguration configuration in _configurations)
+                {
+                    target._configurations.Add(configuration.Copy(target));
+                }
             }
 
-            if (_contextData is not null)
+            if (_contextData is not null && _contextData.Count > 0)
             {
                 target._contextData = new ExtensionData(_contextData);
             }
