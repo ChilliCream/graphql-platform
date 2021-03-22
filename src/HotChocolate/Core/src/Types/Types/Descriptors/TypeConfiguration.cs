@@ -4,25 +4,36 @@ using HotChocolate.Configuration;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types.Descriptors
 {
-    internal class TypeConfiguration<T>
-        : ILazyTypeConfiguration
-        where T : DefinitionBase
+    internal class TypeConfiguration<T> : ILazyTypeConfiguration where T : DefinitionBase
     {
         private List<TypeDependency>? _dependencies;
 
         public ApplyConfigurationOn On { get; set; }
 
-        public Action<ITypeCompletionContext, T> Configure { get; set; }
+        public Action<ITypeCompletionContext, T>? Configure { get; set; }
 
-        public T Definition { get; set; }
+        public T? Definition { get; set; }
 
         public ICollection<TypeDependency> Dependencies =>
             _dependencies ??= new List<TypeDependency>();
 
         IReadOnlyList<TypeDependency> ILazyTypeConfiguration.Dependencies =>
             _dependencies ??= new List<TypeDependency>();
+
+        ILazyTypeConfiguration ILazyTypeConfiguration.Copy(DefinitionBase newOwner)
+        {
+            return new TypeConfiguration<T>
+            {
+                On = On,
+                Configure = Configure,
+                Definition = (T)newOwner,
+                _dependencies = _dependencies
+            };
+        }
 
         void ILazyTypeConfiguration.Configure(ITypeCompletionContext context)
         {

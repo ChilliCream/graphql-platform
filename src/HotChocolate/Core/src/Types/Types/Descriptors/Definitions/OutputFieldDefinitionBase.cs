@@ -16,7 +16,8 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         public bool IsDeprecated => !string.IsNullOrEmpty(DeprecationReason);
 
-        public IList<ArgumentDefinition> Arguments => _arguments ??= new List<ArgumentDefinition>();
+        public IList<ArgumentDefinition> Arguments =>
+            _arguments ??= new List<ArgumentDefinition>();
 
         public IReadOnlyList<ArgumentDefinition> GetArguments()
         {
@@ -26,6 +27,23 @@ namespace HotChocolate.Types.Descriptors.Definitions
             }
 
             return _arguments;
+        }
+
+        protected void CopyTo(OutputFieldDefinitionBase target)
+        {
+            base.CopyTo(target);
+
+            if (_arguments is not null)
+            {
+                target._arguments = new List<ArgumentDefinition>();
+
+                foreach (ArgumentDefinition argument in _arguments)
+                {
+                    var newArgument = new ArgumentDefinition();
+                    argument.CopyTo(newArgument);
+                    target._arguments.Add(newArgument);
+                }
+            }
         }
     }
 }

@@ -24,7 +24,7 @@ namespace HotChocolate.Execution.Processing
 
         public async Task<IExecutionResult> ExecuteAsync(
             IRequestContext requestContext,
-            Func<object> resolveQueryValue)
+            Func<object?> resolveQueryValue)
         {
             if (requestContext is null)
             {
