@@ -30,7 +30,7 @@ namespace HotChocolate.Execution.Pipeline
 
         public async ValueTask InvokeAsync(IRequestContext context)
         {
-            if (context.Document is null && context.Request.Query is { })
+            if (context.Document is null && context.Request.Query is not null)
             {
                 bool success = true;
 
