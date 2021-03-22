@@ -268,7 +268,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
                 return false;
             }
 
-            return (((People is null && other.People is null) ||People != null && People.Equals(other.People)));
+            return (((People is null && other.People is null) || People != null && People.Equals(other.People)));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -655,11 +655,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
 
         public override global::System.String ToString()
         {
-            #if NETSTANDARD2_0
+#if NETSTANDARD2_0
             return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
-            #else
+#else
             return global::System.Text.Encoding.UTF8.GetString(Body);
-            #endif
+#endif
         }
     }
 }
@@ -792,16 +792,25 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
             (IGetPeopleResult Result, GetPeopleResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
-            if (response.Body != null)
+            try
             {
-                if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
+                if (response.Body != null)
                 {
-                    data = BuildData(dataElement);
+                    if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) &&
+                        dataElement.Kind != null)
+                    {
+                        data = BuildData(dataElement);
+                    }
+                    
+                    if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                    {
+                        errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                    }
                 }
-                if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
-                {
-                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
-                }
+            }
+            catch(Exception ex)
+            {
+                errors = new ClientError(ex.Message, ex);
             }
 
             return new global::StrawberryShake.OperationResult<IGetPeopleResult>(
@@ -817,7 +826,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
             global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
 
             global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonConnectionData? peopleId = default!;
-            _entityStore.Update(session => 
+            _entityStore.Update(session =>
             {
                 peopleId = DeserializeIGetPeople_People(
                     session,
@@ -1067,7 +1076,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
     public partial class StarWarsClientEntityIdFactory
         : global::StrawberryShake.IEntityIdSerializer
     {
-        private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions(){ Indented = false };
+        private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions() { Indented = false };
 
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
@@ -1148,7 +1157,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => 
+                sp =>
                 {
                     var serviceCollection = profile switch
                     {
@@ -1204,7 +1213,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => 
+                sp =>
                 {
                     var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
                     return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("StarWarsClient"));
@@ -1268,7 +1277,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => 
+                sp =>
                 {
                     var sessionPool = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.WebSockets.ISessionPool>(parentServices);
                     return new global::StrawberryShake.Transport.WebSockets.WebSocketConnection(() => sessionPool.CreateAsync(

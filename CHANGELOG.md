@@ -34,6 +34,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - UnsignedInt (#3052)
     - PostalCode (#3046)
 
+- Added support for GraphQL multipart request specification to Hot Chocolate (#2936).
+- Added GraphQL client Strawberry Shake.
+
 ### Fixed
 
 - Fixed issue where the PagingHelper introduced a self-reference which cause type system initialization issues.

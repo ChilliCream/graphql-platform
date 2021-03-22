@@ -40,5 +40,18 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
             return _directives;
         }
+
+        protected void CopyTo(FieldDefinitionBase target)
+        {
+            base.CopyTo(target);
+
+            if (_directives is not null)
+            {
+                target._directives = new List<DirectiveDefinition>(_directives);
+            }
+
+            target.Type = Type;
+            target.Ignore = Ignore;
+        }
     }
 }

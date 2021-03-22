@@ -1678,17 +1678,38 @@ namespace Foo.Bar
 
         private global::System.Object? FormatSkip(global::System.Int32? value)
         {
-            return _intFormatter.Format(value);
+            if (!(value is null))
+            {
+                return _intFormatter.Format(value);
+            }
+            else
+            {
+                return value;
+            }
         }
 
         private global::System.Object? FormatTake(global::System.Int32? value)
         {
-            return _intFormatter.Format(value);
+            if (!(value is null))
+            {
+                return _intFormatter.Format(value);
+            }
+            else
+            {
+                return value;
+            }
         }
 
         private global::System.Object? FormatInactive(global::System.Boolean? value)
         {
-            return _booleanFormatter.Format(value);
+            if (!(value is null))
+            {
+                return _booleanFormatter.Format(value);
+            }
+            else
+            {
+                return value;
+            }
         }
 
         global::StrawberryShake.OperationRequest global::StrawberryShake.IOperationRequestFactory.Create(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
@@ -1752,16 +1773,27 @@ namespace Foo.Bar.State
             (IPeopleSearchQueryResult Result, PeopleSearchResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
-            if (response.Body != null)
+            try
             {
-                if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
+                if (response.Body != null)
                 {
-                    data = BuildData(dataElement);
+                    if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                    {
+                        data = BuildData(dataElement);
+                    }
+                    if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                    {
+                        errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                    }
                 }
-                if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
-                {
-                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
-                }
+            }
+            catch(global::System.Exception ex)
+            {
+                errors = new global::StrawberryShake.IClientError[] {
+                    new global::StrawberryShake.ClientError(
+                        ex.Message,
+                        exception: ex)
+                };
             }
 
             return new global::StrawberryShake.OperationResult<IPeopleSearchQueryResult>(

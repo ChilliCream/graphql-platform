@@ -3,8 +3,7 @@
 namespace HotChocolate
 {
     [AttributeUsage(AttributeTargets.Parameter)]
-    public sealed class ParentAttribute
-        : Attribute
+    public sealed class ParentAttribute : Attribute
     {
     }
 }
