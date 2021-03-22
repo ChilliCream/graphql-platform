@@ -1239,7 +1239,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                 returnValue = new OnReviewSub_OnReview_Review(
                     data.__typename ?? throw new global::System.ArgumentNullException(),
                     data.Stars ?? throw new global::System.ArgumentNullException(),
-                    data.Commentary ?? throw new global::System.ArgumentNullException());
+                    data.Commentary);
             }
             else
             {
@@ -1598,7 +1598,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
             {
                 returnValue = new CreateReviewMut_CreateReview_Review(
                     data.Stars ?? throw new global::System.ArgumentNullException(),
-                    data.Commentary ?? throw new global::System.ArgumentNullException());
+                    data.Commentary);
             }
             else
             {

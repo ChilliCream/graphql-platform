@@ -57,6 +57,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "extend schema @key(fields: \"id\")");
         }
 
+        [Fact]
         public void Create_Query_With_Skip_Take()
         {
             AssertResult(
@@ -239,6 +240,68 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }",
                 "extend schema @key(fields: \"id\")",
                 FileResource.Open("Schema_Bug_2.graphql"));
+        }
+
+        [Fact]
+        public void QueryInterference()
+        {
+            AssertResult(
+                @"query GetFeatsPage(
+                  $skip: Int!
+                  $take: Int!
+                  $searchTerm: String! = """"
+                  $order: [FeatSortInput!] = [{ name: ASC }]
+                ) {
+                  feats(
+                    skip: $skip
+                    take: $take
+                    order: $order
+                    where: {
+                      or: [
+                        { name: { contains: $searchTerm } }
+                        { traits: { some: { name: { contains: $searchTerm } } } }
+                      ]
+                    }
+                  ) {
+                    totalCount
+                    items {
+                      ...FeatsPage
+                    }
+                  }
+                }
+                
+                fragment FeatsPage on Feat {
+                  id
+                  name
+                  level
+                  canBeLearnedMoreThanOnce
+                  details {
+                    text
+                  }
+                }",
+                @"query GetFeatById($id: Uuid!) {
+                  feats(where: { id: { eq: $id } }) {
+                    items {
+                      ...FeatById
+                    }
+                  }
+                }
+                
+                fragment FeatById on Feat {
+                  id
+                  name
+                  level
+                  special
+                  trigger
+                  details {
+                    text
+                  }
+                  actionType {
+                    name
+                  }
+                }",
+                "extend schema @key(fields: \"id\")",
+                FileResource.Open("Schema_Bug_1.graphql"));
         }
     }
 }
