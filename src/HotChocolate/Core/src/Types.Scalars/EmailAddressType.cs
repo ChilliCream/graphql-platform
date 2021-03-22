@@ -20,11 +20,25 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="EmailAddressType"/> class.
         /// </summary>
         public EmailAddressType()
-            : base(
+            : this(
                 WellKnownScalarTypes.EmailAddress,
+                ScalarResources.EmailAddressType_Description)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EmailAddressType"/> class.
+        /// </summary>
+        public EmailAddressType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(
+                name,
                 _validationPattern,
-                ScalarResources.EmailAddressType_Description,
-                RegexOptions.Compiled | RegexOptions.IgnoreCase)
+                description,
+                RegexOptions.Compiled | RegexOptions.IgnoreCase,
+                bind)
         {
         }
 
