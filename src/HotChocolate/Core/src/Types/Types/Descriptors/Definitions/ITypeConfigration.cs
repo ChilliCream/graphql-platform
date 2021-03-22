@@ -21,5 +21,16 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// Executes this configuration.
         /// </summary>
         void Configure(ITypeCompletionContext context);
+
+        /// <summary>
+        /// Creates a copy of this object with the new <paramref name="newOwner"/>.
+        /// </summary>
+        /// <param name="newOwner">
+        /// The new owner of this configuration.
+        /// </param>
+        /// <returns>
+        /// Returns the new configuration.
+        /// </returns>
+        ILazyTypeConfiguration Copy(DefinitionBase newOwner);
     }
 }

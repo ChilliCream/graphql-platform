@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 
+#nullable enable
+
 namespace HotChocolate.Types.Descriptors.Definitions
 {
     public class ObjectTypeDefinition
@@ -10,6 +12,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
     {
         private List<Type>? _knownClrTypes;
         private List<ITypeReference>? _interfaces;
+        private List<ObjectFieldBinding>? _fieldIgnores;
 
         public override Type RuntimeType
         {
@@ -24,6 +27,8 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public Type FieldBindingType { get; set; }
 
         public IList<Type> KnownClrTypes => _knownClrTypes ??= new List<Type>();
+
+        public IList<ObjectFieldBinding> FieldIgnores => _fieldIgnores ??= new List<ObjectFieldBinding>();
 
         public IsOfType IsOfType { get; set; }
 
@@ -71,6 +76,16 @@ namespace HotChocolate.Types.Descriptors.Definitions
             }
 
             return _interfaces;
+        }
+
+        internal IReadOnlyList<ObjectFieldBinding> GetFieldIgnores()
+        {
+            if (_fieldIgnores is null)
+            {
+                return Array.Empty<ObjectFieldBinding>();
+            }
+
+            return _fieldIgnores;
         }
     }
 }
