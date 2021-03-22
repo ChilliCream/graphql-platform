@@ -5,7 +5,9 @@ using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
 namespace HotChocolate.Types.Spatial
 {
-    public sealed class GeoJsonPointType : ObjectType<Point>
+    public sealed class GeoJsonPointType
+        : ObjectType<Point>
+        , IGeoJsonObjectType
     {
         protected override void Configure(IObjectTypeDescriptor<Point> descriptor)
         {

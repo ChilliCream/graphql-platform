@@ -3,6 +3,16 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Data.Filters
 {
+    /// <summary>
+    /// A logical scope of a visitor.
+    /// In case of queryable this would be a closure
+    /// <code>
+    /// //          /------------------------ SCOPE 1 -----------------------------\
+    /// //                                        /----------- SCOPE 2 -------------\
+    /// users.Where(x => x.Company.Addresses.Any(y => y.Street == "221B Baker Street"))
+    /// </code>
+    /// </summary>
+    /// <typeparam name="T">The type of the filter definition</typeparam>
     public class FilterScope<T>
     {
         public FilterScope()

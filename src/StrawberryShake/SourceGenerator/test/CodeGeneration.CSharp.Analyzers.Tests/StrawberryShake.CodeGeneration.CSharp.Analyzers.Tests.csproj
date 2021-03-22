@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <AssemblyName>StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests</AssemblyName>
+    <RootNamespace>StrawberryShake.CodeGeneration.CSharp.Analyzers</RootNamespace>
+    <EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
+    <StrawberryShake_LogFile>$(BaseIntermediateOutputPath)\StrawberryShake.log</StrawberryShake_LogFile>
+    <StrawberryShake_PersistedQueryDirectory>$(BaseIntermediateOutputPath)\GraphQL</StrawberryShake_PersistedQueryDirectory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" PrivateAssets="all" />
+    <PackageReference Include="StrawberryShake.CodeGeneration.CSharp.Analyzers" Version="11.1.0-local.403" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Client\src\Core\StrawberryShake.Core.csproj" />
+    <ProjectReference Include="..\..\..\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />
+    <ProjectReference Include="..\..\..\Client\src\Transport.WebSockets\StrawberryShake.Transport.WebSockets.csproj" />
+  </ItemGroup>
+
+  <!--For Visual Studio for Mac Test Explorer we need this reference here-->
+  <ItemGroup>
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="$(MSBuildProjectDirectory)\__resources__\*.*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="$(MSBuildProjectDirectory)\xunit.runner.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  
+</Project>

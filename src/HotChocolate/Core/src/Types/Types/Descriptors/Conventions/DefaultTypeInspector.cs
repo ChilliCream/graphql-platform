@@ -590,15 +590,17 @@ namespace HotChocolate.Types.Descriptors
                 return false;
             }
 
-            if (member is PropertyInfo {CanRead: false} ||
-                member is MethodInfo {IsSpecialName: true})
+            if (member is PropertyInfo { CanRead: false } ||
+                member is PropertyInfo { IsSpecialName: true } ||
+                member is MethodInfo { IsSpecialName: true })
             {
                 return false;
             }
 
             if (member is PropertyInfo property)
             {
-                return CanHandleReturnType(member, property.PropertyType);
+                return CanHandleReturnType(member, property.PropertyType) &&
+                    property.GetIndexParameters().Length == 0;
             }
 
             if (member is MethodInfo method &&

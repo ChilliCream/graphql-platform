@@ -10,12 +10,14 @@ namespace HotChocolate.Types.Descriptors.Definitions
         : TypeDefinitionBase<InterfaceTypeDefinitionNode>
         , IComplexOutputTypeDefinition
     {
-        public IList<Type> KnownClrTypes { get; } = new List<Type>();
+        private List<Type>? _knownClrTypes;
+        private List<ITypeReference>? _interfaces;
+
+        public IList<Type> KnownClrTypes => _knownClrTypes ??= new List<Type>();
 
         public ResolveAbstractType? ResolveAbstractType { get; set; }
 
-        public IList<ITypeReference> Interfaces { get; } =
-            new List<ITypeReference>();
+        public IList<ITypeReference> Interfaces => _interfaces ??= new List<ITypeReference>();
 
         public IBindableList<InterfaceFieldDefinition> Fields { get; } =
             new BindableList<InterfaceFieldDefinition>();
@@ -30,13 +32,33 @@ namespace HotChocolate.Types.Descriptors.Definitions
             {
                 configs.AddRange(field.Configurations);
 
-                foreach (ArgumentDefinition argument in field.Arguments)
+                foreach (ArgumentDefinition argument in field.GetArguments())
                 {
                     configs.AddRange(argument.Configurations);
                 }
             }
 
             return configs;
+        }
+
+        internal IReadOnlyList<Type> GetKnownClrTypes()
+        {
+            if (_knownClrTypes is null)
+            {
+                return Array.Empty<Type>();
+            }
+
+            return _knownClrTypes;
+        }
+
+        internal IReadOnlyList<ITypeReference> GetInterfaces()
+        {
+            if (_interfaces is null)
+            {
+                return Array.Empty<ITypeReference>();
+            }
+
+            return _interfaces;
         }
     }
 }

@@ -19,7 +19,30 @@
       "argument": "x",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [],
+      "SelectionSet": null,
+      "Location": {
+        "Start": 75,
+        "End": 109,
+        "Line": 4,
+        "Column": 25
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 75,
+          "End": 109,
+          "Line": 4,
+          "Column": 25
+        },
+        "Value": "multipleReqs"
+      },
+      "Directives": []
+    }
   },
   {
     "Message": "The argument `y` is required.",
@@ -41,6 +64,29 @@
       "argument": "y",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [],
+      "SelectionSet": null,
+      "Location": {
+        "Start": 75,
+        "End": 109,
+        "Line": 4,
+        "Column": 25
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 75,
+          "End": 109,
+          "Line": 4,
+          "Column": 25
+        },
+        "Value": "multipleReqs"
+      },
+      "Directives": []
+    }
   }
 ]

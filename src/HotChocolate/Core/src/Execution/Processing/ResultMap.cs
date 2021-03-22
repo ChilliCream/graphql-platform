@@ -12,7 +12,7 @@ namespace HotChocolate.Execution.Processing
         , IReadOnlyDictionary<string, object?>
         , IHasResultDataParent
     {
-        private static readonly ResultValue[] _empty = new ResultValue[0];
+        private static readonly ResultValue[] _empty = Array.Empty<ResultValue>();
         private ResultValue[] _buffer;
         private int _capacity;
         private bool _needsDefrag;

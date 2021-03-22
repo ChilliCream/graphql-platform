@@ -613,7 +613,7 @@ We have some more ground to cover before we have this version complete.
 
 I hope you enjoy what we are building. We are tying to bring GraphQL on .NET to the next level. While we still are miles away from what the JavaScript world has to offer we hope to close these gaps over the next year and even pull ahead in some areas. We love GraphQL and are passionate about it. We strongly believe that with our newest member _Strawberry Shake_ we really can make things like _Xamarin_ and _Blazor_ so much better. We have planned a lot more and hope to bring data fetching in .NET to a whole new level over the next year. Ideally you just want to decalre in your .NET component the data that you need and all the client logic is infered from that, kind of the way relay works in JavaScript.
 
-If you want to get into contact with us head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and join our community.
+If you want to get into contact with us head over to our slack channel and join our community.
 
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

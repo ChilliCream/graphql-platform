@@ -1,0 +1,51 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <IsOmniSharp Condition="$(RoslynTargetsPath.Contains('omnisharp'))">true</IsOmniSharp>
+    <IsOmniSharp Condition="$(IsOmniSharp) != 'true'">false</IsOmniSharp>
+    <StrawberryShake_DesignTimeBuild Condition="$(DesignTimeBuild) == 'true'">true</StrawberryShake_DesignTimeBuild>
+    <StrawberryShake_DesignTimeBuild Condition="$(DesignTimeBuild) != 'true'">false</StrawberryShake_DesignTimeBuild>
+    <StrawberryShake_DesignTimeBuild Condition="$(IsOmniSharp)">false</StrawberryShake_DesignTimeBuild>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)VSCode.targets" Condition="'$(IsOmniSharp)' == 'true'" />
+
+  <!--Design Time Code Generation Hook.-->
+  <Target Name="GraphQLCompile" />
+
+  <Target 
+    Name="StrawberryShake_DesignTime_Files" 
+    BeforeTargets="BeforeCompile">
+    <ItemGroup>
+      <Compile
+        Remove="**\*.StrawberryShake.cs"
+        Condition="'$(StrawberryShake_DesignTimeBuild)' == 'false'" />
+    </ItemGroup>
+  </Target>
+
+  <Target
+    Name="StrawberryShakeLogEnvironment"
+    BeforeTargets="BeforeCompile"
+    Condition="'$(StrawberryShake_LogFile)' != ''">
+    <ItemGroup>
+      <Log Include="StrawberryShake_DesignTimeBuild: $(StrawberryShake_DesignTimeBuild)" />
+      <Log Include="DesignTimeBuild: $(DesignTimeBuild)" />
+      <Log Include="IsOmniSharp: $(IsOmniSharp)" />
+      <Log Include="RoslynTargetsPath: $(RoslynTargetsPath)" />
+      <Log Include="MSBuildSDKsPath: $(MSBuildSDKsPath)" />
+      <Log Include="MSBuildExtensionsPath: $(MSBuildExtensionsPath)" />
+      <Log Include="MSBuildThisFileDirectory: $(MSBuildThisFileDirectory)" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <StrawberryShake_LogDirectory>$([System.IO.Path]::GetDirectoryName('$(StrawberryShake_LogFile)'))</StrawberryShake_LogDirectory>
+    </PropertyGroup>
+
+    <WriteLinesToFile
+      File="$(StrawberryShake_LogDirectory)\StrawberryShake_EnvironmentInfo.log"
+      Lines="@(Log)"
+      Overwrite="false"
+      Encoding="Unicode"/>
+  </Target>
+
+</Project>

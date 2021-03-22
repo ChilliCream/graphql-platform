@@ -1,8 +1,13 @@
 using System;
+using System.IO;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Threading;
+using StrawberryShake.Tools.Config;
 using StrawberryShake.Tools.OAuth;
+using Newtonsoft.Json;
+using System.Text;
 
 namespace StrawberryShake.Tools
 {
@@ -12,20 +17,16 @@ namespace StrawberryShake.Tools
         public UpdateCommandHandler(
             IFileSystem fileSystem,
             IHttpClientFactory httpClientFactory,
-            IConfigurationStore configurationStore,
             IConsoleOutput output)
         {
             FileSystem = fileSystem;
             HttpClientFactory = httpClientFactory;
-            ConfigurationStore = configurationStore;
             Output = output;
         }
 
         public IFileSystem FileSystem { get; }
 
         public IHttpClientFactory HttpClientFactory { get; }
-
-        public IConfigurationStore ConfigurationStore { get; }
 
         public IConsoleOutput Output { get; }
 
@@ -75,16 +76,17 @@ namespace StrawberryShake.Tools
 
         private async Task<int> UpdateSingleSchemaAsync(
             UpdateCommandContext context,
-            string path,
+            string clientDirectory,
             CancellationToken cancellationToken)
         {
-            Configuration? configuration =
-                await ConfigurationStore.TryLoadAsync(path)
-                    .ConfigureAwait(false);
+            string configFilePath = Path.Combine(clientDirectory, WellKnownFiles.Config);
+            var buffer = await FileSystem.ReadAllBytesAsync(configFilePath).ConfigureAwait(false);
+            var json = Encoding.UTF8.GetString(buffer);
+            GraphQLConfig configuration = JsonConvert.DeserializeObject<GraphQLConfig>(json);
 
-            if (configuration is { }
-                && await UpdateSchemaAsync(
-                    context, path, configuration, cancellationToken))
+            if (configuration is not null &&
+                await UpdateSchemaAsync(context, clientDirectory, configuration, cancellationToken)
+                    .ConfigureAwait(false))
             {
                 return 0;
             }
@@ -94,21 +96,21 @@ namespace StrawberryShake.Tools
 
         private async Task<bool> UpdateSchemaAsync(
             UpdateCommandContext context,
-            string path,
-            Configuration configuration,
+            string clientDirectory,
+            GraphQLConfig configuration,
             CancellationToken cancellationToken)
         {
-            bool hasErrors = false;
+            var hasErrors = false;
 
-            foreach (SchemaFile schema in configuration.Schemas!)
+            if (configuration.Extensions.StrawberryShake.Url is not null)
             {
-                if (schema.Type == "http")
+                var uri = new Uri(configuration.Extensions.StrawberryShake.Url);
+                var schemaFilePath = Path.Combine(clientDirectory, configuration.Schema);
+
+                if (!await DownloadSchemaAsync(context, uri, schemaFilePath, cancellationToken)
+                    .ConfigureAwait(false))
                 {
-                    if (!await DownloadSchemaAsync(
-                        context, path, schema, cancellationToken))
-                    {
-                        hasErrors = true;
-                    }
+                    hasErrors = true;
                 }
             }
 
@@ -117,19 +119,19 @@ namespace StrawberryShake.Tools
 
         private async Task<bool> DownloadSchemaAsync(
             UpdateCommandContext context,
-            string path,
-            SchemaFile schemaFile,
+            Uri serviceUri,
+            string schemaFilePath,
             CancellationToken cancellationToken)
         {
-            using var activity = Output.WriteActivity("Download schema");
+            using IActivity activity = Output.WriteActivity("Download schema");
 
             HttpClient client = HttpClientFactory.Create(
-                    context.Uri ?? new Uri(schemaFile.Url),
-                    context.Token,
-                    context.Scheme);
+                context.Uri ?? serviceUri,
+                context.Token,
+                context.Scheme);
 
             return await IntrospectionHelper.DownloadSchemaAsync(
-                client, FileSystem, activity, schemaFile.File,
+                client, FileSystem, activity, schemaFilePath,
                 cancellationToken)
                 .ConfigureAwait(false);
         }

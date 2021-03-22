@@ -1,13 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.1</TargetFramework>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PackageId>StrawberryShake.Transport.Http</PackageId>
     <AssemblyName>StrawberryShake.Transport.Http</AssemblyName>
     <RootNamespace>StrawberryShake.Transport.Http</RootNamespace>
+    <Nullable>enable</Nullable>
+    <Description>GraphQL over HTTP transport implementation for StrawberryShake GraphQL clients.</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.0"/>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.0"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\StrawberryShake.Core.csproj"/>
+  </ItemGroup>
 
 </Project>

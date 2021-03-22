@@ -3,6 +3,7 @@
   <PropertyGroup>
     <RootNamespace>HotChocolate.Data.Test</RootNamespace>
     <TargetFrameworks>net5.0; netcoreapp3.1</TargetFrameworks>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,10 +13,6 @@
 
   <ItemGroup>
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="__snapshots__" />
   </ItemGroup>
 
 </Project>

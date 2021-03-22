@@ -26,14 +26,13 @@ namespace HotChocolate.Configuration
         private readonly ITypeInspector _typeInspector;
         private readonly IReadOnlyList<ITypeReference> _initialTypes;
         private readonly IReadOnlyList<Type> _externalResolverTypes;
-        private readonly ITypeInterceptor _interceptor;
+        private readonly TypeInterceptor _interceptor;
         private readonly IsOfTypeFallback? _isOfType;
         private readonly Func<TypeSystemObjectBase, bool> _isQueryType;
         private readonly Func<TypeSystemObjectBase, bool> _isMutationType;
         private readonly TypeRegistry _typeRegistry;
         private readonly TypeLookup _typeLookup;
         private readonly TypeReferenceResolver _typeReferenceResolver;
-        private ITypeInitializationFlowInterceptor? _flowInterceptor;
 
         public TypeInitializer(
             IDescriptorContext descriptorContext,
@@ -62,11 +61,6 @@ namespace HotChocolate.Configuration
             _typeLookup = new TypeLookup(_typeInspector, _typeRegistry);
             _typeReferenceResolver = new TypeReferenceResolver(
                 _typeInspector, _typeRegistry, _typeLookup);
-
-            // if the type interceptor instance also implements the flow interceptor
-            // interface we will accept it and use it as a way to intercept the flow
-            // of the type initialization.
-            _flowInterceptor = _interceptor as ITypeInitializationFlowInterceptor;
         }
 
         public IList<FieldMiddleware> GlobalComponents => _globalComps;
@@ -116,6 +110,10 @@ namespace HotChocolate.Configuration
             // the fields resolving all missing parts and then making the types immutable.
             CompleteTypes();
 
+            // at this point everything is completely initialized and we just trigger a type
+            // finalize to allow the type to cleanup any initialization data structures.
+            FinalizeTypes();
+
             // if we do not have any errors we will validate the types for spec violations.
             if (_errors.Count == 0)
             {
@@ -132,7 +130,7 @@ namespace HotChocolate.Configuration
 
         private void DiscoverTypes()
         {
-            _flowInterceptor?.OnBeforeDiscoverTypes();
+            _interceptor.OnBeforeDiscoverTypes();
 
             var typeRegistrar = new TypeDiscoverer(
                 _context,
@@ -153,7 +151,7 @@ namespace HotChocolate.Configuration
                     _typeRegistry.Types.Select(t => t.DiscoveryContext).ToList());
             }
 
-            _flowInterceptor?.OnAfterDiscoverTypes();
+            _interceptor.OnAfterDiscoverTypes();
         }
 
         private void RegisterResolvers()
@@ -240,7 +238,7 @@ namespace HotChocolate.Configuration
                 return true;
             }
 
-            _flowInterceptor?.OnBeforeCompleteTypeNames();
+            _interceptor.OnBeforeCompleteTypeNames();
 
             if (ProcessTypes(TypeDependencyKind.Named, CompleteName) &&
                 _interceptor.TriggerAggregations)
@@ -251,12 +249,12 @@ namespace HotChocolate.Configuration
 
             EnsureNoErrors();
 
-            _flowInterceptor?.OnAfterCompleteTypeNames();
+            _interceptor.OnAfterCompleteTypeNames();
         }
 
         private void MergeTypeExtensions()
         {
-            _flowInterceptor?.OnBeforeMergeTypeExtensions();
+            _interceptor.OnBeforeMergeTypeExtensions();
 
             var extensions = _typeRegistry.Types
                 .Where(t => t.IsExtension)
@@ -271,7 +269,7 @@ namespace HotChocolate.Configuration
                 foreach (NameString typeName in extensions.Select(t => t.Type.Name).Distinct())
                 {
                     RegisteredType? type = types.FirstOrDefault(t => t.Type.Name.Equals(typeName));
-                    if(type is not null && type.Type is INamedType namedType)
+                    if (type?.Type is INamedType namedType)
                     {
                         MergeTypeExtension(
                             extensions.Where(t => t.Type.Name.Equals(typeName)),
@@ -281,7 +279,7 @@ namespace HotChocolate.Configuration
                 }
             }
 
-            _flowInterceptor?.OnAfterMergeTypeExtensions();
+            _interceptor.OnAfterMergeTypeExtensions();
         }
 
         private void MergeTypeExtension(
@@ -460,7 +458,7 @@ namespace HotChocolate.Configuration
                 return true;
             }
 
-            _flowInterceptor?.OnBeforeCompleteTypes();
+            _interceptor.OnBeforeCompleteTypes();
 
             ProcessTypes(TypeDependencyKind.Completed, CompleteType);
             EnsureNoErrors();
@@ -471,7 +469,18 @@ namespace HotChocolate.Configuration
                     _typeRegistry.Types.Select(t => t.CompletionContext).ToList());
             }
 
-            _flowInterceptor?.OnAfterCompleteTypes();
+            _interceptor.OnAfterCompleteTypes();
+        }
+
+        private void FinalizeTypes()
+        {
+            foreach (var registeredType in _typeRegistry.Types)
+            {
+                if (!registeredType.IsExtension)
+                {
+                    registeredType.Type.FinalizeType(registeredType.CompletionContext);
+                }
+            }
         }
 
         private bool ProcessTypes(

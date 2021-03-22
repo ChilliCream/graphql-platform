@@ -13,6 +13,113 @@
       "fragment": "fragA",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-Name-Uniqueness"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentDefinition",
+      "VariableDefinitions": [],
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 284,
+          "End": 291,
+          "Line": 12,
+          "Column": 35
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 284,
+            "End": 291,
+            "Line": 12,
+            "Column": 35
+          },
+          "Value": "Query"
+        }
+      },
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 290,
+          "End": 399,
+          "Line": 12,
+          "Column": 41
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": {
+                "Start": 316,
+                "End": 386,
+                "Line": 13,
+                "Column": 25
+              },
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": {
+                    "Start": 342,
+                    "End": 368,
+                    "Line": 14,
+                    "Column": 25
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 342,
+                      "End": 368,
+                      "Line": 14,
+                      "Column": 25
+                    },
+                    "Value": "name"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": {
+              "Start": 312,
+              "End": 386,
+              "Line": 13,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 312,
+                "End": 317,
+                "Line": 13,
+                "Column": 21
+              },
+              "Value": "dog"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 266,
+        "End": 399,
+        "Line": 12,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 275,
+          "End": 283,
+          "Line": 12,
+          "Column": 26
+        },
+        "Value": "fragA"
+      },
+      "Directives": []
+    }
   }
 ]

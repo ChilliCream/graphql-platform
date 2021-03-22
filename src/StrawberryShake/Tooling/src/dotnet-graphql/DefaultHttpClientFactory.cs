@@ -10,6 +10,7 @@ namespace StrawberryShake.Tools
         public HttpClient Create(Uri uri, string? token, string? scheme)
         {
             var httpClient = new HttpClient();
+
             httpClient.BaseAddress = uri;
             httpClient.DefaultRequestHeaders.UserAgent.Add(
                 new ProductInfoHeaderValue(
@@ -17,7 +18,7 @@ namespace StrawberryShake.Tools
                         "StrawberryShake",
                         typeof(InitCommand).Assembly!.GetName()!.Version!.ToString())));
 
-            if (token is { })
+            if (token is not null)
             {
                 httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue(scheme ?? "bearer", token);

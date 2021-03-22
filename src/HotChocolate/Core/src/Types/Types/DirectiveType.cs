@@ -10,6 +10,8 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     /// <summary>
@@ -54,8 +56,8 @@ namespace HotChocolate.Types
                 DirectiveLocation.InputFieldDefinition
             };
 
-        private readonly Action<IDirectiveTypeDescriptor> _configure;
-        private ITypeConverter _converter;
+        private Action<IDirectiveTypeDescriptor>? _configure;
+        private ITypeConverter _converter = default!;
 
         protected DirectiveType()
         {
@@ -68,17 +70,18 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(configure));
         }
 
-        public DirectiveDefinitionNode SyntaxNode { get; private set; }
+        public DirectiveDefinitionNode? SyntaxNode { get; private set; }
 
-        public Type RuntimeType { get; private set; }
+        public Type RuntimeType { get; private set; } = default!;
 
         public bool IsRepeatable { get; private set; }
 
-        public ICollection<DirectiveLocation> Locations { get; private set; }
+        public ICollection<DirectiveLocation> Locations { get; private set; } = default!;
 
-        public FieldCollection<Argument> Arguments { get; private set; }
+        public FieldCollection<Argument> Arguments { get; private set; }  = default!;
 
-        public IReadOnlyList<DirectiveMiddleware> MiddlewareComponents { get; private set; }
+        public IReadOnlyList<DirectiveMiddleware> MiddlewareComponents { get; private set; } =
+            default!;
 
         public bool HasMiddleware { get; private set; }
 
@@ -117,13 +120,17 @@ namespace HotChocolate.Types
         /// </summary>
         public bool IsTypeSystemDirective { get; private set; }
 
+        internal bool IsPublic { get; private set; }
+
         protected override DirectiveTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
         {
-            var descriptor = DirectiveTypeDescriptor.FromSchemaType(
-                context.DescriptorContext,
-                GetType());
-            _configure(descriptor);
+            var descriptor =
+                DirectiveTypeDescriptor.FromSchemaType( context.DescriptorContext, GetType());
+
+            _configure!(descriptor);
+            _configure = null;
+
             return descriptor.CreateDefinition();
         }
 
@@ -150,7 +157,7 @@ namespace HotChocolate.Types
            DirectiveTypeDefinition definition)
         {
             context.RegisterDependencyRange(
-                definition.Arguments.Select(t => t.Type),
+                definition.GetArguments().Select(t => t.Type),
                 TypeDependencyKind.Completed);
         }
 
@@ -161,15 +168,17 @@ namespace HotChocolate.Types
             base.OnCompleteType(context, definition);
 
             _converter = context.Services.GetTypeConverter();
-            MiddlewareComponents = definition.MiddlewareComponents.ToList().AsReadOnly();
+            MiddlewareComponents = definition.GetMiddlewareComponents();
 
             SyntaxNode = definition.SyntaxNode;
-            Locations = definition.Locations.ToList().AsReadOnly();
-            Arguments = new FieldCollection<Argument>(
-                definition.Arguments.Select(
-                    t => new Argument(t, new FieldCoordinate(Name, t.Name))),
+            Locations = definition.GetLocations().ToList().AsReadOnly();
+            Arguments = FieldCollection<Argument>.From(
+                definition
+                    .GetArguments()
+                    .Select(t => new Argument(t, new FieldCoordinate(Name, t.Name))),
                 context.DescriptorContext.Options.SortFieldsByName);
             HasMiddleware = MiddlewareComponents.Count > 0;
+            IsPublic = definition.IsPublic;
 
             if (Locations.Count == 0)
             {

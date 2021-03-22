@@ -160,25 +160,13 @@ namespace HotChocolate.Data.Filters
             //act
             ArgumentException error =
                 Assert.Throws<ArgumentException>(() => CreateSchemaWith(type, convention));
-
-#if NETCOREAPP2_1
-            error.Message.MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
-#else
-            error.Message.MatchSnapshot();
-#endif
+            Assert.Equal("Name", error.ParamName);
         }
 
         [Fact]
         public void FilterConvention_Should_Fail_When_NoProviderWasRegistered()
         {
             // arrange
-            var provider = new QueryableFilterProvider(
-                descriptor =>
-                {
-                    descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
-                    descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
-                });
-
             var convention = new FilterConvention(
                 descriptor =>
                 {
@@ -217,7 +205,7 @@ namespace HotChocolate.Data.Filters
             var type = new FooFilterInput();
 
             //act
-            SchemaException? error =
+            SchemaException error =
                 Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
             Assert.Single(error.Errors);

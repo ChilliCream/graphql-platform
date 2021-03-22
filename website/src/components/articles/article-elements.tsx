@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { IsPhablet, IsSmallDesktop } from "../doc-page/shared-style";
+import { IsPhablet, IsSmallDesktop } from "../../shared-style";
 
 export const ArticleHeader = styled.header`
   position: relative;
@@ -60,23 +60,6 @@ export const ArticleContent = styled.div`
     }
   }
 
-  > .gatsby-code-button-container {
-    padding: 0;
-  }
-
-  > .gatsby-highlight {
-    padding-right: 0;
-    padding-left: 0;
-
-    > pre[class*="language-"] {
-      padding: 30px 20px;
-
-      ::before {
-        left: 20px;
-      }
-    }
-  }
-
   @media only screen and (min-width: 820px) {
     > * {
       padding-right: 50px;
@@ -106,10 +89,6 @@ export const ArticleContent = styled.div`
       td:last-child {
         padding-right: 50px;
       }
-    }
-
-    > .gatsby-code-button-container {
-      padding: 0;
     }
 
     > .gatsby-highlight {

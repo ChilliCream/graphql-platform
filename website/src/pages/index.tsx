@@ -60,7 +60,7 @@ const IndexPage: FunctionComponent = () => {
           }
         }
       }
-      allMarkdownRemark(
+      allMdx(
         limit: 3
         filter: { frontmatter: { path: { glob: "/blog/**/*" } } }
         sort: { fields: [frontmatter___date], order: DESC }
@@ -91,7 +91,7 @@ const IndexPage: FunctionComponent = () => {
     }
   `);
   const {
-    allMarkdownRemark: { edges },
+    allMdx: { edges },
   } = data;
 
   return (
@@ -262,7 +262,7 @@ const IndexPage: FunctionComponent = () => {
                   <GiaLogoSvg />
                 </Link>
               </Logo>
-              <Logo width={160}>
+              <Logo width={200}>
                 <Link to="https://www.incloud.de/">
                   <IncloudLogoSvg />
                 </Link>

@@ -15,9 +15,9 @@ namespace HotChocolate.Configuration
     internal sealed class TypeRegistrar
         : ITypeRegistrar
     {
-        private readonly ServiceFactory _serviceFactory = new ServiceFactory();
-        private readonly HashSet<ITypeReference> _unresolved = new HashSet<ITypeReference>();
-        private readonly HashSet<RegisteredType> _handled = new HashSet<RegisteredType>();
+        private readonly ServiceFactory _serviceFactory = new();
+        private readonly HashSet<ITypeReference> _unresolved = new();
+        private readonly HashSet<RegisteredType> _handled = new();
         private readonly TypeRegistry _typeRegistry;
         private readonly TypeLookup _typeLookup;
         private readonly IDescriptorContext _context;
@@ -162,6 +162,19 @@ namespace HotChocolate.Configuration
         {
             try
             {
+                // first we create a reference to this type-system-object and ensure that we have
+                // not already registered it.
+                TypeReference instanceRef = TypeReference.Create(typeSystemObject, scope);
+
+                if (_typeRegistry.TryGetType(
+                    instanceRef,
+                    out RegisteredType? registeredType))
+                {
+                    // if we already no this object we will short-circuit here and just return the
+                    // already registered instance.
+                    return registeredType;
+                }
+
                 var discoveryContext = new TypeDiscoveryContext(
                     typeSystemObject,
                     _typeRegistry,
@@ -170,13 +183,19 @@ namespace HotChocolate.Configuration
                     _interceptor,
                     scope);
 
-                typeSystemObject.Initialize(discoveryContext);
+                // if the type-system-object is not yet pre-initialized we will start the
+                // standard initialization flow.
+                if (!typeSystemObject.IsInitialized)
+                {
+                    typeSystemObject.Initialize(discoveryContext);
+                }
 
+                // if it is a yet unknown type we will go on with our
                 var references = new List<ITypeReference>();
 
                 if (!isInferred)
                 {
-                    references.Add(TypeReference.Create(typeSystemObject, scope));
+                    references.Add(instanceRef);
                 }
 
                 if (!ExtendedType.Tools.IsNonGenericBaseType(typeSystemObject.GetType()))
@@ -202,7 +221,7 @@ namespace HotChocolate.Configuration
                     }
                 }
 
-                var registeredType = new RegisteredType(
+                registeredType = new RegisteredType(
                     typeSystemObject,
                     references,
                     CollectDependencies(discoveryContext),
