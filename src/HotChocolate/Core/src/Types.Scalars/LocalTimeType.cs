@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using HotChocolate.Language;
+using HotChocolate.Types.Scalars;
 
 namespace HotChocolate.Types
 {
@@ -43,7 +44,7 @@ namespace HotChocolate.Types
                 null => NullValueNode.Default,
                 string s => new StringValueNode(s),
                 DateTimeOffset d => ParseValue(d),
-                DateTime dt => ParseValue(new DateTimeOffset(dt)),
+                DateTime dt => ParseValue(dt),
                 _ => throw ThrowHelper.LocalTimeType_ParseValue_IsInvalid(this)
             };
         }
@@ -73,6 +74,9 @@ namespace HotChocolate.Types
                 case DateTimeOffset dt:
                     resultValue = Serialize(dt);
                     return true;
+                case DateTime dt:
+                    resultValue = Serialize(dt);
+                    return true;
                 default:
                     resultValue = null;
                     return false;
@@ -89,13 +93,11 @@ namespace HotChocolate.Types
                 case string s when TryDeserializeFromString(s, out DateTime? d):
                     runtimeValue = d;
                     return true;
-                case DateTimeOffset:
-                    runtimeValue = resultValue;
+                case DateTimeOffset d:
+                    runtimeValue = d.DateTime;
                     return true;
-                case DateTime dt:
-                    runtimeValue = new DateTimeOffset(
-                        dt.ToUniversalTime(),
-                        TimeSpan.Zero);
+                case DateTime d:
+                    runtimeValue = d;
                     return true;
                 default:
                     runtimeValue = null;
@@ -103,16 +105,14 @@ namespace HotChocolate.Types
             }
         }
 
-        private static string Serialize(DateTimeOffset value)
+        private static string Serialize(IFormattable value)
         {
-            return value.ToString(
-                _localFormat,
-                CultureInfo.InvariantCulture);
+            return value.ToString(_localFormat, CultureInfo.InvariantCulture);
         }
 
         private static bool TryDeserializeFromString(
             string? serialized,
-            [NotNullWhen(true)]out DateTime? value)
+            [NotNullWhen(true)] out DateTime? value)
         {
             if (serialized is not null
                 && DateTime.TryParse(
