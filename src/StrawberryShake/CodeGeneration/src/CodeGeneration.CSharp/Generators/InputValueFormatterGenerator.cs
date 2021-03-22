@@ -144,11 +144,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         {
             const string @return = "return";
 
-            return GenerateSerializerLocal(
-                typeDescriptor,
-                variableName,
-                @return,
-                typeDescriptor is not NonNullTypeDescriptor);
+            return GenerateSerializerLocal(typeDescriptor, variableName, @return, true);
 
 
             ICode GenerateSerializerLocal(
@@ -227,7 +223,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     _ => throw new InvalidOperationException()
                 };
 
-                if (isNullable)
+                if (isNullable && currentType is not NonNullTypeDescriptor)
                 {
                     return IfBuilder
                         .New()

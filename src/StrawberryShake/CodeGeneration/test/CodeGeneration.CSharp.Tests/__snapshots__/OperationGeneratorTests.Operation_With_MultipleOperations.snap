@@ -696,19 +696,12 @@ namespace Foo.Bar
 
             foreach (var value_elm in value)
             {
-                if (!(value_elm is null))
+                if (value_elm is null)
                 {
-                    if (value_elm is null)
-                    {
-                        throw new global::System.ArgumentNullException(nameof(value_elm));
-                    }
+                    throw new global::System.ArgumentNullException(nameof(value_elm));
+                }
 
-                    value_list.Add(_barFormatter.Format(value_elm));
-                }
-                else
-                {
-                    value_list.Add(value_elm);
-                }
+                value_list.Add(_barFormatter.Format(value_elm));
             }
             return value_list;
         }
@@ -941,19 +934,12 @@ namespace Foo.Bar
 
             foreach (var value_elm in value)
             {
-                if (!(value_elm is null))
+                if (value_elm is null)
                 {
-                    if (value_elm is null)
-                    {
-                        throw new global::System.ArgumentNullException(nameof(value_elm));
-                    }
+                    throw new global::System.ArgumentNullException(nameof(value_elm));
+                }
 
-                    value_list.Add(_barFormatter.Format(value_elm));
-                }
-                else
-                {
-                    value_list.Add(value_elm);
-                }
+                value_list.Add(_barFormatter.Format(value_elm));
             }
             return value_list;
         }
@@ -972,19 +958,12 @@ namespace Foo.Bar
 
                         foreach (var value_elm_elm in value_elm)
                         {
-                            if (!(value_elm_elm is null))
+                            if (value_elm_elm is null)
                             {
-                                if (value_elm_elm is null)
-                                {
-                                    throw new global::System.ArgumentNullException(nameof(value_elm_elm));
-                                }
+                                throw new global::System.ArgumentNullException(nameof(value_elm_elm));
+                            }
 
-                                value_elm_list.Add(_barFormatter.Format(value_elm_elm));
-                            }
-                            else
-                            {
-                                value_elm_list.Add(value_elm_elm);
-                            }
+                            value_elm_list.Add(_barFormatter.Format(value_elm_elm));
                         }
                         value_list.Add(value_elm_list);
                     }
@@ -1172,19 +1151,12 @@ namespace Foo.Bar
 
             foreach (var value_elm in value)
             {
-                if (!(value_elm is null))
+                if (value_elm is null)
                 {
-                    if (value_elm is null)
-                    {
-                        throw new global::System.ArgumentNullException(nameof(value_elm));
-                    }
+                    throw new global::System.ArgumentNullException(nameof(value_elm));
+                }
 
-                    value_list.Add(_barFormatter.Format(value_elm));
-                }
-                else
-                {
-                    value_list.Add(value_elm);
-                }
+                value_list.Add(_barFormatter.Format(value_elm));
             }
             return value_list;
         }
@@ -1203,19 +1175,12 @@ namespace Foo.Bar
 
                         foreach (var value_elm_elm in value_elm)
                         {
-                            if (!(value_elm_elm is null))
+                            if (value_elm_elm is null)
                             {
-                                if (value_elm_elm is null)
-                                {
-                                    throw new global::System.ArgumentNullException(nameof(value_elm_elm));
-                                }
+                                throw new global::System.ArgumentNullException(nameof(value_elm_elm));
+                            }
 
-                                value_elm_list.Add(_barFormatter.Format(value_elm_elm));
-                            }
-                            else
-                            {
-                                value_elm_list.Add(value_elm_elm);
-                            }
+                            value_elm_list.Add(_barFormatter.Format(value_elm_elm));
                         }
                         value_list.Add(value_elm_list);
                     }
@@ -1403,19 +1368,12 @@ namespace Foo.Bar
 
             foreach (var value_elm in value)
             {
-                if (!(value_elm is null))
+                if (value_elm is null)
                 {
-                    if (value_elm is null)
-                    {
-                        throw new global::System.ArgumentNullException(nameof(value_elm));
-                    }
+                    throw new global::System.ArgumentNullException(nameof(value_elm));
+                }
 
-                    value_list.Add(_barFormatter.Format(value_elm));
-                }
-                else
-                {
-                    value_list.Add(value_elm);
-                }
+                value_list.Add(_barFormatter.Format(value_elm));
             }
             return value_list;
         }
@@ -1434,19 +1392,12 @@ namespace Foo.Bar
 
                         foreach (var value_elm_elm in value_elm)
                         {
-                            if (!(value_elm_elm is null))
+                            if (value_elm_elm is null)
                             {
-                                if (value_elm_elm is null)
-                                {
-                                    throw new global::System.ArgumentNullException(nameof(value_elm_elm));
-                                }
+                                throw new global::System.ArgumentNullException(nameof(value_elm_elm));
+                            }
 
-                                value_elm_list.Add(_barFormatter.Format(value_elm_elm));
-                            }
-                            else
-                            {
-                                value_elm_list.Add(value_elm_elm);
-                            }
+                            value_elm_list.Add(_barFormatter.Format(value_elm_elm));
                         }
                         value_list.Add(value_elm_list);
                     }
