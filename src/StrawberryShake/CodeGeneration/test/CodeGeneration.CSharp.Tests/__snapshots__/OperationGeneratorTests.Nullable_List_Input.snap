@@ -9,7 +9,7 @@
 // ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
 
-// TestResultFactory
+// GetSomethingResultFactory
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
 
@@ -18,20 +18,20 @@
 namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class TestResultFactory
-        : global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.TestResult>
+    public partial class GetSomethingResultFactory
+        : global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.GetSomethingResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
 
-        public TestResultFactory(global::StrawberryShake.IEntityStore entityStore)
+        public GetSomethingResultFactory(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
         }
 
-        global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.ITestResult);
+        global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IGetSomethingResult);
 
-        public TestResult Create(
+        public GetSomethingResult Create(
             global::StrawberryShake.IOperationResultDataInfo dataInfo,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
@@ -40,12 +40,12 @@ namespace Foo.Bar.State
                 snapshot = _entityStore.CurrentSnapshot;
             }
 
-            if (dataInfo is TestResultInfo info)
+            if (dataInfo is GetSomethingResultInfo info)
             {
-                return new TestResult(info.Foo);
+                return new GetSomethingResult(info.Foo);
             }
 
-            throw new global::System.ArgumentException("TestResultInfo expected.");
+            throw new global::System.ArgumentException("GetSomethingResultInfo expected.");
         }
 
         global::System.Object global::StrawberryShake.IOperationResultDataFactory.Create(
@@ -60,7 +60,7 @@ namespace Foo.Bar.State
 }
 
 
-// TestResultInfo
+// GetSomethingResultInfo
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
 
@@ -69,13 +69,13 @@ namespace Foo.Bar.State
 namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class TestResultInfo
+    public partial class GetSomethingResultInfo
         : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
         private readonly global::System.UInt64 _version;
 
-        public TestResultInfo(
+        public GetSomethingResultInfo(
             global::System.String? foo,
             global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
             global::System.UInt64 version)
@@ -94,7 +94,7 @@ namespace Foo.Bar.State
 
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
-            return new TestResultInfo(
+            return new GetSomethingResultInfo(
                 Foo,
                 _entityIds,
                 version);
@@ -103,7 +103,7 @@ namespace Foo.Bar.State
 }
 
 
-// TestResult
+// GetSomethingResult
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
 
@@ -112,11 +112,11 @@ namespace Foo.Bar.State
 namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class TestResult
-        : global::System.IEquatable<TestResult>
-        , ITestResult
+    public partial class GetSomethingResult
+        : global::System.IEquatable<GetSomethingResult>
+        , IGetSomethingResult
     {
-        public TestResult(global::System.String? foo)
+        public GetSomethingResult(global::System.String? foo)
         {
             Foo = foo;
         }
@@ -144,10 +144,10 @@ namespace Foo.Bar
                 return false;
             }
 
-            return Equals((TestResult)obj);
+            return Equals((GetSomethingResult)obj);
         }
 
-        public global::System.Boolean Equals(TestResult? other)
+        public global::System.Boolean Equals(GetSomethingResult? other)
         {
             if (ReferenceEquals(
                     null,
@@ -189,7 +189,7 @@ namespace Foo.Bar
 }
 
 
-// ITestResult
+// IGetSomethingResult
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
 
@@ -198,7 +198,7 @@ namespace Foo.Bar
 namespace Foo.Bar
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ITestResult
+    public interface IGetSomethingResult
     {
         public global::System.String? Foo { get; }
     }
@@ -217,15 +217,13 @@ namespace Foo.Bar
     public partial class BarInputValueFormatter
         : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
-        private global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter = default!;
-        private global::StrawberryShake.Serialization.IInputValueFormatter _barFormatter = default!;
+        private global::StrawberryShake.Serialization.IInputValueFormatter _bazFormatter = default!;
 
         public global::System.String TypeName => "Bar";
 
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
-            _stringFormatter = serializerResolver.GetInputValueFormatter("String");
-            _barFormatter = serializerResolver.GetInputValueFormatter("Bar");
+            _bazFormatter = serializerResolver.GetInputValueFormatter("Baz");
         }
 
         public global::System.Object? Format(global::System.Object? runtimeValue)
@@ -242,79 +240,12 @@ namespace Foo.Bar
 
             return new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>[] {
                 new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>(
-                    "str",
-                    FormatStr(d.Str)),
-                new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>(
-                    "strNonNullable",
-                    FormatStrNonNullable(d.StrNonNullable)),
-                new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>(
-                    "nested",
-                    FormatNested(d.Nested)),
-                new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>(
-                    "nestedList",
-                    FormatNestedList(d.NestedList)),
-                new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>(
-                    "nestedMatrix",
-                    FormatNestedMatrix(d.NestedMatrix))
+                    "baz",
+                    FormatBaz(d.Baz))
             };
         }
 
-        private global::System.Object? FormatStr(global::System.String? value)
-        {
-            if (!(value is null))
-            {
-                return _stringFormatter.Format(value);
-            }
-            else
-            {
-                return value;
-            }
-        }
-
-        private global::System.Object? FormatStrNonNullable(global::System.String value)
-        {
-            if (value is null)
-            {
-                throw new global::System.ArgumentNullException(nameof(value));
-            }
-
-            return _stringFormatter.Format(value);
-        }
-
-        private global::System.Object? FormatNested(global::Foo.Bar.Bar? value)
-        {
-            if (!(value is null))
-            {
-                return _barFormatter.Format(value);
-            }
-            else
-            {
-                return value;
-            }
-        }
-
-        private global::System.Object? FormatNestedList(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> value)
-        {
-            if (value is null)
-            {
-                throw new global::System.ArgumentNullException(nameof(value));
-            }
-
-            var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
-
-            foreach (var value_elm in value)
-            {
-                if (value_elm is null)
-                {
-                    throw new global::System.ArgumentNullException(nameof(value_elm));
-                }
-
-                value_list.Add(_barFormatter.Format(value_elm));
-            }
-            return value_list;
-        }
-
-        private global::System.Object? FormatNestedMatrix(global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar?>?>? value)
+        private global::System.Object? FormatBaz(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Baz?>? value)
         {
             if (!(value is null))
             {
@@ -324,20 +255,7 @@ namespace Foo.Bar
                 {
                     if (!(value_elm is null))
                     {
-                        var value_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
-
-                        foreach (var value_elm_elm in value_elm)
-                        {
-                            if (!(value_elm_elm is null))
-                            {
-                                value_elm_list.Add(_barFormatter.Format(value_elm_elm));
-                            }
-                            else
-                            {
-                                value_elm_list.Add(value_elm_elm);
-                            }
-                        }
-                        value_list.Add(value_elm_list);
+                        value_list.Add(_bazFormatter.Format(value_elm));
                     }
                     else
                     {
@@ -366,20 +284,83 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class Bar
     {
-        public global::System.String? Str { get; set; } = default!;
-
-        public global::System.String StrNonNullable { get; set; } = default!;
-
-        public global::Foo.Bar.Bar? Nested { get; set; } = default!;
-
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> NestedList { get; set; } = default!;
-
-        public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar?>?>? NestedMatrix { get; set; } = default!;
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Baz?>? Baz { get; set; } = default!;
     }
 }
 
 
-// TestQueryDocument
+// BazInputValueFormatter
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class BazInputValueFormatter
+        : global::StrawberryShake.Serialization.IInputObjectFormatter
+    {
+        private global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter = default!;
+
+        public global::System.String TypeName => "Baz";
+
+        public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        {
+            _stringFormatter = serializerResolver.GetInputValueFormatter("String");
+        }
+
+        public global::System.Object? Format(global::System.Object? runtimeValue)
+        {
+            if (runtimeValue is null)
+            {
+                return null;
+            }
+
+            if (!(runtimeValue is Baz d))
+            {
+                throw new global::System.ArgumentException(nameof(runtimeValue));
+            }
+
+            return new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>[] {
+                new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>(
+                    "qux",
+                    FormatQux(d.Qux))
+            };
+        }
+
+        private global::System.Object? FormatQux(global::System.String? value)
+        {
+            if (!(value is null))
+            {
+                return _stringFormatter.Format(value);
+            }
+            else
+            {
+                return value;
+            }
+        }
+    }
+}
+
+
+// Baz
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class Baz
+    {
+        public global::System.String? Qux { get; set; } = default!;
+    }
+}
+
+
+// GetSomethingQueryDocument
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
 
@@ -388,28 +369,28 @@ namespace Foo.Bar
 namespace Foo.Bar
 {
     /// <summary>
-    /// Represents the operation service of the Test GraphQL operation
+    /// Represents the operation service of the GetSomething GraphQL operation
     /// <code>
-    /// query Test($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
-    ///   foo(single: $single, list: $list, nestedList: $nestedList)
+    /// query GetSomething($bar: Bar) {
+    ///   foo(bar: $bar)
     /// }
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class TestQueryDocument
+    public partial class GetSomethingQueryDocument
         : global::StrawberryShake.IDocument
     {
-        private TestQueryDocument()
+        private GetSomethingQueryDocument()
         {
         }
 
-        public static TestQueryDocument Instance { get; } = new TestQueryDocument();
+        public static GetSomethingQueryDocument Instance { get; } = new GetSomethingQueryDocument();
 
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
 
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{ 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x54, 0x65, 0x73, 0x74, 0x28, 0x24, 0x73, 0x69, 0x6e, 0x67, 0x6c, 0x65, 0x3a, 0x20, 0x42, 0x61, 0x72, 0x21, 0x2c, 0x20, 0x24, 0x6c, 0x69, 0x73, 0x74, 0x3a, 0x20, 0x5b, 0x42, 0x61, 0x72, 0x21, 0x5d, 0x21, 0x2c, 0x20, 0x24, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x4c, 0x69, 0x73, 0x74, 0x3a, 0x20, 0x5b, 0x5b, 0x42, 0x61, 0x72, 0x21, 0x5d, 0x5d, 0x29, 0x20, 0x7b, 0x20, 0x66, 0x6f, 0x6f, 0x28, 0x73, 0x69, 0x6e, 0x67, 0x6c, 0x65, 0x3a, 0x20, 0x24, 0x73, 0x69, 0x6e, 0x67, 0x6c, 0x65, 0x2c, 0x20, 0x6c, 0x69, 0x73, 0x74, 0x3a, 0x20, 0x24, 0x6c, 0x69, 0x73, 0x74, 0x2c, 0x20, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x4c, 0x69, 0x73, 0x74, 0x3a, 0x20, 0x24, 0x6e, 0x65, 0x73, 0x74, 0x65, 0x64, 0x4c, 0x69, 0x73, 0x74, 0x29, 0x20, 0x7d };
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{ 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x53, 0x6f, 0x6d, 0x65, 0x74, 0x68, 0x69, 0x6e, 0x67, 0x28, 0x24, 0x62, 0x61, 0x72, 0x3a, 0x20, 0x42, 0x61, 0x72, 0x29, 0x20, 0x7b, 0x20, 0x66, 0x6f, 0x6f, 0x28, 0x62, 0x61, 0x72, 0x3a, 0x20, 0x24, 0x62, 0x61, 0x72, 0x29, 0x20, 0x7d };
 
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "dbfdc9d76b5dee9c878b782cdb27dc4b2c339cdd");
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "da8906d1f936b0ba2f53ecc3b4f994f97a74891d");
 
         public override global::System.String ToString()
         {
@@ -423,7 +404,7 @@ namespace Foo.Bar
 }
 
 
-// TestQuery
+// GetSomethingQuery
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
 
@@ -432,22 +413,22 @@ namespace Foo.Bar
 namespace Foo.Bar
 {
     /// <summary>
-    /// Represents the operation service of the Test GraphQL operation
+    /// Represents the operation service of the GetSomething GraphQL operation
     /// <code>
-    /// query Test($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
-    ///   foo(single: $single, list: $list, nestedList: $nestedList)
+    /// query GetSomething($bar: Bar) {
+    ///   foo(bar: $bar)
     /// }
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class TestQuery
+    public partial class GetSomethingQuery
         : global::StrawberryShake.IOperationRequestFactory
     {
-        private readonly global::StrawberryShake.IOperationExecutor<ITestResult> _operationExecutor;
+        private readonly global::StrawberryShake.IOperationExecutor<IGetSomethingResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _barFormatter;
 
-        public TestQuery(
-            global::StrawberryShake.IOperationExecutor<ITestResult> operationExecutor,
+        public GetSomethingQuery(
+            global::StrawberryShake.IOperationExecutor<IGetSomethingResult> operationExecutor,
             global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor
@@ -455,18 +436,13 @@ namespace Foo.Bar
             _barFormatter = serializerResolver.GetInputValueFormatter("Bar");
         }
 
-        global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ITestResult);
+        global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetSomethingResult);
 
-        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestResult>> ExecuteAsync(
-            global::Foo.Bar.Bar single,
-            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> list,
-            global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? nestedList,
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetSomethingResult>> ExecuteAsync(
+            global::Foo.Bar.Bar? bar,
             global::System.Threading.CancellationToken cancellationToken = default)
         {
-            var request = CreateRequest(
-                single,
-                list,
-                nestedList);
+            var request = CreateRequest(bar);
 
             return await _operationExecutor
                 .ExecuteAsync(
@@ -475,37 +451,23 @@ namespace Foo.Bar
                 .ConfigureAwait(false);
         }
 
-        public global::System.IObservable<global::StrawberryShake.IOperationResult<ITestResult>> Watch(
-            global::Foo.Bar.Bar single,
-            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> list,
-            global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? nestedList,
+        public global::System.IObservable<global::StrawberryShake.IOperationResult<IGetSomethingResult>> Watch(
+            global::Foo.Bar.Bar? bar,
             global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
-            var request = CreateRequest(
-                single,
-                list,
-                nestedList);
+            var request = CreateRequest(bar);
             return _operationExecutor.Watch(
                 request,
                 strategy);
         }
 
-        private global::StrawberryShake.OperationRequest CreateRequest(
-            global::Foo.Bar.Bar single,
-            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> list,
-            global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? nestedList)
+        private global::StrawberryShake.OperationRequest CreateRequest(global::Foo.Bar.Bar? bar)
         {
             var variables = new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>();
 
             variables.Add(
-                "single",
-                FormatSingle(single));
-            variables.Add(
-                "list",
-                FormatList(list));
-            variables.Add(
-                "nestedList",
-                FormatNestedList(nestedList));
+                "bar",
+                FormatBar(bar));
 
             return CreateRequest(variables);
         }
@@ -514,73 +476,18 @@ namespace Foo.Bar
         {
 
             return new global::StrawberryShake.OperationRequest(
-                id: TestQueryDocument.Instance.Hash.Value,
-                name: "Test",
-                document: TestQueryDocument.Instance,
+                id: GetSomethingQueryDocument.Instance.Hash.Value,
+                name: "GetSomething",
+                document: GetSomethingQueryDocument.Instance,
                 strategy: global::StrawberryShake.RequestStrategy.Default,
                 variables:variables);
         }
 
-        private global::System.Object? FormatSingle(global::Foo.Bar.Bar value)
-        {
-            if (value is null)
-            {
-                throw new global::System.ArgumentNullException(nameof(value));
-            }
-
-            return _barFormatter.Format(value);
-        }
-
-        private global::System.Object? FormatList(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> value)
-        {
-            if (value is null)
-            {
-                throw new global::System.ArgumentNullException(nameof(value));
-            }
-
-            var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
-
-            foreach (var value_elm in value)
-            {
-                if (value_elm is null)
-                {
-                    throw new global::System.ArgumentNullException(nameof(value_elm));
-                }
-
-                value_list.Add(_barFormatter.Format(value_elm));
-            }
-            return value_list;
-        }
-
-        private global::System.Object? FormatNestedList(global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? value)
+        private global::System.Object? FormatBar(global::Foo.Bar.Bar? value)
         {
             if (!(value is null))
             {
-                var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
-
-                foreach (var value_elm in value)
-                {
-                    if (!(value_elm is null))
-                    {
-                        var value_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
-
-                        foreach (var value_elm_elm in value_elm)
-                        {
-                            if (value_elm_elm is null)
-                            {
-                                throw new global::System.ArgumentNullException(nameof(value_elm_elm));
-                            }
-
-                            value_elm_list.Add(_barFormatter.Format(value_elm_elm));
-                        }
-                        value_list.Add(value_elm_list);
-                    }
-                    else
-                    {
-                        value_list.Add(value_elm);
-                    }
-                }
-                return value_list;
+                return _barFormatter.Format(value);
             }
             else
             {
@@ -596,7 +503,7 @@ namespace Foo.Bar
 }
 
 
-// TestBuilder
+// GetSomethingBuilder
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
 
@@ -605,18 +512,18 @@ namespace Foo.Bar
 namespace Foo.Bar.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class TestBuilder
-        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ITestResult>
+    public partial class GetSomethingBuilder
+        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetSomethingResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityIdSerializer _idSerializer;
-        private readonly global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ITestResult> _resultDataFactory;
+        private readonly global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetSomethingResult> _resultDataFactory;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
 
-        public TestBuilder(
+        public GetSomethingBuilder(
             global::StrawberryShake.IEntityStore entityStore,
             global::StrawberryShake.IEntityIdSerializer idSerializer,
-            global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ITestResult> resultDataFactory,
+            global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetSomethingResult> resultDataFactory,
             global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore
@@ -629,9 +536,9 @@ namespace Foo.Bar.State
                  ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
         }
 
-        public global::StrawberryShake.IOperationResult<ITestResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
+        public global::StrawberryShake.IOperationResult<IGetSomethingResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
         {
-            (ITestResult Result, TestResultInfo Info)? data = null;
+            (IGetSomethingResult Result, GetSomethingResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
             try
@@ -657,14 +564,14 @@ namespace Foo.Bar.State
                 };
             }
 
-            return new global::StrawberryShake.OperationResult<ITestResult>(
+            return new global::StrawberryShake.OperationResult<IGetSomethingResult>(
                 data?.Result,
                 data?.Info,
                 _resultDataFactory,
                 errors);
         }
 
-        private (ITestResult, TestResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
+        private (IGetSomethingResult, GetSomethingResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
             global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
@@ -675,7 +582,7 @@ namespace Foo.Bar.State
                 snapshot = session.CurrentSnapshot;
             });
 
-            var resultInfo = new TestResultInfo(
+            var resultInfo = new GetSomethingResultInfo(
                 DeserializeString(
                     global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                         obj,
@@ -716,17 +623,17 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
     {
-        private readonly global::Foo.Bar.TestQuery _test;
+        private readonly global::Foo.Bar.GetSomethingQuery _getSomething;
 
-        public FooClient(global::Foo.Bar.TestQuery test)
+        public FooClient(global::Foo.Bar.GetSomethingQuery getSomething)
         {
-            _test = test
-                 ?? throw new global::System.ArgumentNullException(nameof(test));
+            _getSomething = getSomething
+                 ?? throw new global::System.ArgumentNullException(nameof(getSomething));
         }
 
         public static global::System.String ClientName => "FooClient";
 
-        public global::Foo.Bar.TestQuery Test => _test;
+        public global::Foo.Bar.GetSomethingQuery GetSomething => _getSomething;
     }
 }
 
@@ -811,7 +718,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.TestQuery>(
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.GetSomethingQuery>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
@@ -858,6 +765,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.BarInputValueFormatter>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.BazInputValueFormatter>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(
                 services,
                 sp => new global::StrawberryShake.Serialization.SerializerResolver(
@@ -867,22 +775,22 @@ namespace Microsoft.Extensions.DependencyInjection
                         global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
                             sp))));
 
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ITestResult>, global::Foo.Bar.State.TestResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetSomethingResult>, global::Foo.Bar.State.GetSomethingResultFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ITestResult>>(sp));
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetSomethingResult>>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.TestQuery>(sp));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ITestResult>, global::Foo.Bar.State.TestBuilder>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.ITestResult>>(
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.GetSomethingQuery>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetSomethingResult>, global::Foo.Bar.State.GetSomethingBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.IGetSomethingResult>>(
                 services,
-                sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.ITestResult>(
+                sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetSomethingResult>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp),
-                    () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ITestResult>>(sp),
+                    () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetSomethingResult>>(sp),
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                     strategy));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.TestQuery>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.GetSomethingQuery>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityIdSerializer, global::Foo.Bar.State.FooClientEntityIdFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.FooClient>(services);
             return services;
