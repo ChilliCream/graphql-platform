@@ -4,7 +4,8 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Filters
 {
-    public class ArrayBooleanFilterOperationDescriptor 
+    [Obsolete("Use HotChocolate.Data.")]
+    public class ArrayBooleanFilterOperationDescriptor
         : BooleanFilterOperationDescriptorBase
         , IArrayBooleanFilterOperationDescriptor
     {

@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Addtional HotChocolate scalars  (HotChocolate.Types.Scalars)
+    - PhoneNumber (#2995)
+    - EmailAddress (#2989)
+    - NegativeFloat (#2996)
+    - NonPositiveFloat (#3024)
+    - NonNegativeFloat (#3015)
+    - NonPositiveInt (#3026) 
+    - PositiveInt (#2929)
+    - NonNegativeInt (#3020) 
+    - NegativeInt (#2940)
+    - NonNegativeInt (#3020)
+    - NonEmptyString (#2940)
+    - Rgb (#3213)
+    - Port (#3211)
+    - Ipv6 (#3206)
+    - ISBN (#3201)
+    - Regex (#3184, #3130)
+    - MacAddress (#3183)
+    - Hsla (#3141)
+    - Ipv4 (#3097)
+    - Hsl (#3082)
+    - HexColor (#3077)
+    - UnsignedInt (#3052)
+    - PostalCode (#3046)
+
+- Added support for GraphQL multipart request specification to Hot Chocolate (#2936).
+- Added GraphQL client Strawberry Shake.
+
 ### Fixed
 
 - Fixed issue where the PagingHelper introduced a self-reference which cause type system initialization issues.

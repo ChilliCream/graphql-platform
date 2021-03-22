@@ -13,6 +13,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         void BeginGenerateCode();
 
+        void SetGeneratorSettings(CSharpGeneratorSettings settings);
+
+        void SetPersistedQueryLocation(string? location);
+
         void EndGenerateCode();
 
         void WriteDocument(string documentName);

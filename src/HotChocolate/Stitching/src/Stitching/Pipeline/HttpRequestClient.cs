@@ -125,7 +125,7 @@ namespace HotChocolate.Stitching.Pipeline
             HttpResponseMessage responseMessage,
             CancellationToken cancellationToken)
         {
-#if NET5_0
+#if NET5_0 || NET6_0
             await using Stream stream = await responseMessage.Content
                 .ReadAsStreamAsync(cancellationToken)
                 .ConfigureAwait(false);
@@ -170,7 +170,7 @@ namespace HotChocolate.Stitching.Pipeline
             HttpResponseMessage responseMessage,
             CancellationToken cancellationToken)
         {
-#if NET5_0
+#if NET5_0 || NET6_0
             await using Stream stream = await responseMessage.Content
                 .ReadAsStreamAsync(cancellationToken)
                 .ConfigureAwait(false);

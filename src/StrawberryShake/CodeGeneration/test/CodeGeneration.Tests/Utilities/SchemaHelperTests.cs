@@ -18,8 +18,11 @@ namespace StrawberryShake.CodeGeneration.Utilities
             // act
             ISchema schema =
                 SchemaHelper.Load(
-                    ("GitHub.graphql", Utf8GraphQLParser.Parse(schemaSdl)),
-                    ("GitHub.extensions.graphql", Utf8GraphQLParser.Parse(extensionsSdl)));
+                    new GraphQLFile[] 
+                    {
+                        new("GitHub.graphql", Utf8GraphQLParser.Parse(schemaSdl)),
+                        new("GitHub.extensions.graphql", Utf8GraphQLParser.Parse(extensionsSdl))
+                    });
 
             // assert
             ScalarType scalarType = schema.GetType<ScalarType>("X509Certificate");

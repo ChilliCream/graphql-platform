@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 
@@ -18,9 +17,33 @@ namespace StrawberryShake.CodeGeneration.CSharp
             this CodeBlockBuilder builder,
             Action<MethodCallBuilder> configure)
         {
-            var methodCallBuilder = new MethodCallBuilder();
+            var methodCallBuilder = MethodCallBuilder.New();
             configure(methodCallBuilder);
             return builder.AddCode(methodCallBuilder);
+        }
+
+        public static MethodCallBuilder AddMethodCall(this CodeBlockBuilder builder)
+        {
+            var methodCallBuilder = MethodCallBuilder.New();
+            builder.AddCode(methodCallBuilder);
+            return methodCallBuilder;
+        }
+
+        public static AssignmentBuilder AddAssigment(
+            this CodeBlockBuilder builder,
+            string? assignedTo = null)
+        {
+            AssignmentBuilder assignmentBuilder = AssignmentBuilder
+                .New();
+
+            if (assignedTo is not null)
+            {
+                assignmentBuilder.SetLefthandSide(assignedTo);
+            }
+
+            builder.AddCode(assignmentBuilder);
+
+            return assignmentBuilder;
         }
 
         public static CodeBlockBuilder ForEach<T>(
@@ -54,6 +77,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 configure(builder);
             }
+
             return builder;
         }
 

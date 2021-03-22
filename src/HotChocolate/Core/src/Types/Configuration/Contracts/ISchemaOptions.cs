@@ -39,6 +39,11 @@ namespace HotChocolate.Configuration
         new bool SortFieldsByName { get; set; }
 
         /// <summary>
+        /// Defines if syntax nodes shall be preserved on the type system objects
+        /// </summary>
+        new bool PreserveSyntaxNodes { get; set; }
+
+        /// <summary>
         /// Defines if types shall be removed from the schema that are
         /// unreachable from the root types.
         /// </summary>
@@ -53,5 +58,15 @@ namespace HotChocolate.Configuration
         /// Defines on which fields a middleware pipeline can be applied on.
         /// </summary>
         new FieldMiddlewareApplication FieldMiddleware { get; set; }
+
+        /// <summary>
+        /// Defines if the experimental directive introspection feature shall be enabled.
+        /// </summary>
+        new bool EnableDirectiveIntrospection { get; set; }
+
+        /// <summary>
+        /// The default directive visibility when directive introspection is enabled.
+        /// </summary>
+        new DirectiveVisibility DefaultDirectiveVisibility { get; set; }
     }
 }

@@ -1,7 +1,9 @@
+using System; 
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
@@ -443,6 +445,7 @@ namespace HotChocolate.Data
             // assert
             result.ToJson().MatchSnapshot();
         }
+
         [Fact]
         public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField()
         {
@@ -479,7 +482,7 @@ namespace HotChocolate.Data
             // assert
             result.ToJson().MatchSnapshot();
         }
-
+ 
         [Fact]
         public async Task ExecuteAsync_Should_ArgumentAndFirstOrDefault_When_Executed()
         {
@@ -582,7 +585,7 @@ namespace HotChocolate.Data
                 new Author { Name = "Author", Books = new List<Book> { book } }
             }.AsQueryable();
         }
-
+ 
         public class PagingAndProjection
         {
             [UsePaging]

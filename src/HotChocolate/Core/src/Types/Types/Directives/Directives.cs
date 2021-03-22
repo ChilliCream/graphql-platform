@@ -15,7 +15,7 @@ namespace HotChocolate.Types
 
         internal static IReadOnlyList<ITypeReference> CreateReferences(
             ITypeInspector typeInspector) =>
-            new List<ITypeReference>
+            new ITypeReference[]
             {
                 typeInspector.GetTypeRef(typeof(SkipDirectiveType), TypeContext.None),
                 typeInspector.GetTypeRef(typeof(IncludeDirectiveType), TypeContext.None),

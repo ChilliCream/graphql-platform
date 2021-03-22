@@ -5,6 +5,7 @@
     <AssemblyName>StrawberryShake.CodeGeneration</AssemblyName>
     <RootNamespace>StrawberryShake.CodeGeneration</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Description>StrawberryShake code generation GraphQL query analyzers.</Description>
   </PropertyGroup>
 
   <ItemGroup>

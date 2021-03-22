@@ -3,11 +3,12 @@ using System.Collections.Generic;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public class ArrayBuilder : ICodeBuilder
+    public class ArrayBuilder : ICode
     {
         private string? _prefix;
         private string? _type;
         private bool _determineStatement = true;
+        private bool _setReturn;
         private readonly List<ICode> _assigment = new();
 
         private ArrayBuilder()
@@ -38,6 +39,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public ArrayBuilder SetReturn(bool value = true)
+        {
+            _setReturn = value;
+            return this;
+        }
+
         public void Build(CodeWriter writer)
         {
             if (_type is null)
@@ -48,6 +55,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             if (_determineStatement)
             {
                 writer.WriteIndent();
+            }
+
+            if (_setReturn)
+            {
+                writer.Write("return ");
             }
 
             writer.Write(_prefix);
