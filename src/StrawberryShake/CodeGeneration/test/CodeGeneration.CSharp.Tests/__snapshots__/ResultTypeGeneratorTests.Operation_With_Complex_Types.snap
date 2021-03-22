@@ -66,7 +66,7 @@ namespace Foo.Bar.State
                     global::System.StringComparison.Ordinal) ?? false)
             {
                 returnValue = new GetFoo_Foo_Baz(
-                    data.Str ?? throw new global::System.ArgumentNullException(),
+                    data.Str,
                     data.StrNonNullable ?? throw new global::System.ArgumentNullException(),
                     MapIGetFoo_Foo_Nested(
                         data.Nested,
@@ -100,7 +100,7 @@ namespace Foo.Bar.State
                     "Baz",
                     global::System.StringComparison.Ordinal) ?? false)
             {
-                returnValue = new GetFoo_Foo_Nested_Baz(data.Str ?? throw new global::System.ArgumentNullException());
+                returnValue = new GetFoo_Foo_Nested_Baz(data.Str);
             }
             else
             {
@@ -135,7 +135,7 @@ namespace Foo.Bar.State
                     "Baz",
                     global::System.StringComparison.Ordinal))
             {
-                returnValue = new GetFoo_Foo_NestedList_Baz(data.Str ?? throw new global::System.ArgumentNullException());
+                returnValue = new GetFoo_Foo_NestedList_Baz(data.Str);
             }
             else
             {
@@ -201,7 +201,7 @@ namespace Foo.Bar.State
                     "Baz",
                     global::System.StringComparison.Ordinal) ?? false)
             {
-                returnValue = new GetFoo_Foo_NestedMatrix_Baz(data.Str ?? throw new global::System.ArgumentNullException());
+                returnValue = new GetFoo_Foo_NestedMatrix_Baz(data.Str);
             }
             else
             {
