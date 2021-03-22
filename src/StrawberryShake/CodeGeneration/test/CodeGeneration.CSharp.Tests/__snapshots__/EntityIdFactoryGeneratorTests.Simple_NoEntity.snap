@@ -67,7 +67,7 @@ namespace Foo.Bar.State
             {
                 returnValue = new GetPerson_Person_Person(
                     data.Name ?? throw new global::System.ArgumentNullException(),
-                    data.Email ?? throw new global::System.ArgumentNullException());
+                    data.Email);
             }
             else
             {
