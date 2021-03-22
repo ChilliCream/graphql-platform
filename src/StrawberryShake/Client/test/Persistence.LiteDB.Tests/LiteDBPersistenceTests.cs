@@ -12,7 +12,7 @@ namespace StrawberryShake.Persistence.SQLLite
 {
     public class LiteDBPersistenceTests
     {
-        [Fact]
+        // [Fact]
         public async Task SaveEntities()
         {
             var fileName = Path.GetTempFileName();
@@ -58,7 +58,7 @@ namespace StrawberryShake.Persistence.SQLLite
             }
         }
 
-        [Fact]
+        // [Fact]
         public async Task LoadEntities()
         {
             var fileName = Path.GetTempFileName();
