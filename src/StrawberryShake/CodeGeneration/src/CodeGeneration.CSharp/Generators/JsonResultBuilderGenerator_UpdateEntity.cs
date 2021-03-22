@@ -100,9 +100,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             foreach (PropertyDescriptor property in
                 objectTypeDescriptor.EntityTypeDescriptor.Properties.Values)
             {
-                if (propertyLookup.ContainsKey(property.Name.Value))
+                if (propertyLookup.TryGetValue(property.Name.Value, out var ownProperty))
                 {
-                    newEntity.AddArgument(BuildUpdateMethodCall(property));
+                    newEntity.AddArgument(BuildUpdateMethodCall(ownProperty));
                 }
                 else if (assignDefault)
                 {
