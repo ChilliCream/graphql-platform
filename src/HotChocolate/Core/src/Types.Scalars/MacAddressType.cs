@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The `MacAddess` scalar type represents a IEEE 802 48-bit Mac address, represented as UTF-8

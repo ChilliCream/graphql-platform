@@ -2,7 +2,7 @@ using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The `ISBN` scalar type is a ISBN-10 or ISBN-13 number:

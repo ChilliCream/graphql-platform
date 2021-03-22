@@ -1,7 +1,6 @@
 using HotChocolate.Language;
-using HotChocolate.Types.Scalars;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The NonEmptyString scalar type represents non empty textual data, represented as
