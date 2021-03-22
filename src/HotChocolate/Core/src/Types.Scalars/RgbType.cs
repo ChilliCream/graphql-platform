@@ -35,7 +35,7 @@ namespace HotChocolate.Types
             : base(
                 name,
                 _validationPattern,
-                ScalarResources.RgbType_Description,
+                description,
                 RegexOptions.Compiled | RegexOptions.IgnoreCase,
                 bind)
         {

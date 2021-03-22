@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace HotChocolate.Types {
+namespace HotChocolate.Types.Scalars {
     using System;
 
 
