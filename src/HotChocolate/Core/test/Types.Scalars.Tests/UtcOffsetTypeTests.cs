@@ -38,7 +38,7 @@ namespace HotChocolate.Types.Scalars
         {
             // arrange
             ScalarType scalar = CreateType<UtcOffsetType>();
-            var valueSyntax = new StringValueNode("12:00");
+            var valueSyntax = new StringValueNode("24:00");
 
             // act
             var result = scalar.IsInstanceOfType(valueSyntax);
