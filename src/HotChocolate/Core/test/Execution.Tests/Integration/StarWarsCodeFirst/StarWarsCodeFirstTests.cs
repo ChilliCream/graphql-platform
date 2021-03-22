@@ -824,5 +824,60 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                 FileResource.Open("LargeQuery.graphql"))
                 .MatchSnapshotAsync();
         }
+
+        [Fact]
+        public async Task NestedFragmentsWithNestedObjectFieldsAndSkip()
+        {
+            Snapshot.FullName();
+
+            await ExpectValid(@"
+                query ($if: Boolean!) {
+                    human(id: ""1000"") {
+                        ... Human1 @include(if: $if)
+                        ... Human2 @skip(if: $if)
+                    }
+                }
+                fragment Human1 on Human {
+                    friends {
+                        edges {
+                            ... FriendEdge1
+                        }
+                    }
+                }
+                fragment FriendEdge1 on CharacterEdge {
+                    node {
+                        __typename
+                        friends {
+                            nodes {
+                                __typename
+                                ... Human3
+                            }
+                        }
+                    }
+                }
+                fragment Human2 on Human {
+                    friends {
+                        edges {
+                            node {
+                                __typename
+                                ... Human3
+                            }
+                        }
+                    }
+                }
+                fragment Human3 on Human {
+                    # This works
+                    name
+
+                    # This is returned as an empty object but should be populated
+                    otherHuman {
+                      __typename
+                      name
+                    }
+                }
+                ",
+                request: r => r.SetVariableValue("if", true))
+                .MatchSnapshotAsync();
+        }
     }
 }

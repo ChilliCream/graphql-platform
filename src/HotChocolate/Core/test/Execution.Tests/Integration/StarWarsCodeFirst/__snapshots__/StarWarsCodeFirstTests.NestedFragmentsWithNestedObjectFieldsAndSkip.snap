@@ -1,0 +1,148 @@
+﻿{
+  "data": {
+    "human": {
+      "friends": {
+        "edges": [
+          {
+            "node": {
+              "__typename": "Human",
+              "friends": {
+                "nodes": [
+                  {
+                    "__typename": "Human",
+                    "name": "Luke Skywalker",
+                    "otherHuman": {
+                      "__typename": "Human",
+                      "name": "Han Solo"
+                    }
+                  },
+                  {
+                    "__typename": "Human",
+                    "name": "Leia Organa",
+                    "otherHuman": {
+                      "__typename": "Human",
+                      "name": "Luke Skywalker"
+                    }
+                  },
+                  {
+                    "__typename": "Droid"
+                  }
+                ]
+              },
+              "name": "Han Solo",
+              "otherHuman": {
+                "__typename": "Human",
+                "name": "Luke Skywalker"
+              }
+            }
+          },
+          {
+            "node": {
+              "__typename": "Human",
+              "friends": {
+                "nodes": [
+                  {
+                    "__typename": "Human",
+                    "name": "Luke Skywalker",
+                    "otherHuman": {
+                      "__typename": "Human",
+                      "name": "Han Solo"
+                    }
+                  },
+                  {
+                    "__typename": "Human",
+                    "name": "Han Solo",
+                    "otherHuman": {
+                      "__typename": "Human",
+                      "name": "Luke Skywalker"
+                    }
+                  },
+                  {
+                    "__typename": "Droid"
+                  },
+                  {
+                    "__typename": "Droid"
+                  }
+                ]
+              },
+              "name": "Leia Organa",
+              "otherHuman": {
+                "__typename": "Human",
+                "name": "Luke Skywalker"
+              }
+            }
+          },
+          {
+            "node": {
+              "__typename": "Droid",
+              "friends": {
+                "nodes": [
+                  {
+                    "__typename": "Human",
+                    "name": "Luke Skywalker",
+                    "otherHuman": {
+                      "__typename": "Human",
+                      "name": "Han Solo"
+                    }
+                  },
+                  {
+                    "__typename": "Human",
+                    "name": "Han Solo",
+                    "otherHuman": {
+                      "__typename": "Human",
+                      "name": "Luke Skywalker"
+                    }
+                  },
+                  {
+                    "__typename": "Human",
+                    "name": "Leia Organa",
+                    "otherHuman": {
+                      "__typename": "Human",
+                      "name": "Luke Skywalker"
+                    }
+                  },
+                  {
+                    "__typename": "Droid"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "node": {
+              "__typename": "Droid",
+              "friends": {
+                "nodes": [
+                  {
+                    "__typename": "Human",
+                    "name": "Luke Skywalker",
+                    "otherHuman": {
+                      "__typename": "Human",
+                      "name": "Han Solo"
+                    }
+                  },
+                  {
+                    "__typename": "Human",
+                    "name": "Han Solo",
+                    "otherHuman": {
+                      "__typename": "Human",
+                      "name": "Luke Skywalker"
+                    }
+                  },
+                  {
+                    "__typename": "Human",
+                    "name": "Leia Organa",
+                    "otherHuman": {
+                      "__typename": "Human",
+                      "name": "Luke Skywalker"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

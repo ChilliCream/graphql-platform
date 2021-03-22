@@ -30,7 +30,7 @@ namespace HotChocolate.Execution.Processing
                 SelectionVariants = selectionVariants;
                 IsInternalSelection = false;
                 IncludeConditionLookup =
-                    new Dictionary<ISelectionNode, SelectionIncludeCondition>();
+                    new Dictionary<SelectionReference, SelectionIncludeCondition>();
                 Optimizers = optimizers;
                 IsConditional = false;
                 _processed = new HashSet<(SelectionSetNode, NameString)>();
@@ -41,10 +41,11 @@ namespace HotChocolate.Execution.Processing
             private CompilerContext(
                 IObjectType type,
                 IImmutableStack<IObjectField> path,
+                SelectionPath selectionPath,
                 SelectionSetNode selectionSet,
                 SelectionVariants selectionVariants,
                 bool isInternalSelection,
-                IDictionary<ISelectionNode, SelectionIncludeCondition> includeConditionLookup,
+                IDictionary<SelectionReference, SelectionIncludeCondition> includeConditionLookup,
                 IImmutableList<ISelectionOptimizer> optimizers,
                 Stack<CompilerContext> backlog,
                 IDictionary<SelectionSetNode, SelectionVariants> selectionVariantsLookup,
@@ -52,6 +53,7 @@ namespace HotChocolate.Execution.Processing
             {
                 Type = type;
                 Path = path;
+                SelectionPath = selectionPath;
                 Fields = new Dictionary<string, Selection>();
                 SelectionSet = selectionSet;
                 SelectionVariants = selectionVariants;
@@ -68,17 +70,22 @@ namespace HotChocolate.Execution.Processing
 
             public IImmutableStack<IObjectField> Path { get; }
 
+            /// <summary>
+            /// The selection path represents the response name path.
+            /// </summary>
+            public SelectionPath SelectionPath { get; }
+
             public IDictionary<string, Selection> Fields { get; }
 
             public SelectionSetNode SelectionSet { get; }
 
             public SelectionVariants SelectionVariants { get; }
 
-            public List<ISelection> Selections { get; } = new List<ISelection>();
+            public List<ISelection> Selections { get; } = new();
 
             public bool IsInternalSelection { get; }
 
-            public IDictionary<ISelectionNode, SelectionIncludeCondition> IncludeConditionLookup
+            public IDictionary<SelectionReference, SelectionIncludeCondition> IncludeConditionLookup
             {
                 get;
             }
@@ -124,6 +131,7 @@ namespace HotChocolate.Execution.Processing
                 var context = new CompilerContext(
                     type,
                     Path.Push(selection.Field),
+                    SelectionPath.Append(selection.ResponseName),
                     selectionSet,
                     selectionVariants,
                     selection.IsInternal,
@@ -131,8 +139,7 @@ namespace HotChocolate.Execution.Processing
                     RegisterOptimizers(Optimizers, selection.Field),
                     _backlog,
                     _variantsLookup,
-                    _processed
-                );
+                    _processed);
 
                 _backlog.Push(context);
             }
@@ -150,6 +157,7 @@ namespace HotChocolate.Execution.Processing
                 var context = new CompilerContext(
                     Type,
                     Path,
+                    SelectionPath,
                     fragment.SelectionSet,
                     selectionVariants,
                     IsInternalSelection,
@@ -157,8 +165,7 @@ namespace HotChocolate.Execution.Processing
                     Optimizers,
                     _backlog,
                     _variantsLookup,
-                    _processed
-                );
+                    _processed);
 
                 return context;
             }
@@ -205,6 +212,65 @@ namespace HotChocolate.Execution.Processing
                 }
 
                 return optimizers;
+            }
+        }
+
+        public readonly struct SelectionReference
+        {
+            public SelectionReference(SelectionPath path, ISelectionNode selection)
+            {
+                Path = path;
+                Selection = selection;
+            }
+
+            public SelectionPath Path { get; }
+
+            public ISelectionNode Selection { get; }
+
+            public bool Equals(SelectionReference other)
+            {
+                return Path.Equals(other.Path) && Selection.Equals(other.Selection);
+            }
+
+            public override bool Equals(object? obj)
+            {
+                return obj is SelectionReference other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    return (Path.GetHashCode() * 397) ^ Selection.GetHashCode();
+                }
+            }
+        }
+
+        public readonly struct SelectionPath
+        {
+            private readonly string? _path;
+
+            private SelectionPath(string path)
+            {
+                _path = path;
+            }
+
+            public SelectionPath Append(string segment) =>
+                new(_path is null ? segment : _path + "/" + segment);
+
+            public bool Equals(SelectionPath other)
+            {
+                return _path == other._path;
+            }
+
+            public override bool Equals(object? obj)
+            {
+                return obj is SelectionPath other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                return _path != null ? _path.GetHashCode() : 0;
             }
         }
     }

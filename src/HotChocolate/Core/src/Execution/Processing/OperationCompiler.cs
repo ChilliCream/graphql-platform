@@ -156,7 +156,8 @@ namespace HotChocolate.Execution.Processing
 
                 if (selectionCondition is null)
                 {
-                    context.IncludeConditionLookup.TryGetValue(selection, out selectionCondition);
+                    var reference = new SelectionReference(context.SelectionPath, selection);
+                    context.IncludeConditionLookup.TryGetValue(reference, out selectionCondition);
                 }
 
                 ResolveFields(
@@ -242,9 +243,11 @@ namespace HotChocolate.Execution.Processing
                     for (var i = 0; i < selection.SelectionSet.Selections.Count; i++)
                     {
                         ISelectionNode child = selection.SelectionSet.Selections[i];
-                        if (!context.IncludeConditionLookup.ContainsKey(child))
+                        var reference = new SelectionReference(context.SelectionPath, child);
+
+                        if (!context.IncludeConditionLookup.ContainsKey(reference))
                         {
-                            context.IncludeConditionLookup.Add(child, includeCondition);
+                            context.IncludeConditionLookup.Add(reference, includeCondition);
                         }
                     }
                 }
