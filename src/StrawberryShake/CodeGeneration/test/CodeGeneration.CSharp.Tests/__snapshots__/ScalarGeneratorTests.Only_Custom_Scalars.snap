@@ -65,7 +65,7 @@ namespace Foo.Bar.State
                     "Person",
                     global::System.StringComparison.Ordinal) ?? false)
             {
-                returnValue = new GetPerson_Person_Person(data.Email ?? throw new global::System.ArgumentNullException());
+                returnValue = new GetPerson_Person_Person(data.Email);
             }
             else
             {

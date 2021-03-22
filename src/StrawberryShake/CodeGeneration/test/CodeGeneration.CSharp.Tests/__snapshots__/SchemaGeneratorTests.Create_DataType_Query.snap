@@ -97,7 +97,7 @@ namespace Foo.Bar.State
                     "Profile",
                     global::System.StringComparison.Ordinal))
             {
-                returnValue = new GetAllFoos_Test_Profile_Profile(data.Name ?? throw new global::System.ArgumentNullException());
+                returnValue = new GetAllFoos_Test_Profile_Profile(data.Name);
             }
             else
             {
