@@ -1,7 +1,8 @@
 using System.Text.RegularExpressions;
+using HotChocolate.Types.Scalars;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The `PhoneNumber` scalar type scalar type represents a value that conforms to the standard

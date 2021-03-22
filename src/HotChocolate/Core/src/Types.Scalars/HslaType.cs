@@ -1,7 +1,8 @@
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
+using HotChocolate.Types.Scalars;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The `HSLA` scalar type represents a valid a CSS HSLA color as defined

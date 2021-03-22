@@ -2,7 +2,7 @@ using System;
 using HotChocolate.Language;
 using Xunit;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     public class ScalarTypeTestBase
     {

@@ -1,7 +1,8 @@
 using System.Text.RegularExpressions;
+using HotChocolate.Types.Scalars;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The `Rgba` scalar type represents a valid CSS RGBA color

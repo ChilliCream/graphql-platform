@@ -1,8 +1,9 @@
 using System.Linq;
+using HotChocolate.Types.Scalars;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The PostalCode scalar type represents a valid postal code.

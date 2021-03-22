@@ -1,6 +1,7 @@
 using HotChocolate.Language;
+using HotChocolate.Types.Scalars;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The `UnsignedLong` scalar type represents a signed 64‐bit numeric non‐fractional

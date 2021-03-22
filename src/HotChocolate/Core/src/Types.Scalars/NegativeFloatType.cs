@@ -1,6 +1,7 @@
 using HotChocolate.Language;
+using HotChocolate.Types.Scalars;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The NegativeFloatType scalar represents a double‐precision fractional value less than 0.

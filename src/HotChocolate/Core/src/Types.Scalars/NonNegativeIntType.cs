@@ -1,6 +1,7 @@
 using HotChocolate.Language;
+using HotChocolate.Types.Scalars;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The NonNegativeIntType scalar type represents a unsigned 32-bit numeric non-fractional value
