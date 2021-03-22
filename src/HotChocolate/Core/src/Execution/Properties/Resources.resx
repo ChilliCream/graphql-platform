@@ -163,7 +163,7 @@
     <value>Either now compiled operation was found or the variables have not been coerced.</value>
   </data>
   <data name="ErrorHelper_ValueCompletion_CouldNotResolveAbstractType_Message" xml:space="preserve">
-    <value>Could not resolve the actual object type from `System.String` for the abstract type `Bar`.</value>
+    <value>Could not resolve the actual object type from `{0}` for the abstract type `{1}`.</value>
   </data>
   <data name="ErrorHelper_StateInvalidForDocumentValidation_Message" xml:space="preserve">
     <value>The query request contains no document.</value>
