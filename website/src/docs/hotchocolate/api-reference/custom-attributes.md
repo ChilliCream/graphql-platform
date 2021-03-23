@@ -20,6 +20,8 @@ This is where descriptor attributes come in. Descriptor attributes allow us to p
 
 We have prepared the following set of built-in descriptor attributes.
 
+> ⚠️ **Note:** As middleware comprises the stages of a sequential _pipeline_, the ordering is important. The correct order to use is `UsePaging`, `UseFiltering`, `UseSorting`.
+
 ## UsePagingAttribute
 
 The `UsePagingAttribute` allows us to use the paging middleware by annotating it to a property or method.
