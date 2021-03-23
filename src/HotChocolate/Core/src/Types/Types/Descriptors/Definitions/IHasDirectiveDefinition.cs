@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 
+#nullable enable
+
 namespace HotChocolate.Types.Descriptors.Definitions
 {
     public interface IHasDirectiveDefinition

@@ -6,7 +6,7 @@
     "versions": [
       {
         "path": "",
-        "title": "v11 (latest)",
+        "title": "v11.1 (latest)",
         "items": [
           {
             "path": "index",
@@ -25,12 +25,20 @@
                 "title": "Schema basics"
               },
               {
+                "path": "descriptions",
+                "title": "Schema Documentation"
+              },
+              {
                 "path": "versioning",
                 "title": "Versioning"
               },
               {
                 "path": "unions-and-interfaces",
                 "title": "Unions and Interfaces"
+              },
+              {
+                "path": "extending-types",
+                "title": "Extending types"
               },
               {
                 "path": "scalars",
@@ -127,6 +135,10 @@
               {
                 "path": "object-type",
                 "title": "Object Type"
+              },
+              {
+                "path": "custom-attributes",
+                "title": "Custom Attributes"
               },
               {
                 "path": "language",

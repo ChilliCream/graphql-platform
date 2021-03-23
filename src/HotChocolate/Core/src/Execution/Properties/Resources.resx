@@ -249,4 +249,7 @@
   <data name="OperationContext_GetQueryRoot_InvalidCast" xml:space="preserve">
     <value>The query type could not be casted to {0}.</value>
   </data>
+  <data name="ErrorHelper_RequestTimeout" xml:space="preserve">
+    <value>The request exceeded the configured timeout of `{0}`.</value>
+  </data>
 </root>

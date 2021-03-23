@@ -1941,7 +1941,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
         private global::System.Object? FormatCommentary(global::System.String? value)
         {
-            return _stringFormatter.Format(value);
+            if (!(value is null))
+            {
+                return _stringFormatter.Format(value);
+            }
+            else
+            {
+                return value;
+            }
         }
     }
 }

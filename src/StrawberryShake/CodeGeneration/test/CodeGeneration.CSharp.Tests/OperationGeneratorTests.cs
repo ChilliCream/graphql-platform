@@ -53,5 +53,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 FileResource.Open("Schema.extensions.graphql"),
                 FileResource.Open("ChatSchema.graphql"));
         }
+
+        [Fact]
+        public void Nullable_List_Input()
+        {
+            AssertResult(
+                @"query GetSomething($bar: Bar){ foo(bar: $bar)}",
+                "type Query { foo(bar: Bar ): String }",
+                "input Bar { baz: [Baz] }",
+                "input Baz { qux: String }",
+                "extend schema @key(fields: \"id\")");
+        }
     }
 }
