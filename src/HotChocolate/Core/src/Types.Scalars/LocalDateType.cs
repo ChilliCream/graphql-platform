@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Scalars
     /// character sequences YYYY-MM-DD. The scalar follows the specification defined in
     /// <a href="https://tools.ietf.org/html/rfc3339">RFC3339</a>
     /// </summary>
-    public class LocalDateType  : ScalarType<DateTime, StringValueNode>
+    public class LocalDateType : ScalarType<DateTime, StringValueNode>
     {
         private const string _localFormat = "yyyy-MM-dd";
 
