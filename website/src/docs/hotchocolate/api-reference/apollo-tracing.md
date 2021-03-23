@@ -33,16 +33,13 @@ public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
-        // Registering services / repositories here; omitted for brevity
+        services
+            .AddRouting()
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
 
-        services.AddGraphQL(sp => SchemaBuilder.New()
-          .AddQueryType<QueryType>()
-          // Registering schema types and so on here; omitted for brevity
-          .Create(),
-          new QueryExecutionOptions
-          {
-              TracingPreference = TracingPreference.Always
-          });
+            // this adds apollo tracing
+            .AddApolloTracing(TracingPreference.Always);
     }
 
     // Code omitted for brevity
@@ -62,23 +59,20 @@ public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
-        // Registering services / repositories here; omitted for brevity
+        services
+            .AddRouting()
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
 
-        services.AddGraphQL(sp => SchemaBuilder.New()
-          .AddQueryType<QueryType>()
-          // Registering schema types and so on here; omitted for brevity
-          .Create(),
-          new QueryExecutionOptions
-          {
-              TracingPreference = TracingPreference.OnDemand
-          });
+            // this adds apollo tracing
+            .AddApolloTracing(TracingPreference.OnDemand);
     }
 
     // Code omitted for brevity
 }
 ```
 
-Second, we have to pass an HTTP header `GraphQL-Tracing=1` on the client-side
+Second, we have to pass an HTTP header `GraphQL-Tracing=1` or `X-Apollo-Tracing=1` on the client-side
 with every query request we're interested in.
 
 When not using the Hot Chocolate ASP.NET Core or Framework stack we have to
