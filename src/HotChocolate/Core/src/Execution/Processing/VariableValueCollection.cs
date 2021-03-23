@@ -1,17 +1,22 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing
 {
     internal class VariableValueCollection : IVariableValueCollection
     {
-        private readonly Dictionary<string, VariableValue> _coercedValues;
+        private readonly Dictionary<string, VariableValueOrLiteral> _coercedValues;
 
-        public VariableValueCollection(Dictionary<string, VariableValue> coercedValues)
+        public VariableValueCollection(Dictionary<string, VariableValueOrLiteral> coercedValues)
         {
             _coercedValues = coercedValues;
         }
+
+        public static VariableValueCollection Empty { get; } =
+            new(new Dictionary<string, VariableValueOrLiteral>());
 
         public T GetVariable<T>(NameString name)
         {
@@ -30,7 +35,7 @@ namespace HotChocolate.Execution.Processing
 
         public bool TryGetVariable<T>(NameString name, [NotNullWhen(true)] out T value)
         {
-            if (_coercedValues.TryGetValue(name.Value, out VariableValue variableValue))
+            if (_coercedValues.TryGetValue(name.Value, out VariableValueOrLiteral variableValue))
             {
                 if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
                 {
@@ -58,7 +63,7 @@ namespace HotChocolate.Execution.Processing
                         return true;
                     }
 
-                    if (variableValue.ValueLiteral is { })
+                    if (variableValue.ValueLiteral is not null)
                     {
                         object? temp  = variableValue.Type.ParseLiteral(variableValue.ValueLiteral);
                         if (temp is T casted2)
@@ -74,7 +79,19 @@ namespace HotChocolate.Execution.Processing
             return false;
         }
 
-        public static VariableValueCollection Empty { get; } =
-            new VariableValueCollection(new Dictionary<string, VariableValue>());
+        public IEnumerator<VariableValue> GetEnumerator()
+        {
+            foreach (KeyValuePair<string, VariableValueOrLiteral> item in _coercedValues)
+            {
+                IInputType type = item.Value.Type;
+                IValueNode value = item.Value.ValueLiteral ?? type.ParseValue(item.Value.Value);
+                yield return new VariableValue(item.Key, type, value);
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
     }
 }

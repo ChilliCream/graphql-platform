@@ -5,11 +5,13 @@ namespace HotChocolate.Language
     public interface IDocumentCache
     {
         bool TryGetDocument(
-            string documentId, 
+            string documentId,
             [NotNullWhen(true)] out DocumentNode document);
 
         void TryAddDocument(
-            string documentId, 
+            string documentId,
             DocumentNode document);
+
+        void Clear();
     }
 }

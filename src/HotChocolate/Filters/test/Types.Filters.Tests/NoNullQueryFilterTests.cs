@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Execution;
 using Snapshooter.Xunit;
@@ -7,6 +8,7 @@ using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete]
     public class NoNullQueryFilterTests
     {
         [Fact]

@@ -318,7 +318,7 @@ namespace GreenDonut
             return batch.StartDispatchingAsync(async () =>
             {
                 Activity? activity = DiagnosticEvents.StartBatching(batch.Keys);
-                IReadOnlyList<Result<TValue>> results = new Result<TValue>[0];
+                IReadOnlyList<Result<TValue>> results = Array.Empty<Result<TValue>>();
 
                 try
                 {

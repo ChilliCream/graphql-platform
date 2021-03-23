@@ -19,7 +19,7 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
                 { ScopeNames.ScopedContextData, new ScopedContextDataScopedVariableResolver() }
             };
 
-        public VariableValue Resolve(
+        public ScopedVariableValue Resolve(
             IResolverContext context,
             ScopedVariableNode variable,
             IInputType targetType)

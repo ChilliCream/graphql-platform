@@ -20,6 +20,20 @@ namespace HotChocolate.Types
             typeof(ProjectionObjectFieldDescriptorExtensions)
                 .GetMethod(nameof(CreateMiddleware), BindingFlags.Static | BindingFlags.NonPublic)!;
 
+        /// <summary>
+        /// Configure if this field should be projected by <see cref="UseProjection{T}"/> or if it
+        /// should be skipped
+        ///
+        /// if <paramref name="isProjected"/> is false, this field will never be projected even if
+        /// it is in the selection set
+        /// if <paramref name="isProjected"/> is true, this field will always be projected even it
+        /// it is not in the selection set
+        /// </summary>
+        /// <param name="descriptor">The descriptor</param>
+        /// <param name="isProjected">
+        /// If false the field will never be projected, if true it will always be projected
+        /// </param>
+        /// <returns>The descriptor passed in by <paramref name="descriptor"/></returns>
         public static IObjectFieldDescriptor IsProjected(
             this IObjectFieldDescriptor descriptor,
             bool isProjected = true)
@@ -32,6 +46,19 @@ namespace HotChocolate.Types
             return descriptor;
         }
 
+        /// <summary>
+        /// Projects the selection set of the request onto the field. Registers a middleware that
+        /// uses the registered <see cref="ProjectionConvention"/> to apply the projections
+        /// </summary>
+        /// <param name="descriptor">The descriptor</param>
+        /// <param name="scope">
+        /// Specify which <see cref="ProjectionConvention"/> is used, based on the value passed in
+        /// <see cref="ProjectionsSchemaBuilderExtensions.AddProjections{T}"/>
+        /// </param>
+        /// <returns>The descriptor passed in by <paramref name="descriptor"/></returns>
+        /// <exception cref="ArgumentNullException">
+        /// In case the descriptor is null
+        /// </exception>
         public static IObjectFieldDescriptor UseProjection(
             this IObjectFieldDescriptor descriptor,
             string? scope = null)
@@ -44,6 +71,22 @@ namespace HotChocolate.Types
             return UseProjection(descriptor, null, scope);
         }
 
+        /// <summary>
+        /// Projects the selection set of the request onto the field. Registers a middleware that
+        /// uses the registered <see cref="ProjectionConvention"/> to apply the projections
+        /// </summary>
+        /// <param name="descriptor">The descriptor</param>
+        /// <param name="scope">
+        /// Specify which <see cref="ProjectionConvention"/> is used, based on the value passed in
+        /// <see cref="ProjectionsSchemaBuilderExtensions.AddProjections{T}"/>
+        /// </param>
+        /// <typeparam name="T">
+        /// The <see cref="Type"/> of the resolved field
+        /// </typeparam>
+        /// <returns>The descriptor passed in by <paramref name="descriptor"/></returns>
+        /// <exception cref="ArgumentNullException">
+        /// In case the descriptor is null
+        /// </exception>
         public static IObjectFieldDescriptor UseProjection<T>(
             this IObjectFieldDescriptor descriptor,
             string? scope = null)
@@ -56,11 +99,32 @@ namespace HotChocolate.Types
             return UseProjection(descriptor, typeof(T), scope);
         }
 
-        private static IObjectFieldDescriptor UseProjection(
-            IObjectFieldDescriptor descriptor,
-            Type? objectType,
+        /// <summary>
+        /// Projects the selection set of the request onto the field. Registers a middleware that
+        /// uses the registered <see cref="ProjectionConvention"/> to apply the projections
+        /// </summary>
+        /// <param name="descriptor">The descriptor</param>
+        /// <param name="scope">
+        /// Specify which <see cref="ProjectionConvention"/> is used, based on the value passed in
+        /// <see cref="ProjectionsSchemaBuilderExtensions.AddProjections{T}"/>
+        /// </param>
+        /// <param name="type">
+        /// The <see cref="Type"/> of the resolved field
+        /// </param>
+        /// <returns>The descriptor passed in by <paramref name="descriptor"/></returns>
+        /// <exception cref="ArgumentNullException">
+        /// In case the descriptor is null
+        /// </exception>
+        public static IObjectFieldDescriptor UseProjection(
+            this IObjectFieldDescriptor descriptor,
+            Type? type,
             string? scope = null)
         {
+            if (descriptor is null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
             FieldMiddleware placeholder = next => context => default;
 
             descriptor
@@ -69,7 +133,7 @@ namespace HotChocolate.Types
                 .OnBeforeCreate(
                     (context, definition) =>
                     {
-                        Type? selectionType = objectType;
+                        Type? selectionType = type;
 
                         if (selectionType is null)
                         {
@@ -91,7 +155,7 @@ namespace HotChocolate.Types
                                 .New<ObjectFieldDefinition>()
                                 .Definition(definition)
                                 .Configure(
-                                    (context, defintion) =>
+                                    (context, definition) =>
                                         CompileMiddleware(
                                             selectionType,
                                             definition,

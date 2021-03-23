@@ -53,7 +53,9 @@ export const SEO: FunctionComponent<SEOProperties> = ({
 
   const metaAuthor = `@${site.siteMetadata.author}`;
   const metaDescription = description || site.siteMetadata.description;
-  const metaImageUrl = `${site.siteMetadata.siteUrl}${imageUrl || image?.childImageSharp!.fixed!.src}`;
+  const metaImageUrl = `${site.siteMetadata.siteUrl}${
+    imageUrl || image?.childImageSharp!.fixed!.src
+  }`;
 
   return (
     <Helmet

@@ -26,10 +26,13 @@ import { Layout } from "../components/structure/layout";
 import AeiLogoSvg from "../images/companies/aei.svg";
 import AtminaLogoSvg from "../images/companies/atmina.svg";
 import AutoguruLogoSvg from "../images/companies/autoguru.svg";
+import BeyableLogoSvg from "../images/companies/beyable.svg";
 import BiqhLogoSvg from "../images/companies/biqh.svg";
 import CarmmunityLogoSvg from "../images/companies/carmmunity.svg";
+import CompassLogoSvg from "../images/companies/compass.svg";
 import E2mLogoSvg from "../images/companies/e2m.svg";
 import ExlrtLogoSvg from "../images/companies/exlrt.svg";
+import EzeepLogoSvg from "../images/companies/ezeep.svg";
 import GiaLogoSvg from "../images/companies/gia.svg";
 import IncloudLogoSvg from "../images/companies/incloud.svg";
 import MotiviewLogoSvg from "../images/companies/motiview.svg";
@@ -57,7 +60,7 @@ const IndexPage: FunctionComponent = () => {
           }
         }
       }
-      allMarkdownRemark(
+      allMdx(
         limit: 3
         filter: { frontmatter: { path: { glob: "/blog/**/*" } } }
         sort: { fields: [frontmatter___date], order: DESC }
@@ -88,7 +91,7 @@ const IndexPage: FunctionComponent = () => {
     }
   `);
   const {
-    allMarkdownRemark: { edges },
+    allMdx: { edges },
   } = data;
 
   return (
@@ -219,6 +222,11 @@ const IndexPage: FunctionComponent = () => {
                   <AutoguruLogoSvg />
                 </Link>
               </Logo>
+              <Logo width={150}>
+                <Link to="https://www.beyable.com">
+                  <BeyableLogoSvg />
+                </Link>
+              </Logo>
               <Logo width={100}>
                 <Link to="https://www.biqh.com">
                   <BiqhLogoSvg />
@@ -227,6 +235,11 @@ const IndexPage: FunctionComponent = () => {
               <Logo width={180}>
                 <Link to="https://carmmunity.io">
                   <CarmmunityLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={180}>
+                <Link to="https://www.compass.education">
+                  <CompassLogoSvg />
                 </Link>
               </Logo>
               <Logo width={90}>
@@ -239,12 +252,17 @@ const IndexPage: FunctionComponent = () => {
                   <ExlrtLogoSvg />
                 </Link>
               </Logo>
+              <Logo width={100}>
+                <Link to="https://www.ezeep.com">
+                  <EzeepLogoSvg />
+                </Link>
+              </Logo>
               <Logo width={120}>
                 <Link to="https://gia.ch">
                   <GiaLogoSvg />
                 </Link>
               </Logo>
-              <Logo width={160}>
+              <Logo width={200}>
                 <Link to="https://www.incloud.de/">
                   <IncloudLogoSvg />
                 </Link>

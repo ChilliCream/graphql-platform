@@ -460,7 +460,8 @@ namespace HotChocolate.Execution.Processing
             middlewareContext.ReportError(
                 ValueCompletion_CouldNotResolveAbstractType(
                     middlewareContext.Selection.SyntaxNode,
-                    path));
+                    path,
+                    result));
             completedResult = null;
             return false;
         }

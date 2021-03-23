@@ -87,7 +87,12 @@ namespace HotChocolate
 
                 if (builder._documents.Count > 0)
                 {
-                    types.AddRange(ParseDocuments(builder, context, bindingLookup));
+                    types.AddRange(
+                        ParseDocuments(
+                            builder,
+                            context.Services,
+                            context.Options,
+                            bindingLookup));
                 }
 
                 if (builder._schema is null)
@@ -104,45 +109,48 @@ namespace HotChocolate
 
             private static IEnumerable<ITypeReference> ParseDocuments(
                 SchemaBuilder builder,
-                DescriptorContext context,
+                IServiceProvider services,
+                IReadOnlySchemaOptions options,
                 IBindingLookup bindingLookup)
             {
                 var types = new List<ITypeReference>();
 
                 foreach (LoadSchemaDocument fetchSchema in builder._documents)
                 {
-                    DocumentNode schemaDocument = fetchSchema(context.Services);
+                    DocumentNode schemaDocument = fetchSchema(services);
                     schemaDocument = schemaDocument.RemoveBuiltInTypes();
 
-                    var visitor = new SchemaSyntaxVisitor(bindingLookup);
-                    visitor.Visit(schemaDocument, null);
-                    types.AddRange(visitor.Types);
+                    var visitorContext = new SchemaSyntaxVisitorContext(bindingLookup, options);
+                    var visitor = new SchemaSyntaxVisitor();
+                    visitor.Visit(schemaDocument, visitorContext);
+
+                    types.AddRange(visitorContext.Types);
 
                     RegisterOperationName(
                         builder,
                         OperationType.Query,
-                        visitor.QueryTypeName);
+                        visitorContext.QueryTypeName);
 
                     RegisterOperationName(
                         builder,
                         OperationType.Mutation,
-                        visitor.MutationTypeName);
+                        visitorContext.MutationTypeName);
 
                     RegisterOperationName(
                         builder,
                         OperationType.Subscription,
-                        visitor.SubscriptionTypeName);
+                        visitorContext.SubscriptionTypeName);
 
                     IReadOnlyCollection<DirectiveNode> directives =
-                        visitor.Directives ?? Array.Empty<DirectiveNode>();
+                        visitorContext.Directives ?? Array.Empty<DirectiveNode>();
 
                     if (builder._schema is null
                         && (directives.Count > 0
-                        || visitor.Description != null))
+                        || visitorContext.Description != null))
                     {
                         builder.SetSchema(new Schema(d =>
                         {
-                            d.Description(visitor.Description);
+                            d.Description(visitorContext.Description);
                             foreach (DirectiveNode directive in directives)
                             {
                                 d.Directive(directive);
@@ -164,7 +172,7 @@ namespace HotChocolate
                 {
                     builder._operations.Add(
                         operation,
-                        ti => TypeReference.Create(typeName, TypeContext.Output));
+                        _ => TypeReference.Create(typeName, TypeContext.Output));
                 }
             }
 
@@ -175,7 +183,7 @@ namespace HotChocolate
                 IReadOnlyList<ITypeReference> types,
                 LazySchema lazySchema)
             {
-                var typeRegistry = new TypeRegistry();
+                var typeRegistry = new TypeRegistry(context.TypeInterceptor);
                 TypeInitializer initializer =
                     CreateTypeInitializer(builder, context, bindingLookup, types, typeRegistry);
                 initializer.Initialize(() => lazySchema.Schema, builder._options);
@@ -190,7 +198,9 @@ namespace HotChocolate
                 TypeRegistry typeRegistry)
             {
                 Dictionary<OperationType, ITypeReference> operations =
-                    builder._operations.ToDictionary(t => t.Key, t => t.Value(context.TypeInspector));
+                    builder._operations.ToDictionary(
+                        t => t.Key,
+                        t => t.Value(context.TypeInspector));
 
                 var initializer = new TypeInitializer(
                     context,
@@ -198,7 +208,8 @@ namespace HotChocolate
                     typeReferences,
                     builder._resolverTypes,
                     builder._isOfType,
-                    type => IsQueryType(context.TypeInspector, type, operations));
+                    type => IsQueryType(context.TypeInspector, type, operations),
+                    type => IsMutationType(context.TypeInspector, type, operations));
 
                 foreach (FieldMiddleware component in builder._globalComponents)
                 {
@@ -271,20 +282,20 @@ namespace HotChocolate
             {
                 if (type is ObjectType objectType)
                 {
-                    if (operations.TryGetValue(OperationType.Query, out ITypeReference? reference))
+                    if (operations.TryGetValue(OperationType.Query, out ITypeReference? typeRef))
                     {
-                        if (reference is SchemaTypeReference sr)
+                        if (typeRef is SchemaTypeReference sr)
                         {
                             return sr.Type == objectType;
                         }
 
-                        if (reference is ExtendedTypeReference cr)
+                        if (typeRef is ExtendedTypeReference cr)
                         {
                             return cr.Type == typeInspector.GetType(objectType.GetType())
-                                   || cr.Type == typeInspector.GetType(objectType.RuntimeType);
+                                || cr.Type == typeInspector.GetType(objectType.RuntimeType);
                         }
 
-                        if (reference is SyntaxTypeReference str)
+                        if (typeRef is SyntaxTypeReference str)
                         {
                             return objectType.Name.Equals(str.Type.NamedType().Name.Value);
                         }
@@ -292,6 +303,40 @@ namespace HotChocolate
                     else
                     {
                         return type.Name.Equals(WellKnownTypes.Query);
+                    }
+                }
+
+                return false;
+            }
+
+            private static bool IsMutationType(
+                ITypeInspector typeInspector,
+                TypeSystemObjectBase type,
+                Dictionary<OperationType, ITypeReference> operations)
+            {
+                if (type is ObjectType objectType)
+                {
+                    if (operations.TryGetValue(OperationType.Mutation, out ITypeReference? typeRef))
+                    {
+                        if (typeRef is SchemaTypeReference sr)
+                        {
+                            return sr.Type == objectType;
+                        }
+
+                        if (typeRef is ExtendedTypeReference cr)
+                        {
+                            return cr.Type == typeInspector.GetType(objectType.GetType())
+                                || cr.Type == typeInspector.GetType(objectType.RuntimeType);
+                        }
+
+                        if (typeRef is SyntaxTypeReference str)
+                        {
+                            return objectType.Name.Equals(str.Type.NamedType().Name.Value);
+                        }
+                    }
+                    else
+                    {
+                        return type.Name.Equals(WellKnownTypes.Mutation);
                     }
                 }
 

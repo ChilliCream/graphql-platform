@@ -8,6 +8,7 @@ using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete]
     public class QueryableFilterTests
     {
         [Fact]

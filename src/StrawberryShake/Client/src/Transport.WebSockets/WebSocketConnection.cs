@@ -1,180 +1,66 @@
 using System;
-using System.IO.Pipelines;
-using System.Net.WebSockets;
-using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using StrawberryShake.Transport.WebSockets.Messages;
 
 namespace StrawberryShake.Transport.WebSockets
 {
-    public sealed class WebSocketConnection
-        : ISocketConnection
+    /// <summary>
+    /// A WebSocket connection to a GraphQL server and allows to execute requests against it.
+    /// </summary>
+    public class WebSocketConnection : IConnection<JsonDocument>
     {
-        private const string _protocol = "graphql-ws";
-        private const int _maxMessageSize = 1024 * 4;
-        private readonly IWebSocketClient _socketClient;
-        private bool _disposed;
+        private readonly Func<CancellationToken, ValueTask<ISession>> _sessionFactory;
 
-        public event EventHandler? Disposed;
-
-        public WebSocketConnection(string name, IWebSocketClient socketClient)
+        /// <summary>
+        /// Creates a new instance of a <see cref="WebSocketConnection"/>
+        /// </summary>
+        /// <param name="sessionFactory"></param>
+        public WebSocketConnection(Func<CancellationToken, ValueTask<ISession>> sessionFactory)
         {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-            _socketClient = socketClient ?? throw new ArgumentNullException(nameof(socketClient));
-            _socketClient.Socket.Options.AddSubProtocol(_protocol);
+            _sessionFactory = sessionFactory ??
+                throw new ArgumentNullException(nameof(sessionFactory));
         }
 
-        public string Name { get; }
-
-        public bool IsClosed =>
-            _disposed
-            || _socketClient.Socket.CloseStatus.HasValue;
-
-        public Task OpenAsync(CancellationToken cancellationToken = default)
+        /// <inheritdoc />
+        public async IAsyncEnumerable<Response<JsonDocument>> ExecuteAsync(
+            OperationRequest request,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            if (_disposed)
+            if (request is null)
             {
-                throw new ObjectDisposedException(nameof(WebSocketConnection));
+                throw new ArgumentNullException(nameof(request));
             }
 
-            return _socketClient.ConnectAsync(cancellationToken: cancellationToken);
-        }
+            await using ISession session = await _sessionFactory(cancellationToken);
 
-        public async Task CloseAsync(
-            string message,
-            SocketCloseStatus closeStatus,
-            CancellationToken cancellationToken = default)
-        {
-            try
+            await using ISocketOperation operation =
+                await session.StartOperationAsync(request, cancellationToken);
+
+            await foreach (var message in operation.ReadAsync(cancellationToken))
             {
-                if (IsClosed)
+                switch (message.Type)
                 {
-                    return;
+                    case OperationMessageType.Data
+                        when message is DataDocumentOperationMessage<JsonDocument> msg:
+                        yield return new Response<JsonDocument>(msg.Payload, null);
+                        break;
+                    case OperationMessageType.Error when message is ErrorOperationMessage msg:
+                        var operationEx = new SocketOperationException(msg.Message);
+                        yield return new Response<JsonDocument>(null, operationEx);
+                        yield break;
+                    case OperationMessageType.Cancelled:
+                        var canceledException = new OperationCanceledException();
+                        yield return new Response<JsonDocument>(null, canceledException);
+                        yield break;
+                    case OperationMessageType.Complete:
+                        yield break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
-
-                await _socketClient.Socket.CloseOutputAsync(
-                    MapCloseStatus(closeStatus),
-                    message,
-                    cancellationToken)
-                    .ConfigureAwait(false);
-
-                Dispose();
-            }
-            catch
-            {
-                // we do not throw here ...
-            }
-        }
-
-        public Task SendAsync(
-            ReadOnlyMemory<byte> message,
-            CancellationToken cancellationToken = default)
-        {
-            if (IsClosed)
-            {
-                return Task.CompletedTask;
-            }
-
-            if (MemoryMarshal.TryGetArray(message, out ArraySegment<byte> buffer))
-            {
-                return _socketClient.Socket.SendAsync(
-                    buffer,
-                    WebSocketMessageType.Text,
-                    true,
-                    cancellationToken);
-            }
-
-            return Task.CompletedTask;
-        }
-
-        public async Task ReceiveAsync(
-            PipeWriter writer,
-            CancellationToken cancellationToken = default)
-        {
-            if (IsClosed)
-            {
-                return;
-            }
-
-            try
-            {
-                WebSocketReceiveResult? socketResult = null;
-                do
-                {
-                    Memory<byte> memory = writer.GetMemory(_maxMessageSize);
-                    if (MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> buffer))
-                    {
-                        try
-                        {
-                            socketResult = await _socketClient.Socket
-                                .ReceiveAsync(buffer, cancellationToken)
-                                .ConfigureAwait(false);
-
-                            if (socketResult.Count == 0)
-                            {
-                                break;
-                            }
-
-                            writer.Advance(socketResult.Count);
-                        }
-                        catch
-                        {
-                            break;
-                        }
-
-                        FlushResult result = await writer
-                            .FlushAsync(cancellationToken)
-                            .ConfigureAwait(false);
-
-                        if (result.IsCompleted)
-                        {
-                            break;
-                        }
-                    }
-                } while (socketResult == null || !socketResult.EndOfMessage);
-            }
-            catch (ObjectDisposedException)
-            {
-                // we will just stop receiving
-            }
-        }
-
-        private static WebSocketCloseStatus MapCloseStatus(
-            SocketCloseStatus closeStatus)
-        {
-            switch (closeStatus)
-            {
-                case SocketCloseStatus.EndpointUnavailable:
-                    return WebSocketCloseStatus.EndpointUnavailable;
-                case SocketCloseStatus.InternalServerError:
-                    return WebSocketCloseStatus.InternalServerError;
-                case SocketCloseStatus.InvalidMessageType:
-                    return WebSocketCloseStatus.InvalidMessageType;
-                case SocketCloseStatus.InvalidPayloadData:
-                    return WebSocketCloseStatus.InvalidPayloadData;
-                case SocketCloseStatus.MandatoryExtension:
-                    return WebSocketCloseStatus.MandatoryExtension;
-                case SocketCloseStatus.MessageTooBig:
-                    return WebSocketCloseStatus.MessageTooBig;
-                case SocketCloseStatus.NormalClosure:
-                    return WebSocketCloseStatus.NormalClosure;
-                case SocketCloseStatus.PolicyViolation:
-                    return WebSocketCloseStatus.PolicyViolation;
-                case SocketCloseStatus.ProtocolError:
-                    return WebSocketCloseStatus.ProtocolError;
-                default:
-                    return WebSocketCloseStatus.Empty;
-            }
-        }
-
-        public void Dispose()
-        {
-            if (!_disposed)
-            {
-                _socketClient.Dispose();
-                _disposed = true;
-
-                Disposed?.Invoke(this, EventArgs.Empty);
             }
         }
     }

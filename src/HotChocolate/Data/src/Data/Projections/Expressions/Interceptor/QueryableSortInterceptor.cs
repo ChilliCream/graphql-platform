@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Reflection;
 using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Data.Sorting;
@@ -17,7 +18,8 @@ namespace HotChocolate.Data.Projections.Handlers
         : IProjectionFieldInterceptor<QueryableProjectionContext>
     {
         public bool CanHandle(ISelection selection) =>
-            selection.Field.Member is {} &&
+            selection.Field.Member is PropertyInfo propertyInfo &&
+            propertyInfo.CanWrite &&
             selection.Field.ContextData.ContainsKey(ContextVisitSortArgumentKey) &&
             selection.Field.ContextData.ContainsKey(ContextArgumentNameKey);
 

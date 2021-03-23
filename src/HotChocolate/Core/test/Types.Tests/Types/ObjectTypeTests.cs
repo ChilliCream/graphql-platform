@@ -17,8 +17,7 @@ using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class ObjectTypeTests
-        : TypeTestBase
+    public class ObjectTypeTests : TypeTestBase
     {
         [Fact]
         public void ObjectType_DynamicName()
@@ -1746,6 +1745,28 @@ namespace HotChocolate.Types
                 .MatchSnapshot();
         }
 
+        [Fact]
+        public void ResolveWith_NonGeneric()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<ResolveWithNonGenericObjectType>()
+                .Create()
+                .MakeExecutable()
+                .Execute("{ foo }")
+                .ToJson()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public void IgnoreIndexers()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<QueryWithIndexer>()
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -1941,10 +1962,34 @@ namespace HotChocolate.Types
             }
         }
 
+       public class ResolveWithNonGenericObjectType : ObjectType
+       {
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                Type type = typeof(ResolveWithQuery);
+
+                descriptor.Name("ResolveWithQuery");
+
+                descriptor.Field("foo")
+                    .Type<IntType>()
+                    .ResolveWith(type.GetProperty("Foo"));
+            }
+       }
+
         public class AnnotatedNestedList
         {
             [GraphQLNonNullType(true, false, false)]
             public List<List<string>> NestedList { get; set; }
+        }
+
+        public class QueryWithIndexer
+        {
+            public string this[int i]
+            {
+                get => throw new NotImplementedException();
+            }
+
+            public string GetFoo() => throw new NotImplementedException();
         }
     }
 }

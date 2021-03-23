@@ -181,7 +181,7 @@ namespace HotChocolate.Types
                                 .New<ObjectFieldDefinition>()
                                 .Definition(definition)
                                 .Configure(
-                                    (context, defintion) =>
+                                    (context, definition) =>
                                         CompileMiddleware(
                                             context,
                                             definition,
@@ -192,12 +192,12 @@ namespace HotChocolate.Types
                                 .DependsOn(argumentTypeReference, true)
                                 .Build());
 
-                        definition.Configurations.Add(
+                        argumentDefinition.Configurations.Add(
                             LazyTypeConfigurationBuilder
-                                .New<ObjectFieldDefinition>()
-                                .Definition(definition)
+                                .New<ArgumentDefinition>()
+                                .Definition(argumentDefinition)
                                 .Configure(
-                                    (context, defintion) =>
+                                    (context, argumentDefinition) =>
                                         argumentDefinition.Name =
                                             context.GetFilterConvention(scope).GetArgumentName())
                                 .On(ApplyConfigurationOn.Naming)

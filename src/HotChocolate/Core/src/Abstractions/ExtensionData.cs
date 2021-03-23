@@ -27,7 +27,9 @@ namespace HotChocolate
         {
             ImmutableDictionary<string, object?>.Builder builder =
                 ImmutableDictionary.CreateBuilder<string, object?>();
+
             builder.AddRange(extensionData);
+
             _dict = builder.ToImmutableDictionary();
         }
 
@@ -59,6 +61,11 @@ namespace HotChocolate
         public void Add(KeyValuePair<string, object?> item)
         {
             _dict = _dict.Add(item.Key, item.Value);
+        }
+
+        public void AddRange(IEnumerable<KeyValuePair<string, object?>> pairs)
+        {
+            _dict = _dict.AddRange(pairs);
         }
 
         public bool Remove(string key)
@@ -228,5 +235,7 @@ namespace HotChocolate
                 return GetEnumerator();
             }
         }
+
+        public static readonly ExtensionData Empty = new();
     }
 }

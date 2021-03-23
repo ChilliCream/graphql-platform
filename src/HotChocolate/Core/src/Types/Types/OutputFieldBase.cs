@@ -10,20 +10,23 @@ namespace HotChocolate.Types
         , IOutputField
         where TDefinition : OutputFieldDefinitionBase
     {
-        internal OutputFieldBase(TDefinition definition, bool sortArgumentsByName)
-            : base(definition)
+        internal OutputFieldBase(
+            TDefinition definition,
+            FieldCoordinate fieldCoordinate,
+            bool sortArgumentsByName)
+            : base(definition, fieldCoordinate)
         {
             SyntaxNode = definition.SyntaxNode;
-            Arguments = new FieldCollection<Argument>(
-                definition.Arguments.Select(t => new Argument(t)),
+            Arguments = FieldCollection<Argument>.From(
+                definition
+                    .GetArguments()
+                    .Select(t => new Argument(t, fieldCoordinate.With(argumentName: t.Name))),
                 sortArgumentsByName);
-            IsDeprecated = !string.IsNullOrEmpty(
-                definition.DeprecationReason);
+            IsDeprecated = !string.IsNullOrEmpty(definition.DeprecationReason);
             DeprecationReason = definition.DeprecationReason;
         }
 
-        public new IComplexOutputType DeclaringType =>
-            (IComplexOutputType)base.DeclaringType;
+        public new IComplexOutputType DeclaringType => (IComplexOutputType)base.DeclaringType;
 
         public FieldDefinitionNode SyntaxNode { get; }
 

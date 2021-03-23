@@ -24,6 +24,38 @@
       "responseNameB": "someValue",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 364,
+          "End": 374,
+          "Line": 13,
+          "Column": 25
+        },
+        "Value": "someValue"
+      },
+      "Arguments": [],
+      "SelectionSet": null,
+      "Location": {
+        "Start": 364,
+        "End": 407,
+        "Line": 13,
+        "Column": 25
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 375,
+          "End": 407,
+          "Line": 13,
+          "Column": 36
+        },
+        "Value": "meowVolume"
+      },
+      "Directives": []
+    }
   }
 ]

@@ -163,7 +163,7 @@
     <value>Either now compiled operation was found or the variables have not been coerced.</value>
   </data>
   <data name="ErrorHelper_ValueCompletion_CouldNotResolveAbstractType_Message" xml:space="preserve">
-    <value>Could not resolve the actual object type from `System.String` for the abstract type `Bar`.</value>
+    <value>Could not resolve the actual object type from `{0}` for the abstract type `{1}`.</value>
   </data>
   <data name="ErrorHelper_StateInvalidForDocumentValidation_Message" xml:space="preserve">
     <value>The query request contains no document.</value>
@@ -243,10 +243,13 @@
   <data name="RequestExecutorBuilder_Convention_NotSuppported" xml:space="preserve">
     <value>The specified convention type is not supported.</value>
   </data>
-  <data name="RequestExecutorBuilder_Convention_NotSuppported" xml:space="preserve">
-    <value>The specified convention type is not supported.</value>
-  </data>
   <data name="RootValueResolver_Resolve_CannotCreateInstance" xml:space="preserve">
     <value>Unable to create the operation type `{0}` instance. Try adding the following service: `services.AddScoped&lt;{1}&gt;();`</value>
+  </data>
+  <data name="OperationContext_GetQueryRoot_InvalidCast" xml:space="preserve">
+    <value>The query type could not be casted to {0}.</value>
+  </data>
+  <data name="ErrorHelper_RequestTimeout" xml:space="preserve">
+    <value>The request exceeded the configured timeout of `{0}`.</value>
   </data>
 </root>

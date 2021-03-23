@@ -1,10 +1,13 @@
 using NetTopologySuite.Geometries;
+using static HotChocolate.Types.Spatial.WellKnownFields;
 using static HotChocolate.Types.Spatial.Properties.Resources;
 using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
 namespace HotChocolate.Types.Spatial
 {
-    public sealed class GeoJsonPointType : ObjectType<Point>
+    public sealed class GeoJsonPointType
+        : ObjectType<Point>
+        , IGeoJsonObjectType
     {
         protected override void Configure(IObjectTypeDescriptor<Point> descriptor)
         {
@@ -14,7 +17,8 @@ namespace HotChocolate.Types.Spatial
                 .BindFieldsExplicitly();
 
             descriptor
-                .Field(x => x.Coordinates)
+                .Field(x => x.Coordinate)
+                .Name(CoordinatesFieldName)
                 .Description(GeoJson_Field_Coordinates_Description_Point);
 
             descriptor

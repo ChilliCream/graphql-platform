@@ -1,0 +1,29 @@
+{
+  "schema": "Schema.graphql",
+  "documents": "**/*.graphql",
+  "extensions": {
+    "strawberryShake": {
+      "name": "StarWarsClient",
+      "namespace": "StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars",
+      "url": "http://localhost:5000",
+      "dependencyInjection": true,
+      "requestStrategy": "PersistedQuery",
+      "hashAlgorithm": "md5",
+      "outputDirectoryName": ".generated",
+      "useSingleFile": true,
+      "transportProfiles": [
+        {
+          "name": "Default",
+          "default": "HTTP",
+          "streamTransport": "WebSocket"
+        },
+        {
+          "name": "WebSocket",
+          "default": "HTTP",
+          "query": "WebSocket",
+          "subscription": "WebSocket"
+        }
+      ]
+    }
+  }
+}

@@ -2,6 +2,8 @@
 title: "Resolver"
 ---
 
+import { ExampleTabs } from "../../../components/mdx/example-tabs"
+
 Here we will learn what resolvers are, how they are defined, and what else we could do with them in Hot Chocolate.
 
 # Introduction
@@ -88,7 +90,8 @@ A resolver is a function that takes zero or many arguments and returns one value
 
 ## Basic resolver example
 
-**Annotation-based approach**
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
 ```csharp
 // Query.cs
@@ -112,7 +115,8 @@ public class Startup
 }
 ```
 
-**Code-first approach**
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
 
 ```csharp
 // Query.cs
@@ -149,7 +153,8 @@ public class Startup
 }
 ```
 
-**Schema-first approach**
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
 
 ```csharp
 // Query.cs
@@ -178,6 +183,9 @@ public class Startup
 }
 ```
 
+</ExampleTabs.Schema>
+</ExampleTabs>
+
 When comparing all three approaches side-by-side, we can see very quickly that they all look nearly the same. They all have the `Query` type in common, which is identical in all three approaches. Regardless, the `Query` type contains a method named `Say`, which is our resolver, in fact, the most significant bit here. The `Say` method will be translated into the `say` field on the schema side as soon as Hot Chocolate is initialized. As a small side note here, all three approaches will result in the same `SDL`.
 
 ```sdl
@@ -190,7 +198,91 @@ Let's get back to where the approaches differentiate—the `Startup` class, whic
 
 # Resolver Arguments
 
-A resolver argument, not to be confused with a field argument in GraphQL, can be a field argument value, a DataLoader, a DI service, state, or even context like a parent value.
+A resolver argument, not to be confused with a field argument in GraphQL, can be a field argument value, a DataLoader, a DI service, state, or even context like a parent value. We will go through a couple of examples where we see all types of resolver argument in action. For that, we will use the annotation-based approach because it makes no difference.
+
+## Field argument example
+
+```csharp
+// Query.cs
+public class Query
+{
+    public string Say(string name) => $"Hello {name}!";
+}
+
+// Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddRouting()
+            .AddGraphQLServer()
+            .AddQueryType<Query>();
+    }
+
+    // Omitted code for brevity
+}
+```
+
+```sdl
+type Query {
+  say(name: String!): String!
+}
+```
+
+## DataLoader argument example
+
+```csharp
+// Query.cs
+public class Query
+{
+    public Task<Person> GetPerson(int id, MyDataLoader dataLoader) => dataLoader.LoadAsync(id);
+}
+
+// Person.cs
+public record Person(string name);
+
+// MyDataLoader.cs
+public class MyDataLoader
+    : DataLoaderBase<int, Person>
+{
+    public MyDataLoader(IBatchScheduler scheduler)
+        : base(scheduler)
+    { }
+
+    protected override ValueTask<IReadOnlyList<Result<Person>>> FetchAsync(
+        IReadOnlyList<int> keys,
+        CancellationToken cancellationToken)
+    {
+        // Omitted code for brevity
+    }
+}
+
+// Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddRouting()
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
+            .AddDataLoader<MyDataLoader>();
+    }
+
+    // Omitted code for brevity
+}
+```
+
+```sdl
+type Query {
+  person(id: Int!): Person!
+}
+
+type Person {
+  name: String!
+}
+```
 
 # Naming Rules
 

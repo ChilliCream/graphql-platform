@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 #nullable enable
@@ -13,6 +14,7 @@ namespace HotChocolate.Types
 
         T this[int index] { get; }
 
+        [Obsolete("This method will be remove soon.")]
         int IndexOfField(NameString fieldName);
 
         bool ContainsField(NameString fieldName);

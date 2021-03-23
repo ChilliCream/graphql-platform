@@ -7,6 +7,9 @@ namespace HotChocolate.Types.Factories
         where TNode : ISyntaxNode
         where TType : IHasName
     {
-        TType Create(IBindingLookup bindingLookup, TNode node);
+        TType Create(
+            IBindingLookup bindingLookup,
+            IReadOnlySchemaOptions schemaOptions,
+            TNode node);
     }
 }

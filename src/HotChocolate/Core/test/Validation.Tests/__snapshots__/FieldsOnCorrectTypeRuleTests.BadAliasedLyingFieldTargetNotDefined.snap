@@ -19,6 +19,38 @@
       "responseName": "barkVolume",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 89,
+          "End": 101,
+          "Line": 3,
+          "Column": 21
+        },
+        "Value": "barkVolume"
+      },
+      "Arguments": [],
+      "SelectionSet": null,
+      "Location": {
+        "Start": 89,
+        "End": 129,
+        "Line": 3,
+        "Column": 21
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 102,
+          "End": 129,
+          "Line": 3,
+          "Column": 34
+        },
+        "Value": "kawVolume"
+      },
+      "Directives": []
+    }
   }
 ]
