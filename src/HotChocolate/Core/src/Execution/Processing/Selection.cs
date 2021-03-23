@@ -218,8 +218,7 @@ namespace HotChocolate.Execution.Processing
                 first.Alias,
                 MergeDirectives(selections),
                 first.Arguments,
-                MergeSelections(first, selections)
-            );
+                MergeSelections(first, selections));
         }
 
         private static SelectionSetNode? MergeSelections(

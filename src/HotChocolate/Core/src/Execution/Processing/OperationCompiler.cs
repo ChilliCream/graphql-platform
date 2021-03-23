@@ -7,7 +7,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Execution.ThrowHelper;
-using static HotChocolate.Execution.Properties.Resources;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -78,7 +77,7 @@ namespace HotChocolate.Execution.Processing
             // processes the backlog and by doing so traverses the query graph.
             compiler.Visit(backlog);
 
-            return new Operation(operationId, document, operation,rootType, selectionSetLookup);
+            return new Operation(operationId, document, operation, rootType, selectionSetLookup);
         }
 
         private void Visit(Stack<CompilerContext> backlog)
@@ -228,7 +227,11 @@ namespace HotChocolate.Execution.Processing
                     preparedSelection = new Selection(
                         context.Type,
                         field,
-                        selection,
+                        selection.SelectionSet is not null
+                            ? selection.WithSelectionSet(
+                                selection.SelectionSet.WithSelections(
+                                    selection.SelectionSet.Selections))
+                            : selection,
                         responseName: responseName,
                         resolverPipeline: CreateFieldMiddleware(field, selection),
                         arguments: CoerceArgumentValues(field, selection, responseName),
@@ -240,10 +243,12 @@ namespace HotChocolate.Execution.Processing
 
                 if (includeCondition is not null && selection.SelectionSet is not null)
                 {
+                    var selectionPath = context.SelectionPath.Append(responseName);
+
                     for (var i = 0; i < selection.SelectionSet.Selections.Count; i++)
                     {
                         ISelectionNode child = selection.SelectionSet.Selections[i];
-                        var reference = new SelectionReference(context.SelectionPath, child);
+                        var reference = new SelectionReference(selectionPath, child);
 
                         if (!context.IncludeConditionLookup.ContainsKey(reference))
                         {
@@ -273,10 +278,19 @@ namespace HotChocolate.Execution.Processing
                     throw OperationCompiler_FragmentNoSelections(fragmentDefinition);
                 }
 
+                var reference = new SpreadReference(context.SelectionPath, fragmentSpread);
+
+                if (!context.Spreads.TryGetValue(reference, out var selectionSet))
+                {
+                    selectionSet = fragmentDefinition.SelectionSet.WithSelections(
+                        fragmentDefinition.SelectionSet.Selections);
+                    context.Spreads.Add(reference, selectionSet);
+                }
+
                 if (fragmentSpread.IsDeferrable() &&
                     AllowFragmentDeferral(context, fragmentSpread, fragmentDefinition))
                 {
-                    CompilerContext deferContext = context.Branch(fragmentInfo);
+                    CompilerContext deferContext = context.Branch(selectionSet);
                     CompileSelectionSet(deferContext);
 
                     context.RegisterFragment(new Fragment(
@@ -289,13 +303,7 @@ namespace HotChocolate.Execution.Processing
                 }
                 else
                 {
-                    CollectFields(
-                        context,
-                        context.IsInternalSelection
-                            ? CloneSelectionSetVisitor.Default.CloneSelectionNode(
-                                fragmentInfo.SelectionSet)
-                            : fragmentInfo.SelectionSet,
-                        includeCondition);
+                    CollectFields(context, selectionSet, includeCondition);
                 }
             }
         }
@@ -313,10 +321,19 @@ namespace HotChocolate.Execution.Processing
             if (_fragments.GetFragment(context.Type, inlineFragment) is { } fragmentInfo &&
                 DoesTypeApply(fragmentInfo.TypeCondition, context.Type))
             {
+                var reference = new SpreadReference(context.SelectionPath, inlineFragment);
+
+                if (!context.Spreads.TryGetValue(reference, out var selectionSet))
+                {
+                    selectionSet = inlineFragment.SelectionSet.WithSelections(
+                        inlineFragment.SelectionSet.Selections);
+                    context.Spreads.Add(reference, selectionSet);
+                }
+
                 if (inlineFragment.IsDeferrable() &&
                     AllowFragmentDeferral(context, inlineFragment))
                 {
-                    CompilerContext deferContext = context.Branch(fragmentInfo);
+                    CompilerContext deferContext = context.Branch(selectionSet);
                     CompileSelectionSet(deferContext);
 
                     context.RegisterFragment(new Fragment(
@@ -330,7 +347,7 @@ namespace HotChocolate.Execution.Processing
                 {
                     CollectFields(
                         context,
-                        fragmentInfo.SelectionSet,
+                        selectionSet,
                         includeCondition);
                 }
             }
@@ -751,24 +768,5 @@ namespace HotChocolate.Execution.Processing
 
         private static bool HasErrors(object? result) =>
             result is IError || result is IEnumerable<IError>;
-
-        private class CloneSelectionSetVisitor : QuerySyntaxRewriter<object>
-        {
-            private static readonly object _context = new();
-
-            protected override SelectionSetNode RewriteSelectionSet(
-                SelectionSetNode node,
-                object context)
-            {
-                return new(base.RewriteSelectionSet(node, context).Selections);
-            }
-
-            public SelectionSetNode CloneSelectionNode(SelectionSetNode selection)
-            {
-                return RewriteSelectionSet(selection, _context);
-            }
-
-            public static readonly CloneSelectionSetVisitor Default = new();
-        }
     }
 }

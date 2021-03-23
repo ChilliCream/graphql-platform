@@ -36,6 +36,7 @@ namespace HotChocolate.Execution.Processing
                 _processed = new HashSet<(SelectionSetNode, NameString)>();
                 _backlog = backlog;
                 _variantsLookup = selectionVariantsLookup;
+                Spreads = new Dictionary<SpreadReference, SelectionSetNode>();
             }
 
             private CompilerContext(
@@ -49,7 +50,8 @@ namespace HotChocolate.Execution.Processing
                 IImmutableList<ISelectionOptimizer> optimizers,
                 Stack<CompilerContext> backlog,
                 IDictionary<SelectionSetNode, SelectionVariants> selectionVariantsLookup,
-                HashSet<(SelectionSetNode, NameString)> processed)
+                HashSet<(SelectionSetNode, NameString)> processed,
+                IDictionary<SpreadReference, SelectionSetNode> spreads)
             {
                 Type = type;
                 Path = path;
@@ -64,6 +66,7 @@ namespace HotChocolate.Execution.Processing
                 _backlog = backlog;
                 _variantsLookup = selectionVariantsLookup;
                 _processed = processed;
+                Spreads = spreads;
             }
 
             public IObjectType Type { get; }
@@ -89,6 +92,8 @@ namespace HotChocolate.Execution.Processing
             {
                 get;
             }
+
+            public IDictionary<SpreadReference, SelectionSetNode> Spreads { get; }
 
             public IImmutableList<ISelectionOptimizer> Optimizers { get; }
 
@@ -139,33 +144,35 @@ namespace HotChocolate.Execution.Processing
                     RegisterOptimizers(Optimizers, selection.Field),
                     _backlog,
                     _variantsLookup,
-                    _processed);
+                    _processed,
+                    Spreads);
 
                 _backlog.Push(context);
             }
 
-            public CompilerContext Branch(FragmentInfo fragment)
+            public CompilerContext Branch(SelectionSetNode selectionSet)
             {
                 if (!_variantsLookup.TryGetValue(
-                    fragment.SelectionSet,
+                    selectionSet,
                     out SelectionVariants? selectionVariants))
                 {
-                    selectionVariants = new SelectionVariants(fragment.SelectionSet);
-                    _variantsLookup[fragment.SelectionSet] = selectionVariants;
+                    selectionVariants = new SelectionVariants(selectionSet);
+                    _variantsLookup[selectionSet] = selectionVariants;
                 }
 
                 var context = new CompilerContext(
                     Type,
                     Path,
                     SelectionPath,
-                    fragment.SelectionSet,
+                    selectionSet,
                     selectionVariants,
                     IsInternalSelection,
                     IncludeConditionLookup,
                     Optimizers,
                     _backlog,
                     _variantsLookup,
-                    _processed);
+                    _processed,
+                    Spreads);
 
                 return context;
             }
@@ -186,8 +193,7 @@ namespace HotChocolate.Execution.Processing
                     selectionSet,
                     rootSelections,
                     optimizers,
-                    selectionVariantsLookup
-                );
+                    selectionVariantsLookup);
 
                 backlog.Push(context);
 
@@ -212,6 +218,42 @@ namespace HotChocolate.Execution.Processing
                 }
 
                 return optimizers;
+            }
+        }
+
+        public readonly struct SpreadReference
+        {
+            public SpreadReference(SelectionPath path, ISelectionNode spread)
+            {
+                Path = path;
+                Spread = spread;
+            }
+
+            public SelectionPath Path { get; }
+
+            public ISelectionNode Spread { get; }
+
+            public bool Equals(SelectionReference other)
+            {
+                return Path.Equals(other.Path) && Spread.Equals(other.Selection);
+            }
+
+            public override bool Equals(object? obj)
+            {
+                return obj is SelectionReference other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    return (Path.GetHashCode() * 397) ^ Spread.GetHashCode();
+                }
+            }
+
+            public override string ToString()
+            {
+                return $"{Path}:{Spread.ToString()}";
             }
         }
 
@@ -244,6 +286,11 @@ namespace HotChocolate.Execution.Processing
                     return (Path.GetHashCode() * 397) ^ Selection.GetHashCode();
                 }
             }
+
+            public override string ToString()
+            {
+                return $"{Path}:{Selection.ToString()}";
+            }
         }
 
         public readonly struct SelectionPath
@@ -256,7 +303,7 @@ namespace HotChocolate.Execution.Processing
             }
 
             public SelectionPath Append(string segment) =>
-                new(_path is null ? segment : _path + "/" + segment);
+                new(_path is null ? "/" + segment : _path + "/" + segment);
 
             public bool Equals(SelectionPath other)
             {
@@ -271,6 +318,11 @@ namespace HotChocolate.Execution.Processing
             public override int GetHashCode()
             {
                 return _path != null ? _path.GetHashCode() : 0;
+            }
+
+            public override string ToString()
+            {
+                return _path ?? "/";
             }
         }
     }

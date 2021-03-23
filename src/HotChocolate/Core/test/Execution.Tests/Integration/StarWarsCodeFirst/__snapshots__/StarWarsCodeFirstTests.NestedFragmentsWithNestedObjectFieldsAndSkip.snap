@@ -28,11 +28,6 @@
                     "__typename": "Droid"
                   }
                 ]
-              },
-              "name": "Han Solo",
-              "otherHuman": {
-                "__typename": "Human",
-                "name": "Luke Skywalker"
               }
             }
           },
@@ -64,11 +59,6 @@
                     "__typename": "Droid"
                   }
                 ]
-              },
-              "name": "Leia Organa",
-              "otherHuman": {
-                "__typename": "Human",
-                "name": "Luke Skywalker"
               }
             }
           },
