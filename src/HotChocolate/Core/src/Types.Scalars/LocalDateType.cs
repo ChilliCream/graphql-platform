@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.RegularExpressions;
 using System.Globalization;
 using HotChocolate.Language;
 
@@ -107,9 +106,7 @@ namespace HotChocolate.Types.Scalars
 
         private static string Serialize(IFormattable value)
         {
-            return value.ToString(
-                _localFormat,
-                CultureInfo.InvariantCulture);
+            return value.ToString(_localFormat, CultureInfo.InvariantCulture);
         }
 
         private static bool TryDeserializeFromString(

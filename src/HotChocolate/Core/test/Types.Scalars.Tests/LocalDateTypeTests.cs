@@ -38,8 +38,7 @@ namespace HotChocolate.Types.Scalars
         {
             // arrange
             ScalarType scalar = CreateType<LocalDateType>();
-            var valueSyntax = new StringValueNode(
-                "2018-06-29T08:46:14+04:00");
+            var valueSyntax = new StringValueNode("2018-06-29T08:46:14+04:00");
 
             // act
             var result = scalar.IsInstanceOfType(valueSyntax);
@@ -67,10 +66,8 @@ namespace HotChocolate.Types.Scalars
         {
             // arrange
             ScalarType scalar = CreateType<LocalDateType>();
-            var valueSyntax = new StringValueNode(
-                "2018-06-29T08:46:14");
-            var expectedResult = new DateTime(
-                2018, 6, 29, 8, 46, 14);
+            var valueSyntax = new StringValueNode("2018-06-29T08:46:14");
+            var expectedResult = new DateTime(2018, 6, 29, 8, 46, 14);
 
             // act
             object result = (DateTime)scalar.ParseLiteral(valueSyntax)!;
@@ -93,15 +90,12 @@ namespace HotChocolate.Types.Scalars
                 CultureInfo.GetCultureInfo(cultureName);
 
             ScalarType scalar = new LocalDateType();
-            var valueSyntax = new StringValueNode(
-                "2018-06-29T08:46:14+04:00");
-            var expectedDateTime = new DateTimeOffset(
-                new DateTime(2018, 6, 29, 8, 46, 14),
+            var valueSyntax = new StringValueNode("2018-06-29T08:46:14+04:00");
+            var expectedDateTime = new DateTimeOffset(new DateTime(2018, 6, 29, 8, 46, 14),
                 new TimeSpan(4, 0, 0));
 
             // act
-            var dateTime = (DateTime)scalar
-                .ParseLiteral(valueSyntax)!;
+            var dateTime = (DateTime)scalar.ParseLiteral(valueSyntax)!;
 
             // assert
             Assert.Equal(expectedDateTime, dateTime);
@@ -190,7 +184,7 @@ namespace HotChocolate.Types.Scalars
             ScalarType scalar = new LocalDateType();
 
             // act
-            var success = scalar.TryDeserialize(null, out object deserialized);
+            var success = scalar.TryDeserialize(null, out object? deserialized);
 
             // assert
             Assert.True(success);
@@ -233,19 +227,17 @@ namespace HotChocolate.Types.Scalars
         protected void LocalDate_ExpectDeserializeDateTimeOffsetToMatch()
         {
             // arrange
-            ScalarType scalar = CreateType<LocalDateType>();
-            object? resultValue = new DateTimeOffset(
+            ScalarType scalar = CreateType<LocalTimeType>();
+            object input = new DateTimeOffset(
                 new DateTime(2018, 6, 11, 8, 46, 14),
                 new TimeSpan(4, 0, 0));
-            object? runtimeValue = new DateTimeOffset(
-                new DateTime(2018, 6, 11, 8, 46, 14),
-                new TimeSpan(4, 0, 0));
+            object expected = new DateTime(2018, 6, 11, 8, 46, 14);
 
             // act
-            object? result = scalar.Deserialize(resultValue);
+            object? result = scalar.Deserialize(input);
 
             // assert
-            Assert.Equal(resultValue, runtimeValue);
+            Assert.Equal(result, expected);
         }
 
         [Fact]
@@ -253,17 +245,14 @@ namespace HotChocolate.Types.Scalars
         {
             // arrange
             ScalarType scalar = CreateType<LocalDateType>();
-            object? resultValue =  new DateTime(
-                2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-            object? runtimeValue = new DateTime(
-                2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
+            object? resultValue =  new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
 
 
             // act
             object? result = scalar.Deserialize(resultValue);
 
             // assert
-            Assert.Equal(resultValue, runtimeValue);
+            Assert.Equal(resultValue, result);
         }
 
         [Fact]
@@ -273,7 +262,7 @@ namespace HotChocolate.Types.Scalars
             ScalarType scalar = new LocalDateType();
 
             // act
-            var success = scalar.TryDeserialize("abc", out object? deserialized);
+            var success = scalar.TryDeserialize("abc", out object? _);
 
             // assert
             Assert.False(success);

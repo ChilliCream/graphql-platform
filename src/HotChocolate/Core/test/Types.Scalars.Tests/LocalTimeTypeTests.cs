@@ -225,15 +225,16 @@ namespace HotChocolate.Types.Scalars
         {
             // arrange
             ScalarType scalar = CreateType<LocalTimeType>();
-            object resultValue = new DateTimeOffset(
+            object input = new DateTimeOffset(
                 new DateTime(2018, 6, 11, 8, 46, 14),
                 new TimeSpan(4, 0, 0));
+            object expected = new DateTime(2018, 6, 11, 8, 46, 14);
 
             // act
-            object? result = scalar.Deserialize(resultValue);
+            object? result = scalar.Deserialize(input);
 
             // assert
-            Assert.Equal(resultValue, result);
+            Assert.Equal(result, expected);
         }
 
         [Fact]
