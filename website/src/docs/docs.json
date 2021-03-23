@@ -167,7 +167,7 @@
               {
                 "path": "apollo-tracing",
                 "title": "Apollo Tracing"
-              }
+              },
               {
                 "path": "migrate-from-10-to-11",
                 "title": "Migrate from 10.5 to 11.0"
