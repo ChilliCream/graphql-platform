@@ -20,8 +20,7 @@ namespace HotChocolate.Types
         public LocalTimeType()
             : this(
                 WellKnownScalarTypes.LocalTime,
-                ScalarResources.LocalTimeType_Description,
-                BindingBehavior.Implicit)
+                ScalarResources.LocalTimeType_Description)
         {
         }
 
