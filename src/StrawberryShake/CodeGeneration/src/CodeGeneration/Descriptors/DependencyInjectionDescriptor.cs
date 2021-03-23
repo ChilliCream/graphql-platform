@@ -29,8 +29,12 @@ namespace StrawberryShake.CodeGeneration.Descriptors
             EntityIdFactoryDescriptor = entityIdFactoryDescriptor;
             StoreAccessor = storeAccessorDescriptor;
             EnumTypeDescriptor = typeDescriptors.OfType<EnumTypeDescriptor>().ToList();
-            ;
         }
+
+        /// <summary>
+        /// The name of the client
+        /// </summary>
+        public NameString Name { get; }
 
         public ClientDescriptor ClientDescriptor { get; }
 
@@ -50,7 +54,5 @@ namespace StrawberryShake.CodeGeneration.Descriptors
         /// The operations that are contained in this client class
         /// </summary>
         public List<OperationDescriptor> Operations { get; }
-
-        public NameString Name { get; }
     }
 }

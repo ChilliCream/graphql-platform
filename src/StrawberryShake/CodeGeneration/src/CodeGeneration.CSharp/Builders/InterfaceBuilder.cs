@@ -6,8 +6,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class InterfaceBuilder : AbstractTypeBuilder
     {
-        private XmlCommentBuilder? _xmlComment;
         private readonly List<MethodBuilder> _methods = new();
+
+        private XmlCommentBuilder? _xmlComment;
 
         public static InterfaceBuilder New() => new();
 
