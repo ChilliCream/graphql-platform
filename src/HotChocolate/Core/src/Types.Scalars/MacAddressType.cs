@@ -1,10 +1,11 @@
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
+using HotChocolate.Types.Scalars;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
-    /// The `MacAddess` scalar type represents a IEEE 802 48-bit Mac address, represented as UTF-8
+    /// The `MacAddress` scalar type represents a IEEE 802 48-bit Mac address, represented as UTF-8
     /// character sequences. The scalar follows the specification defined in
     /// <a href="https://tools.ietf.org/html/rfc7042#page-19">RFC7042</a>
     /// </summary>
@@ -18,11 +19,25 @@ namespace HotChocolate.Types.Scalars
         /// Initializes a new instance of the <see cref="MacAddressType"/> class.
         /// </summary>
         public MacAddressType()
-            : base(
+            : this(
                 WellKnownScalarTypes.MacAddress,
+                ScalarResources.MacAddressType_Description)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MacAddressType"/> class.
+        /// </summary>
+        public MacAddressType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(
+                name,
                 _validationPattern,
-                ScalarResources.MacAddressType_Description,
-                RegexOptions.Compiled | RegexOptions.IgnoreCase)
+                description,
+                RegexOptions.Compiled | RegexOptions.IgnoreCase,
+                bind)
         {
         }
 

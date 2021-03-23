@@ -4,32 +4,35 @@ using HotChocolate.Types.Scalars;
 namespace HotChocolate.Types
 {
     /// <summary>
-    /// The UnsignedInt scalar type represents a unsigned 32‐bit numeric non‐fractional
+    /// The `UnsignedLong` scalar type represents a signed 64‐bit numeric non‐fractional
     /// value greater than or equal to 0.
     /// </summary>
-    public class UnsignedIntType : IntegerTypeBase<uint>
+    public class UnsignedLongType : IntegerTypeBase<ulong>
     {
-        public UnsignedIntType()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UnsignedLongType"/> class.
+        /// </summary>
+        public UnsignedLongType()
             : this(
-                WellKnownScalarTypes.UnsignedInt,
-                ScalarResources.UnsignedIntType_Description)
+                WellKnownScalarTypes.UnsignedLong,
+                ScalarResources.UnsignedLongType_Description)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="UnsignedIntType"/> class.
+        /// Initializes a new instance of the <see cref="UnsignedLongType"/> class.
         /// </summary>
-        public UnsignedIntType(
+        public UnsignedLongType(
             NameString name,
             string? description = null,
             BindingBehavior bind = BindingBehavior.Explicit)
-            : base(name, uint.MinValue, uint.MaxValue, bind)
+            : base(name, ulong.MinValue, ulong.MaxValue, bind)
         {
             Description = description;
         }
 
         /// <inheritdoc />
-        protected override bool IsInstanceOfType(uint runtimeValue)
+        protected override bool IsInstanceOfType(ulong runtimeValue)
         {
             return runtimeValue >= MinValue;
         }
@@ -37,17 +40,17 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override bool IsInstanceOfType(IntValueNode valueSyntax)
         {
-            return valueSyntax.ToUInt32() >= MinValue;
+            return valueSyntax.ToUInt64() >= MinValue;
         }
 
         /// <inheritdoc />
-        protected override uint ParseLiteral(IntValueNode valueSyntax)
+        protected override ulong ParseLiteral(IntValueNode valueSyntax)
         {
-            return valueSyntax.ToUInt32();
+            return valueSyntax.ToUInt64();
         }
 
         /// <inheritdoc />
-        protected override IntValueNode ParseValue(uint runtimeValue)
+        protected override IntValueNode ParseValue(ulong runtimeValue)
         {
             return new(runtimeValue);
         }
@@ -61,13 +64,13 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override SerializationException CreateParseValueError(object runtimeValue)
         {
-            throw ThrowHelper.UnsignedIntType_ParseValue_IsNotUnsigned(this);
+            throw ThrowHelper.UnsignedLongType_ParseValue_IsNotUnsigned(this);
         }
 
         /// <inheritdoc />
         protected override SerializationException CreateParseResultError(object runtimeValue)
         {
-            throw ThrowHelper.UnsignedIntType_ParseValue_IsNotUnsigned(this);
+            throw ThrowHelper.UnsignedLongType_ParseValue_IsNotUnsigned(this);
         }
     }
 }

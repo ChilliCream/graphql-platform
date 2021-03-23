@@ -5,13 +5,13 @@ using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class PositiveIntTypeTests : ScalarTypeTestBase
+    public class UnsignedLongTypeTests : ScalarTypeTestBase
     {
         [Fact]
         public void Schema_WithScalar_IsMatch()
         {
             // arrange
-            ISchema schema = BuildSchema<PositiveIntType>();
+            ISchema schema = BuildSchema<UnsignedLongType>();
 
             // act
             // assert
@@ -24,12 +24,9 @@ namespace HotChocolate.Types
         [InlineData(typeof(BooleanValueNode), true, false)]
         [InlineData(typeof(StringValueNode), "", false)]
         [InlineData(typeof(StringValueNode), "foo", false)]
-        [InlineData(typeof(IntValueNode), int.MinValue, false)]
-        [InlineData(typeof(IntValueNode), -1, false)]
-        [InlineData(typeof(IntValueNode), 0, false)]
-        [InlineData(typeof(IntValueNode), 1, true)]
-        [InlineData(typeof(IntValueNode), int.MaxValue, true)]
-        [InlineData(typeof(NullValueNode), null, true)]
+        [InlineData(typeof(IntValueNode), 1UL, true)]
+        [InlineData(typeof(IntValueNode), ulong.MinValue, true)]
+        [InlineData(typeof(IntValueNode), ulong.MaxValue, true)]
         public void IsInstanceOfType_GivenValueNode_MatchExpected(
             Type type,
             object value,
@@ -40,7 +37,7 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            ExpectIsInstanceOfTypeToMatch<PositiveIntType>(valueNode, expected);
+            ExpectIsInstanceOfTypeToMatch<UnsignedLongType>(valueNode, expected);
         }
 
         [Theory]
@@ -52,19 +49,22 @@ namespace HotChocolate.Types
         [InlineData(-1, false)]
         [InlineData(0, false)]
         [InlineData(null, true)]
-        [InlineData(1, true)]
-        [InlineData(int.MaxValue, true)]
+        [InlineData((ulong)1, true)]
+        [InlineData(ulong.MinValue, true)]
+        [InlineData(ulong.MaxValue, true)]
         public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
         {
             // arrange
             // act
             // assert
-            ExpectIsInstanceOfTypeToMatch<PositiveIntType>(value, expected);
+            ExpectIsInstanceOfTypeToMatch<UnsignedLongType>(value, expected);
         }
 
         [Theory]
-        [InlineData(typeof(IntValueNode), 1, 1)]
-        [InlineData(typeof(IntValueNode), int.MaxValue, int.MaxValue)]
+        [InlineData(typeof(IntValueNode), 0, (ulong)0)]
+        [InlineData(typeof(IntValueNode), 1, (ulong)1)]
+        [InlineData(typeof(IntValueNode), ulong.MaxValue, ulong.MaxValue)]
+        [InlineData(typeof(IntValueNode), ulong.MinValue, ulong.MinValue)]
         [InlineData(typeof(NullValueNode), null, null)]
         public void ParseLiteral_GivenValueNode_MatchExpected(
             Type type,
@@ -76,7 +76,7 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            ExpectParseLiteralToMatch<PositiveIntType>(valueNode, expected);
+            ExpectParseLiteralToMatch<UnsignedLongType>(valueNode, expected);
         }
 
         [Theory]
@@ -84,9 +84,6 @@ namespace HotChocolate.Types
         [InlineData(typeof(FloatValueNode), 1d)]
         [InlineData(typeof(BooleanValueNode), true)]
         [InlineData(typeof(StringValueNode), "")]
-        [InlineData(typeof(IntValueNode), int.MinValue)]
-        [InlineData(typeof(IntValueNode), -1)]
-        [InlineData(typeof(IntValueNode), 0)]
         public void ParseLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
         {
             // arrange
@@ -94,19 +91,20 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            ExpectParseLiteralToThrowSerializationException<PositiveIntType>(valueNode);
+            ExpectParseLiteralToThrowSerializationException<UnsignedLongType>(valueNode);
         }
 
         [Theory]
-        [InlineData(typeof(IntValueNode), 1)]
-        [InlineData(typeof(IntValueNode), int.MaxValue)]
+        [InlineData(typeof(IntValueNode), (ulong)1)]
+        [InlineData(typeof(IntValueNode), ulong.MaxValue)]
+        [InlineData(typeof(IntValueNode), ulong.MinValue)]
         [InlineData(typeof(NullValueNode), null)]
         public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
         {
             // arrange
             // act
             // assert
-            ExpectParseValueToMatchType<PositiveIntType>(value, type);
+            ExpectParseValueToMatchType<UnsignedLongType>(value, type);
         }
 
         [Theory]
@@ -114,20 +112,18 @@ namespace HotChocolate.Types
         [InlineData(1d)]
         [InlineData(true)]
         [InlineData("foo")]
-        [InlineData(int.MinValue)]
-        [InlineData(-1)]
-        [InlineData(0)]
         public void ParseValue_GivenObject_ThrowSerializationException(object value)
         {
             // arrange
             // act
             // assert
-            ExpectParseValueToThrowSerializationException<PositiveIntType>(value);
+            ExpectParseValueToThrowSerializationException<UnsignedIntType>(value);
         }
 
         [Theory]
-        [InlineData(1, 1)]
-        [InlineData(int.MaxValue, int.MaxValue)]
+        [InlineData(1UL, 1UL)]
+        [InlineData(ulong.MaxValue, ulong.MaxValue)]
+        [InlineData(ulong.MinValue, ulong.MinValue)]
         [InlineData(null, null)]
         public void Deserialize_GivenValue_MatchExpected(
             object resultValue,
@@ -136,7 +132,7 @@ namespace HotChocolate.Types
             // arrange
             // act
             // assert
-            ExpectDeserializeToMatch<PositiveIntType>(resultValue, runtimeValue);
+            ExpectDeserializeToMatch<UnsignedLongType>(resultValue, runtimeValue);
         }
 
         [Theory]
@@ -146,18 +142,18 @@ namespace HotChocolate.Types
         [InlineData("foo")]
         [InlineData(int.MinValue)]
         [InlineData(-1)]
-        [InlineData(0)]
         public void Deserialize_GivenValue_ThrowSerializationException(object value)
         {
             // arrange
             // act
             // assert
-            ExpectDeserializeToThrowSerializationException<PositiveIntType>(value);
+            ExpectDeserializeToThrowSerializationException<UnsignedLongType>(value);
         }
 
         [Theory]
-        [InlineData(1, 1)]
-        [InlineData(int.MaxValue, int.MaxValue)]
+        [InlineData((ulong)0, (ulong)0)]
+        [InlineData((ulong)1, (ulong)1)]
+        [InlineData(ulong.MaxValue, ulong.MaxValue)]
         [InlineData(null, null)]
         public void Serialize_GivenObject_MatchExpectedType(
             object runtimeValue,
@@ -166,7 +162,7 @@ namespace HotChocolate.Types
             // arrange
             // act
             // assert
-            ExpectSerializeToMatch<PositiveIntType>(runtimeValue, resultValue);
+            ExpectSerializeToMatch<UnsignedLongType>(runtimeValue, resultValue);
         }
 
         [Theory]
@@ -174,27 +170,25 @@ namespace HotChocolate.Types
         [InlineData(1d)]
         [InlineData(true)]
         [InlineData("foo")]
-        [InlineData(int.MinValue)]
-        [InlineData(-1)]
-        [InlineData(0)]
         public void Serialize_GivenObject_ThrowSerializationException(object value)
         {
             // arrange
             // act
             // assert
-            ExpectSerializeToThrowSerializationException<PositiveIntType>(value);
+            ExpectSerializeToThrowSerializationException<UnsignedLongType>(value);
         }
 
         [Theory]
-        [InlineData(typeof(IntValueNode), 1)]
-        [InlineData(typeof(IntValueNode), int.MaxValue)]
+        [InlineData(typeof(IntValueNode), (ulong)1)]
+        [InlineData(typeof(IntValueNode), ulong.MaxValue)]
+        [InlineData(typeof(IntValueNode), ulong.MinValue)]
         [InlineData(typeof(NullValueNode), null)]
         public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
         {
             // arrange
             // act
             // assert
-            ExpectParseResultToMatchType<PositiveIntType>(value, type);
+            ExpectParseResultToMatchType<UnsignedLongType>(value, type);
         }
 
         [Theory]
@@ -202,15 +196,12 @@ namespace HotChocolate.Types
         [InlineData(1d)]
         [InlineData(true)]
         [InlineData("foo")]
-        [InlineData(int.MinValue)]
-        [InlineData(-1)]
-        [InlineData(0)]
         public void ParseResult_GivenObject_ThrowSerializationException(object value)
         {
             // arrange
             // act
             // assert
-            ExpectParseResultToThrowSerializationException<PositiveIntType>(value);
+            ExpectParseResultToThrowSerializationException<UnsignedLongType>(value);
         }
     }
 }

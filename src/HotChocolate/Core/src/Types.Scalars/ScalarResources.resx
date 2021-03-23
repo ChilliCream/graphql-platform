@@ -61,9 +61,9 @@
             : and then encoded with base64 encoding.
     -->
   <xsd:schema id="root"
-              xmlns=""
-              xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-              xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    xmlns=""
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
 
     <xsd:element name="root" msdata:IsDataSet="true">
@@ -117,13 +117,11 @@
     <value>2.0</value>
   </resheader>
   <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
-      PublicKeyToken=b77a5c561934e089
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     </value>
   </resheader>
   <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
-      PublicKeyToken=b77a5c561934e089
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
     </value>
   </resheader>
   <data name="EmailAddressType_Description" xml:space="preserve">
@@ -198,8 +196,26 @@
   <data name="IsbnType_IsInvalid_ParseValue" xml:space="preserve">
     <value>IsbnType cannot parse the provided value. The provided value is not a valid ISBN number.</value>
   </data>
+  <data name="LocalTimeType_Description" xml:space="preserve">
+    <value>The LocalTime scalar type is a local time string (i.e., with no associated timezone) in 24-hr HH:mm:ss.</value>
+  </data>
+  <data name="LocalTimeType_IsInvalid_ParseLiteral" xml:space="preserve">
+    <value>LocalTimeType cannot parse the provided literal. The provided value is not a valid Local Time.</value>
+  </data>
+  <data name="LocalTimeType_IsInvalid_ParseValue" xml:space="preserve">
+    <value>LocalTimeType cannot parse the provided value. The provided value is not a valid Local Time.</value>
+  </data>
   <data name="NegativeFloatType_Description" xml:space="preserve">
     <value>The NegativeFloat scalar type represents a double‐precision fractional value less than 0.</value>
+  </data>
+  <data name="LocalDateType_Description" xml:space="preserve">
+    <value>The `LocalDate` scalar type represents a ISO date string, represented as UTF-8 character sequences YYYY-MM-DD. The scalar follows the specification defined in RFC3339</value>
+  </data>
+  <data name="LocalDateType_IsInvalid_ParseLiteral" xml:space="preserve">
+    <value>LocalDateType cannot parse the provided literal. The provided value is not a valid Local Date.</value>
+  </data>
+  <data name="LocalDateType_IsInvalid_ParseValue" xml:space="preserve">
+    <value>LocalDateType cannot parse the provided value. The provided value is not a valid Local Date.</value>
   </data>
   <data name="NegativeFloatType_IsNotNegative_ParseLiteral" xml:space="preserve">
     <value>NegativeFloatType cannot parse the provided literal. The provided value was not negative.</value>
@@ -312,6 +328,15 @@
   <data name="RgbType_IsInvalid_ParseValue" xml:space="preserve">
     <value>RgbType cannot parse the provided value. The provided value is not a valid CSS RGB color.</value>
   </data>
+  <data name="RgbaType_Description" xml:space="preserve">
+    <value>The Rgba scalar type represents a  valid CSS RGBA color as defined in https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba(). </value>
+  </data>
+  <data name="RgbaType_IsInvalid_ParseLiteral" xml:space="preserve">
+    <value>RgbaType cannot parse the provided literal. The provided value is not a valid CSS RGBA color.</value>
+  </data>
+  <data name="RgbaType_IsInvalid_ParseValue" xml:space="preserve">
+    <value>RgbaType cannot parse the provided value. The provided value is not a valid CSS RGBA color.</value>
+  </data>
   <data name="UnsignedIntType_Description" xml:space="preserve">
     <value>The UnsignedInt scalar type represents a unsigned 32-bit numeric non-fractional value greater than or equal to 0.</value>
   </data>
@@ -320,5 +345,14 @@
   </data>
   <data name="UnsignedIntType_IsNotUnsigned_ParseValue" xml:space="preserve">
     <value>UnsignedIntType cannot parse the provided value. The provided value is not greater than or equal to 0.</value>
+  </data>
+  <data name="UnsignedLongType_Description" xml:space="preserve">
+    <value>The UnsignedLong scalar type represents a unsigned 64-bit numeric non-fractional value greater than or equal to 0.</value>
+  </data>
+  <data name="UnsignedLongType_IsNotUnsigned_ParseLiteral" xml:space="preserve">
+    <value>UnsignedLong cannot parse the provided literal. The provided value is not greater than or equal to 0.</value>
+  </data>
+  <data name="UnsignedLongType_IsNotUnsigned_ParseValue" xml:space="preserve">
+    <value>UnsignedLong cannot parse the provided value. The provided value is not greater than or equal to 0.</value>
   </data>
 </root>
