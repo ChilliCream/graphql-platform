@@ -154,7 +154,12 @@ namespace HotChocolate.Types
 
         private static string Serialize(TimeSpan value)
         {
-            return value.ToString("c");
+            if (_timeSpanToOffset.TryGetValue(value, out var found))
+            {
+                return found;
+            }
+
+            return ""; // TODO: What here?
         }
 
         private static bool TryDeserializeFromString(
