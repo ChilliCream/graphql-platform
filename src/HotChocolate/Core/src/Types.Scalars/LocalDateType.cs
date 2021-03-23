@@ -104,7 +104,7 @@ namespace HotChocolate.Types.Scalars
             }
         }
 
-        private static string Serialize(DateTimeOffset value)
+        private static string Serialize(IFormattable value)
         {
             return value.ToString(
                 _localFormat,
