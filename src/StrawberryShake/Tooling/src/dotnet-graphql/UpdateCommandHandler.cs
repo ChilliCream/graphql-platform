@@ -100,7 +100,7 @@ namespace StrawberryShake.Tools
             GraphQLConfig configuration,
             CancellationToken cancellationToken)
         {
-            var noErrors = true;
+            var hasErrors = false;
 
             if (configuration.Extensions.StrawberryShake.Url is not null)
             {
