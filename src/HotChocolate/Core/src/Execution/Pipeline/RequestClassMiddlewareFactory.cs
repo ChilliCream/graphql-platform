@@ -14,6 +14,7 @@ namespace HotChocolate.Execution.Pipeline
     internal static class RequestClassMiddlewareFactory
     {
         private static readonly Type _validatorFactory = typeof(IDocumentValidatorFactory);
+        private static readonly Type _requestOptions = typeof(IRequestExecutorOptionsAccessor);
 
         private static readonly PropertyInfo _getSchemaName =
             typeof(IRequestCoreMiddlewareContext)
@@ -67,14 +68,33 @@ namespace HotChocolate.Execution.Pipeline
             Expression schemaName = Expression.Property(context, _getSchemaName);
             Expression services = Expression.Property(context, _appServices);
             Expression schemaServices = Expression.Property(context, _schemaServices);
-            Expression validatorFactory = Expression.Convert(Expression.Call(
-                services, _getService, Expression.Constant(_validatorFactory)), _validatorFactory);
-            Expression getValidator = Expression.Call(
-                validatorFactory, _createValidator, schemaName);
+
+            Expression validatorFactory =
+                Expression.Convert(
+                    Expression.Call(
+                        services,
+                        _getService,
+                        Expression.Constant(_validatorFactory)),
+                    _validatorFactory);
+
+            Expression getValidator =
+                Expression.Call(
+                    validatorFactory,
+                    _createValidator,
+                    schemaName);
+
+            Expression requestOptions =
+                Expression.Convert(
+                    Expression.Call(
+                        schemaServices,
+                        _getService,
+                        Expression.Constant(_requestOptions)),
+                    _requestOptions);
 
             var list = new List<IParameterHandler>
             {
-                new TypeParameterHandler(typeof(IDocumentValidator), getValidator)
+                new TypeParameterHandler(typeof(IDocumentValidator), getValidator),
+                new TypeParameterHandler(typeof(IRequestContextAccessor), requestOptions)
             };
 
             ConstructorInfo? constructor =

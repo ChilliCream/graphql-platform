@@ -22,6 +22,8 @@ namespace HotChocolate.Execution.Caching
             string documentId,
             [NotNullWhen(true)] out DocumentNode document) =>
             _cache.TryGet(documentId, out document!);
+
+        public void Clear() => _cache.Clear();
     }
 }
 

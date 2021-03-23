@@ -12,6 +12,8 @@ namespace HotChocolate.Execution.Caching
         void TryAddOperation(
             string operationId,
             IPreparedOperation operation);
+
+        void Clear();
     }
 }
 

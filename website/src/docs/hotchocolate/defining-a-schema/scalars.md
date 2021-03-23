@@ -69,6 +69,29 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
+# Uuid Type
+
+The `Uuid` scalar supports the following serialization formats.
+
+| Specifier   | Format                                                               |
+| ----------- | -------------------------------------------------------------------- |
+| N (default) | 00000000000000000000000000000000                                     |
+| D           | 00000000-0000-0000-0000-000000000000                                 |
+| B           | {00000000-0000-0000-0000-000000000000}                               |
+| P           | (00000000-0000-0000-0000-000000000000)                               |
+| X           | {0x00000000,0x0000,0x0000,{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}} |
+
+The `UuidType` will always return the value in the specified format. In case it is used as an input type, it will first try to parse the result in the specified format. If the parsing does not succeed, it will try to parse the value in other formats.
+
+To change the default format you have to register the `UuidType` with the specfier on the schema:
+
+```csharp
+services
+   .AddGraphQLServer()
+   ... // your configuration
+   .AddType(new UuidType('D'));
+```
+
 # Any Type
 
 The `Any` scalar is a special type that can be compared to `object` in C#. 
@@ -134,7 +157,7 @@ Lists can be accessed generically by getting them as `IReadOnlyList<object>` or 
 HotChocolate converts .Net types to match the types supported by the scalar of the field.
 By default, all standard .Net types have converters registered. 
 You can register converters and reuse the built-in scalar types.
-In case you use a non-standard library, e.g. [NodeTime](https://nodatime.org/), you can register a converter and use the standard `DateTimeType`.
+In case you use a non-standard library, e.g. [Noda Time](https://nodatime.org/), you can register a converter and use the standard `DateTimeType`.
 
 ```csharp
 public class Query 

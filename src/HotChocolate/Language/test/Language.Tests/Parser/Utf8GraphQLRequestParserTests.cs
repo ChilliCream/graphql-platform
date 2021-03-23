@@ -771,6 +771,11 @@ namespace HotChocolate.Language
                 }
             }
 
+            public void Clear()
+            {
+                _cache.Clear();
+            }
+
             public bool TryGetDocument(
                 string documentId,
                 out DocumentNode document) =>

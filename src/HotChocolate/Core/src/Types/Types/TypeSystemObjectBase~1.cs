@@ -304,5 +304,17 @@ namespace HotChocolate.Types
                     TypeResources.TypeSystemObjectBase_DefinitionIsNull);
             }
         }
+
+        protected internal void AssertMutable()
+        {
+            Debug.Assert(
+                !IsCompleted,
+                "The type os no longer mutable.");
+
+            if (IsCompleted)
+            {
+                throw new InvalidOperationException("The type is no longer mutable.");
+            }
+        }
     }
 }
