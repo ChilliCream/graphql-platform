@@ -26,6 +26,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         private static readonly ICodeGenerator[] _generators =
         {
             new ClientGenerator(),
+            new ClientInterfaceGenerator(),
             new EntityTypeGenerator(),
             new EntityIdFactoryGenerator(),
             new DependencyInjectionGenerator(),
@@ -36,6 +37,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             new JsonResultBuilderGenerator(),
             new OperationDocumentGenerator(),
             new OperationServiceGenerator(),
+            new OperationServiceInterfaceGenerator(),
             new ResultDataFactoryGenerator(),
             new ResultFromEntityTypeMapperGenerator(),
             new ResultInfoGenerator(),
@@ -182,13 +184,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
             // now we execute all mappers that depend on the previous type mappers.
             OperationDescriptorMapper.Map(clientModel, context);
             StoreAccessorMapper.Map(clientModel, context);
-            DependencyInjectionMapper.Map(clientModel, context);
             DataTypeDescriptorMapper.Map(clientModel, context);
             EntityTypeDescriptorMapper.Map(clientModel, context);
             ResultBuilderDescriptorMapper.Map(clientModel, context);
 
-            // Lastly we generate the client mapper
+            // We generate the client mapper next as we have all components of the client generated
             ClientDescriptorMapper.Map(clientModel, context);
+
+            // Lastly we generate the DI code, as we now have collected everything
+            DependencyInjectionMapper.Map(clientModel, context);
 
             // Last we execute all our generators with the descriptors.
             var code = new StringBuilder();
