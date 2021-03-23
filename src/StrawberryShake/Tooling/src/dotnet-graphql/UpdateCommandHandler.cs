@@ -100,7 +100,7 @@ namespace StrawberryShake.Tools
             GraphQLConfig configuration,
             CancellationToken cancellationToken)
         {
-            var hasErrors = false;
+            var noErrors = true;
 
             if (configuration.Extensions.StrawberryShake.Url is not null)
             {
@@ -110,11 +110,11 @@ namespace StrawberryShake.Tools
                 if (!await DownloadSchemaAsync(context, uri, schemaFilePath, cancellationToken)
                     .ConfigureAwait(false))
                 {
-                    hasErrors = true;
+                    noErrors = false;
                 }
             }
 
-            return hasErrors;
+            return noErrors;
         }
 
         private async Task<bool> DownloadSchemaAsync(
