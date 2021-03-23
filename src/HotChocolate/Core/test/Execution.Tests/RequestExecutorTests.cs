@@ -100,41 +100,5 @@ namespace HotChocolate.Execution
             // the cancellation token was correctly passed to the resolver.
             Assert.True(tokenWasCorrectlyPassedToResolver);
         }
-
-        [Fact]
-        public async Task Exec()
-        {
-            Snapshot.FullName();
-
-            var executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType(d => d.Name("Query").Field("abc").Resolve("abc"))
-                .AddMutationType(d => d.Name("Mutation"))
-                .AddTypeExtension<TestException>()
-                .BuildRequestExecutorAsync();
-
-            var list = new List<Task<IExecutionResult>>();
-
-            for (int i = 0; i < 1000; i++)
-            {
-                list.Add(executor.ExecuteAsync("mutation { test }"));
-            }
-
-            await Task.WhenAll(list);
-
-            foreach (var result in list)
-            {
-                result.Result.ToJson().MatchSnapshot();
-            }
-        }
-
-        [ExtendObjectType(Name = "Mutation")]
-        public class TestException
-        {
-            public Task<bool> Test()
-            {
-                throw new GraphQLException("test");
-            }
-        }
     }
 }
