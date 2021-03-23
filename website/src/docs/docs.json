@@ -29,6 +29,10 @@
                 "title": "Schema Documentation"
               },
               {
+                "path": "operations",
+                "title": "Operations"
+              },
+              {
                 "path": "versioning",
                 "title": "Versioning"
               },
