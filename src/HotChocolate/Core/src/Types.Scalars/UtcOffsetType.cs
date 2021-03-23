@@ -85,7 +85,7 @@ namespace HotChocolate.Types
             return resultValue switch
             {
                 null => NullValueNode.Default,
-                string s when TryDeserializeFromString(s, out TimeSpan? timeSpan) => ParseValue(timeSpan),
+                string s when _offsetToTimeSpan.TryGetValue(s, out TimeSpan timespan) => ParseValue(timespan),
                 TimeSpan ts => ParseValue(ts),
                 _ => throw ThrowHelper.UtcOffset_ParseValue_IsInvalid(this)
             };
@@ -118,8 +118,8 @@ namespace HotChocolate.Types
                 case null:
                     resultValue = null;
                     return true;
-                case TimeSpan timeSpan:
-                    resultValue = Serialize(timeSpan);
+                case TimeSpan timeSpan when _timeSpanToOffset.TryGetValue(timeSpan, out var s):
+                    resultValue = s;
                     return true;
                 default:
                     resultValue = null;
@@ -129,54 +129,21 @@ namespace HotChocolate.Types
 
         public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
-            if (resultValue is null)
+            switch (resultValue)
             {
-                runtimeValue = null;
-                return true;
+                case null:
+                    runtimeValue = null;
+                    return true;
+                case string s when _offsetToTimeSpan.TryGetValue(s, out TimeSpan timeSpan):
+                    runtimeValue = timeSpan;
+                    return true;
+                case TimeSpan ts:
+                    runtimeValue = ts;
+                    return true;
+                default:
+                    runtimeValue = null;
+                    return false;
             }
-
-            if (resultValue is string s &&
-                TryDeserializeFromString(s, out TimeSpan? timeSpan))
-            {
-                runtimeValue = timeSpan;
-                return true;
-            }
-
-            if (resultValue is TimeSpan ts)
-            {
-                runtimeValue = ts;
-                return true;
-            }
-
-            runtimeValue = null;
-            return false;
-        }
-
-        private static string Serialize(TimeSpan value)
-        {
-            if (_timeSpanToOffset.TryGetValue(value, out var found))
-            {
-                return found;
-            }
-
-            return ""; // TODO: What here?
-        }
-
-        private static bool TryDeserializeFromString(
-            string? serialized,
-            [NotNullWhen(true)]out TimeSpan? value)
-        {
-            if (serialized is not null
-                && TimeSpan.TryParse(
-                    serialized,
-                    out TimeSpan ts))
-            {
-                value = ts;
-                return true;
-            }
-
-            value = null;
-            return false;
         }
     }
 }
