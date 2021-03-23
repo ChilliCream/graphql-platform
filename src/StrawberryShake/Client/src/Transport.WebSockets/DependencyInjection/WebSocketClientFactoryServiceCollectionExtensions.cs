@@ -112,7 +112,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IWebSocketClientBuilder AddWebSocketClient(
             this IServiceCollection services,
             string name,
-            Action<ISocketClient> configureClient)
+            Action<IWebSocketClient> configureClient)
         {
             if (services == null)
             {
@@ -168,7 +168,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IWebSocketClientBuilder AddWebSocketClient(
             this IServiceCollection services,
             string name,
-            Action<IServiceProvider, ISocketClient> configureClient)
+            Action<IServiceProvider, IWebSocketClient> configureClient)
         {
             if (services == null)
             {

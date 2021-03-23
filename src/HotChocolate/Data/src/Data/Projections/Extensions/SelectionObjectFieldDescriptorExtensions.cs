@@ -155,7 +155,7 @@ namespace HotChocolate.Types
                                 .New<ObjectFieldDefinition>()
                                 .Definition(definition)
                                 .Configure(
-                                    (context, defintion) =>
+                                    (context, definition) =>
                                         CompileMiddleware(
                                             selectionType,
                                             definition,

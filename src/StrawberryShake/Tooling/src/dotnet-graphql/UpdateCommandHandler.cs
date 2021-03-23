@@ -114,7 +114,7 @@ namespace StrawberryShake.Tools
                 }
             }
 
-            return hasErrors;
+            return !hasErrors;
         }
 
         private async Task<bool> DownloadSchemaAsync(
