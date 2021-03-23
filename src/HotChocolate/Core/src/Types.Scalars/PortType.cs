@@ -31,7 +31,6 @@ namespace HotChocolate.Types
             BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, description, 0, 65535, bind)
         {
-            Description = description;
         }
 
         /// <inheritdoc />
