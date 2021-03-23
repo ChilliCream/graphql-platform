@@ -314,5 +314,11 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("ErrorHelper_RequestTimeout", resourceCulture);
             }
         }
+        
+        internal static string ResultHelper_BuildResult_InvalidResult {
+            get {
+                return ResourceManager.GetString("ResultHelper_BuildResult_InvalidResult", resourceCulture);
+            }
+        }
     }
 }
