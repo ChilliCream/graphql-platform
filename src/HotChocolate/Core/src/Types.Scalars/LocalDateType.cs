@@ -44,7 +44,7 @@ namespace HotChocolate.Types.Scalars
                 null => NullValueNode.Default,
                 string s => new StringValueNode(s),
                 DateTimeOffset d => ParseValue(d),
-                DateTime dt => ParseValue(new DateTimeOffset(dt)),
+                DateTime dt => ParseValue(dt),
                 _ => throw ThrowHelper.LocalDateType_ParseValue_IsInvalid(this)
             };
         }
@@ -71,6 +71,9 @@ namespace HotChocolate.Types.Scalars
                 case null:
                     resultValue = null;
                     return true;
+                case DateTime dt:
+                    resultValue = Serialize(dt);
+                    return true;
                 case DateTimeOffset dt:
                     resultValue = Serialize(dt);
                     return true;
@@ -94,9 +97,7 @@ namespace HotChocolate.Types.Scalars
                     runtimeValue = d.DateTime;
                     return true;
                 case DateTime dt:
-                    runtimeValue = new DateTimeOffset(
-                        dt.ToUniversalTime(),
-                        TimeSpan.Zero);
+                    runtimeValue = dt;
                     return true;
                 default:
                     runtimeValue = null;
