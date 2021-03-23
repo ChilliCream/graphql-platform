@@ -152,6 +152,11 @@ namespace HotChocolate.Types
             return false;
         }
 
+        private static string Serialize(TimeSpan value)
+        {
+            return value.ToString("c");
+        }
+
         private static bool TryDeserializeFromString(
             string? serialized,
             [NotNullWhen(true)]out TimeSpan? value)
