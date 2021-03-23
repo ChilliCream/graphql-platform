@@ -5,7 +5,7 @@ using System.Threading;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     public class LocalDateTypeTests : ScalarTypeTestBase
     {
