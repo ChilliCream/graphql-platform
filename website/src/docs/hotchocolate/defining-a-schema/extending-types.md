@@ -2,7 +2,7 @@
 title: "Extending Types"
 ---
 
-In GraphQL we only have one query, mutation and subscription type. These types can become hugh which makes them hard to maintain. In order to divide types into separate definitions GraphQL allows to extend types.
+In GraphQL we only have one query, mutation, and subscription type. These types can become huge, which makes them hard to maintain. To divide types into separate definitions, GraphQL allows to extend types.
 
 ```graphql
 type Query {
@@ -73,11 +73,11 @@ extend type Query {
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-# Extending types with annotation-based approach
+# Extending types with the annotation-based approach
 
-Extending types can be extremely useful even with other types in the schema. Lets say we are building a schema with the annotation based approach where we use pure C# to describe out types.
+Extending types can be beneficial even with non-root types. Let's say we are building a schema with the annotation-based approach where we use pure C# to describe our types.
 
-Let us assume we have the following entity that we do not want to extend in our Graph with additional fields.
+Given is the following entity that we do want to extend in our graph with additional fields.
 
 ```csharp
 public class Session
@@ -95,9 +95,9 @@ public class Session
 }
 ```
 
-We could just start adding our GraphQL concerns to this type. But often we want to get out entity clean from any Graph concerns.
+We could start adding our GraphQL concerns to this type directly. But often, we want to keep our entity clean from any graph concerns.
 
-If we wanted for instance to remove the `TrackId` and replace it with a field `Track` that returns a `Tack` object we could just do the following.
+To replace the `TrackId` with a field `Track` that returns the `Tack` object we could do the following.
 
 ```csharp
 [ExtendObjectType(typeof(Session))]
@@ -108,18 +108,18 @@ public class SessionResolvers
 }
 ```
 
-We also easily can remove properties that we do not like on our initial type. For instance lets omit the `Abstract`.
+We also easily can remove properties that we do not like on our initial type. For instance, let us omit the `Abstract`.
 
 ```csharp
 [ExtendObjectType(
     typeof(Session),
-    IgnoreProperties = new[] { nameof(Session.Abstract) })]
+    IgnoreProperties = new[] { nameof(Session.Abstract) })]
 public class SessionResolvers
 {
 }
 ```
 
-Further, might we want to be able to just add new fields to our entity.
+Further, might we want to be able to add new fields to our entity.
 
 ```csharp
 [ExtendObjectType(typeof(Session))]
@@ -129,20 +129,20 @@ public class SessionResolvers
 }
 ```
 
-Moreover, we are able to extend multiple types at once by extending upon base types.
+Moreover, we can extend multiple types at once by extending upon base types or interfaces.
 
 ```csharp
-[ExtendObjectType(typeof(object))] // <-- we are now extending every type that implements object.
+[ExtendObjectType(typeof(object))] // <-- we are now extending every type that inhereits from object (essentially every type).
 public class SessionResolvers
 {
     public string SayHello() => "Hello";
 }
 ```
 
-We can also extend multiple types at once with a type but dedicate specific resolver to specific types.
+We can also extend multiple types at once with a type but dedicate specific resolvers to specific types.
 
 ```csharp
-[ExtendObjectType(typeof(object))] // <-- we are now extending every type that implements object.
+[ExtendObjectType(typeof(object))] // <-- we are now extending every type that inhereits from object (essentially every type)
 public class SessionResolvers
 {
     public string Abc([Parent] Session session) => "abc"; // <-- we are only adding this field to the Session type
@@ -150,3 +150,5 @@ public class SessionResolvers
     public string Def([Parent] Track track) => "def"; // <-- we are only adding this field to the Track type
 }
 ```
+
+Instead of using `typeof(object)` as a selector for extending types you can also use interfaces or other base types.
