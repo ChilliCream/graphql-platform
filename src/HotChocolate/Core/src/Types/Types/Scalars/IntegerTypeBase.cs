@@ -101,8 +101,23 @@ namespace HotChocolate.Types
                 return ParseValue(c);
             }
 
-            throw new SerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
+            throw CreateParseResultError(resultValue);
+        }
+
+        /// <summary>
+        /// Creates the exception that will be thrown when <see cref="ParseResult"/> encountered an
+        /// invalid value
+        /// </summary>
+        /// <param name="runtimeValue">
+        /// The runtimeValue that should be parsed
+        /// </param>
+        /// <returns>
+        /// The created exception that should be thrown
+        /// </returns>
+        protected virtual SerializationException CreateParseResultError(object runtimeValue)
+        {
+            return new(
+                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, runtimeValue.GetType()),
                 this);
         }
     }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
@@ -5,6 +6,7 @@ using HotChocolate.Types.Filters.Extensions;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class BooleanFilterFieldDescriptor
         : FilterFieldDescriptorBase
         , IBooleanFilterFieldDescriptor

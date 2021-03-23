@@ -16,5 +16,12 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// The associated syntax node from the GraphQL schema SDL.
         /// </summary>
         ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
+
+        protected void CopyTo(FieldDefinitionBase<T> target)
+        {
+            base.CopyTo(target);
+
+            target.SyntaxNode = SyntaxNode;
+        }
     }
 }

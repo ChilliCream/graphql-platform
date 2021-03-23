@@ -14,7 +14,6 @@ namespace HotChocolate.Execution.Processing
         private static readonly ArgumentMap _emptyArguments =
             new(new Dictionary<NameString, ArgumentValue>());
 
-        private static readonly IReadOnlyList<FieldNode> _emptySelections = new FieldNode[0];
         private List<SelectionIncludeCondition>? _includeConditions;
         private List<FieldNode>? _selections;
         private IReadOnlyList<FieldNode>? _syntaxNodes;
@@ -219,8 +218,7 @@ namespace HotChocolate.Execution.Processing
                 first.Alias,
                 MergeDirectives(selections),
                 first.Arguments,
-                MergeSelections(first, selections)
-            );
+                MergeSelections(first, selections));
         }
 
         private static SelectionSetNode? MergeSelections(

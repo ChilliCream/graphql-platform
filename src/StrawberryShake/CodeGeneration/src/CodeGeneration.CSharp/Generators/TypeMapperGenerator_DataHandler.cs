@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public partial class TypeMapperGenerator
     {
@@ -18,7 +19,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             method
                 .AddParameter(_dataParameterName)
-                .SetType(namedTypeDescriptor.ParentRuntimeType!.ToString());
+                .SetType(namedTypeDescriptor.ParentRuntimeType!
+                    .ToString()
+                    .MakeNullable(!isNonNullable));
+            method
+                .AddParameter(_snapshot)
+                .SetType(TypeNames.IEntityStoreSnapshot);
 
             if (!isNonNullable)
             {
@@ -77,9 +83,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
             foreach (PropertyDescriptor prop in objectTypeDescriptor.Properties)
             {
                 var propAccess = $"{_dataParameterName}.{prop.Name}";
-                if (prop.Type.IsEntityType())
+                if (prop.Type.IsEntityType() || prop.Type.IsDataType())
                 {
                     constructorCall.AddArgument(BuildMapMethodCall(_dataParameterName, prop, true));
+                }
+                else if (prop.Type.IsNullableType())
+                {
+                    constructorCall.AddArgument(propAccess);
                 }
                 else
                 {

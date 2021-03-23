@@ -12,10 +12,9 @@ using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.AspNetCore.Utilities;
-using HotChocolate.Execution;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
-using StrawberryShake.Transport.WebSockets.Protocol;
+using StrawberryShake.Transport.WebSockets.Protocols;
 using Xunit;
 
 namespace StrawberryShake.Transport.WebSockets
@@ -52,7 +51,8 @@ namespace StrawberryShake.Transport.WebSockets
             OperationRequest request = new("Test", document);
 
             // act
-            var connection = new WebSocketConnection(() => sessionPool.CreateAsync("Foo", ct));
+            var connection =
+                new WebSocketConnection(async ct => await sessionPool.CreateAsync("Foo", ct));
             await foreach (var response in connection.ExecuteAsync(request, ct))
             {
                 if (response.Body is not null)
@@ -91,7 +91,8 @@ namespace StrawberryShake.Transport.WebSockets
             OperationRequest request = new("Test", document);
 
             // act
-            var connection = new WebSocketConnection(() => sessionPool.CreateAsync("Foo", ct));
+            var connection =
+                new WebSocketConnection(async ct => await sessionPool.CreateAsync("Foo", ct));
             await foreach (var response in connection.ExecuteAsync(request, ct))
             {
                 if (response.Body is not null)
@@ -130,7 +131,8 @@ namespace StrawberryShake.Transport.WebSockets
             OperationRequest request = new("Test", document);
 
             // act
-            var connection = new WebSocketConnection(() => sessionPool.CreateAsync("Foo", ct));
+            var connection =
+                new WebSocketConnection(async ct => await sessionPool.CreateAsync("Foo", ct));
             await foreach (var response in connection.ExecuteAsync(request, ct))
             {
                 if (response.Body is not null)
@@ -175,7 +177,8 @@ namespace StrawberryShake.Transport.WebSockets
             OperationRequest request = new("Test", document);
 
             // act
-            var connection = new WebSocketConnection(() => sessionPool.CreateAsync("Foo", ct));
+            var connection =
+                new WebSocketConnection(async ct => await sessionPool.CreateAsync("Foo", ct));
             await foreach (var response in connection.ExecuteAsync(request, ct))
             {
                 if (response.Body is not null)
@@ -217,7 +220,7 @@ namespace StrawberryShake.Transport.WebSockets
             async Task? CreateSubscription(int id)
             {
                 var connection =
-                    new WebSocketConnection(() => sessionPool.CreateAsync("Foo", ct));
+                    new WebSocketConnection(async ct => await sessionPool.CreateAsync("Foo", ct));
                 var document =
                     new MockDocument($"subscription Test {{ onTest(id:{id.ToString()}) }}");
                 var request = new OperationRequest("Test", document);
@@ -291,7 +294,8 @@ namespace StrawberryShake.Transport.WebSockets
             async Task? CreateSubscription(int client, int id)
             {
                 var connection =
-                    new WebSocketConnection(() => sessionPool.CreateAsync("Foo" + client, ct));
+                    new WebSocketConnection(async ct =>
+                        await sessionPool.CreateAsync("Foo" + client, ct));
                 var document =
                     new MockDocument($"subscription Test {{ onTest(id:{id.ToString()}) }}");
                 var request = new OperationRequest("Test", document);
@@ -369,7 +373,8 @@ namespace StrawberryShake.Transport.WebSockets
             async Task? CreateSubscription(int client, int id)
             {
                 var connection =
-                    new WebSocketConnection(() => sessionPool.CreateAsync("Foo" + client, ct));
+                    new WebSocketConnection(async ct =>
+                        await sessionPool.CreateAsync("Foo" + client, ct));
                 var document =
                     new MockDocument($"subscription Test {{ countUp }}");
                 var request = new OperationRequest("Test", document);
@@ -446,6 +451,8 @@ namespace StrawberryShake.Transport.WebSockets
             public OperationKind Kind => OperationKind.Query;
 
             public ReadOnlySpan<byte> Body => _query;
+
+            public DocumentHash Hash { get; } = new("MD5", "ABC");
         }
 
         private class StubSessionInterceptor : DefaultSocketSessionInterceptor

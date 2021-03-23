@@ -1,13 +1,15 @@
 using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
-using StrawberryShake.CodeGeneration.Extensions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class ResultTypeGenerator : CodeGenerator<ObjectTypeDescriptor>
     {
+        private const string __typename = "__typename";
+
         protected override bool CanHandle(ObjectTypeDescriptor descriptor)
         {
             return true;
@@ -16,13 +18,17 @@ namespace StrawberryShake.CodeGeneration.CSharp
         protected override void Generate(
             CodeWriter writer,
             ObjectTypeDescriptor descriptor,
-            out string fileName)
+            out string fileName,
+            out string? path)
         {
             fileName = descriptor.RuntimeType.Name;
+            path = null;
+
             ClassBuilder classBuilder = ClassBuilder
                 .New()
                 .SetComment(descriptor.Description)
-                .SetName(fileName);
+                .SetName(fileName)
+                .AddEquality(fileName, descriptor.Properties);
 
             ConstructorBuilder constructorBuilder = classBuilder
                 .AddConstructor()
@@ -30,7 +36,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (var prop in descriptor.Properties)
             {
-                TypeReferenceBuilder propTypeBuilder = prop.Type.ToBuilder();
+                TypeReferenceBuilder propTypeBuilder = prop.Type.ToTypeReference();
 
                 // Add Property to class
                 classBuilder
@@ -38,8 +44,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .SetComment(prop.Description)
                     .SetName(prop.Name)
                     .SetType(propTypeBuilder)
-                    .SetPublic()
-                    .SetValue(prop.Type.IsNullableType() ? "default!" : null);
+                    .SetPublic();
 
                 // Add initialization of property to the constructor
                 var paramName = GetParameterName(prop.Name);
@@ -47,7 +52,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     .AddParameter(paramName, x => x.SetType(propTypeBuilder))
                     .AddCode(AssignmentBuilder
                         .New()
-                        .SetLefthandSide(prop.Name)
+                        .SetLefthandSide((prop.Name.Value is __typename ? "this." : "") + prop.Name)
                         .SetRighthandSide(paramName));
             }
 

@@ -8,12 +8,16 @@ using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 
+#nullable enable
+
 namespace HotChocolate.Types.Descriptors
 {
     public class ObjectTypeDescriptor
         : DescriptorBase<ObjectTypeDefinition>
         , IObjectTypeDescriptor
     {
+        private ICollection<Type>? _resolverTypes;
+
         protected ObjectTypeDescriptor(IDescriptorContext context, Type clrType)
             : base(context)
         {
@@ -41,14 +45,12 @@ namespace HotChocolate.Types.Descriptors
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
-        protected internal override ObjectTypeDefinition Definition { get; protected set; } =
-            new ObjectTypeDefinition();
+        protected internal override ObjectTypeDefinition Definition { get; protected set; } = new();
 
         protected ICollection<ObjectFieldDescriptor> Fields { get; } =
             new List<ObjectFieldDescriptor>();
 
-        protected ICollection<Type> ResolverTypes { get; } =
-            new HashSet<Type>();
+        protected ICollection<Type> ResolverTypes => _resolverTypes ??= new HashSet<Type>();
 
         protected override void OnCreateDefinition(
             ObjectTypeDefinition definition)
@@ -347,6 +349,18 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        public IObjectTypeDescriptor ExtendsType(Type extendsType)
+        {
+            Definition.ExtendsType = extendsType;
+            return this;
+        }
+
+        public IObjectTypeDescriptor ExtendsType<T>()
+        {
+            Definition.ExtendsType = typeof(T);
+            return this;
+        }
+
         public static ObjectTypeDescriptor New(
             IDescriptorContext context) =>
             new(context);
@@ -367,7 +381,7 @@ namespace HotChocolate.Types.Descriptors
         public static ObjectTypeDescriptor FromSchemaType(
             IDescriptorContext context,
             Type schemaType) =>
-            new ObjectTypeDescriptor(context, schemaType)
+            new(context, schemaType)
             {
                 Definition = { RuntimeType = typeof(object) }
             };

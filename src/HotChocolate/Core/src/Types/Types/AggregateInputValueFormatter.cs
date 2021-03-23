@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 #nullable enable
 
@@ -7,18 +8,30 @@ namespace HotChocolate.Types
 {
     internal sealed class AggregateInputValueFormatter : IInputValueFormatter
     {
-        private readonly IList<IInputValueFormatter> _formatters;
+        private readonly IInputValueFormatter[] _formatters;
 
-        public AggregateInputValueFormatter(IList<IInputValueFormatter> formatters)
+        public AggregateInputValueFormatter(IEnumerable<IInputValueFormatter> formatters)
         {
-            _formatters = formatters ?? throw new ArgumentNullException(nameof(formatters));
+            if (formatters is null)
+            {
+                throw new ArgumentNullException(nameof(formatters));
+            }
+
+            if (formatters is IInputValueFormatter[] array)
+            {
+                _formatters = array;
+            }
+            else
+            {
+                _formatters = formatters.ToArray();
+            }
         }
 
         public object? OnAfterDeserialize(object? runtimeValue)
         {
             object? current = runtimeValue;
 
-            for (var i = 0; i < _formatters.Count; i++)
+            for (var i = 0; i < _formatters.Length; i++)
             {
                 current = _formatters[i].OnAfterDeserialize(current);
             }

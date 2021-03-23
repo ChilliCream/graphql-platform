@@ -128,6 +128,8 @@ namespace StrawberryShake.Transport.InMemory
         {
             public IQueryRequest Request { get; private set; }
 
+            public ulong Version { get; }
+
             public Task<IExecutionResult> ExecuteAsync(
                 IQueryRequest request,
                 CancellationToken cancellationToken = default)
@@ -173,7 +175,10 @@ namespace StrawberryShake.Transport.InMemory
         public class StubDocument : IDocument
         {
             public OperationKind Kind => OperationKind.Query;
+
             public ReadOnlySpan<byte> Body => Encoding.UTF8.GetBytes("{ foo }");
+
+            public DocumentHash Hash { get; } = new("MD5", "ABC");
         }
     }
 }

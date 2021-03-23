@@ -3,6 +3,12 @@ namespace StrawberryShake.CodeGeneration
     public static class TypeNames
     {
         public const string IEntityStore = StrawberryshakeNamespace + "IEntityStore";
+        public const string IEntityIdSerializer = StrawberryshakeNamespace + "IEntityIdSerializer";
+        public const string IOperationRequestFactory = StrawberryshakeNamespace + "IOperationRequestFactory";
+        public const string IStoreAccessor = StrawberryshakeNamespace + "IStoreAccessor";
+        public const string StoreAccessor = StrawberryshakeNamespace + "StoreAccessor";
+        public const string IEntityStoreSnapshot = StrawberryshakeNamespace + "IEntityStoreSnapshot";
+        public const string IEntityStoreUpdateSession = StrawberryshakeNamespace + "IEntityStoreUpdateSession";
         public const string EntityStore = StrawberryshakeNamespace + "EntityStore";
         public const string IOperationStore = StrawberryshakeNamespace + "IOperationStore";
         public const string OperationStore = StrawberryshakeNamespace + "OperationStore";
@@ -23,6 +29,10 @@ namespace StrawberryShake.CodeGeneration
         public const string IEntityMapper = StrawberryshakeNamespace + "IEntityMapper";
         public const string IDocument = StrawberryshakeNamespace + "IDocument";
         public const string GraphQLClientException = StrawberryshakeNamespace + "GraphQLClientException";
+        public const string IClientError = StrawberryshakeNamespace + "IClientError";
+        public const string ClientError = StrawberryshakeNamespace + "ClientError";
+        public const string DocumentHash = StrawberryshakeNamespace + "DocumentHash";
+        public const string RequestStrategy = StrawberryshakeNamespace + "RequestStrategy";
 
         public const string OperationKind = StrawberryshakeNamespace + "OperationKind";
         public const string EntityId = StrawberryshakeNamespace + "EntityId";
@@ -34,15 +44,24 @@ namespace StrawberryShake.CodeGeneration
         public const string Response = StrawberryshakeNamespace + "Response";
         public const string OperationRequest = StrawberryshakeNamespace + "OperationRequest";
         public const string ExecutionStrategy = StrawberryshakeNamespace + "ExecutionStrategy";
-        public const string GetPropertyOrNull = StrawberryshakeNamespace + "Transport.Http.JsonElementExtensions.GetPropertyOrNull";
+        public const string GetPropertyOrNull = StrawberryshakeNamespace + "Json.JsonElementExtensions.GetPropertyOrNull";
         public const string HttpConnection= StrawberryshakeNamespace + "Transport.Http.HttpConnection";
+        public const string InMemoryConnection = StrawberryshakeNamespace + "Transport.InMemory.InMemoryConnection";
         public const string WebSocketConnection= StrawberryshakeNamespace + "Transport.WebSockets.WebSocketConnection";
         public const string ISessionPool= StrawberryshakeNamespace + "Transport.WebSockets.ISessionPool";
+        public const string IInMemoryClientFactory= StrawberryshakeNamespace + "Transport.InMemory.IInMemoryClientFactory";
         public const string AddProtocol= GlobalDependencyInjectionNamespace + "WebSocketClientFactoryServiceCollectionExtensions.AddProtocol";
         public const string GraphQLWebSocketProtocolFactory= StrawberryshakeNamespace + "Transport.WebSockets.Protocol.GraphQLWebSocketProtocolFactory";
+        public const string SequenceEqual= StrawberryshakeNamespace + "Helper.ComparisonHelper.SequenceEqual";
 
+        public const string IEquatable = "global::System.IEquatable";
+        public const string Type = "global::System.Type";
         public const string JsonElement = "global::System.Text.Json.JsonElement";
         public const string JsonDocument = "global::System.Text.Json.JsonDocument";
+        public const string JsonValueKind = "global::System.Text.Json.JsonValueKind";
+        public const string JsonWriterOptions = "global::System.Text.Json.JsonWriterOptions";
+        public const string Utf8JsonWriter= "global::System.Text.Json.Utf8JsonWriter";
+        public const string ParseError = StrawberryshakeNamespace + "Json.JsonErrorParser.ParseErrors";
         public const string String = "global::System.String";
         public const string Byte = "global::System.Byte";
         public const string ByteArray = "global::System.Byte[]";
@@ -67,6 +86,7 @@ namespace StrawberryShake.CodeGeneration
         public const string Concat = "global::System.Linq.Enumerable.Concat";
         public const string IList = GenericCollectionsNamespace + "IList";
         public const string IReadOnlyCollection = GenericCollectionsNamespace + "IReadOnlyCollection";
+        public const string IReadOnlyDictionary = GenericCollectionsNamespace + "IReadOnlyDictionary";
         public const string IReadOnlyList = GenericCollectionsNamespace + "IReadOnlyList";
         public const string HashSet = GenericCollectionsNamespace + "HashSet";
         public const string ISet = GenericCollectionsNamespace + "ISet";
@@ -80,6 +100,7 @@ namespace StrawberryShake.CodeGeneration
         public const string NotSupportedException = "global::System.NotSupportedException";
         public const string ArgumentNullException = "global::System.ArgumentNullException";
         public const string ArgumentException = "global::System.ArgumentException";
+        public const string Exception = "global::System.Exception";
 
         public const string IServiceCollection = GlobalDependencyInjectionNamespace + "IServiceCollection";
         public const string IServiceProvider = "global::System.IServiceProvider";
@@ -116,5 +137,10 @@ namespace StrawberryShake.CodeGeneration
         public const string DateSerializer = StrawberryshakeNamespace + "Serialization.DateSerializer";
         public const string ByteArraySerializer = StrawberryshakeNamespace + "Serialization.ByteArraySerializer";
         public const string TimeSpanSerializer = StrawberryshakeNamespace + "Serialization.TimeSpanSerializer";
+
+        public const string IClientBuilder = StrawberryshakeNamespace + "IClientBuilder";
+        public const string ClientBuilder = StrawberryshakeNamespace + "ClientBuilder";
+
+        public const string ArrayWriter = StrawberryshakeNamespace + "Internal.ArrayWriter";
     }
 }

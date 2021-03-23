@@ -39,8 +39,13 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 {
                     _keepAlive.Begin(cts.Token);
                     _messageProcessor.Begin(cts.Token);
-                    await _messageReceiver.ReceiveAsync(cts.Token)
-                        ;
+                    await _messageReceiver.ReceiveAsync(cts.Token);
+                }
+                catch(OperationCanceledException) 
+                { 
+                    // OperationCanceledException are catched and will not
+                    // bubble further. We will just close the current subscription
+                    // context.
                 }
                 finally
                 {
@@ -48,8 +53,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     await _connection.CloseAsync(
                             "Session ended.",
                             SocketCloseStatus.NormalClosure,
-                            CancellationToken.None)
-                        ;
+                            CancellationToken.None);
                 }
             }
         }

@@ -1,12 +1,12 @@
 using HotChocolate;
 
-namespace StrawberryShake.CodeGeneration
+namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
 {
     public class ScalarTypeDescriptor : ILeafTypeDescriptor
     {
         public ScalarTypeDescriptor(
-            NameString name, 
-            RuntimeTypeInfo runtimeType, 
+            NameString name,
+            RuntimeTypeInfo runtimeType,
             RuntimeTypeInfo serializationType)
         {
             Name = name;

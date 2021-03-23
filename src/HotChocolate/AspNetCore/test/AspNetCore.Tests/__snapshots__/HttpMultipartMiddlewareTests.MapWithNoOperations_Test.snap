@@ -1,0 +1,14 @@
+﻿{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "BadRequest",
+  "Data": null,
+  "Errors": [
+    {
+      "message": "Misordered multipart fields; 'map' should follow 'operations'.",
+      "extensions": {
+        "code": "HC0035"
+      }
+    }
+  ],
+  "Extensions": null
+}

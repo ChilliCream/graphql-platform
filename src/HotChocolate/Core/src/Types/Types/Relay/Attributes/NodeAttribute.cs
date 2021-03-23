@@ -66,16 +66,14 @@ namespace HotChocolate.Types.Relay
 
                 if (method is null)
                 {
-                    throw NodeAttribute_NodeResolverNotFound(
-                        type,
-                        NodeResolver);
+                    throw NodeAttribute_NodeResolverNotFound(type, NodeResolver);
                 }
 
                 nodeDescriptor.ResolveNodeWith(method);
             }
             else
             {
-                nodeDescriptor.ResolveNodeWith(type);
+                nodeDescriptor.ResolveNode(type);
             }
         }
     }
