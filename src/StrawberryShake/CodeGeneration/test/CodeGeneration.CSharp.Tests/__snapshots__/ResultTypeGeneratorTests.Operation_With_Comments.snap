@@ -1079,7 +1079,7 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetFooQuery
-        : global::StrawberryShake.IOperationRequestFactory
+        : global::Foo.Bar.IGetFooQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetFooResult> _operationExecutor;
 
@@ -1130,6 +1130,49 @@ namespace Foo.Bar
         {
             return CreateRequest();
         }
+    }
+}
+
+
+// IGetFooQuery
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    /// <summary>
+    /// Represents the operation service of the GetFoo GraphQL operation
+    /// <code>
+    /// query GetFoo {
+    ///   foo {
+    ///     __typename
+    ///     str
+    ///     strNonNullable
+    ///     nested {
+    ///       __typename
+    ///       str
+    ///     }
+    ///     nestedList {
+    ///       __typename
+    ///       str
+    ///     }
+    ///     nestedMatrix {
+    ///       __typename
+    ///       str
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetFooQuery
+        : global::StrawberryShake.IOperationRequestFactory
+    {
+        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetFooResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
+
+        global::System.IObservable<global::StrawberryShake.IOperationResult<IGetFooResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 }
 
@@ -1487,10 +1530,11 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
+        : global::Foo.Bar.IFooClient
     {
-        private readonly global::Foo.Bar.GetFooQuery _getFoo;
+        private readonly global::Foo.Bar.IGetFooQuery _getFoo;
 
-        public FooClient(global::Foo.Bar.GetFooQuery getFoo)
+        public FooClient(global::Foo.Bar.IGetFooQuery getFoo)
         {
             _getFoo = getFoo
                  ?? throw new global::System.ArgumentNullException(nameof(getFoo));
@@ -1498,7 +1542,26 @@ namespace Foo.Bar
 
         public static global::System.String ClientName => "FooClient";
 
-        public global::Foo.Bar.GetFooQuery GetFoo => _getFoo;
+        public global::Foo.Bar.IGetFooQuery GetFoo => _getFoo;
+    }
+}
+
+
+// IFooClient
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    /// <summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IFooClient
+    {
+        global::Foo.Bar.IGetFooQuery GetFoo { get; }
     }
 }
 
@@ -1644,7 +1707,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetFooResult>>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.GetFooQuery>(sp));
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IGetFooQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetFooResult>, global::Foo.Bar.State.GetFooBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.IGetFooResult>>(
                 services,
@@ -1654,8 +1717,14 @@ namespace Microsoft.Extensions.DependencyInjection
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                     strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.GetFooQuery>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.IGetFooQuery>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.GetFooQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityIdSerializer, global::Foo.Bar.State.FooClientEntityIdFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.FooClient>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.IFooClient>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(sp));
             return services;
         }
 

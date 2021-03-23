@@ -1291,7 +1291,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroQuery
-        : global::StrawberryShake.IOperationRequestFactory
+        : global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.IGetHeroQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetHeroResult> _operationExecutor;
 
@@ -1342,6 +1342,55 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
         {
             return CreateRequest();
         }
+    }
+}
+
+
+// IGetHeroQuery
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+
+#nullable enable
+
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
+{
+    /// <summary>
+    /// Represents the operation service of the GetHero GraphQL operation
+    /// <code>
+    /// query GetHero {
+    ///   hero(episode: NEW_HOPE) {
+    ///     __typename
+    ///     name
+    ///     friends {
+    ///       __typename
+    ///       nodes {
+    ///         __typename
+    ///         name
+    ///         ... on Droid {
+    ///           id
+    ///         }
+    ///         ... on Human {
+    ///           id
+    ///         }
+    ///       }
+    ///     }
+    ///     ... on Droid {
+    ///       id
+    ///     }
+    ///     ... on Human {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetHeroQuery
+        : global::StrawberryShake.IOperationRequestFactory
+    {
+        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
+
+        global::System.IObservable<global::StrawberryShake.IOperationResult<IGetHeroResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 }
 
@@ -1736,10 +1785,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class StarWarsGetFriendsClient
+        : global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.IStarWarsGetFriendsClient
     {
-        private readonly global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.GetHeroQuery _getHero;
+        private readonly global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.IGetHeroQuery _getHero;
 
-        public StarWarsGetFriendsClient(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.GetHeroQuery getHero)
+        public StarWarsGetFriendsClient(global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.IGetHeroQuery getHero)
         {
             _getHero = getHero
                  ?? throw new global::System.ArgumentNullException(nameof(getHero));
@@ -1747,7 +1797,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
 
         public static global::System.String ClientName => "StarWarsGetFriendsClient";
 
-        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.GetHeroQuery GetHero => _getHero;
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.IGetHeroQuery GetHero => _getHero;
+    }
+}
+
+
+// IStarWarsGetFriendsClient
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
+
+#nullable enable
+
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
+{
+    /// <summary>
+    /// Represents the StarWarsGetFriendsClient GraphQL client
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IStarWarsGetFriendsClient
+    {
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.IGetHeroQuery GetHero { get; }
     }
 }
 
@@ -1975,7 +2044,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.IGetHeroResult>>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.GetHeroQuery>(sp));
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.IGetHeroQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.IGetHeroResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.State.GetHeroBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.IGetHeroResult>>(
                 services,
@@ -1985,8 +2054,14 @@ namespace Microsoft.Extensions.DependencyInjection
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                     strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.GetHeroQuery>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.IGetHeroQuery>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.GetHeroQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityIdSerializer, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.State.StarWarsGetFriendsClientEntityIdFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.StarWarsGetFriendsClient>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.IStarWarsGetFriendsClient>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.StarWarsGetFriendsClient>(sp));
             return services;
         }
 

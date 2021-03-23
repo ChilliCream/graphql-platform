@@ -19,7 +19,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             ClassBuilder classBuilder = ClassBuilder
                 .New()
                 .SetName(fileName)
-                .SetComment(descriptor.Documentation);
+                .SetComment(descriptor.Documentation)
+                .AddImplements(descriptor.InterfaceType.ToString());
 
             ConstructorBuilder constructorBuilder = classBuilder
                 .AddConstructor()
@@ -35,7 +36,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             foreach (OperationDescriptor operation in descriptor.Operations)
             {
                 AddConstructorAssignedField(
-                    operation.RuntimeType.ToString(),
+                    operation.InterfaceType.ToString(),
                     GetFieldName(operation.Name),
                     classBuilder,
                     constructorBuilder);
@@ -43,7 +44,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 classBuilder
                     .AddProperty(GetPropertyName(operation.Name))
                     .SetPublic()
-                    .SetType(operation.RuntimeType.ToString())
+                    .SetType(operation.InterfaceType.ToString())
                     .AsLambda(GetFieldName(operation.Name));
             }
 
