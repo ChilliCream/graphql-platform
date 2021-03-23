@@ -1,12 +1,11 @@
 ---
-title: Descriptor Attributes
+title: "Custom Attributes"
 ---
 
 Hot Chocolate allows to define a schema in various ways. When defining schemas with pure .NET types and custom attributes we need a way to access advanced features like custom field middleware that we have at our disposal with schema types.
 
 ```csharp
-public class QueryType
-    : ObjectType<Query>
+public class QueryType : ObjectType<Query>
 {
     protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
     {
@@ -20,6 +19,8 @@ This is where descriptor attributes come in. Descriptor attributes allow us to p
 # Built-In Attributes
 
 We have prepared the following set of built-in descriptor attributes.
+
+> ⚠️ **Note:** As middleware comprises the stages of a sequential _pipeline_, the ordering is important. The correct order to use is `UsePaging`, `UseFiltering`, `UseSorting`.
 
 ## UsePagingAttribute
 
