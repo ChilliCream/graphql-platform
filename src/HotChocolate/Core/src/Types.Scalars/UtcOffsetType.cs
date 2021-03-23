@@ -55,7 +55,7 @@ namespace HotChocolate.Types
             };
 
         private static Dictionary<string, TimeSpan> _offsetToTimeSpan =
-            new Dictionary<string, TimeSpan>();
+            new() {["-12:00"] = new TimeSpan(-12, 0, 0)};
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UtcOffsetType"/> class.
@@ -93,9 +93,9 @@ namespace HotChocolate.Types
 
         protected override TimeSpan ParseLiteral(StringValueNode valueSyntax)
         {
-            if (TryDeserializeFromString(valueSyntax.Value, out TimeSpan? value))
+            if (_offsetToTimeSpan.TryGetValue(valueSyntax.Value, out TimeSpan found))
             {
-                return value.Value;
+                return found;
             }
 
             throw ThrowHelper.UtcOffset_ParseLiteral_IsInvalid(this);
@@ -103,7 +103,12 @@ namespace HotChocolate.Types
 
         protected override StringValueNode ParseValue(TimeSpan runtimeValue)
         {
-            return new(Serialize(runtimeValue));
+            if (_timeSpanToOffset.TryGetValue(runtimeValue, out var found))
+            {
+                return new StringValueNode(found);
+            }
+
+            throw ThrowHelper.UtcOffset_ParseValue_IsInvalid(this);
         }
 
         public override bool TrySerialize(object? runtimeValue, out object? resultValue)
@@ -145,11 +150,6 @@ namespace HotChocolate.Types
 
             runtimeValue = null;
             return false;
-        }
-
-        private static string Serialize(TimeSpan value)
-        {
-            return value.ToString("c");
         }
 
         private static bool TryDeserializeFromString(
