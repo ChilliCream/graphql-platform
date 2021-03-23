@@ -5,13 +5,13 @@ using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class RgbTypeTests : ScalarTypeTestBase
+    public class RgbaTypeTests : ScalarTypeTestBase
     {
         [Fact]
         public void Schema_WithScalar_IsMatch()
         {
             // arrange
-            ISchema schema = BuildSchema<RgbType>();
+            ISchema schema = BuildSchema<RgbaType>();
 
             // act
             // assert
@@ -30,11 +30,12 @@ namespace HotChocolate.Types
         [InlineData(typeof(StringValueNode), "rgb(110%, 0%, 0%)", true)]
         [InlineData(typeof(StringValueNode), "rgb(100%,0%,60%)", true)]
         [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 60%)", true)]
-        [InlineData(typeof(StringValueNode), "rgb(255 0 153)", true)]
-        [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 1)", true)]
-        [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 100%)", true)]
-        [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 1)", true)]
-        [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 100%)", true)]
+        [InlineData(typeof(StringValueNode), "rgba(51, 170, 51, .1)", true)]
+        [InlineData(typeof(StringValueNode), "rgba(51, 170, 51, .4)", true)]
+        [InlineData(typeof(StringValueNode), "rgba(51, 170, 51, .7)", true)]
+        [InlineData(typeof(StringValueNode), "rgba(51, 170, 51,  1) ", true)]
+        [InlineData(typeof(StringValueNode), "rgba(51 170 51 / 0.4) ", true)]
+        [InlineData(typeof(StringValueNode), "rgba(51 170 51 / 40%)", true)]
         [InlineData(typeof(NullValueNode), null, true)]
         public void IsInstanceOfType_GivenValueNode_MatchExpected(
             Type type,
@@ -46,7 +47,7 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            ExpectIsInstanceOfTypeToMatch<RgbType>(valueNode, expected);
+            ExpectIsInstanceOfTypeToMatch<RgbaType>(valueNode, expected);
         }
 
         [Theory]
@@ -61,18 +62,19 @@ namespace HotChocolate.Types
         [InlineData("rgb(110%, 0%, 0%)", true)]
         [InlineData("rgb(100%,0%,60%)", true)]
         [InlineData("rgb(100%, 0%, 60%)", true)]
-        [InlineData("rgb(255 0 153)", true)]
-        [InlineData("rgb(255, 0, 153, 1)", true)]
-        [InlineData("rgb(255, 0, 153, 100%)", true)]
-        [InlineData("rgb(255 0 153 / 1)", true)]
-        [InlineData("rgb(255 0 153 / 100%)", true)]
+        [InlineData("rgba(51, 170, 51, .1)", true)]
+        [InlineData("rgba(51, 170, 51, .4)", true)]
+        [InlineData("rgba(51, 170, 51, .7)", true)]
+        [InlineData("rgba(51, 170, 51,  1)", true)]
+        [InlineData("rgba(51 170 51 / 0.4)", true)]
+        [InlineData("rgba(51 170 51 / 40%)", true)]
         [InlineData(null, true)]
         public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
         {
             // arrange
             // act
             // assert
-            ExpectIsInstanceOfTypeToMatch<RgbType>(value, expected);
+            ExpectIsInstanceOfTypeToMatch<RgbaType>(value, expected);
         }
 
         [Theory]
@@ -82,11 +84,12 @@ namespace HotChocolate.Types
         [InlineData(typeof(StringValueNode), "rgb(110%, 0%, 0%)", "rgb(110%, 0%, 0%)")]
         [InlineData(typeof(StringValueNode), "rgb(100%,0%,60%)", "rgb(100%,0%,60%)")]
         [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 60%)", "rgb(100%, 0%, 60%)")]
-        [InlineData(typeof(StringValueNode), "rgb(255 0 153)", "rgb(255 0 153)")]
-        [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 1)", "rgb(255, 0, 153, 1)")]
-        [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 100%)", "rgb(255, 0, 153, 100%)")]
-        [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 1)", "rgb(255 0 153 / 1)")]
-        [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 100%)", "rgb(255 0 153 / 100%)")]
+        [InlineData(typeof(StringValueNode), "rgba(51, 170, 51, .1)", "rgba(51, 170, 51, .1)")]
+        [InlineData(typeof(StringValueNode), "rgba(51, 170, 51, .4)", "rgba(51, 170, 51, .4)")]
+        [InlineData(typeof(StringValueNode), "rgba(51, 170, 51, .7)", "rgba(51, 170, 51, .7)")]
+        [InlineData(typeof(StringValueNode), "rgba(51, 170, 51,  1)", "rgba(51, 170, 51,  1)")]
+        [InlineData(typeof(StringValueNode), "rgba(51 170 51 / 0.4)", "rgba(51 170 51 / 0.4)")]
+        [InlineData(typeof(StringValueNode), "rgba(51 170 51 / 40%)", "rgba(51 170 51 / 40%)")]
         [InlineData(typeof(NullValueNode), null, null)]
         public void ParseLiteral_GivenValueNode_MatchExpected(
             Type type,
@@ -98,7 +101,7 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            ExpectParseLiteralToMatch<RgbType>(valueNode, expected);
+            ExpectParseLiteralToMatch<RgbaType>(valueNode, expected);
         }
 
         [Theory]
@@ -108,8 +111,9 @@ namespace HotChocolate.Types
         [InlineData(typeof(IntValueNode), 12345)]
         [InlineData(typeof(StringValueNode), "")]
         [InlineData(typeof(StringValueNode), "1")]
-        [InlineData(typeof(StringValueNode), "rgb(255, 0, 153.6, 1)")]
         [InlineData(typeof(StringValueNode), "rgb(1e2, .5e1, .5e0, +.25e2%)")]
+        [InlineData(typeof(StringValueNode), "rgba(255, 0, 153.6, 1)")]
+        [InlineData(typeof(StringValueNode), "rgba(1e2, .5e1, .5e0, +.25e2%)")]
         public void ParseLiteral_GivenValueNode_ThrowSerializationException(Type type, object value)
         {
             // arrange
@@ -117,7 +121,7 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            ExpectParseLiteralToThrowSerializationException<RgbType>(valueNode);
+            ExpectParseLiteralToThrowSerializationException<RgbaType>(valueNode);
         }
 
         [Theory]
@@ -127,11 +131,12 @@ namespace HotChocolate.Types
         [InlineData("rgb(110%, 0%, 0%)", "rgb(110%, 0%, 0%)")]
         [InlineData("rgb(100%,0%,60%)", "rgb(100%,0%,60%)")]
         [InlineData("rgb(100%, 0%, 60%)", "rgb(100%, 0%, 60%)")]
-        [InlineData("rgb(255 0 153)", "rgb(255 0 153)")]
-        [InlineData("rgb(255, 0, 153, 1)", "rgb(255, 0, 153, 1)")]
-        [InlineData("rgb(255, 0, 153, 100%)", "rgb(255, 0, 153, 100%)")]
-        [InlineData("rgb(255 0 153 / 1)", "rgb(255 0 153 / 1)")]
-        [InlineData("rgb(255 0 153 / 100%)", "rgb(255 0 153 / 100%)")]
+        [InlineData("rgba(51, 170, 51, .1)", "rgba(51, 170, 51, .1)")]
+        [InlineData("rgba(51, 170, 51, .4)", "rgba(51, 170, 51, .4)")]
+        [InlineData("rgba(51, 170, 51, .7)", "rgba(51, 170, 51, .7)")]
+        [InlineData("rgba(51, 170, 51,  1)", "rgba(51, 170, 51,  1)")]
+        [InlineData("rgba(51 170 51 / 0.4)", "rgba(51 170 51 / 0.4)")]
+        [InlineData("rgba(51 170 51 / 40%)", "rgba(51 170 51 / 40%)")]
         [InlineData(null, null)]
         public void Deserialize_GivenValue_MatchExpected(
             object resultValue,
@@ -140,7 +145,7 @@ namespace HotChocolate.Types
             // arrange
             // act
             // assert
-            ExpectDeserializeToMatch<RgbType>(resultValue, runtimeValue);
+            ExpectDeserializeToMatch<RgbaType>(resultValue, runtimeValue);
         }
 
         [Theory]
@@ -149,15 +154,15 @@ namespace HotChocolate.Types
         [InlineData(1)]
         [InlineData(12345)]
         [InlineData("")]
-        [InlineData("1")]
-        [InlineData("rgb(255, 0, 153.6, 1)")]
         [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
+        [InlineData("rgba(255, 0, 153.6, 1)")]
+        [InlineData("rgba(1e2, .5e1, .5e0, +.25e2%)")]
         public void Deserialize_GivenValue_ThrowSerializationException(object value)
         {
             // arrange
             // act
             // assert
-            ExpectDeserializeToThrowSerializationException<RgbType>(value);
+            ExpectDeserializeToThrowSerializationException<RgbaType>(value);
         }
 
         [Theory]
@@ -167,11 +172,12 @@ namespace HotChocolate.Types
         [InlineData("rgb(110%, 0%, 0%)", "rgb(110%, 0%, 0%)")]
         [InlineData("rgb(100%,0%,60%)", "rgb(100%,0%,60%)")]
         [InlineData("rgb(100%, 0%, 60%)", "rgb(100%, 0%, 60%)")]
-        [InlineData("rgb(255 0 153)", "rgb(255 0 153)")]
-        [InlineData("rgb(255, 0, 153, 1)", "rgb(255, 0, 153, 1)")]
-        [InlineData("rgb(255, 0, 153, 100%)", "rgb(255, 0, 153, 100%)")]
-        [InlineData("rgb(255 0 153 / 1)", "rgb(255 0 153 / 1)")]
-        [InlineData("rgb(255 0 153 / 100%)", "rgb(255 0 153 / 100%)")]
+        [InlineData("rgba(51, 170, 51, .1)", "rgba(51, 170, 51, .1)")]
+        [InlineData("rgba(51, 170, 51, .4)", "rgba(51, 170, 51, .4)")]
+        [InlineData("rgba(51, 170, 51, .7)", "rgba(51, 170, 51, .7)")]
+        [InlineData("rgba(51, 170, 51,  1)", "rgba(51, 170, 51,  1)")]
+        [InlineData("rgba(51 170 51 / 0.4)", "rgba(51 170 51 / 0.4)")]
+        [InlineData("rgba(51 170 51 / 40%)", "rgba(51 170 51 / 40%)")]
         [InlineData(null, null)]
         public void Serialize_GivenObject_MatchExpectedType(
             object runtimeValue,
@@ -180,7 +186,7 @@ namespace HotChocolate.Types
             // arrange
             // act
             // assert
-            ExpectSerializeToMatch<RgbType>(runtimeValue, resultValue);
+            ExpectSerializeToMatch<RgbaType>(runtimeValue, resultValue);
         }
 
         [Theory]
@@ -190,14 +196,15 @@ namespace HotChocolate.Types
         [InlineData(12345)]
         [InlineData("")]
         [InlineData("1")]
-        [InlineData("rgb(255, 0, 153.6, 1)")]
         [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
+        [InlineData("rgba(255, 0, 153.6, 1)")]
+        [InlineData("rgba(1e2, .5e1, .5e0, +.25e2%)")]
         public void Serialize_GivenObject_ThrowSerializationException(object value)
         {
             // arrange
             // act
             // assert
-            ExpectSerializeToThrowSerializationException<RgbType>(value);
+            ExpectSerializeToThrowSerializationException<RgbaType>(value);
         }
 
         [Theory]
@@ -207,18 +214,19 @@ namespace HotChocolate.Types
         [InlineData(typeof(StringValueNode), "rgb(110%, 0%, 0%)")]
         [InlineData(typeof(StringValueNode), "rgb(100%,0%,60%)")]
         [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 60%)")]
-        [InlineData(typeof(StringValueNode), "rgb(255 0 153)")]
-        [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 1)")]
-        [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 100%)")]
-        [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 1)")]
-        [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 100%)")]
+        [InlineData(typeof(StringValueNode), "rgba(51, 170, 51, .1)")]
+        [InlineData(typeof(StringValueNode), "rgba(51, 170, 51, .4)")]
+        [InlineData(typeof(StringValueNode), "rgba(51, 170, 51, .7)")]
+        [InlineData(typeof(StringValueNode), "rgba(51, 170, 51,  1)")]
+        [InlineData(typeof(StringValueNode), "rgba(51 170 51 / 0.4)")]
+        [InlineData(typeof(StringValueNode), "rgba(51 170 51 / 40%)")]
         [InlineData(typeof(NullValueNode), null)]
         public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
         {
             // arrange
             // act
             // assert
-            ExpectParseValueToMatchType<RgbType>(value, type);
+            ExpectParseValueToMatchType<RgbaType>(value, type);
         }
 
         [Theory]
@@ -228,14 +236,15 @@ namespace HotChocolate.Types
         [InlineData(12345)]
         [InlineData("")]
         [InlineData("1")]
-        [InlineData("rgb(255, 0, 153.6, 1)")]
         [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
+        [InlineData("rgba(255, 0, 153.6, 1)")]
+        [InlineData("rgba(1e2, .5e1, .5e0, +.25e2%)")]
         public void ParseValue_GivenObject_ThrowSerializationException(object value)
         {
             // arrange
             // act
             // assert
-            ExpectParseValueToThrowSerializationException<RgbType>(value);
+            ExpectParseValueToThrowSerializationException<RgbaType>(value);
         }
 
         [Theory]
@@ -245,18 +254,19 @@ namespace HotChocolate.Types
         [InlineData(typeof(StringValueNode), "rgb(110%, 0%, 0%)")]
         [InlineData(typeof(StringValueNode), "rgb(100%,0%,60%)")]
         [InlineData(typeof(StringValueNode), "rgb(100%, 0%, 60%)")]
-        [InlineData(typeof(StringValueNode), "rgb(255 0 153)")]
-        [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 1)")]
-        [InlineData(typeof(StringValueNode), "rgb(255, 0, 153, 100%)")]
-        [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 1)")]
-        [InlineData(typeof(StringValueNode), "rgb(255 0 153 / 100%)")]
+        [InlineData(typeof(StringValueNode), "rgba(51, 170, 51, .1)")]
+        [InlineData(typeof(StringValueNode), "rgba(51, 170, 51, .4)")]
+        [InlineData(typeof(StringValueNode), "rgba(51, 170, 51, .7)")]
+        [InlineData(typeof(StringValueNode), "rgba(51, 170, 51,  1)")]
+        [InlineData(typeof(StringValueNode), "rgba(51 170 51 / 0.4)")]
+        [InlineData(typeof(StringValueNode), "rgba(51 170 51 / 40%)")]
         [InlineData(typeof(NullValueNode), null)]
         public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
         {
             // arrange
             // act
             // assert
-            ExpectParseResultToMatchType<RgbType>(value, type);
+            ExpectParseResultToMatchType<RgbaType>(value, type);
         }
 
         [Theory]
@@ -266,14 +276,15 @@ namespace HotChocolate.Types
         [InlineData(12345)]
         [InlineData("")]
         [InlineData("1")]
-        [InlineData("rgb(255, 0, 153.6, 1)")]
         [InlineData("rgb(1e2, .5e1, .5e0, +.25e2%)")]
+        [InlineData("rgba(255, 0, 153.6, 1)")]
+        [InlineData("rgba(1e2, .5e1, .5e0, +.25e2%)")]
         public void ParseResult_GivenObject_ThrowSerializationException(object value)
         {
             // arrange
             // act
             // assert
-            ExpectParseResultToThrowSerializationException<RgbType>(value);
+            ExpectParseResultToThrowSerializationException<RgbaType>(value);
         }
     }
 }

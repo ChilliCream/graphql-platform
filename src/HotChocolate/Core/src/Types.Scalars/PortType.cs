@@ -1,6 +1,7 @@
 using HotChocolate.Language;
+using HotChocolate.Types.Scalars;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The `Port` scalar type represents a field whose value is a valid TCP port within the
@@ -30,7 +31,6 @@ namespace HotChocolate.Types.Scalars
             BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, description, 0, 65535, bind)
         {
-            Description = description;
         }
 
         /// <inheritdoc />

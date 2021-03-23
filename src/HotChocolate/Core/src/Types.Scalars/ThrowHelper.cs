@@ -1,4 +1,6 @@
-namespace HotChocolate.Types.Scalars
+using HotChocolate.Types.Scalars;
+
+namespace HotChocolate.Types
 {
     internal static class ThrowHelper
     {
@@ -152,6 +154,50 @@ namespace HotChocolate.Types.Scalars
                     .SetMessage(ScalarResources.IsbnType_IsInvalid_ParseLiteral)
                     .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                     .SetExtension("actualType", WellKnownScalarTypes.Isbn)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException LocalDateType_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.LocalDateType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.LocalDate)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException LocalDateType_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.LocalDateType_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.LocalDate)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException LocalTimeType_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.LocalTimeType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.LocalTime)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException LocalTimeType_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.LocalTimeType_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.LocalTime)
                     .Build(),
                 type);
         }
@@ -481,6 +527,39 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
+        public static SerializationException RgbaType_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.RgbaType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.Rgba)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException RgbaType_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.RgbaType_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.Rgba)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException UnsignedIntType_ParseValue_IsNotUnsigned(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.RgbType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.Rgb)
+                    .Build(),
+                type);
+        }
+
         public static SerializationException UnsignedIntType_ParseLiteral_IsNotUnsigned(IType type)
         {
             return new SerializationException(
@@ -492,13 +571,24 @@ namespace HotChocolate.Types.Scalars
                 type);
         }
 
-        public static SerializationException UnsignedIntType_ParseValue_IsNotUnsigned(IType type)
+        public static SerializationException UnsignedLongType_ParseValue_IsNotUnsigned(IType type)
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.UnsignedIntType_IsNotUnsigned_ParseValue)
+                    .SetMessage(ScalarResources.UnsignedLongType_IsNotUnsigned_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", WellKnownScalarTypes.UnsignedInt)
+                    .SetExtension("actualType", WellKnownScalarTypes.UnsignedLong)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException UnsignedLongType_ParseLiteral_IsNotUnsigned(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.UnsignedLongType_IsNotUnsigned_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.UnsignedLong)
                     .Build(),
                 type);
         }

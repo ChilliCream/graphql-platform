@@ -1,6 +1,7 @@
 using HotChocolate.Language;
+using HotChocolate.Types.Scalars;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The NonNegativeIntType scalar type represents a unsigned 32-bit numeric non-fractional value
@@ -27,7 +28,6 @@ namespace HotChocolate.Types.Scalars
             BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, description, 0, int.MaxValue, bind)
         {
-            Description = description;
         }
 
         /// <inheritdoc />
