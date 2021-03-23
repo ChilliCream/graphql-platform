@@ -1,8 +1,8 @@
-using System;
 using System.Text.RegularExpressions;
+using HotChocolate.Types.Scalars;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The `ISBN` scalar type is a ISBN-10 or ISBN-13 number:
@@ -22,10 +22,25 @@ namespace HotChocolate.Types.Scalars
         /// Initializes a new instance of the <see cref="IsbnType"/> class.
         /// </summary>
         public IsbnType()
-            : base(WellKnownScalarTypes.Isbn,
+            : this(
+                WellKnownScalarTypes.Isbn,
+                ScalarResources.IsbnType_Description)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IsbnType"/> class.
+        /// </summary>
+        public IsbnType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(
+                name,
                 _validationPattern,
-                ScalarResources.IsbnType_Description,
-                RegexOptions.Compiled | RegexOptions.IgnoreCase)
+                description,
+                RegexOptions.Compiled | RegexOptions.IgnoreCase,
+                bind)
         {
         }
 

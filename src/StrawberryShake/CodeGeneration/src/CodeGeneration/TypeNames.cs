@@ -30,6 +30,7 @@ namespace StrawberryShake.CodeGeneration
         public const string IDocument = StrawberryshakeNamespace + "IDocument";
         public const string GraphQLClientException = StrawberryshakeNamespace + "GraphQLClientException";
         public const string IClientError = StrawberryshakeNamespace + "IClientError";
+        public const string ClientError = StrawberryshakeNamespace + "ClientError";
         public const string DocumentHash = StrawberryshakeNamespace + "DocumentHash";
         public const string RequestStrategy = StrawberryshakeNamespace + "RequestStrategy";
 
@@ -57,6 +58,7 @@ namespace StrawberryShake.CodeGeneration
         public const string Type = "global::System.Type";
         public const string JsonElement = "global::System.Text.Json.JsonElement";
         public const string JsonDocument = "global::System.Text.Json.JsonDocument";
+        public const string JsonValueKind = "global::System.Text.Json.JsonValueKind";
         public const string JsonWriterOptions = "global::System.Text.Json.JsonWriterOptions";
         public const string Utf8JsonWriter= "global::System.Text.Json.Utf8JsonWriter";
         public const string ParseError = StrawberryshakeNamespace + "Json.JsonErrorParser.ParseErrors";
@@ -98,6 +100,7 @@ namespace StrawberryShake.CodeGeneration
         public const string NotSupportedException = "global::System.NotSupportedException";
         public const string ArgumentNullException = "global::System.ArgumentNullException";
         public const string ArgumentException = "global::System.ArgumentException";
+        public const string Exception = "global::System.Exception";
 
         public const string IServiceCollection = GlobalDependencyInjectionNamespace + "IServiceCollection";
         public const string IServiceProvider = "global::System.IServiceProvider";

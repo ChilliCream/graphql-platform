@@ -1,7 +1,8 @@
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
+using HotChocolate.Types.Scalars;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The `IPv4` scalar type represents a valid a IPv4 address as defined in
@@ -18,11 +19,25 @@ namespace HotChocolate.Types.Scalars
         /// Initializes a new instance of the <see cref="IPv4Type"/> class.
         /// </summary>
         public IPv4Type()
-            : base(
+            : this(
                 WellKnownScalarTypes.IPv4,
+                ScalarResources.IPv4Type_Description)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IPv4Type"/> class.
+        /// </summary>
+        public IPv4Type(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(
+                name,
                 _validationPattern,
-                ScalarResources.IPv4Type_Description,
-                RegexOptions.Compiled | RegexOptions.IgnoreCase)
+                description,
+                RegexOptions.Compiled | RegexOptions.IgnoreCase,
+                bind)
         {
         }
 

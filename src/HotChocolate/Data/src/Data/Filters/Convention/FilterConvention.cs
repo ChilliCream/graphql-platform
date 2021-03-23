@@ -47,8 +47,7 @@ namespace HotChocolate.Data.Filters
         internal new FilterConventionDefinition? Definition => base.Definition;
 
         /// <inheritdoc />
-        protected override FilterConventionDefinition CreateDefinition(
-            IConventionContext context)
+        protected override FilterConventionDefinition CreateDefinition(IConventionContext context)
         {
             if (_configure is null)
             {
@@ -60,7 +59,7 @@ namespace HotChocolate.Data.Filters
                 context.DescriptorContext,
                 context.Scope);
 
-            _configure(descriptor);
+            _configure!(descriptor);
             _configure = null;
 
             return descriptor.CreateDefinition();
@@ -99,9 +98,8 @@ namespace HotChocolate.Data.Filters
             }
 
             _namingConventions = context.DescriptorContext.Naming;
-            _operations = Definition.Operations.ToDictionary(
-                x => x.Id,
-                FilterOperation.FromDefinition);
+            _operations =
+                Definition.Operations.ToDictionary(x => x.Id, FilterOperation.FromDefinition);
             _bindings = Definition.Bindings;
             _configs = Definition.Configurations;
             _argumentName = Definition.ArgumentName;

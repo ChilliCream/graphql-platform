@@ -189,9 +189,45 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
+        internal static string LocalTimeType_Description {
+            get {
+                return ResourceManager.GetString("LocalTimeType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string LocalTimeType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("LocalTimeType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string LocalTimeType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("LocalTimeType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+        
         internal static string NegativeFloatType_Description {
             get {
                 return ResourceManager.GetString("NegativeFloatType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string LocalDateType_Description {
+            get {
+                return ResourceManager.GetString("LocalDateType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string LocalDateType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("LocalDateType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string LocalDateType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("LocalDateType_IsInvalid_ParseValue", resourceCulture);
             }
         }
         
@@ -417,6 +453,24 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
+        internal static string RgbaType_Description {
+            get {
+                return ResourceManager.GetString("RgbaType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string RgbaType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("RgbaType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string RgbaType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("RgbaType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+        
         internal static string UnsignedIntType_Description {
             get {
                 return ResourceManager.GetString("UnsignedIntType_Description", resourceCulture);
@@ -434,22 +488,22 @@ namespace HotChocolate.Types.Scalars {
                 return ResourceManager.GetString("UnsignedIntType_IsNotUnsigned_ParseValue", resourceCulture);
             }
         }
-
-        internal static string LocalDateType_Description {
+        
+        internal static string UnsignedLongType_Description {
             get {
-                return ResourceManager.GetString("LocalDateType_Description", resourceCulture);
+                return ResourceManager.GetString("UnsignedLongType_Description", resourceCulture);
             }
         }
         
-        internal static string LocalDateType_IsInvalid_ParseLiteral {
+        internal static string UnsignedLongType_IsNotUnsigned_ParseLiteral {
             get {
-                return ResourceManager.GetString("LocalDateType_IsInvalid_ParseLiteral", resourceCulture);
+                return ResourceManager.GetString("UnsignedLongType_IsNotUnsigned_ParseLiteral", resourceCulture);
             }
         }
         
-        internal static string LocalDateType_IsInvalid_ParseValue {
+        internal static string UnsignedLongType_IsNotUnsigned_ParseValue {
             get {
-                return ResourceManager.GetString("LocalDateType_IsInvalid_ParseValue", resourceCulture);
+                return ResourceManager.GetString("UnsignedLongType_IsNotUnsigned_ParseValue", resourceCulture);
             }
         }
     }

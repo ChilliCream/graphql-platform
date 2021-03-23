@@ -6,10 +6,11 @@ namespace HotChocolate.Types
         public const string HexColor = nameof(HexColor);
         public const string Hsl = nameof(Hsl);
         public const string Hsla = nameof(Hsla);
-        public const string Isbn = nameof(Isbn);
         public const string IPv4 = nameof(IPv4);
         public const string IPv6 = nameof(IPv6);
+        public const string Isbn = nameof(Isbn);
         public const string LocalDate = nameof(LocalDate);
+        public const string LocalTime = nameof(LocalTime);
         public const string MacAddress = nameof(MacAddress);
         public const string NegativeFloat = nameof(NegativeFloat);
         public const string NegativeInt = nameof(NegativeInt);
@@ -23,6 +24,8 @@ namespace HotChocolate.Types
         public const string PositiveInt = nameof(PositiveInt);
         public const string PostalCode = nameof(PostalCode);
         public const string Rgb = nameof(Rgb);
+        public const string Rgba = nameof(Rgba);
         public const string UnsignedInt = nameof(UnsignedInt);
+        public const string UnsignedLong = nameof(UnsignedLong);
     }
 }

@@ -18,6 +18,11 @@ namespace HotChocolate.Execution
         ISchema Schema { get; }
 
         /// <summary>
+        /// Gets the request executor version.
+        /// </summary>
+        ulong ExecutorVersion { get; }
+
+        /// <summary>
         /// Gets or sets the scoped request services.
         /// </summary>
         IServiceProvider Services { get; }

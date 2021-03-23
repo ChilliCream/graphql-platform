@@ -19,7 +19,7 @@ namespace HotChocolate.Types
         : NamedTypeBase<ObjectTypeDefinition>
         , IObjectType
     {
-        private readonly List<InterfaceType> _implements = new();
+        private InterfaceType[] _implements = Array.Empty<InterfaceType>();
         private Action<IObjectTypeDescriptor>? _configure;
         private IsOfType? _isOfType;
 
@@ -58,10 +58,10 @@ namespace HotChocolate.Types
             _implements.Any(t => t.Name.Equals(interfaceTypeName));
 
         public bool IsImplementing(InterfaceType interfaceType) =>
-            _implements.IndexOf(interfaceType) != -1;
+            Array.IndexOf(_implements, interfaceType) != -1;
 
         public bool IsImplementing(IInterfaceType interfaceType) =>
-            interfaceType is InterfaceType i && _implements.IndexOf(i) != -1;
+            interfaceType is InterfaceType i && _implements.Contains(i);
 
         protected override ObjectTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
@@ -103,10 +103,23 @@ namespace HotChocolate.Types
                         t,
                         new FieldCoordinate(Name, t.Name),
                         sortByName)).ToList();
-                Fields = new FieldCollection<ObjectField>(fields, sortByName);
+                Fields = FieldCollection<ObjectField>.From(fields, sortByName);
 
                 // resolve interface references
-                CompleteInterfaces(context, definition, RuntimeType, _implements, this, SyntaxNode);
+                IReadOnlyList<ITypeReference> interfaces = definition.GetInterfaces();
+                if (interfaces.Count > 0)
+                {
+                    var implements = new List<InterfaceType>();
+
+                    CompleteInterfaces(
+                        context,
+                        interfaces,
+                        RuntimeType,
+                        implements,
+                        this, SyntaxNode);
+
+                    _implements = implements.ToArray();
+                }
 
                 // complete the type resolver and fields
                 CompleteTypeResolver(context);
@@ -138,15 +151,15 @@ namespace HotChocolate.Types
             ITypeCompletionContext context,
             ObjectTypeDefinition definition)
         {
-            ObjectFieldDefinition[] invalidFields =
-                definition.Fields.Where(t => t.Type is null).ToArray();
+            var hasErrors = false;
 
-            foreach (ObjectFieldDefinition field in invalidFields)
+            foreach (ObjectFieldDefinition field in definition.Fields.Where(t => t.Type is null))
             {
+                hasErrors = true;
                 context.ReportError(ObjectType_UnableToInferOrResolveType(Name, this, field));
             }
 
-            return invalidFields.Length == 0;
+            return !hasErrors;
         }
 
         private bool IsOfTypeWithClrType(
