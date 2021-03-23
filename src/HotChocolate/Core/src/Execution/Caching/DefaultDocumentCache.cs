@@ -13,6 +13,10 @@ namespace HotChocolate.Execution.Caching
             _cache = new Cache<DocumentNode>(capacity);
         }
 
+        public int Capacity => _cache.Size;
+
+        public int Count => _cache.Usage;
+
         public void TryAddDocument(
             string documentId,
             DocumentNode document) =>
