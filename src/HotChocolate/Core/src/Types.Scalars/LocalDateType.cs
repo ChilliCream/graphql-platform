@@ -90,8 +90,8 @@ namespace HotChocolate.Types.Scalars
                 case string s when TryDeserializeFromString(s, out DateTime? d):
                     runtimeValue = d;
                     return true;
-                case DateTimeOffset:
-                    runtimeValue = resultValue;
+                case DateTimeOffset d:
+                    runtimeValue = d.DateTime;
                     return true;
                 case DateTime dt:
                     runtimeValue = new DateTimeOffset(
