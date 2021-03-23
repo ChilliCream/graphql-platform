@@ -2,6 +2,8 @@
 title: "Extending Types"
 ---
 
+import { ExampleTabs } from "../../../components/mdx/example-tabs"
+
 In GraphQL we only have one query, mutation, and subscription type. These types can become huge, which makes them hard to maintain. To divide types into separate definitions, GraphQL allows to extend types.
 
 ```graphql
