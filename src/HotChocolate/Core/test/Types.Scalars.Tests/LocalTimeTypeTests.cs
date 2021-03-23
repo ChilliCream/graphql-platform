@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
 using HotChocolate.Language;
@@ -17,6 +16,7 @@ namespace HotChocolate.Types.Scalars
             ISchema schema = BuildSchema<LocalTimeType>();
 
             // act
+
             // assert
             schema.ToString().MatchSnapshot();
         }
@@ -31,7 +31,7 @@ namespace HotChocolate.Types.Scalars
             TypeKind kind = type.Kind;
 
             // assert
-            Assert.Equal(TypeKind.Scalar, type.Kind);
+            Assert.Equal(TypeKind.Scalar, kind);
         }
 
         [Fact]
@@ -39,8 +39,7 @@ namespace HotChocolate.Types.Scalars
         {
             // arrange
             ScalarType scalar = CreateType<LocalTimeType>();
-            var valueSyntax = new StringValueNode(
-                "2018-06-29T08:46:14+04:00");
+            var valueSyntax = new StringValueNode("2018-06-29T08:46:14+04:00");
 
             // act
             var result = scalar.IsInstanceOfType(valueSyntax);
@@ -68,10 +67,8 @@ namespace HotChocolate.Types.Scalars
         {
             // arrange
             ScalarType scalar = CreateType<LocalTimeType>();
-            var valueSyntax = new StringValueNode(
-                "2018-06-29T14:46:14");
-            var expectedResult = new DateTime(
-                2018, 6, 29, 14, 46, 14);
+            var valueSyntax = new StringValueNode("2018-06-29T14:46:14");
+            var expectedResult = new DateTime(2018, 6, 29, 14, 46, 14);
 
             // act
             object result = (DateTime)scalar.ParseLiteral(valueSyntax)!;
@@ -86,23 +83,19 @@ namespace HotChocolate.Types.Scalars
         [InlineData("de-CH")]
         [InlineData("de-de")]
         [Theory]
-        public void LocalTime_ParseLiteralStringValueDifferentCulture(
-            string cultureName)
+        public void LocalTime_ParseLiteralStringValueDifferentCulture(string cultureName)
         {
             // arrange
-            Thread.CurrentThread.CurrentCulture =
-                CultureInfo.GetCultureInfo(cultureName);
+            Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo(cultureName);
 
             ScalarType scalar = new LocalTimeType();
-            var valueSyntax = new StringValueNode(
-                "2018-06-29T08:46:14+04:00");
+            var valueSyntax = new StringValueNode("2018-06-29T08:46:14+04:00");
             var expectedDateTime = new DateTimeOffset(
                 new DateTime(2018, 6, 29, 8, 46, 14),
                 new TimeSpan(4, 0, 0));
 
             // act
-            var dateTime = (DateTime)scalar
-                .ParseLiteral(valueSyntax)!;
+            var dateTime = (DateTime)scalar.ParseLiteral(valueSyntax)!;
 
             // assert
             Assert.Equal(expectedDateTime, dateTime);
@@ -155,10 +148,8 @@ namespace HotChocolate.Types.Scalars
         {
             // arrange
             ScalarType scalar = new LocalTimeType();
-            DateTimeOffset dateTime = new DateTime(
-                2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-
-            string expectedValue = "08:46:14";
+            DateTimeOffset dateTime = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
+            const string expectedValue = "08:46:14";
 
             // act
             string serializedValue = (string)scalar.Serialize(dateTime)!;
@@ -191,7 +182,7 @@ namespace HotChocolate.Types.Scalars
             ScalarType scalar = new LocalTimeType();
 
             // act
-            var success = scalar.TryDeserialize(null, out object deserialized);
+            var success = scalar.TryDeserialize(null, out object? deserialized);
 
             // assert
             Assert.True(success);
@@ -223,8 +214,7 @@ namespace HotChocolate.Types.Scalars
                 new TimeSpan(4, 0, 0));
 
             // act
-            var deserializedValue = (DateTime)scalar
-                .Deserialize("2018-06-11T08:46:14+04:00")!;
+            var deserializedValue = (DateTime)scalar.Deserialize("2018-06-11T08:46:14+04:00")!;
 
             // assert
             Assert.Equal(runtimeValue, deserializedValue);
@@ -235,10 +225,7 @@ namespace HotChocolate.Types.Scalars
         {
             // arrange
             ScalarType scalar = CreateType<LocalTimeType>();
-            object? resultValue = new DateTimeOffset(
-                new DateTime(2018, 6, 11, 8, 46, 14),
-                new TimeSpan(4, 0, 0));
-            object? runtimeValue = new DateTimeOffset(
+            object resultValue = new DateTimeOffset(
                 new DateTime(2018, 6, 11, 8, 46, 14),
                 new TimeSpan(4, 0, 0));
 
@@ -246,7 +233,7 @@ namespace HotChocolate.Types.Scalars
             object? result = scalar.Deserialize(resultValue);
 
             // assert
-            Assert.Equal(resultValue, runtimeValue);
+            Assert.Equal(resultValue, result);
         }
 
         [Fact]
@@ -254,17 +241,14 @@ namespace HotChocolate.Types.Scalars
         {
             // arrange
             ScalarType scalar = CreateType<LocalTimeType>();
-            object? resultValue =  new DateTime(
-                2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-            object? runtimeValue = new DateTime(
-                2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
+            object resultValue = new DateTime( 2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
 
 
             // act
             object? result = scalar.Deserialize(resultValue);
 
             // assert
-            Assert.Equal(resultValue, runtimeValue);
+            Assert.Equal(resultValue, result);
         }
 
         [Fact]
@@ -274,7 +258,7 @@ namespace HotChocolate.Types.Scalars
             ScalarType scalar = new LocalTimeType();
 
             // act
-            var success = scalar.TryDeserialize("abc", out object? deserialized);
+            var success = scalar.TryDeserialize("abc", out object? _);
 
             // assert
             Assert.False(success);
@@ -312,7 +296,7 @@ namespace HotChocolate.Types.Scalars
         {
             // arrange
             ScalarType scalar = CreateType<LocalTimeType>();
-            object? runtimeValue = new IntValueNode(1);
+            object runtimeValue = new IntValueNode(1);
 
             // act
             Exception? result = Record.Exception(() => scalar.Deserialize(runtimeValue));
