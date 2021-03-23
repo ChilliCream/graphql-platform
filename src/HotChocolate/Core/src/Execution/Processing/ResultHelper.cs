@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Processing
@@ -147,7 +148,6 @@ namespace HotChocolate.Execution.Processing
 
         public IQueryResult BuildResult()
         {
-            // TODO : add null errors
             while (_data != null && _nonNullViolations.TryPop(out NonNullViolation violation))
             {
                 Path? path = violation.Path;
@@ -216,16 +216,15 @@ namespace HotChocolate.Execution.Processing
                     }
                     else
                     {
-                        // TODO : ThrowHelper
-                        throw new NotSupportedException();
+                        break;
                     }
                 }
             }
 
             if (_data is null && _errors.Count == 0)
             {
-                // TODO : ThrowHelper
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(
+                    Resources.ResultHelper_BuildResult_InvalidResult);
             }
 
             return new QueryResult
