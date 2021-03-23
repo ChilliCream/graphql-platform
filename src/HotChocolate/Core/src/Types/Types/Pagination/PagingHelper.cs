@@ -57,7 +57,7 @@ namespace HotChocolate.Types.Pagination
             FieldMiddleware placeholder)
         {
             options = context.GetSettings(options);
-            entityType ??= context.GetType<IOutputType>(definition.Type).ToRuntimeType();
+            entityType ??= context.GetType<IOutputType>(definition.Type!).ToRuntimeType();
             resolvePagingProvider ??= ResolvePagingProvider;
 
             IExtendedType sourceType = GetSourceType(context.TypeInspector, definition, entityType);

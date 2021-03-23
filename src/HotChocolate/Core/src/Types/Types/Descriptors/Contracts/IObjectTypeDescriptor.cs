@@ -4,6 +4,8 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public interface IObjectTypeDescriptor
@@ -18,7 +20,7 @@ namespace HotChocolate.Types
         /// The <see cref="ObjectTypeDefinitionNode"/> of a parsed schema.
         /// </param>
         IObjectTypeDescriptor SyntaxNode(
-            ObjectTypeDefinitionNode objectTypeDefinition);
+            ObjectTypeDefinitionNode? objectTypeDefinition);
 
         /// <summary>
         /// Defines the name of the <see cref="ObjectType"/>.
@@ -35,7 +37,7 @@ namespace HotChocolate.Types
         /// that can be accessed via introspection.
         /// </summary>
         /// <param name="value">The object type description.</param>
-        IObjectTypeDescriptor Description(string value);
+        IObjectTypeDescriptor Description(string? value);
 
         /// <summary>
         /// Specifies an interface that is implemented by the
@@ -101,7 +103,7 @@ namespace HotChocolate.Types
         /// <param name="isOfType">
         /// The delegate that provides the IsInstanceOfType functionality.
         /// </param>
-        IObjectTypeDescriptor IsOfType(IsOfType isOfType);
+        IObjectTypeDescriptor IsOfType(IsOfType? isOfType);
 
         /// <summary>
         /// Specifies an object type field.
@@ -139,5 +141,19 @@ namespace HotChocolate.Types
         IObjectTypeDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments);
+
+        /// <summary>
+        /// If configuring a type extension this is the type that shall be extended.
+        /// </summary>
+        /// <param name="extendsType">
+        /// The type to extend.
+        /// </param>
+        IObjectTypeDescriptor ExtendsType(Type extendsType);
+
+        /// <summary>
+        /// If configuring a type extension this is the type that shall be extended.
+        /// </summary>
+        /// <typeparam name="T">The type to extend.</typeparam>
+        IObjectTypeDescriptor ExtendsType<T>();
     }
 }

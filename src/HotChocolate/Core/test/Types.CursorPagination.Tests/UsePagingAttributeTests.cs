@@ -118,11 +118,14 @@ namespace HotChocolate.Types.Pagination
         public class Query
         {
             [UsePaging]
-            public IQueryable<Foo> Foos { get; set; } = new List<Foo>
-            {
-                new Foo { Bar = "first" },
-                new Foo { Bar = "second" },
-            }.AsQueryable();
+            public IQueryable<Foo> Foos () 
+            { 
+                return new List<Foo>
+                {
+                    new Foo { Bar = "first" },
+                    new Foo { Bar = "second" },
+                }.AsQueryable();
+            }
         }
 
         [ExtendObjectType(Name = "Query")]

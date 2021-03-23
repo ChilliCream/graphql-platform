@@ -308,5 +308,11 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("OperationContext_GetQueryRoot_InvalidCast", resourceCulture);
             }
         }
+        
+        internal static string ErrorHelper_RequestTimeout {
+            get {
+                return ResourceManager.GetString("ErrorHelper_RequestTimeout", resourceCulture);
+            }
+        }
     }
 }
