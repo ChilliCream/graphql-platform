@@ -145,13 +145,5 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<IIdSerializer, IdSerializer>();
             return services;
         }
-
-        internal static IServiceCollection TryAddDefaultTransactionScopeHandler(
-            this IServiceCollection services)
-        {
-            services.TryAddSingleton<ITransactionScopeHandler, NoOpTransactionScopeHandler>();
-            return services;
-        }
-
     }
 }

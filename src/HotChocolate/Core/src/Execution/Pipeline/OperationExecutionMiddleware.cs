@@ -28,7 +28,7 @@ namespace HotChocolate.Execution.Pipeline
             QueryExecutor queryExecutor,
             MutationExecutor mutationExecutor,
             SubscriptionExecutor subscriptionExecutor,
-            ITransactionScopeHandler transactionScopeHandler)
+            [SchemaService] ITransactionScopeHandler transactionScopeHandler)
         {
             _next = next ??
                 throw new ArgumentNullException(nameof(next));
@@ -93,16 +93,12 @@ namespace HotChocolate.Execution.Pipeline
 
                 try
                 {
-                    IQueryResult? result = await ExecuteQueryOrMutationAsync(
+                    await ExecuteQueryOrMutationAsync(
                         context, batchDispatcher, operation, operationContext)
                         .ConfigureAwait(false);
 
-                    if (operationContext.Execution.DeferredTaskBacklog.IsEmpty ||
-                        result is null)
-                    {
-                        context.Result = result;
-                    }
-                    else
+                    if(!operationContext.Execution.DeferredTaskBacklog.IsEmpty &&
+                       context.Result is IQueryResult result)
                     {
                         // if we have deferred query task we will take ownership
                         // of the life time handling and return the operation context
@@ -131,14 +127,12 @@ namespace HotChocolate.Execution.Pipeline
             }
         }
 
-        private async Task<IQueryResult?> ExecuteQueryOrMutationAsync(
+        private async Task ExecuteQueryOrMutationAsync(
             IRequestContext context,
             IBatchDispatcher batchDispatcher,
             IPreparedOperation operation,
             OperationContext operationContext)
         {
-            IQueryResult? result = null;
-
             if (operation.Definition.Operation == OperationType.Query)
             {
                 object? query = GetQueryRootValue(context);
@@ -152,7 +146,7 @@ namespace HotChocolate.Execution.Pipeline
                     query,
                     () => query);
 
-                result = await _queryExecutor
+                context.Result = await _queryExecutor
                     .ExecuteAsync(operationContext)
                     .ConfigureAwait(false);
             }
@@ -172,14 +166,12 @@ namespace HotChocolate.Execution.Pipeline
                     mutation,
                     () => GetQueryRootValue(context));
 
-                result = await _mutationExecutor
+                context.Result = await _mutationExecutor
                     .ExecuteAsync(operationContext)
                     .ConfigureAwait(false);
 
                 transactionScope.Complete();
             }
-
-            return result;
         }
 
         private object? GetQueryRootValue(IRequestContext context) =>

@@ -1,4 +1,4 @@
-namespace HotChocolate.Execution.Pipeline
+namespace HotChocolate.Execution.Processing
 {
     /// <summary>
     /// Allows to make mutation execution transactional.

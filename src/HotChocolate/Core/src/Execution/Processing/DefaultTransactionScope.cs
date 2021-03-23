@@ -1,6 +1,6 @@
 using System.Transactions;
 
-namespace HotChocolate.Execution.Pipeline
+namespace HotChocolate.Execution.Processing
 {
     /// <summary>
     /// Represents the default mutation transaction scope implementation.
@@ -37,7 +37,7 @@ namespace HotChocolate.Execution.Pipeline
         /// </summary>
         public void Complete()
         {
-            if (Context.Result is QueryResult { Errors: { Count: 0 } })
+            if (Context.Result is QueryResult { Data: not null, Errors: null or { Count: 0 } })
             {
                 Transaction.Complete();
             }

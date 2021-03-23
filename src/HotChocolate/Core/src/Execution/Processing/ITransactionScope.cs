@@ -1,6 +1,6 @@
 using System;
 
-namespace HotChocolate.Execution.Pipeline
+namespace HotChocolate.Execution.Processing
 {
     /// <summary>
     /// Represents a mutation transaction scope.

@@ -1,4 +1,4 @@
-namespace HotChocolate.Execution.Pipeline
+namespace HotChocolate.Execution.Processing
 {
     /// <summary>
     /// This transaction scope handler represents creates

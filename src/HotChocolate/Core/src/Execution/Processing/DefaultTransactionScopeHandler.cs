@@ -1,15 +1,13 @@
+using System;
 using System.Transactions;
-using HotChocolate.Language;
 
-namespace HotChocolate.Execution.Pipeline
+namespace HotChocolate.Execution.Processing
 {
     /// <summary>
     /// Represents the default mutation transaction scope handler implementation.
     /// </summary>
     public class DefaultTransactionScopeHandler : ITransactionScopeHandler
     {
-        private readonly NoOpTransactionScope _noOpTransaction = new();
-
         /// <summary>
         /// Creates a new transaction scope for the current
         /// request represented by the <see cref="IRequestContext"/>.
@@ -22,19 +20,14 @@ namespace HotChocolate.Execution.Pipeline
         /// </returns>
         public virtual ITransactionScope Create(IRequestContext context)
         {
-            if (context.Operation.Type == OperationType.Mutation)
-            {
-                return new DefaultTransactionScope(
-                    context,
-                    new TransactionScope(
-                        TransactionScopeOption.Required,
-                        new TransactionOptions
-                        {
-                            IsolationLevel = IsolationLevel.ReadCommitted
-                        }));
-            }
-
-            return _noOpTransaction;
+            return new DefaultTransactionScope(
+                context,
+                new TransactionScope(
+                    TransactionScopeOption.Required,
+                    new TransactionOptions
+                    {
+                        IsolationLevel = IsolationLevel.ReadCommitted
+                    }));
         }
     }
 }
