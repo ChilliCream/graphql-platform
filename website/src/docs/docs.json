@@ -29,6 +29,10 @@
                 "title": "Schema Documentation"
               },
               {
+                "path": "operations",
+                "title": "Operations"
+              },
+              {
                 "path": "versioning",
                 "title": "Versioning"
               },
@@ -159,6 +163,10 @@
               {
                 "path": "executable",
                 "title": "Executable"
+              },
+              {
+                "path": "apollo-tracing",
+                "title": "Apollo Tracing"
               },
               {
                 "path": "migrate-from-10-to-11",
