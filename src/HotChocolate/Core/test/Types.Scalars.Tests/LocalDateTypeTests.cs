@@ -1,44 +1,43 @@
+using Xunit;
 using System;
 using System.Globalization;
 using System.Threading;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
-using Xunit;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
-    public class LocalTimeTypeTests : ScalarTypeTestBase
+    public class LocalDateTypeTests : ScalarTypeTestBase
     {
         [Fact]
         protected void Schema_WithScalar_IsMatch()
         {
             // arrange
-            ISchema schema = BuildSchema<LocalTimeType>();
+            ISchema schema = BuildSchema<LocalDateType>();
 
             // act
-
             // assert
             schema.ToString().MatchSnapshot();
         }
 
         [Fact]
-        public void LocalTime_EnsureLocalTimeTypeKindIsCorrect()
+        public void LocalDate_EnsureDateTimeTypeKindIsCorret()
         {
             // arrange
-            var type = new LocalTimeType();
+            var type = new LocalDateType();
 
             // act
             TypeKind kind = type.Kind;
 
             // assert
-            Assert.Equal(TypeKind.Scalar, kind);
+            Assert.Equal(TypeKind.Scalar, type.Kind);
         }
 
         [Fact]
-        protected void LocalTime_ExpectIsStringValueToMatch()
+        protected void LocalDate_ExpectIsStringValueToMatch()
         {
             // arrange
-            ScalarType scalar = CreateType<LocalTimeType>();
+            ScalarType scalar = CreateType<LocalDateType>();
             var valueSyntax = new StringValueNode("2018-06-29T08:46:14+04:00");
 
             // act
@@ -49,10 +48,10 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        protected void LocalTime_ExpectIsDateTimeToMatch()
+        protected void LocalDate_ExpectIsDateTimeToMatch()
         {
             // arrange
-            ScalarType scalar = CreateType<LocalTimeType>();
+            ScalarType scalar = CreateType<LocalDateType>();
             var valueSyntax = new DateTime(2018, 6, 29, 8, 46, 14);
 
             // act
@@ -63,12 +62,12 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        protected void LocalTime_ExpectParseLiteralToMatch()
+        protected void LocalDate_ExpectParseLiteralToMatch()
         {
             // arrange
-            ScalarType scalar = CreateType<LocalTimeType>();
-            var valueSyntax = new StringValueNode("2018-06-29T14:46:14");
-            var expectedResult = new DateTime(2018, 6, 29, 14, 46, 14);
+            ScalarType scalar = CreateType<LocalDateType>();
+            var valueSyntax = new StringValueNode("2018-06-29T08:46:14");
+            var expectedResult = new DateTime(2018, 6, 29, 8, 46, 14);
 
             // act
             object result = (DateTime)scalar.ParseLiteral(valueSyntax)!;
@@ -83,15 +82,16 @@ namespace HotChocolate.Types.Scalars
         [InlineData("de-CH")]
         [InlineData("de-de")]
         [Theory]
-        public void LocalTime_ParseLiteralStringValueDifferentCulture(string cultureName)
+        public void LocalDate_ParseLiteralStringValueDifferentCulture(
+            string cultureName)
         {
             // arrange
-            Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo(cultureName);
+            Thread.CurrentThread.CurrentCulture =
+                CultureInfo.GetCultureInfo(cultureName);
 
-            ScalarType scalar = new LocalTimeType();
+            ScalarType scalar = new LocalDateType();
             var valueSyntax = new StringValueNode("2018-06-29T08:46:14+04:00");
-            var expectedDateTime = new DateTimeOffset(
-                new DateTime(2018, 6, 29, 8, 46, 14),
+            var expectedDateTime = new DateTimeOffset(new DateTime(2018, 6, 29, 8, 46, 14),
                 new TimeSpan(4, 0, 0));
 
             // act
@@ -102,10 +102,10 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        protected void LocalTime_ExpectParseLiteralToThrowSerializationException()
+        protected void LocalDate_ExpectParseLiteralToThrowSerializationException()
         {
             // arrange
-            ScalarType scalar = CreateType<LocalTimeType>();
+            ScalarType scalar = CreateType<LocalDateType>();
             var valueSyntax = new StringValueNode("foo");
 
             // act
@@ -116,10 +116,10 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        protected void LocalTime_ExpectParseValueToMatchDateTime()
+        protected void LocalDate_ExpectParseValueToMatchDateTime()
         {
             // arrange
-            ScalarType scalar = CreateType<LocalTimeType>();
+            ScalarType scalar = CreateType<LocalDateType>();
             var valueSyntax = new DateTime(2018, 6, 29, 8, 46, 14);
 
             // act
@@ -130,10 +130,10 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        protected void LocalTime_ExpectParseValueToThrowSerializationException()
+        protected void LocalDate_ExpectParseValueToThrowSerializationException()
         {
             // arrange
-            ScalarType scalar = CreateType<LocalTimeType>();
+            ScalarType scalar = CreateType<LocalDateType>();
             var runtimeValue = new StringValueNode("foo");
 
             // act
@@ -144,12 +144,14 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        protected void LocalTime_ExpectSerializeUtcToMatch()
+        protected void LocalDate_ExpectSerializeUtcToMatch()
         {
             // arrange
-            ScalarType scalar = new LocalTimeType();
-            DateTimeOffset dateTime = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-            const string expectedValue = "08:46:14";
+            ScalarType scalar = new LocalDateType();
+            DateTimeOffset dateTime = new DateTime(
+                2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
+
+            string expectedValue = "2018-06-11";
 
             // act
             string serializedValue = (string)scalar.Serialize(dateTime)!;
@@ -159,14 +161,14 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        protected void LocalTime_ExpectSerializeDateTimeOffsetToMatch()
+        protected void LocalDate_ExpectSerializeDateTimeOffsetToMatch()
         {
             // arrange
-            ScalarType scalar = new LocalTimeType();
+            ScalarType scalar = new LocalDateType();
             var dateTime = new DateTimeOffset(
                 new DateTime(2018, 6, 11, 8, 46, 14),
                 new TimeSpan(4, 0, 0));
-            string expectedValue = "08:46:14";
+            string expectedValue = "2018-06-11";
 
             // act
             string serializedValue = (string)scalar.Serialize(dateTime)!;
@@ -176,10 +178,10 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        protected void LocalTime_ExpectDeserializeNullToMatch()
+        protected void LocalDate_ExpectDeserializeNullToMatch()
         {
             // arrange
-            ScalarType scalar = new LocalTimeType();
+            ScalarType scalar = new LocalDateType();
 
             // act
             var success = scalar.TryDeserialize(null, out object? deserialized);
@@ -190,10 +192,10 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        public void LocalTime_ExpectDeserializeNullableDateTimeToDateTime()
+        public void LocalDate_ExpectDeserializeNullableDateTimeToDateTime()
         {
             // arrange
-            ScalarType scalar = new LocalTimeType();
+            ScalarType scalar = new LocalDateType();
             DateTime? time = null;
 
             // act
@@ -205,23 +207,24 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        protected void LocalTime_ExpectDeserializeStringToMatch()
+        protected void LocalDate_ExpectDeserializeStringToMatch()
         {
             // arrange
-            ScalarType scalar = CreateType<LocalTimeType>();
+            ScalarType scalar = CreateType<LocalDateType>();
             var runtimeValue = new DateTimeOffset(
                 new DateTime(2018, 6, 11, 8, 46, 14),
                 new TimeSpan(4, 0, 0));
 
             // act
-            var deserializedValue = (DateTime)scalar.Deserialize("2018-06-11T08:46:14+04:00")!;
+            var deserializedValue = (DateTime)scalar
+                .Deserialize("2018-06-11T08:46:14+04:00")!;
 
             // assert
             Assert.Equal(runtimeValue, deserializedValue);
         }
 
         [Fact]
-        protected void LocalTime_ExpectDeserializeDateTimeOffsetToMatch()
+        protected void LocalDate_ExpectDeserializeDateTimeOffsetToMatch()
         {
             // arrange
             ScalarType scalar = CreateType<LocalTimeType>();
@@ -238,11 +241,11 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        protected void LocalTime_ExpectDeserializeDateTimeToMatch()
+        protected void LocalDate_ExpectDeserializeDateTimeToMatch()
         {
             // arrange
-            ScalarType scalar = CreateType<LocalTimeType>();
-            object resultValue = new DateTime( 2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
+            ScalarType scalar = CreateType<LocalDateType>();
+            object? resultValue =  new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
 
 
             // act
@@ -253,10 +256,10 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        public void LocalTime_ExpectDeserializeInvalidStringToDateTime()
+        public void LocalDate_ExpectDeserializeInvalidStringToDateTime()
         {
             // arrange
-            ScalarType scalar = new LocalTimeType();
+            ScalarType scalar = new LocalDateType();
 
             // act
             var success = scalar.TryDeserialize("abc", out object? _);
@@ -266,10 +269,10 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        public void LocalTime_ExpectDeserializeNullToNull()
+        public void LocalDate_ExpectDeserializeNullToNull()
         {
             // arrange
-            ScalarType scalar = new LocalTimeType();
+            ScalarType scalar = new LocalDateType();
 
             // act
             var success = scalar.TryDeserialize(null, out object? deserialized);
@@ -280,10 +283,10 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        protected void LocalTime_ExpectSerializeToThrowSerializationException()
+        protected void LocalDate_ExpectSerializeToThrowSerializationException()
         {
             // arrange
-            ScalarType scalar = CreateType<LocalTimeType>();
+            ScalarType scalar = CreateType<LocalDateType>();
 
             // act
             Exception? result = Record.Exception(() => scalar.Serialize("foo"));
@@ -293,11 +296,11 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        protected void LocalTime_ExpectDeserializeToThrowSerializationException()
+        protected void LocalDate_ExpectDeserializeToThrowSerializationException()
         {
             // arrange
-            ScalarType scalar = CreateType<LocalTimeType>();
-            object runtimeValue = new IntValueNode(1);
+            ScalarType scalar = CreateType<LocalDateType>();
+            object? runtimeValue = new IntValueNode(1);
 
             // act
             Exception? result = Record.Exception(() => scalar.Deserialize(runtimeValue));
@@ -307,10 +310,10 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        protected void LocalTime_ExpectParseResultToMatchNull()
+        protected void LocalDate_ExpectParseResultToMatchNull()
         {
             // arrange
-            ScalarType scalar = new LocalTimeType();
+            ScalarType scalar = new LocalDateType();
 
             // act
             IValueNode result = scalar.ParseResult(null);
@@ -320,10 +323,10 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        protected void LocalTime_ExpectParseResultToMatchStringValue()
+        protected void LocalDate_ExpectParseResultToMatchStringValue()
         {
             // arrange
-            ScalarType scalar = new LocalTimeType();
+            ScalarType scalar = new LocalDateType();
             const string valueSyntax = "2018-06-29T08:46:14+04:00";
 
             // act
@@ -334,10 +337,10 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Fact]
-        protected void LocalTime_ExpectParseResultToThrowSerializationException()
+        protected void LocalDate_ExpectParseResultToThrowSerializationException()
         {
             // arrange
-            ScalarType scalar = new LocalTimeType();
+            ScalarType scalar = new LocalDateType();
             IValueNode runtimeValue = new IntValueNode(1);
 
             // act

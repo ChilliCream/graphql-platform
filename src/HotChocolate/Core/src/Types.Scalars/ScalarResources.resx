@@ -208,6 +208,15 @@
   <data name="NegativeFloatType_Description" xml:space="preserve">
     <value>The NegativeFloat scalar type represents a double‐precision fractional value less than 0.</value>
   </data>
+  <data name="LocalDateType_Description" xml:space="preserve">
+    <value>The `LocalDate` scalar type represents a ISO date string, represented as UTF-8 character sequences YYYY-MM-DD. The scalar follows the specification defined in RFC3339</value>
+  </data>
+  <data name="LocalDateType_IsInvalid_ParseLiteral" xml:space="preserve">
+    <value>LocalDateType cannot parse the provided literal. The provided value is not a valid Local Date.</value>
+  </data>
+  <data name="LocalDateType_IsInvalid_ParseValue" xml:space="preserve">
+    <value>LocalDateType cannot parse the provided value. The provided value is not a valid Local Date.</value>
+  </data>
   <data name="NegativeFloatType_IsNotNegative_ParseLiteral" xml:space="preserve">
     <value>NegativeFloatType cannot parse the provided literal. The provided value was not negative.</value>
   </data>
