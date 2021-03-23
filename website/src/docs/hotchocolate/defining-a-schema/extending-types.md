@@ -16,6 +16,8 @@ extend type Query {
 }
 ```
 
+> **Note:** Every single code example will be shown in three different approaches, annotation-based (previously known as pure code-first), code-first, and schema-first. However, they will always result in the same outcome on a GraphQL schema perspective and internally in Hot Chocolate. All three approaches have their pros and cons and can be combined when needed with each other. If you would like to learn more about the three approaches in Hot Chocolate, click on [Coding Approaches](/docs/hotchocolate/api-reference/coding-approaches).
+
 <ExampleTabs>
 <ExampleTabs.Annotation>
 
@@ -97,6 +99,8 @@ public class Session
 }
 ```
 
+## Replace a field
+
 We could start adding our GraphQL concerns to this type directly. But often, we want to keep our entity clean from any graph concerns.
 
 To replace the `TrackId` with a field `Track` that returns the `Tack` object we could do the following.
@@ -110,6 +114,8 @@ public class SessionResolvers
 }
 ```
 
+## Remove a field
+
 We also easily can remove properties that we do not like on our initial type. For instance, let us omit the `Abstract`.
 
 ```csharp
@@ -121,6 +127,8 @@ public class SessionResolvers
 }
 ```
 
+## Add a field
+
 Further, might we want to be able to add new fields to our entity.
 
 ```csharp
@@ -131,10 +139,12 @@ public class SessionResolvers
 }
 ```
 
+## Select types to extend
+
 Moreover, we can extend multiple types at once by extending upon base types or interfaces.
 
 ```csharp
-[ExtendObjectType(typeof(object))] // <-- we are now extending every type that inhereits from object (essentially every type).
+[ExtendObjectType(typeof(object))] // <-- we are now extending every type that inherits from object (essentially every type).
 public class SessionResolvers
 {
     public string SayHello() => "Hello";
@@ -144,7 +154,7 @@ public class SessionResolvers
 We can also extend multiple types at once with a type but dedicate specific resolvers to specific types.
 
 ```csharp
-[ExtendObjectType(typeof(object))] // <-- we are now extending every type that inhereits from object (essentially every type)
+[ExtendObjectType(typeof(object))] // <-- we are now extending every type that inherits from object (essentially every type)
 public class SessionResolvers
 {
     public string Abc([Parent] Session session) => "abc"; // <-- we are only adding this field to the Session type
@@ -154,3 +164,19 @@ public class SessionResolvers
 ```
 
 Instead of using `typeof(object)` as a selector for extending types you can also use interfaces or other base types.
+
+## Select types to extend with schema types
+
+We also can use schema types as a type selector.
+
+```csharp
+[ExtendObjectType(typeof(ObjectType))] // <-- we are now extending every object type.
+public class SessionResolvers
+{
+    public string Abc([Parent] Session session) => "abc"; // <-- we are only adding this field to the Session type
+
+    public string Def([Parent] Track track) => "def"; // <-- we are only adding this field to the Track type
+}
+```
+
+> Note, that all of the advanced type extension methods are also possible with code-first.

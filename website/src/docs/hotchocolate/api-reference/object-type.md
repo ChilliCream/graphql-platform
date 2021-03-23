@@ -156,7 +156,7 @@ The GraphQL SDL supports extending object types, this means that we can add fiel
 
 Extending types is useful for schema stitching but also when we want to add just something to an exist type or if we just want to split large type definitions. The latter is often the case with the query type definition.
 
-Hot Chocolate supports extending types with SDL-first, pure code-first and code-first. Let\`s have a look at how we can extend our person object:
+Hot Chocolate supports extending types with SDL-first, code-first with annotations and code-first with fluent. Let\`s have a look at how we can extend our person object:
 
 SDL-First:
 
@@ -166,7 +166,7 @@ extend type Person {
 }
 ```
 
-Pure Code-First:
+Code-First annotation-based:
 
 ```csharp
 [ExtendObjectType(Name = "Person")]
@@ -176,11 +176,11 @@ public class PersonResolvers
         repository.GetFriends(person.Id);
 }
 
-SchemaBuilder.New()
-  ...
-  .AddType<PersonType>()
-  .AddType<PersonResolvers>()
-  .Create();
+services
+    .AddGraphQLServer()
+    ...
+    .AddType<PersonType>()
+    .AddType<PersonResolvers>();
 ```
 
 Code-First
@@ -198,11 +198,13 @@ public class PersonTypeExtension
     }
 }
 
-SchemaBuilder.New()
-  ..
-  .AddType<PersonType>()
-  .AddType<PersonTypeExtension>()
-  .Create();
+services
+    .AddGraphQLServer()
+    ...
+    .AddType<PersonType>()
+    .AddType<PersonTypeExtension>()
 ```
 
 Type extensions basically work like usual types and are also added like usual types.
+
+More about type extensions can be found [here](../defining-a-schema/extending-types).
