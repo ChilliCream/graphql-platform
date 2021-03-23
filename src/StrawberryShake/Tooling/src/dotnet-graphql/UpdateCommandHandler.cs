@@ -110,7 +110,7 @@ namespace StrawberryShake.Tools
                 if (!await DownloadSchemaAsync(context, uri, schemaFilePath, cancellationToken)
                     .ConfigureAwait(false))
                 {
-                    noErrors = false;
+                    hasErrors = true;
                 }
             }
 
