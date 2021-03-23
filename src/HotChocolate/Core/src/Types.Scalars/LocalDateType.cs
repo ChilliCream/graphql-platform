@@ -21,8 +21,7 @@ namespace HotChocolate.Types.Scalars
         public LocalDateType()
             : this(
                 WellKnownScalarTypes.LocalDate,
-                ScalarResources.LocalDateType_Description,
-                BindingBehavior.Implicit)
+                ScalarResources.LocalDateType_Description)
         {
         }
 
