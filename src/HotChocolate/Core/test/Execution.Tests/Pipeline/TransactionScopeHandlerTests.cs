@@ -133,7 +133,7 @@ namespace HotChocolate.Execution.Pipeline
 
             public void Complete()
             {
-                if(_context.Result is IQueryResult { Data: not null, Errors: null })
+                if(_context.Result is IQueryResult { Data: not null, Errors: null or { Count: 0 } })
                 {
                     _complete();
                 }
