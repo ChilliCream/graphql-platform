@@ -866,10 +866,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                     }
                 }
                 fragment Human3 on Human {
-                    # This works
                     name
-
-                    # This is returned as an empty object but should be populated
                     otherHuman {
                       __typename
                       name
