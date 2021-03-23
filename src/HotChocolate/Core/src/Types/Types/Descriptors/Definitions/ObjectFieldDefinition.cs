@@ -32,6 +32,11 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public MemberInfo? Member { get; set; }
 
         /// <summary>
+        /// Defines a binding to another object field.
+        /// </summary>
+        public ObjectFieldBinding? BindTo { get; set; }
+
+        /// <summary>
         /// The member that represents the resolver.
         /// </summary>
         public MemberInfo? ResolverMember { get; set; }
@@ -79,6 +84,27 @@ namespace HotChocolate.Types.Descriptors.Definitions
             }
 
             return _middlewareComponents;
+        }
+
+        internal void CopyTo(ObjectFieldDefinition target)
+        {
+            base.CopyTo(target);
+
+            if (_middlewareComponents is not null)
+            {
+                target._middlewareComponents = new List<FieldMiddleware>(_middlewareComponents);
+            }
+
+            target.SourceType = SourceType;
+            target.ResolverType = ResolverType;
+            target.Member = Member;
+            target.BindTo = BindTo;
+            target.ResolverMember = ResolverMember;
+            target.Expression = Expression;
+            target.ResultType = ResultType;
+            target.Resolver = Resolver;
+            target.SubscribeResolver = SubscribeResolver;
+            target.IsIntrospectionField = IsIntrospectionField;
         }
     }
 }
