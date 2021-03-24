@@ -25,6 +25,12 @@ namespace HotChocolate.Data.Neo4J
             return value;
         }
 
+        /// <summary>
+        /// Ensures that the value of a string contains text.
+        /// </summary>
+        /// <param name="text">The value that is being checked if it contains text.</param>
+        /// <param name="message">The message displayed to user if exception is thrown.</param>
+        /// <exception cref="ArgumentException">The exception is there is no text.</exception>
         public static void HasText(string text, string message)
         {
             if(!text.HasText())

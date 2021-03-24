@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Data.Neo4J.Language;
 
 #nullable enable

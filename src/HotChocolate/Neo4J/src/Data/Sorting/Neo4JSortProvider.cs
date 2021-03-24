@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Data.Neo4J.Execution;
-using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
