@@ -145,7 +145,7 @@ namespace HotChocolate.Types
         {
             if (_timeSpanToOffset.TryGetValue(runtimeValue, out var found))
             {
-                return new(found);
+                return new StringValueNode(found);
             }
 
             throw ThrowHelper.UtcOffset_ParseValue_IsInvalid(this);
