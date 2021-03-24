@@ -10,12 +10,24 @@ using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types.Relay
 {
+    /// <summary>
+    /// This attribute marks a relay node type.
+    /// </summary>
     public class NodeAttribute : ObjectTypeDescriptorAttribute
     {
+        /// <summary>
+        /// The name of the member representing the ID field of the node.
+        /// </summary>
         public string? IdField { get; set; }
 
+        /// <summary>
+        /// The name of the member representing the node resolver.
+        /// </summary>
         public string? NodeResolver { get; set; }
 
+        /// <summary>
+        /// The type of the node resolver.
+        /// </summary>
         public Type? NodeResolverType { get; set; }
 
         public override void OnConfigure(
@@ -125,11 +137,6 @@ namespace HotChocolate.Types.Relay
                 // to copy the node resolver to the context data.
                 nodeDescriptor.OnCompleteDefinition(definition);
             });
-
-
         }
     }
-
-    [AttributeUsage(AttributeTargets.Method)]
-    public sealed class NodeResolverAttribute : Attribute { }
 }
