@@ -842,6 +842,32 @@ namespace HotChocolate.Data.Filters
             res3.MatchSqlSnapshot("13andNull");
         }
 
+        [Fact]
+        public async Task Create_Short_OrExpression()
+        {
+            // arrange
+            IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(@"
+                    {
+                        root(where: {
+                            or: [
+                                { barShort: { eq: 12} },
+                                { barShort: { eq: 13} }
+                            ]
+                        }){
+                            barShort
+                        }
+                    }")
+                    .Create());
+
+            res1.MatchSqlSnapshot("12or13");
+        }
+
         public class Foo
         {
             public int Id { get; set; }
