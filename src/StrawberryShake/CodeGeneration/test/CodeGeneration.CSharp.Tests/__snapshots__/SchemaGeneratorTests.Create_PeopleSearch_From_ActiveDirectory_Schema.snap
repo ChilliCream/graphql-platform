@@ -1574,7 +1574,7 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PeopleSearchQuery
-        : global::StrawberryShake.IOperationRequestFactory
+        : global::Foo.Bar.IPeopleSearchQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IPeopleSearchQueryResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
@@ -1716,6 +1716,84 @@ namespace Foo.Bar
         {
             return CreateRequest(variables!);
         }
+    }
+}
+
+
+// IPeopleSearchQuery
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    /// <summary>
+    /// Represents the operation service of the PeopleSearch GraphQL operation
+    /// <code>
+    /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
+    ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
+    ///     __typename
+    ///     totalCount
+    ///     pageInfo {
+    ///       __typename
+    ///       hasNextPage
+    ///       hasPreviousPage
+    ///     }
+    ///     items {
+    ///       __typename
+    ///       ... PeopleSearchResult
+    ///       ... on Person {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment PeopleSearchResult on Person {
+    ///   id
+    ///   key
+    ///   displayName
+    ///   isActive
+    ///   department {
+    ///     __typename
+    ///     id
+    ///     name
+    ///     ... on Department {
+    ///       id
+    ///     }
+    ///   }
+    ///   image
+    ///   title
+    ///   manager {
+    ///     __typename
+    ///     id
+    ///     key
+    ///     displayName
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IPeopleSearchQuery
+        : global::StrawberryShake.IOperationRequestFactory
+    {
+        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IPeopleSearchQueryResult>> ExecuteAsync(
+            global::System.String term,
+            global::System.Int32? skip,
+            global::System.Int32? take,
+            global::System.Boolean? inactive,
+            global::System.Threading.CancellationToken cancellationToken = default);
+
+        global::System.IObservable<global::StrawberryShake.IOperationResult<IPeopleSearchQueryResult>> Watch(
+            global::System.String term,
+            global::System.Int32? skip,
+            global::System.Int32? take,
+            global::System.Boolean? inactive,
+            global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 }
 
@@ -2313,10 +2391,11 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
+        : global::Foo.Bar.IFooClient
     {
-        private readonly global::Foo.Bar.PeopleSearchQuery _peopleSearch;
+        private readonly global::Foo.Bar.IPeopleSearchQuery _peopleSearch;
 
-        public FooClient(global::Foo.Bar.PeopleSearchQuery peopleSearch)
+        public FooClient(global::Foo.Bar.IPeopleSearchQuery peopleSearch)
         {
             _peopleSearch = peopleSearch
                  ?? throw new global::System.ArgumentNullException(nameof(peopleSearch));
@@ -2324,7 +2403,26 @@ namespace Foo.Bar
 
         public static global::System.String ClientName => "FooClient";
 
-        public global::Foo.Bar.PeopleSearchQuery PeopleSearch => _peopleSearch;
+        public global::Foo.Bar.IPeopleSearchQuery PeopleSearch => _peopleSearch;
+    }
+}
+
+
+// IFooClient
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    /// <summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IFooClient
+    {
+        global::Foo.Bar.IPeopleSearchQuery PeopleSearch { get; }
     }
 }
 
@@ -2551,7 +2649,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IPeopleSearchQueryResult>>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.PeopleSearchQuery>(sp));
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IPeopleSearchQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IPeopleSearchQueryResult>, global::Foo.Bar.State.PeopleSearchBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.IPeopleSearchQueryResult>>(
                 services,
@@ -2561,8 +2659,14 @@ namespace Microsoft.Extensions.DependencyInjection
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                     strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.PeopleSearchQuery>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.IPeopleSearchQuery>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.PeopleSearchQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityIdSerializer, global::Foo.Bar.State.FooClientEntityIdFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.FooClient>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.IFooClient>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(sp));
             return services;
         }
 

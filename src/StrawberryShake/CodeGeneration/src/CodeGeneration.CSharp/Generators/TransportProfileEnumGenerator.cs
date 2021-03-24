@@ -22,7 +22,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             CodeFileBuilder
                 .New()
-                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
+                .SetNamespace(descriptor.ClientDescriptor.RuntimeType.NamespaceWithoutGlobal)
                 .AddType(EnumBuilder
                     .New()
                     .SetName(fileName)

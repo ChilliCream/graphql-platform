@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
+using HotChocolate.Types.Scalars;
 
 namespace HotChocolate.Types
 {
@@ -16,11 +17,25 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="HslaType"/> class.
         /// </summary>
         public HslaType()
-            : base(
+            : this(
                 WellKnownScalarTypes.Hsla,
+                ScalarResources.HslaType_Description)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HslaType"/> class.
+        /// </summary>
+        public HslaType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(
+                name,
                 _validationPattern,
-                ScalarResources.HslaType_Description,
-                RegexOptions.Compiled | RegexOptions.IgnoreCase)
+                description,
+                RegexOptions.Compiled | RegexOptions.IgnoreCase,
+                bind)
         {
         }
 

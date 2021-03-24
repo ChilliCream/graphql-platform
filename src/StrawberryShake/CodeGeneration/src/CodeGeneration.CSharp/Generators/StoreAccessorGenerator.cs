@@ -20,9 +20,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             fileName = descriptor.Name;
             path = State;
 
-            const string entityStore = "EntityStore";
-            const string operationStore = "OperationStore";
-
             ClassBuilder factory = ClassBuilder
                 .New(fileName)
                 .SetAccessModifier(AccessModifier.Public)

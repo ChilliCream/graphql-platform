@@ -1,19 +1,19 @@
 using StrawberryShake;
-using StrawberryShake.Persistence.LiteDB;
+using StrawberryShake.Persistence.SQLite;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    public static class LiteDBClientBuilderExtensions
+    public static class SQLiteClientBuilderExtensions
     {
-        public static IClientBuilder<T> AddLiteDBPersistence<T>(
+        public static IClientBuilder<T> AddSQLitePersistence<T>(
             this IClientBuilder<T> builder,
-            string fileName)
+            string connectionString)
             where T : IStoreAccessor
         {
             builder.Services.AddSingleton(
-                sp => new LiteDBPersistence(
+                sp => new SQLitePersistence(
                     sp.GetRequiredService<T>(),
-                    fileName));
+                    connectionString));
 
             return builder;
         }

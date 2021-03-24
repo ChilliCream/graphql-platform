@@ -1,4 +1,5 @@
 using HotChocolate.Language;
+using HotChocolate.Types.Scalars;
 
 namespace HotChocolate.Types
 {
@@ -30,7 +31,6 @@ namespace HotChocolate.Types
             BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, description, 0, 65535, bind)
         {
-            Description = description;
         }
 
         /// <inheritdoc />

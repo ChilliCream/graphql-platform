@@ -2864,7 +2864,7 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetFeatsPageQuery
-        : global::StrawberryShake.IOperationRequestFactory
+        : global::Foo.Bar.IGetFeatsPageQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetFeatsPageResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _intFormatter;
@@ -3007,6 +3007,67 @@ namespace Foo.Bar
 }
 
 
+// IGetFeatsPageQuery
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    /// <summary>
+    /// Represents the operation service of the GetFeatsPage GraphQL operation
+    /// <code>
+    /// query GetFeatsPage($skip: Int!, $take: Int!, $searchTerm: String! = "", $order: [FeatSortInput!] = [ { name: ASC } ]) {
+    ///   feats(skip: $skip, take: $take, order: $order, where: { or: [ { name: { contains: $searchTerm } }, { traits: { some: { name: { contains: $searchTerm } } } } ] }) {
+    ///     __typename
+    ///     totalCount
+    ///     items {
+    ///       __typename
+    ///       ... FeatsPage
+    ///       ... on Feat {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment FeatsPage on Feat {
+    ///   id
+    ///   name
+    ///   level
+    ///   canBeLearnedMoreThanOnce
+    ///   details {
+    ///     __typename
+    ///     text
+    ///     ... on FeatDetailsBlock {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetFeatsPageQuery
+        : global::StrawberryShake.IOperationRequestFactory
+    {
+        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetFeatsPageResult>> ExecuteAsync(
+            global::System.Int32 skip,
+            global::System.Int32 take,
+            global::System.String searchTerm,
+            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.FeatSortInput>? order,
+            global::System.Threading.CancellationToken cancellationToken = default);
+
+        global::System.IObservable<global::StrawberryShake.IOperationResult<IGetFeatsPageResult>> Watch(
+            global::System.Int32 skip,
+            global::System.Int32 take,
+            global::System.String searchTerm,
+            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.FeatSortInput>? order,
+            global::StrawberryShake.ExecutionStrategy? strategy = null);
+    }
+}
+
+
 // GetFeatByIdQueryDocument
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
@@ -3131,7 +3192,7 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetFeatByIdQuery
-        : global::StrawberryShake.IOperationRequestFactory
+        : global::Foo.Bar.IGetFeatByIdQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetFeatByIdResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _uuidFormatter;
@@ -3201,6 +3262,68 @@ namespace Foo.Bar
         {
             return CreateRequest(variables!);
         }
+    }
+}
+
+
+// IGetFeatByIdQuery
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    /// <summary>
+    /// Represents the operation service of the GetFeatById GraphQL operation
+    /// <code>
+    /// query GetFeatById($id: Uuid!) {
+    ///   feats(where: { id: { eq: $id } }) {
+    ///     __typename
+    ///     items {
+    ///       __typename
+    ///       ... FeatById
+    ///       ... on Feat {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment FeatById on Feat {
+    ///   id
+    ///   name
+    ///   level
+    ///   special
+    ///   trigger
+    ///   details {
+    ///     __typename
+    ///     text
+    ///     ... on FeatDetailsBlock {
+    ///       id
+    ///     }
+    ///   }
+    ///   actionType {
+    ///     __typename
+    ///     name
+    ///     ... on ActionType {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetFeatByIdQuery
+        : global::StrawberryShake.IOperationRequestFactory
+    {
+        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetFeatByIdResult>> ExecuteAsync(
+            global::System.Guid id,
+            global::System.Threading.CancellationToken cancellationToken = default);
+
+        global::System.IObservable<global::StrawberryShake.IOperationResult<IGetFeatByIdResult>> Watch(
+            global::System.Guid id,
+            global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 }
 
@@ -4030,13 +4153,14 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
+        : global::Foo.Bar.IFooClient
     {
-        private readonly global::Foo.Bar.GetFeatsPageQuery _getFeatsPage;
-        private readonly global::Foo.Bar.GetFeatByIdQuery _getFeatById;
+        private readonly global::Foo.Bar.IGetFeatsPageQuery _getFeatsPage;
+        private readonly global::Foo.Bar.IGetFeatByIdQuery _getFeatById;
 
         public FooClient(
-            global::Foo.Bar.GetFeatsPageQuery getFeatsPage,
-            global::Foo.Bar.GetFeatByIdQuery getFeatById)
+            global::Foo.Bar.IGetFeatsPageQuery getFeatsPage,
+            global::Foo.Bar.IGetFeatByIdQuery getFeatById)
         {
             _getFeatsPage = getFeatsPage
                  ?? throw new global::System.ArgumentNullException(nameof(getFeatsPage));
@@ -4046,9 +4170,30 @@ namespace Foo.Bar
 
         public static global::System.String ClientName => "FooClient";
 
-        public global::Foo.Bar.GetFeatsPageQuery GetFeatsPage => _getFeatsPage;
+        public global::Foo.Bar.IGetFeatsPageQuery GetFeatsPage => _getFeatsPage;
 
-        public global::Foo.Bar.GetFeatByIdQuery GetFeatById => _getFeatById;
+        public global::Foo.Bar.IGetFeatByIdQuery GetFeatById => _getFeatById;
+    }
+}
+
+
+// IFooClient
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    /// <summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IFooClient
+    {
+        global::Foo.Bar.IGetFeatsPageQuery GetFeatsPage { get; }
+
+        global::Foo.Bar.IGetFeatByIdQuery GetFeatById { get; }
     }
 }
 
@@ -4326,7 +4471,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetFeatsPageResult>>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.GetFeatsPageQuery>(sp));
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IGetFeatsPageQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetFeatsPageResult>, global::Foo.Bar.State.GetFeatsPageBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.IGetFeatsPageResult>>(
                 services,
@@ -4336,13 +4481,16 @@ namespace Microsoft.Extensions.DependencyInjection
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                     strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.GetFeatsPageQuery>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.IGetFeatsPageQuery>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.GetFeatsPageQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetFeatByIdResult>, global::Foo.Bar.State.GetFeatByIdResultFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(
                 services,
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetFeatByIdResult>>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.GetFeatByIdQuery>(sp));
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IGetFeatByIdQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetFeatByIdResult>, global::Foo.Bar.State.GetFeatByIdBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.IGetFeatByIdResult>>(
                 services,
@@ -4352,8 +4500,14 @@ namespace Microsoft.Extensions.DependencyInjection
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                     strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.GetFeatByIdQuery>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.IGetFeatByIdQuery>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.GetFeatByIdQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityIdSerializer, global::Foo.Bar.State.FooClientEntityIdFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.FooClient>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.IFooClient>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(sp));
             return services;
         }
 

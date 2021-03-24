@@ -406,6 +406,8 @@ services
 | IPv4             | The `IPv4` scalar type represents a valid a IPv4 address as defined here https://en.wikipedia.org/wiki/IPv4.
 | IPv6             | The `IPv6` scalar type represents a valid a IPv6 address as defined here [RFC8064](https://tools.ietf.org/html/rfc8064).
 | Isbn             | The `ISBN` scalar type is a ISBN-10 or ISBN-13 number: https:\/\/en.wikipedia.org\/wiki\/International_Standard_Book_Number.
+| LocalDate        | The `LocalDate` scalar type represents a ISO date string, represented as UTF-8 character sequences yyyy-mm-dd. The scalar follows the specification defined in RFC3339.
+| LocalTime        | The `LocalTime` scalar type is a local time string (i.e., with no associated timezone) in 24-hr `HH:mm:ss]`.
 | MacAddress       | The `MacAddess` scalar type represents a IEEE 802 48-bit Mac address, represented as UTF-8 character sequences. The scalar follows the specification defined in [RFC7042](https://tools.ietf.org/html/rfc7042#page-19).
 | NegativeFloat    | The `NegativeFloat` scalar type represents a double‐precision fractional value less than 0.
 | NegativeInt      | The `NegativeIntType` scalar type represents a signed 32-bit numeric non-fractional with a maximum of -1.
@@ -422,4 +424,3 @@ services
 | Rgba             | The `RGBA` scalar type represents a valid CSS RGBA color as defined here [MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba()).
 | UnsignedInt      | The `UnsignedInt` scalar type represents a unsigned 32‐bit numeric non‐fractional value greater than or equal to 0.
 | UnsignedLong     | The `UnsignedLong` scalar type represents a unsigned 64‐bit numeric non‐fractional value greater than or equal to 0.
-| UtcOffset        | The `UtcOffset` scalar type represents a valid UTC time format as defined here https://en.wikipedia.org/wiki/List_of_UTC_time_offsets.

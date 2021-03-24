@@ -73,7 +73,7 @@ namespace HotChocolate.Types.Relay
             }
             else
             {
-                nodeDescriptor.ResolveNodeWith(type);
+                nodeDescriptor.ResolveNode(type);
             }
         }
     }

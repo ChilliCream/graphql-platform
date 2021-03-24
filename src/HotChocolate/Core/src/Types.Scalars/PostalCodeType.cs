@@ -1,4 +1,5 @@
 using System.Linq;
+using HotChocolate.Types.Scalars;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
@@ -55,7 +56,6 @@ namespace HotChocolate.Types
             BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, description, bind)
         {
-            Description = description;
         }
 
         /// <inheritdoc />
