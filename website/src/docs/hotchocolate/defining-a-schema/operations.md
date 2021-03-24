@@ -379,4 +379,4 @@ services
 
 # Subscription
 
-Documentation following ...
+Proper documentation is still pending, in the meantime please take a look at [this example from our workshop](https://github.com/ChilliCream/graphql-workshop/blob/master/docs/7-subscriptions.md). 
