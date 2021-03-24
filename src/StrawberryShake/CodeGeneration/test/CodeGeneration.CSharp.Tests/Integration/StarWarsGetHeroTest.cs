@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State;
 using StrawberryShake.Transport.WebSockets;
-using StrawberryShake.Persistence.LiteDB;
 using StrawberryShake.Persistence.SQLite;
 using Xunit;
 
