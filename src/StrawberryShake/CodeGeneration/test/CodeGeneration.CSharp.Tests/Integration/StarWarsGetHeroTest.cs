@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State;
 using StrawberryShake.Transport.WebSockets;
 using StrawberryShake.Persistence.LiteDB;
+using StrawberryShake.Persistence.SQLite;
 using Xunit;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
@@ -187,11 +188,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
             Assert.Equal("NewName", name2);
         }
 
-        // TODO : Flaky Test
-        [Fact(Skip = "Flaky Test")]
+        [Fact]
         public async Task Watch_Interact_With_Persistence()
         {
             string fileName = Path.GetTempFileName();
+            string connectionString = "Data Source=" + fileName;
             File.Delete(fileName);
 
             try
@@ -210,15 +211,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
                             c => c.BaseAddress = new Uri("http://localhost:" + port + "/graphql"))
                         .ConfigureWebSocketClient(
                             c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"))
-                        .AddLiteDBPersistence(fileName);
+                        .AddSQLitePersistence(connectionString);
 
-                    using var services = serviceCollection.BuildServiceProvider();
-                    services.GetRequiredService<LiteDBPersistence>().Initialize();
+                    await using var services = serviceCollection.BuildServiceProvider();
+                    await services.GetRequiredService<SQLitePersistence>().InitializeAsync();
                     var client = services.GetRequiredService<StarWarsGetHeroClient>();
                     var storeAccessor =
                         services.GetRequiredService<StarWarsGetHeroClientStoreAccessor>();
                     var entityId = new EntityId("Droid", "2001");
-                    await Task.Delay(250);
+                    await Task.Delay(250, cts.Token);
 
                     // act
                     await client.GetHero.ExecuteAsync(cts.Token);
@@ -261,7 +262,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
                     Assert.Equal("R2-D2", name1);
                     Assert.Equal("NewName", name2);
 
-                    await Task.Delay(500);
+                    await Task.Delay(500, cts.Token);
                 }
                 {
                     // arrange
@@ -277,10 +278,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
                             c => c.BaseAddress = new Uri("http://localhost:" + port + "/graphql"))
                         .ConfigureWebSocketClient(
                             c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"))
-                        .AddLiteDBPersistence(fileName);
+                        .AddSQLitePersistence(connectionString);
 
-                    using var services = serviceCollection.BuildServiceProvider();
-                    services.GetRequiredService<LiteDBPersistence>().Initialize();
+                    await using var services = serviceCollection.BuildServiceProvider();
+                    await services.GetRequiredService<SQLitePersistence>().InitializeAsync();
                     var client = services.GetRequiredService<StarWarsGetHeroClient>();
 
                     // act

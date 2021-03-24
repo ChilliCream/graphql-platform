@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>StrawberryShake.Persistence.SQLLite</RootNamespace>
+    <RootNamespace>StrawberryShake.Persistence.LiteDB</RootNamespace>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
