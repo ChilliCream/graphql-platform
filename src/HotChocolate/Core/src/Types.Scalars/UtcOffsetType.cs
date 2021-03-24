@@ -6,7 +6,8 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     /// <summary>
-    /// The `UtcOffset` scalar type represents a value of format `±hh:mm`.
+    /// The `UtcOffset` scalar type represents a valid UTC time format as
+    /// defined here: <a>https://en.wikipedia.org/wiki/List_of_UTC_time_offsets</a>
     /// </summary>
     public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
     {
