@@ -58,13 +58,13 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public IReadOnlyCollection<ResultBuilderDescriptor> ResultBuilders => _resultBuilder.Values;
 
         public ClientDescriptor Client =>
-            _client ?? throw new NotImplementedException();
+            _client ?? throw new InvalidOperationException();
 
         public EntityIdFactoryDescriptor EntityIdFactory =>
-            _entityIdFactory ?? throw new NotImplementedException();
+            _entityIdFactory ?? throw new InvalidOperationException();
 
         public DependencyInjectionDescriptor DependencyInjection =>
-            _dependencyInjectionDescriptor ?? throw new NotImplementedException();
+            _dependencyInjectionDescriptor ?? throw new InvalidOperationException();
 
         public StoreAccessorDescriptor StoreAccessor =>
             _storeAccessorDescriptor ?? throw new NotImplementedException();

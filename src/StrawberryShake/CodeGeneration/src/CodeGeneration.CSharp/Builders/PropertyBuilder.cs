@@ -7,6 +7,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private AccessModifier _accessModifier;
         private bool _isReadOnly = true;
         private string? _lambdaResolver;
+        private bool _isOnlyDeclaration;
         private TypeReferenceBuilder? _type;
         private string? _name;
         private XmlCommentBuilder? _xmlComment;
@@ -47,6 +48,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 _xmlComment = XmlCommentBuilder.New().SetSummary(xmlComment);
             }
 
+            return this;
+        }
+
+        public PropertyBuilder SetOnlyDeclaration(bool value = true)
+        {
+            _isOnlyDeclaration = value;
             return this;
         }
 
@@ -97,7 +104,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             _xmlComment?.Build(writer);
 
             writer.WriteIndent();
-            if (_interface is null)
+            if (_interface is null && !_isOnlyDeclaration)
             {
                 writer.Write(modifier);
                 writer.WriteSpace();

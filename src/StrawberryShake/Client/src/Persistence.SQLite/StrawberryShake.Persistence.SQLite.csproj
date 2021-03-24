@@ -5,6 +5,7 @@
     <RootNamespace>StrawberryShake.Persistence.SQLite</RootNamespace>
     <Nullable>enable</Nullable>
     <Description>A SQLite store persistence layer.</Description>
+    <AssemblyName>StrawberryShake.Persistence.SQLite</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
