@@ -10,7 +10,7 @@ namespace HotChocolate.Types
     /// </summary>
     public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
     {
-        private static Dictionary<TimeSpan, string> _timeSpanToOffset =
+        private static readonly Dictionary<TimeSpan, string> _timeSpanToOffset =
             new()
             {
                 {new TimeSpan(-12,0,0), "-12:00"},
@@ -54,7 +54,7 @@ namespace HotChocolate.Types
                 {new TimeSpan(14,0,0), "+14:00"},
             };
 
-        private static Dictionary<string, TimeSpan> _offsetToTimeSpan =
+        private static readonly Dictionary<string, TimeSpan> _offsetToTimeSpan =
             new() {["-12:00"] = new TimeSpan(-12, 0, 0)};
 
         /// <summary>
