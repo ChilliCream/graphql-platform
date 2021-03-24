@@ -1,12 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>StrawberryShake.Persistence.SQLLite</RootNamespace>
+    <RootNamespace>StrawberryShake.Persistence.SQLite</RootNamespace>
+    <AssemblyName>StrawberryShake.Persistence.SQLite.Tests</AssemblyName>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Persistence.LiteDB\StrawberryShake.Persistence.LiteDB.csproj" />
+    <ProjectReference Include="..\..\src\Persistence.SQLite\StrawberryShake.Persistence.SQLite.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="sqlite-net-pcl" Version="1.7.335" />
   </ItemGroup>
 
   <ItemGroup>
