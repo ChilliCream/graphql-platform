@@ -111,5 +111,38 @@ namespace HotChocolate.Types.Descriptors.Definitions
             target.Name = Name;
             target.Description = Description;
         }
+
+        protected void MergeInto(DefinitionBase target)
+        {
+            if (_dependencies is not null && _dependencies.Count > 0)
+            {
+                target._dependencies ??= new List<TypeDependency>();
+                target._dependencies.AddRange(_dependencies);
+            }
+
+            if (_configurations is not null && _configurations.Count > 0)
+            {
+                target._configurations ??= new List<ILazyTypeConfiguration>();
+
+                foreach (ILazyTypeConfiguration configuration in _configurations)
+                {
+                    target._configurations.Add(configuration.Copy(target));
+                }
+            }
+
+            if (_contextData is not null && _contextData.Count > 0)
+            {
+                target._contextData ??= new ExtensionData();
+                foreach (KeyValuePair<string, object?> item in _contextData)
+                {
+                    target._contextData[item.Key] = item.Value;
+                }
+            }
+
+            if (Description is not null)
+            {
+                target.Description = Description;
+            }
+        }
     }
 }

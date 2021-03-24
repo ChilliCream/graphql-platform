@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         private List<Type>? _knownClrTypes;
         private List<ITypeReference>? _interfaces;
 
-        public IList<Type> KnownClrTypes => _knownClrTypes ??= new List<Type>();
+        public IList<Type> KnownRuntimeTypes => _knownClrTypes ??= new List<Type>();
 
         public ResolveAbstractType? ResolveAbstractType { get; set; }
 

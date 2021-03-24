@@ -23,5 +23,12 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
             target.SyntaxNode = SyntaxNode;
         }
+
+        protected void MergeInto(FieldDefinitionBase<T> target)
+        {
+            base.MergeInto(target);
+
+            // Note: we are not copying the SyntaxNode on merge.
+        }
     }
 }

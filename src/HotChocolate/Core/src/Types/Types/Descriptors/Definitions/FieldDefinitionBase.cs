@@ -45,12 +45,30 @@ namespace HotChocolate.Types.Descriptors.Definitions
         {
             base.CopyTo(target);
 
-            if (_directives is not null)
+            if (_directives is { Count: > 0})
             {
                 target._directives = new List<DirectiveDefinition>(_directives);
             }
 
             target.Type = Type;
+            target.Ignore = Ignore;
+        }
+
+        protected void MergeInto(FieldDefinitionBase target)
+        {
+            base.MergeInto(target);
+
+            if (_directives is { Count: > 0})
+            {
+                target._directives ??= new List<DirectiveDefinition>();
+                target._directives.AddRange(_directives);
+            }
+
+            if (Type is not null)
+            {
+                target.Type = Type;
+            }
+
             target.Ignore = Ignore;
         }
     }
