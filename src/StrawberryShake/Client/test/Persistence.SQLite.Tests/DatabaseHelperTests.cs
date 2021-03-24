@@ -5,7 +5,6 @@ using Xunit;
 
 namespace StrawberryShake.Persistence.SQLite
 {
-
     public class DatabaseHelperTests
     {
         [Fact]
