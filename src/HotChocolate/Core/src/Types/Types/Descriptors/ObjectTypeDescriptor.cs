@@ -43,6 +43,11 @@ namespace HotChocolate.Types.Descriptors
             : base(context)
         {
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+
+            foreach (var field in definition.Fields)
+            {
+                Fields.Add(ObjectFieldDescriptor.From(Context, field));
+            }
         }
 
         protected internal override ObjectTypeDefinition Definition { get; protected set; } = new();
@@ -74,6 +79,7 @@ namespace HotChocolate.Types.Descriptors
 
             OnCompleteFields(fields, handledMembers);
 
+            Definition.Fields.Clear();
             Definition.Fields.AddRange(fields.Values);
 
             base.OnCreateDefinition(definition);
@@ -143,8 +149,8 @@ namespace HotChocolate.Types.Descriptors
                     return true;
 
                 case MethodInfo m:
-                    ParameterInfo parent = m.GetParameters()
-                        .FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute)));
+                    ParameterInfo? parent = m.GetParameters().FirstOrDefault(
+                        t => t.IsDefined(typeof(ParentAttribute)));
                     return parent is null || parent.ParameterType.IsAssignableFrom(sourceType);
 
                 default:
@@ -153,7 +159,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public IObjectTypeDescriptor SyntaxNode(
-            ObjectTypeDefinitionNode objectTypeDefinition)
+            ObjectTypeDefinitionNode? objectTypeDefinition)
         {
             Definition.SyntaxNode = objectTypeDefinition;
             return this;
@@ -165,7 +171,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IObjectTypeDescriptor Description(string value)
+        public IObjectTypeDescriptor Description(string? value)
         {
             Definition.Description = value;
             return this;
@@ -233,7 +239,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IObjectTypeDescriptor IsOfType(IsOfType isOfType)
+        public IObjectTypeDescriptor IsOfType(IsOfType? isOfType)
         {
             Definition.IsOfType = isOfType
                 ?? throw new ArgumentNullException(nameof(isOfType));
@@ -242,8 +248,8 @@ namespace HotChocolate.Types.Descriptors
 
         public IObjectFieldDescriptor Field(NameString name)
         {
-            ObjectFieldDescriptor fieldDescriptor =
-                Fields.FirstOrDefault(t => t.Definition.Name.Equals(name));
+            ObjectFieldDescriptor? fieldDescriptor = Fields.FirstOrDefault(
+                t => t.Definition.Name.Equals(name));
             if (fieldDescriptor is { })
             {
                 return fieldDescriptor;
@@ -268,8 +274,9 @@ namespace HotChocolate.Types.Descriptors
 
             if (propertyOrMethod is PropertyInfo || propertyOrMethod is MethodInfo)
             {
-                ObjectFieldDescriptor fieldDescriptor =
-                    Fields.FirstOrDefault(t => t.Definition.Member == propertyOrMethod);
+                ObjectFieldDescriptor? fieldDescriptor = Fields.FirstOrDefault(
+                    t => t.Definition.Member == propertyOrMethod);
+
                 if (fieldDescriptor is not null)
                 {
                     return fieldDescriptor;
@@ -301,9 +308,10 @@ namespace HotChocolate.Types.Descriptors
 
             if (member is PropertyInfo || member is MethodInfo)
             {
-                ObjectFieldDescriptor fieldDescriptor =
-                    Fields.FirstOrDefault(t => t.Definition.Member == member);
-                if (fieldDescriptor is { })
+                ObjectFieldDescriptor? fieldDescriptor = Fields.FirstOrDefault(
+                    t => t.Definition.Member == member);
+
+                if (fieldDescriptor is not null)
                 {
                     return fieldDescriptor;
                 }

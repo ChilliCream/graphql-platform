@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using HotChocolate.Configuration;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -12,93 +10,6 @@ namespace HotChocolate.Internal
 {
     public static class TypeExtensionHelper
     {
-        public static void MergeObjectFields(
-            ITypeCompletionContext context,
-            Type sourceType,
-            IList<ObjectFieldDefinition> extensionFields,
-            IList<ObjectFieldDefinition> typeFields)
-        {
-            foreach (ObjectFieldDefinition extensionField in extensionFields)
-            {
-                ObjectFieldDefinition typeField = extensionField switch
-                {
-                    { BindTo: { Type: ObjectFieldBindingType.Property } bindTo } =>
-                        typeFields.FirstOrDefault(t => bindTo.Name.Equals(t.Member?.Name)),
-                    { BindTo: { Type: ObjectFieldBindingType.Field } bindTo } =>
-                        typeFields.FirstOrDefault(t => bindTo.Name.Equals(t.Name)),
-                    _ => typeFields.FirstOrDefault(t => extensionField.Name.Equals(t.Name))
-                };
-
-                var replaceField = extensionField.BindTo?.Replace ?? false;
-                var removeField = extensionField.Ignore;
-
-                if (extensionField?.Member is MethodInfo p &&
-                    p.GetParameters() is { Length: > 0 } parameters)
-                {
-                    ParameterInfo parent = parameters.FirstOrDefault(
-                        t => t.IsDefined(typeof(ParentAttribute), true));
-                    if (parent is not null && !parent.ParameterType.IsAssignableFrom(sourceType))
-                    {
-                        continue;
-                    }
-                }
-
-                if (removeField)
-                {
-                    if(typeField is not null)
-                    {
-                        typeFields.Remove(typeField);
-                    }
-                }
-                else if (typeField is null || replaceField)
-                {
-                    if(typeField is not null)
-                    {
-                        typeFields.Remove(typeField);
-                    }
-
-                    var newField = new ObjectFieldDefinition();
-                    extensionField.CopyTo(newField);
-                    newField.SourceType = sourceType;
-                    typeFields.Add(newField);
-                }
-                else
-                {
-                    MergeDirectives(
-                        context,
-                        extensionField.Directives,
-                        typeField.Directives);
-
-                    MergeContextData(extensionField, typeField);
-
-                    if (extensionField.Resolver != null)
-                    {
-                        typeField.Resolver = extensionField.Resolver;
-                    }
-
-                    if (extensionField.GetMiddlewareComponents().Count > 0)
-                    {
-                        foreach (FieldMiddleware component in extensionField.MiddlewareComponents)
-                        {
-                            typeField.MiddlewareComponents.Add(component);
-                        }
-                    }
-
-                    if (extensionField.IsDeprecated)
-                    {
-                        typeField.DeprecationReason =
-                            extensionField.DeprecationReason;
-                    }
-
-                    MergeFields(
-                        context,
-                        extensionField.Arguments,
-                        typeField.Arguments,
-                        (args, extensionArg, typeArg) => { });
-                }
-            }
-        }
-
         public static void MergeInterfaceFields(
             ITypeCompletionContext context,
             IList<InterfaceFieldDefinition> extensionFields,
@@ -186,8 +97,7 @@ namespace HotChocolate.Internal
 
             foreach (DirectiveDefinition directive in type)
             {
-                DirectiveType directiveType =
-                    context.GetDirectiveType(directive.Reference);
+                DirectiveType directiveType = context.GetDirectiveType(directive.Reference);
                 directives.Add((directiveType, directive));
             }
 
@@ -198,8 +108,7 @@ namespace HotChocolate.Internal
 
             type.Clear();
 
-            foreach (DirectiveDefinition directive in
-                directives.Select(t => t.def))
+            foreach (DirectiveDefinition directive in directives.Select(t => t.def))
             {
                 type.Add(directive);
             }
@@ -210,10 +119,7 @@ namespace HotChocolate.Internal
             IList<(DirectiveType type, DirectiveDefinition def)> directives,
             DirectiveDefinition directive)
         {
-            DirectiveType directiveType =
-                context.GetDirectiveType(directive.Reference);
-
-            if (directiveType != null)
+            if (context.TryGetDirectiveType(directive.Reference, out DirectiveType? directiveType))
             {
                 if (directiveType.IsRepeatable)
                 {
@@ -259,7 +165,7 @@ namespace HotChocolate.Internal
 
             if (extension.FieldBindingType != typeof(object))
             {
-                type.KnownClrTypes.Add(extension.FieldBindingType);
+                type.KnownRuntimeTypes.Add(extension.FieldBindingType);
             }
         }
 

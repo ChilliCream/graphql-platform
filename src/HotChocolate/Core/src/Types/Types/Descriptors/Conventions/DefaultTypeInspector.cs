@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Internal;
+using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using CompDefaultValueAttribute = System.ComponentModel.DefaultValueAttribute;
 using TypeInfo = HotChocolate.Internal.TypeInfo;
@@ -297,6 +298,7 @@ namespace HotChocolate.Types.Descriptors
         private static bool IsPossibleNodeResolver(
             MemberInfo member,
             Type nodeType) =>
+            member.IsDefined(typeof(NodeResolverAttribute)) ||
             member.Name.Equals(
                 "Get",
                 StringComparison.OrdinalIgnoreCase) ||
@@ -308,6 +310,7 @@ namespace HotChocolate.Types.Descriptors
         private static bool IsPossibleExternalNodeResolver(
             MemberInfo member,
             Type nodeType) =>
+            member.IsDefined(typeof(NodeResolverAttribute)) ||
             member.Name.Equals(
                 $"Get{nodeType.Name}",
                 StringComparison.OrdinalIgnoreCase) ||
