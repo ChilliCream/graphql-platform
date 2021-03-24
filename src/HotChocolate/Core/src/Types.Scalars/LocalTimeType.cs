@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using HotChocolate.Language;
-using HotChocolate.Types.Scalars;
 
 namespace HotChocolate.Types
 {

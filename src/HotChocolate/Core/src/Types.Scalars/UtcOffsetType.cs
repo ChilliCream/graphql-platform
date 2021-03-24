@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
     /// <summary>
-    /// The `UtcOffset` scalar type represents a valid UTC time format as
-    /// defined here: <a>https://en.wikipedia.org/wiki/List_of_UTC_time_offsets</a>
+    /// The `UtcOffset` scalar type represents a value of format ±hh:mm.
     /// </summary>
     public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
     {
