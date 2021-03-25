@@ -28,8 +28,7 @@ namespace HotChocolate.Configuration
         private readonly IReadOnlyList<Type> _externalResolverTypes;
         private readonly TypeInterceptor _interceptor;
         private readonly IsOfTypeFallback? _isOfType;
-        private readonly Func<TypeSystemObjectBase, bool> _isQueryType;
-        private readonly Func<TypeSystemObjectBase, bool> _isMutationType;
+        private readonly Func<TypeSystemObjectBase, RootTypeKind> _getTypeKind;
         private readonly TypeRegistry _typeRegistry;
         private readonly TypeLookup _typeLookup;
         private readonly TypeReferenceResolver _typeReferenceResolver;
@@ -40,8 +39,7 @@ namespace HotChocolate.Configuration
             IReadOnlyList<ITypeReference> initialTypes,
             IReadOnlyList<Type> externalResolverTypes,
             IsOfTypeFallback? isOfType,
-            Func<TypeSystemObjectBase, bool> isQueryType,
-            Func<TypeSystemObjectBase, bool> isMutationType)
+            Func<TypeSystemObjectBase, RootTypeKind> getTypeKind)
         {
             _context = descriptorContext ??
                 throw new ArgumentNullException(nameof(descriptorContext));
@@ -52,10 +50,8 @@ namespace HotChocolate.Configuration
             _externalResolverTypes = externalResolverTypes ??
                 throw new ArgumentNullException(nameof(externalResolverTypes));
             _isOfType = isOfType;
-            _isQueryType = isQueryType ??
-                throw new ArgumentNullException(nameof(isQueryType));
-            _isMutationType = isMutationType ??
-                throw new ArgumentNullException(nameof(isMutationType));
+            _getTypeKind = getTypeKind ??
+                throw new ArgumentNullException(nameof(_getTypeKind));
             _interceptor = descriptorContext.TypeInterceptor;
             _typeInspector = descriptorContext.TypeInspector;
             _typeLookup = new TypeLookup(_typeInspector, _typeRegistry);
@@ -233,8 +229,10 @@ namespace HotChocolate.Configuration
                 }
 
                 TypeCompletionContext context = registeredType.CompletionContext;
-                context.IsQueryType = _isQueryType.Invoke(registeredType.Type);
-                context.IsMutationType = _isMutationType.Invoke(registeredType.Type);
+                RootTypeKind kind = _getTypeKind(registeredType.Type);
+                context.IsQueryType = kind == RootTypeKind.Query;
+                context.IsMutationType = kind == RootTypeKind.Mutation;
+                context.IsSubscriptionType = kind == RootTypeKind.Subscription;
                 return true;
             }
 
@@ -501,8 +499,10 @@ namespace HotChocolate.Configuration
                 {
                     TypeCompletionContext context = registeredType.CompletionContext;
                     context.Status = TypeStatus.Named;
-                    context.IsQueryType = _isQueryType.Invoke(registeredType.Type);
-                    context.IsMutationType = _isMutationType.Invoke(registeredType.Type);
+                    RootTypeKind kind = _getTypeKind(registeredType.Type);
+                    context.IsQueryType = kind == RootTypeKind.Query;
+                    context.IsMutationType = kind == RootTypeKind.Mutation;
+                    context.IsSubscriptionType = kind == RootTypeKind.Subscription;
                     registeredType.Type.CompleteType(context);
                 }
                 return true;
@@ -669,5 +669,13 @@ namespace HotChocolate.Configuration
                 throw new SchemaException(errors);
             }
         }
+    }
+
+    internal enum RootTypeKind
+    {
+        Query,
+        Mutation,
+        Subscription,
+        None
     }
 }

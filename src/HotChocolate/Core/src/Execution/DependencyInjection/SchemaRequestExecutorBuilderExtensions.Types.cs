@@ -46,6 +46,10 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         public static IRequestExecutorBuilder AddQueryType(
+            this IRequestExecutorBuilder builder) =>
+            AddQueryType(builder, d => d.Name(OperationTypeNames.Query));
+
+        public static IRequestExecutorBuilder AddQueryType(
             this IRequestExecutorBuilder builder,
             Action<IObjectTypeDescriptor> configure)
         {
@@ -142,6 +146,10 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddMutationType(configure));
         }
 
+        public static IRequestExecutorBuilder AddMutationType(
+            this IRequestExecutorBuilder builder) =>
+            AddMutationType(builder, d => d.Name(OperationTypeNames.Mutation));
+
         public static IRequestExecutorBuilder AddMutationType<T>(
             this IRequestExecutorBuilder builder,
             Action<IObjectTypeDescriptor<T>> configure)
@@ -221,6 +229,10 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return builder.ConfigureSchema(b => b.AddSubscriptionType(configure));
         }
+
+        public static IRequestExecutorBuilder AddSubscriptionType(
+            this IRequestExecutorBuilder builder) =>
+            AddSubscriptionType(builder, d => d.Name(OperationTypeNames.Subscription));
 
         public static IRequestExecutorBuilder AddSubscriptionType<T>(
             this IRequestExecutorBuilder builder,
