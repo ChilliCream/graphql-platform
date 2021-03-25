@@ -172,7 +172,7 @@ namespace HotChocolate.Types.Pagination
         public class Query1Extensions
         {
             [UsePaging]
-            [BindProperty(nameof(Query1.Foos))]
+            [BindMember(nameof(Query1.Foos))]
             public IQueryable<Foo> Foos ()
             {
                 return new List<Foo>
