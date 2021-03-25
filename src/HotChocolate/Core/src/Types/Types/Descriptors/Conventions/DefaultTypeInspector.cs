@@ -351,10 +351,9 @@ namespace HotChocolate.Types.Descriptors
             IDescriptor descriptor,
             ICustomAttributeProvider attributeProvider)
         {
-            foreach (var attribute in
-                GetCustomAttributes<DescriptorAttribute>(attributeProvider, true))
+            foreach (var attr in GetCustomAttributes<DescriptorAttribute>(attributeProvider, true))
             {
-                attribute.TryConfigure(context, descriptor, attributeProvider);
+                attr.TryConfigure(context, descriptor, attributeProvider);
             }
         }
 

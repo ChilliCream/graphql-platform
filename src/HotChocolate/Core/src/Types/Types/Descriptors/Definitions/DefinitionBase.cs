@@ -47,6 +47,11 @@ namespace HotChocolate.Types.Descriptors.Definitions
             _configurations ??= new List<ILazyTypeConfiguration>();
 
         /// <summary>
+        /// Defines whether descriptor attributes are applied or not.
+        /// </summary>
+        public bool AttributesAreApplied { get; set; }
+
+        /// <summary>
         /// Gets lazy configuration of this definition and all dependent definitions.
         /// </summary>
         internal virtual IEnumerable<ILazyTypeConfiguration> GetConfigurations()
@@ -110,6 +115,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
             target.Name = Name;
             target.Description = Description;
+            target.AttributesAreApplied = AttributesAreApplied;
         }
 
         protected void MergeInto(DefinitionBase target)
@@ -142,6 +148,11 @@ namespace HotChocolate.Types.Descriptors.Definitions
             if (Description is not null)
             {
                 target.Description = Description;
+            }
+
+            if (!target.AttributesAreApplied)
+            {
+                target.AttributesAreApplied = AttributesAreApplied;
             }
         }
     }

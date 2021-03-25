@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
+using HotChocolate.Types.Relay;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -85,6 +86,32 @@ namespace HotChocolate.Types.Pagination
         }
 
         [Fact]
+        public async Task Ensure_Attributes_Are_Applied_Once()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query1>()
+                .AddType<Query1Extensions>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_Attributes_Are_Applied_Once_Execute_Query()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query1>()
+                .AddType<Query1Extensions>()
+                .ExecuteRequestAsync("{ foos(first: 1) { nodes { bar } } }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
         public async Task UnknownNodeType()
         {
             Snapshot.FullName();
@@ -118,13 +145,47 @@ namespace HotChocolate.Types.Pagination
         public class Query
         {
             [UsePaging]
-            public IQueryable<Foo> Foos () 
-            { 
+            public IQueryable<Foo> Foos ()
+            {
                 return new List<Foo>
                 {
                     new Foo { Bar = "first" },
                     new Foo { Bar = "second" },
                 }.AsQueryable();
+            }
+        }
+
+        public class Query1
+        {
+            public IQueryable<Foo> Foos ()
+            {
+                return new List<Foo>
+                {
+                    new Foo { Bar = "first" },
+                    new Foo { Bar = "second" },
+                }.AsQueryable();
+            }
+        }
+
+        [Node]
+        [ExtendObjectType(typeof(Query1))]
+        public class Query1Extensions
+        {
+            [UsePaging]
+            [BindProperty(nameof(Query1.Foos))]
+            public IQueryable<Foo> Foos ()
+            {
+                return new List<Foo>
+                {
+                    new Foo { Bar = "first" },
+                    new Foo { Bar = "second" },
+                }.AsQueryable();
+            }
+
+            [NodeResolver]
+            public Query1 GetQuery()
+            {
+                return new Query1();
             }
         }
 

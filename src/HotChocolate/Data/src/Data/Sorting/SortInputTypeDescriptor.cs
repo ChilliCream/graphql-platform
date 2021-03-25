@@ -63,9 +63,10 @@ namespace HotChocolate.Data.Sorting
         protected override void OnCreateDefinition(
             SortInputTypeDefinition definition)
         {
-            if (Definition.EntityType is { })
+            if (!Definition.AttributesAreApplied && Definition.EntityType is not null)
             {
                 Context.TypeInspector.ApplyAttributes(Context, this, Definition.EntityType);
+                Definition.AttributesAreApplied = true;
             }
 
             var fields = new Dictionary<NameString, SortFieldDefinition>();

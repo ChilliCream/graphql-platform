@@ -60,12 +60,13 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             ObjectTypeDefinition definition)
         {
-            if (Definition.FieldBindingType is not null)
+            if (!Definition.AttributesAreApplied && Definition.FieldBindingType is not null)
             {
                 Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.FieldBindingType);
+                Definition.AttributesAreApplied = true;
             }
 
             var fields = new Dictionary<NameString, ObjectFieldDefinition>();
