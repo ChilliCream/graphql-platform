@@ -12,93 +12,6 @@ namespace HotChocolate.Types
     /// </summary>
     public class UtcOffsetType : ScalarType<TimeSpan, StringValueNode>
     {
-        private static readonly Dictionary<TimeSpan, string> _timeSpanToOffset =
-            new()
-            {
-                {new TimeSpan(-12,0,0), "-12:00"},
-                {new TimeSpan(-11,0,0), "-11:00"},
-                {new TimeSpan(-10,0,0), "-10:00"},
-                {new TimeSpan(-9,30,0), "-09:30"},
-                {new TimeSpan(-9,0,0), "-09:00"},
-                {new TimeSpan(-8,0,0), "-08:00"},
-                {new TimeSpan(-7,0,0), "-07:00"},
-                {new TimeSpan(-6,0,0), "-06:00"},
-                {new TimeSpan(-5,0,0), "-05:00"},
-                {new TimeSpan(-4,0,0), "-04:00"},
-                {new TimeSpan(-3,30,0), "-03:30"},
-                {new TimeSpan(-3,0,0), "-03:00"},
-                {new TimeSpan(-2,0,0), "-02:00"},
-                {new TimeSpan(-1,0,0), "-01:00"},
-                {new TimeSpan(0,0,0), "+00:00"},
-                {new TimeSpan(1,0,0), "+01:00"},
-                {new TimeSpan(2,0,0), "+02:00"},
-                {new TimeSpan(3,0,0), "+03:00"},
-                {new TimeSpan(3,30,0), "+03:30"},
-                {new TimeSpan(4,0,0), "+04:00"},
-                {new TimeSpan(4,30,0), "+04:30"},
-                {new TimeSpan(5,0,0), "+05:00"},
-                {new TimeSpan(5,30,0), "+05:30"},
-                {new TimeSpan(5,45,0), "+05:45"},
-                {new TimeSpan(6,0,0), "+06:00"},
-                {new TimeSpan(6,30,0), "+06:30"},
-                {new TimeSpan(7,0,0), "+07:00"},
-                {new TimeSpan(8,0,0), "+08:00"},
-                {new TimeSpan(8,45,0), "+08:45"},
-                {new TimeSpan(9,0,0), "+09:00"},
-                {new TimeSpan(9,30,0), "+09:30"},
-                {new TimeSpan(10,0,0), "+10:00"},
-                {new TimeSpan(10,30,0), "+10:30"},
-                {new TimeSpan(11,0,0), "+11:00"},
-                {new TimeSpan(12,0,0), "+12:00"},
-                {new TimeSpan(12,45,0), "+12:45"},
-                {new TimeSpan(13,0,0), "+013:00"},
-                {new TimeSpan(14,0,0), "+14:00"},
-            };
-
-        private static readonly Dictionary<string, TimeSpan> _offsetToTimeSpan =
-            new()
-            {
-                ["-12:00"] = new TimeSpan(-12, 0, 0),
-                ["-11:00"] = new TimeSpan(-11, 0, 0),
-                ["-10:00"] = new TimeSpan(-10, 0, 0),
-                ["-09:30"] = new TimeSpan(-9, 30, 0),
-                ["-09:00"] = new TimeSpan(-9, 0, 0),
-                ["-08:00"] = new TimeSpan(-8, 0, 0),
-                ["-07:00"] = new TimeSpan(-7, 0, 0),
-                ["-06:00"] = new TimeSpan(-6, 0, 0),
-                ["-05:00"] = new TimeSpan(-5, 0, 0),
-                ["-04:00"] = new TimeSpan(-4, 0, 0),
-                ["-03:30"] = new TimeSpan(-3, 30, 0),
-                ["-03:00"] = new TimeSpan(-3, 0, 0),
-                ["-02:00"] = new TimeSpan(-2, 0, 0),
-                ["-01:00"] = new TimeSpan(-1, 0, 0),
-                ["-00:00"] = new TimeSpan(0, 0, 0),
-                ["+00:00"] = new TimeSpan(0, 0, 0),
-                ["+01:00"] = new TimeSpan(1, 0, 0),
-                ["+02:00"] = new TimeSpan(2, 0, 0),
-                ["+03:00"] = new TimeSpan(3, 0, 0),
-                ["+03:30"] = new TimeSpan(3, 30, 0),
-                ["+04:00"] = new TimeSpan(4, 0, 0),
-                ["+04:30"] = new TimeSpan(4, 30, 0),
-                ["+05:00"] = new TimeSpan(5, 0, 0),
-                ["+05:30"] = new TimeSpan(5, 30, 0),
-                ["+05:45"] = new TimeSpan(5, 45, 0),
-                ["+06:00"] = new TimeSpan(6, 0, 0),
-                ["+06:30"] = new TimeSpan(6, 30, 0),
-                ["+07:00"] = new TimeSpan(7, 0, 0),
-                ["+08:00"] = new TimeSpan(8, 0, 0),
-                ["+08:45"] = new TimeSpan(8, 45, 0),
-                ["+09:00"] = new TimeSpan(9, 0, 0),
-                ["+09:30"] = new TimeSpan(9, 30, 0),
-                ["+10:00"] = new TimeSpan(10, 0, 0),
-                ["+10:30"] = new TimeSpan(10, 30, 0),
-                ["+11:00"] = new TimeSpan(11, 0, 0),
-                ["+12:00"] = new TimeSpan(12, 0, 0),
-                ["+12:45"] = new TimeSpan(12, 45, 0),
-                ["+13:00"] = new TimeSpan(13, 0, 0),
-                ["+14:00"] = new TimeSpan(14, 0, 0),
-            };
-
         /// <summary>
         /// Initializes a new instance of the <see cref="UtcOffsetType"/> class.
         /// </summary>
@@ -254,6 +167,6 @@ namespace HotChocolate.Types
             return _offsetToTimeSpan.TryGetValue(value, out result);
         }
 
-        public static readonly OffsetLookup Lookup = new OffsetLookup();
+        public static readonly OffsetLookup Lookup = new();
     }
 }
