@@ -314,5 +314,35 @@ namespace HotChocolate.Types
             // assert
             Assert.IsType<SerializationException>(result);
         }
+
+        [Fact]
+        public async Task Integration_DefaultUtcOffset()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<DefaultUtcOffset>()
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult res = await executor.ExecuteAsync("{ test }");
+
+            // assert
+            res.ToJson().MatchSnapshot();
+        }
+
+        public class DefaultUtcOffset
+        {
+            public TimeSpan Test => new();
+        }
+        public class DefaultUtcOffsetType : ObjectType<DefaultUtcOffset>
+        {
+            protected override void Configure(
+                IObjectTypeDescriptor<DefaultUtcOffset> descriptor)
+            {
+                descriptor.Field(x => x.Test).Type<UtcOffsetType>();
+            }
+        }
     }
+
 }
