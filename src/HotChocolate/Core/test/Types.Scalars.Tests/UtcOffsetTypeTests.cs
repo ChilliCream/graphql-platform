@@ -314,26 +314,5 @@ namespace HotChocolate.Types
             // assert
             Assert.IsType<SerializationException>(result);
         }
-
-        [Fact]
-        public async Task Integration_DefaultUtcOffset()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<DefaultUtcOffset>()
-                .BuildRequestExecutorAsync();
-
-            // act
-            IExecutionResult res = await executor.ExecuteAsync("{ test }");
-
-            // assert
-            res.ToJson().MatchSnapshot();
-        }
-
-        public class DefaultUtcOffset
-        {
-            public UtcOffsetType Test => new();
-        }
     }
 }
