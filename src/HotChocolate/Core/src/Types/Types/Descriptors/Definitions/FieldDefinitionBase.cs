@@ -5,9 +5,13 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {
+    /// <summary>
+    /// This definition represents a field or argument.
+    /// </summary>
     public abstract class FieldDefinitionBase
         : DefinitionBase
         , IHasDirectiveDefinition
+        , IHasIgnore
     {
         private List<DirectiveDefinition>? _directives;
 
