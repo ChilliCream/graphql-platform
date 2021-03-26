@@ -19,7 +19,7 @@ namespace HotChocolate.Types
             ExtendsType = extendsType;
         }
 
-        public string? Name { get; set; }
+        public string? Name { get; [Obsolete("Use the new constructor.")] set; }
 
         public Type? ExtendsType { get; }
 
