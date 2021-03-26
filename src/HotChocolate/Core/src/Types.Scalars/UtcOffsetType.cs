@@ -40,7 +40,7 @@ namespace HotChocolate.Types
             return resultValue switch
             {
                 null => NullValueNode.Default,
-                string s when OffsetLookup.Lookup.TryDeserialize(s, out TimeSpan timespan) => ParseValue(timespan),
+                string s when OffsetLookup.TryDeserialize(s, out TimeSpan timespan) => ParseValue(timespan),
                 TimeSpan ts => ParseValue(ts),
                 _ => throw ThrowHelper.UtcOffset_ParseValue_IsInvalid(this)
             };
@@ -48,7 +48,7 @@ namespace HotChocolate.Types
 
         protected override TimeSpan ParseLiteral(StringValueNode valueSyntax)
         {
-            if (OffsetLookup.Lookup.TryDeserialize(valueSyntax.Value, out TimeSpan found))
+            if (OffsetLookup.TryDeserialize(valueSyntax.Value, out TimeSpan found))
             {
                 return found;
             }
@@ -58,7 +58,7 @@ namespace HotChocolate.Types
 
         protected override StringValueNode ParseValue(TimeSpan runtimeValue)
         {
-            if (OffsetLookup.Lookup.TrySerialize(runtimeValue, out var found))
+            if (OffsetLookup.TrySerialize(runtimeValue, out var found))
             {
                 return new StringValueNode(found);
             }
@@ -73,7 +73,7 @@ namespace HotChocolate.Types
                 case null:
                     resultValue = null;
                     return true;
-                case TimeSpan timeSpan when OffsetLookup.Lookup.TrySerialize(timeSpan, out var s):
+                case TimeSpan timeSpan when OffsetLookup.TrySerialize(timeSpan, out var s):
                     resultValue = s;
                     return true;
                 default:
@@ -89,10 +89,10 @@ namespace HotChocolate.Types
                 case null:
                     runtimeValue = null;
                     return true;
-                case string s when OffsetLookup.Lookup.TryDeserialize(s, out TimeSpan timeSpan):
+                case string s when OffsetLookup.TryDeserialize(s, out TimeSpan timeSpan):
                     runtimeValue = timeSpan;
                     return true;
-                case TimeSpan timeSpan when OffsetLookup.Lookup.TrySerialize(timeSpan, out var s):
+                case TimeSpan timeSpan when OffsetLookup.TrySerialize(timeSpan, out var s):
                     runtimeValue = s;
                     return true;
                 default:
@@ -157,16 +157,14 @@ namespace HotChocolate.Types
             _offsetToTimeSpan["-00:00"] = TimeSpan.Zero;
         }
 
-        internal bool TrySerialize(TimeSpan value, [NotNullWhen(true)] out string? result)
+        internal static bool TrySerialize(TimeSpan value, [NotNullWhen(true)] out string? result)
         {
             return _timeSpanToOffset.TryGetValue(value, out result);
         }
 
-        internal bool TryDeserialize(string value, [NotNullWhen(true)] out TimeSpan result)
+        internal static bool TryDeserialize(string value, [NotNullWhen(true)] out TimeSpan result)
         {
             return _offsetToTimeSpan.TryGetValue(value, out result);
         }
-
-        public static readonly OffsetLookup Lookup = new();
     }
 }
