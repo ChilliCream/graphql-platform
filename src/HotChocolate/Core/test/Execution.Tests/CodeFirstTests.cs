@@ -8,7 +8,6 @@ using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution
