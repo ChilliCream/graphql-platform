@@ -27,9 +27,9 @@ namespace HotChocolate.DataLoader
 
             var items = new Result<TValue>[keys.Count];
 
-            for (int i = 0; i < keys.Count; i++)
+            for (var i = 0; i < keys.Count; i++)
             {
-                if (result.TryGetValue(keys[i], out TValue value))
+                if (result.TryGetValue(keys[i], out TValue? value))
                 {
                     items[i] = value;
                 }

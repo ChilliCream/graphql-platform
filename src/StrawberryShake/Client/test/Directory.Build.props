@@ -4,6 +4,7 @@
   <PropertyGroup>
     <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
     <IsPackable>false</IsPackable>
+    <Warn>0</Warn>
   </PropertyGroup>
 
   <ItemGroup>

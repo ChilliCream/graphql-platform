@@ -175,6 +175,7 @@ namespace HotChocolate.Types
             Arguments = FieldCollection<Argument>.From(
                 definition
                     .GetArguments()
+                    .Where(t => !t.Ignore)
                     .Select(t => new Argument(t, new FieldCoordinate(Name, t.Name))),
                 context.DescriptorContext.Options.SortFieldsByName);
             HasMiddleware = MiddlewareComponents.Count > 0;
@@ -199,7 +200,7 @@ namespace HotChocolate.Types
             FieldInitHelper.CompleteFields(context, definition, Arguments);
         }
 
-        internal object DeserializeArgument(
+        internal object? DeserializeArgument(
             Argument argument,
             IValueNode valueNode,
             Type targetType)
@@ -214,14 +215,14 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(valueNode));
             }
 
-            object obj = argument.Type.ParseLiteral(valueNode);
+            object? obj = argument.Type.ParseLiteral(valueNode);
 
             if (targetType.IsInstanceOfType(obj))
             {
                 return obj;
             }
 
-            if (_converter.TryConvert(typeof(object), targetType, obj, out object o))
+            if (_converter.TryConvert(typeof(object), targetType, obj, out object? o))
             {
                 return o;
             }
@@ -235,7 +236,7 @@ namespace HotChocolate.Types
             Argument argument,
             IValueNode valueNode)
         {
-            return (T)DeserializeArgument(argument, valueNode, typeof(T));
+            return (T)DeserializeArgument(argument, valueNode, typeof(T))!;
         }
     }
 }
