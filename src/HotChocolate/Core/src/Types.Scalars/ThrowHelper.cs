@@ -553,9 +553,9 @@ namespace HotChocolate.Types
         {
             return new SerializationException(
                 ErrorBuilder.New()
-                    .SetMessage(ScalarResources.RgbType_IsInvalid_ParseValue)
+                    .SetMessage(ScalarResources.UnsignedIntType_IsNotUnsigned_ParseValue)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
-                    .SetExtension("actualType", WellKnownScalarTypes.Rgb)
+                    .SetExtension("actualType", WellKnownScalarTypes.UnsignedInt)
                     .Build(),
                 type);
         }
@@ -589,6 +589,28 @@ namespace HotChocolate.Types
                     .SetMessage(ScalarResources.UnsignedLongType_IsNotUnsigned_ParseLiteral)
                     .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
                     .SetExtension("actualType", WellKnownScalarTypes.UnsignedLong)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException UtcOffset_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.UtcOffsetType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.UtcOffset)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException UtcOffset_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.UtcOffsetType_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.UtcOffset)
                     .Build(),
                 type);
         }
