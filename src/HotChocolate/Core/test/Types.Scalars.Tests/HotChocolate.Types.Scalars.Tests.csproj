@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Execution\HotChocolate.Execution.csproj" />
     <ProjectReference Include="..\..\src\Types.Scalars\HotChocolate.Types.Scalars.csproj" />
     <ProjectReference Include="..\..\src\Types\HotChocolate.Types.csproj" />
   </ItemGroup>
