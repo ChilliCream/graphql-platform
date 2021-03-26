@@ -7,34 +7,31 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace HotChocolate.Types.Scalars.Upload.Properties {
-    using System;
-    
-    
+namespace HotChocolate.Types.Properties {
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class UploadResources {
-        
+
         private static System.Resources.ResourceManager resourceMan;
-        
+
         private static System.Globalization.CultureInfo resourceCulture;
-        
+
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal UploadResources() {
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.Equals(null, resourceMan)) {
-                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Types.Scalars.Upload.Properties.UploadResources", typeof(UploadResources).Assembly);
+                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Types.Properties.UploadResources", typeof(UploadResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
             }
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Globalization.CultureInfo Culture {
             get {
@@ -44,19 +41,19 @@ namespace HotChocolate.Types.Scalars.Upload.Properties {
                 resourceCulture = value;
             }
         }
-        
+
         internal static string UploadType_TrySerialize_NotSupported {
             get {
                 return ResourceManager.GetString("UploadType_TrySerialize_NotSupported", resourceCulture);
             }
         }
-        
+
         internal static string StreamFile_Constructor_NameCannotBeNullOrEmpty {
             get {
                 return ResourceManager.GetString("StreamFile_Constructor_NameCannotBeNullOrEmpty", resourceCulture);
             }
         }
-        
+
         internal static string UploadType_Description {
             get {
                 return ResourceManager.GetString("UploadType_Description", resourceCulture);

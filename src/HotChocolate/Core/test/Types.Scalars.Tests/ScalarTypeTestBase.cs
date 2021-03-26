@@ -87,7 +87,7 @@ namespace HotChocolate.Types
             ScalarType scalar = CreateType<TType>();
 
             // act
-            object result = scalar.ParseLiteral(valueSyntax);
+            object? result = scalar.ParseLiteral(valueSyntax);
 
             // assert
             Assert.Equal(expectedResult, result);

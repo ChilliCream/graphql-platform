@@ -97,8 +97,8 @@ namespace HotChocolate.Types
             }
 
             Dictionary<string, ArgumentNode> arguments = GetArguments();
-            if (arguments.TryGetValue(argumentName, out ArgumentNode argValue)
-                && Type.Arguments.TryGetField(argumentName, out Argument arg))
+            if (arguments.TryGetValue(argumentName, out ArgumentNode? argValue)
+                && Type.Arguments.TryGetField(argumentName, out Argument? arg))
             {
                 if (typeof(T).IsAssignableFrom(arg.Type.RuntimeType))
                 {
@@ -121,7 +121,7 @@ namespace HotChocolate.Types
                 return directive;
             }
 
-            directive = (T)Activator.CreateInstance(typeof(T));
+            directive = (T)Activator.CreateInstance(typeof(T))!;
 
             ILookup<string, PropertyInfo> properties =
                 typeof(T).GetProperties()
@@ -146,10 +146,9 @@ namespace HotChocolate.Types
             PropertyInfo property)
         {
             Dictionary<string, ArgumentNode> arguments = GetArguments();
-            if (arguments.TryGetValue(argument.Name,
-                out ArgumentNode argumentValue))
+            if (arguments.TryGetValue(argument.Name, out ArgumentNode? argumentValue))
             {
-                object parsedValue = Type.DeserializeArgument(
+                object? parsedValue = Type.DeserializeArgument(
                     argument, argumentValue.Value, property.PropertyType);
 
                 property.SetValue(obj, parsedValue);
@@ -222,7 +221,7 @@ namespace HotChocolate.Types
             {
                 return new Directive(
                     directiveType,
-                    CompleteArguments(directiveType, definition.ParsedDirective),
+                    CompleteArguments(directiveType, definition.ParsedDirective!),
                     null,
                     source);
             }
@@ -259,7 +258,7 @@ namespace HotChocolate.Types
 
             if (schema.TryGetDirectiveType(
                 directiveNode.Name.Value,
-                out DirectiveType type))
+                out DirectiveType? type))
             {
                 return new Directive(
                     type,
@@ -280,7 +279,7 @@ namespace HotChocolate.Types
             if (directiveType.Arguments.Count > 0
                 && directiveType.Arguments.Any(t => t.DefaultValue is { }))
             {
-                List<ArgumentNode> arguments = null;
+                List<ArgumentNode>? arguments = null;
 
                 var argumentNames = new HashSet<string>(
                     directive.Arguments.Select(t => t.Name.Value));

@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -20,9 +21,28 @@ namespace HotChocolate
                 .MatchSnapshotAsync();
         }
 
+        [Fact]
+        public async Task Ignore_By_Name()
+        {
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
         public class Query
         {
             public Bar GetBar() => new();
+        }
+
+        public class QueryType : ObjectType<Query>
+        {
+            protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+            {
+                descriptor.Field("bar").Ignore();
+                descriptor.Field("foo").Resolve("foo");
+            }
         }
 
         public class Bar

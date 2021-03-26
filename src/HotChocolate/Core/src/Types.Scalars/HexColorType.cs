@@ -1,6 +1,5 @@
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
-using HotChocolate.Types.Scalars;
 
 namespace HotChocolate.Types
 {

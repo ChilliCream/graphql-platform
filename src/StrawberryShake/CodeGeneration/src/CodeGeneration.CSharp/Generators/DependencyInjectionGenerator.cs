@@ -212,7 +212,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                             operation.RuntimeType.ToString())))
                 .AddEmptyLine()
                 .AddCode(ForwardSingletonToClientServiceProvider(
-                    $"{descriptor.ClientDescriptor.RuntimeType.Namespace}.{descriptor.Name}"))
+                    descriptor.ClientDescriptor.RuntimeType.ToString()))
+                .AddCode(ForwardSingletonToClientServiceProvider(
+                    descriptor.ClientDescriptor.InterfaceType.ToString()))
                 .AddEmptyLine()
                 .AddMethodCall(x => x
                     .SetReturn()

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Types.Scalars.Tests</AssemblyName>
-    <RootNamespace>HotChocolate</RootNamespace>
+    <RootNamespace>HotChocolate.Types</RootNamespace>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 

@@ -40,7 +40,7 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        protected void SyntaxNode(FieldDefinitionNode syntaxNode)
+        protected void SyntaxNode(FieldDefinitionNode? syntaxNode)
         {
             Definition.SyntaxNode = syntaxNode;
         }
@@ -50,7 +50,7 @@ namespace HotChocolate.Types.Descriptors
             Definition.Name = name.EnsureNotEmpty(nameof(name));
         }
 
-        protected void Description(string description)
+        protected void Description(string? description)
         {
             Definition.Description = description;
         }
@@ -131,7 +131,7 @@ namespace HotChocolate.Types.Descriptors
             argument(descriptor);
         }
 
-        public void Deprecated(string reason)
+        public void Deprecated(string? reason)
         {
             if (string.IsNullOrEmpty(reason))
             {

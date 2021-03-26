@@ -189,7 +189,7 @@ namespace HotChocolate.Types.Pagination
             }
         }
 
-        [ExtendObjectType(Name = "Query")]
+        [ExtendObjectType("Query")]
         public class QueryExtension : Query
         {
         }
@@ -205,7 +205,7 @@ namespace HotChocolate.Types.Pagination
             IQueryable<Foo> Foos { get; }
         }
 
-        [ExtendObjectType(Name = "Query")]
+        [ExtendObjectType("Query")]
         public class NoNodeType
         {
             [UsePaging]
