@@ -25,7 +25,7 @@ namespace HotChocolate.Types {
         internal static System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.Equals(null, resourceMan)) {
-                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Types.Scalars.ScalarResources", typeof(ScalarResources).Assembly);
+                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Types.ScalarResources", typeof(ScalarResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

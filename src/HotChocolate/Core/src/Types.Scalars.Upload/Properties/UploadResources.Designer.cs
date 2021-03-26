@@ -25,7 +25,7 @@ namespace HotChocolate.Types.Properties {
         internal static System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.Equals(null, resourceMan)) {
-                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Types.Scalars.Upload.Properties.UploadResources", typeof(UploadResources).Assembly);
+                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Types.Properties.UploadResources", typeof(UploadResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
