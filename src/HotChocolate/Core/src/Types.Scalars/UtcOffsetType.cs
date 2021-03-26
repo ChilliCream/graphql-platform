@@ -104,10 +104,10 @@ namespace HotChocolate.Types
 
     internal class OffsetLookup
     {
-        private readonly Dictionary<TimeSpan, string> _timeSpanToOffset;
-        private readonly Dictionary<string, TimeSpan> _offsetToTimeSpan;
+        private static readonly Dictionary<TimeSpan, string> _timeSpanToOffset;
+        private static readonly Dictionary<string, TimeSpan> _offsetToTimeSpan;
 
-        public OffsetLookup()
+        static OffsetLookup()
         {
             _timeSpanToOffset = new Dictionary<TimeSpan, string>()
             {
@@ -157,12 +157,12 @@ namespace HotChocolate.Types
             _offsetToTimeSpan["-00:00"] = TimeSpan.Zero;
         }
 
-        public bool TrySerialize(TimeSpan value, [NotNullWhen(true)] out string? result)
+        internal bool TrySerialize(TimeSpan value, [NotNullWhen(true)] out string? result)
         {
             return _timeSpanToOffset.TryGetValue(value, out result);
         }
 
-        public bool TryDeserialize(string value, [NotNullWhen(true)] out TimeSpan result)
+        internal bool TryDeserialize(string value, [NotNullWhen(true)] out TimeSpan result)
         {
             return _offsetToTimeSpan.TryGetValue(value, out result);
         }
