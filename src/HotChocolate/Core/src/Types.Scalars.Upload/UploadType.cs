@@ -1,5 +1,5 @@
 using HotChocolate.Language;
-using HotChocolate.Types.Scalars.Upload.Properties;
+using HotChocolate.Types.Properties;
 
 namespace HotChocolate.Types
 {

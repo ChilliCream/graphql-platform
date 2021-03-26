@@ -89,9 +89,9 @@ namespace HotChocolate.Types
 
         private Type GetRuntimeType(TypeInfo typeInfo)
         {
-            if (typeInfo.Definition is ObjectTypeDefinition {IsExtension: true} objectDef)
+            if (typeInfo.Definition is ObjectTypeDefinition { IsExtension: true } objectDef)
             {
-                return objectDef.FieldBindingType;
+                return objectDef.FieldBindingType ?? typeof(object);
             }
 
             return typeInfo.Definition.RuntimeType;
@@ -183,6 +183,11 @@ namespace HotChocolate.Types
             ICollection<Type> allInterfaces,
             ICollection<Type> interfaces)
         {
+            if (runtimeType == typeof(object))
+            {
+                return;
+            }
+
             foreach (Type interfaceType in runtimeType.GetInterfaces())
             {
                 if (allInterfaces.Contains(interfaceType))
