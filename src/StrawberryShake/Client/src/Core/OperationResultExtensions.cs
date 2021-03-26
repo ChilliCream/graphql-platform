@@ -1,6 +1,6 @@
 using System;
 
-namespace StrawberryShake.Extensions
+namespace StrawberryShake
 {
     /// <summary>
     /// This class provides extension methods for the operation result.
