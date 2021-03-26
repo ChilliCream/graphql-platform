@@ -53,7 +53,7 @@ namespace StrawberryShake.Extensions
             var successResult = new ResultMock();
 
             // act
-            var hasErrors = successResult.HasErrors();
+            var hasErrors = successResult.IsErrorResult();
 
             // assert
             Assert.False(hasErrors!);
@@ -67,7 +67,7 @@ namespace StrawberryShake.Extensions
             var successResult = new ResultMock(clientError);
 
             // act
-            var hasErrors = successResult.HasErrors();
+            var hasErrors = successResult.IsErrorResult();
 
             // assert
             Assert.True(hasErrors);
@@ -78,7 +78,7 @@ namespace StrawberryShake.Extensions
         {
             // arrange
             // act
-            void Throws() => default(ResultMock)!.HasErrors();
+            void Throws() => default(ResultMock)!.IsErrorResult();
 
             // assert
             Assert.Throws<ArgumentNullException>(Throws);

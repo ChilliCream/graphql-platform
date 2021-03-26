@@ -42,7 +42,7 @@ namespace StrawberryShake.Extensions
         /// <exception cref="ArgumentNullException">
         /// The operation result is null.
         /// </exception>
-        public static bool HasErrors(this IOperationResult result)
+        public static bool IsErrorResult(this IOperationResult result)
         {
             if (result is null)
             {
