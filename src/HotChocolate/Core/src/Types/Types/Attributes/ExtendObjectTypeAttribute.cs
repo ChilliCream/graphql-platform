@@ -1,17 +1,18 @@
-#nullable enable
-
 using System;
-using System.Reflection;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
     public sealed class ExtendObjectTypeAttribute : ObjectTypeDescriptorAttribute
     {
+        private string? _name;
+
         public ExtendObjectTypeAttribute(string? name = null)
         {
-            Name = name;
+            _name = name;
         }
 
         public ExtendObjectTypeAttribute(Type extendsType)
@@ -19,14 +20,44 @@ namespace HotChocolate.Types
             ExtendsType = extendsType;
         }
 
-        public string? Name { get; [Obsolete("Use the new constructor.")] set; }
+        /// <summary>
+        /// Gets the GraphQL type name to which this extension is bound to.
+        /// </summary>
+        public string? Name
+        {
+            get => _name;
+            [Obsolete("Use the new constructor.")] set => _name = value;
+        }
 
+        /// <summary>
+        /// Gets the .NET type to which this extension is bound to.
+        /// If this is a base type or an interface the extension will bind to all types
+        /// inheriting or implementing the type.
+        /// </summary>
         public Type? ExtendsType { get; }
 
+        /// <summary>
+        /// Gets a set of field names that will be removed from the extended type.
+        /// </summary>
         public string[]? IgnoreFields { get; set; }
 
+        /// <summary>
+        /// Gets a set of property names that will be removed from the extended type.
+        /// </summary>
         public string[]? IgnoreProperties { get; set; }
 
+        /// <summary>
+        /// Applies the type extension configuration.
+        /// </summary>
+        /// <param name="context">
+        /// The descriptor context.
+        /// </param>
+        /// <param name="descriptor">
+        /// The object type descriptor.
+        /// </param>
+        /// <param name="type">
+        /// The type to which this instance is annotated to.
+        /// </param>
         public override void OnConfigure(
             IDescriptorContext context,
             IObjectTypeDescriptor descriptor,
@@ -66,80 +97,6 @@ namespace HotChocolate.Types
                             ObjectFieldBindingType.Property));
                     }
                 });
-            }
-        }
-    }
-
-    /// <summary>
-    /// Binds a member of a type extension to a member of the actual type.
-    /// </summary>
-    public sealed class BindMemberAttribute : ObjectFieldDescriptorAttribute
-    {
-        public BindMemberAttribute(string name)
-        {
-            Name = name;
-        }
-
-        /// <summary>
-        /// The member name.
-        /// </summary>
-        public string Name { get; }
-
-        /// <summary>
-        /// Defines if the members shall be merged or if this member with all its settings
-        /// will replace the original one.
-        /// </summary>
-        public bool Replace { get; set; } = true;
-
-        public override void OnConfigure(
-            IDescriptorContext context,
-            IObjectFieldDescriptor descriptor,
-            MemberInfo member)
-        {
-            if (!string.IsNullOrEmpty(Name))
-            {
-                descriptor.Extend().OnBeforeCreate(
-                    d => d.BindTo = new ObjectFieldBinding(
-                        Name,
-                        ObjectFieldBindingType.Property,
-                        Replace));
-            }
-        }
-    }
-
-    /// <summary>
-    /// Binds a member of a type extension to a field of the actual type.
-    /// </summary>
-    public sealed class BindFieldAttribute : ObjectFieldDescriptorAttribute
-    {
-        public BindFieldAttribute(string name)
-        {
-            Name = name;
-        }
-
-        /// <summary>
-        /// The GraphQL field name.
-        /// </summary>
-        public string Name { get; }
-
-        /// <summary>
-        /// Defines if the members shall be merged or if this member with all its settings
-        /// will replace the original one.
-        /// </summary>
-        public bool Replace { get; set; } = true;
-
-        public override void OnConfigure(
-            IDescriptorContext context,
-            IObjectFieldDescriptor descriptor,
-            MemberInfo member)
-        {
-            if (!string.IsNullOrEmpty(Name))
-            {
-                descriptor.Extend().OnBeforeCreate(
-                    d => d.BindTo = new ObjectFieldBinding(
-                        Name,
-                        ObjectFieldBindingType.Field,
-                        Replace));
             }
         }
     }

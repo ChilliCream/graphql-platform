@@ -175,6 +175,7 @@ namespace HotChocolate.Types
             Arguments = FieldCollection<Argument>.From(
                 definition
                     .GetArguments()
+                    .Where(t => !t.Ignore)
                     .Select(t => new Argument(t, new FieldCoordinate(Name, t.Name))),
                 context.DescriptorContext.Options.SortFieldsByName);
             HasMiddleware = MiddlewareComponents.Count > 0;
