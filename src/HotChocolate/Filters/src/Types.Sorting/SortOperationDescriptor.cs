@@ -24,17 +24,18 @@ namespace HotChocolate.Types.Sorting
         {
             get;
             protected set;
-        } = new SortOperationDefintion();
+        } = new();
 
         protected override void OnCreateDefinition(
             SortOperationDefintion definition)
         {
-            if (Definition.Operation?.Property is { })
+            if (!Definition.AttributesAreApplied && Definition.Operation?.Property is not null)
             {
                 Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.Operation.Property);
+                Definition.AttributesAreApplied = true;
             }
             base.OnCreateDefinition(definition);
         }

@@ -4,6 +4,8 @@ title: "Schema basics"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
+> We are still working on the documentation for Hot Chocolate 11.1 so help us by finding typos, missing things or write some additional docs with us.
+
 The schema in GraphQL represents the type system and exposes your business model in a strong and rich way. The schema fully describes the shape of your data and how you can interact with it.
 
 # Object Type

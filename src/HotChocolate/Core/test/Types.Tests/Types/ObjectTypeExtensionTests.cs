@@ -714,7 +714,7 @@ namespace HotChocolate.Types
         [ExtendObjectType(typeof(BindResolver_With_Property_PersonDto))]
         public class BindResolver_With_Property_PersonResolvers
         {
-            [BindProperty(nameof(BindResolver_With_Property_PersonDto.FriendId))]
+            [BindMember(nameof(BindResolver_With_Property_PersonDto.FriendId))]
             public List<BindResolver_With_Property_PersonDto> Friends() =>
                 new List<BindResolver_With_Property_PersonDto>();
         }
@@ -772,7 +772,7 @@ namespace HotChocolate.Types
         public class Remove_Fields_BindProperty_PersonResolvers
         {
             [GraphQLIgnore]
-            [BindProperty(nameof(Remove_Fields_BindProperty_PersonDto.InternalId))]
+            [BindMember(nameof(Remove_Fields_BindProperty_PersonDto.InternalId))]
             public int SomeId { get; } = 1;
         }
 
@@ -786,7 +786,7 @@ namespace HotChocolate.Types
         [ExtendObjectType(typeof(Replace_Field_PersonDto))]
         public class Replace_Field_PersonResolvers
         {
-            [BindProperty(nameof(Replace_Field_PersonDto.InternalId))]
+            [BindMember(nameof(Replace_Field_PersonDto.InternalId))]
             public string SomeId { get; } = "abc";
         }
     }

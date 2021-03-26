@@ -7,8 +7,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
-    public sealed class ExtendObjectTypeAttribute
-        : ObjectTypeDescriptorAttribute
+    public sealed class ExtendObjectTypeAttribute : ObjectTypeDescriptorAttribute
     {
         public ExtendObjectTypeAttribute(string? name = null)
         {
@@ -45,12 +44,12 @@ namespace HotChocolate.Types
 
             if (IgnoreFields is not null)
             {
-                descriptor.Extend().OnBeforeCreate(d => 
+                descriptor.Extend().OnBeforeCreate(d =>
                 {
                     foreach (string fieldName in IgnoreFields)
                     {
                         d.FieldIgnores.Add(new ObjectFieldBinding(
-                            fieldName, 
+                            fieldName,
                             ObjectFieldBindingType.Field));
                     }
                 });
@@ -58,12 +57,12 @@ namespace HotChocolate.Types
 
             if (IgnoreProperties is not null)
             {
-                descriptor.Extend().OnBeforeCreate(d => 
+                descriptor.Extend().OnBeforeCreate(d =>
                 {
                     foreach (string fieldName in IgnoreProperties)
                     {
                         d.FieldIgnores.Add(new ObjectFieldBinding(
-                            fieldName, 
+                            fieldName,
                             ObjectFieldBindingType.Property));
                     }
                 });
@@ -71,15 +70,25 @@ namespace HotChocolate.Types
         }
     }
 
-    public sealed class BindPropertyAttribute : ObjectFieldDescriptorAttribute
+    /// <summary>
+    /// Binds a member of a type extension to a member of the actual type.
+    /// </summary>
+    public sealed class BindMemberAttribute : ObjectFieldDescriptorAttribute
     {
-        public BindPropertyAttribute(string name)
+        public BindMemberAttribute(string name)
         {
             Name = name;
         }
 
+        /// <summary>
+        /// The member name.
+        /// </summary>
         public string Name { get; }
 
+        /// <summary>
+        /// Defines if the members shall be merged or if this member with all its settings
+        /// will replace the original one.
+        /// </summary>
         public bool Replace { get; set; } = true;
 
         public override void OnConfigure(
@@ -98,6 +107,9 @@ namespace HotChocolate.Types
         }
     }
 
+    /// <summary>
+    /// Binds a member of a type extension to a field of the actual type.
+    /// </summary>
     public sealed class BindFieldAttribute : ObjectFieldDescriptorAttribute
     {
         public BindFieldAttribute(string name)
@@ -105,8 +117,15 @@ namespace HotChocolate.Types
             Name = name;
         }
 
+        /// <summary>
+        /// The GraphQL field name.
+        /// </summary>
         public string Name { get; }
 
+        /// <summary>
+        /// Defines if the members shall be merged or if this member with all its settings
+        /// will replace the original one.
+        /// </summary>
         public bool Replace { get; set; } = true;
 
         public override void OnConfigure(

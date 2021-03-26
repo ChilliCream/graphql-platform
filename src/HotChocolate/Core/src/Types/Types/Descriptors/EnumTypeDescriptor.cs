@@ -41,12 +41,13 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             EnumTypeDefinition definition)
         {
-            if (Definition.RuntimeType is { })
+            if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
             {
                 Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.RuntimeType);
+                Definition.AttributesAreApplied = true;
             }
 
             var values = Values.Select(t => t.CreateDefinition()).ToDictionary(t => t.Value);
