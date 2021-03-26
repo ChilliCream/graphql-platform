@@ -34,7 +34,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
                     c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            StarWarsGetFriendsClient client = services.GetRequiredService<StarWarsGetFriendsClient>();
+            IStarWarsGetFriendsClient client =
+                services.GetRequiredService<IStarWarsGetFriendsClient>();
 
             // act
             IOperationResult<IGetHeroResult> result = await client.GetHero.ExecuteAsync(ct);
