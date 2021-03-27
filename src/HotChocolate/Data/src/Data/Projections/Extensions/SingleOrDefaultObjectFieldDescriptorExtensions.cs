@@ -62,7 +62,7 @@ namespace HotChocolate.Types
                                 .New<ObjectFieldDefinition>()
                                 .Definition(definition)
                                 .Configure(
-                                    (_, __) =>
+                                    (_, definition) =>
                                     {
                                         CompileMiddleware(
                                             selectionType,

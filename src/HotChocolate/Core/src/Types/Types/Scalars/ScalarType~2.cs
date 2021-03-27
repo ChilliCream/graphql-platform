@@ -15,11 +15,13 @@ namespace HotChocolate.Types
         : ScalarType<TRuntimeType>
         where TLiteral : IValueNode
     {
+        /// <inheritdoc />
         protected ScalarType(NameString name, BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, bind)
         {
         }
 
+        /// <inheritdoc />
         public sealed override bool IsInstanceOfType(IValueNode valueSyntax)
         {
             if (valueSyntax is null)
@@ -31,11 +33,26 @@ namespace HotChocolate.Types
                 || valueSyntax is NullValueNode;
         }
 
+        /// <summary>
+        /// Defines if the specified <paramref name="valueSyntax" />
+        /// can be parsed by this scalar.
+        /// </summary>
+        /// <param name="valueSyntax">
+        /// The literal that shall be checked.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if the literal can be parsed by this scalar;
+        /// otherwise, <c>false</c>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="valueSyntax" /> is <c>null</c>.
+        /// </exception>
         protected virtual bool IsInstanceOfType(TLiteral valueSyntax)
         {
             return true;
         }
 
+        /// <inheritdoc />
         public sealed override bool IsInstanceOfType(object? runtimeValue)
         {
             if (runtimeValue is null)
@@ -51,11 +68,23 @@ namespace HotChocolate.Types
             return false;
         }
 
+        /// <summary>
+        /// Defines if the specified <paramref name="runtimeValue" />
+        /// is a instance of this type.
+        /// </summary>
+        /// <param name="runtimeValue">
+        /// A value representation of this type.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if the value is a value of this type;
+        /// otherwise, <c>false</c>.
+        /// </returns>
         protected virtual bool IsInstanceOfType(TRuntimeType runtimeValue)
         {
             return true;
         }
 
+        /// <inheritdoc />
         public sealed override object? ParseLiteral(
             IValueNode valueSyntax, bool withDefaults = true)
         {
@@ -74,13 +103,27 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            throw new SerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
-                this);
+            throw CreateParseLiteralError(valueSyntax);
         }
 
+        /// <summary>
+        /// Parses the specified <paramref name="valueSyntax" />
+        /// to the .net representation of this type.
+        /// </summary>
+        /// <param name="valueSyntax">
+        /// The literal that shall be parsed.
+        /// </param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="valueSyntax" /> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="SerializationException">
+        /// The specified <paramref name="valueSyntax" /> cannot be parsed
+        /// by this scalar.
+        /// </exception>
         protected abstract TRuntimeType ParseLiteral(TLiteral valueSyntax);
 
+        /// <inheritdoc />
         public sealed override IValueNode ParseValue(object? runtimeValue)
         {
             if (runtimeValue is null)
@@ -93,11 +136,49 @@ namespace HotChocolate.Types
                 return ParseValue(t);
             }
 
-            throw new SerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseValue(Name, runtimeValue.GetType()),
+            throw CreateParseValueError(runtimeValue);
+        }
+
+        /// <summary>
+        /// Parses a <typeparam name="TRuntimeType">runtime value</typeparam> into a
+        /// <typeparam name="TLiteral">valueSyntax</typeparam>
+        /// </summary>
+        /// <param name="runtimeValue">The value to parse</param>
+        /// <returns>The parsed value syntax</returns>
+        protected abstract TLiteral ParseValue(TRuntimeType runtimeValue);
+
+        /// <summary>
+        /// Creates the exception that will be thrown when <see cref="ParseLiteral"/> encountered an
+        /// invalid <see cref="IValueNode "/>
+        /// </summary>
+        /// <param name="valueSyntax">
+        /// The value syntax that should be parsed
+        /// </param>
+        /// <returns>
+        /// The created exception that should be thrown
+        /// </returns>
+        protected virtual SerializationException CreateParseLiteralError(IValueNode valueSyntax)
+        {
+            return new(
+                TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
                 this);
         }
 
-        protected abstract TLiteral ParseValue(TRuntimeType runtimeValue);
+        /// <summary>
+        /// Creates the exception that will be thrown when <see cref="ParseValue"/> encountered an
+        /// invalid value
+        /// </summary>
+        /// <param name="runtimeValue">
+        /// The runtimeValue that should be parsed
+        /// </param>
+        /// <returns>
+        /// The created exception that should be thrown
+        /// </returns>
+        protected virtual SerializationException CreateParseValueError(object runtimeValue)
+        {
+            return new(
+                TypeResourceHelper.Scalar_Cannot_ParseValue(Name, runtimeValue.GetType()),
+                this);
+        }
     }
 }

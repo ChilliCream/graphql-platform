@@ -1,0 +1,24 @@
+﻿{
+  "errors": [
+    {
+      "message": "The provided value for filter \u0060any\u0060 of type ListBarFilterTypeFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 44
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "Boolean!",
+        "filterType": "ListBarFilterTypeFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": []
+  }
+}

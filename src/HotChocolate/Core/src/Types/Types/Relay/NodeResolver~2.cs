@@ -5,8 +5,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Relay
 {
-    internal sealed class NodeResolver<TNode, TId>
-        : INodeResolver
+    internal sealed class NodeResolver<TNode, TId> : INodeResolver
     {
         private readonly NodeResolverDelegate<TNode, TId> _resolver;
 

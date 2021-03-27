@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -18,8 +17,7 @@ using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class ObjectTypeTests
-        : TypeTestBase
+    public class ObjectTypeTests : TypeTestBase
     {
         [Fact]
         public void ObjectType_DynamicName()
@@ -1759,6 +1757,16 @@ namespace HotChocolate.Types
                 .MatchSnapshot();
         }
 
+        [Fact]
+        public void IgnoreIndexers()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<QueryWithIndexer>()
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -1922,7 +1930,7 @@ namespace HotChocolate.Types
                 [DefaultValue("abc")] string b) => null;
         }
 
-        [ExtendObjectType(Name = "Some")]
+        [ExtendObjectType("Some")]
         public class SomeTypeExtensionWithInterface : INode
         {
             [GraphQLType(typeof(NonNullType<IdType>))]
@@ -1972,6 +1980,16 @@ namespace HotChocolate.Types
         {
             [GraphQLNonNullType(true, false, false)]
             public List<List<string>> NestedList { get; set; }
+        }
+
+        public class QueryWithIndexer
+        {
+            public string this[int i]
+            {
+                get => throw new NotImplementedException();
+            }
+
+            public string GetFoo() => throw new NotImplementedException();
         }
     }
 }

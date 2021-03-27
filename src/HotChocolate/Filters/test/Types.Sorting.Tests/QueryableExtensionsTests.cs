@@ -1,9 +1,11 @@
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 using Xunit;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete]
     public class QueryableExtensionsTests
     {
         [Fact]

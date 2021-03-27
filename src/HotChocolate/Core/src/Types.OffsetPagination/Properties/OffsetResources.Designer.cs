@@ -45,9 +45,9 @@ namespace HotChocolate.Types.Pagination.Properties {
             }
         }
         
-        internal static string OffsetPagingObjectFieldDescriptorExtensions_SchemaTypeNotValid {
+        internal static string PagingObjectFieldDescriptorExtensions_SchemaTypeNotValid {
             get {
-                return ResourceManager.GetString("OffsetPagingObjectFieldDescriptorExtensions_SchemaTypeNotValid", resourceCulture);
+                return ResourceManager.GetString("PagingObjectFieldDescriptorExtensions_SchemaTypeNotValid", resourceCulture);
             }
         }
     }

@@ -15,7 +15,7 @@ namespace HotChocolate.Execution.Processing
         private IPreparedOperation _operation = default!;
         private IVariableValueCollection _variables = default!;
         private IServiceProvider _services = default!;
-        private Func<object> _resolveQueryRootValue = default!;
+        private Func<object?> _resolveQueryRootValue = default!;
         private object? _rootValue;
         private bool _isPooled = true;
 
@@ -36,7 +36,7 @@ namespace HotChocolate.Execution.Processing
             IPreparedOperation operation,
             IVariableValueCollection variables,
             object? rootValue,
-            Func<object> resolveQueryRootValue)
+            Func<object?> resolveQueryRootValue)
         {
             _requestContext = requestContext;
             _executionContext.Initialize(

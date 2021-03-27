@@ -1,0 +1,28 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "number": 2,
+        "foo": {
+          "barEnum": "BAR",
+          "nestedObject": {
+            "foo": {
+              "barString": "Foo"
+            }
+          }
+        }
+      },
+      {
+        "number": 2,
+        "foo": {
+          "barEnum": "FOO",
+          "nestedObject": null
+        }
+      },
+      {
+        "number": 2,
+        "foo": null
+      }
+    ]
+  }
+}

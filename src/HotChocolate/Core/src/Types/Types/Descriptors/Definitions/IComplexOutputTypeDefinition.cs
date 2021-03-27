@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         Type RuntimeType { get; }
 
-        IList<Type> KnownClrTypes { get; }
+        IList<Type> KnownRuntimeTypes { get; }
 
         IList<ITypeReference> Interfaces { get; }
     }

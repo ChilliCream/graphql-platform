@@ -5,6 +5,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters
 {
+    /// <inheritdoc />
     public abstract class FilterVisitorContext<T>
         : IFilterVisitorContext<T>
     {
@@ -22,14 +23,20 @@ namespace HotChocolate.Data.Filters
             Scopes.Push(filterScope ?? CreateScope());
         }
 
+        /// <inheritdoc />
         public Stack<FilterScope<T>> Scopes { get; }
 
+        /// <inheritdoc />
         public Stack<IType> Types { get; } = new Stack<IType>();
+
+        /// <inheritdoc />
 
         public Stack<IInputField> Operations { get; } = new Stack<IInputField>();
 
+        /// <inheritdoc />
         public IList<IError> Errors { get; } = new List<IError>();
 
+        /// <inheritdoc />
         public virtual FilterScope<T> CreateScope()
         {
             return new FilterScope<T>();

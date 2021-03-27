@@ -16,23 +16,26 @@ namespace HotChocolate.Types
         , IInputField
     {
         public Argument(
-            ArgumentDefinition definition)
-            : base(definition)
+            ArgumentDefinition definition,
+            FieldCoordinate fieldCoordinate)
+            : base(definition, fieldCoordinate)
         {
             SyntaxNode = definition.SyntaxNode;
             DefaultValue = definition.DefaultValue;
 
-            if (definition.Formatters.Count == 0)
+            var formatters = definition.GetFormatters();
+
+            if (formatters.Count == 0)
             {
                 Formatter = null;
             }
-            else if (definition.Formatters.Count == 1)
+            else if (formatters.Count == 1)
             {
-                Formatter = definition.Formatters[0];
+                Formatter = formatters[0];
             }
             else
             {
-                Formatter = new AggregateInputValueFormatter(definition.Formatters);
+                Formatter = new AggregateInputValueFormatter(formatters);
             }
         }
 
@@ -64,7 +67,8 @@ namespace HotChocolate.Types
             else
             {
                 base.OnCompleteField(context, definition);
-                DefaultValue = FieldInitHelper.CreateDefaultValue(context, definition, Type);
+                DefaultValue = FieldInitHelper.CreateDefaultValue(
+                    context, definition, Type, Coordinate);
             }
         }
     }

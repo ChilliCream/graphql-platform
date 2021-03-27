@@ -2,14 +2,6 @@
 title: "Overview"
 ---
 
-Hi,
+> We are still working on the documentation for Hot Chocolate 11.1 so help us by finding typos, missing things or write some additional docs with us.
 
-We're currently working on the version 11 documentation. Probably right now at this very moment. However, this is an open-source project, and we need any help we can get! You can jump in at any time and help us improve the documentation for hundreds or even thousands of developers!
-
-In case you might need help, check out our [Slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and get immediate help from the core contributors or the community itself.
-
-Sorry for any inconvenience, and thank you for being patient!
-
-The ChilliCream Team
-
-<br><br><br>
+The API Reference provides deep dives into specific subjects like [ASP.NET Core](aspnetcore) configuration or how you can use [object type extensions](object-type).

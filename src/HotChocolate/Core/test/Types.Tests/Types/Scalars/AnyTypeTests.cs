@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -998,6 +999,110 @@ namespace HotChocolate.Types
 
             // assert
             Assert.IsType<ObjectValueNode>(literal);
+        }
+
+        [Fact]
+        public void Deserialize_ValueNode()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
+                .Create();
+
+            AnyType type = schema.GetType<AnyType>("Any");
+
+            // act
+            object value = type.Deserialize(new StringValueNode("Foo"));
+
+            // assert
+            Assert.Equal("Foo", value);
+        }
+
+        [Fact]
+        public void Deserialize_Dictionary()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
+                .Create();
+
+            AnyType type = schema.GetType<AnyType>("Any");
+
+            var toDeserialize = new Dictionary<string, object>
+            {
+                {"Foo", new StringValueNode("Bar")}
+            };
+
+            // act
+            object value = type.Deserialize(toDeserialize);
+
+            // assert
+            Assert.Equal("Bar", Assert.IsType<Dictionary<string, object>>(value)["Foo"]);
+        }
+
+        [Fact]
+        public void Deserialize_NestedDictionary()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
+                .Create();
+
+            AnyType type = schema.GetType<AnyType>("Any");
+
+            var toDeserialize = new Dictionary<string, object>
+            {
+                {"Foo",new Dictionary<string, object>{{"Bar",new StringValueNode("Baz")}}}
+            };
+
+            // act
+            object value = type.Deserialize(toDeserialize);
+
+            // assert
+            object innerDictionary = Assert.IsType<Dictionary<string, object>>(value)["Foo"];
+            Assert.Equal("Baz", Assert.IsType<Dictionary<string, object>>(innerDictionary)["Bar"]);
+        }
+
+        [Fact]
+        public void Deserialize_List()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
+                .Create();
+
+            AnyType type = schema.GetType<AnyType>("Any");
+            var toDeserialize =
+                new List<object> { new StringValueNode("Foo"), new StringValueNode("Bar") };
+
+            // act
+            object value = type.Deserialize(toDeserialize);
+
+            // assert
+            Assert.Collection(
+                Assert.IsType<object[]>(value)!,
+                x => Assert.Equal("Foo",x),
+                x => Assert.Equal("Bar",x));
         }
 
         [Fact]

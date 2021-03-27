@@ -1,8 +1,15 @@
-import { graphql } from "gatsby";
-import React, { FunctionComponent, useCallback, useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { graphql, Link } from "gatsby";
+import React, {
+  Fragment,
+  FunctionComponent,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
+import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import { ArticleSectionsFragment } from "../../../graphql-types";
+import { State } from "../../state";
 import { closeAside } from "../../state/common";
 import { MostProminentSection } from "../doc-page/doc-page-elements";
 
@@ -14,86 +21,92 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
   data,
 }) => {
   const dispatch = useDispatch();
+  const [activeHeadingId, setActiveHeadingId] = useState<string>();
+  const [headings, setHeadings] = useState<Heading[]>([]);
+  const yScrollPosition = useSelector<State, number>(
+    (state) => state.common.yScrollPosition
+  );
 
   const handleCloseClick = useCallback(() => {
     dispatch(closeAside());
   }, []);
 
   useEffect(() => {
-    const ids = data
-      .tableOfContents!.split(/"|\//)
-      .filter((item) => item.indexOf("#") === 0)
-      .map((item) => {
-        const id = item.substring(1);
-
-        return {
-          id: `toc-${id}`,
-          position: document.getElementById(id)!.offsetTop - 80,
-        };
-      })
+    const result = ((data.tableOfContents.items as TableOfContentItem[]) ?? [])
+      .flatMap((item) => [item, ...(item.items ?? [])])
+      .map((item) => ({
+        id: item.url,
+        position:
+          (document.getElementById(item.url.substring(1))?.offsetTop ?? 80) - 80,
+      }))
       .reverse();
-    let currentActiveId: string | undefined;
 
-    const handler = () => {
-      const currentScrollPosition =
-        document.body.scrollTop || document.documentElement.scrollTop;
-      let newActiveId: string | undefined;
-
-      for (let i = 0; i < ids.length; i++) {
-        if (currentScrollPosition >= ids[i].position) {
-          newActiveId = ids[i].id;
-          break;
-        }
-      }
-
-      if (currentActiveId !== newActiveId) {
-        if (currentActiveId) {
-          document.getElementById(currentActiveId)!.parentElement!.className =
-            "";
-        }
-
-        currentActiveId = newActiveId;
-
-        if (currentActiveId) {
-          document.getElementById(currentActiveId)!.parentElement!.className =
-            "active";
-        }
-      }
-    };
-
-    if (ids.length > 0) {
-      document.addEventListener("scroll", handler);
-    }
-
-    return () => {
-      if (ids.length > 0) {
-        document.removeEventListener("scroll", handler);
-      }
-    };
+    setHeadings(result);
   }, [data]);
 
-  return data.tableOfContents!.length > 0 ? (
+  useEffect(() => {
+    setActiveHeadingId(
+      headings.find((id) => yScrollPosition >= id.position)?.id
+    );
+  }, [headings, yScrollPosition]);
+
+  const tocItems: TableOfContentItem[] = data.tableOfContents.items ?? [];
+
+  return tocItems.length > 0 ? (
     <Container>
       <Title>In this article</Title>
       <MostProminentSection>
-        <Content
-          onClick={handleCloseClick}
-          dangerouslySetInnerHTML={{
-            __html: data.tableOfContents!.replace(
-              /href=\"(.*?#)(.*?)\"/gi,
-              'id="toc-$2" href="/docs$1$2"'
-            ),
-          }}
-        />
+        <div onClick={handleCloseClick}>
+          <TableOfContent items={tocItems} activeHeadingId={activeHeadingId} />
+        </div>
       </MostProminentSection>
     </Container>
-  ) : (
-    <></>
+  ) : null;
+};
+
+interface Heading {
+  id: string;
+  position: number;
+}
+
+interface TableOfContentProps {
+  items: TableOfContentItem[];
+  activeHeadingId: string | undefined;
+}
+
+const TableOfContent: FunctionComponent<TableOfContentProps> = ({
+  items,
+  activeHeadingId,
+}) => {
+  return (
+    <TocItemContainer>
+      {items.map((item) => (
+        <Fragment key={item.url}>
+          <TocListItem
+            className={activeHeadingId === item.url ? "active" : undefined}
+          >
+            <TocLink to={item.url}>{item.title}</TocLink>
+          </TocListItem>
+          {item.items && (
+            <TableOfContent
+              items={item.items ?? []}
+              activeHeadingId={activeHeadingId}
+            />
+          )}
+        </Fragment>
+      ))}
+    </TocItemContainer>
   );
 };
 
+interface TableOfContentItem {
+  title: string;
+  url: string;
+  items?: TableOfContentItem[];
+}
+
 export const ArticleSectionsGraphQLFragment = graphql`
-  fragment ArticleSections on MarkdownRemark {
+  fragment ArticleSections on Mdx {
     tableOfContents(maxDepth: 2)
   }
 `;
@@ -111,47 +124,38 @@ const Title = styled.h6`
   }
 `;
 
-const Content = styled.div`
-  ul {
-    display: flex;
-    flex-direction: column;
-    margin: 0;
-    padding: 0 25px 10px;
-    list-style-type: none;
+const TocItemContainer = styled.ul`
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0 25px 10px;
+  list-style-type: none;
 
-    li {
-      flex: 0 0 auto;
-      margin: 5px 0;
-      padding: 0;
-      line-height: initial;
+  @media only screen and (min-width: 1320px) {
+    padding: 0 20px 10px;
+  }
+`;
 
-      > p {
-        margin: 0;
-        padding: 0;
-      }
+const TocLink = styled((props) => <Link {...props} />)`
+  font-size: 0.833em;
+  color: #666;
 
-      > ul {
-        padding-right: 0;
-      }
+  :hover {
+    color: #000;
+  }
+`;
 
-      &.active > a,
-      > p.active > a {
-        font-weight: bold;
-      }
+const TocListItem = styled.li`
+  flex: 0 0 auto;
+  margin: 5px 0;
+  padding: 0;
+  line-height: initial;
 
-      > a,
-      > p > a {
-        font-size: 0.833em;
-        color: #666;
+  > ${TocItemContainer} {
+    padding-right: 0;
+  }
 
-        :hover {
-          color: #000;
-        }
-      }
-    }
-
-    @media only screen and (min-width: 1320px) {
-      padding: 0 20px 10px;
-    }
+  &.active > ${TocLink} {
+    font-weight: bold;
   }
 `;

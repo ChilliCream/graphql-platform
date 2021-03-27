@@ -4,7 +4,7 @@ title: "Visitors"
 
 Hot Chocolate creates an abstract syntax tree for every incoming request. [Here you find more information about the Abstract Syntax Tree (AST)](http://TODOADDLINK). The execution engine evaluates this syntax tree in many different ways. Validation is a good example. Every incoming request has to be validated. The execution engine has to be sure that the semantic of the requested document is correct. A set of rules is applied to the syntax tree, to find potential semantic flaws.
 
-Usually, you do not have to access the _AST_ directly. The AST only becomes significant, when you want to change execution behavior based on the structure of the query. For example features like _Fitlering_, _Sorting_, or _Selection_, analyze the incoming query and generate expressions based on it.
+Usually, you do not have to access the _AST_ directly. The AST only becomes significant, when you want to change execution behavior based on the structure of the query. For example features like _Filtering_, _Sorting_, or _Selection_, analyze the incoming query and generate expressions based on it.
 
 Hot Chocolate provides you with different APIs that support you to traverse these trees. The `SyntaxWalker` is a visitor that has built-in all the logic to _walk down a syntax tree_.
 
@@ -46,11 +46,11 @@ autonumber
     Bar-->Foo:  -
     Foo->>Foo:  OnBeforeLeave foo
     Foo->>Foo:  Leave foo
-    Foo->>Foo:  OnAfterEnter foo
+    Foo->>Foo:  OnAfterLeave foo
     Foo-->Root:  -
-    Root->>Root:  OnBeforeLeave  query GetFoos
-    Root->>Root:  Leave  query GetFoos
-    Root->>Root:  OnAfterEnter  query GetFoos
+    Root->>Root:  OnBeforeLeave `query GetFoos`
+    Root->>Root:  Leave `query GetFoos`
+    Root->>Root:  OnAfterLeave `query GetFoos`
 ```
 
 1. We start walking down the tree and _enter_. <br/> Call the `csharp±OnBeforeEnter(OperationDefinitionNode node, TContext context)`
@@ -74,15 +74,15 @@ autonumber
 
 # Visitor Actions
 
-The _Enter_ and _Leave_ methods return visitor actions. These methods control the visitors' next step in the visitation. Visitoractions can be used to _skip_ further visitation and step back up, or to _continue_ and walk the current branch of the tree further down.
+The _Enter_ and _Leave_ methods return visitor actions. These methods control the visitors' next step in the visitation. Visitor actions can be used to _skip_ further visitation and step back up, or to _continue_ and walk the current branch of the tree further down.
 
 ## Continue
 
 If `Continue` is returned from the `Enter` or `Leave` method visitation on the current branch continues.
 
-In the following example `Continue` is returned from the onEnter method. The visitor calls `VisitChildren` and continues to by _entering_ the selection set.
+In the following example `Continue` is returned from the onEnter method. The visitor calls `VisitChildren` and continues by _entering_ the selection set.
 
-```graphql{4}
+```graphql {4}
 query {
   foo {
     bar
@@ -100,7 +100,7 @@ If `Skip` is returned from the `Enter` or `Leave` method, further visitation on 
 
 In the following example `Skip` is returned from the onEnter method. The visitor skips the field _baz_. It continues visitation by _entering_ the field _qux_.
 
-```graphql{4}
+```graphql {4}
 query {
   foo {
     bar
@@ -114,11 +114,11 @@ query {
 
 ## SkipAndLeave
 
-If `SkipAndLeave` is returned from the Enter method, further visitation on this node stops. Instead of directly calling the next `Enter` method. The visitor calls the Leave method of the current node first.
+If `SkipAndLeave` is returned from the `Enter` method, further visitation on this node stops. Instead of directly calling the next `Enter` method. The visitor calls the `Leave` method of the current node first.
 
-In the following example `SkipAndLeave` is returned from the onEnter method. The visitor skips the field _baz_. Before it continues visitation with the field _qux_ it calls the _leaves_ the field _baz_ by calling `Leave`
+In the following example `SkipAndLeave` is returned from the onEnter method. The visitor skips the field _baz_. Before it continues visitation with the field _qux_ it _leaves_ the field _baz_ by calling `Leave`
 
-```graphql{4}
+```graphql {4}
 query {
   foo {
     bar
@@ -136,7 +136,7 @@ If `Break` is returned from the `Enter` or `Leave` method, further visitation on
 
 In the following example `Break` is returned from the onEnter method. The visitor immediately starts walking back up. The visitor calls the `Leave` on `foo` instead of visiting the selections set of _baz_ it skips _baz_ and _qux_.
 
-```graphql{4}
+```graphql {4}
 query {
   foo {
     bar

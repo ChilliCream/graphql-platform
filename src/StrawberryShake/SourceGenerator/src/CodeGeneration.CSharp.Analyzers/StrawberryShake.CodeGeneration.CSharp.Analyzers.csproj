@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>StrawberryShake.CodeGeneration.CSharp.Analyzers</PackageId>
+    <AssemblyName>StrawberryShake.CodeGeneration.CSharp.Analyzers</AssemblyName>
+    <RootNamespace>StrawberryShake.CodeGeneration.CSharp.Analyzers</RootNamespace>
+    <Description>StrawberryShake CSharp source generator.</Description>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild> <!-- Generates a package at build -->
+    <IncludeBuildOutput>false</IncludeBuildOutput> <!-- Do not include the generator as a lib dependency -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="StrawberryShake.CodeGeneration.CSharp" Version="11.1.0-local.403" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="DotNet.Glob" Version="3.1.2" PrivateAssets="all" GeneratePathProperty="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Package the generator in the analyzer directory of the nuget package -->
+    <None Include="$(OutputPath)\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\GraphQL.xaml" Pack="true" PackagePath="build/GraphQL.xaml" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\StrawberryShake.props" Pack="true" PackagePath="build/StrawberryShake.CodeGeneration.CSharp.Analyzers.props" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\StrawberryShake.targets" Pack="true" PackagePath="build/StrawberryShake.CodeGeneration.CSharp.Analyzers.targets" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\VSCode.targets" Pack="true" PackagePath="build/VSCode.targets" Visible="false" />
+  </ItemGroup>
+
+</Project>

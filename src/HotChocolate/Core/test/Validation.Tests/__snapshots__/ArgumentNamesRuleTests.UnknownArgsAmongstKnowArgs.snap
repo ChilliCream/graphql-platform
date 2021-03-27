@@ -19,7 +19,36 @@
       "argument": "whoKnows",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Argument",
+      "Location": {
+        "Start": 237,
+        "End": 260,
+        "Line": 8,
+        "Column": 37
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 237,
+          "End": 246,
+          "Line": 8,
+          "Column": 37
+        },
+        "Value": "whoKnows"
+      },
+      "Value": {
+        "Kind": "IntValue",
+        "Location": {
+          "Start": 247,
+          "End": 260,
+          "Line": 8,
+          "Column": 47
+        },
+        "Value": "1"
+      }
+    }
   },
   {
     "Message": "The argument `unknown` does not exist.",
@@ -41,6 +70,35 @@
       "argument": "unknown",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Argument",
+      "Location": {
+        "Start": 267,
+        "End": 281,
+        "Line": 8,
+        "Column": 67
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 267,
+          "End": 275,
+          "Line": 8,
+          "Column": 67
+        },
+        "Value": "unknown"
+      },
+      "Value": {
+        "Kind": "BooleanValue",
+        "Location": {
+          "Start": 276,
+          "End": 281,
+          "Line": 8,
+          "Column": 76
+        },
+        "Value": true
+      }
+    }
   }
 ]

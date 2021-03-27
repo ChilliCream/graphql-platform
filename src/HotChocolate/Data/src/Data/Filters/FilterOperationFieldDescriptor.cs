@@ -28,9 +28,10 @@ namespace HotChocolate.Data.Filters
         protected override void OnCreateDefinition(
             FilterOperationFieldDefinition definition)
         {
-            if (Definition.Property is { })
+            if (!Definition.AttributesAreApplied && Definition.Property is not null)
             {
                 Context.TypeInspector.ApplyAttributes(Context, this, Definition.Property);
+                Definition.AttributesAreApplied = true;
             }
 
             base.OnCreateDefinition(definition);
@@ -136,6 +137,6 @@ namespace HotChocolate.Data.Filters
             IDescriptorContext context,
             int operation,
             string? scope = null) =>
-            new FilterOperationFieldDescriptor(context, operation, scope);
+            new(context, operation, scope);
     }
 }

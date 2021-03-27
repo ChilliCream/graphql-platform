@@ -26,14 +26,12 @@ namespace HotChocolate.Configuration
         private readonly ITypeInspector _typeInspector;
         private readonly IReadOnlyList<ITypeReference> _initialTypes;
         private readonly IReadOnlyList<Type> _externalResolverTypes;
-        private readonly ITypeInterceptor _interceptor;
+        private readonly TypeInterceptor _interceptor;
         private readonly IsOfTypeFallback? _isOfType;
-        private readonly Func<TypeSystemObjectBase, bool> _isQueryType;
-        private readonly Func<TypeSystemObjectBase, bool> _isMutationType;
+        private readonly Func<TypeSystemObjectBase, RootTypeKind> _getTypeKind;
         private readonly TypeRegistry _typeRegistry;
         private readonly TypeLookup _typeLookup;
         private readonly TypeReferenceResolver _typeReferenceResolver;
-        private ITypeInitializationFlowInterceptor? _flowInterceptor;
 
         public TypeInitializer(
             IDescriptorContext descriptorContext,
@@ -41,8 +39,7 @@ namespace HotChocolate.Configuration
             IReadOnlyList<ITypeReference> initialTypes,
             IReadOnlyList<Type> externalResolverTypes,
             IsOfTypeFallback? isOfType,
-            Func<TypeSystemObjectBase, bool> isQueryType,
-            Func<TypeSystemObjectBase, bool> isMutationType)
+            Func<TypeSystemObjectBase, RootTypeKind> getTypeKind)
         {
             _context = descriptorContext ??
                 throw new ArgumentNullException(nameof(descriptorContext));
@@ -53,20 +50,13 @@ namespace HotChocolate.Configuration
             _externalResolverTypes = externalResolverTypes ??
                 throw new ArgumentNullException(nameof(externalResolverTypes));
             _isOfType = isOfType;
-            _isQueryType = isQueryType ??
-                throw new ArgumentNullException(nameof(isQueryType));
-            _isMutationType = isMutationType ??
-                throw new ArgumentNullException(nameof(isMutationType));
+            _getTypeKind = getTypeKind ??
+                throw new ArgumentNullException(nameof(_getTypeKind));
             _interceptor = descriptorContext.TypeInterceptor;
             _typeInspector = descriptorContext.TypeInspector;
             _typeLookup = new TypeLookup(_typeInspector, _typeRegistry);
             _typeReferenceResolver = new TypeReferenceResolver(
                 _typeInspector, _typeRegistry, _typeLookup);
-
-            // if the type interceptor instance also implements the flow interceptor
-            // interface we will accept it and use it as a way to intercept the flow
-            // of the type initialization.
-            _flowInterceptor = _interceptor as ITypeInitializationFlowInterceptor;
         }
 
         public IList<FieldMiddleware> GlobalComponents => _globalComps;
@@ -116,6 +106,10 @@ namespace HotChocolate.Configuration
             // the fields resolving all missing parts and then making the types immutable.
             CompleteTypes();
 
+            // at this point everything is completely initialized and we just trigger a type
+            // finalize to allow the type to cleanup any initialization data structures.
+            FinalizeTypes();
+
             // if we do not have any errors we will validate the types for spec violations.
             if (_errors.Count == 0)
             {
@@ -132,7 +126,7 @@ namespace HotChocolate.Configuration
 
         private void DiscoverTypes()
         {
-            _flowInterceptor?.OnBeforeDiscoverTypes();
+            _interceptor.OnBeforeDiscoverTypes();
 
             var typeRegistrar = new TypeDiscoverer(
                 _context,
@@ -153,7 +147,7 @@ namespace HotChocolate.Configuration
                     _typeRegistry.Types.Select(t => t.DiscoveryContext).ToList());
             }
 
-            _flowInterceptor?.OnAfterDiscoverTypes();
+            _interceptor.OnAfterDiscoverTypes();
         }
 
         private void RegisterResolvers()
@@ -235,12 +229,14 @@ namespace HotChocolate.Configuration
                 }
 
                 TypeCompletionContext context = registeredType.CompletionContext;
-                context.IsQueryType = _isQueryType.Invoke(registeredType.Type);
-                context.IsMutationType = _isMutationType.Invoke(registeredType.Type);
+                RootTypeKind kind = _getTypeKind(registeredType.Type);
+                context.IsQueryType = kind == RootTypeKind.Query;
+                context.IsMutationType = kind == RootTypeKind.Mutation;
+                context.IsSubscriptionType = kind == RootTypeKind.Subscription;
                 return true;
             }
 
-            _flowInterceptor?.OnBeforeCompleteTypeNames();
+            _interceptor.OnBeforeCompleteTypeNames();
 
             if (ProcessTypes(TypeDependencyKind.Named, CompleteName) &&
                 _interceptor.TriggerAggregations)
@@ -251,12 +247,12 @@ namespace HotChocolate.Configuration
 
             EnsureNoErrors();
 
-            _flowInterceptor?.OnAfterCompleteTypeNames();
+            _interceptor.OnAfterCompleteTypeNames();
         }
 
         private void MergeTypeExtensions()
         {
-            _flowInterceptor?.OnBeforeMergeTypeExtensions();
+            _interceptor.OnBeforeMergeTypeExtensions();
 
             var extensions = _typeRegistry.Types
                 .Where(t => t.IsExtension)
@@ -264,33 +260,83 @@ namespace HotChocolate.Configuration
 
             if (extensions.Count > 0)
             {
+                var processed = new HashSet<RegisteredType>();
+
                 var types = _typeRegistry.Types
                     .Where(t => t.IsNamedType)
                     .ToList();
 
-                foreach (NameString typeName in extensions.Select(t => t.Type.Name).Distinct())
+                foreach (NameString typeName in extensions
+                    .Select(t => t.Type)
+                    .OfType<INamedTypeExtension>()
+                    .Where(t => t.ExtendsType is null)
+                    .Select(t => t.Name)
+                    .Distinct())
                 {
                     RegisteredType? type = types.FirstOrDefault(t => t.Type.Name.Equals(typeName));
-                    if(type is not null && type.Type is INamedType namedType)
+                    if (type?.Type is INamedType namedType)
                     {
                         MergeTypeExtension(
                             extensions.Where(t => t.Type.Name.Equals(typeName)),
                             type,
-                            namedType);
+                            namedType,
+                            processed);
+                    }
+                }
+
+                var extensionArray = new RegisteredType[1];
+
+                foreach (var extension in extensions.Except(processed))
+                {
+                    if (extension.Type is INamedTypeExtension {
+                        ExtendsType: { } extendsType } namedTypeExtension)
+                    {
+                        var isSchemaType = typeof(INamedType).IsAssignableFrom(extendsType);
+                        extensionArray[0] = extension;
+
+                        foreach (var possibleMatchingType in types
+                            .Where(t =>
+                                t.Type is INamedType n &&
+                                n.Kind == namedTypeExtension.Kind))
+
+                        {
+                            if (isSchemaType &&
+                                extendsType.IsInstanceOfType(possibleMatchingType))
+                            {
+                                MergeTypeExtension(
+                                    extensionArray,
+                                    possibleMatchingType,
+                                    (INamedType)possibleMatchingType.Type,
+                                    processed);
+                            }
+                            else if (!isSchemaType &&
+                                possibleMatchingType.RuntimeType != typeof(object) &&
+                                extendsType.IsAssignableFrom(possibleMatchingType.RuntimeType))
+                            {
+                                MergeTypeExtension(
+                                    extensionArray,
+                                    possibleMatchingType,
+                                    (INamedType)possibleMatchingType.Type,
+                                    processed);
+                            }
+                        }
                     }
                 }
             }
 
-            _flowInterceptor?.OnAfterMergeTypeExtensions();
+            _interceptor.OnAfterMergeTypeExtensions();
         }
 
         private void MergeTypeExtension(
             IEnumerable<RegisteredType> extensions,
             RegisteredType registeredType,
-            INamedType namedType)
+            INamedType namedType,
+            HashSet<RegisteredType> processed)
         {
             foreach (RegisteredType extension in extensions)
             {
+                processed.Add(extension);
+
                 if (extension.Type is INamedTypeExtensionMerger m)
                 {
                     if (m.Kind != namedType.Kind)
@@ -307,8 +353,8 @@ namespace HotChocolate.Configuration
                     TypeDiscoveryContext initContext = extension.DiscoveryContext;
                     foreach (FieldReference reference in initContext.Resolvers.Keys)
                     {
-                        _resolvers[reference]
-                            = initContext.Resolvers[reference].WithSourceType(registeredType.RuntimeType);
+                        _resolvers[reference] = initContext.Resolvers[reference]
+                            .WithSourceType(registeredType.RuntimeType);
                     }
 
                     // merge
@@ -453,14 +499,16 @@ namespace HotChocolate.Configuration
                 {
                     TypeCompletionContext context = registeredType.CompletionContext;
                     context.Status = TypeStatus.Named;
-                    context.IsQueryType = _isQueryType.Invoke(registeredType.Type);
-                    context.IsMutationType = _isMutationType.Invoke(registeredType.Type);
+                    RootTypeKind kind = _getTypeKind(registeredType.Type);
+                    context.IsQueryType = kind == RootTypeKind.Query;
+                    context.IsMutationType = kind == RootTypeKind.Mutation;
+                    context.IsSubscriptionType = kind == RootTypeKind.Subscription;
                     registeredType.Type.CompleteType(context);
                 }
                 return true;
             }
 
-            _flowInterceptor?.OnBeforeCompleteTypes();
+            _interceptor.OnBeforeCompleteTypes();
 
             ProcessTypes(TypeDependencyKind.Completed, CompleteType);
             EnsureNoErrors();
@@ -471,7 +519,18 @@ namespace HotChocolate.Configuration
                     _typeRegistry.Types.Select(t => t.CompletionContext).ToList());
             }
 
-            _flowInterceptor?.OnAfterCompleteTypes();
+            _interceptor.OnAfterCompleteTypes();
+        }
+
+        private void FinalizeTypes()
+        {
+            foreach (var registeredType in _typeRegistry.Types)
+            {
+                if (!registeredType.IsExtension)
+                {
+                    registeredType.Type.FinalizeType(registeredType.CompletionContext);
+                }
+            }
         }
 
         private bool ProcessTypes(
@@ -610,5 +669,13 @@ namespace HotChocolate.Configuration
                 throw new SchemaException(errors);
             }
         }
+    }
+
+    internal enum RootTypeKind
+    {
+        Query,
+        Mutation,
+        Subscription,
+        None
     }
 }

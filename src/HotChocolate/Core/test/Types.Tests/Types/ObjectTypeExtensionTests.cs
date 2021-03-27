@@ -350,77 +350,6 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void ObjectTypeExtension_ReplaceDirectiveOnType()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(new ObjectType<Foo>(t => t
-                    .Directive("dummy_arg", new ArgumentNode("a", "a"))))
-                .AddType(new ObjectTypeExtension(d => d
-                    .Name("Foo")
-                    .Directive("dummy_arg", new ArgumentNode("a", "b"))))
-                .AddDirectiveType<DummyWithArgDirective>()
-                .Create();
-
-            // assert
-            ObjectType type = schema.GetType<ObjectType>("Foo");
-            string value = type.Directives["dummy_arg"]
-                .First().GetArgument<string>("a");
-            Assert.Equal("b", value);
-        }
-
-        [Fact]
-        public void ObjectTypeExtension_ReplaceDirectiveOnField()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(new ObjectType<Foo>(t => t
-                    .Field(f => f.Description)
-                    .Directive("dummy_arg", new ArgumentNode("a", "a"))))
-                .AddType(new ObjectTypeExtension(d => d
-                    .Name("Foo")
-                    .Field("description")
-                    .Directive("dummy_arg", new ArgumentNode("a", "b"))))
-                .AddDirectiveType<DummyWithArgDirective>()
-                .Create();
-
-            // assert
-            ObjectType type = schema.GetType<ObjectType>("Foo");
-            string value = type.Fields["description"].Directives["dummy_arg"]
-                .First().GetArgument<string>("a");
-            Assert.Equal("b", value);
-        }
-
-        [Fact]
-        public void ObjectTypeExtension_ReplaceDirectiveOnArgument()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(new ObjectType<Foo>(t => t
-                    .Field(f => f.GetName(default))
-                    .Argument("a", a => a
-                        .Type<StringType>()
-                        .Directive("dummy_arg", new ArgumentNode("a", "a")))))
-                .AddType(new ObjectTypeExtension(d => d
-                    .Name("Foo")
-                    .Field("name")
-                    .Argument("a", a =>
-                        a.Directive("dummy_arg", new ArgumentNode("a", "b")))))
-                .AddDirectiveType<DummyWithArgDirective>()
-                .Create();
-
-            // assert
-            ObjectType type = schema.GetType<ObjectType>("Foo");
-            string value = type.Fields["name"].Arguments["a"]
-                .Directives["dummy_arg"]
-                .First().GetArgument<string>("a");
-            Assert.Equal("b", value);
-        }
-
-        [Fact]
         public void ObjectTypeExtension_CopyDependencies_ToType()
         {
             // arrange
@@ -430,8 +359,7 @@ namespace HotChocolate.Types
                 .AddType(new ObjectTypeExtension(d => d
                     .Name("Foo")
                     .Field("name")
-                    .Argument("a", a =>
-                        a.Directive("dummy_arg", new ArgumentNode("a", "b")))))
+                    .Argument("a", a => a.Directive("dummy_arg", new ArgumentNode("a", "b")))))
                 .AddDirectiveType<DummyWithArgDirective>()
                 .Create();
 
@@ -531,6 +459,105 @@ namespace HotChocolate.Types
             Assert.True(type.Fields["name"].Arguments["a"].Directives.Contains("dummy"));
         }
 
+        [Fact]
+        public void BindByType()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .AddType<Query>()
+                .AddType<Extensions>()
+                .Create();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public void BindResolver_With_Property()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<BindResolver_With_Property_PersonDto>()
+                .AddType<BindResolver_With_Property_PersonResolvers>()
+                .Create();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Remove_Properties_Globally()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Remove_Properties_Globally_PersonDto>()
+                .AddType<Remove_Properties_Globally_PersonResolvers>()
+                .Create();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Remove_Fields_Globally()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Remove_Fields_Globally_PersonDto>()
+                .AddType<Remove_Fields_Globally_PersonResolvers>()
+                .Create();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Remove_Fields()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Remove_Fields_PersonDto>()
+                .AddType<Remove_Fields_PersonResolvers>()
+                .Create();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Remove_Fields_BindField()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Remove_Fields_BindProperty_PersonDto>()
+                .AddType<Remove_Fields_BindProperty_PersonResolvers>()
+                .Create();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Replace_Field()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Replace_Field_PersonDto>()
+                .AddType<Replace_Field_PersonResolvers>()
+                .Create();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
         public class FooType
             : ObjectType<Foo>
         {
@@ -627,6 +654,140 @@ namespace HotChocolate.Types
                 descriptor.Location(DirectiveLocation.FieldDefinition);
                 descriptor.Location(DirectiveLocation.ArgumentDefinition);
             }
+        }
+
+        public class Query : IMarker
+        {
+            public string Foo { get; } = "abc";
+        }
+
+        public class Bar : IMarker
+        {
+            public string Baz { get; } = "def";
+        }
+
+        [ExtendObjectType(
+            // extends all types that inherit this type.
+            extendsType: typeof(IMarker))]
+        public class Extensions
+        {
+            // introduces a new field on all types that apply the parent
+            public string Any([Parent] object parent)
+            {
+                if (parent is Query q)
+                {
+                    return q.Foo;
+                }
+
+                if (parent is Bar b)
+                {
+                    return b.Baz;
+                }
+
+                return null;
+            }
+
+            // replaces the original field baz on bar
+            [GraphQLName("baz")]
+            public string BazEx([Parent] Bar bar)
+            {
+                return bar.Baz;
+            }
+
+            // introduces a new field to query
+            public Bar FooEx([Parent] Query query)
+            {
+                return new Bar();
+            }
+        }
+
+        public interface IMarker
+        {
+
+        }
+
+        public class BindResolver_With_Property_PersonDto
+        {
+            public int FriendId { get; } = 1;
+        }
+
+        [ExtendObjectType(typeof(BindResolver_With_Property_PersonDto))]
+        public class BindResolver_With_Property_PersonResolvers
+        {
+            [BindMember(nameof(BindResolver_With_Property_PersonDto.FriendId))]
+            public List<BindResolver_With_Property_PersonDto> Friends() =>
+                new List<BindResolver_With_Property_PersonDto>();
+        }
+
+        public class Remove_Properties_Globally_PersonDto
+        {
+            public int FriendId { get; } = 1;
+
+            public int InternalId { get; } = 1;
+        }
+
+        [ExtendObjectType(
+            typeof(Remove_Properties_Globally_PersonDto),
+            IgnoreProperties = new[] { nameof(Remove_Properties_Globally_PersonDto.InternalId) })]
+        public class Remove_Properties_Globally_PersonResolvers
+        {
+        }
+
+        public class Remove_Fields_Globally_PersonDto
+        {
+            public int FriendId { get; } = 1;
+
+            public int InternalId { get; } = 1;
+        }
+
+        [ExtendObjectType(
+            typeof(Remove_Fields_Globally_PersonDto),
+            IgnoreProperties = new[] { "internalId" })]
+        public class Remove_Fields_Globally_PersonResolvers
+        {
+        }
+
+        public class Remove_Fields_PersonDto
+        {
+            public int FriendId { get; } = 1;
+
+            public int InternalId { get; } = 1;
+        }
+
+        [ExtendObjectType(typeof(Remove_Fields_PersonDto))]
+        public class Remove_Fields_PersonResolvers
+        {
+            [GraphQLIgnore]
+            public int InternalId { get; } = 1;
+        }
+
+        public class Remove_Fields_BindProperty_PersonDto
+        {
+            public int FriendId { get; } = 1;
+
+            public int InternalId { get; } = 1;
+        }
+
+        [ExtendObjectType(typeof(Remove_Fields_BindProperty_PersonDto))]
+        public class Remove_Fields_BindProperty_PersonResolvers
+        {
+            [GraphQLIgnore]
+            [BindMember(nameof(Remove_Fields_BindProperty_PersonDto.InternalId))]
+            public int SomeId { get; } = 1;
+        }
+
+        public class Replace_Field_PersonDto
+        {
+            public int FriendId { get; } = 1;
+
+            public int InternalId { get; } = 1;
+        }
+
+        [ExtendObjectType(typeof(Replace_Field_PersonDto))]
+        public class Replace_Field_PersonResolvers
+        {
+            [BindMember(nameof(Replace_Field_PersonDto.InternalId))]
+            public string SomeId { get; } = "abc";
         }
     }
 }

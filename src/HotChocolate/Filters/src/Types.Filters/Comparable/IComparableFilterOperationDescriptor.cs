@@ -1,7 +1,9 @@
+using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public interface IComparableFilterOperationDescriptor
         : IDescriptor<FilterOperationDefintion>
         , IFluent

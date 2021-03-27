@@ -1,6 +1,6 @@
 import React, { createRef, FunctionComponent, useEffect } from "react";
 import styled from "styled-components";
-import { DocPageDesktopGridColumns, IsSmallDesktop } from "./shared-style";
+import { DocPageDesktopGridColumns, IsSmallDesktop } from "../../shared-style";
 import { useDispatch } from "react-redux";
 import { setArticleHeight } from "../../state/common";
 
