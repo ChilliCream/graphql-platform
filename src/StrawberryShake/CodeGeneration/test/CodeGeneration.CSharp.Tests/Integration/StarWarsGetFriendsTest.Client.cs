@@ -832,10 +832,23 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.S
     public partial class GetHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper
         : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.State.DroidEntity, GetHero_Hero_Friends_Nodes_Droid>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public GetHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public GetHero_Hero_Friends_Nodes_Droid Map(
             global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.State.DroidEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new GetHero_Hero_Friends_Nodes_Droid(entity.Name);
         }
     }
@@ -937,10 +950,23 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.S
     public partial class GetHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper
         : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.State.HumanEntity, GetHero_Hero_Friends_Nodes_Human>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public GetHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public GetHero_Hero_Friends_Nodes_Human Map(
             global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.State.HumanEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new GetHero_Hero_Friends_Nodes_Human(entity.Name);
         }
     }

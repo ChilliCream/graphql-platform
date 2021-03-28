@@ -75,6 +75,11 @@ namespace Foo.Bar.State
             global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IListingData>? list,
             global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
+            if (list is null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var listings = new global::System.Collections.Generic.List<global::Foo.Bar.IGetAll_Listings_Items>();
 
             foreach (global::Foo.Bar.State.IListingData child in list)
@@ -95,15 +100,25 @@ namespace Foo.Bar.State
 
             if (data is global::Foo.Bar.State.AuctionData auction)
             {
+                if (auction.StartingPrice.HasValue)
+                {
+                    throw new global::System.ArgumentNullException();
+                }
+
                 returnValue = new global::Foo.Bar.GetAll_Listings_Items_Auction(
-                    auction.ListingId,
-                    auction.StartingPrice.Value);
+                    auction.ListingId ?? throw new global::System.ArgumentNullException(),
+                    auction.StartingPrice!.Value);
             }
             else if (data is global::Foo.Bar.State.OfferData offer)
             {
+                if (offer.Price.HasValue)
+                {
+                    throw new global::System.ArgumentNullException();
+                }
+
                 returnValue = new global::Foo.Bar.GetAll_Listings_Items_Offer(
-                    offer.ListingId,
-                    offer.Price.Value);
+                    offer.ListingId ?? throw new global::System.ArgumentNullException(),
+                    offer.Price!.Value);
             }
             else
             {

@@ -28,10 +28,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             var listVarName = GetParameterName(listTypeDescriptor.Name) + "s";
 
-            if (!isNonNullable)
-            {
-                methodBuilder.AddCode(EnsureProperNullability(_list, isNonNullable));
-            }
+            methodBuilder.AddCode(EnsureProperNullability(_list, isNonNullable));
 
             methodBuilder.AddCode(
                 AssignmentBuilder

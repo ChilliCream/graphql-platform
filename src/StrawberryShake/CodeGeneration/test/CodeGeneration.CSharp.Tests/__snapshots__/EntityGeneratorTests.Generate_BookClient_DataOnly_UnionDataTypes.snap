@@ -63,11 +63,11 @@ namespace Foo.Bar.State
 
             if (data is global::Foo.Bar.State.AuthorData author)
             {
-                returnValue = new global::Foo.Bar.SearchSomething_Search_Author(author.Name);
+                returnValue = new global::Foo.Bar.SearchSomething_Search_Author(author.Name ?? throw new global::System.ArgumentNullException());
             }
             else if (data is global::Foo.Bar.State.BookData book)
             {
-                returnValue = new global::Foo.Bar.SearchSomething_Search_Book(book.Title);
+                returnValue = new global::Foo.Bar.SearchSomething_Search_Book(book.Title ?? throw new global::System.ArgumentNullException());
             }
             else
             {

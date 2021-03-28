@@ -457,10 +457,23 @@ namespace Foo.Bar.State
     public partial class DecodeVIN_DecodeVIN_VehicleMake_VehicleMakeFromVehicleMakeEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.VehicleMakeEntity, DecodeVIN_DecodeVIN_VehicleMake_VehicleMake>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public DecodeVIN_DecodeVIN_VehicleMake_VehicleMakeFromVehicleMakeEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public DecodeVIN_DecodeVIN_VehicleMake_VehicleMake Map(
             global::Foo.Bar.State.VehicleMakeEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new DecodeVIN_DecodeVIN_VehicleMake_VehicleMake(
                 entity.Id,
                 entity.Make,
@@ -594,10 +607,23 @@ namespace Foo.Bar.State
     public partial class DecodeVIN_DecodeVIN_VehicleModel_VehicleModelFromVehicleModelEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.VehicleModelEntity, DecodeVIN_DecodeVIN_VehicleModel_VehicleModel>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public DecodeVIN_DecodeVIN_VehicleModel_VehicleModelFromVehicleModelEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public DecodeVIN_DecodeVIN_VehicleModel_VehicleModel Map(
             global::Foo.Bar.State.VehicleModelEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new DecodeVIN_DecodeVIN_VehicleModel_VehicleModel(
                 entity.Id,
                 entity.Model,

@@ -389,10 +389,23 @@ namespace Foo.Bar.State
     public partial class GetSessions_Sessions_Nodes_SessionFromSessionEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.SessionEntity, GetSessions_Sessions_Nodes_Session>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public GetSessions_Sessions_Nodes_SessionFromSessionEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public GetSessions_Sessions_Nodes_Session Map(
             global::Foo.Bar.State.SessionEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new GetSessions_Sessions_Nodes_Session(entity.Title);
         }
     }
