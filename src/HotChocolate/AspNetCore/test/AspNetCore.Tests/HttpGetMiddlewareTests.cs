@@ -650,14 +650,42 @@ namespace HotChocolate.AspNetCore
             DocumentNode document = Utf8GraphQLParser.Parse("{ __typename }");
 
             var hashProvider = new MD5DocumentHashProvider();
-            string hash = hashProvider.ComputeHash(
+            var hash = hashProvider.ComputeHash(
                 Encoding.UTF8.GetBytes(document.ToString(false)));
 
             // act
             ClientQueryResult resultA =
                 await server.GetStoreActivePersistedQueryAsync(
-                    document.ToString(false), 
-                    "md5Hash", 
+                    document.ToString(false),
+                    "md5Hash",
+                    hash);
+
+            ClientQueryResult resultB =
+                await server.GetActivePersistedQueryAsync("md5Hash", hash);
+
+            // assert
+            new[] {
+                resultA,
+                resultB
+            }.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Get_ActivePersistedQuery_AddQuery_Unformatted()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            var query = "{__typename}";
+
+            var hashProvider = new MD5DocumentHashProvider();
+            var hash = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
+
+            // act
+            ClientQueryResult resultA =
+                await server.GetStoreActivePersistedQueryAsync(
+                    query,
+                    "md5Hash",
                     hash);
 
             ClientQueryResult resultB =
