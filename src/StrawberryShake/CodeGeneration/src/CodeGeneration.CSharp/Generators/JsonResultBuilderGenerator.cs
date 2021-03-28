@@ -171,7 +171,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .SetName(methodName);
 
 
-                if (typeReference.IsEntityType() || typeReference.ContainsEntity())
+                if (typeReference.IsOrContainsEntityType())
                 {
                     methodBuilder
                         .AddParameter(_session, x => x.SetType(TypeNames.IEntityStoreUpdateSession))
@@ -295,9 +295,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                         ConditionBuilder
                                             .New()
                                             .Set("response.Body.RootElement.TryGetProperty(" +
-                                                 $"\"data\", out {TypeNames.JsonElement} " +
-                                                 "dataElement) && dataElement.ValueKind == " +
-                                                 $"{TypeNames.JsonValueKind}.Object"))
+                                                $"\"data\", out {TypeNames.JsonElement} " +
+                                                "dataElement) && dataElement.ValueKind == " +
+                                                $"{TypeNames.JsonValueKind}.Object"))
                                     .AddCode("data = BuildData(dataElement);"))
                             .AddCode(
                                 IfBuilder
@@ -362,7 +362,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .Inline()
                 .SetMethodName(DeserializerMethodNameFromTypeName(property));
 
-            if (property.IsEntityType() || property.ContainsEntity())
+            if (property.IsOrContainsEntityType())
             {
                 deserializeMethodCaller
                     .AddArgument(_session)
