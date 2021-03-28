@@ -110,8 +110,8 @@ namespace HotChocolate.Types
 
         private static class OffsetLookup
         {
-            private static readonly Dictionary<TimeSpan, string> _timeSpanToOffset;
-            private static readonly Dictionary<string, TimeSpan> _offsetToTimeSpan;
+            private static readonly IReadOnlyDictionary<TimeSpan, string> _timeSpanToOffset;
+            private static readonly IReadOnlyDictionary<string, TimeSpan> _offsetToTimeSpan;
 
             static OffsetLookup()
             {
@@ -154,14 +154,16 @@ namespace HotChocolate.Types
                     { new TimeSpan(12, 0, 0), "+12:00" },
                     { new TimeSpan(12, 45, 0), "+12:45" },
                     { new TimeSpan(13, 0, 0), "+13:00" },
-                    { new TimeSpan(14, 0, 0), "+14:00" },
+                    { new TimeSpan(14, 0, 0), "+14:00" }
                 };
 
-                _offsetToTimeSpan = _timeSpanToOffset
+                var offsetToTimeSpan = _timeSpanToOffset
                     .Reverse()
                     .ToDictionary(x => x.Value, x => x.Key);
-                _offsetToTimeSpan["-00:00"] = TimeSpan.Zero;
-                _offsetToTimeSpan["00:00"] = TimeSpan.Zero;
+                offsetToTimeSpan["-00:00"] = TimeSpan.Zero;
+                offsetToTimeSpan["00:00"] = TimeSpan.Zero;
+
+                _offsetToTimeSpan = offsetToTimeSpan;
             }
 
             public static bool TrySerialize(
