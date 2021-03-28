@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
@@ -68,25 +69,35 @@ namespace HotChocolate.Types.Descriptors
 
             bool IncludeField(IReadOnlyList<MemberInfo> all, MemberInfo current)
             {
+                NameString name = Context.Naming.GetMemberName(current, MemberKind.ObjectField);
+
+                if (Fields.Any(t => t.Definition.Name.Equals(name)))
+                {
+                    return false;
+                }
+
                 if (subscribeResolver is null)
                 {
                     subscribeResolver = new HashSet<string>();
 
                     foreach(MemberInfo member in all)
                     {
-                        if(member.IsDefined(typeof(SubscribeAttribute)))
-                        {
-                            SubscribeAttribute attribute =
-                                member.GetCustomAttribute<SubscribeAttribute>();
-                            if(attribute.With is not null)
-                            {
-                                subscribeResolver.Add(attribute.With);
-                            }
-                        }
+                        HandlePossibleSubscribeMember(member);
                     }
                 }
 
                 return !subscribeResolver.Contains(current.Name);
+            }
+
+            void HandlePossibleSubscribeMember(MemberInfo member)
+            {
+                if(member.IsDefined(typeof(SubscribeAttribute)))
+                {
+                    if(member.GetCustomAttribute<SubscribeAttribute>() is { With: not null } attr)
+                    {
+                        subscribeResolver.Add(attr.With);
+                    }
+                }
             }
         }
 

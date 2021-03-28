@@ -114,7 +114,7 @@ namespace HotChocolate.Types
             InputObjectTypeDefinition definition,
             ICollection<InputField> fields)
         {
-            foreach (InputFieldDefinition fieldDefinition in definition.Fields)
+            foreach (var fieldDefinition in definition.Fields.Where(t => !t.Ignore))
             {
                 fields.Add(new InputField(
                     fieldDefinition,
