@@ -8,6 +8,9 @@
 //------------------------------------------------------------------------------
 
 namespace HotChocolate.Types {
+    using System;
+    
+    
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
@@ -501,6 +504,24 @@ namespace HotChocolate.Types {
         internal static string UnsignedLongType_IsNotUnsigned_ParseValue {
             get {
                 return ResourceManager.GetString("UnsignedLongType_IsNotUnsigned_ParseValue", resourceCulture);
+            }
+        }
+        
+        internal static string UtcOffsetType_Description {
+            get {
+                return ResourceManager.GetString("UtcOffsetType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string UtcOffsetType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("UtcOffsetType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string UtcOffsetType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("UtcOffsetType_IsInvalid_ParseValue", resourceCulture);
             }
         }
     }
