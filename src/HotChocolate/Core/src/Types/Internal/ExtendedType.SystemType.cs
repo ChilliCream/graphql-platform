@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Properties;
 
 #nullable enable
 
@@ -16,8 +17,7 @@ namespace HotChocolate.Internal
             {
                 type = Helper.RemoveNonEssentialTypes(type);
 
-                if (type.IsGenericType
-                    && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
                 {
                     Type inner = type.GetGenericArguments()[0];
 
@@ -30,14 +30,20 @@ namespace HotChocolate.Internal
                 }
 
                 ExtendedType? elementType =
-                    Helper.GetInnerListType(type) is Type e
+                    Helper.GetInnerListType(type) is { } e
                         ? FromType(e, cache)
                         : null;
 
                 IReadOnlyList<ExtendedType> typeArguments =
                     type.IsArray && elementType is not null
-                        ? (IReadOnlyList<ExtendedType>)new[] { elementType }
+                        ? new[] { elementType }
                         : GetGenericArguments(type, cache);
+
+                if (type == typeof(IExecutable) || elementType?.Source == typeof(IExecutable))
+                {
+                    throw new InvalidOperationException(
+                        TypeResources.SystemType_NonGenericExecutableNotAllowed);
+                }
 
                 return new ExtendedType(
                     type,
@@ -58,7 +64,7 @@ namespace HotChocolate.Internal
                     Type[] arguments = type.GetGenericArguments();
                     ExtendedType[] extendedArguments = new ExtendedType[arguments.Length];
 
-                    for (int i = 0; i < arguments.Length; i++)
+                    for (var i = 0; i < arguments.Length; i++)
                     {
                         extendedArguments[i] = ExtendedType.FromType(arguments[i], cache);
                     }

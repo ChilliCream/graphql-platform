@@ -241,7 +241,7 @@ namespace HotChocolate.Internal
                     nullable.Length > pos &&
                     nullable[pos].HasValue &&
                     nullable[pos]!.Value != type.IsNullable;
-                IReadOnlyList<ExtendedType>? typeArguments = type.TypeArguments;
+                IReadOnlyList<ExtendedType> typeArguments = type.TypeArguments;
 
                 if (type.TypeArguments.Count > 0 && nullable.Length > position)
                 {
@@ -300,7 +300,7 @@ namespace HotChocolate.Internal
                         : cache.GetType(rewritten.Id);
                 }
 
-                return (ExtendedType)type;
+                return type;
             }
 
             internal static ExtendedTypeId CreateIdentifier(IExtendedType type)
@@ -330,7 +330,7 @@ namespace HotChocolate.Internal
 
                 for (var i = 0; i < length; i++)
                 {
-                    bool? change = nullabilityChange[i];
+                    var change = nullabilityChange[i];
                     if (change.HasValue)
                     {
                         nullability[i] = change.Value;
