@@ -355,4 +355,13 @@
   <data name="UnsignedLongType_IsNotUnsigned_ParseValue" xml:space="preserve">
     <value>UnsignedLong cannot parse the provided value. The provided value is not greater than or equal to 0.</value>
   </data>
+  <data name="UtcOffsetType_Description" xml:space="preserve">
+    <value>The UtcOffset scalar type represents a value of format ±hh:mm.</value>
+  </data>
+  <data name="UtcOffsetType_IsInvalid_ParseLiteral" xml:space="preserve">
+    <value>UtcOffsetType cannot parse the provided literal. The provided value is not a valid UTC offset.</value>
+  </data>
+  <data name="UtcOffsetType_IsInvalid_ParseValue" xml:space="preserve">
+    <value>UtcOffsetType cannot parse the provided value. The provided value is not a valid UTC offset.</value>
+  </data>
 </root>

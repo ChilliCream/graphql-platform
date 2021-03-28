@@ -117,5 +117,80 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }",
                 "extend schema @key(fields: \"id\")");
         }
+
+        [Fact]
+        public void Nested_Entity()
+        {
+            AssertResult(
+                @"
+                schema {
+                  query: Query
+                }
+
+                type Query {
+                  decodeVIN: DecodeVIN!
+                }
+
+                scalar Uuid
+
+                type DecodeVIN {
+                  vehicleMake: VehicleMake
+                  vehicleModel: VehicleModel
+                  vehicleMakeId: Uuid
+                  vehicleModelId: Uuid
+                  isValid: Boolean!
+                }
+
+                type VehicleMake {
+                  id: Uuid!
+                  make: String
+                  makeCode: String
+                  isDisabled: Boolean!
+                  vehicleModels: [VehicleModel]
+                }
+
+                type VehicleModel {
+                  id: Uuid!
+                  vehicleMakeId: Uuid!
+                  model: String
+                  modelCode: String
+                  modelType: String
+                  isDisabled: Boolean!
+                  vehicleMake: VehicleMake
+                }",
+                @"
+                query decodeVIN{
+                  decodeVIN{
+                    ...DecodeVINModel
+                  }
+                }
+                fragment DecodeVINModel on  DecodeVIN
+                {
+                  isValid
+                  vehicleMake{
+                    ...VehicleMakeModel
+                  }
+                  vehicleModel{
+                    ...VehicleModelModel
+                  }
+                }
+
+                fragment VehicleModelModel on VehicleModel {
+                  id
+                  model
+                  modelCode
+                  vehicleMakeId
+                  isDisabled
+                  modelType
+                }
+                fragment VehicleMakeModel on VehicleMake {
+                  id
+                  make
+                  makeCode
+                  isDisabled
+                }
+                ",
+                "extend schema @key(fields: \"id\")");
+        }
     }
 }
