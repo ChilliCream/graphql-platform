@@ -424,3 +424,4 @@ services
 | Rgba             | The `RGBA` scalar type represents a valid CSS RGBA color as defined here [MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba()).
 | UnsignedInt      | The `UnsignedInt` scalar type represents a unsigned 32‐bit numeric non‐fractional value greater than or equal to 0.
 | UnsignedLong     | The `UnsignedLong` scalar type represents a unsigned 64‐bit numeric non‐fractional value greater than or equal to 0.
+| UtcOffset        | The `UtcOffset` scalar type represents a value of format `±hh:mm`.
