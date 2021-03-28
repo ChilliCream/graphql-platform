@@ -1,17 +1,16 @@
-using System;
 using System.Net.WebSockets;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace StrawberryShake.Transport.WebSockets
 {
-    public interface IWebSocketClient
-        : IDisposable
+    /// <summary>
+    /// Represents a client for sending and receiving messages responses over a websocket
+    /// identified by a URI and name.
+    /// </summary>
+    public interface IWebSocketClient : ISocketClient
     {
-        Uri? Uri { get; }
-
+        /// <summary>
+        /// The <see cref="ClientWebSocket"/> that is used to communicate with the server
+        /// </summary>
         ClientWebSocket Socket { get; }
-
-        Task ConnectAsync(Uri? uri = default , CancellationToken cancellationToken = default);
     }
 }

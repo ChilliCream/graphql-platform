@@ -6,6 +6,6 @@ namespace HotChocolate.Types.Descriptors
     {
         public static LazyTypeConfigurationBuilder<T> New<T>()
             where T : DefinitionBase =>
-            new LazyTypeConfigurationBuilder<T>();
+            new();
     }
 }

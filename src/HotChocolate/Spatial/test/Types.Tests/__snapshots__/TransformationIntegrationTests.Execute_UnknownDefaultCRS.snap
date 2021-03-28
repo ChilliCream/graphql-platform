@@ -1,0 +1,4 @@
+﻿For more details look at the `Errors` property.
+
+1. The default coordinate reference system `4326` was not found.
+      Register it on the schema with `.AddSpatialTypes(x => x.DefaultSRID(4326).AddAddCoordinateSystemFromString(4326, "..."))`

@@ -5,12 +5,18 @@ using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
-    public class InputObjectTypeExtension
-        : NamedTypeExtensionBase<InputObjectTypeDefinition>
+    /// <summary>
+    /// This is not a full type and is used to split the type configuration into multiple part.
+    /// Any type extension instance is will not survive the initialization and instead is
+    /// merged into the target type.
+    /// </summary>
+    public class InputObjectTypeExtension : NamedTypeExtensionBase<InputObjectTypeDefinition>
     {
-        private readonly Action<IInputObjectTypeDescriptor> _configure;
+        private Action<IInputObjectTypeDescriptor>? _configure;
 
         protected InputObjectTypeExtension()
         {
@@ -28,9 +34,12 @@ namespace HotChocolate.Types
         protected override InputObjectTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
         {
-            var descriptor = InputObjectTypeDescriptor.New(
-                context.DescriptorContext);
-            _configure(descriptor);
+            var descriptor =
+                InputObjectTypeDescriptor.New(context.DescriptorContext);
+
+            _configure!(descriptor);
+            _configure = null;
+
             return descriptor.CreateDefinition();
         }
 
@@ -47,29 +56,34 @@ namespace HotChocolate.Types
             context.RegisterDependencies(definition);
         }
 
-        internal override void Merge(
+        protected override void Merge(
             ITypeCompletionContext context,
             INamedType type)
         {
             if (type is InputObjectType inputObjectType)
             {
+                // we first assert that extension and type are mutable and by 
+                // this that they do have a type definition.
+                AssertMutable();
+                inputObjectType.AssertMutable();
+
                 TypeExtensionHelper.MergeContextData(
-                    Definition,
-                    inputObjectType.Definition);
+                    Definition!,
+                    inputObjectType.Definition!);
 
                 TypeExtensionHelper.MergeDirectives(
                     context,
-                    Definition.Directives,
-                    inputObjectType.Definition.Directives);
+                    Definition!.Directives!,
+                    inputObjectType.Definition!.Directives);
 
                 TypeExtensionHelper.MergeInputObjectFields(
                     context,
-                    Definition.Fields,
-                    inputObjectType.Definition.Fields);
+                    Definition!.Fields,
+                    inputObjectType.Definition!.Fields);
 
                 TypeExtensionHelper.MergeConfigurations(
-                    Definition.Configurations,
-                    inputObjectType.Definition.Configurations);
+                    Definition!.Configurations,
+                    inputObjectType.Definition!.Configurations);
             }
             else
             {

@@ -3,7 +3,7 @@
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:element name="root" msdata:IsDataSet="true">
-      
+
     </xsd:element>
   </xsd:schema>
   <resheader name="resmimetype">
@@ -18,7 +18,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="OffsetPagingObjectFieldDescriptorExtensions_SchemaTypeNotValid" xml:space="preserve">
-    <value>The schema type must be a valid output type.</value>
+  <data name="PagingObjectFieldDescriptorExtensions_SchemaTypeNotValid" xml:space="preserve">
+    <value>The element schema type for pagination must be a valid GraphQL output type (ObjectType, InterfaceType, UnionType, EnumType, ScalarType).</value>
   </data>
 </root>

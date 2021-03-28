@@ -1,133 +1,132 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public class InterfaceBuilder
-        : ITypeBuilder
+    public class InterfaceBuilder : AbstractTypeBuilder
     {
-        private AccessModifier _accessModifier;
-        private bool _isPartial = true;
-        private string? _name;
-        private readonly List<string> _implements = new List<string>();
-        private readonly List<InterfacePropertyBuilder> _properties =
-            new List<InterfacePropertyBuilder>();
-        private readonly List<InterfaceMethodBuilder> _methods =
-            new List<InterfaceMethodBuilder>();
+        private readonly List<MethodBuilder> _methods = new();
 
-        public static InterfaceBuilder New() => new InterfaceBuilder();
+        private XmlCommentBuilder? _xmlComment;
 
-        public InterfaceBuilder SetAccessModifier(AccessModifier value)
+        public static InterfaceBuilder New() => new();
+
+        public new InterfaceBuilder SetName(NameString name)
         {
-            _accessModifier = value;
+            base.SetName(name);
             return this;
         }
 
-        public InterfaceBuilder SetName(string value)
+        public new InterfaceBuilder AddImplements(string value)
         {
-            _name = value;
+            base.AddImplements(value);
             return this;
         }
 
-        public InterfaceBuilder AddImplements(string value)
+        public new InterfaceBuilder AddProperty(PropertyBuilder property)
         {
-            _implements.Add(value);
+            base.AddProperty(property);
             return this;
         }
 
-        public InterfaceBuilder AddProperty(InterfacePropertyBuilder property)
+        public InterfaceBuilder SetComment(string? xmlComment)
         {
-            _properties.Add(property);
+            if (xmlComment is not null)
+            {
+                _xmlComment = XmlCommentBuilder.New().SetSummary(xmlComment);
+            }
+
             return this;
         }
 
-        public InterfaceBuilder AddMethod(InterfaceMethodBuilder method)
+        public InterfaceBuilder SetComment(XmlCommentBuilder? xmlComment)
         {
+            if (xmlComment is not null)
+            {
+                _xmlComment = xmlComment;
+            }
+
+            return this;
+        }
+
+        public InterfaceBuilder AddMethod(MethodBuilder method)
+        {
+            if (method is null)
+            {
+                throw new ArgumentNullException(nameof(method));
+            }
+
             _methods.Add(method);
             return this;
         }
 
-        public async Task BuildAsync(CodeWriter writer)
+        public override void Build(CodeWriter writer)
         {
             if (writer is null)
             {
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            await writer.WriteGeneratedAttributeAsync().ConfigureAwait(false);
+            _xmlComment?.Build(writer);
 
-            string modifier = _accessModifier.ToString().ToLowerInvariant();
+            writer.WriteGeneratedAttribute();
 
-            await writer.WriteIndentAsync().ConfigureAwait(false);
+            writer.WriteIndent();
 
-            await writer.WriteAsync($"{modifier} ").ConfigureAwait(false);
+            writer.Write("public interface ");
+            writer.WriteLine(Name);
 
-            if (_isPartial)
-            {
-                await writer.WriteAsync("partial ").ConfigureAwait(false);
-            }
-
-            await writer.WriteAsync("interface ").ConfigureAwait(false);
-
-            await writer.WriteLineAsync(_name).ConfigureAwait(false);
-
-            if (_implements.Count > 0)
+            if (Implements.Count > 0)
             {
                 using (writer.IncreaseIndent())
                 {
-                    for (int i = 0; i < _implements.Count; i++)
+                    for (var i = 0; i < Implements.Count; i++)
                     {
-                        if (i == 0)
-                        {
-                            await writer.WriteIndentedLineAsync(
-                                $": {_implements[i]}")
-                                .ConfigureAwait(false);
-                        }
-                        else
-                        {
-                            await writer.WriteIndentedLineAsync(
-                                $", {_implements[i]}")
-                                .ConfigureAwait(false);
-                        }
+                        writer.WriteIndentedLine(
+                            i == 0
+                                ? $": {Implements[i]}"
+                                : $", {Implements[i]}");
                     }
                 }
             }
 
-            await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
+            writer.WriteIndentedLine("{");
 
-            bool writeLine = false;
+            var writeLine = false;
 
             using (writer.IncreaseIndent())
             {
-                if (_properties.Count > 0)
+                if (Properties.Count > 0)
                 {
-                    for (int i = 0; i < _properties.Count; i++)
+                    for (var i = 0; i < Properties.Count; i++)
                     {
                         if (writeLine || i > 0)
                         {
-                            await writer.WriteLineAsync().ConfigureAwait(false);
+                            writer.WriteLine();
                         }
-                        await _properties[i].BuildAsync(writer).ConfigureAwait(false);
+
+                        Properties[i].Build(writer);
                     }
+
                     writeLine = true;
                 }
 
                 if (_methods.Count > 0)
                 {
-                    for (int i = 0; i < _methods.Count; i++)
+                    for (var i = 0; i < _methods.Count; i++)
                     {
                         if (writeLine || i > 0)
                         {
-                            await writer.WriteLineAsync().ConfigureAwait(false);
+                            writer.WriteLine();
                         }
-                        await _methods[i].BuildAsync(writer).ConfigureAwait(false);
+
+                        _methods[i].Build(writer);
                     }
-                    writeLine = true;
                 }
             }
 
-            await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
+            writer.WriteIndentedLine("}");
         }
     }
 }

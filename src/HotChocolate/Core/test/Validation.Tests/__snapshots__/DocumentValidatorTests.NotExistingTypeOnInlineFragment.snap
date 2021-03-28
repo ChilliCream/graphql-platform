@@ -17,6 +17,69 @@
       "typeCondition": "NotInSchema",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-Spread-Type-Existence"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "InlineFragment",
+      "Location": {
+        "Start": 211,
+        "End": 300,
+        "Line": 9,
+        "Column": 21
+      },
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 218,
+          "End": 231,
+          "Line": 9,
+          "Column": 28
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 218,
+            "End": 231,
+            "Line": 9,
+            "Column": 28
+          },
+          "Value": "NotInSchema"
+        }
+      },
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 230,
+          "End": 300,
+          "Line": 9,
+          "Column": 40
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 256,
+              "End": 282,
+              "Line": 10,
+              "Column": 25
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 256,
+                "End": 282,
+                "Line": 10,
+                "Column": 25
+              },
+              "Value": "name"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
   }
 ]

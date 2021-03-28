@@ -5,6 +5,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class SortObjectOperationDescriptor<TObject>
         : SortObjectOperationDescriptor
         , ISortObjectOperationDescriptor<TObject>

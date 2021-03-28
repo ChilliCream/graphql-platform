@@ -58,12 +58,13 @@ namespace HotChocolate.Types.Descriptors
 
         protected override void OnCreateDefinition(ArgumentDefinition definition)
         {
-            if (Definition.Parameter is { })
+            if (!Definition.AttributesAreApplied && Definition.Parameter is not null)
             {
                 Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.Parameter);
+                Definition.AttributesAreApplied = true;
             }
 
             base.OnCreateDefinition(definition);

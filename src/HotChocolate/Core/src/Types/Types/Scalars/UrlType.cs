@@ -7,7 +7,7 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
-    public sealed class UrlType : ScalarType<Uri, StringValueNode>
+    public class UrlType : ScalarType<Uri, StringValueNode>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="UrlType"/> class.

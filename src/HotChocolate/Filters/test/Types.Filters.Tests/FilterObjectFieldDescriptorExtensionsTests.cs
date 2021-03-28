@@ -4,6 +4,7 @@ using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete]
     public class FilterObjectFieldDescriptorExtensionsTests
     {
         [Fact]

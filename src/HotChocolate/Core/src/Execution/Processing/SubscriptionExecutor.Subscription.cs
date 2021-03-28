@@ -49,7 +49,7 @@ namespace HotChocolate.Execution.Processing
                 IRequestContext requestContext,
                 ObjectType subscriptionType,
                 ISelectionSet rootSelections,
-                Func<object> resolveQueryRootValue,
+                Func<object?> resolveQueryRootValue,
                 IDiagnosticEvents diagnosticsEvents)
             {
                 var subscription = new Subscription(

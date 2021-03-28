@@ -1,4 +1,0 @@
-﻿private Int32 GetAbc()
-{
-    return;
-}

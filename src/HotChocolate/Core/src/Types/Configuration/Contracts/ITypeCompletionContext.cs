@@ -26,6 +26,11 @@ namespace HotChocolate.Configuration
         bool? IsMutationType { get; }
 
         /// <summary>
+        /// Defines if the type that is being completed is the subscription type.
+        /// </summary>
+        bool? IsSubscriptionType { get; }
+
+        /// <summary>
         /// Global middleware components.
         /// </summary>
         IReadOnlyList<FieldMiddleware> GlobalComponents { get; }
