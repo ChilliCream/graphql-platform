@@ -674,6 +674,94 @@ namespace HotChocolate.Execution.DependencyInjection
         }
 
         [Fact]
+        public async Task OnBeforeSchemaCreate()
+        {
+            // arrange
+            Snapshot.FullName();
+            var invoked = false;
+
+            // act
+            await CreateSchemaAsync(c => c
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .OnBeforeSchemaCreate(
+                    (ctx, builder) =>
+                    {
+                        invoked = true;
+                    }));
+
+            // assert
+            Assert.True(invoked);
+        }
+
+        [Fact]
+        public void OnBeforeSchemaCreate_Builder_IsNull()
+        {
+            void Action() =>
+                SchemaRequestExecutorBuilderExtensions
+                    .OnBeforeSchemaCreate(null!, (context, builder) => { });
+
+            Assert.Throws<ArgumentNullException>(Action);
+        }
+
+        [Fact]
+        public void OnBeforeSchemaCreate_OnError_IsNull()
+        {
+            var builder = new Mock<IRequestExecutorBuilder>();
+
+            void Action() =>
+                builder.Object.OnBeforeSchemaCreate(null!);
+
+            Assert.Throws<ArgumentNullException>(Action);
+        }
+
+        [Fact]
+        public async Task OnAfterSchemaCreate()
+        {
+            // arrange
+            Snapshot.FullName();
+            var invoked = false;
+
+            // act
+            await CreateSchemaAsync(c => c
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .OnAfterSchemaCreate(
+                    (ctx, builder) =>
+                    {
+                        invoked = true;
+                    }));
+
+            // assert
+            Assert.True(invoked);
+        }
+
+        [Fact]
+        public void OnAfterSchemaCreate_Builder_IsNull()
+        {
+            void Action() =>
+                SchemaRequestExecutorBuilderExtensions
+                    .OnAfterSchemaCreate(null!, (context, builder) => { });
+
+            Assert.Throws<ArgumentNullException>(Action);
+        }
+
+        [Fact]
+        public void OnAfterSchemaCreate_OnError_IsNull()
+        {
+            var builder = new Mock<IRequestExecutorBuilder>();
+
+            void Action() =>
+                builder.Object.OnAfterSchemaCreate(null!);
+
+            Assert.Throws<ArgumentNullException>(Action);
+        }
+
+        [Fact]
         public async Task OnSchemaError()
         {
             // arrange

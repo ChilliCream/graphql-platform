@@ -183,6 +183,10 @@
                 "title": "ASP.NET Core"
               },
               {
+                "path": "dependency-injection",
+                "title": "Dependency Injection"
+              },
+              {
                 "path": "executable",
                 "title": "Executable"
               },
