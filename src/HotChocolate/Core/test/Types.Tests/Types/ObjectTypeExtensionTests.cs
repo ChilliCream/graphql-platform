@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Tests;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;

@@ -18,7 +18,7 @@ namespace HotChocolate.Execution.Pipeline
         private readonly MutationExecutor _mutationExecutor;
         private readonly SubscriptionExecutor _subscriptionExecutor;
         private readonly ITransactionScopeHandler _transactionScopeHandler;
-        private object? _cachedQueryValue;
+        private object? _cachedQuery;
         private object? _cachedMutation;
 
         public OperationExecutionMiddleware(
@@ -179,7 +179,7 @@ namespace HotChocolate.Execution.Pipeline
                 context,
                 context.Services,
                 context.Schema.QueryType,
-                ref _cachedQueryValue);
+                ref _cachedQuery);
 
         private object? GetMutationRootValue(IRequestContext context) =>
             RootValueResolver.Resolve(
