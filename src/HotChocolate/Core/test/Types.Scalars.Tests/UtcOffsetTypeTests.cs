@@ -217,7 +217,7 @@ namespace HotChocolate.Types
             object? result = scalar.Deserialize(resultValue);
 
             // assert
-            Assert.Equal(resultValue, runtimeValue);
+            Assert.Equal(result, runtimeValue);
         }
 
         [Fact]
@@ -227,7 +227,7 @@ namespace HotChocolate.Types
             ScalarType scalar = new UtcOffsetType();
 
             // act
-            var success = scalar.TryDeserialize("abc", out object? deserialized);
+            var success = scalar.TryDeserialize("abc", out object? _);
 
             // assert
             Assert.False(success);
@@ -265,7 +265,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = CreateType<UtcOffsetType>();
-            object? runtimeValue = new IntValueNode(1);
+            object runtimeValue = new IntValueNode(1);
 
             // act
             Exception? result = Record.Exception(() => scalar.Deserialize(runtimeValue));
@@ -321,7 +321,7 @@ namespace HotChocolate.Types
             // arrange
             IRequestExecutor executor = await new ServiceCollection()
                 .AddGraphQL()
-                .AddQueryType<DefaultUtcOffset>()
+                .AddQueryType<DefaultUtcOffsetType>()
                 .BuildRequestExecutorAsync();
 
             // act
@@ -335,14 +335,13 @@ namespace HotChocolate.Types
         {
             public TimeSpan Test => new();
         }
+
         public class DefaultUtcOffsetType : ObjectType<DefaultUtcOffset>
         {
-            protected override void Configure(
-                IObjectTypeDescriptor<DefaultUtcOffset> descriptor)
+            protected override void Configure(IObjectTypeDescriptor<DefaultUtcOffset> descriptor)
             {
                 descriptor.Field(x => x.Test).Type<UtcOffsetType>();
             }
         }
     }
-
 }
