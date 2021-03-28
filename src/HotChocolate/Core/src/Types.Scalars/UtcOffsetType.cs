@@ -99,8 +99,8 @@ namespace HotChocolate.Types
                 case string s when OffsetLookup.TryDeserialize(s, out TimeSpan timeSpan):
                     runtimeValue = timeSpan;
                     return true;
-                case TimeSpan timeSpan when OffsetLookup.TrySerialize(timeSpan, out var s):
-                    runtimeValue = s;
+                case TimeSpan timeSpan when OffsetLookup.TrySerialize(timeSpan, out _):
+                    runtimeValue = timeSpan;
                     return true;
                 default:
                     runtimeValue = null;
