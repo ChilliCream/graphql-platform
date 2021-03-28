@@ -448,7 +448,8 @@ namespace HotChocolate.Data
         }
 
         [Fact]
-        public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField()
+        public async Task
+            ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField()
         {
             // arrange
             IRequestExecutor executor = await new ServiceCollection()
@@ -485,7 +486,8 @@ namespace HotChocolate.Data
         }
 
         [Fact]
-        public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField_With_Extensions()
+        public async Task
+            ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField_With_Extensions()
         {
             // arrange
             IRequestExecutor executor = await new ServiceCollection()
@@ -521,6 +523,58 @@ namespace HotChocolate.Data
             // assert
             executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
             result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+        }
+
+        [Fact]
+        public async Task CreateSchema_CodeFirst_AsyncQueryable()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddFiltering()
+                .AddQueryType<FooType>()
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    foos(where: { qux: {eq: ""a""}}) {
+                        qux
+                    }
+                }
+                ");
+
+            // assert
+            executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
+            result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+        }
+
+        public class FooType : ObjectType
+        {
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                descriptor
+                    .Field("foos")
+                    .Type<ListType<ObjectType<Bar>>>()
+                    .Resolver(_ =>
+                    {
+                        IQueryable<Bar> data = new Bar[]
+                        {
+                            Bar.Create("a"),
+                            Bar.Create("b")
+                        }.AsQueryable();
+                        return Task.FromResult(data);
+                    })
+                    .UseFiltering();
+            }
+        }
+
+        public class Bar
+        {
+            public string Qux { get; set; }
+
+            public static Bar Create(string qux) => new() { Qux = qux };
         }
 
         public class PagingAndProjection
