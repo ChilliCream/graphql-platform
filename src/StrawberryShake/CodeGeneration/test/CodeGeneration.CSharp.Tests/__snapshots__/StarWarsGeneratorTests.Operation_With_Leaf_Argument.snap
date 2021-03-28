@@ -294,10 +294,23 @@ namespace Foo.Bar.State
     public partial class GetHero_Hero_DroidFromDroidEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DroidEntity, GetHero_Hero_Droid>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public GetHero_Hero_DroidFromDroidEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public GetHero_Hero_Droid Map(
             global::Foo.Bar.State.DroidEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new GetHero_Hero_Droid(
                 entity.Name,
                 entity.AppearsIn);
@@ -420,10 +433,23 @@ namespace Foo.Bar.State
     public partial class GetHero_Hero_HumanFromHumanEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.HumanEntity, GetHero_Hero_Human>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public GetHero_Hero_HumanFromHumanEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public GetHero_Hero_Human Map(
             global::Foo.Bar.State.HumanEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new GetHero_Hero_Human(
                 entity.Name,
                 entity.AppearsIn);

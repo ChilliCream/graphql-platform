@@ -304,10 +304,23 @@ namespace Foo.Bar.State
     public partial class AllExpenses_Expense_ExpenseFromExpenseEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.ExpenseEntity, AllExpenses_Expense_Expense>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public AllExpenses_Expense_ExpenseFromExpenseEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public AllExpenses_Expense_Expense Map(
             global::Foo.Bar.State.ExpenseEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new AllExpenses_Expense_Expense(
                 entity.Id,
                 entity.Amount,

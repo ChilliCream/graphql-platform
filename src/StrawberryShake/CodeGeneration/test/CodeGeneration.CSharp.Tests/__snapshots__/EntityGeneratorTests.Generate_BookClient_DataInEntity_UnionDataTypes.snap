@@ -251,10 +251,23 @@ namespace Foo.Bar.State
     public partial class GetStore2_SearchableStore_SearchableStoreFromSearchableStoreEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.SearchableStoreEntity, GetStore2_SearchableStore_SearchableStore>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public GetStore2_SearchableStore_SearchableStoreFromSearchableStoreEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public GetStore2_SearchableStore_SearchableStore Map(
             global::Foo.Bar.State.SearchableStoreEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new GetStore2_SearchableStore_SearchableStore(
                 entity.Id,
                 MapIGetStore2_SearchableStore_BooksArray(
@@ -330,8 +343,8 @@ namespace Foo.Bar.State
             else if (data is global::Foo.Bar.State.BookData book)
             {
                 returnValue = new global::Foo.Bar.GetStore2_SearchableStore_Search_Book(
-                    book.Title,
-                    book.Isbn);
+                    book.Title ?? throw new global::System.ArgumentNullException(),
+                    book.Isbn ?? throw new global::System.ArgumentNullException());
             }
             else
             {

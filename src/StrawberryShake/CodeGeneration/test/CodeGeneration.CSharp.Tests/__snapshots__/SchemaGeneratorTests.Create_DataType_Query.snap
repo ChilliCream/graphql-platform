@@ -54,6 +54,11 @@ namespace Foo.Bar.State
             global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.FooData>? list,
             global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
+            if (list is null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var foos = new global::System.Collections.Generic.List<global::Foo.Bar.IGetAllFoos_Test>();
 
             foreach (global::Foo.Bar.State.FooData child in list)

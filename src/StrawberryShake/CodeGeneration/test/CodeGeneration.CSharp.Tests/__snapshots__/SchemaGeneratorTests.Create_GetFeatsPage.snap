@@ -612,10 +612,23 @@ namespace Foo.Bar.State
     public partial class GetFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.ActionTypeEntity, GetFeatsPage_Feats_Items_ActionType_ActionType>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public GetFeatsPage_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public GetFeatsPage_Feats_Items_ActionType_ActionType Map(
             global::Foo.Bar.State.ActionTypeEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new GetFeatsPage_Feats_Items_ActionType_ActionType(entity.Name);
         }
     }

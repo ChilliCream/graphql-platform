@@ -225,6 +225,11 @@ namespace Foo.Bar.State
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? list,
             global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
+            if (list is null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var featDetailsBlocks = new global::System.Collections.Generic.List<global::Foo.Bar.IGetFeatsPage_Feats_Items_Details>();
 
             foreach (global::StrawberryShake.EntityId child in list)
@@ -544,6 +549,11 @@ namespace Foo.Bar.State
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? list,
             global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
+            if (list is null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var featDetailsBlocks = new global::System.Collections.Generic.List<global::Foo.Bar.IGetFeatsPage_Feats_Items_Details>();
 
             foreach (global::StrawberryShake.EntityId child in list)
@@ -704,10 +714,23 @@ namespace Foo.Bar.State
     public partial class GetFeatsPage_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatDetailsBlockEntity, GetFeatsPage_Feats_Items_Details_FeatDetailsBlock>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public GetFeatsPage_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public GetFeatsPage_Feats_Items_Details_FeatDetailsBlock Map(
             global::Foo.Bar.State.FeatDetailsBlockEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new GetFeatsPage_Feats_Items_Details_FeatDetailsBlock(entity.Text);
         }
     }
@@ -1061,6 +1084,11 @@ namespace Foo.Bar.State
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? list,
             global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
+            if (list is null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var featDetailsBlocks = new global::System.Collections.Generic.List<global::Foo.Bar.IGetFeatById_Feats_Items_Details>();
 
             foreach (global::StrawberryShake.EntityId child in list)
@@ -1396,6 +1424,11 @@ namespace Foo.Bar.State
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? list,
             global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
+            if (list is null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var featDetailsBlocks = new global::System.Collections.Generic.List<global::Foo.Bar.IGetFeatById_Feats_Items_Details>();
 
             foreach (global::StrawberryShake.EntityId child in list)
@@ -1592,10 +1625,23 @@ namespace Foo.Bar.State
     public partial class GetFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatDetailsBlockEntity, GetFeatById_Feats_Items_Details_FeatDetailsBlock>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public GetFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public GetFeatById_Feats_Items_Details_FeatDetailsBlock Map(
             global::Foo.Bar.State.FeatDetailsBlockEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new GetFeatById_Feats_Items_Details_FeatDetailsBlock(entity.Text);
         }
     }
@@ -1697,10 +1743,23 @@ namespace Foo.Bar.State
     public partial class GetFeatById_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.ActionTypeEntity, GetFeatById_Feats_Items_ActionType_ActionType>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public GetFeatById_Feats_Items_ActionType_ActionTypeFromActionTypeEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public GetFeatById_Feats_Items_ActionType_ActionType Map(
             global::Foo.Bar.State.ActionTypeEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new GetFeatById_Feats_Items_ActionType_ActionType(entity.Name);
         }
     }
