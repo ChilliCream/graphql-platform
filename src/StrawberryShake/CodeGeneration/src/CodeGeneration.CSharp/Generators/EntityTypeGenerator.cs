@@ -46,7 +46,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         x => x.SetType(item.Value.Type.ToStateTypeReference()))
                     .AddCode(AssignmentBuilder
                         .New()
-                        .SetLefthandSide(item.Value.Name)
+                        .SetLefthandSide(
+                            (item.Value.Name == "__typename"
+                                ? "this."
+                                : "") +
+                            item.Value.Name)
                         .SetRighthandSide(paramName));
             }
 

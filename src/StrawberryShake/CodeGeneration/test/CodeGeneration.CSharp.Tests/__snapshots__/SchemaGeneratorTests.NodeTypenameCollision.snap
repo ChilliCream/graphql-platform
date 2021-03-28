@@ -24,7 +24,7 @@ namespace Foo.Bar.State
             global::System.String __typename,
             global::System.String id)
         {
-            __typename = __typename;
+            this.__typename = __typename;
             Id = id;
         }
 
@@ -258,10 +258,23 @@ namespace Foo.Bar.State
     public partial class Nodes_Node_WorkspaceFromWorkspaceEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.WorkspaceEntity, Nodes_Node_Workspace>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public Nodes_Node_WorkspaceFromWorkspaceEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public Nodes_Node_Workspace Map(
             global::Foo.Bar.State.WorkspaceEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new Nodes_Node_Workspace(
                 entity.__typename,
                 entity.Id);
