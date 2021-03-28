@@ -1185,9 +1185,9 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string SystemType_NonGenericExecutableNotAllowed {
+        internal static string ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed {
             get {
-                return ResourceManager.GetString("SystemType_NonGenericExecutableNotAllowed", resourceCulture);
+                return ResourceManager.GetString("ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed", resourceCulture);
             }
         }
     }

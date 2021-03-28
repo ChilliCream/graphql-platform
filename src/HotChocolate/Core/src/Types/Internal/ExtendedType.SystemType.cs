@@ -39,12 +39,6 @@ namespace HotChocolate.Internal
                         ? new[] { elementType }
                         : GetGenericArguments(type, cache);
 
-                if (type == typeof(IExecutable) || elementType?.Source == typeof(IExecutable))
-                {
-                    throw new InvalidOperationException(
-                        TypeResources.SystemType_NonGenericExecutableNotAllowed);
-                }
-
                 return new ExtendedType(
                     type,
                     ExtendedTypeKind.Runtime,
