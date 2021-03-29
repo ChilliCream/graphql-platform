@@ -404,6 +404,8 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface INodes_Node
     {
+        public global::System.String __typename { get; }
+
         public global::System.String Id { get; }
     }
 }
@@ -421,10 +423,6 @@ namespace Foo.Bar
     public interface INodes_Node_Workspace
         : INodes_Node
     {
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
-        public global::System.String __typename { get; }
     }
 }
 
