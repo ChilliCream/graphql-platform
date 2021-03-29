@@ -427,10 +427,23 @@ namespace Foo.Bar.State
     public partial class GetPeople_People_Nodes_PersonFromPersonEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetPeople_People_Nodes_Person>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public GetPeople_People_Nodes_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public GetPeople_People_Nodes_Person Map(
             global::Foo.Bar.State.PersonEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new GetPeople_People_Nodes_Person(
                 entity.Name,
                 entity.Email,

@@ -113,6 +113,11 @@ namespace Foo.Bar.State
             global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData>? list,
             global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
+            if (list is null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
             var bazs = new global::System.Collections.Generic.List<global::Foo.Bar.IGetFoo_Foo_NestedList>();
 
             foreach (global::Foo.Bar.State.BazData child in list)

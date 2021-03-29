@@ -250,10 +250,23 @@ namespace Foo.Bar.State
     public partial class GetPerson_Person_PersonFromPersonEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetPerson_Person_Person>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public GetPerson_Person_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public GetPerson_Person_Person Map(
             global::Foo.Bar.State.PersonEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new GetPerson_Person_Person(entity.Name);
         }
     }
@@ -611,10 +624,23 @@ namespace Foo.Bar.State
     public partial class OnPerson_OnPerson_PersonFromPersonEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, OnPerson_OnPerson_Person>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public OnPerson_OnPerson_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public OnPerson_OnPerson_Person Map(
             global::Foo.Bar.State.PersonEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new OnPerson_OnPerson_Person(entity.Name);
         }
     }
@@ -972,10 +998,23 @@ namespace Foo.Bar.State
     public partial class CreatePerson_CreatePerson_PersonFromPersonEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, CreatePerson_CreatePerson_Person>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public CreatePerson_CreatePerson_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public CreatePerson_CreatePerson_Person Map(
             global::Foo.Bar.State.PersonEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new CreatePerson_CreatePerson_Person(entity.Name);
         }
     }
@@ -2220,7 +2259,8 @@ namespace Microsoft.Extensions.DependencyInjection
                             strategy),
                         global::Foo.Bar.FooClientProfileKind.InMemory => ConfigureClientInMemory(
                             sp,
-                            strategy)
+                            strategy),
+                        _ => throw new global::System.ArgumentOutOfRangeException()
                     };
 
                     return new ClientServiceProvider(

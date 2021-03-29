@@ -926,10 +926,23 @@ namespace Foo.Bar.State
     public partial class PeopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, PeopleSearch_People_Items_Department_Department>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public PeopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public PeopleSearch_People_Items_Department_Department Map(
             global::Foo.Bar.State.DepartmentEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new PeopleSearch_People_Items_Department_Department(
                 entity.Id,
                 entity.Name);
@@ -1044,10 +1057,23 @@ namespace Foo.Bar.State
     public partial class PeopleSearch_People_Items_Manager_PersonFromPersonEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Manager_Person>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public PeopleSearch_People_Items_Manager_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public PeopleSearch_People_Items_Manager_Person Map(
             global::Foo.Bar.State.PersonEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new PeopleSearch_People_Items_Manager_Person(
                 entity.Id,
                 entity.Key,

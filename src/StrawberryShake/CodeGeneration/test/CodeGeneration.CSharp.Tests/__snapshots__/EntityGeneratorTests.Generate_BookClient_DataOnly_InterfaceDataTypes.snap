@@ -85,13 +85,13 @@ namespace Foo.Bar.State
             if (data is global::Foo.Bar.State.BookData book)
             {
                 returnValue = new global::Foo.Bar.SearchSomething_Prints_Book(
-                    book.Isbn,
-                    book.Title);
+                    book.Isbn ?? throw new global::System.ArgumentNullException(),
+                    book.Title ?? throw new global::System.ArgumentNullException());
             }
             else if (data is global::Foo.Bar.State.MagazineData magazine)
             {
                 returnValue = new global::Foo.Bar.SearchSomething_Prints_Magazine(
-                    magazine.Isbn,
+                    magazine.Isbn ?? throw new global::System.ArgumentNullException(),
                     magazine.CoverImageUrl);
             }
             else

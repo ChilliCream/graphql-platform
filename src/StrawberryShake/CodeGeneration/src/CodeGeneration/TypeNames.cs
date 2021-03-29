@@ -100,6 +100,7 @@ namespace StrawberryShake.CodeGeneration
         public const string NotSupportedException = "global::System.NotSupportedException";
         public const string ArgumentNullException = "global::System.ArgumentNullException";
         public const string ArgumentException = "global::System.ArgumentException";
+        public const string ArgumentOutOfRangeException = "global::System.ArgumentOutOfRangeException";
         public const string Exception = "global::System.Exception";
 
         public const string IServiceCollection = GlobalDependencyInjectionNamespace + "IServiceCollection";

@@ -27,5 +27,6 @@ namespace HotChocolate.Types
         public const string Rgba = nameof(Rgba);
         public const string UnsignedInt = nameof(UnsignedInt);
         public const string UnsignedLong = nameof(UnsignedLong);
+        public const string UtcOffset = nameof(UtcOffset);
     }
 }

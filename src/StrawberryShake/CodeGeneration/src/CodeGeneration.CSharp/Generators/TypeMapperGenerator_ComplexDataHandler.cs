@@ -95,6 +95,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 CreateDataTypeName(objectTypeDescriptor.Name),
                 $"{objectTypeDescriptor.RuntimeType.Namespace}.State");
 
+            var block = CodeBlockBuilder.New();
+
             MethodCallBuilder constructorCall = MethodCallBuilder
                 .Inline()
                 .SetNew()
@@ -106,28 +108,46 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 {
                     constructorCall.AddArgument(BuildMapMethodCall(matchedTypeName, prop));
                 }
+                else if (prop.Type.IsNonNullableType())
+                {
+                    if (prop.Type.NamedType() is ILeafTypeDescriptor
+                        { RuntimeType: { IsValueType: true } })
+                    {
+                        block
+                            .AddCode(IfBuilder
+                                .New()
+                                .SetCondition($"{matchedTypeName}.{prop.Name}.HasValue")
+                                .AddCode(ExceptionBuilder.New(TypeNames.ArgumentNullException)))
+                            .AddEmptyLine();
+
+                        constructorCall.AddArgument($"{matchedTypeName}.{prop.Name}!.Value");
+                    }
+                    else
+                    {
+                        constructorCall
+                            .AddArgument(
+                                NullCheckBuilder
+                                    .Inline()
+                                    .SetCondition($"{matchedTypeName}.{prop.Name}")
+                                    .SetCode(ExceptionBuilder.Inline(
+                                        TypeNames.ArgumentNullException)));
+                    }
+                }
                 else
                 {
-                    var isNonNullableValueType =
-                        prop.Type is NonNullTypeDescriptor
-                            { InnerType: ILeafTypeDescriptor leaf } &&
-                        leaf.RuntimeType.IsValueType;
-
-                    constructorCall
-                        .AddArgument(
-                            $"{matchedTypeName}.{prop.Name}" +
-                            (isNonNullableValueType ? ".Value" : ""));
+                    constructorCall.AddArgument($"{matchedTypeName}.{prop.Name}");
                 }
             }
+
+            block.AddCode(AssignmentBuilder
+                .New()
+                .SetLefthandSide(variableName)
+                .SetRighthandSide(constructorCall));
 
             return IfBuilder
                 .New()
                 .SetCondition($"{_dataParameterName} is {dataTypeName} {matchedTypeName}")
-                .AddCode(
-                    AssignmentBuilder
-                        .New()
-                        .SetLefthandSide(variableName)
-                        .SetRighthandSide(constructorCall));
+                .AddCode(block);
         }
     }
 }

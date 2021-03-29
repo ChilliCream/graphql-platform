@@ -48,6 +48,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             AssertSettings settings,
             params string[] sourceTexts)
         {
+            AssertResult(settings, false, sourceTexts);
+        }
+
+        public static void AssertResult(
+            AssertSettings settings,
+            bool skipWarnings,
+            params string[] sourceTexts)
+        {
             ClientModel clientModel = CreateClientModel(sourceTexts, settings.StrictValidation);
 
             var documents = new StringBuilder();
@@ -137,6 +145,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
             IReadOnlyList<Diagnostic> diagnostics =
                 CSharpCompiler.GetDiagnosticErrors(documents.ToString());
 
+            if (skipWarnings)
+            {
+                diagnostics = diagnostics
+                    .Where(x => x.Severity == DiagnosticSeverity.Error)
+                    .ToList();
+            }
+
             if (diagnostics.Any())
             {
                 Assert.True(false,
@@ -171,7 +186,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 destinationIndex: 2,
                 length: sourceTexts.Length);
 
-            AssertResult(settings, source);
+            AssertResult(settings, true, source);
         }
 
         public static AssertSettings CreateIntegrationTest(

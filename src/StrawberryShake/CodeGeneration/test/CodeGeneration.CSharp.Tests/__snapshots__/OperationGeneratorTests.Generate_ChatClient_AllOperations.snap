@@ -511,10 +511,23 @@ namespace Foo.Bar.State
     public partial class GetPeople_People_Nodes_PersonFromPersonEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetPeople_People_Nodes_Person>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public GetPeople_People_Nodes_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public GetPeople_People_Nodes_Person Map(
             global::Foo.Bar.State.PersonEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new GetPeople_People_Nodes_Person(
                 entity.Name,
                 entity.Email,
@@ -1609,10 +1622,23 @@ namespace Foo.Bar.State
     public partial class GetMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public GetMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person Map(
             global::Foo.Bar.State.PersonEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person(
                 entity.Name,
                 entity.Email,
@@ -1744,10 +1770,23 @@ namespace Foo.Bar.State
     public partial class GetMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public GetMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public GetMessages_PersonByEmail_Messages_Nodes_Sender_Person Map(
             global::Foo.Bar.State.PersonEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new GetMessages_PersonByEmail_Messages_Nodes_Sender_Person(
                 entity.Name,
                 entity.Email,
@@ -2729,10 +2768,23 @@ namespace Foo.Bar.State
     public partial class SendMessageInput_SendMessage_Message_Recipient_PersonFromPersonEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, SendMessageInput_SendMessage_Message_Recipient_Person>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public SendMessageInput_SendMessage_Message_Recipient_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public SendMessageInput_SendMessage_Message_Recipient_Person Map(
             global::Foo.Bar.State.PersonEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new SendMessageInput_SendMessage_Message_Recipient_Person(
                 entity.Name,
                 entity.Email,
@@ -2864,10 +2916,23 @@ namespace Foo.Bar.State
     public partial class SendMessageInput_SendMessage_Message_Sender_PersonFromPersonEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, SendMessageInput_SendMessage_Message_Sender_Person>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public SendMessageInput_SendMessage_Message_Sender_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public SendMessageInput_SendMessage_Message_Sender_Person Map(
             global::Foo.Bar.State.PersonEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new SendMessageInput_SendMessage_Message_Sender_Person(
                 entity.Name,
                 entity.Email,
@@ -3761,10 +3826,23 @@ namespace Foo.Bar.State
     public partial class SendMessageMut_SendMessage_Message_Recipient_PersonFromPersonEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, SendMessageMut_SendMessage_Message_Recipient_Person>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public SendMessageMut_SendMessage_Message_Recipient_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public SendMessageMut_SendMessage_Message_Recipient_Person Map(
             global::Foo.Bar.State.PersonEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new SendMessageMut_SendMessage_Message_Recipient_Person(
                 entity.Name,
                 entity.Email,
@@ -3896,10 +3974,23 @@ namespace Foo.Bar.State
     public partial class SendMessageMut_SendMessage_Message_Sender_PersonFromPersonEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, SendMessageMut_SendMessage_Message_Sender_Person>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public SendMessageMut_SendMessage_Message_Sender_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public SendMessageMut_SendMessage_Message_Sender_Person Map(
             global::Foo.Bar.State.PersonEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new SendMessageMut_SendMessage_Message_Sender_Person(
                 entity.Name,
                 entity.Email,
@@ -4643,10 +4734,23 @@ namespace Foo.Bar.State
     public partial class ReadMessages_Message_Recipient_PersonFromPersonEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, ReadMessages_Message_Recipient_Person>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public ReadMessages_Message_Recipient_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public ReadMessages_Message_Recipient_Person Map(
             global::Foo.Bar.State.PersonEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new ReadMessages_Message_Recipient_Person(
                 entity.Name,
                 entity.Email,
@@ -4778,10 +4882,23 @@ namespace Foo.Bar.State
     public partial class ReadMessages_Message_Sender_PersonFromPersonEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, ReadMessages_Message_Sender_Person>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public ReadMessages_Message_Sender_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public ReadMessages_Message_Sender_Person Map(
             global::Foo.Bar.State.PersonEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new ReadMessages_Message_Sender_Person(
                 entity.Name,
                 entity.Email,

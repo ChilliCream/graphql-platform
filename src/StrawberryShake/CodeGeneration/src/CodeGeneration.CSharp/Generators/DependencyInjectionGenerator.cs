@@ -150,7 +150,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             SwitchExpressionBuilder switchBuilder = SwitchExpressionBuilder
                 .New()
                 .SetExpression(_profile)
-                .SetDetermineStatement(false);
+                .SetDetermineStatement(false)
+                .SetDefaultCase(ExceptionBuilder.Inline(TypeNames.ArgumentOutOfRangeException));
 
             var enumName = CreateProfileEnumReference(descriptor);
             foreach (var profile in descriptor.TransportProfiles)

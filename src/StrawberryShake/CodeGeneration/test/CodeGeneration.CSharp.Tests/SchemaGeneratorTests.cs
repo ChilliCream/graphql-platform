@@ -269,7 +269,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     }
                   }
                 }
-                
+
                 fragment FeatsPage on Feat {
                   id
                   name
@@ -286,7 +286,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     }
                   }
                 }
-                
+
                 fragment FeatById on Feat {
                   id
                   name
@@ -302,6 +302,38 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }",
                 "extend schema @key(fields: \"id\")",
                 FileResource.Open("Schema_Bug_1.graphql"));
+        }
+
+        [Fact]
+        public void NodeTypenameCollision()
+        {
+            AssertResult(
+                @"
+                type Query {
+                    node(id: ID!): Node
+                    workspaces: [Workspace!]!
+                }
+
+                interface Node {
+                    id: ID!
+                }
+
+                type Workspace implements Node {
+                    id: ID!
+                    name: String!
+                    url: String!
+                    workspaceId: String!
+                    description: String
+                }
+                ",
+                @"
+                query Nodes($id: ID!) {
+                    node(id: $id) {
+                        __typename
+                        id
+                    }
+                }",
+                "extend schema @key(fields: \"id\")");
         }
     }
 }
