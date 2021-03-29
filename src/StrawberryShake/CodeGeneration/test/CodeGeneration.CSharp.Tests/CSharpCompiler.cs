@@ -66,8 +66,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .WithReferences(ResolveReferences());
 
             return compilation.GetDiagnostics()
-                .Where(x => x.Severity == DiagnosticSeverity.Error &&
-                    !_excludedCodes.Contains(x.Id))
+                .Where(x => !_excludedCodes.Contains(x.Id))
                 .ToList();
         }
 

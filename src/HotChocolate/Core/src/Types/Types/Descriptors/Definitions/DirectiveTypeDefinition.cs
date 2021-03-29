@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
 #nullable enable
+
 namespace HotChocolate.Types.Descriptors.Definitions
 {
     public class DirectiveTypeDefinition

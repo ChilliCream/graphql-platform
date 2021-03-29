@@ -352,10 +352,23 @@ namespace Foo.Bar.State
     public partial class ChangeHomePlanet_ChangeHomePlanet_Human_HumanFromHumanEntityMapper
         : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.HumanEntity, ChangeHomePlanet_ChangeHomePlanet_Human_Human>
     {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public ChangeHomePlanet_ChangeHomePlanet_Human_HumanFromHumanEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
         public ChangeHomePlanet_ChangeHomePlanet_Human_Human Map(
             global::Foo.Bar.State.HumanEntity entity,
             global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new ChangeHomePlanet_ChangeHomePlanet_Human_Human(entity.HomePlanet);
         }
     }
@@ -704,7 +717,7 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ChangeHomePlanetMutation
-        : global::StrawberryShake.IOperationRequestFactory
+        : global::Foo.Bar.IChangeHomePlanetMutation
     {
         private readonly global::StrawberryShake.IOperationExecutor<IChangeHomePlanetResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _changeHomePlanetInputFormatter;
@@ -779,6 +792,46 @@ namespace Foo.Bar
         {
             return CreateRequest(variables!);
         }
+    }
+}
+
+
+// IChangeHomePlanetMutation
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    /// <summary>
+    /// Represents the operation service of the ChangeHomePlanet GraphQL operation
+    /// <code>
+    /// mutation ChangeHomePlanet($input: ChangeHomePlanetInput!) {
+    ///   changeHomePlanet(input: $input) {
+    ///     __typename
+    ///     human {
+    ///       __typename
+    ///       homePlanet
+    ///       ... on Human {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IChangeHomePlanetMutation
+        : global::StrawberryShake.IOperationRequestFactory
+    {
+        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IChangeHomePlanetResult>> ExecuteAsync(
+            global::Foo.Bar.ChangeHomePlanetInput input,
+            global::System.Threading.CancellationToken cancellationToken = default);
+
+        global::System.IObservable<global::StrawberryShake.IOperationResult<IChangeHomePlanetResult>> Watch(
+            global::Foo.Bar.ChangeHomePlanetInput input,
+            global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 }
 
@@ -982,11 +1035,11 @@ namespace Foo.Bar.State
     public partial class ChangeHomePlanetPayloadData
     {
         public ChangeHomePlanetPayloadData(
-            global::System.String typename,
+            global::System.String __typename,
             global::StrawberryShake.EntityId? human = null)
         {
-            __typename = typename
-                 ?? throw new global::System.ArgumentNullException(nameof(typename));
+            this.__typename = __typename
+                 ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Human = human;
         }
 
@@ -1010,10 +1063,11 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
+        : global::Foo.Bar.IFooClient
     {
-        private readonly global::Foo.Bar.ChangeHomePlanetMutation _changeHomePlanet;
+        private readonly global::Foo.Bar.IChangeHomePlanetMutation _changeHomePlanet;
 
-        public FooClient(global::Foo.Bar.ChangeHomePlanetMutation changeHomePlanet)
+        public FooClient(global::Foo.Bar.IChangeHomePlanetMutation changeHomePlanet)
         {
             _changeHomePlanet = changeHomePlanet
                  ?? throw new global::System.ArgumentNullException(nameof(changeHomePlanet));
@@ -1021,7 +1075,26 @@ namespace Foo.Bar
 
         public static global::System.String ClientName => "FooClient";
 
-        public global::Foo.Bar.ChangeHomePlanetMutation ChangeHomePlanet => _changeHomePlanet;
+        public global::Foo.Bar.IChangeHomePlanetMutation ChangeHomePlanet => _changeHomePlanet;
+    }
+}
+
+
+// IFooClient
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    /// <summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IFooClient
+    {
+        global::Foo.Bar.IChangeHomePlanetMutation ChangeHomePlanet { get; }
     }
 }
 
@@ -1042,15 +1115,15 @@ namespace Foo.Bar.State
 
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
-            global::System.String typeName = obj
+            global::System.String __typename = obj
                 .GetProperty("__typename")
                 .GetString()!;
 
-            return typeName switch
+            return __typename switch
             {
                 "Human" => ParseHumanEntityId(
                     obj,
-                    typeName),
+                    __typename),
                 _ => throw new global::System.NotSupportedException()
             };
         }
@@ -1152,6 +1225,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 services,
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IFooClient>(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
             return new global::StrawberryShake.ClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor>(
                 "FooClient",
@@ -1208,7 +1285,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IChangeHomePlanetResult>>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.ChangeHomePlanetMutation>(sp));
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IChangeHomePlanetMutation>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IChangeHomePlanetResult>, global::Foo.Bar.State.ChangeHomePlanetBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.IChangeHomePlanetResult>>(
                 services,
@@ -1218,8 +1295,14 @@ namespace Microsoft.Extensions.DependencyInjection
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                     strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.ChangeHomePlanetMutation>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.IChangeHomePlanetMutation>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.ChangeHomePlanetMutation>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityIdSerializer, global::Foo.Bar.State.FooClientEntityIdFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.FooClient>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.IFooClient>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(sp));
             return services;
         }
 

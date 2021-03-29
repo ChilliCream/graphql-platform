@@ -29,8 +29,7 @@ namespace HotChocolate.Configuration
                 },
                 new List<Type>(),
                 null,
-                t => t is FooType,
-                t => t is FooType);
+                t => t is FooType ? RootTypeKind.Query : RootTypeKind.None);
 
             // act
             typeInitializer.Initialize(() => null, new SchemaOptions());
@@ -76,8 +75,14 @@ namespace HotChocolate.Configuration
                 },
                 new List<Type>(),
                 null,
-                t => t is ObjectType<Foo>,
-                t => t is FooType);
+                t =>
+                {
+                    return t switch
+                    {
+                        ObjectType<Foo> => RootTypeKind.Query,
+                        _ => RootTypeKind.None
+                    };
+                });
 
             // act
             typeInitializer.Initialize(() => null, new SchemaOptions());
@@ -123,8 +128,14 @@ namespace HotChocolate.Configuration
                 },
                 new List<Type>(),
                 null!,
-                t => t is ObjectType<Foo>,
-                t => t is FooType);
+                t =>
+                {
+                    return t switch
+                    {
+                        ObjectType<Foo> => RootTypeKind.Query,
+                        _ => RootTypeKind.None
+                    };
+                });
 
             // act
             void Action() => typeInitializer.Initialize(null!, new SchemaOptions());
@@ -150,8 +161,14 @@ namespace HotChocolate.Configuration
                 },
                 new List<Type>(),
                 null!,
-                t => t is ObjectType<Foo>,
-                t => t is FooType);
+                t =>
+                {
+                    return t switch
+                    {
+                        ObjectType<Foo> => RootTypeKind.Query,
+                        _ => RootTypeKind.None
+                    };
+                });
 
             // act
             void Action() => typeInitializer.Initialize(() => null, null!);

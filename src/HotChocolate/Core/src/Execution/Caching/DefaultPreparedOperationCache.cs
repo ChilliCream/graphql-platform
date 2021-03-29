@@ -13,6 +13,10 @@ namespace HotChocolate.Execution.Caching
             _cache = new Cache<IPreparedOperation>(capacity);
         }
 
+        public int Capacity => _cache.Size;
+
+        public int Count => _cache.Usage;
+
         public void TryAddOperation(
             string operationId,
             IPreparedOperation operation) =>

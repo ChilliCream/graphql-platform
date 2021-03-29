@@ -6,8 +6,7 @@ using System.Reflection;
 
 namespace HotChocolate.Internal
 {
-    internal sealed partial class ExtendedType
-        : IExtendedType
+    internal sealed partial class ExtendedType : IExtendedType
     {
         private ExtendedType(
             Type type,

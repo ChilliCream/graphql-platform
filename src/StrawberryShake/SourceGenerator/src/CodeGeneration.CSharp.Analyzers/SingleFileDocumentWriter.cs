@@ -40,7 +40,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         {
             if (_execution is null)
             {
-                throw new InvalidOperationException();
+                return;
             }
 
             _execution.Value.AddSource(

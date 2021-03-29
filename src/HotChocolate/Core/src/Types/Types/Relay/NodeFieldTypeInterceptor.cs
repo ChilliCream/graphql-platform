@@ -15,8 +15,8 @@ namespace HotChocolate.Types.Relay
 {
     internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
     {
-        private static NameString Node { get; } = "node";
-        private static NameString Id { get; } = "id";
+        private static NameString Node => "node";
+        private static NameString Id => "id";
 
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,

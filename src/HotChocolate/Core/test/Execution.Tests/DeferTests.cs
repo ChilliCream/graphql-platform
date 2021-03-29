@@ -77,5 +77,42 @@ namespace HotChocolate.Execution
 
             results.ToString().MatchSnapshot();
         }
+
+        [Fact]
+        public async Task NoOptimization_Spread_Defer()
+        {
+            IExecutionResult result =
+                await new ServiceCollection()
+                    .AddStarWarsRepositories()
+                    .AddGraphQL()
+                    .AddStarWarsTypes()
+                    .ExecuteRequestAsync(
+                        @"{
+                            hero(episode: NEW_HOPE) {
+                                id
+                                ... deferred @defer(label: ""friends"")
+                            }
+                        }
+
+                        fragment deferred on Character {
+                            friends {
+                                nodes {
+                                    id
+                                }
+                            }
+                        }");
+
+            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
+
+            var results = new StringBuilder();
+
+            await foreach (IQueryResult payload in stream.ReadResultsAsync())
+            {
+                results.AppendLine(payload.ToJson());
+                results.AppendLine();
+            }
+
+            results.ToString().MatchSnapshot();
+        }
     }
 }

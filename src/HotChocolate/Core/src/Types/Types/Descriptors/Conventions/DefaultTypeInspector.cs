@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Internal;
+using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using CompDefaultValueAttribute = System.ComponentModel.DefaultValueAttribute;
 using TypeInfo = HotChocolate.Internal.TypeInfo;
@@ -62,18 +63,22 @@ namespace HotChocolate.Types.Descriptors
         }
 
         /// <inheritdoc />
-        public virtual IEnumerable<MemberInfo> GetMembers(Type type)
+        public virtual IEnumerable<MemberInfo> GetMembers(Type type) => GetMembers(type, false);
+
+        /// <inheritdoc />
+        public IEnumerable<MemberInfo> GetMembers(Type type, bool includeIgnored)
         {
             if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
-            return GetMembersInternal(type);
+            return GetMembersInternal(type, includeIgnored);
         }
 
-        private IEnumerable<MemberInfo> GetMembersInternal(Type type) =>
-            type.GetMembers(BindingFlags.Instance | BindingFlags.Public).Where(CanBeHandled);
+        private IEnumerable<MemberInfo> GetMembersInternal(Type type, bool includeIgnored) =>
+            type.GetMembers(BindingFlags.Instance | BindingFlags.Public)
+                .Where(m => CanBeHandled(m, includeIgnored));
 
         /// <inheritdoc />
         public virtual ExtendedTypeReference GetReturnTypeRef(
@@ -293,6 +298,7 @@ namespace HotChocolate.Types.Descriptors
         private static bool IsPossibleNodeResolver(
             MemberInfo member,
             Type nodeType) =>
+            member.IsDefined(typeof(NodeResolverAttribute)) ||
             member.Name.Equals(
                 "Get",
                 StringComparison.OrdinalIgnoreCase) ||
@@ -304,6 +310,7 @@ namespace HotChocolate.Types.Descriptors
         private static bool IsPossibleExternalNodeResolver(
             MemberInfo member,
             Type nodeType) =>
+            member.IsDefined(typeof(NodeResolverAttribute)) ||
             member.Name.Equals(
                 $"Get{nodeType.Name}",
                 StringComparison.OrdinalIgnoreCase) ||
@@ -344,10 +351,9 @@ namespace HotChocolate.Types.Descriptors
             IDescriptor descriptor,
             ICustomAttributeProvider attributeProvider)
         {
-            foreach (var attribute in
-                GetCustomAttributes<DescriptorAttribute>(attributeProvider, true))
+            foreach (var attr in GetCustomAttributes<DescriptorAttribute>(attributeProvider, true))
             {
-                attribute.TryConfigure(context, descriptor, attributeProvider);
+                attr.TryConfigure(context, descriptor, attributeProvider);
             }
         }
 
@@ -578,9 +584,14 @@ namespace HotChocolate.Types.Descriptors
             return false;
         }
 
-        private static bool CanBeHandled(MemberInfo member)
+        private static bool CanBeHandled(MemberInfo member, bool includeIgnored)
         {
-            if (IsIgnored(member))
+            if (IsSystemMember(member))
+            {
+                return false;
+            }
+
+            if (!includeIgnored && member.IsDefined(typeof(GraphQLIgnoreAttribute)))
             {
                 return false;
             }
@@ -748,7 +759,7 @@ namespace HotChocolate.Types.Descriptors
                 element.IsDefined(typeof(DescriptorAttribute), true);
         }
 
-        private static bool IsIgnored(MemberInfo member)
+        private static bool IsSystemMember(MemberInfo member)
         {
             if (IsCloneMember(member) ||
                 IsToString(member) ||
@@ -758,7 +769,7 @@ namespace HotChocolate.Types.Descriptors
                 return true;
             }
 
-            return member.IsDefined(typeof(GraphQLIgnoreAttribute));
+            return false;
         }
 
         private static bool IsToString(MemberInfo member) =>

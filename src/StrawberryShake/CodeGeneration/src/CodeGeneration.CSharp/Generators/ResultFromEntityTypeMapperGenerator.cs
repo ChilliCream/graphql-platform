@@ -34,7 +34,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             fileName = descriptor.ExtractMapperName();
             path = State;
-            var containsEntity = descriptor.ContainsEntity();
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -49,14 +48,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .New()
                 .SetTypeName(descriptor.Name);
 
-            if (containsEntity)
-            {
-                AddConstructorAssignedField(
-                    TypeNames.IEntityStore,
-                    StoreFieldName,
-                    classBuilder,
-                    constructorBuilder);
-            }
+            AddConstructorAssignedField(
+                TypeNames.IEntityStore,
+                StoreFieldName,
+                classBuilder,
+                constructorBuilder);
 
             // Define map method
             MethodBuilder mapMethod = MethodBuilder
@@ -80,18 +76,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     b => b.SetDefault("null")
                         .SetType(TypeNames.IEntityStoreSnapshot.MakeNullable()));
 
-            if (containsEntity)
-            {
-                mapMethod
-                    .AddCode(IfBuilder
+            mapMethod
+                .AddCode(IfBuilder
+                    .New()
+                    .SetCondition($"{_snapshot} is null")
+                    .AddCode(AssignmentBuilder
                         .New()
-                        .SetCondition($"{_snapshot} is null")
-                        .AddCode(AssignmentBuilder
-                            .New()
-                            .SetLefthandSide(_snapshot)
-                            .SetRighthandSide($"{_entityStore}.CurrentSnapshot")))
-                    .AddEmptyLine();
-            }
+                        .SetLefthandSide(_snapshot)
+                        .SetRighthandSide($"{_entityStore}.CurrentSnapshot")))
+                .AddEmptyLine();
 
             MethodCallBuilder constructorCall =
                 MethodCallBuilder

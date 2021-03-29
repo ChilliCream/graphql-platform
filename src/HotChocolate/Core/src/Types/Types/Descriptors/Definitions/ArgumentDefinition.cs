@@ -7,8 +7,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {
-    public class ArgumentDefinition
-        : FieldDefinitionBase<InputValueDefinitionNode>
+    public class ArgumentDefinition : FieldDefinitionBase<InputValueDefinitionNode>
     {
         private List<IInputValueFormatter>? _formatters;
 
@@ -29,6 +28,42 @@ namespace HotChocolate.Types.Descriptors.Definitions
             }
 
             return _formatters;
+        }
+
+        internal void CopyTo(ArgumentDefinition target)
+        {
+            base.CopyTo(target);
+
+            target._formatters = _formatters;
+            target.DefaultValue = DefaultValue;
+            target.NativeDefaultValue = NativeDefaultValue;
+            target.Parameter = Parameter;
+        }
+
+        internal void MergeInto(ArgumentDefinition target)
+        {
+            base.MergeInto(target);
+
+            if (_formatters is { Count: > 0 })
+            {
+                target._formatters ??= new List<IInputValueFormatter>();
+                target._formatters.AddRange(_formatters);
+            }
+
+            if (DefaultValue is not null)
+            {
+                target.DefaultValue = DefaultValue;
+            }
+
+            if (NativeDefaultValue is not null)
+            {
+                target.NativeDefaultValue = NativeDefaultValue;
+            }
+
+            if (Parameter is not null)
+            {
+                target.Parameter = Parameter;
+            }
         }
     }
 }

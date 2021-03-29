@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The NonPositiveFloat scalar type represents a double‐precision fractional value less than or
@@ -27,7 +27,6 @@ namespace HotChocolate.Types.Scalars
             BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, description, double.MinValue, 0, bind)
         {
-            Description = description;
         }
 
         /// <inheritdoc />

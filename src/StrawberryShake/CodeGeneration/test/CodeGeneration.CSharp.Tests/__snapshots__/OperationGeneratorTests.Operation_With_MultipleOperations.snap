@@ -653,7 +653,14 @@ namespace Foo.Bar
 
         private global::System.Object? FormatStr(global::System.String? value)
         {
-            return _stringFormatter.Format(value);
+            if (!(value is null))
+            {
+                return _stringFormatter.Format(value);
+            }
+            else
+            {
+                return value;
+            }
         }
 
         private global::System.Object? FormatStrNonNullable(global::System.String value)
@@ -668,7 +675,14 @@ namespace Foo.Bar
 
         private global::System.Object? FormatNested(global::Foo.Bar.Bar? value)
         {
-            return _barFormatter.Format(value);
+            if (!(value is null))
+            {
+                return _barFormatter.Format(value);
+            }
+            else
+            {
+                return value;
+            }
         }
 
         private global::System.Object? FormatNestedList(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> value)
@@ -694,19 +708,40 @@ namespace Foo.Bar
 
         private global::System.Object? FormatNestedMatrix(global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar?>?>? value)
         {
-            var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
-
-            foreach (var value_elm in value)
+            if (!(value is null))
             {
-                var value_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
+                var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
 
-                foreach (var value_elm_elm in value_elm)
+                foreach (var value_elm in value)
                 {
-                    value_elm_list.Add(_barFormatter.Format(value_elm_elm));
+                    if (!(value_elm is null))
+                    {
+                        var value_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
+
+                        foreach (var value_elm_elm in value_elm)
+                        {
+                            if (!(value_elm_elm is null))
+                            {
+                                value_elm_list.Add(_barFormatter.Format(value_elm_elm));
+                            }
+                            else
+                            {
+                                value_elm_list.Add(value_elm_elm);
+                            }
+                        }
+                        value_list.Add(value_elm_list);
+                    }
+                    else
+                    {
+                        value_list.Add(value_elm);
+                    }
                 }
-                value_list.Add(value_elm_list);
+                return value_list;
             }
-            return value_list;
+            else
+            {
+                return value;
+            }
         }
     }
 }
@@ -798,7 +833,7 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperationQuery
-        : global::StrawberryShake.IOperationRequestFactory
+        : global::Foo.Bar.ITestOperationQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<ITestOperationResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _barFormatter;
@@ -911,30 +946,79 @@ namespace Foo.Bar
 
         private global::System.Object? FormatNestedList(global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? value)
         {
-            var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
-
-            foreach (var value_elm in value)
+            if (!(value is null))
             {
-                var value_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
+                var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
 
-                foreach (var value_elm_elm in value_elm)
+                foreach (var value_elm in value)
                 {
-                    if (value_elm_elm is null)
+                    if (!(value_elm is null))
                     {
-                        throw new global::System.ArgumentNullException(nameof(value_elm_elm));
-                    }
+                        var value_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
 
-                    value_elm_list.Add(_barFormatter.Format(value_elm_elm));
+                        foreach (var value_elm_elm in value_elm)
+                        {
+                            if (value_elm_elm is null)
+                            {
+                                throw new global::System.ArgumentNullException(nameof(value_elm_elm));
+                            }
+
+                            value_elm_list.Add(_barFormatter.Format(value_elm_elm));
+                        }
+                        value_list.Add(value_elm_list);
+                    }
+                    else
+                    {
+                        value_list.Add(value_elm);
+                    }
                 }
-                value_list.Add(value_elm_list);
+                return value_list;
             }
-            return value_list;
+            else
+            {
+                return value;
+            }
         }
 
         global::StrawberryShake.OperationRequest global::StrawberryShake.IOperationRequestFactory.Create(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
         {
             return CreateRequest(variables!);
         }
+    }
+}
+
+
+// ITestOperationQuery
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    /// <summary>
+    /// Represents the operation service of the TestOperation GraphQL operation
+    /// <code>
+    /// query TestOperation($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
+    ///   foo(single: $single, list: $list, nestedList: $nestedList)
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface ITestOperationQuery
+        : global::StrawberryShake.IOperationRequestFactory
+    {
+        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestOperationResult>> ExecuteAsync(
+            global::Foo.Bar.Bar single,
+            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> list,
+            global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? nestedList,
+            global::System.Threading.CancellationToken cancellationToken = default);
+
+        global::System.IObservable<global::StrawberryShake.IOperationResult<ITestOperationResult>> Watch(
+            global::Foo.Bar.Bar single,
+            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> list,
+            global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? nestedList,
+            global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 }
 
@@ -1001,7 +1085,7 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperation2Query
-        : global::StrawberryShake.IOperationRequestFactory
+        : global::Foo.Bar.ITestOperation2Query
     {
         private readonly global::StrawberryShake.IOperationExecutor<ITestOperation2Result> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _barFormatter;
@@ -1114,30 +1198,79 @@ namespace Foo.Bar
 
         private global::System.Object? FormatNestedList(global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? value)
         {
-            var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
-
-            foreach (var value_elm in value)
+            if (!(value is null))
             {
-                var value_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
+                var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
 
-                foreach (var value_elm_elm in value_elm)
+                foreach (var value_elm in value)
                 {
-                    if (value_elm_elm is null)
+                    if (!(value_elm is null))
                     {
-                        throw new global::System.ArgumentNullException(nameof(value_elm_elm));
-                    }
+                        var value_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
 
-                    value_elm_list.Add(_barFormatter.Format(value_elm_elm));
+                        foreach (var value_elm_elm in value_elm)
+                        {
+                            if (value_elm_elm is null)
+                            {
+                                throw new global::System.ArgumentNullException(nameof(value_elm_elm));
+                            }
+
+                            value_elm_list.Add(_barFormatter.Format(value_elm_elm));
+                        }
+                        value_list.Add(value_elm_list);
+                    }
+                    else
+                    {
+                        value_list.Add(value_elm);
+                    }
                 }
-                value_list.Add(value_elm_list);
+                return value_list;
             }
-            return value_list;
+            else
+            {
+                return value;
+            }
         }
 
         global::StrawberryShake.OperationRequest global::StrawberryShake.IOperationRequestFactory.Create(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
         {
             return CreateRequest(variables!);
         }
+    }
+}
+
+
+// ITestOperation2Query
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    /// <summary>
+    /// Represents the operation service of the TestOperation2 GraphQL operation
+    /// <code>
+    /// query TestOperation2($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
+    ///   foo(single: $single, list: $list, nestedList: $nestedList)
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface ITestOperation2Query
+        : global::StrawberryShake.IOperationRequestFactory
+    {
+        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestOperation2Result>> ExecuteAsync(
+            global::Foo.Bar.Bar single,
+            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> list,
+            global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? nestedList,
+            global::System.Threading.CancellationToken cancellationToken = default);
+
+        global::System.IObservable<global::StrawberryShake.IOperationResult<ITestOperation2Result>> Watch(
+            global::Foo.Bar.Bar single,
+            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> list,
+            global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? nestedList,
+            global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 }
 
@@ -1204,7 +1337,7 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperation3Query
-        : global::StrawberryShake.IOperationRequestFactory
+        : global::Foo.Bar.ITestOperation3Query
     {
         private readonly global::StrawberryShake.IOperationExecutor<ITestOperation3Result> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _barFormatter;
@@ -1317,30 +1450,79 @@ namespace Foo.Bar
 
         private global::System.Object? FormatNestedList(global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? value)
         {
-            var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
-
-            foreach (var value_elm in value)
+            if (!(value is null))
             {
-                var value_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
+                var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
 
-                foreach (var value_elm_elm in value_elm)
+                foreach (var value_elm in value)
                 {
-                    if (value_elm_elm is null)
+                    if (!(value_elm is null))
                     {
-                        throw new global::System.ArgumentNullException(nameof(value_elm_elm));
-                    }
+                        var value_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
 
-                    value_elm_list.Add(_barFormatter.Format(value_elm_elm));
+                        foreach (var value_elm_elm in value_elm)
+                        {
+                            if (value_elm_elm is null)
+                            {
+                                throw new global::System.ArgumentNullException(nameof(value_elm_elm));
+                            }
+
+                            value_elm_list.Add(_barFormatter.Format(value_elm_elm));
+                        }
+                        value_list.Add(value_elm_list);
+                    }
+                    else
+                    {
+                        value_list.Add(value_elm);
+                    }
                 }
-                value_list.Add(value_elm_list);
+                return value_list;
             }
-            return value_list;
+            else
+            {
+                return value;
+            }
         }
 
         global::StrawberryShake.OperationRequest global::StrawberryShake.IOperationRequestFactory.Create(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
         {
             return CreateRequest(variables!);
         }
+    }
+}
+
+
+// ITestOperation3Query
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    /// <summary>
+    /// Represents the operation service of the TestOperation3 GraphQL operation
+    /// <code>
+    /// query TestOperation3($single: Bar!, $list: [Bar!]!, $nestedList: [[Bar!]]) {
+    ///   foo(single: $single, list: $list, nestedList: $nestedList)
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface ITestOperation3Query
+        : global::StrawberryShake.IOperationRequestFactory
+    {
+        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ITestOperation3Result>> ExecuteAsync(
+            global::Foo.Bar.Bar single,
+            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> list,
+            global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? nestedList,
+            global::System.Threading.CancellationToken cancellationToken = default);
+
+        global::System.IObservable<global::StrawberryShake.IOperationResult<ITestOperation3Result>> Watch(
+            global::Foo.Bar.Bar single,
+            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> list,
+            global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? nestedList,
+            global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 }
 
@@ -1676,15 +1858,16 @@ namespace Foo.Bar
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient
+        : global::Foo.Bar.IFooClient
     {
-        private readonly global::Foo.Bar.TestOperationQuery _testOperation;
-        private readonly global::Foo.Bar.TestOperation2Query _testOperation2;
-        private readonly global::Foo.Bar.TestOperation3Query _testOperation3;
+        private readonly global::Foo.Bar.ITestOperationQuery _testOperation;
+        private readonly global::Foo.Bar.ITestOperation2Query _testOperation2;
+        private readonly global::Foo.Bar.ITestOperation3Query _testOperation3;
 
         public FooClient(
-            global::Foo.Bar.TestOperationQuery testOperation,
-            global::Foo.Bar.TestOperation2Query testOperation2,
-            global::Foo.Bar.TestOperation3Query testOperation3)
+            global::Foo.Bar.ITestOperationQuery testOperation,
+            global::Foo.Bar.ITestOperation2Query testOperation2,
+            global::Foo.Bar.ITestOperation3Query testOperation3)
         {
             _testOperation = testOperation
                  ?? throw new global::System.ArgumentNullException(nameof(testOperation));
@@ -1696,11 +1879,34 @@ namespace Foo.Bar
 
         public static global::System.String ClientName => "FooClient";
 
-        public global::Foo.Bar.TestOperationQuery TestOperation => _testOperation;
+        public global::Foo.Bar.ITestOperationQuery TestOperation => _testOperation;
 
-        public global::Foo.Bar.TestOperation2Query TestOperation2 => _testOperation2;
+        public global::Foo.Bar.ITestOperation2Query TestOperation2 => _testOperation2;
 
-        public global::Foo.Bar.TestOperation3Query TestOperation3 => _testOperation3;
+        public global::Foo.Bar.ITestOperation3Query TestOperation3 => _testOperation3;
+    }
+}
+
+
+// IFooClient
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
+
+#nullable enable
+
+namespace Foo.Bar
+{
+    /// <summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IFooClient
+    {
+        global::Foo.Bar.ITestOperationQuery TestOperation { get; }
+
+        global::Foo.Bar.ITestOperation2Query TestOperation2 { get; }
+
+        global::Foo.Bar.ITestOperation3Query TestOperation3 { get; }
     }
 }
 
@@ -1721,11 +1927,11 @@ namespace Foo.Bar.State
 
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
-            global::System.String typeName = obj
+            global::System.String __typename = obj
                 .GetProperty("__typename")
                 .GetString()!;
 
-            return typeName switch
+            return __typename switch
             {
                 _ => throw new global::System.NotSupportedException()
             };
@@ -1800,6 +2006,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 services,
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IFooClient>(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
             return new global::StrawberryShake.ClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor>(
                 "FooClient",
@@ -1855,7 +2065,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ITestOperationResult>>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.TestOperationQuery>(sp));
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.ITestOperationQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ITestOperationResult>, global::Foo.Bar.State.TestOperationBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.ITestOperationResult>>(
                 services,
@@ -1865,13 +2075,16 @@ namespace Microsoft.Extensions.DependencyInjection
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                     strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.TestOperationQuery>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.ITestOperationQuery>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.TestOperationQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ITestOperation2Result>, global::Foo.Bar.State.TestOperation2ResultFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(
                 services,
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ITestOperation2Result>>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.TestOperation2Query>(sp));
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.ITestOperation2Query>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ITestOperation2Result>, global::Foo.Bar.State.TestOperation2Builder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.ITestOperation2Result>>(
                 services,
@@ -1881,13 +2094,16 @@ namespace Microsoft.Extensions.DependencyInjection
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                     strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.TestOperation2Query>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.ITestOperation2Query>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.TestOperation2Query>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ITestOperation3Result>, global::Foo.Bar.State.TestOperation3ResultFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(
                 services,
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ITestOperation3Result>>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(
                 services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.TestOperation3Query>(sp));
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.ITestOperation3Query>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ITestOperation3Result>, global::Foo.Bar.State.TestOperation3Builder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.ITestOperation3Result>>(
                 services,
@@ -1897,8 +2113,14 @@ namespace Microsoft.Extensions.DependencyInjection
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                     strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.TestOperation3Query>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.ITestOperation3Query>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.TestOperation3Query>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityIdSerializer, global::Foo.Bar.State.FooClientEntityIdFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.FooClient>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.IFooClient>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(sp));
             return services;
         }
 

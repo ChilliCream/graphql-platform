@@ -54,13 +54,13 @@ namespace HotChocolate.Types
             var processed = new HashSet<string>();
             List<IDirective>? directives = null;
 
-            foreach (DirectiveDefinition description in _definitions)
+            foreach (DirectiveDefinition description in _definitions!)
             {
                 if (TryCompleteDirective(
                     context,
                     description,
                     processed,
-                    out Directive directive))
+                    out Directive? directive))
                 {
                     directives ??= new List<IDirective>();
                     directives.Add(directive);
@@ -87,7 +87,9 @@ namespace HotChocolate.Types
             ISet<string> processed,
             [NotNullWhen(true)] out Directive? directive)
         {
-            if (!context.TryGetDirectiveType(definition.Reference, out DirectiveType directiveType))
+            if (!context.TryGetDirectiveType(
+                definition.Reference,
+                out DirectiveType? directiveType))
             {
                 directive = null;
                 return false;
@@ -130,7 +132,7 @@ namespace HotChocolate.Types
             {
                 if (directive.Type.Arguments.TryGetField(
                     argument.Name.Value,
-                    out Argument arg))
+                    out Argument? arg))
                 {
                     if (!arg.Type.IsInstanceOfType(argument.Value))
                     {
@@ -158,7 +160,7 @@ namespace HotChocolate.Types
             foreach (Argument argument in directive.Type.Arguments
                 .Where(a => a.Type.IsNonNullType()))
             {
-                if (!arguments.TryGetValue(argument.Name, out ArgumentNode arg)
+                if (!arguments.TryGetValue(argument.Name, out ArgumentNode? arg)
                     || arg.Value is NullValueNode)
                 {
                     context.ReportError(

@@ -47,6 +47,11 @@ namespace HotChocolate.Types.Descriptors.Definitions
             _configurations ??= new List<ILazyTypeConfiguration>();
 
         /// <summary>
+        /// Defines whether descriptor attributes are applied or not.
+        /// </summary>
+        public bool AttributesAreApplied { get; set; }
+
+        /// <summary>
         /// Gets lazy configuration of this definition and all dependent definitions.
         /// </summary>
         internal virtual IEnumerable<ILazyTypeConfiguration> GetConfigurations()
@@ -84,6 +89,71 @@ namespace HotChocolate.Types.Descriptors.Definitions
             }
 
             return _contextData;
+        }
+
+        protected void CopyTo(DefinitionBase target)
+        {
+            if (_dependencies is not null && _dependencies.Count > 0)
+            {
+                target._dependencies = new List<TypeDependency>(_dependencies);
+            }
+
+            if (_configurations is not null && _configurations.Count > 0)
+            {
+                target._configurations = new List<ILazyTypeConfiguration>();
+
+                foreach (ILazyTypeConfiguration configuration in _configurations)
+                {
+                    target._configurations.Add(configuration.Copy(target));
+                }
+            }
+
+            if (_contextData is not null && _contextData.Count > 0)
+            {
+                target._contextData = new ExtensionData(_contextData);
+            }
+
+            target.Name = Name;
+            target.Description = Description;
+            target.AttributesAreApplied = AttributesAreApplied;
+        }
+
+        protected void MergeInto(DefinitionBase target)
+        {
+            if (_dependencies is not null && _dependencies.Count > 0)
+            {
+                target._dependencies ??= new List<TypeDependency>();
+                target._dependencies.AddRange(_dependencies);
+            }
+
+            if (_configurations is not null && _configurations.Count > 0)
+            {
+                target._configurations ??= new List<ILazyTypeConfiguration>();
+
+                foreach (ILazyTypeConfiguration configuration in _configurations)
+                {
+                    target._configurations.Add(configuration.Copy(target));
+                }
+            }
+
+            if (_contextData is not null && _contextData.Count > 0)
+            {
+                target._contextData ??= new ExtensionData();
+                foreach (KeyValuePair<string, object?> item in _contextData)
+                {
+                    target._contextData[item.Key] = item.Value;
+                }
+            }
+
+            if (Description is not null)
+            {
+                target.Description = Description;
+            }
+
+            if (!target.AttributesAreApplied)
+            {
+                target.AttributesAreApplied = AttributesAreApplied;
+            }
         }
     }
 }

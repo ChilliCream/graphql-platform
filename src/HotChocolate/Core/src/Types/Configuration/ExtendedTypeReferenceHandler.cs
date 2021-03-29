@@ -4,6 +4,7 @@ using System.Linq;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 using ExtendedType = HotChocolate.Internal.ExtendedType;
 
 #nullable enable
@@ -30,6 +31,11 @@ namespace HotChocolate.Configuration
                 if (_typeInspector.TryCreateTypeInfo(typeReference.Type, out ITypeInfo? typeInfo) &&
                     !ExtendedType.Tools.IsNonGenericBaseType(typeInfo.NamedType))
                 {
+                    if (typeInfo.NamedType == typeof(IExecutable))
+                    {
+                        throw ThrowHelper.NonGenericExecutableNotAllowed();
+                    }
+
                     Type namedType = typeInfo.NamedType;
                     if (IsTypeSystemObject(namedType))
                     {
@@ -65,10 +71,10 @@ namespace HotChocolate.Configuration
             ExtendedTypeReference? normalizedTypeRef = null;
             var resolved = false;
 
-            for (var i = 0; i < typeInfo.Components.Count; i++)
+            foreach (TypeComponent component in typeInfo.Components)
             {
                 normalizedTypeRef = TypeReference.Create(
-                    typeInfo.Components[i].Type,
+                    component.Type,
                     context,
                     scope);
 

@@ -43,7 +43,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                 CodeGenerationResources.OperationServiceDescriptor_Description,
                                 descriptor.Name))
                         .AddCode(descriptor.BodyString))
-                .AddImplements(TypeNames.IOperationRequestFactory)
+                .AddImplements(descriptor.InterfaceType.ToString())
                 .SetName(fileName);
 
             ConstructorBuilder constructorBuilder = classBuilder

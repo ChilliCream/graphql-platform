@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -11,32 +10,6 @@ namespace HotChocolate.Internal
 {
     public static class TypeExtensionHelper
     {
-        public static void MergeObjectFields(
-            ITypeCompletionContext context,
-            Type sourceType,
-            IList<ObjectFieldDefinition> extensionFields,
-            IList<ObjectFieldDefinition> typeFields)
-        {
-            MergeOutputFields(context, extensionFields, typeFields,
-                (fields, extensionField, typeField) =>
-                {
-                    if (extensionField.Resolver != null)
-                    {
-                        typeField.Resolver = extensionField.Resolver;
-                    }
-
-                    if (extensionField.GetMiddlewareComponents().Count > 0)
-                    {
-                        foreach (FieldMiddleware component in
-                            extensionField.MiddlewareComponents)
-                        {
-                            typeField.MiddlewareComponents.Add(component);
-                        }
-                    }
-                },
-                extensionField => extensionField.SourceType = sourceType);
-        }
-
         public static void MergeInterfaceFields(
             ITypeCompletionContext context,
             IList<InterfaceFieldDefinition> extensionFields,
@@ -120,13 +93,11 @@ namespace HotChocolate.Internal
             IList<DirectiveDefinition> extension,
             IList<DirectiveDefinition> type)
         {
-            var directives =
-                new List<(DirectiveType type, DirectiveDefinition def)>();
+            var directives = new List<(DirectiveType type, DirectiveDefinition def)>();
 
             foreach (DirectiveDefinition directive in type)
             {
-                DirectiveType directiveType =
-                    context.GetDirectiveType(directive.Reference);
+                DirectiveType directiveType = context.GetDirectiveType(directive.Reference);
                 directives.Add((directiveType, directive));
             }
 
@@ -137,8 +108,7 @@ namespace HotChocolate.Internal
 
             type.Clear();
 
-            foreach (DirectiveDefinition directive in
-                directives.Select(t => t.def))
+            foreach (DirectiveDefinition directive in directives.Select(t => t.def))
             {
                 type.Add(directive);
             }
@@ -149,10 +119,7 @@ namespace HotChocolate.Internal
             IList<(DirectiveType type, DirectiveDefinition def)> directives,
             DirectiveDefinition directive)
         {
-            DirectiveType directiveType =
-                context.GetDirectiveType(directive.Reference);
-
-            if (directiveType != null)
+            if (context.TryGetDirectiveType(directive.Reference, out DirectiveType? directiveType))
             {
                 if (directiveType.IsRepeatable)
                 {
@@ -198,7 +165,7 @@ namespace HotChocolate.Internal
 
             if (extension.FieldBindingType != typeof(object))
             {
-                type.KnownClrTypes.Add(extension.FieldBindingType);
+                type.KnownRuntimeTypes.Add(extension.FieldBindingType);
             }
         }
 

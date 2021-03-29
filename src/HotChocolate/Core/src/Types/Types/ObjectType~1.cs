@@ -7,8 +7,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
-    public class ObjectType<T>
-        : ObjectType
+    public class ObjectType<T> : ObjectType
     {
         private Action<IObjectTypeDescriptor<T>>? _configure;
 

@@ -39,14 +39,21 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .SetType(item.Value.Type.ToStateTypeReference())
                     .SetPublic();
 
-                var paramName = GetParameterName(item.Value.Name);
+                var paramName = item.Value.Name == WellKnownNames.TypeName 
+                    ? WellKnownNames.TypeName
+                    : GetParameterName(item.Value.Name);
+                    
                 constructorBuilder
                     .AddParameter(
                         paramName,
                         x => x.SetType(item.Value.Type.ToStateTypeReference()))
                     .AddCode(AssignmentBuilder
                         .New()
-                        .SetLefthandSide(item.Value.Name)
+                        .SetLefthandSide(
+                            (item.Value.Name == WellKnownNames.TypeName
+                                ? "this."
+                                : string.Empty) +
+                            item.Value.Name)
                         .SetRighthandSide(paramName));
             }
 

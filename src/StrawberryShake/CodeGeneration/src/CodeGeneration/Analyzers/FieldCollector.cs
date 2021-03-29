@@ -62,7 +62,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     foreach (ObjectType objectType in _schema.GetPossibleTypes(type))
                     {
                         SelectionSet objectSelection = CollectFieldsInternal(
-                            selectionSetSyntax, objectType, path);
+                            selectionSetSyntax,
+                            objectType,
+                            path);
                         list.Add(objectSelection);
 
                         // TODO : do we always want to generate all shapes?
@@ -192,7 +194,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     fields.Add(responseName, fieldSelection);
                 }
             }
-            else
+            else if (fieldSyntax.Name.Value is not WellKnownNames.TypeName)
             {
                 // TODO : resources
                 throw new CodeGeneratorException(
@@ -269,8 +271,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                         return false;
                     }
                 }
+
                 return true;
             }
+
             return false;
         }
 
@@ -330,11 +334,15 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 inlineFragmentSyntax.SelectionSet);
         }
 
-        private static string CreateInlineFragmentName(
-            InlineFragmentNode inlineFragmentSyntax) =>
+        private static string CreateInlineFragmentName(InlineFragmentNode inlineFragmentSyntax) =>
             $"^{inlineFragmentSyntax.Location!.Start}_{inlineFragmentSyntax.Location.End}";
 
-        private class Cache : Dictionary<INamedOutputType, SelectionCache> { }
-        private class SelectionCache : Dictionary<SelectionSetNode, SelectionSetVariants> { }
+        private class Cache : Dictionary<INamedOutputType, SelectionCache>
+        {
+        }
+
+        private class SelectionCache : Dictionary<SelectionSetNode, SelectionSetVariants>
+        {
+        }
     }
 }

@@ -234,7 +234,7 @@ namespace HotChocolate.Types
                     if (resultType.IsArrayOrList)
                     {
                         var list = new List<object?>();
-                        foreach (object? element in (IEnumerable)context.Result)
+                        foreach (var element in (IEnumerable)context.Result)
                         {
                             list.Add(element is null
                                 ? element

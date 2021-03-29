@@ -2,7 +2,7 @@ using System;
 using HotChocolate.Language;
 using Xunit;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     public class ScalarTypeTestBase
     {
@@ -34,6 +34,8 @@ namespace HotChocolate.Types.Scalars
                 case nameof(IntValueNode) when value is int i:
                     return new IntValueNode(i);
                 case nameof(IntValueNode) when value is uint i:
+                    return new IntValueNode(i);
+                case nameof(IntValueNode) when value is ulong i:
                     return new IntValueNode(i);
                 case nameof(BooleanValueNode) when value is bool b:
                     return new BooleanValueNode(b);
@@ -85,7 +87,7 @@ namespace HotChocolate.Types.Scalars
             ScalarType scalar = CreateType<TType>();
 
             // act
-            object result = scalar.ParseLiteral(valueSyntax);
+            object? result = scalar.ParseLiteral(valueSyntax);
 
             // assert
             Assert.Equal(expectedResult, result);

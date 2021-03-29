@@ -577,6 +577,96 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
         }
 
         [Fact]
+        public async Task SubscribeToReview_WithInlineFragment()
+        {
+            // arrange
+            IRequestExecutor executor = await CreateExecutorAsync();
+
+            // act
+            var subscriptionResult =
+                (ISubscriptionResult)await executor.ExecuteAsync(
+                    @"subscription {
+                        onReview(episode: NEW_HOPE) {
+                            ... on Review {
+                                stars
+                            }
+                        }
+                    }");
+
+            // assert
+            IExecutionResult result =
+                await executor.ExecuteAsync(@"
+                    mutation {
+                        createReview(episode: NEW_HOPE,
+                            review: { stars: 5 commentary: ""foo"" }) {
+                            stars
+                            commentary
+                        }
+                    }");
+
+            IReadOnlyQueryResult eventResult = null;
+
+            using (var cts = new CancellationTokenSource(2000))
+            {
+                await foreach (IQueryResult queryResult in
+                    subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
+                {
+                    var item = (IReadOnlyQueryResult) queryResult;
+                    eventResult = item;
+                    break;
+                }
+            }
+
+            eventResult?.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SubscribeToReview_FragmentDefinition()
+        {
+            // arrange
+            IRequestExecutor executor = await CreateExecutorAsync();
+
+            // act
+            var subscriptionResult =
+                (ISubscriptionResult)await executor.ExecuteAsync(
+                    @"subscription {
+                        onReview(episode: NEW_HOPE) {
+                            ... SomeFrag
+                        }
+                    }
+
+                    fragment SomeFrag on Review {
+                        stars
+                    }");
+
+            // assert
+            IExecutionResult result =
+                await executor.ExecuteAsync(@"
+                    mutation {
+                        createReview(episode: NEW_HOPE,
+                            review: { stars: 5 commentary: ""foo"" }) {
+                            stars
+                            commentary
+                        }
+                    }");
+
+            IReadOnlyQueryResult eventResult = null;
+
+            using (var cts = new CancellationTokenSource(2000))
+            {
+                await foreach (IQueryResult queryResult in
+                    subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
+                {
+                    var item = (IReadOnlyQueryResult) queryResult;
+                    eventResult = item;
+                    break;
+                }
+            }
+
+            eventResult?.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task SubscribeToReview_With_Variables()
         {
             // arrange
@@ -822,6 +912,58 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
             Snapshot.FullName();
             await ExpectValid(
                 FileResource.Open("LargeQuery.graphql"))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task NestedFragmentsWithNestedObjectFieldsAndSkip()
+        {
+            Snapshot.FullName();
+
+            await ExpectValid(@"
+                query ($if: Boolean!) {
+                    human(id: ""1000"") {
+                        ... Human1 @include(if: $if)
+                        ... Human2 @skip(if: $if)
+                    }
+                }
+                fragment Human1 on Human {
+                    friends {
+                        edges {
+                            ... FriendEdge1
+                        }
+                    }
+                }
+                fragment FriendEdge1 on CharacterEdge {
+                    node {
+                        __typename
+                        friends {
+                            nodes {
+                                __typename
+                                ... Human3
+                            }
+                        }
+                    }
+                }
+                fragment Human2 on Human {
+                    friends {
+                        edges {
+                            node {
+                                __typename
+                                ... Human3
+                            }
+                        }
+                    }
+                }
+                fragment Human3 on Human {
+                    name
+                    otherHuman {
+                      __typename
+                      name
+                    }
+                }
+                ",
+                request: r => r.SetVariableValue("if", true))
                 .MatchSnapshotAsync();
         }
     }
