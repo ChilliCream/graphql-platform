@@ -16,6 +16,8 @@ namespace HotChocolate.Types
 {
     public static class RelayIdFieldExtensions
     {
+        private static IdSerializer? _idSerializer;
+
         public static IInputFieldDescriptor ID(
             this IInputFieldDescriptor descriptor,
             NameString typeName = default)
@@ -256,7 +258,8 @@ namespace HotChocolate.Types
             NameString typeName)
         {
             IIdSerializer serializer =
-                completionContext.Services.GetRequiredService<IIdSerializer>();
+                completionContext.Services.GetService<IIdSerializer>() ??
+                (_idSerializer ??= new IdSerializer());
 
             return new GlobalIdInputValueFormatter(
                 typeName.HasValue ? typeName : completionContext.Type.Name,
