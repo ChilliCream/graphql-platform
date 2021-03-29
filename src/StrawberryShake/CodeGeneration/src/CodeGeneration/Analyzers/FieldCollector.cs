@@ -194,7 +194,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     fields.Add(responseName, fieldSelection);
                 }
             }
-            else if (fieldSyntax.Name.Value is not "__typename")
+            else if (fieldSyntax.Name.Value is not WellKnownNames.TypeName)
             {
                 // TODO : resources
                 throw new CodeGeneratorException(

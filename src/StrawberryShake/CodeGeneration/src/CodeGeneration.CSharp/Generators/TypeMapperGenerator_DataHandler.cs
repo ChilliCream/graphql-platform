@@ -60,7 +60,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .Inline()
                 .SetMethodName(
                     _dataParameterName.MakeNullable(!isNonNullable),
-                    "__typename",
+                    WellKnownNames.TypeName,
                     nameof(string.Equals))
                 .AddArgument(objectTypeDescriptor.Name.AsStringToken())
                 .AddArgument(TypeNames.OrdinalStringComparison);
