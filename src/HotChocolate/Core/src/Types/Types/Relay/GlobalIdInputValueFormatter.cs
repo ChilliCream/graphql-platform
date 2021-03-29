@@ -36,19 +36,17 @@ namespace HotChocolate.Types.Relay
                 return null;
             }
 
-            if (runtimeValue is IdValue v)
+            if (runtimeValue is IdValue id &&
+                (!_validateType || _typeName.Equals(id.TypeName)))
             {
-                if (!_validateType || _typeName.Equals(v.TypeName))
-                {
-                    return v.Value;
-                }
+                return id.Value;
             }
 
             if (runtimeValue is string s)
             {
                 try
                 {
-                    IdValue id = _idSerializer.Deserialize(s);
+                    id = _idSerializer.Deserialize(s);
 
                     if (!_validateType || _typeName.Equals(id.TypeName))
                     {
@@ -69,6 +67,21 @@ namespace HotChocolate.Types.Relay
                         .Build());
             }
 
+            if (runtimeValue is IEnumerable<IdValue> idEnumerable)
+            {
+                IList list = _createList();
+
+                foreach (IdValue idv in idEnumerable)
+                {
+                    if (!_validateType || _typeName.Equals(idv.TypeName))
+                    {
+                        list.Add(idv.Value);
+                    }
+                }
+
+                return list;
+            }
+
             if (runtimeValue is IEnumerable<string> stringEnumerable)
             {
                 try
@@ -77,7 +90,7 @@ namespace HotChocolate.Types.Relay
 
                     foreach (string sv in stringEnumerable)
                     {
-                        IdValue id = _idSerializer.Deserialize(sv);
+                        id = _idSerializer.Deserialize(sv);
 
                         if (!_validateType || _typeName.Equals(id.TypeName))
                         {

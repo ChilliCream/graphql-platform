@@ -110,5 +110,11 @@ namespace StrawberryShake.CodeGeneration.Properties {
                 return ResourceManager.GetString("ThrowHelper_TypeNameCollision", resourceCulture);
             }
         }
+        
+        internal static string TypeDescriptorMapper_UnionTypeDataEntityMixed {
+            get {
+                return ResourceManager.GetString("TypeDescriptorMapper_UnionTypeDataEntityMixed", resourceCulture);
+            }
+        }
     }
 }
