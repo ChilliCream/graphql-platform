@@ -1,0 +1,49 @@
+﻿{
+  "Search": [
+    {
+      "Name": "Luke Skywalker",
+      "Friends": {
+        "Nodes": [
+          {
+            "Name": "Han Solo"
+          },
+          {
+            "Name": "Leia Organa"
+          },
+          {
+            "Name": "C-3PO"
+          },
+          {
+            "Name": "R2-D2"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "Han Solo",
+      "Friends": {
+        "Nodes": [
+          {
+            "Name": "Luke Skywalker"
+          },
+          {
+            "Name": "Leia Organa"
+          },
+          {
+            "Name": "R2-D2"
+          }
+        ]
+      }
+    },
+    {
+      "Name": "Wilhuff Tarkin",
+      "Friends": {
+        "Nodes": [
+          {
+            "Name": "Darth Vader"
+          }
+        ]
+      }
+    }
+  ]
+}

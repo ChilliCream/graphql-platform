@@ -9,38 +9,36 @@ using Snapshooter.Xunit;
 using StrawberryShake.Transport.WebSockets;
 using Xunit;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnInterfaces
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
 {
-    public class StarWarsTypeNameOnInterfacesTest : ServerTestBase
+    public class StarWarsUnionListTest : ServerTestBase
     {
-        public StarWarsTypeNameOnInterfacesTest(TestServerFactory serverFactory) 
-            : base(serverFactory)
+        public StarWarsUnionListTest(TestServerFactory serverFactory) : base(serverFactory)
         {
         }
 
         [Fact]
-        public async Task Execute_StarWarsTypeNameOnInterfaces_Test()
+        public async Task Execute_StarWarsUnionList_Test()
         {
             // arrange
             using var cts = new CancellationTokenSource(20_000);
-
+            
             using IWebHost host = TestServerHelper.CreateServer(
                 _ => { },
                 out var port);
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddHttpClient(
-                StarWarsTypeNameOnInterfacesClient.ClientName,
+                StarWarsUnionListClient.ClientName,
                 c => c.BaseAddress = new Uri("http://localhost:" + port + "/graphql"));
             serviceCollection.AddWebSocketClient(
-                StarWarsTypeNameOnInterfacesClient.ClientName,
+                StarWarsUnionListClient.ClientName,
                 c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
-            serviceCollection.AddStarWarsTypeNameOnInterfacesClient();
+            serviceCollection.AddStarWarsUnionListClient();
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            StarWarsTypeNameOnInterfacesClient client =
-                services.GetRequiredService<StarWarsTypeNameOnInterfacesClient>();
+            StarWarsUnionListClient client = services.GetRequiredService<StarWarsUnionListClient>();
 
             // act
-            var result = await client.GetHero.ExecuteAsync(cts.Token);
+            var result = await client.SearchHero.ExecuteAsync(cts.Token);
 
             // assert
             result.EnsureNoErrors();

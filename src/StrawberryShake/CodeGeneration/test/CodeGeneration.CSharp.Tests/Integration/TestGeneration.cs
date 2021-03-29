@@ -82,5 +82,25 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration
                         __typename
                     }
                 }");
+
+        [Fact]
+        public void StarWarsUnionList() =>
+            AssertStarWarsResult(
+                CreateIntegrationTest(),
+                @"query SearchHero {
+                    search(text: ""l"") {
+                        ... on Human {
+                            name
+                            friends {
+                                nodes {
+                                    name
+                                }
+                            }
+                        }
+                        ... on Droid {
+                            name
+                        }
+                    }
+                }");
     }
 }
