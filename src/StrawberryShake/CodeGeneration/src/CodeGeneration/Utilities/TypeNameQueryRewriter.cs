@@ -9,11 +9,9 @@ namespace StrawberryShake.CodeGeneration.Utilities
     internal sealed class TypeNameQueryRewriter
         : QuerySyntaxRewriter<TypeNameQueryRewriter.Context>
     {
-        private const string _typeName = "__typename";
-
         private static readonly FieldNode _typeNameField = new(
             null,
-            new NameNode(_typeName),
+            new NameNode(WellKnownNames.TypeName),
             null,
             Array.Empty<DirectiveNode>(),
             Array.Empty<ArgumentNode>(),
@@ -68,7 +66,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
             if (context.Nodes.Peek() is FieldNode &&
                 !current.Selections
                     .OfType<FieldNode>()
-                    .Any(t => t.Alias is null && t.Name.Value.EqualsOrdinal(_typeName)))
+                    .Any(t => t.Alias is null && t.Name.Value.EqualsOrdinal(WellKnownNames.TypeName)))
             {
                 List<ISelectionNode> selections = current.Selections.ToList();
                 selections.Insert(0, _typeNameField);

@@ -3279,11 +3279,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
     public partial class CharacterConnectionData
     {
         public CharacterConnectionData(
-            global::System.String typename,
+            global::System.String __typename,
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes = null)
         {
-            __typename = typename
-                 ?? throw new global::System.ArgumentNullException(nameof(typename));
+            this.__typename = __typename
+                 ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Nodes = nodes;
         }
 
@@ -3309,12 +3309,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
     public partial class ReviewData
     {
         public ReviewData(
-            global::System.String typename,
+            global::System.String __typename,
             global::System.Int32? stars = null,
             global::System.String? commentary = null)
         {
-            __typename = typename
-                 ?? throw new global::System.ArgumentNullException(nameof(typename));
+            this.__typename = __typename
+                 ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Stars = stars;
             Commentary = commentary;
         }
@@ -3410,18 +3410,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
-            global::System.String typeName = obj
+            global::System.String __typename = obj
                 .GetProperty("__typename")
                 .GetString()!;
 
-            return typeName switch
+            return __typename switch
             {
                 "Droid" => ParseDroidEntityId(
                     obj,
-                    typeName),
+                    __typename),
                 "Human" => ParseHumanEntityId(
                     obj,
-                    typeName),
+                    __typename),
                 _ => throw new global::System.NotSupportedException()
             };
         }

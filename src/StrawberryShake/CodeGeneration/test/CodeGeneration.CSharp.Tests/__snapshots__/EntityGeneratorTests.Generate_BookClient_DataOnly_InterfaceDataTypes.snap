@@ -893,12 +893,12 @@ namespace Foo.Bar.State
         , IPrintData
     {
         public BookData(
-            global::System.String typename,
+            global::System.String __typename,
             global::System.String? isbn = null,
             global::System.String? title = null)
         {
-            __typename = typename
-                 ?? throw new global::System.ArgumentNullException(nameof(typename));
+            this.__typename = __typename
+                 ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Isbn = isbn;
             Title = title;
         }
@@ -925,12 +925,12 @@ namespace Foo.Bar.State
         : IPrintData
     {
         public MagazineData(
-            global::System.String typename,
+            global::System.String __typename,
             global::System.String? isbn = null,
             global::System.String? coverImageUrl = null)
         {
-            __typename = typename
-                 ?? throw new global::System.ArgumentNullException(nameof(typename));
+            this.__typename = __typename
+                 ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Isbn = isbn;
             CoverImageUrl = coverImageUrl;
         }
@@ -1009,11 +1009,11 @@ namespace Foo.Bar.State
 
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
-            global::System.String typeName = obj
+            global::System.String __typename = obj
                 .GetProperty("__typename")
                 .GetString()!;
 
-            return typeName switch
+            return __typename switch
             {
                 _ => throw new global::System.NotSupportedException()
             };
