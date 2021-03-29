@@ -4180,12 +4180,12 @@ namespace Foo.Bar.State
     public partial class FeatCollectionSegmentData
     {
         public FeatCollectionSegmentData(
-            global::System.String typename,
+            global::System.String __typename,
             global::System.Int32? totalCount = null,
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? items = null)
         {
-            __typename = typename
-                 ?? throw new global::System.ArgumentNullException(nameof(typename));
+            this.__typename = __typename
+                 ?? throw new global::System.ArgumentNullException(nameof(__typename));
             TotalCount = totalCount;
             Items = items;
         }
@@ -4273,21 +4273,21 @@ namespace Foo.Bar.State
 
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
-            global::System.String typeName = obj
+            global::System.String __typename = obj
                 .GetProperty("__typename")
                 .GetString()!;
 
-            return typeName switch
+            return __typename switch
             {
                 "Feat" => ParseFeatEntityId(
                     obj,
-                    typeName),
+                    __typename),
                 "FeatDetailsBlock" => ParseFeatDetailsBlockEntityId(
                     obj,
-                    typeName),
+                    __typename),
                 "ActionType" => ParseActionTypeEntityId(
                     obj,
-                    typeName),
+                    __typename),
                 _ => throw new global::System.NotSupportedException()
             };
         }

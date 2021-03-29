@@ -39,7 +39,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .SetType(item.Value.Type.ToStateTypeReference())
                     .SetPublic();
 
-                var paramName = GetParameterName(item.Value.Name);
+                var paramName = item.Value.Name == WellKnownNames.TypeName 
+                    ? WellKnownNames.TypeName
+                    : GetParameterName(item.Value.Name);
+                    
                 constructorBuilder
                     .AddParameter(
                         paramName,
@@ -47,9 +50,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .AddCode(AssignmentBuilder
                         .New()
                         .SetLefthandSide(
-                            (item.Value.Name == "__typename"
+                            (item.Value.Name == WellKnownNames.TypeName
                                 ? "this."
-                                : "") +
+                                : string.Empty) +
                             item.Value.Name)
                         .SetRighthandSide(paramName));
             }

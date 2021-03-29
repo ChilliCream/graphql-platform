@@ -12,8 +12,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     public partial class JsonResultBuilderGenerator
     {
         private const string _typename = "typename";
-        private const string __typename = "__typename";
-
         private void AddDataTypeDeserializerMethod(
             ClassBuilder classBuilder,
             MethodBuilder methodBuilder,
@@ -57,7 +55,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                             _obj,
                             "Value",
                             nameof(JsonElement.GetProperty))
-                        .AddArgument(__typename.AsStringToken())
+                        .AddArgument(WellKnownNames.TypeName.AsStringToken())
                         .Chain(x => x.SetMethodName(nameof(JsonElement.GetString)))));
 
             // If the type is an interface
@@ -74,7 +72,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
                 foreach (PropertyDescriptor property in concreteType.Properties)
                 {
-                    if (property.Name.Value.EqualsOrdinal(__typename))
+                    if (property.Name.Value.EqualsOrdinal(WellKnownNames.TypeName))
                     {
                         continue;
                     }

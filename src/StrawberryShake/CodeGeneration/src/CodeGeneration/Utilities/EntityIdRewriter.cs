@@ -10,7 +10,6 @@ namespace StrawberryShake.CodeGeneration.Utilities
     internal sealed class EntityIdRewriter
         : QuerySyntaxRewriter<EntityIdRewriter.Context>
     {
-        private const string _typeName = "__typename";
         private readonly Dictionary<string, INamedType> _fragmentTypes = new();
 
         protected override DocumentNode RewriteDocument(DocumentNode node, Context context)
@@ -41,7 +40,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
             FieldNode node,
             Context context)
         {
-            if (node.Name.Value is _typeName)
+            if (node.Name.Value is WellKnownNames.TypeName)
             {
                 return node;
             }

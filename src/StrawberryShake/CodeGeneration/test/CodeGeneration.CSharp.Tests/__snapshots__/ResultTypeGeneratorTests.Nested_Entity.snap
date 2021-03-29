@@ -1544,13 +1544,13 @@ namespace Foo.Bar.State
     public partial class DecodeVINData
     {
         public DecodeVINData(
-            global::System.String typename,
+            global::System.String __typename,
             global::System.Boolean? isValid = null,
             global::StrawberryShake.EntityId? vehicleMake = null,
             global::StrawberryShake.EntityId? vehicleModel = null)
         {
-            __typename = typename
-                 ?? throw new global::System.ArgumentNullException(nameof(typename));
+            this.__typename = __typename
+                 ?? throw new global::System.ArgumentNullException(nameof(__typename));
             IsValid = isValid;
             VehicleMake = vehicleMake;
             VehicleModel = vehicleModel;
@@ -1632,18 +1632,18 @@ namespace Foo.Bar.State
 
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
-            global::System.String typeName = obj
+            global::System.String __typename = obj
                 .GetProperty("__typename")
                 .GetString()!;
 
-            return typeName switch
+            return __typename switch
             {
                 "VehicleMake" => ParseVehicleMakeEntityId(
                     obj,
-                    typeName),
+                    __typename),
                 "VehicleModel" => ParseVehicleModelEntityId(
                     obj,
-                    typeName),
+                    __typename),
                 _ => throw new global::System.NotSupportedException()
             };
         }

@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using HotChocolate.Utilities;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
@@ -12,9 +11,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class DataTypeGenerator : ClassBaseGenerator<DataTypeDescriptor>
     {
-        private const string __typename = "__typename";
-        private const string _typename = "typename";
-
         protected override void Generate(
             CodeWriter writer,
             DataTypeDescriptor descriptor,
@@ -35,7 +31,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .SetName(fileName);
 
                 typeBuilder
-                    .AddProperty(__typename)
+                    .AddProperty(WellKnownNames.TypeName)
                     .SetType(TypeNames.String);
             }
             else
@@ -48,7 +44,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 typeBuilder = classBuilder;
 
                 classBuilder
-                    .AddProperty(__typename)
+                    .AddProperty(WellKnownNames.TypeName)
                     .SetPublic()
                     .SetType(TypeNames.String);
 
@@ -57,23 +53,23 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .SetTypeName(fileName);
 
                 constructorBuilder
-                    .AddParameter(_typename)
+                    .AddParameter(WellKnownNames.TypeName)
                     .SetType(TypeNames.String)
-                    .SetName(_typename);
+                    .SetName(WellKnownNames.TypeName);
 
                 constructorBuilder
                     .AddCode(
                         AssignmentBuilder
                             .New()
-                            .SetLefthandSide(__typename)
-                            .SetRighthandSide(_typename)
+                            .SetLefthandSide("this." + WellKnownNames.TypeName)
+                            .SetRighthandSide(WellKnownNames.TypeName)
                             .AssertNonNull());
             }
 
             // Add Properties to class
             foreach (PropertyDescriptor property in descriptor.Properties)
             {
-                if (property.Name.Value.EqualsOrdinal(__typename))
+                if (property.Name.Value.EqualsOrdinal(WellKnownNames.TypeName))
                 {
                     continue;
                 }
