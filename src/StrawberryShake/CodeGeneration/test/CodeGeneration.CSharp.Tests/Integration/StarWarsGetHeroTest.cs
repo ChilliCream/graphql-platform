@@ -343,7 +343,43 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
                         count++;
                     });
 
-            await Task.Delay(500, ct);
+            await Task.Delay(1000, ct);
+
+            // assert
+            Assert.Equal(1, count);
+        }
+
+        [Fact]
+        public async Task Update_Once_With_Cache_And_Network()
+        {
+            // arrange
+            CancellationToken ct = new CancellationTokenSource(20_000).Token;
+            using IWebHost host = TestServerHelper.CreateServer(
+                _ => { },
+                out var port);
+            var serviceCollection = new ServiceCollection();
+
+            serviceCollection
+                .AddStarWarsGetHeroClient()
+                .ConfigureHttpClient(
+                    c => c.BaseAddress = new Uri("http://localhost:" + port + "/graphql"))
+                .ConfigureWebSocketClient(
+                    c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
+
+            IServiceProvider services = serviceCollection.BuildServiceProvider();
+            StarWarsGetHeroClient client = services.GetRequiredService<StarWarsGetHeroClient>();
+
+            // act
+            var count = 0;
+            using IDisposable session =
+                client.GetHero
+                    .Watch(ExecutionStrategy.CacheAndNetwork)
+                    .Subscribe(_ =>
+                    {
+                        count++;
+                    });
+
+            await Task.Delay(1000, ct);
 
             // assert
             Assert.Equal(1, count);

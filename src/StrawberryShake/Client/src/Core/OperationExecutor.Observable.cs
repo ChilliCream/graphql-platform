@@ -115,7 +115,9 @@ namespace StrawberryShake
                 }
                 finally
                 {
-                    session.Dispose();
+                    // after all the transport logic is finished we will dispose
+                    // the request session.
+                    session.RequestSession.Dispose();
                 }
             }
 
