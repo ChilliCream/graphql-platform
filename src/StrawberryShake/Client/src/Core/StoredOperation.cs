@@ -42,16 +42,16 @@ namespace StrawberryShake
                 throw new ArgumentNullException(nameof(result));
             }
 
-            var updated = LastResult is null ||
-                !ReferenceEquals(result.Data, LastResult?.Data) ||
-                (result.Data is not null && !result.Data.Equals(LastResult?.Data));
+            var updated = LastResult is null or { Data: null } ||
+                result.Data is null ||
+                !result.Data.Equals(LastResult?.Data);
             LastResult = result;
             LastModified = DateTime.UtcNow;
 
             // capture current subscriber list
             ImmutableList<Subscription> observers = _subscriptions;
 
-            if (!updated && observers.IsEmpty)
+            if (!updated || observers.IsEmpty)
             {
                 // if there are now subscribers we will just return and waste no time.
                 return;
