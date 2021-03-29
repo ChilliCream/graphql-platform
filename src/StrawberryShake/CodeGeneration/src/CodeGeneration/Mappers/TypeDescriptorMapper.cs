@@ -11,7 +11,6 @@ using StrawberryShake.CodeGeneration.Extensions;
 using TypeKind = StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.TypeKind;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
-using static StrawberryShake.CodeGeneration.Properties.CodeGenerationResources;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
