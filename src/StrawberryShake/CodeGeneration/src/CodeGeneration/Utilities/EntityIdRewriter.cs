@@ -10,20 +10,6 @@ namespace StrawberryShake.CodeGeneration.Utilities
     internal sealed class EntityIdRewriter
         : QuerySyntaxRewriter<EntityIdRewriter.Context>
     {
-        private readonly Dictionary<string, INamedType> _fragmentTypes = new();
-
-        protected override DocumentNode RewriteDocument(DocumentNode node, Context context)
-        {
-            foreach (var fragment in node.Definitions.OfType<FragmentDefinitionNode>())
-            {
-                _fragmentTypes.Add(
-                    fragment.Name.Value,
-                    context.Schema.GetType<INamedType>(fragment.TypeCondition.Name.Value));
-            }
-
-            return base.RewriteDocument(node, context);
-        }
-
         protected override OperationDefinitionNode RewriteOperationDefinition(
             OperationDefinitionNode node,
             Context context)
@@ -40,12 +26,18 @@ namespace StrawberryShake.CodeGeneration.Utilities
             FieldNode node,
             Context context)
         {
-            if (node.Name.Value is WellKnownNames.TypeName)
+            if(node.Name.Value.Equals(WellKnownNames.TypeName)) 
             {
                 return node;
             }
 
             IOutputField field = ((IComplexOutputType)context.Types.Peek()).Fields[node.Name.Value];
+
+            if(field.Type.NamedType().IsLeafType()) 
+            {
+                return node;
+            }
+
             context.Nodes.Push(node);
             context.Types.Push(field.Type.NamedType());
             node = base.RewriteField(node, context);
