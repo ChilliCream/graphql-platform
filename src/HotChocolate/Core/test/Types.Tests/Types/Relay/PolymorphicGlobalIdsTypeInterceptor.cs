@@ -88,8 +88,8 @@ namespace HotChocolate.Types.Relay
             ArgumentDefinition definition)
         {
             ITypeInspector typeInspector = completionContext.TypeInspector;
-            IDAttribute? idAttribute;
-            IExtendedType? idType;
+            IDAttribute? idAttribute = null;
+            IExtendedType? idType = null;
 
             if (definition is InputFieldDefinition inputField)
             {
@@ -115,7 +115,15 @@ namespace HotChocolate.Types.Relay
 
                 idType = typeInspector.GetArgumentType(definition.Parameter, true);
             }
-            else
+            else if (definition.Type is ExtendedTypeReference typeReference)
+            {
+                if (typeReference.Type.Kind == ExtendedTypeKind.Schema)
+                {
+                    return null;
+                }
+            }
+
+            if (idAttribute is null || idType is null)
             {
                 throw new SchemaException(SchemaErrorBuilder.New()
                     .SetMessage("Unable to resolve type from field `{0}`.", definition.Name)
