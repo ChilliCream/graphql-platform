@@ -42,7 +42,8 @@ namespace StrawberryShake
                 throw new ArgumentNullException(nameof(result));
             }
 
-            var updated =  !ReferenceEquals(result.Data, LastResult?.Data) ||
+            var updated = LastResult is null ||
+                !ReferenceEquals(result.Data, LastResult?.Data) ||
                 (result.Data is not null && !result.Data.Equals(LastResult?.Data));
             LastResult = result;
             LastModified = DateTime.UtcNow;
