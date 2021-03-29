@@ -34,7 +34,7 @@ subscription OnSessionUpdated {
 
 ```csharp
 builder.Services
-  .AddConferenceClient(profile: ConferenceClientProfileKind.WebSocket)
+  .AddConferenceClient()
   .ConfigureHttpClient(client => client.BaseAddress = new Uri("http://localhost:5050/graphql"))
   .ConfigureWebSocketClient(client => client.Uri = new Uri("ws://localhost:5050/graphql"));
 ```
