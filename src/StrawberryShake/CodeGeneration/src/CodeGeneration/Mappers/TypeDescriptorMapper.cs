@@ -172,8 +172,22 @@ namespace StrawberryShake.CodeGeneration.Mappers
             {
                 if (outputType.Type.IsAbstractType())
                 {
-                    fallbackKind = TypeKind.ComplexDataType;
-                    parentRuntimeTypeName = GetInterfaceName(outputType.Type.Name);
+                    switch (outputType.Type)
+                    {
+                        // if the output type is a union of which all types are entities,
+                        // then the union is an also considered an entity.
+                        case UnionType typeA when typeA.Types.Values.All(t => t.IsEntity()):
+                            fallbackKind = TypeKind.EntityType;
+                            break;
+
+                        case UnionType typeB when typeB.Types.Values.Any(t => t.IsEntity()):
+                            throw ThrowHelper.UnionTypeDataEntityMixed(outputType.SelectionSet);
+
+                        default:
+                            fallbackKind = TypeKind.ComplexDataType;
+                            parentRuntimeTypeName = GetInterfaceName(outputType.Type.Name);
+                            break;
+                    }
                 }
                 else
                 {
@@ -199,7 +213,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
             {
                 parentRuntimeType =
                     new RuntimeTypeInfo(
-                        NamingConventions.CreateDataTypeName(parentRuntimeTypeName),
+                        CreateDataTypeName(parentRuntimeTypeName),
                         CreateStateNamespace(context.Namespace));
             }
         }
@@ -256,7 +270,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             if (!context.Register(outputType.Name, kind, runtimeType))
             {
-               throw ThrowHelper.TypeNameCollision(runtimeType.Name);
+                throw ThrowHelper.TypeNameCollision(runtimeType.Name);
             }
 
             return runtimeType;
