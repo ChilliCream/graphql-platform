@@ -705,11 +705,11 @@ namespace Foo.Bar.State
 
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
-            global::System.String typeName = obj
+            global::System.String __typename = obj
                 .GetProperty("__typename")
                 .GetString()!;
 
-            return typeName switch
+            return __typename switch
             {
                 _ => throw new global::System.NotSupportedException()
             };

@@ -37,13 +37,21 @@ namespace StrawberryShake
         public void SetResult(
             IOperationResult<T> result)
         {
-            LastResult = result ?? throw new ArgumentNullException(nameof(result));
+            if (result is null)
+            {
+                throw new ArgumentNullException(nameof(result));
+            }
+
+            var updated = LastResult is null ||
+                !ReferenceEquals(result.Data, LastResult?.Data) ||
+                (result.Data is not null && !result.Data.Equals(LastResult?.Data));
+            LastResult = result;
             LastModified = DateTime.UtcNow;
 
             // capture current subscriber list
             ImmutableList<Subscription> observers = _subscriptions;
 
-            if (observers.IsEmpty)
+            if (!updated && observers.IsEmpty)
             {
                 // if there are now subscribers we will just return and waste no time.
                 return;

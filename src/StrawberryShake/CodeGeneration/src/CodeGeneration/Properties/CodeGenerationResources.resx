@@ -51,4 +51,7 @@
   <data name="ThrowHelper_TypeNameCollision" xml:space="preserve">
     <value>There is a name collision for `{0}`.</value>
   </data>
+  <data name="TypeDescriptorMapper_UnionTypeDataEntityMixed" xml:space="preserve">
+    <value>A union type must consist of only entity types or only data types. Ensure that your @key directive correctly captures your entities.</value>
+  </data>
 </root>
