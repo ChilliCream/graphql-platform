@@ -21,7 +21,6 @@ namespace Neo4jDemo
             var context = new Neo4JContext(Assembly.GetExecutingAssembly());
             var repository = new Neo4JRepository(driver, "neo4j", context);
 
-
             services
                 .AddSingleton(driver)
                 .AddSingleton(repository)

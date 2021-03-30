@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate;
 using HotChocolate.Data.Neo4J;
 using HotChocolate.Types;
