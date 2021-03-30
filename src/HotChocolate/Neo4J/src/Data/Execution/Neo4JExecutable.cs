@@ -18,6 +18,8 @@ namespace HotChocolate.Data.Neo4J.Execution
         //private readonly CypherQuery _cypher;
         private readonly IAsyncSession _session;
 
+        private Node _node => Cypher.NamedNode(typeof(T).Name);
+
         /// <summary>
         /// The filter definition that was set by <see cref="WithFiltering"/>
         /// </summary>
@@ -83,18 +85,16 @@ namespace HotChocolate.Data.Neo4J.Execution
 
         public StatementBuilder Pipeline()
         {
-            Node node = Cypher.NamedNode(typeof(T).Name);
-
-            StatementBuilder statement = Cypher.Match(node).Return(node);
+            StatementBuilder statement = Cypher.Match(_node).Return(_node);
 
             if (Filters is not null)
             {
-                statement.Match(new Where(Filters), node);
+                statement.Match(new Where(Filters), _node);
             }
 
             if (Projection is not null)
             {
-                statement.Return(node.Project(Projection));
+                statement.Return(_node.Project(Projection));
             }
 
             if (Sorting is null) return statement;
@@ -103,7 +103,7 @@ namespace HotChocolate.Data.Neo4J.Execution
 
             foreach (Neo4JSortDefinition sort in Sorting)
             {
-                SortItem? sortItem = Cypher.Sort(node.Property(sort.Field));
+                SortItem? sortItem = Cypher.Sort(_node.Property(sort.Field));
                 if (sort.Direction == SortDirection.Ascending)
                 {
                     sorts.Push(sortItem.Ascending());
