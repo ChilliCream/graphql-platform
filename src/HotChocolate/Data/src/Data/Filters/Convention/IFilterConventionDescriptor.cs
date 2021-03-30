@@ -127,6 +127,5 @@ namespace HotChocolate.Data.Filters
         /// Specifies if AND-combinators are allowed or disallowed.
         /// </param>
         IFilterConventionDescriptor AllowAnd(bool allow = true);
-
     }
 }
