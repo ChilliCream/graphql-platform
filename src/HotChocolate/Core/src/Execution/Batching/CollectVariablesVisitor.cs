@@ -28,6 +28,8 @@ namespace HotChocolate.Execution.Batching
         private readonly HashSet<string> _touchedFragments =
             new HashSet<string>();
         private readonly ISchema _schema;
+        // the amount of export directives visited
+        private int _exportCount; // TODO: implement actual export counting
 
         public CollectVariablesVisitor(ISchema schema)
         {
@@ -39,6 +41,9 @@ namespace HotChocolate.Execution.Batching
                 _variables.Values;
         public IReadOnlyCollection<string> TouchedFragments =>
             _touchedFragments;
+
+        public int ExportCount =>
+            _exportCount;
 
         public VisitorAction Enter(
             OperationDefinitionNode node,

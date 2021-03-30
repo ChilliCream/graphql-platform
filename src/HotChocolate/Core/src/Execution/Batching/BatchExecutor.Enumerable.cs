@@ -28,12 +28,14 @@ namespace HotChocolate.Execution.Batching
                 new CollectVariablesVisitationMap();
             private DocumentNode? _previous;
             private Dictionary<string, FragmentDefinitionNode>? _fragments;
+            private bool _allowParallelExecution;
 
             public BatchExecutorEnumerable(
                 IEnumerable<IQueryRequest> requestBatch,
                 IRequestExecutor requestExecutor,
                 IErrorHandler errorHandler,
-                ITypeConverter typeConverter)
+                ITypeConverter typeConverter,
+                bool allowParallelExecution = false)
             {
                 _requestBatch = requestBatch ??
                     throw new ArgumentNullException(nameof(requestBatch));
@@ -44,26 +46,38 @@ namespace HotChocolate.Execution.Batching
                 _typeConverter = typeConverter ??
                     throw new ArgumentNullException(nameof(typeConverter));
                 _visitor = new CollectVariablesVisitor(requestExecutor.Schema);
+                _allowParallelExecution = allowParallelExecution;
             }
 
             public async IAsyncEnumerator<IQueryResult> GetAsyncEnumerator(
                 CancellationToken cancellationToken = default)
             {
-                foreach (IQueryRequest queryRequest in _requestBatch)
+                var pendingTasks = new List<Task<IQueryResult>>();
+                IEnumerator<IQueryRequest> requestIterator = _requestBatch.GetEnumerator();
+                bool hasRemaining = requestIterator.MoveNext();
+                while (hasRemaining)
                 {
-                    var request = (IReadOnlyQueryRequest) queryRequest;
-                    IQueryResult result =
-                        await ExecuteNextAsync(request, cancellationToken).ConfigureAwait(false);
-                    yield return result;
-
-                    if (result.Data is null)
+                    var request = (IReadOnlyQueryRequest)requestIterator.Current;
+                    NextResult next = ExecuteNextAsync(request, cancellationToken);
+                    pendingTasks.Add(next._task);
+                    hasRemaining = requestIterator.MoveNext();
+                    if (next._isBlocking || !_allowParallelExecution || !hasRemaining)
                     {
-                        break;
+                        foreach (Task<IQueryResult> task in pendingTasks)
+                        {
+                            IQueryResult result = await task.ConfigureAwait(false);
+                            yield return result;
+                            if (result.Data is null)
+                            {
+                                yield break;
+                            }
+                        }
+                        pendingTasks.Clear();
                     }
                 }
             }
 
-            private async Task<IQueryResult> ExecuteNextAsync(
+            private NextResult ExecuteNextAsync(
                 IReadOnlyQueryRequest request,
                 CancellationToken cancellationToken)
             {
@@ -82,10 +96,14 @@ namespace HotChocolate.Execution.Batching
                         _visitationMap.Initialize(_fragments);
                     }
 
+                    int oldExportCount = _visitor.ExportCount;
                     operation.Accept(
                         _visitor,
                         _visitationMap,
                         n => VisitorAction.Continue);
+                    // if there are exports in the operation, the next operation cannot start
+                    // untill the current one is completed
+                    bool operationIsBlocking = _visitor.ExportCount != oldExportCount;
 
                     _previous = document;
                     document = RewriteDocument(operation);
@@ -101,19 +119,42 @@ namespace HotChocolate.Execution.Batching
                         .SetQueryHash(null)
                         .Create();
 
-                    return (IReadOnlyQueryResult)await _requestExecutor.ExecuteAsync(
-                        request, cancellationToken)
-                        .ConfigureAwait(false);
+                    return new NextResult(_requestExecutor.ExecuteAsync(request, cancellationToken), operationIsBlocking);
                 }
                 catch (GraphQLException ex)
                 {
-                    return QueryResultBuilder.CreateError(ex.Errors);
+                    return new NextResult(QueryResultBuilder.CreateError(ex.Errors));
                 }
                 catch (Exception ex)
                 {
-                    return QueryResultBuilder.CreateError(
+                    return new NextResult(QueryResultBuilder.CreateError(
                         _errorHandler.Handle(
-                            _errorHandler.CreateUnexpectedError(ex).Build()));
+                            _errorHandler.CreateUnexpectedError(ex).Build())));
+                }
+            }
+
+            private class NextResult
+            {
+                public readonly Task<IQueryResult> _task;
+                /// <summary>
+                /// if \c true, no other calls to ExecuteNextAsync should be made before _task is completed.
+                /// if \c false, it is safe to schedule other ExecuteNextAsync calls before completing.
+                /// </summary>
+                public readonly bool _isBlocking;
+
+                public NextResult(IQueryResult result)
+                {
+                    _task = Task.FromResult(result);
+                    _isBlocking = result.Data is null;
+                }
+
+                public NextResult(Task<IExecutionResult> result, bool isBlocking)
+                {
+                    Func<Task<IQueryResult>> cast = async () => {
+                        return (IQueryResult) await result.ConfigureAwait(false);
+                    };
+                    _task = cast();
+                    _isBlocking = isBlocking;
                 }
             }
 
