@@ -5,7 +5,7 @@ using HotChocolate.Language.Utilities;
 namespace HotChocolate.Language
 {
     public sealed class DirectiveDefinitionNode
-        : ITypeSystemDefinitionNode
+        : ITypeSystemDefinitionNode, IHasName
     {
         public DirectiveDefinitionNode(
             Location? location,
