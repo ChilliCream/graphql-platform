@@ -1,7 +1,11 @@
 using System;
 using System.Globalization;
 using System.Threading;
+using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -14,7 +18,13 @@ namespace HotChocolate.Types
             // arrange
             var dateTimeType = new DateTimeType();
             DateTimeOffset dateTime = new DateTime(
-                2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
+                2018,
+                6,
+                11,
+                8,
+                46,
+                14,
+                DateTimeKind.Utc);
 
             string expectedValue = "2018-06-11T08:46:14.000Z";
 
@@ -93,8 +103,7 @@ namespace HotChocolate.Types
         [InlineData("de-CH")]
         [InlineData("de-de")]
         [Theory]
-        public void ParseLiteral_StringValueNode_DifferentCulture(
-            string cultureName)
+        public void ParseLiteral_StringValueNode_DifferentCulture(string cultureName)
         {
             // arrange
             Thread.CurrentThread.CurrentCulture =
@@ -155,7 +164,13 @@ namespace HotChocolate.Types
             // arrange
             var dateTimeType = new DateTimeType();
             var dateTime = new DateTime(
-                2018, 6, 11, 8, 46, 14, DateTimeKind.Unspecified);
+                2018,
+                6,
+                11,
+                8,
+                46,
+                14,
+                DateTimeKind.Unspecified);
 
             // act
             DateTime deserializedValue = ((DateTimeOffset)dateTimeType
@@ -172,7 +187,13 @@ namespace HotChocolate.Types
             // arrange
             var dateTimeType = new DateTimeType();
             DateTimeOffset dateTime = new DateTime(
-                2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
+                2018,
+                6,
+                11,
+                8,
+                46,
+                14,
+                DateTimeKind.Utc);
 
             // act
             DateTimeOffset deserializedValue = ((DateTimeOffset)dateTimeType
@@ -346,6 +367,27 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Equal(TypeKind.Scalar, type.Kind);
+        }
+
+        [Fact]
+        public async Task Integration_DefaultDateTime()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<DefaultDateTime>()
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult res = await executor.ExecuteAsync("{ test }");
+
+            // assert
+            res.ToJson().MatchSnapshot();
+        }
+
+        public class DefaultDateTime
+        {
+            public DateTime Test => default(DateTime);
         }
     }
 }

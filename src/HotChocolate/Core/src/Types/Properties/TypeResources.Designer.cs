@@ -1154,5 +1154,41 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("UuidType_FormatUnknown", resourceCulture);
             }
         }
+        
+        internal static string Directive_GetArgument_ArgumentNameIsInvalid {
+            get {
+                return ResourceManager.GetString("Directive_GetArgument_ArgumentNameIsInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string ___AppliedDirective_Description {
+            get {
+                return ResourceManager.GetString("__AppliedDirective_Description", resourceCulture);
+            }
+        }
+        
+        internal static string ___DirectiveArgument_Description {
+            get {
+                return ResourceManager.GetString("__DirectiveArgument_Description", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_UsePagingAttribute_NodeTypeUnknown {
+            get {
+                return ResourceManager.GetString("ThrowHelper_UsePagingAttribute_NodeTypeUnknown", resourceCulture);
+            }
+        }
+        
+        internal static string Schema_GetDirectiveType_DoesNotExist {
+            get {
+                return ResourceManager.GetString("Schema_GetDirectiveType_DoesNotExist", resourceCulture);
+            }
+        }
+        
+        internal static string ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed {
+            get {
+                return ResourceManager.GetString("ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed", resourceCulture);
+            }
+        }
     }
 }

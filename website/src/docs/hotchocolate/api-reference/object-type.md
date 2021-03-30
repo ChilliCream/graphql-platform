@@ -2,6 +2,8 @@
 title: Object Type
 ---
 
+import { ExampleTabs } from "../../../components/mdx/example-tabs"
+
 The object type is the most important output type in GraphQL and represents the data we can fetch from our GraphQL server. The GraphQL SDL representation of an object looks like the following:
 
 ```sdl
@@ -17,7 +19,8 @@ represent raw data that is passed into a field.
 
 > **Note:** Every single code example will be shown in three different approaches, annotation-based (previously known as pure code-first), code-first, and schema-first. However, they will always result in the same outcome on a GraphQL schema perspective and internally in Hot Chocolate. All three approaches have their pros and cons and can be combined when needed with each other. If you would like to learn more about the three approaches in Hot Chocolate, click on [Coding Approaches](/docs/hotchocolate/api-reference/coding-approaches).
 
-**Annotation-based approach**
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
 ```csharp
 // Query.cs
@@ -49,7 +52,8 @@ public class Startup
 }
 ```
 
-**Code-first approach**
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
 
 ```csharp
 // Query.cs
@@ -108,7 +112,8 @@ public class Startup
 }
 ```
 
-**Schema-first approach**
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
 
 ```csharp
 // Query.cs
@@ -142,13 +147,16 @@ public class Startup
 }
 ```
 
+</ExampleTabs.Schema>
+</ExampleTabs>
+
 # Extension
 
 The GraphQL SDL supports extending object types, this means that we can add fields to an existing object type without changing the code of our initial type definition.
 
 Extending types is useful for schema stitching but also when we want to add just something to an exist type or if we just want to split large type definitions. The latter is often the case with the query type definition.
 
-Hot Chocolate supports extending types with SDL-first, pure code-first and code-first. Let\`s have a look at how we can extend our person object:
+Hot Chocolate supports extending types with SDL-first, code-first with annotations and code-first with fluent. Let\`s have a look at how we can extend our person object:
 
 SDL-First:
 
@@ -158,7 +166,7 @@ extend type Person {
 }
 ```
 
-Pure Code-First:
+Code-First annotation-based:
 
 ```csharp
 [ExtendObjectType(Name = "Person")]
@@ -168,11 +176,11 @@ public class PersonResolvers
         repository.GetFriends(person.Id);
 }
 
-SchemaBuilder.New()
-  ...
-  .AddType<PersonType>()
-  .AddType<PersonResolvers>()
-  .Create();
+services
+    .AddGraphQLServer()
+    ...
+    .AddType<PersonType>()
+    .AddType<PersonResolvers>();
 ```
 
 Code-First
@@ -190,11 +198,13 @@ public class PersonTypeExtension
     }
 }
 
-SchemaBuilder.New()
-  ..
-  .AddType<PersonType>()
-  .AddType<PersonTypeExtension>()
-  .Create();
+services
+    .AddGraphQLServer()
+    ...
+    .AddType<PersonType>()
+    .AddType<PersonTypeExtension>()
 ```
 
 Type extensions basically work like usual types and are also added like usual types.
+
+More about type extensions can be found [here](../defining-a-schema/extending-types).

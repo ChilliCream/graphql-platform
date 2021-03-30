@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Throwhelper_Generator_NoGraphQLFilesFound" xml:space="preserve">
+    <value>No .graphql files were found in your project. </value>
+  </data>
+  <data name="Throwhelper_Generator_NoExecutableDocumentsFound" xml:space="preserve">
+    <value>No operations were found in the given .graphql files.</value>
+  </data>
+  <data name="Throwhelper_Generator_NoTypeDocumentsFound" xml:space="preserve">
+    <value>No types were found in the given .graphql files.</value>
+  </data>
+  <data name="Throwhelper_Generator_SyntaxError" xml:space="preserve">
+    <value>One of the given .graphql files contains a graphql syntax error. </value>
+  </data>
+  <data name="OperationServiceDescriptor_Description" xml:space="preserve">
+    <value>Represents the operation service of the {0} GraphQL operation</value>
+  </data>
+  <data name="ClientDescriptor_Description" xml:space="preserve">
+    <value>Represents the {0} GraphQL client</value>
+  </data>
+  <data name="ThrowHelper_DuplicateSelectionSet" xml:space="preserve">
+    <value>The same selection set is mapped multiple times.</value>
+  </data>
+  <data name="ThrowHelper_ReturnFragmentDoesNotExist" xml:space="preserve">
+    <value>The specified return fragment does not exist.</value>
+  </data>
+  <data name="ThrowHelper_FragmentMustBeImplementedByAllTypeFragments" xml:space="preserve">
+    <value>The specified return fragment must be implement by all type fragments.</value>
+  </data>
+  <data name="ThrowHelper_ResultTypeNameCollision" xml:space="preserve">
+    <value>There is a name collision between a fragment and the result type name `{0}`.</value>
+  </data>
+  <data name="ThrowHelper_TypeNameCollision" xml:space="preserve">
+    <value>There is a name collision for `{0}`.</value>
+  </data>
+  <data name="TypeDescriptorMapper_UnionTypeDataEntityMixed" xml:space="preserve">
+    <value>A union type must consist of only entity types or only data types. Ensure that your @key directive correctly captures your entities.</value>
+  </data>
+</root>

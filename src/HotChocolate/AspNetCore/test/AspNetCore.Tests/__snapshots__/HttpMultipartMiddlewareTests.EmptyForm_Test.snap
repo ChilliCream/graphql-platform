@@ -1,0 +1,14 @@
+﻿{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "BadRequest",
+  "Data": null,
+  "Errors": [
+    {
+      "message": "At least an 'operations' field and a 'map' field need to be present.",
+      "extensions": {
+        "code": "HC0033"
+      }
+    }
+  ],
+  "Extensions": null
+}

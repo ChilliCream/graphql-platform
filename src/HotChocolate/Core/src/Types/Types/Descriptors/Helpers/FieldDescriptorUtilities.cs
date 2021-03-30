@@ -57,7 +57,8 @@ namespace HotChocolate.Types.Descriptors
             Func<TMember, TField> createdFieldDefinition,
             IDictionary<NameString, TField> fields,
             ISet<TMember> handledMembers,
-            Func<IReadOnlyList<TMember>, TMember, bool>? include = null)
+            Func<IReadOnlyList<TMember>, TMember, bool>? include = null,
+            bool includeIgnoredMembers = false)
             where TDescriptor : IHasDescriptorContext
             where TMember : MemberInfo
             where TField : FieldDefinitionBase
@@ -65,7 +66,7 @@ namespace HotChocolate.Types.Descriptors
             if (fieldBindingType != typeof(object))
             {
                 List<TMember> members = descriptor.Context.TypeInspector
-                    .GetMembers(fieldBindingType)
+                    .GetMembers(fieldBindingType, includeIgnoredMembers)
                     .OfType<TMember>()
                     .ToList();
 
@@ -77,7 +78,7 @@ namespace HotChocolate.Types.Descriptors
 
                         if (!handledMembers.Contains(member) &&
                             !fields.ContainsKey(fieldDefinition.Name) &&
-                            !fieldDefinition.Ignore)
+                            (includeIgnoredMembers || !fieldDefinition.Ignore))
                         {
                             handledMembers.Add(member);
                             fields[fieldDefinition.Name] = fieldDefinition;

@@ -16,6 +16,57 @@
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-Defined"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Directive",
+      "Location": {
+        "Start": 44,
+        "End": 74,
+        "Line": 3,
+        "Column": 25
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 45,
+          "End": 53,
+          "Line": 3,
+          "Column": 26
+        },
+        "Value": "unknown"
+      },
+      "Arguments": [
+        {
+          "Kind": "Argument",
+          "Location": {
+            "Start": 53,
+            "End": 72,
+            "Line": 3,
+            "Column": 34
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 53,
+              "End": 63,
+              "Line": 3,
+              "Column": 34
+            },
+            "Value": "directive"
+          },
+          "Value": {
+            "Kind": "StringValue",
+            "Location": {
+              "Start": 64,
+              "End": 72,
+              "Line": 3,
+              "Column": 45
+            },
+            "Value": "value",
+            "Block": false
+          }
+        }
+      ]
+    }
   }
 ]

@@ -247,7 +247,7 @@ public IQueryable<Pub> GetPubs([ScopedService] SomeDbContext someDbContext)
 }
 ```
 
-```sdl{10}
+```sdl {10}
 type Query {
   pubs(where: PubFilterInput): [Pub!]!
 }

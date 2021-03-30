@@ -14,6 +14,56 @@
       "variableType": "Boolean",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Variable-Uniqueness"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "VariableDefinition",
+      "Location": {
+        "Start": 86,
+        "End": 109,
+        "Line": 3,
+        "Column": 45
+      },
+      "Variable": {
+        "Kind": "Variable",
+        "Location": {
+          "Start": 86,
+          "End": 100,
+          "Line": 3,
+          "Column": 45
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 87,
+            "End": 100,
+            "Line": 3,
+            "Column": 46
+          },
+          "Value": "atOtherHomes"
+        },
+        "Value": "atOtherHomes"
+      },
+      "Type": {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 101,
+          "End": 109,
+          "Line": 3,
+          "Column": 60
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 101,
+            "End": 109,
+            "Line": 3,
+            "Column": 60
+          },
+          "Value": "Boolean"
+        }
+      },
+      "DefaultValue": null,
+      "Directives": []
+    }
   }
 ]

@@ -9,8 +9,7 @@ using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Configuration
 {
-    internal sealed class TypeCompletionContext
-        : ITypeCompletionContext
+    internal sealed class TypeCompletionContext : ITypeCompletionContext
     {
         private readonly HashSet<NameString> _alternateNames = new HashSet<NameString>();
         private readonly TypeDiscoveryContext _initializationContext;
@@ -42,6 +41,10 @@ namespace HotChocolate.Configuration
         public TypeStatus Status { get; set; } = TypeStatus.Initialized;
 
         public bool? IsQueryType { get; set; }
+
+        public bool? IsMutationType { get; set; }
+
+        public bool? IsSubscriptionType { get; set; }
 
         public IReadOnlyList<FieldMiddleware> GlobalComponents { get; }
 

@@ -4,7 +4,9 @@ using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
 namespace HotChocolate.Types.Spatial
 {
-    public sealed class GeoJsonPolygonType : ObjectType<Polygon>
+    public sealed class GeoJsonPolygonType
+        : ObjectType<Polygon>
+        , IGeoJsonObjectType
     {
         protected override void Configure(IObjectTypeDescriptor<Polygon> descriptor)
         {

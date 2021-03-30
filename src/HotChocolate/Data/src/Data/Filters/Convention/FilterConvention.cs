@@ -48,8 +48,8 @@ namespace HotChocolate.Data.Filters
 
         internal new FilterConventionDefinition? Definition => base.Definition;
 
-        protected override FilterConventionDefinition CreateDefinition(
-            IConventionContext context)
+        /// <inheritdoc />
+        protected override FilterConventionDefinition CreateDefinition(IConventionContext context)
         {
             if (_configure is null)
             {
@@ -61,16 +61,26 @@ namespace HotChocolate.Data.Filters
                 context.DescriptorContext,
                 context.Scope);
 
-            _configure(descriptor);
+            _configure!(descriptor);
             _configure = null;
 
             return descriptor.CreateDefinition();
         }
 
+        /// <summary>
+        /// This method is called on initialization of the convention but before the convention is
+        /// completed. The default implementation of this method does nothing. It can be overriden
+        /// by a derived class such that the convention can be further configured before it is
+        /// completed
+        /// </summary>
+        /// <param name="descriptor">
+        /// The descriptor that can be used to configure the convention
+        /// </param>
         protected virtual void Configure(IFilterConventionDescriptor descriptor)
         {
         }
 
+        /// <inheritdoc />
         protected override void Complete(IConventionContext context)
         {
             if (Definition?.Provider is null)
@@ -90,9 +100,8 @@ namespace HotChocolate.Data.Filters
             }
 
             _namingConventions = context.DescriptorContext.Naming;
-            _operations = Definition.Operations.ToDictionary(
-                x => x.Id,
-                FilterOperation.FromDefinition);
+            _operations =
+                Definition.Operations.ToDictionary(x => x.Id, FilterOperation.FromDefinition);
             _bindings = Definition.Bindings;
             _configs = Definition.Configurations;
             _argumentName = Definition.ArgumentName;

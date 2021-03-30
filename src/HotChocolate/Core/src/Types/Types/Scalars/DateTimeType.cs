@@ -14,7 +14,7 @@ namespace HotChocolate.Types
     ///
     /// https://www.graphql-scalars.com/date-time/
     /// </summary>
-    public sealed class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
+    public class DateTimeType : ScalarType<DateTimeOffset, StringValueNode>
     {
         private const string _utcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffZ";
         private const string _localFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz";
@@ -102,6 +102,12 @@ namespace HotChocolate.Types
                 return true;
             }
 
+            if (runtimeValue is DateTime d)
+            {
+                resultValue = Serialize(new DateTimeOffset(d.ToUniversalTime(), TimeSpan.Zero));
+                return true;
+            }
+
             resultValue = null;
             return false;
         }
@@ -154,7 +160,7 @@ namespace HotChocolate.Types
 
         private static bool TryDeserializeFromString(
             string? serialized,
-            [NotNullWhen(true)]out DateTimeOffset? value)
+            [NotNullWhen(true)] out DateTimeOffset? value)
         {
             if (serialized is not null
                 && serialized.EndsWith("Z")

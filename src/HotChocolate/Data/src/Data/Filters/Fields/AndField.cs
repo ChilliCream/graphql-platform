@@ -13,7 +13,7 @@ namespace HotChocolate.Data.Filters
         internal AndField(
             IDescriptorContext context,
             string? scope)
-            : base(CreateDefinition(context, scope))
+            : base(CreateDefinition(context, scope), default)
         {
         }
 

@@ -4,6 +4,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public interface ISortInputTypeDescriptor<T>
         : IDescriptor<SortInputTypeDefinition>
         , IFluent
@@ -24,7 +25,7 @@ namespace HotChocolate.Types.Sorting
         /// that can be accessd via introspection.
         /// </summary>
         /// <param name="value">The sort type description.</param>
-        /// 
+        ///
         ISortInputTypeDescriptor<T> Description(string value);
 
         /// <summary>

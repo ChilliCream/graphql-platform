@@ -1,8 +1,12 @@
 using System.Collections.Generic;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.Execution;
+using HotChocolate.Language;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
@@ -273,7 +277,7 @@ namespace HotChocolate.AspNetCore
             // arrange
             TestServer server = CreateStarWarsServer(
                 configureConventions: e => e.WithOptions(
-                    new GraphQLServerOptions 
+                    new GraphQLServerOptions
                     {
                         AllowedGetOperations = AllowedGetOperations.QueryAndMutation
                     }));
@@ -315,7 +319,7 @@ namespace HotChocolate.AspNetCore
             // arrange
             TestServer server = CreateStarWarsServer(
                 configureConventions: e => e.WithOptions(
-                    new GraphQLServerOptions 
+                    new GraphQLServerOptions
                     {
                         AllowedGetOperations = AllowedGetOperations.QueryAndMutation
                     }));
@@ -356,7 +360,7 @@ namespace HotChocolate.AspNetCore
             // arrange
             TestServer server = CreateStarWarsServer(
                 configureConventions: e => e.WithOptions(
-                    new GraphQLServerOptions 
+                    new GraphQLServerOptions
                     {
                         AllowedGetOperations = AllowedGetOperations.QueryAndMutation
                     }));
@@ -547,7 +551,7 @@ namespace HotChocolate.AspNetCore
             TestServer server = CreateStarWarsServer(
                 configureConventions: e => e.WithOptions(
                     new GraphQLServerOptions
-                    { 
+                    {
                         AllowedGetOperations = AllowedGetOperations.QueryAndMutation
                     }));
 
@@ -588,7 +592,7 @@ namespace HotChocolate.AspNetCore
             // arrange
             TestServer server = CreateStarWarsServer(
                 configureConventions: e => e.WithOptions(
-                    new GraphQLServerOptions 
+                    new GraphQLServerOptions
                     {
                         EnableGetRequests = false
                     }));
@@ -607,6 +611,91 @@ namespace HotChocolate.AspNetCore
 
             // assert
             result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Get_ActivePersistedQuery()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientQueryResult result =
+                await server.GetActivePersistedQueryAsync("md5Hash", "60ddx/GGk4FDObSa6eK0sg==");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Get_ActivePersistedQuery_NotFound()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientQueryResult result =
+                await server.GetActivePersistedQueryAsync("md5Hash", "abc");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Get_ActivePersistedQuery_AddQuery()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            DocumentNode document = Utf8GraphQLParser.Parse("{ __typename }");
+
+            var hashProvider = new MD5DocumentHashProvider();
+            var hash = hashProvider.ComputeHash(
+                Encoding.UTF8.GetBytes(document.ToString(false)));
+
+            // act
+            ClientQueryResult resultA =
+                await server.GetStoreActivePersistedQueryAsync(
+                    document.ToString(false),
+                    "md5Hash",
+                    hash);
+
+            ClientQueryResult resultB =
+                await server.GetActivePersistedQueryAsync("md5Hash", hash);
+
+            // assert
+            new[] {
+                resultA,
+                resultB
+            }.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Get_ActivePersistedQuery_AddQuery_Unformatted()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            var query = "{__typename}";
+
+            var hashProvider = new MD5DocumentHashProvider();
+            var hash = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
+
+            // act
+            ClientQueryResult resultA =
+                await server.GetStoreActivePersistedQueryAsync(
+                    query,
+                    "md5Hash",
+                    hash);
+
+            ClientQueryResult resultB =
+                await server.GetActivePersistedQueryAsync("md5Hash", hash);
+
+            // assert
+            new[] {
+                resultA,
+                resultB
+            }.MatchSnapshot();
         }
     }
 }

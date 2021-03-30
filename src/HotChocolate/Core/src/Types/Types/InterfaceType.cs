@@ -17,7 +17,7 @@ namespace HotChocolate.Types
         : NamedTypeBase<InterfaceTypeDefinition>
         , IInterfaceType
     {
-        private readonly List<InterfaceType> _implements = new();
+        private InterfaceType[] _implements = Array.Empty<InterfaceType>();
         private Action<IInterfaceTypeDescriptor>? _configure;
         private ResolveAbstractType? _resolveAbstractType;
 
@@ -51,10 +51,11 @@ namespace HotChocolate.Types
             _implements.Any(t => t.Name.Equals(interfaceTypeName));
 
         public bool IsImplementing(InterfaceType interfaceType) =>
-            _implements.IndexOf(interfaceType) != -1;
+            Array.IndexOf(_implements, interfaceType) != -1;
 
         public bool IsImplementing(IInterfaceType interfaceType) =>
-            interfaceType is InterfaceType i && _implements.IndexOf(i) != -1;
+            interfaceType is InterfaceType i &&
+            Array.IndexOf(_implements, i) != -1;
 
         public override bool IsAssignableFrom(INamedType namedType)
         {
@@ -92,11 +93,12 @@ namespace HotChocolate.Types
         protected override InterfaceTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
         {
-            var descriptor = InterfaceTypeDescriptor.FromSchemaType(
-                context.DescriptorContext,
-                GetType());
-            _configure!.Invoke(descriptor);
+            var descriptor =
+                InterfaceTypeDescriptor.FromSchemaType(context.DescriptorContext, GetType());
+
+            _configure!(descriptor);
             _configure = null;
+
             return descriptor.CreateDefinition();
         }
 
@@ -121,12 +123,33 @@ namespace HotChocolate.Types
 
             SyntaxNode = definition.SyntaxNode;
             var sortFieldsByName = context.DescriptorContext.Options.SortFieldsByName;
-            Fields = new FieldCollection<InterfaceField>(
-                definition.Fields.Select(t => new InterfaceField(t, sortFieldsByName)),
+
+            Fields = FieldCollection<InterfaceField>.From(
+                definition.Fields.Where(t => !t.Ignore).Select(
+                    t => new InterfaceField(
+                        t,
+                        new FieldCoordinate(Name, t.Name),
+                        sortFieldsByName)),
                 sortFieldsByName);
 
             CompleteAbstractTypeResolver(context, definition.ResolveAbstractType);
-            CompleteInterfaces(context, definition, RuntimeType, _implements, this, SyntaxNode);
+
+            IReadOnlyList<ITypeReference> interfaces = definition.GetInterfaces();
+
+            if (interfaces.Count > 0)
+            {
+                var implements = new List<InterfaceType>();
+
+                CompleteInterfaces(
+                    context,
+                    interfaces,
+                    RuntimeType,
+                    implements,
+                    this,
+                    SyntaxNode);
+
+                _implements = implements.ToArray();
+            }
 
             FieldInitHelper.CompleteFields(context, definition, Fields);
         }

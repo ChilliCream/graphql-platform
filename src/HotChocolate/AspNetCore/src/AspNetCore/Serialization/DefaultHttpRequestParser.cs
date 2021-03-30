@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -53,17 +54,46 @@ namespace HotChocolate.AspNetCore.Serialization
             string query = parameters[_queryIdentifier];
             string queryId = parameters[_queryIdIdentifier];
             string operationName = parameters[_operationNameIdentifier];
+            IReadOnlyDictionary<string, object?>? extensions = null;
 
+            // if we have no query or query id we cannot execute anything.
             if (string.IsNullOrEmpty(query) && string.IsNullOrEmpty(queryId))
             {
-                throw DefaultHttpRequestParser_QueryAndIdMissing();
+                // so, if we do not find a top-level query or top-level id we will try to parse
+                // the extensions and look in the extensions for Apollo`s active persisted
+                // query extensions.
+                if ((string)parameters[_extensionsIdentifier] is { Length: > 0 } se)
+                {
+                    extensions = ParseJsonObject(se);
+                }
+
+                // we will use the request parser utils to extract the has from the extensions.
+                if (!TryExtractHash(extensions, _documentHashProvider, out var hash))
+                {
+                    // if we cannot find any query hash in the extensions or if the extensions are
+                    // null we are unable to execute and will throw a request error.
+                    throw DefaultHttpRequestParser_QueryAndIdMissing();
+                }
+
+                // if we however found a query hash we will use it as a query id and move on
+                // to execute the query.
+                queryId = hash;
             }
 
             try
             {
-                DocumentNode document = Utf8GraphQLParser.Parse(query);
+                string? queryHash = null;
+                DocumentNode? document = null;
+
+
+                if (query is { Length: > 0 })
+                {
+                    byte[] buffer = Encoding.UTF8.GetBytes(query);
+                    document = Utf8GraphQLParser.Parse(buffer);
+                    queryHash = _documentHashProvider.ComputeHash(buffer);
+                }
+
                 IReadOnlyDictionary<string, object?>? variables = null;
-                IReadOnlyDictionary<string, object?>? extensions = null;
 
                 // if we find variables we do need to parse them
                 if ((string)parameters[_variablesIdentifier] is { Length: > 0 } sv)
@@ -71,7 +101,8 @@ namespace HotChocolate.AspNetCore.Serialization
                     variables = ParseVariables(sv);
                 }
 
-                if ((string)parameters[_extensionsIdentifier] is { Length: > 0 } se)
+                if (extensions is null &&
+                    (string)parameters[_extensionsIdentifier] is { Length: > 0 } se)
                 {
                     extensions = ParseJsonObject(se);
                 }
@@ -79,7 +110,7 @@ namespace HotChocolate.AspNetCore.Serialization
                 return new GraphQLRequest(
                     document,
                     queryId,
-                    null,
+                    queryHash,
                     operationName,
                     variables,
                     extensions);
@@ -93,6 +124,10 @@ namespace HotChocolate.AspNetCore.Serialization
                 throw DefaultHttpRequestParser_UnexpectedError(ex);
             }
         }
+
+        public IReadOnlyList<GraphQLRequest> ReadOperationsRequest(
+            string operations) =>
+            Parse(operations, _parserOptions, _documentCache, _documentHashProvider);
 
         private async ValueTask<IReadOnlyList<GraphQLRequest>> ReadAsync(
             Stream stream,

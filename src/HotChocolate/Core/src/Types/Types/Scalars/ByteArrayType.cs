@@ -6,7 +6,7 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
-    public sealed class ByteArrayType : ScalarType<byte[], StringValueNode>
+    public class ByteArrayType : ScalarType<byte[], StringValueNode>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ByteArrayType"/> class.

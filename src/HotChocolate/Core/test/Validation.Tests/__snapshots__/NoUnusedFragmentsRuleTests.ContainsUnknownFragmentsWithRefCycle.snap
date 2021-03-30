@@ -13,7 +13,101 @@
       "fragment": "Unused1",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragments-Must-Be-Used"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentDefinition",
+      "VariableDefinitions": [],
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 627,
+          "End": 634,
+          "Line": 22,
+          "Column": 37
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 627,
+            "End": 634,
+            "Line": 22,
+            "Column": 37
+          },
+          "Value": "Human"
+        }
+      },
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 633,
+          "End": 733,
+          "Line": 22,
+          "Column": 43
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 655,
+              "End": 683,
+              "Line": 23,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 655,
+                "End": 683,
+                "Line": 23,
+                "Column": 21
+              },
+              "Value": "name"
+            },
+            "Directives": []
+          },
+          {
+            "Kind": "FragmentSpread",
+            "Location": {
+              "Start": 680,
+              "End": 708,
+              "Line": 24,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 683,
+                "End": 708,
+                "Line": 24,
+                "Column": 24
+              },
+              "Value": "Unused2"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 607,
+        "End": 733,
+        "Line": 22,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 616,
+          "End": 626,
+          "Line": 22,
+          "Column": 26
+        },
+        "Value": "Unused1"
+      },
+      "Directives": []
+    }
   },
   {
     "Message": "The specified fragment `Unused2` is not used within the current document.",
@@ -29,6 +123,100 @@
       "fragment": "Unused2",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragments-Must-Be-Used"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentDefinition",
+      "VariableDefinitions": [],
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 745,
+          "End": 752,
+          "Line": 26,
+          "Column": 37
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 745,
+            "End": 752,
+            "Line": 26,
+            "Column": 37
+          },
+          "Value": "Human"
+        }
+      },
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 751,
+          "End": 839,
+          "Line": 26,
+          "Column": 43
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 773,
+              "End": 801,
+              "Line": 27,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 773,
+                "End": 801,
+                "Line": 27,
+                "Column": 21
+              },
+              "Value": "name"
+            },
+            "Directives": []
+          },
+          {
+            "Kind": "FragmentSpread",
+            "Location": {
+              "Start": 798,
+              "End": 826,
+              "Line": 28,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 801,
+                "End": 826,
+                "Line": 28,
+                "Column": 24
+              },
+              "Value": "Unused1"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 725,
+        "End": 839,
+        "Line": 26,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 734,
+          "End": 744,
+          "Line": 26,
+          "Column": 26
+        },
+        "Value": "Unused2"
+      },
+      "Directives": []
+    }
   }
 ]

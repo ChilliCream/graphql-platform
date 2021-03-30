@@ -1,5 +1,6 @@
 import { graphql } from "gatsby";
 import Img, { FluidObject } from "gatsby-image";
+import { MDXRenderer } from "gatsby-plugin-mdx";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
 import { BlogArticleFragment } from "../../../graphql-types";
@@ -12,7 +13,6 @@ import {
 import { BlogArticleMetadata } from "./blog-article-metadata";
 import { BlogArticleSharebar } from "./blog-article-sharebar";
 import { BlogArticleTags } from "./blog-article-tags";
-import { IsTablet } from "../doc-page/shared-style";
 import { Article } from "../articles/article";
 
 interface BlogArticleProperties {
@@ -22,8 +22,8 @@ interface BlogArticleProperties {
 export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
   data,
 }) => {
-  const { markdownRemark } = data;
-  const { frontmatter, html } = markdownRemark!;
+  const { mdx } = data;
+  const { frontmatter, body } = mdx!;
   const path = frontmatter!.path!;
   const title = frontmatter!.title!;
   const existingTags: string[] = frontmatter!.tags!
@@ -40,10 +40,12 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
           <ArticleHeader>
             {featuredImage && <Img fluid={featuredImage} />}
             <ArticleTitle>{title}</ArticleTitle>
-            <BlogArticleMetadata data={markdownRemark!} />
+            <BlogArticleMetadata data={mdx!} />
             <BlogArticleTags tags={existingTags} />
           </ArticleHeader>
-          <ArticleContent dangerouslySetInnerHTML={{ __html: html! }} />
+          <ArticleContent>
+            <MDXRenderer>{body}</MDXRenderer>
+          </ArticleContent>
         </Article>
         <ArticleComments data={data} path={path} title={title} />
       </ArticleWrapper>
@@ -53,7 +55,7 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
 
 export const BlogArticleGraphQLFragment = graphql`
   fragment BlogArticle on Query {
-    markdownRemark(frontmatter: { path: { eq: $path } }) {
+    mdx(frontmatter: { path: { eq: $path } }) {
       excerpt
       frontmatter {
         featuredImage {
@@ -67,7 +69,7 @@ export const BlogArticleGraphQLFragment = graphql`
         title
         ...BlogArticleTags
       }
-      html
+      body
       ...BlogArticleMetadata
     }
     ...ArticleComments
@@ -78,10 +80,11 @@ export const BlogArticleGraphQLFragment = graphql`
 const ArticleWrapper = styled.div`
   display: grid;
   grid-template-rows: 1fr auto;
-  padding: 20px 10px 0;
-  ${IsTablet(`
-    padding: 0;
-  `)}
+  padding: 0;
+
+  @media only screen and (min-width: 820px) {
+    padding: 20px 10px 0;
+  }
 `;
 
 const Container = styled.div`

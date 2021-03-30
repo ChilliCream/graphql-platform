@@ -30,10 +30,13 @@ namespace HotChocolate.Execution.Pipeline
             cache.TryAddDocument("a", document);
 
             var requestContext = new Mock<IRequestContext>();
+            var schema = new Mock<ISchema>();
+            requestContext.SetupGet(t => t.Schema).Returns(schema.Object);
             requestContext.SetupGet(t => t.Request).Returns(request);
             requestContext.SetupProperty(t => t.DocumentId);
             requestContext.SetupProperty(t => t.Document);
             requestContext.SetupProperty(t => t.ValidationResult);
+            schema.Setup(s => s.Name).Returns("SchemaName");
 
             // act
             await middleware.InvokeAsync(requestContext.Object);
@@ -65,10 +68,13 @@ namespace HotChocolate.Execution.Pipeline
             cache.TryAddDocument("a", document);
 
             var requestContext = new Mock<IRequestContext>();
+            var schema = new Mock<ISchema>();
+            requestContext.SetupGet(t => t.Schema).Returns(schema.Object);
             requestContext.SetupGet(t => t.Request).Returns(request);
             requestContext.SetupProperty(t => t.DocumentId);
             requestContext.SetupProperty(t => t.Document);
             requestContext.SetupProperty(t => t.ValidationResult);
+            schema.Setup(s => s.Name).Returns("SchemaName");
 
             // act
             await middleware.InvokeAsync(requestContext.Object);
@@ -100,11 +106,14 @@ namespace HotChocolate.Execution.Pipeline
             cache.TryAddDocument("b", document);
 
             var requestContext = new Mock<IRequestContext>();
+            var schema = new Mock<ISchema>();
+            requestContext.SetupGet(t => t.Schema).Returns(schema.Object);
             requestContext.SetupGet(t => t.Request).Returns(request);
             requestContext.SetupProperty(t => t.DocumentId);
             requestContext.SetupProperty(t => t.DocumentHash);
             requestContext.SetupProperty(t => t.Document);
             requestContext.SetupProperty(t => t.ValidationResult);
+            schema.Setup(s => s.Name).Returns("SchemaName");
 
             // act
             await middleware.InvokeAsync(requestContext.Object);

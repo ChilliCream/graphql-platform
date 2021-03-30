@@ -22,6 +22,8 @@ namespace HotChocolate.Types.Relay.Descriptors
         IObjectFieldDescriptor ResolveNode(
             FieldResolverDelegate fieldResolver);
 
+        IObjectFieldDescriptor ResolveNode(Type type);
+
         IObjectFieldDescriptor ResolveNode<TId>(
             NodeResolverDelegate<object, TId> fieldResolver);
 

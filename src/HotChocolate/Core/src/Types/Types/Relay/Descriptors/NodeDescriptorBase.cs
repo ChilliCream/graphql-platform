@@ -45,7 +45,7 @@ namespace HotChocolate.Types.Relay.Descriptors
             {
                 if (ctx.LocalContextData.TryGetValue(
                     WellKnownContextData.InternalId,
-                    out object? o) && o is TId id)
+                    out var o) && o is TId id)
                 {
                     return await fieldResolver(ctx, id).ConfigureAwait(false);
                 }
@@ -93,7 +93,35 @@ namespace HotChocolate.Types.Relay.Descriptors
                         method.DeclaringType ?? typeof(object),
                         typeof(object),
                         new FieldMember("_", "_", method)));
+
             return ResolveNode(resolver.Resolver);
+        }
+
+        protected static class MiddlewareHelper
+        {
+            private static FieldMiddleware? _middleware;
+
+            private static FieldMiddleware Middleware
+            {
+                get
+                {
+                    return _middleware ??=
+                        FieldClassMiddlewareFactory.Create<IdMiddleware>();
+                }
+            }
+
+            public static IObjectFieldDescriptor TryAdd(IObjectFieldDescriptor descriptor)
+            {
+                descriptor.Extend().OnBeforeCreate(d =>
+                {
+                    if (!d.MiddlewareComponents.Contains(Middleware))
+                    {
+                        d.MiddlewareComponents.Add(Middleware);
+                    }
+                });
+
+                return descriptor;
+            }
         }
     }
 }

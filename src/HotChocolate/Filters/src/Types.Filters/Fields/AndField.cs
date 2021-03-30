@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -5,26 +6,31 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public sealed class AndField
         : InputField
         , IAndField
     {
+        private const string _name = "AND";
+
         internal AndField(
             IDescriptorContext context)
-            : base(CreateDefinition(context))
+            : base(CreateDefinition(context), default)
         {
         }
 
         private static InputFieldDefinition CreateDefinition(
             IDescriptorContext context) =>
             InputFieldDescriptor
-                .New(context, "AND")
+                .New(context, _name)
                 .CreateDefinition();
 
         protected override void OnCompleteField(
             ITypeCompletionContext context,
             InputFieldDefinition definition)
         {
+            Coordinate = Coordinate.With(typeName: context.Type.Name);
+
             definition.Type = TypeReference.Create(
                 new ListTypeNode(
                     new NonNullTypeNode(

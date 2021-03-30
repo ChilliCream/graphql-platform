@@ -22,6 +22,69 @@
       "selectionSetType": "Pet",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-is-possible"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "InlineFragment",
+      "Location": {
+        "Start": 302,
+        "End": 344,
+        "Line": 11,
+        "Column": 21
+      },
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 308,
+          "End": 321,
+          "Line": 11,
+          "Column": 27
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 308,
+            "End": 321,
+            "Line": 11,
+            "Column": 27
+          },
+          "Value": "Intelligent"
+        }
+      },
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 320,
+          "End": 344,
+          "Line": 11,
+          "Column": 39
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 322,
+              "End": 326,
+              "Line": 11,
+              "Column": 41
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 322,
+                "End": 326,
+                "Line": 11,
+                "Column": 41
+              },
+              "Value": "iq"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
   }
 ]

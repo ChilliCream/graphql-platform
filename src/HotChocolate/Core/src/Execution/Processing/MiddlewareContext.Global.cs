@@ -139,12 +139,11 @@ namespace HotChocolate.Execution.Processing
             return _resolverResult is null ? default! : (T)_resolverResult;
         }
 
-        public T Resolver<T>() => _operationContext.Activator.GetOrCreate<T>();
+        public T Resolver<T>() =>
+            _operationContext.Activator.GetOrCreate<T>(_operationContext.Services);
 
-        public T Service<T>()
-        {
-            return Services.GetRequiredService<T>();
-        }
+        public T Service<T>() =>
+            Services.GetRequiredService<T>();
 
         public object Service(Type service)
         {
@@ -158,5 +157,8 @@ namespace HotChocolate.Execution.Processing
 
         public void RegisterForCleanup(Action action) =>
             _operationContext.RegisterForCleanup(action);
+
+        public T GetQueryRoot<T>() =>
+            _operationContext.GetQueryRoot<T>();
     }
 }

@@ -12,6 +12,21 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="5.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Update="DemoResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>DemoResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="DemoResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>DemoResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>

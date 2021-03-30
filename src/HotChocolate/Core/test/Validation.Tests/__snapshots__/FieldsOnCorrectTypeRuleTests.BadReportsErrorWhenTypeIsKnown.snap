@@ -19,6 +19,102 @@
       "responseName": "unknown_pet_field",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 88,
+          "End": 238,
+          "Line": 3,
+          "Column": 39
+        },
+        "Selections": [
+          {
+            "Kind": "InlineFragment",
+            "Location": {
+              "Start": 114,
+              "End": 220,
+              "Line": 4,
+              "Column": 25
+            },
+            "TypeCondition": {
+              "Kind": "NamedType",
+              "Location": {
+                "Start": 121,
+                "End": 126,
+                "Line": 4,
+                "Column": 32
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 121,
+                  "End": 126,
+                  "Line": 4,
+                  "Column": 32
+                },
+                "Value": "Cat"
+              }
+            },
+            "Directives": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": {
+                "Start": 125,
+                "End": 220,
+                "Line": 4,
+                "Column": 36
+              },
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": {
+                    "Start": 155,
+                    "End": 198,
+                    "Line": 5,
+                    "Column": 29
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 155,
+                      "End": 198,
+                      "Line": 5,
+                      "Column": 29
+                    },
+                    "Value": "unknown_cat_field"
+                  },
+                  "Directives": []
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "Location": {
+        "Start": 70,
+        "End": 238,
+        "Line": 3,
+        "Column": 21
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 70,
+          "End": 89,
+          "Line": 3,
+          "Column": 21
+        },
+        "Value": "unknown_pet_field"
+      },
+      "Directives": []
+    }
   }
 ]

@@ -115,7 +115,7 @@ const Container = styled.header<{ enableShadow: boolean }>`
   z-index: 30;
   width: 100vw;
   height: 60px;
-  background-color: #f40010;
+  background-color: var(--brand-color);
   ${({ enableShadow }) =>
     enableShadow && "box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);"}
   transition: box-shadow 0.2s ease-in-out;
@@ -202,7 +202,7 @@ const Navigation = styled.nav<{ open: boolean }>`
   flex: 1 1 auto;
   flex-direction: column;
   max-height: 100vh;
-  background-color: #f40010;
+  background-color: var(--brand-color);
   opacity: ${({ open }) => (open ? "1" : "0")};
   box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
   transition: opacity 0.2s ease-in-out;
@@ -297,7 +297,7 @@ const NavLink = styled(Link)`
 
   &.active,
   &:hover {
-    background-color: #b7020a;
+    background-color: var(--brand-color-hover);
   }
 `;
 
@@ -339,7 +339,7 @@ const ToolLink = styled(Link)`
   }
 
   :hover > ${IconContainer} > svg {
-    fill: #b7020a;
+    fill: var(--brand-color-hover);
   }
 `;
 

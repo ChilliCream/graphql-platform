@@ -210,4 +210,3 @@ namespace HotChocolate.Types.Spatial
         }
     }
 }
-
