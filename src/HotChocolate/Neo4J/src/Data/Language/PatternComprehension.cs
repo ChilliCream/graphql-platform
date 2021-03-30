@@ -2,6 +2,21 @@
 
 namespace HotChocolate.Data.Neo4J.Language
 {
+    public interface IOngoingDefinitionWithoutReturn
+    {
+        public PatternComprehension Returnng(params Named[] variables);
+        public PatternComprehension Returning(params Expression[] listDefinition);
+    }
+
+    public interface OngoingDefinitionWithPattern: IOngoingDefinitionWithoutReturn
+    {
+        public IOngoingDefinitionWithPatternAndWhere Where(Condition condition);
+        public PatternComprehension Returning(params Expression[] listDefinition);
+    }
+
+    public interface IOngoingDefinitionWithPatternAndWhere
+        : IOngoingDefinitionWithoutReturn { }
+
     /// <summary>
     /// See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/PatternComprehension.html">PatternComprehension</a>
     /// and <a href="https://neo4j.com/docs/cypher-manual/current/syntax/lists/#cypher-pattern-comprehension">the corresponding cypher manual entry</a>.

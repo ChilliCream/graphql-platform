@@ -33,7 +33,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
 
         private static CompoundCondition CombineWithAnd(
             Neo4JFilterVisitorContext context,
-            Queue<Condition> operations)
+            IReadOnlyCollection<Condition> operations)
         {
             if (operations.Count < 0)
             {

@@ -1,0 +1,1 @@
+﻿MATCH (u:User)-[:OWNS  {boughtOn: '2021-03-02'}]->(b:Bike) RETURN b, u

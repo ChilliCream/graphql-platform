@@ -4,7 +4,7 @@ using HotChocolate.Data.Neo4J.Language;
 
 namespace HotChocolate.Data.Neo4J.Filtering
 {
-/// <summary>
+    /// <summary>
     /// This filter operation handler maps a All operation field to a
     /// <see cref="FilterDefinition{TDocument}"/>
     /// </summary>
@@ -28,13 +28,16 @@ namespace HotChocolate.Data.Neo4J.Filtering
             string path)
         {
             var negatedChilds = new List<Condition>();
+            var compound = new CompoundCondition(Operator.And);
+
             Queue<Condition> level = scope.Level.Peek();
             while (level.Count > 0)
             {
-                negatedChilds.Add(level.Dequeue());
+                compound.And(level.Dequeue());
+                //negatedChilds.Add(level.Dequeue());
             }
 
-            return new CompoundCondition(Operator.And);
+            return compound;
         }
 
         private static Condition CreateArrayAllScalar(

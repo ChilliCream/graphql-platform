@@ -143,7 +143,7 @@ namespace HotChocolate.Data.Neo4J.Language
         public SortItem? Ascending => GetRequiredSymbolicName()?.Ascending();
 
         public AliasedExpression? As(string alias) =>
-            GetRequiredSymbolicName()?.As(alias);
+            GetRequiredSymbolicName().As(alias);
 
         public IReadOnlyList<NodeLabel>? GetLabels() => _labels?.AsReadOnly();
 

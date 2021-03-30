@@ -78,7 +78,6 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.SymbolicName:
                 case ClauseKind.NodeLabel:
                 case ClauseKind.NodeLabels:
-
                 case ClauseKind.Relationship:
                 case ClauseKind.OptionalMatch:
                 case ClauseKind.Return:

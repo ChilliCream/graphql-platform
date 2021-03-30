@@ -120,7 +120,6 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.StringLiteral:
                 case ClauseKind.ExpressionList:
                 case ClauseKind.NodeLabels:
-
                 case ClauseKind.Relationship:
                 case ClauseKind.OptionalMatch:
                 case ClauseKind.Unwind:

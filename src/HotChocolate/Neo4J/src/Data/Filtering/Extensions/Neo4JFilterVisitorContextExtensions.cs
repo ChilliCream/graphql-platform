@@ -20,7 +20,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public static Node GetNode(
             this Neo4JFilterVisitorContext context)
         {
-            var nodeName = context.RuntimeTypes.Last().Type.Name;
+            var nodeName = context.RuntimeTypes.Skip(1).First().Type.Name;
 
             return Cypher.Node(nodeName).Named(nodeName.ToCamelCase());
         }

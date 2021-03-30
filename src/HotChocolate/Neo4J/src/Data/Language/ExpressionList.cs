@@ -7,7 +7,9 @@ namespace HotChocolate.Data.Neo4J.Language
     /// a symbolic name as variable or as unnamed expression when nameless.
     /// Not to be mixed up with the actual ListExpression, which itself is an expression.
     /// </summary>
-    public class ExpressionList : TypedSubtree<Expression>, ITypedSubtree
+    public class ExpressionList
+        : TypedSubtree<Expression>
+            , ITypedSubtree
     {
         public override ClauseKind Kind => ClauseKind.ExpressionList;
 

@@ -1,0 +1,1 @@
+﻿MATCH (foo:Foo) WHERE (foo.BarString = 'a' AND fooNested.Bar = 'a') RETURN foo {FooNested: [(foo:Foo)-[:RELATED_TO]->(fooNested:FooNested) | fooNested {.Bar}]}

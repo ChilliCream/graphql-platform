@@ -39,7 +39,6 @@ namespace HotChocolate.Data.Neo4J.Language
 		 */
         public static Operation Set(Expression target, Expression value)
         {
-
             return Operation.Create(target, Operator.Set, value);
         }
 

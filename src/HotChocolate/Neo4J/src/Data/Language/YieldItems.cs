@@ -2,7 +2,8 @@
 
 namespace HotChocolate.Data.Neo4J.Language
 {
-    public class YieldItems : TypedSubtree<Expression>
+    public class YieldItems
+        : TypedSubtree<Expression>
     {
         public override ClauseKind Kind { get; } = ClauseKind.YieldItems;
 
@@ -16,6 +17,7 @@ namespace HotChocolate.Data.Neo4J.Language
             return new YieldItems(c);
         }
 
-        private YieldItems(params Expression[] children) : base(children) { }
+        private YieldItems(params Expression[] children)
+            : base(children) { }
     }
 }

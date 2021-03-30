@@ -25,7 +25,7 @@ namespace HotChocolate.Data.Neo4J
         public static IRequestExecutorBuilder AddNeo4JFiltering(
             this IRequestExecutorBuilder builder,
             string? name = null) =>
-            builder.ConfigureSchema(s => s.AddNeo4JFiltering(name));
+                builder.ConfigureSchema(s => s.AddNeo4JFiltering(name));
 
         /// <summary>
         /// Adds sorting support for Neo4j.
@@ -42,7 +42,7 @@ namespace HotChocolate.Data.Neo4J
         public static IRequestExecutorBuilder AddNeo4JSorting(
              this IRequestExecutorBuilder builder,
              string? name = null) =>
-             builder.ConfigureSchema(s => s.AddNeo4JSorting(name));
+                builder.ConfigureSchema(s => s.AddNeo4JSorting(name));
 
         /// <summary>
         /// Adds projections support for Neo4j.

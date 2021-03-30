@@ -159,6 +159,37 @@ namespace HotChocolate.Data.Neo4J.Language
             }
 
             [Fact]
+            public void PredicateExists()
+            {
+                Relationship? condition = _userNode.RelationshipTo(_bikeNode, "OWNS");
+
+                StatementBuilder statement = Cypher
+                    .Match(new Where(Predicates.Exists(condition)),_userNode)
+                    .Return(_userNode);
+                statement.Build().MatchSnapshot();
+            }
+
+            [Fact] public void PredicateAll()
+            {
+                var compoundCondition = new CompoundCondition(Operator.And);
+
+                Node bikeNode = Cypher.Node("Bike");
+                Relationship userBikes = _userNode.RelationshipTo(bikeNode, "OWNS");
+
+                compoundCondition.Add(Predicates.Exists(userBikes));
+
+                SymbolicName userOwns = Cypher.Name("userOwns");
+
+                var test = Cypher.ListWith(userOwns).In();
+
+
+                StatementBuilder statement = Cypher
+                    .Match(new Where(compoundCondition),_userNode)
+                    .Return(_userNode);
+                statement.Build().MatchSnapshot();
+            }
+
+            [Fact]
             public void AndCondition()
             {
                 StatementBuilder statement = Cypher

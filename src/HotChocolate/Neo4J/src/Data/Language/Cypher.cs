@@ -81,8 +81,10 @@ namespace HotChocolate.Data.Neo4J.Language
         public static Literal<bool> LiteralFalse() => BooleanLiteral.False;
         public static Asterisk Asterisk => Asterisk.Instance;
 
-
         public static SortItem Sort(Expression expression) =>
             SortItem.Create(expression, null);
+
+        public static ListComprehension ListWith(SymbolicName variable) =>
+            ListComprehension.With(variable);
     }
 }

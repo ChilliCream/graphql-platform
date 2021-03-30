@@ -4,7 +4,7 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     public class UnionQuery : RegularQuery
     {
-        public override ClauseKind Kind => ClauseKind.Default;
+        public override ClauseKind Kind => ClauseKind.UnionQuery;
         private readonly bool _all;
         private readonly SingleQuery _firstQuery;
         private readonly List<UnionPart> _additionalQueries;

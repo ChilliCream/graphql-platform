@@ -13,9 +13,9 @@ namespace HotChocolate.Data.Neo4J.Filtering.Lists
     {
 
         private readonly string _fooEntities = @"
-            CREATE (a:Foo {BarString: 'a'})-[:RELATED_TO]->(:FooNested {Bar: 'a'}),
-                    (a)-[:RELATED_TO]->(:FooNested {Bar: 'a'}),
-                    (a)-[:RELATED_TO]->(:FooNested {Bar: 'a'}),
+            CREATE (a:Foo {BarString: 'a'})-[:RELATED_TO]->(:FooNested {Bar: 'a'})-[:RELATED_TO]->(:BarNested {Foo: 'a'}),
+                    (a)-[:RELATED_TO]->(:FooNested {Bar: 'a'})-[:RELATED_TO]->(:BarNested {Foo: 'a'}),
+                    (a)-[:RELATED_TO]->(:FooNested {Bar: 'a'})-[:RELATED_TO]->(:BarNested {Foo: 'a'}),
                     (b:Foo {BarString: 'b'})-[:RELATED_TO]->(:FooNested {Bar: 'c'}),
                     (b)-[:RELATED_TO]->(:FooNested {Bar: 'a'}),
                     (b)-[:RELATED_TO]->(:FooNested {Bar: 'a'}),
@@ -58,23 +58,6 @@ namespace HotChocolate.Data.Neo4J.Filtering.Lists
         }
 
         [Fact]
-        public async Task Create_ArraySomeObjectStringEqual_Expression()
-        {
-            // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(_fooEntities,false);
-
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { fooNested: { some: { bar: { eq: \"a\" }}}}){ fooNested { bar }}}")
-                    .Create());
-
-            res1.MatchDocumentSnapshot("a");
-        }
-
-        [Fact]
         public async Task Create_ArrayAllObjectStringEqual_Expression()
         {
             // arrange
@@ -89,6 +72,24 @@ namespace HotChocolate.Data.Neo4J.Filtering.Lists
                     .Create());
 
             res1.MatchDocumentSnapshot("a");
+        }
+
+        [Fact]
+        public async Task Create_ArrayAllObjectStringEqual_Expression2()
+        {
+            // arrange
+            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(_fooEntities,false);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        "{ root(where: { barString: {eq: \"a\"}, fooNested: { all: { bar: { eq: \"a\" }}}}){ fooNested { bar }}}")
+
+                    .Create());
+
+            res1.MatchDocumentSnapshot("test");
         }
 
     }

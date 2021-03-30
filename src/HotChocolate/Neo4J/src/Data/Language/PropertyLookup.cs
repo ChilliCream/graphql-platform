@@ -5,10 +5,11 @@ namespace HotChocolate.Data.Neo4J.Language
         public override ClauseKind Kind => ClauseKind.PropertyLookup;
         private readonly Expression _propertyKeyName;
         private readonly bool _dynamicLookup;
-        private static readonly PropertyLookup _wildcard = new (Asterisk.Instance, false);
+        private static readonly PropertyLookup _wildcard
+            = new (Asterisk.Instance, false);
 
-        public PropertyLookup(Expression propertyKeyName, bool dynamicLookup) {
-
+        public PropertyLookup(Expression propertyKeyName, bool dynamicLookup)
+        {
             _propertyKeyName = propertyKeyName;
             _dynamicLookup = dynamicLookup;
         }

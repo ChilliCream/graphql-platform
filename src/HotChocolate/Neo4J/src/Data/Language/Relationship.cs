@@ -21,7 +21,8 @@ namespace HotChocolate.Data.Neo4J.Language
         private readonly Node _right;
         private readonly RelationshipDetails _details;
 
-        private Relationship(Node left, RelationshipDetails details, Node right) {
+        private Relationship(Node left, RelationshipDetails details, Node right)
+        {
             _left = left;
             _right = right;
             _details = details;

@@ -56,6 +56,7 @@ namespace HotChocolate.Data.Neo4J.Sorting
 
             context.Operations.Enqueue(new Neo4JSortDefinition(context.Path.Peek(), _sortDirection));
             action = SyntaxVisitor.Continue;
+
             return true;
         }
     }
