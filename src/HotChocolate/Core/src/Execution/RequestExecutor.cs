@@ -130,7 +130,7 @@ namespace HotChocolate.Execution
             }
 
             return Task.FromResult<IBatchQueryResult>(new BatchQueryResult(
-                () => _batchExecutor.ExecuteAsync(requestBatch, cancellationToken),
+                () => _batchExecutor.ExecuteAsync(requestBatch, allowParallelExecution, cancellationToken),
                 null));
         }
     }

@@ -8,6 +8,9 @@ using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Tests.TestHelper;
+using HotChocolate.Resolvers;
+using System.Threading;
+using System.Linq;
 
 namespace HotChocolate.Execution.Batching
 {
@@ -354,6 +357,71 @@ namespace HotChocolate.Execution.Batching
 
             // assert
             await Assert.ThrowsAsync<ArgumentNullException>(action);
+        }
+
+        // shared code for AllowParallel_Basic_... tests
+        private async Task AllowParallel_Basic(bool allowParallelExecution)
+        {
+            // arrange
+            Snapshot.FullName();
+
+            int activeTaskCount = 0;
+            IRequestExecutor executor = await CreateExecutorAsync(c => c
+                .AddQueryType(d => d.Name("Query")
+                    .Field("foo")
+                    .Argument("bar", a => a.Type<StringType>())
+                    .Type<StringType>()
+                    .Resolve(async c =>
+                    {
+                        Interlocked.Increment(ref activeTaskCount);
+                        try
+                        {
+                            await Task.Delay(500);
+                            int activeTasks = activeTaskCount;
+                            await Task.Delay(500);
+                            var bar = c.ArgumentValue<string>("bar");
+                            return $"{bar}-{activeTasks}";
+                        }
+                        finally
+                        {
+                            Interlocked.Decrement(ref activeTaskCount);
+                        }
+                    }))
+                .AddExportDirectiveType());
+
+            // act
+            var batch = new List<IReadOnlyQueryRequest>
+            {
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{ f1: foo(bar:""A""), f2: foo(bar:""B"") }")
+                    .Create(),
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{ f3: foo(bar:""C"") @export(as: ""var"") }")
+                    .Create(),
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{ f4: foo(bar:$var) }")
+                    .Create()
+            };
+
+            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch, allowParallelExecution);
+
+            // assert
+            await batchResult.ToJsonAsync().MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public Task AllowParallel_Basic_Off()
+        {
+            return AllowParallel_Basic(false);
+        }
+
+        [Fact]
+        public Task AllowParallel_Basic_On()
+        {
+            return AllowParallel_Basic(true);
         }
     }
 }
