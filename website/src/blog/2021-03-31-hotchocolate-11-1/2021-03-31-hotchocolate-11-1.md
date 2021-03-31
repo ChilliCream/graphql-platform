@@ -27,19 +27,19 @@ What the heck is Strawberry Shake, you ask?
 
 Well, that has changed over the time of our development on it. When we started looking at GraphQL clients, in general, and how we can bring something to .NET, we began to try out many things and experimented with the experience.
 
-The first internal StrawberryShake was GraphQL client built on top of IQueryable. The experience felt awful since we had to create syntax to describe a GraphQL query, and it never felt natural. Ever since this first try, we were convinced to bring a better experience where GraphQL is front and center. We came away with the thought that it is best to do GraphQL with GraphQL. When we write a GraphQL query, we already have this beautiful and simple syntax that is strongly typed. The only thing we were missing is something that makes it a first citizen in the .NET IDEs.
+The first internal StrawberryShake was a GraphQL client built on top of IQueryable. The experience felt awful since we had to create artificial C# syntax to describe a GraphQL query, and this never felt natural. We came away with the feeling that users would struggle guessing what selection syntax would translate into what GraphQL syntax. With directives and features like `@defer` it grew more and more awful. Ever since this first try, we were convinced to bring a better experience where GraphQL is front and center. We came away with the thought that it is best to do GraphQL with GraphQL. When we write a GraphQL query, we already have this beautiful and simple syntax that is strongly typed. The only thing we were missing is something that makes it a first citizen in the .NET IDEs and the .NET build process.
 
 The first public preview of Strawberry Shake began to go down this path by compiling the GraphQL queries into C# code. Still, it essentially was a glorified HttpClient.
 
 After our first tries with Strawberry Shake, we polled our community and looked at what people want to do with a GraphQL client in .NET. There are actually three different use-cases people want to tackle with Strawberry Shake.
 
-Build an application with GraphQL (Xamarin/Blazor)
-Do server to server communication
-Write unit tests against a GraphQL server
+- Build an application (frontend/UI) with GraphQL (Xamarin/Blazor)
+- Do server-to-server communication
+- Write unit tests against a GraphQL server
 
-When we polled our users, we found that 1 and 2 have an almost equal share of people. Use-Case 2 is a bit bigger. The group that wants to write tests with it is the smallest.
+When we polled our users, we found that 1 and 2 have an almost equal share of people. Use-Case 2 is a bit bigger. The group that wants to write tests with Strawberry Shake is the smallest at around 10%.
 
-When we restarted the development on Strawberry Shake, we thought building a GraphQL client for the first group would allow us to disrupt the ecosystem the most. Something like Relay or Apollo client is completely missing in the .NET ecosystem. If we look at patterns and how UIs are built in .NET, we see that it is over complicated to achieve these reactive UIs that work even when your application goes offline with optimistic mutations.
+When we restarted the development on Strawberry Shake, we thought building a GraphQL client for the first group would allow us to disrupt the ecosystem the most. Something like Relay or Apollo client is completely missing in the .NET ecosystem. If we look at patterns and how UIs are built in .NET, we see that it is over complicated to achieve these reactive UIs that work even when your application goes offline with things like optimistic mutations.
 
 So, for version 11.1, we set the focus on .NET frontend developers.
 
@@ -115,15 +115,15 @@ Strawberry Shake was mostly built by Pascal, Fred, Rafael, and me.
 
 While we focused on Strawberry Shake for this release, we also invested further into our GraphQL server, Hot Chocolate.
 
-# .NET Support
+## .NET Support
 
 With version 11.1, we started compiling with the .NET 6 SDK, meaning that we target in our ASP.NET core components, .NET 6, .NET 5, and .NET Core 3.1. The GraphQL core and the parsers are still also compiled for .NET Standard 2.0. Further, all our client utilities are compiled for .NET Standard 2.0 as well to let you consume GraphQL in almost any .NET application.
 
-# Performance
+## Performance
 
 As with every release, we are putting a lot of energy into performance. With performance, we mean both execution time and memory usage. For this release, we looked at static memory usage. Essentially the memory footprint of Hot Chocolate when you just create the schema. When we started to work on this, Hot Chocolate used around 380.000 objects to create the GitHub schema. Now with version 11.1, we are only using around 80.000 objects to represent the same schema. We also reduced the schema memory usage by around 40%. We identified a lot more improvements that we can do in this area but where we would need to more substantially change how we build a schema. Beginning with version 12, we will use source generators in a lot of these areas in the server to achieve faster execution and a lower memory footprint.
 
-# GraphQL MultiPart request specification
+## GraphQL MultiPart request specification
 
 With version 11.1, we now support out-of-the-box the [GraphQL MultiPart request specification], which allows handling file streams in GraphQL requests.
 
@@ -175,7 +175,7 @@ EXAMPLE
 
 Most of the work on this feature was done by Tobias Tengler, who is one of our community members. He worked like most of us in his free time on this. Thank you, Tobias; we will put your code to good use.
 
-# Scalars, Scalars, Scalars
+## Scalars, Scalars, Scalars
 
 We looked at the wider community and what problems many of you are facing. We often need to build for our specific use-cases new scalars that represent a specific domain need. We found by chance an excellent package of scalars build by [The Guild] for the JavaScript ecosystem. With version 11, we have started porting their scalars one by one over to Hot Chocolate. But fear not, we are not polluting the GraphQL core libraries with these new scalars. If you do not have any need for them, we will not bother you with this amazing set of scalars.
 
@@ -216,7 +216,7 @@ Most of the work on this new library was done by [Gergory], who also put his fre
 
 > More about this topic can be read [here](../../docs/hotchocolate/defining-a-schema/scalars.md).
 
-# Type Extensions
+## Type Extensions
 
 For a long time, we have type extensions that essentially let you split up types into separate type definitions. Until now, they were bound by name and could just provide new fields to existing types. This is quite useful if you want to modularize your schema and have types from different modules extend each other.
 
@@ -396,7 +396,7 @@ It also completes the annotation-based approach further and gives us more tools 
 
 > More about this topic can be read [here](../../docs/hotchocolate/defining-a-schema/extending-types.md).
 
-# MongoDB integration
+## MongoDB integration
 
 As with almost every release, we are further investing in our data integration layer. Version 11.1 is now embracing MongoDB even further with native query support. Until now, you could use MongoDB with filtering, sorting, and projections through their queryable provider. But the queryable provider has many shortcomings and does not support all the features of MongoDB. With the new integration, we are rewriting the GraphQL queries into native MongoDB queries. Meaning we are building up a BSON object representing the query.
 
@@ -458,7 +458,7 @@ This feature was implemented by Pascal, who is the third person who became a Chi
 
 > More about this topic can be read [here](../../docs/hotchocolate/defining-a-schema/extending-types.md).
 
-# Directive Introspection
+## Directive Introspection
 
 We are always looking at new GraphQL features very early. But this time, we got in even earlier and picked up an experimental feature that could change entirely or might be dropped. We are following in this GraphQL-Java.
 
