@@ -11,7 +11,6 @@ namespace HotChocolate.Types
     public class LocalCurrencyType : ScalarType<decimal, StringValueNode>
     {
         private static CultureInfo _cultureInfo = null!;
-        private decimal _inputValue;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LocalCurrencyType"/> class.
@@ -28,28 +27,14 @@ namespace HotChocolate.Types
         /// </summary>
         public LocalCurrencyType(
             NameString name,
-            string? description,
-            BindingBehavior bind = BindingBehavior.Explicit)
-            : base(name, bind)
-        {
-            Description = description;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="LocalCurrencyType"/> class.
-        /// </summary>
-        public LocalCurrencyType(
-            NameString name,
-            decimal input,
             string? culture,
             string? description = null,
             BindingBehavior bind = BindingBehavior.Explicit)
-            : this(
+            : base(
                 name,
-                description,
                 bind)
         {
-            _inputValue = input;
+            Description = description;
             _cultureInfo = CultureInfo.CreateSpecificCulture(culture ?? "en-US");
         }
 
