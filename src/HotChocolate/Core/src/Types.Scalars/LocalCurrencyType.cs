@@ -15,6 +15,14 @@ namespace HotChocolate.Types
         /// <summary>
         /// Initializes a new instance of the <see cref="LocalTimeType"/> class.
         /// </summary>
+
+        public LocalCurrencyType()
+            : this(
+                WellKnownScalarTypes.LocalCurency,
+                ScalarResources.LocalCurrencyType_Description)
+        {
+        }
+
         public LocalCurrencyType(
             NameString name,
             string? description,
