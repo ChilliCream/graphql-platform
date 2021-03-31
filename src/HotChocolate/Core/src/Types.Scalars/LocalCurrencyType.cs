@@ -12,10 +12,10 @@ namespace HotChocolate.Types
     {
         private static CultureInfo _cultureInfo = null!;
         private decimal _inputValue;
-        /// <summary>
-        /// Initializes a new instance of the <see cref="LocalTimeType"/> class.
-        /// </summary>
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LocalCurrencyType"/> class.
+        /// </summary>
         public LocalCurrencyType()
             : this(
                 WellKnownScalarTypes.LocalCurency,
@@ -23,6 +23,9 @@ namespace HotChocolate.Types
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LocalCurrencyType"/> class.
+        /// </summary>
         public LocalCurrencyType(
             NameString name,
             string? description,
@@ -33,7 +36,7 @@ namespace HotChocolate.Types
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LocalTimeType"/> class.
+        /// Initializes a new instance of the <see cref="LocalCurrencyType"/> class.
         /// </summary>
         public LocalCurrencyType(
             NameString name,
