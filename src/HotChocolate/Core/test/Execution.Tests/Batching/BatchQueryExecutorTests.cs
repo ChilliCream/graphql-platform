@@ -387,7 +387,7 @@ namespace HotChocolate.Execution.Batching
                             Interlocked.Decrement(ref activeTaskCount);
                         }
                     }))
-                );
+                .AddExportDirectiveType());
 
             // act
             var batch = new List<IReadOnlyQueryRequest>
@@ -398,7 +398,11 @@ namespace HotChocolate.Execution.Batching
                     .Create(),
                 QueryRequestBuilder.New()
                     .SetQuery(
-                        @"{ f3: foo(bar:""C"") }")
+                        @"{ f3: foo(bar:""C"") @export(as: ""var"") }")
+                    .Create(),
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{ f4: foo(bar:$var) }")
                     .Create()
             };
 
