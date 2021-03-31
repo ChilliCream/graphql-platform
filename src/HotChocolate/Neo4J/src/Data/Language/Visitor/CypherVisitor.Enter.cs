@@ -106,6 +106,12 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.Operation:
                     EnterVisitable((Operation)visitable);
                     break;
+                case ClauseKind.Remove:
+                    EnterVisitable((Remove)visitable);
+                    break;
+                case ClauseKind.ListComprehension:
+                    EnterVisitable((ListComprehension)visitable);
+                    break;
                 case ClauseKind.MapProjection:
                 case ClauseKind.Expression:
                 case ClauseKind.Visitable:
@@ -125,7 +131,6 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.Unwind:
                 case ClauseKind.YieldItems:
                 case ClauseKind.Set:
-                case ClauseKind.Remove:
                 case ClauseKind.Foreach:
                 case ClauseKind.Merge:
                 case ClauseKind.Union:
@@ -141,7 +146,7 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.ExpressionCondition:
                 case ClauseKind.HasLabelCondition:
                 case ClauseKind.BooleanFunctionCondition:
-                case ClauseKind.ListComprehension:
+
                 case ClauseKind.NotCondition:
                 case ClauseKind.ProjectionBody:
                     break;

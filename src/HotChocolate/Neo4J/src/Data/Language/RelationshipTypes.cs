@@ -10,7 +10,8 @@ namespace HotChocolate.Data.Neo4J.Language
         public override ClauseKind Kind { get; } = ClauseKind.RelationshipTypes;
         private readonly List<string> _values;
 
-        public RelationshipTypes(List<string> values) {
+        public RelationshipTypes(List<string> values)
+        {
             _values = values;
         }
 

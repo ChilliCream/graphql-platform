@@ -30,7 +30,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
         {
             if (parsedValue is null) throw new InvalidOperationException();
 
-            Condition? expression = context
+            Condition expression = context
                 .GetNode()
                 .Property(context.GetNeo4JFilterScope().GetPath()).LessThanOrEqualTo(Cypher.LiteralOf(parsedValue));
 

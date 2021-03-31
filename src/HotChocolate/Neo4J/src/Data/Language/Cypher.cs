@@ -86,5 +86,8 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public static ListComprehension ListWith(SymbolicName variable) =>
             ListComprehension.With(variable);
+
+        public static ListExpression ListOf(params Expression[] expressions) =>
+            ListExpression.Create(expressions);
     }
 }

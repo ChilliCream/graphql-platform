@@ -56,6 +56,12 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.Operation:
                     LeaveVisitable((Operation)visitable);
                     break;
+                case ClauseKind.Remove:
+                    LeaveVisitable((Remove)visitable);
+                    break;
+                case ClauseKind.ListComprehension:
+                    LeaveVisitable((ListComprehension)visitable);
+                    break;
                 case ClauseKind.AliasedExpression:
                 case ClauseKind.SortDirection:
                 case ClauseKind.Expression:
@@ -89,7 +95,6 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.Skip:
                 case ClauseKind.Limit:
                 case ClauseKind.Set:
-                case ClauseKind.Remove:
                 case ClauseKind.Foreach:
                 case ClauseKind.Merge:
                 case ClauseKind.Union:
@@ -108,7 +113,6 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.HasLabelCondition:
                 case ClauseKind.Where:
                 case ClauseKind.BooleanFunctionCondition:
-                case ClauseKind.ListComprehension:
                 case ClauseKind.NotCondition:
                 case ClauseKind.ProjectionBody:
                     break;

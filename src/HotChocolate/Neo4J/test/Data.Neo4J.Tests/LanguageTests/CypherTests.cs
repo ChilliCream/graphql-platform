@@ -180,7 +180,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
                 SymbolicName userOwns = Cypher.Name("userOwns");
 
-                var test = Cypher.ListWith(userOwns).In();
+                //var test = Cypher.ListWith(userOwns).In();
 
 
                 StatementBuilder statement = Cypher

@@ -20,8 +20,7 @@ namespace HotChocolate.Data.Neo4J.Language
             SymbolicName? symbolicName,
             RelationshipTypes? relationshipTypes,
             RelationshipLength? length,
-            Properties? properties
-        )
+            Properties? properties)
         {
             _direction = relationshipDirection;
             _symbolicName = symbolicName;

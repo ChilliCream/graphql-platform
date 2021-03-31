@@ -55,52 +55,5 @@ namespace HotChocolate.Data.Neo4J.Language
             }
             cypherVisitor.Leave(this);
         }
-
-        private class Builder : IOngoingDefinitionWithVariable, IOngoingDefinitionWithList
-        {
-
-            private readonly SymbolicName _variable;
-            private Expression _listExpression;
-            private Where _where;
-
-            private Builder(SymbolicName variable)
-            {
-                _variable = variable;
-            }
-
-            public IOngoingDefinitionWithList In(Expression list)
-            {
-                _listExpression = list;
-                return this;
-            }
-
-            public IOngoingDefinitionWithoutReturn Where(Condition condition)
-            {
-                _where = new Where(condition);
-                return this;
-            }
-
-            public ListComprehension Returning()
-            {
-                return new ListComprehension(_variable, _listExpression, _where, null);
-            }
-
-            public ListComprehension Returning(params Expression[] expressions) {
-
-                return new ListComprehension(_variable, _listExpression, _where,
-                    ListExpression.ListOrSingleExpression(expressions));
-            }
-        }
-
-        public interface IOngoingDefinitionWithVariable
-        {
-
-            IOngoingDefinitionWithList In(Expression list);
-        }
-
-        public interface IOngoingDefinitionWithList : IOngoingDefinitionWithoutReturn
-        {
-            IOngoingDefinitionWithoutReturn Where(Condition condition);
-        }
     }
 }

@@ -55,15 +55,20 @@
             return FunctionInvocation.Create(BuiltInFunctions.Lists.Keys, param);
         }
 
-        public static FunctionInvocation Exists(Expression expression)
+        public static FunctionInvocation Exists(Expression expression) =>
+            FunctionInvocation.Create(BuiltInFunctions.Predicates.Exists, expression);
+
+        public static FunctionInvocation All(Expression expression) =>
+            FunctionInvocation.Create(BuiltInFunctions.Predicates.All, expression);
+
+        public static FunctionInvocation Count(Node node)
         {
-            return FunctionInvocation.Create(BuiltInFunctions.Predicates.Exists, expression);
+            Ensure.IsNotNull(node, "The node parameter is required.");
+
+            return FunctionInvocation.Create(BuiltInFunctions.Aggregates.Count, node.GetRequiredSymbolicName());
         }
 
-        public static FunctionInvocation All(Expression expression)
-        {
-            return FunctionInvocation.Create(BuiltInFunctions.Predicates.All, expression);
-        }
-
+        public static FunctionInvocation Count(Expression expression) =>
+            FunctionInvocation.Create(BuiltInFunctions.Aggregates.Count, expression);
     }
 }
