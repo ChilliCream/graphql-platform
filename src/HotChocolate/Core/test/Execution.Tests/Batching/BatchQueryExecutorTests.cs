@@ -362,7 +362,7 @@ namespace HotChocolate.Execution.Batching
         // shared executor for AllowParallel_... tests
         private Task<IRequestExecutor> AllowParallelExector()
         {
-            int batchCount = 0;
+            int activeTaskCount = 0;
             return CreateExecutorAsync(c => c
                 .AddQueryType(d => d.Name("Query")
                     .Field("foo")
@@ -370,12 +370,19 @@ namespace HotChocolate.Execution.Batching
                     .Type<StringType>()
                     .Resolve(async c =>
                     {
-                        var bar = c.ArgumentValue<int>("bar");
-                        return await c.BatchDataLoader<int, string>((keys, ctxToken) =>
+                        Interlocked.Increment(ref activeTaskCount);
+                        try
                         {
-                            ++batchCount;
-                            return Task.FromResult(keys.ToDictionary(x => x, x => $"{x}-{batchCount}") as IReadOnlyDictionary<int, string>);
-                        }, "foo").LoadAsync(bar, CancellationToken.None);
+                            await Task.Delay(500);
+                            int activeTasks = activeTaskCount;
+                            await Task.Delay(500);
+                            var bar = c.ArgumentValue<int>("bar");
+                            return $"{bar}-{activeTasks}";
+                        }
+                        finally
+                        {
+                            Interlocked.Decrement(ref activeTaskCount);
+                        }
                     }))
                 );
         }

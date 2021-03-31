@@ -63,15 +63,20 @@ namespace HotChocolate.Execution.Batching
                     hasRemaining = requestIterator.MoveNext();
                     if (next._isBlocking || !_allowParallelExecution || !hasRemaining)
                     {
+                        bool keepRunning = true;
                         foreach (Task<IQueryResult> task in pendingTasks)
                         {
                             IQueryResult result = await task.ConfigureAwait(false);
-                            yield return result;
+                            if (keepRunning)
+                            {
+                                yield return result;
+                            }
                             if (result.Data is null)
                             {
-                                yield break;
+                                keepRunning = false;
                             }
                         }
+                        hasRemaining &= keepRunning;
                         pendingTasks.Clear();
                     }
                 }
