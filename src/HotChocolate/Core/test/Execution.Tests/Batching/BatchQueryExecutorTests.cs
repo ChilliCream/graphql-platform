@@ -359,14 +359,17 @@ namespace HotChocolate.Execution.Batching
             await Assert.ThrowsAsync<ArgumentNullException>(action);
         }
 
-        // shared executor for AllowParallel_... tests
-        private Task<IRequestExecutor> AllowParallelExector()
+        // shared code for AllowParallel_Basic_... tests
+        private async Task AllowParallel_Basic(bool allowParallelExecution)
         {
+            // arrange
+            Snapshot.FullName();
+
             int activeTaskCount = 0;
-            return CreateExecutorAsync(c => c
+            IRequestExecutor executor = await CreateExecutorAsync(c => c
                 .AddQueryType(d => d.Name("Query")
                     .Field("foo")
-                    .Argument("bar", a => a.Type<IntType>())
+                    .Argument("bar", a => a.Type<StringType>())
                     .Type<StringType>()
                     .Resolve(async c =>
                     {
@@ -376,7 +379,7 @@ namespace HotChocolate.Execution.Batching
                             await Task.Delay(500);
                             int activeTasks = activeTaskCount;
                             await Task.Delay(500);
-                            var bar = c.ArgumentValue<int>("bar");
+                            var bar = c.ArgumentValue<string>("bar");
                             return $"{bar}-{activeTasks}";
                         }
                         finally
@@ -385,60 +388,36 @@ namespace HotChocolate.Execution.Batching
                         }
                     }))
                 );
-        }
-
-        [Fact]
-        public async Task AllowParallel_None()
-        {
-            // arrange
-            Snapshot.FullName();
-
-            IRequestExecutor executor = await AllowParallelExector();
 
             // act
             var batch = new List<IReadOnlyQueryRequest>
             {
                 QueryRequestBuilder.New()
                     .SetQuery(
-                        @"{ f1: foo(bar:1), f2: foo(bar:2) }")
+                        @"{ f1: foo(bar:""A""), f2: foo(bar:""B"") }")
                     .Create(),
                 QueryRequestBuilder.New()
                     .SetQuery(
-                        @"{ foo(bar:3) }")
+                        @"{ f3: foo(bar:""C"") }")
                     .Create()
             };
 
-            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
+            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch, allowParallelExecution);
 
             // assert
             await batchResult.ToJsonAsync().MatchSnapshotAsync();
         }
 
         [Fact]
-        public async Task AllowParallel_Basic()
+        public Task AllowParallel_Basic_Off()
         {
-            // arrange
-            Snapshot.FullName();
+            return AllowParallel_Basic(false);
+        }
 
-            IRequestExecutor executor = await AllowParallelExector();
-
-            // act
-            var batch = new List<IReadOnlyQueryRequest>
-            {
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{ f1: foo(bar:1), f2: foo(bar:2) }")
-                    .Create(),
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{ foo(bar:3) }")
-                    .Create()
-            };
-
-            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch, allowParallelExecution: true);
-
-            // assert
-            await batchResult.ToJsonAsync().MatchSnapshotAsync();
+        [Fact]
+        public Task AllowParallel_Basic_On()
+        {
+            return AllowParallel_Basic(true);
         }
     }
 }
