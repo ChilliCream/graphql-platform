@@ -8,17 +8,20 @@ namespace HotChocolate.Types
     /// <summary>
     /// The `LocalCurrency` scalar type is a currency string.
     /// </summary>
-    public class LocalCurrencyType : ScalarType<DecimalType, StringValueNode>
+    public class LocalCurrencyType : ScalarType<decimal, StringValueNode>
     {
         private static CultureInfo _cultureInfo = null!;
+        private decimal _inputValue;
         /// <summary>
         /// Initializes a new instance of the <see cref="LocalTimeType"/> class.
         /// </summary>
         public LocalCurrencyType(
             NameString name,
+            string? description,
             BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, bind)
         {
+            Description = description;
         }
 
         /// <summary>
@@ -26,15 +29,17 @@ namespace HotChocolate.Types
         /// </summary>
         public LocalCurrencyType(
             NameString name,
+            decimal input,
             string? culture,
             string? description = null,
             BindingBehavior bind = BindingBehavior.Explicit)
             : this(
                 name,
+                description,
                 bind)
         {
+            _inputValue = input;
             _cultureInfo = CultureInfo.CreateSpecificCulture(culture ?? "en-US");
-            Description = description;
         }
 
         public override IValueNode ParseResult(object? resultValue)
@@ -42,12 +47,12 @@ namespace HotChocolate.Types
             throw new NotImplementedException();
         }
 
-        protected override DecimalType ParseLiteral(StringValueNode valueSyntax)
+        protected override decimal ParseLiteral(StringValueNode valueSyntax)
         {
             throw new NotImplementedException();
         }
 
-        protected override StringValueNode ParseValue(DecimalType runtimeValue)
+        protected override StringValueNode ParseValue(decimal runtimeValue)
         {
             throw new NotImplementedException();
         }
