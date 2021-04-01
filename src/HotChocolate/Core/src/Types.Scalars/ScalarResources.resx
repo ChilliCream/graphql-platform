@@ -215,7 +215,7 @@
     <value>LocalTimeType cannot parse the provided value. The provided value is not a valid Local Time.</value>
   </data>
   <data name="LocalCurrencyType_Description" xml:space="preserve">
-    <value>The LocalCurrency scalar type is a is a currency string.</value>
+    <value>The LocalCurrency scalar type is a currency string.</value>
   </data>
   <data name="LocalCurrencyType_IsInvalid_ParseLiteral" xml:space="preserve">
     <value>LocalCurrencyType cannot parse the provided literal. The provided value is not a valid local currency.</value>
