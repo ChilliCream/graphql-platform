@@ -21,7 +21,7 @@ Today we are releasing Hot Chocolate server and Strawberry Shake client 11.1. Th
 
 # Strawberry Shake
 
-Let us start with the biggest new feature we built for 11.1, which is Strawberry Shake. 
+Let us start with the biggest new feature we built for 11.1, which is Strawberry Shake.
 
 What the heck is Strawberry Shake, you ask?
 
@@ -47,13 +47,26 @@ When you ask me now what Strawberry Shake is, I would say it is a state manageme
 
 ## State and Entities
 
-Strawberry Shake understands your schema and knows what your entities are. When you interact with your data through Strawberry Shake, you are really interacting against a store that holds this data. The data in this store can be local data or remote data.
+Strawberry Shake understands your schema and knows what your entities are. When you interact with your data through Strawberry Shake, you are really interacting against a store that holds this data. The data in this store is normalized into entities and can be local data or remote data.
 
-GRAPHIC
+```mermaid
+sequenceDiagram
+    participant Generated Client
+    participant Operation Store
+    participant Entity Store
+    participant GraphQL Server
+    Generated Client->>Operation Store: Queries local store
+    Operation Store->>GraphQL Server: Queries GraphQL server
+    Note over Entity Store: Normalize response into entities
+    GraphQL Server->>Entity Store: Returns GraphQL response
+    Note over Operation Store: Builds operation result from entities
+    Entity Store->>Operation Store: Returns entities for operation
+    Operation Store->>Generated Client: Returns operation result
+```
 
 When you write a GraphQL query, we will compile it into C# code. The generated client will know how to decompose the response of your queries into entities. Strawberry Shake knows which query holds the data of which entity.
 
-GRAPHIC
+![Data is normalized into entities.](normalize-entities.png)
 
 ## How it works
 
@@ -61,33 +74,84 @@ Let us have a look at how this all works and make some sense of this long introd
 
 When we write a query like the following:
 
-EXAMPLE GRAPHQL
+```graphql
+query GetSessions {
+  sessions(order: { title: ASC }) {
+    nodes {
+      title
+    }
+  }
+}
+```
 
 We compile the GraphQL operation to a .NET client where each operation becomes a class that can be executed.
 
-EXAMPLE CODE EXECUTE
+```csharp
+public interface IConferenceClient
+{
+    IGetSessionsQuery GetSessions { get; }
+}
 
-This essentially is what we could do with the first public GraphQL client iteration.
+public interface IGetSessionsQuery
+{
+    Task<IOperationResult<IGetSessionsResult>> ExecuteAsync(CancellationToken cancellationToken = default);
+
+    IObservable<IOperationResult<IGetSessionsResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
+}
+```
+
+If we just want a simple fetch we can execute out query like the following and access the data:
+
+```csharp
+var result = await client.GetSessions.ExecuteAsync();
+
+foreach(var session in result.Data.Sessions.Nodes)
+{
+    Console.WriteLine(session.Title);
+}
+```
+
+This essentially is what we could do with the first public GraphQL client iteration of Strawberry Shake.
 
 But I talked about state and how we understand data. Meaning we can also subscribe to our data.
 
-EXAMPLE CODE WATCH
+```csharp
+using var storeSubscription =
+    client
+        .GetSessions
+        .Watch()
+        .Where(result => result.IsSuccessResult())
+        .SelectMany(result => result.Data.Sessions.Nodes)
+        .Subscribe(session => Console.WriteLine(session.Title));
+```
 
 In this case, we are subscribing to our store and triggering an update to this store by fetching new data from the GraphQL server.
 
-GRAPHIC
-
 Whenever entities are changing that make up our operation response, the store will trigger our subscribe delegate, which in consequence will update our UI component.
- 
+
 Entities are changing whenever ANY request is made to the backend, whether it is a real-time request through subscriptions or just a mutation that is changing the data we are watching. For our application development, this means that we do NOT need to make unnecessary re-fetches or build complicated logic to update all the components where some data is displayed. We are just subscribing to the data, and whenever it changes, all components that display that particular piece of information are updated.
+
+So, if we introduced a new mutation that changes a session that is in view in our `GetSessions` query than the store would trigger another update to our subscribe delegate.
+
+```csharp
+await client.UpdateSessionTitle.ExecuteAsync("U2Vzc2lvbgppMzU=", "Abc 123");
+```
 
 ## Execution Strategies
 
-Apart from our data's reactivity, we can also use the store to control when data is fetched.  By default, Strawberry Shake will always first fetch from the network before it accepts updates to entities it is watching.  It would often be more efficient if we first looked at our store and used the data that is already in our memory and at the same time started updating this data. This would lead to a more responsive UI component that has, in most cases, something to display right out of the gate.
+Apart from our data's reactivity, we can also use the store to control when data is fetched. By default, Strawberry Shake will always first fetch from the network before it accepts updates to entities it is watching. It would often be more efficient if we first looked at our store and used the data that is already in our memory and at the same time started updating this data. This would lead to a more responsive UI component that has, in most cases, something to display right out of the gate.
 
 We call this strategy `CacheAndNetwork`.
 
-EXAMPLE
+```csharp
+using var storeSubscription =
+    client
+        .GetSessions
+        .Watch(ExecutionStrategy.CacheAndNetwork) // <-- Define Network Strategy
+        .Where(result => result.IsSuccessResult())
+        .SelectMany(result => result.Data.Sessions.Nodes)
+        .Subscribe(session => Console.WriteLine(session.Title));
+```
 
 Last but not least we have a third strategy to access data which is called `CacheFirst`. This strategy will look at the store first and use the data we already have. Only if the store has no data for the request we are executing will we go to the network to fetch new data.
 
@@ -97,17 +161,29 @@ The last aspect that I want to go into is store persistence. The store that we b
 
 Adding this capability to your application is now really two lines of code:
 
-EXAMPLE
+```csharp
+serviceCollection
+  .AddConferenceClient()
+  .ConfigureInMemoryClient()
+  .ConfigureHttpClient(client => client.BaseAddress = new Uri("..."))
+  .AddSQLitePersistence("Data Source=mydb.db;"); // <-- add persistence
+```
+
+Second, we need to initialize the persistence at which point we load data from the database and track any change to the in-memory stores.
+
+```csharp
+await services.GetRequiredService<SQLitePersistence>().InitializeAsync();
+```
 
 ## Outlook
 
-This is the first real version of Strawberry Shake, and we have planned a lot more for it. 
+This is the first real version of Strawberry Shake, and we have planned a lot more for it.
 
 With 11.2, we are aiming at smoothening any rough edges around the tooling. Moreover, we bring a generator option to generate the client without the store for server-to-server use-cases.
 
 For the next major release, we are looking to bring @stream, @defer, and the MultiPart request specification to StrawberryShake. All things we already support with the Hot Chocolate server. Further, we want to bring more protocols like subscriptions over SignalR and gRPC.
 
-If you want to get started with strawberry shake or read more about its capabilities head over to out documentation. 
+If you want to get started with strawberry shake or read more about its capabilities head over to our [documentation].
 
 Strawberry Shake was mostly built by Pascal, Fred, Rafael, and me.
 
@@ -136,7 +212,7 @@ services
     .AddQueryType<UploadQuery>(); // <--- this registers the new scalar
 ```
 
-To separate the `Upload` scalar from the ASP.NET core dependencies on all things multi-part, we have put the actual scalar into the [HotChocolate.Types.Scalars.Upload] package, which can be used in .NET Standard 2.0 and has only a dependency on [HotChocolate.Types]. 
+To separate the `Upload` scalar from the ASP.NET core dependencies on all things multi-part, we have put the actual scalar into the [HotChocolate.Types.Scalars.Upload] package, which can be used in .NET Standard 2.0 and has only a dependency on [HotChocolate.Types].
 
 When using the new type in our annotation-based approach, you only need to use the new interface `IFile`.
 
@@ -171,7 +247,11 @@ public class QueryType : ObjectType
 
 Finally, in schema-first, you can use the name of the scalar `Upload`.
 
-EXAMPLE
+```sdl
+type mutation {
+  uploadFile(file: Upload): Uri
+}
+```
 
 Most of the work on this feature was done by Tobias Tengler, who is one of our community members. He worked like most of us in his free time on this. Thank you, Tobias; we will put your code to good use.
 
@@ -185,7 +265,7 @@ The new collection of scalars are published in the package [HotChocolate.Types.S
 
 | Type             | Description                                                                                                                                                                                                             |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| EmailAddress     | The `EmailAddress` scalar type represents an email address, represented as UTF-8 character sequences that follows the specification defined in RFC 5322.                                                                 |
+| EmailAddress     | The `EmailAddress` scalar type represents an email address, represented as UTF-8 character sequences that follows the specification defined in RFC 5322.                                                                |
 | HexColor         | The `HexColor` scalar type represents a valid HEX color code.                                                                                                                                                           |
 | Hsl              | The `Hsl` scalar type represents a valid a CSS HSL color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.                                                                       |
 | Hsla             | The `Hsla` scalar type represents a valid a CSS HSLA color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.                                                                     |
@@ -208,13 +288,13 @@ The new collection of scalars are published in the package [HotChocolate.Types.S
 | Port             | The `Port` scalar type represents a field whose value is a valid TCP port within the range of 0 to 65535.                                                                                                               |
 | Rgb              | The `RGB` scalar type represents a valid CSS RGB color as defined here [MDN](<https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba()>).                                                          |
 | Rgba             | The `RGBA` scalar type represents a valid CSS RGBA color as defined here [MDN](<https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba()>).                                                        |
-| UnsignedInt      | The `UnsignedInt` scalar type represents an unsigned 32‐bit numeric non‐fractional value greater than or equal to 0.                                                                                                     |
-| UnsignedLong     | The `UnsignedLong` scalar type represents an unsigned 64‐bit numeric non‐fractional value greater than or equal to 0.                                                                                                    |
+| UnsignedInt      | The `UnsignedInt` scalar type represents an unsigned 32‐bit numeric non‐fractional value greater than or equal to 0.                                                                                                    |
+| UnsignedLong     | The `UnsignedLong` scalar type represents an unsigned 64‐bit numeric non‐fractional value greater than or equal to 0.                                                                                                   |
 | UtcOffset        | The `UtcOffset` scalar type represents a value of format `±hh:mm`.                                                                                                                                                      |
 
 Most of the work on this new library was done by [Gergory], who also put his free time into Hot Chocolate. We are happy to have you onboard, Gregory!
 
-> More about this topic can be read [here](../../docs/hotchocolate/defining-a-schema/scalars.md).
+> More about this topic can be read [here](https://chillicream.com/docs/hotchocolate/defining-a-schema/scalars/).
 
 ## Type Extensions
 
@@ -394,7 +474,7 @@ As I initially said, a lot of these thing could already be achieved by using the
 
 It also completes the annotation-based approach further and gives us more tools to create schemas with only C#.
 
-> More about this topic can be read [here](../../docs/hotchocolate/defining-a-schema/extending-types.md).
+> More about this topic can be read [here](https://chillicream.com/docs/hotchocolate/defining-a-schema/extending-types/).
 
 ## MongoDB integration
 
@@ -456,7 +536,7 @@ public IExecutable<Person> GetPersonById(
 
 This feature was implemented by Pascal, who is the third person who became a Chilli. Together Pascal and I are building most of the Hot Chocolate server and gateway.
 
-> More about this topic can be read [here](../../docs/hotchocolate/defining-a-schema/extending-types.md).
+> More about this topic can be read [here](https://chillicream.com/docs/hotchocolate/integrations/mongodb/).
 
 ## Directive Introspection
 
@@ -555,11 +635,11 @@ You can even hide directives on runtime based on the user's permission. But as s
 
 # Summing up
 
-Version 11.1 again is a significant update to the platform and has many more things packed that I did not have the time to list here. 
+Version 11.1 again is a significant update to the platform and has many more things packed that I did not have the time to list here.
 
 Version 11.2 will mainly round out features of 11.1. The next major update is planned for the end of June 2021 and will focus on distributed schemas, Neo4J, and Banana Cake Pop. With the June update, we will finally bring a release version of Banana Cake Pop that will pack many new things.
 
-We are doing as before a community gathering where we will walk you through all things new to version 11.1. You can join us by signing up for our [hot chocolate 11.1 launch party]. 
+We are doing as before a community gathering where we will walk you through all things new to version 11.1. You can join us by signing up for our [hot chocolate 11.1 launch party].
 
 [hot chocolate 11 launch party]: https://www.meetup.com/ChilliCream-User-Group/events/274656703/
 [graphql multipart request specification]: https://github.com/jaydenseric/graphql-multipart-request-spec
@@ -569,3 +649,4 @@ We are doing as before a community gathering where we will walk you through all 
 [hotchocolate.data.mongodb]: https://www.nuget.org/packages/HotChocolate.Data.MongoDb/
 [the guild]: https://the-guild.dev
 [gregory]: https://twitter.com/wonbyte
+[documentation]: https://chillicream.com/docs/strawberryshake/
