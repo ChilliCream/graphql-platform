@@ -185,7 +185,7 @@ For the next major release, we are looking to bring @stream, @defer, and the Mul
 
 If you want to get started with strawberry shake or read more about its capabilities head over to our [documentation].
 
-Strawberry Shake was mostly built by Pascal, Fred, Rafael, and me.
+Strawberry Shake was mostly built by [Pascal], [Fred], [Rafael], and [me].
 
 # Hot Chocolate
 
@@ -253,7 +253,7 @@ type mutation {
 }
 ```
 
-Most of the work on this feature was done by Tobias Tengler, who is one of our community members. He worked like most of us in his free time on this. Thank you, Tobias; we will put your code to good use.
+Most of the work on this feature was done by [Tobias Tengler], who is one of our community members. He worked like most of us in his free time on this. Thank you, Tobias; we will put your code to good use.
 
 ## Scalars, Scalars, Scalars
 
@@ -534,7 +534,7 @@ public IExecutable<Person> GetPersonById(
 }
 ```
 
-This feature was implemented by Pascal, who is the third person who became a Chilli. Together Pascal and I are building most of the Hot Chocolate server and gateway.
+This feature was implemented by [Pascal], who is the third person who became a Chilli. Together [Pascal] and [I] are building most of the Hot Chocolate server and gateway.
 
 > More about this topic can be read [here](https://chillicream.com/docs/hotchocolate/integrations/mongodb/).
 
@@ -705,4 +705,10 @@ We are doing as before a community gathering where we will walk you through all 
 [hotchocolate.data.mongodb]: https://www.nuget.org/packages/HotChocolate.Data.MongoDb/
 [the guild]: https://the-guild.dev
 [gregory]: https://twitter.com/wonbyte
+[tobias tengler]: https://twitter.com/tobiastengler
+[me]: https://twitter.com/michael_staib
+[i]: https://twitter.com/michael_staib
+[rafael]: https://twitter.com/rafaelstaib
+[pascal]: https://twitter.com/Pascal_Senn
+[fred]: https://github.com/fredericbirke
 [documentation]: https://chillicream.com/docs/strawberryshake/
