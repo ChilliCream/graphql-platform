@@ -15,6 +15,10 @@ using TypeInfo = HotChocolate.Internal.TypeInfo;
 
 namespace HotChocolate.Types.Descriptors
 {
+    /// <summary>
+    /// The default type inspector implementation that provides helpers to inspect .NET types and
+    /// infer GraphQL type structures.
+    /// </summary>
     public class DefaultTypeInspector
         : Convention
         , ITypeInspector
@@ -66,7 +70,7 @@ namespace HotChocolate.Types.Descriptors
         public virtual IEnumerable<MemberInfo> GetMembers(Type type) => GetMembers(type, false);
 
         /// <inheritdoc />
-        public IEnumerable<MemberInfo> GetMembers(Type type, bool includeIgnored)
+        public virtual IEnumerable<MemberInfo> GetMembers(Type type, bool includeIgnored)
         {
             if (type is null)
             {
@@ -74,6 +78,17 @@ namespace HotChocolate.Types.Descriptors
             }
 
             return GetMembersInternal(type, includeIgnored);
+        }
+
+        /// <inheritdoc />
+        public virtual bool IsMemberIgnored(MemberInfo member)
+        {
+            if (member is null)
+            {
+                throw new ArgumentNullException(nameof(member));
+            }
+
+            return member.IsDefined(typeof(GraphQLIgnoreAttribute));
         }
 
         private IEnumerable<MemberInfo> GetMembersInternal(Type type, bool includeIgnored) =>
@@ -584,14 +599,14 @@ namespace HotChocolate.Types.Descriptors
             return false;
         }
 
-        private static bool CanBeHandled(MemberInfo member, bool includeIgnored)
+        private bool CanBeHandled(MemberInfo member, bool includeIgnored)
         {
             if (IsSystemMember(member))
             {
                 return false;
             }
 
-            if (!includeIgnored && member.IsDefined(typeof(GraphQLIgnoreAttribute)))
+            if (!includeIgnored && IsMemberIgnored(member))
             {
                 return false;
             }
