@@ -292,7 +292,7 @@ The new collection of scalars are published in the package [HotChocolate.Types.S
 | UnsignedLong     | The `UnsignedLong` scalar type represents an unsigned 64‐bit numeric non‐fractional value greater than or equal to 0.                                                                                                   |
 | UtcOffset        | The `UtcOffset` scalar type represents a value of format `±hh:mm`.                                                                                                                                                      |
 
-Most of the work on this new library was done by [Gergory], who also put his free time into Hot Chocolate. We are happy to have you onboard, Gregory!
+Most of the work on this new library was done by [Gregory], who also put his free time into Hot Chocolate. We are happy to have you onboard, Gregory!
 
 > More about this topic can be read [here](https://chillicream.com/docs/hotchocolate/defining-a-schema/scalars/).
 
@@ -695,9 +695,9 @@ Version 11.1 again is a significant update to the platform and has many more thi
 
 Version 11.2 will mainly round out features of 11.1. The next major update is planned for the end of June 2021 and will focus on distributed schemas, Neo4J, and Banana Cake Pop. With the June update, we will finally bring a release version of Banana Cake Pop that will pack many new things.
 
-We are doing as before a community gathering where we will walk you through all things new to version 11.1. You can join us by signing up for our [hot chocolate 11.1 launch party].
+We are doing as before a community gathering where we will walk you through all things new to version 11.1. You can join us by signing up for our [ChilliCream Platform 11.1 launch].
 
-[hot chocolate 11 launch party]: https://www.meetup.com/ChilliCream-User-Group/events/274656703/
+[chillicream platform 11.1 launch]: https://www.meetup.com/ChilliCream-User-Group/events/277223506/
 [graphql multipart request specification]: https://github.com/jaydenseric/graphql-multipart-request-spec
 [hotchocolate.types.scalars.upload]: https://www.nuget.org/packages/HotChocolate.Types.Scalars.Upload/
 [hotchocolate.types]: https://www.nuget.org/packages/HotChocolate.Types/
