@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate;
+using StrawberryShake.CodeGeneration.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
 {
@@ -11,7 +12,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
             RuntimeTypeInfo runtimeType,
             string? documentation)
         {
-            Name = name;
+            Name = NameUtils.GetClassName(name);
             RuntimeType = runtimeType;
             Documentation = documentation;
         }

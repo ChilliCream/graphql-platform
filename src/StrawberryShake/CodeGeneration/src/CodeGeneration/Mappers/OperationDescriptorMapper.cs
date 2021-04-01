@@ -17,19 +17,20 @@ namespace StrawberryShake.CodeGeneration.Mappers
             foreach (OperationModel modelOperation in model.Operations)
             {
                 var arguments = modelOperation.Arguments.Select(
-                    arg =>
-                    {
-                        NameString typeName = arg.Type.TypeName();
+                        arg =>
+                        {
+                            NameString typeName = arg.Type.TypeName();
 
-                        INamedTypeDescriptor namedTypeDescriptor =
-                            context.Types.Single(type => type.Name.Equals(typeName));
+                            INamedTypeDescriptor namedTypeDescriptor =
+                                context.Types.Single(type =>
+                                    type.Name.Equals(Utilities.NameUtils.GetClassName(typeName)));
 
-                        return new PropertyDescriptor(
-                            arg.Name,
-                            arg.Variable.Variable.Name.Value,
-                            Rewrite(arg.Type, namedTypeDescriptor),
-                            null);
-                    })
+                            return new PropertyDescriptor(
+                                arg.Name,
+                                arg.Variable.Variable.Name.Value,
+                                Rewrite(arg.Type, namedTypeDescriptor),
+                                null);
+                        })
                     .ToList();
 
                 RuntimeTypeInfo resultType = context.GetRuntimeType(

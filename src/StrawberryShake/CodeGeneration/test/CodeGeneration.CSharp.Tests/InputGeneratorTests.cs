@@ -68,5 +68,37 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 FileResource.Open("StarWarsSchema_ChangeHomePlanet.graphql"),
                 "extend schema @key(fields: \"id\")");
         }
+
+        [Fact]
+        public void KeywordCollisions()
+        {
+            AssertResult(
+                @"query readonly($input: abstract!) {
+                    readonly(readonly: $input) {
+                        abstract
+                    }
+                    readonlyEntity {
+                        id
+                        abstract
+                    }
+                }",
+                @"
+                type Query {
+                    readonly(readonly: abstract): readonly
+                    readonlyEntity: readonlyEntity
+                }
+                input abstract {
+                    class: String
+                }
+                type readonly {
+                    abstract: String
+                }
+                type readonlyEntity {
+                    id: ID
+                    abstract: String
+                }
+                ",
+                "extend schema @key(fields: \"id\")");
+        }
     }
 }
