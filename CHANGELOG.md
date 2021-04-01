@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Addtional HotChocolate scalars  (HotChocolate.Types.Scalars)
+- Additional HotChocolate scalars  (HotChocolate.Types.Scalars)
     - PhoneNumber (#2995)
     - EmailAddress (#2989)
     - NegativeFloat (#2996)
