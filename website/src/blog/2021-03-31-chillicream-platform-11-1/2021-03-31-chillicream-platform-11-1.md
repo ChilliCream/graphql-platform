@@ -1,5 +1,5 @@
 ---
-path: "/blog/2021/03/31/hot-chocolate-11-1"
+path: "/blog/2021/03/31/chillicream-platform-11-1"
 date: "2021-03-31"
 title: "ChilliCream Platform Update 11.1"
 tags:
@@ -11,7 +11,7 @@ tags:
     "aspnetcore",
     "blazor",
   ]
-featuredImage: "hot-chocolate-11-banner.png"
+featuredImage: "chillicream-platform-11-1-banner.png"
 author: Michael Staib
 authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
