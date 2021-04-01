@@ -18,7 +18,7 @@ namespace HotChocolate.Types
         public LocalCurrencyType()
             : this(
                 WellKnownScalarTypes.LocalCurency,
-                ScalarResources.LocalCurrencyType_Description)
+               description: ScalarResources.LocalCurrencyType_Description)
         {
         }
 
@@ -27,15 +27,15 @@ namespace HotChocolate.Types
         /// </summary>
         public LocalCurrencyType(
             NameString name,
-            string? culture,
+            string culture = "en-US",
             string? description = null,
             BindingBehavior bind = BindingBehavior.Explicit)
             : base(
                 name,
                 bind)
         {
+            _cultureInfo = CultureInfo.CreateSpecificCulture(culture);
             Description = description;
-            _cultureInfo = CultureInfo.CreateSpecificCulture(culture ?? "en-US");
         }
 
         public override IValueNode ParseResult(object? resultValue)
