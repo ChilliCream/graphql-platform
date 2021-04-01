@@ -6,7 +6,7 @@ import styled from "styled-components";
 import { GetIndexPageDataQuery } from "../../graphql-types";
 import { BananaCakePop } from "../components/images/banana-cake-pop";
 import { BlogPostEFMeetsGraphQL } from "../components/images/blog-post-ef-meets-graphql";
-import { BlogPostStrawberryShake } from "../components/images/blog-post-strawberry-shake";
+import { BlogPostChilliCreamPlatform } from "../components/images/blog-post-chillicream-platform-11-1";
 import { BlogPostVersion11 } from "../components/images/blog-post-version-11";
 import { Link } from "../components/misc/link";
 import {
@@ -108,6 +108,11 @@ const IndexPage: FunctionComponent = () => {
           showThumbs={false}
         >
           <Slide>
+            <Link to="/blog/2021/03/31/chillicream-platform-11-1">
+              <BlogPostChilliCreamPlatform />
+            </Link>
+          </Slide>
+          <Slide>
             <Link to="/blog/2020/11/23/hot-chocolate-11">
               <BlogPostVersion11 />
             </Link>
@@ -133,11 +138,6 @@ const IndexPage: FunctionComponent = () => {
                   Get started with Hot Chocolate and Entity Framework
                 </SlideDescription>
               </SlideContent>
-            </Link>
-          </Slide>
-          <Slide>
-            <Link to="/blog/2019/11/25/strawberry-shake_2">
-              <BlogPostStrawberryShake />
             </Link>
           </Slide>
         </Slideshow>
