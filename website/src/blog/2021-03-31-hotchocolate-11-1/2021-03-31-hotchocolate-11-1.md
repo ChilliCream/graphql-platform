@@ -209,7 +209,7 @@ When using the `HotChocolate.AspNetCore` package, your server out-of-the-box sup
 services
     .AddGraphQLServer()
     .AddQueryType<Query>()
-    .AddQueryType<UploadQuery>(); // <--- this registers the new scalar
+    .AddType<UploadType>(); // <--- this registers the new scalar
 ```
 
 To separate the `Upload` scalar from the ASP.NET core dependencies on all things multi-part, we have put the actual scalar into the [HotChocolate.Types.Scalars.Upload] package, which can be used in .NET Standard 2.0 and has only a dependency on [HotChocolate.Types].
@@ -223,7 +223,7 @@ public class Mutation
 {
     public async Task<NewUserPayload> CreateNewUser(CreateNewUserInput input)
     {
-        using Stream stream = input.OpenReadStream();
+        using Stream stream = input.ProfilePicture.OpenReadStream();
         // do your work with the streamed file here
     }
 }
