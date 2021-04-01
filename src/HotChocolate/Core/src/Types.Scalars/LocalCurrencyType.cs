@@ -101,7 +101,7 @@ namespace HotChocolate.Types
 
         private static string Serialize(IFormattable value)
         {
-            return value.ToString("c", CultureInfo.CreateSpecificCulture(_cultureInfo.ToString()));
+            return value.ToString("c", _cultureInfo);
         }
 
         private static bool TryDeserializeFromString(
