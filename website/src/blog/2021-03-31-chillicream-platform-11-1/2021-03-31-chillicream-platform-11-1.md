@@ -231,7 +231,7 @@ public class Mutation
 
 You can also use `IFile` directly as an argument or in lists.
 
-For code-first, when you want to declare this explicitly, you can use the actual type `UploadQuery`,
+For code-first, when you want to declare this explicitly, you can use the actual type `UploadType`,
 
 ```csharp
 public class QueryType : ObjectType
@@ -537,6 +537,62 @@ public IExecutable<Person> GetPersonById(
 This feature was implemented by Pascal, who is the third person who became a Chilli. Together Pascal and I are building most of the Hot Chocolate server and gateway.
 
 > More about this topic can be read [here](https://chillicream.com/docs/hotchocolate/integrations/mongodb/).
+
+## Mutation Transactions
+
+Another area where we are making it easier for users is with our new mutation transactions. Mutation transactions are an opt-in feature, so you need to activate it to use it.
+
+This is to make it easy to wrap transactions around the execution of mutation requests which is especially useful if you are executing multiple mutations at once. To have a `System.Transactions.TransactionScope` wrapped around your mutation request, you only need to add the following configuration to your GraphQL server configuration:
+
+```csharp
+services
+    .AddGraphQLServer()
+    ...
+    .AddDefaultTransactionScopeHandler();
+```
+
+The default implementation looks like the following:
+
+```csharp
+/// <summary>
+/// Represents the default mutation transaction scope handler implementation.
+/// </summary>
+public class DefaultTransactionScopeHandler : ITransactionScopeHandler
+{
+    /// <summary>
+    /// Creates a new transaction scope for the current
+    /// request represented by the <see cref="IRequestContext"/>.
+    /// </summary>
+    /// <param name="context">
+    /// The GraphQL request context.
+    /// </param>
+    /// <returns>
+    /// Returns a new <see cref="ITransactionScope"/>.
+    /// </returns>
+    public virtual ITransactionScope Create(IRequestContext context)
+    {
+        return new DefaultTransactionScope(
+            context,
+            new TransactionScope(
+                TransactionScopeOption.Required,
+                new TransactionOptions
+                {
+                    IsolationLevel = IsolationLevel.ReadCommitted
+                }));
+    }
+}
+```
+
+You can also implement your very own transaction handler by implementing `ITransactionScopeHandler` on your own. Custom transaction scope handlers are registered like the following:
+
+```csharp
+services
+    .AddGraphQLServer()
+    ...
+    .AddTransactionScopeHandler<CustomTransactionScopeHandler>();
+```
+
+> More about this topic can be read [here](https://chillicream.com/docs/hotchocolate/defining-a-schema/operations/#mutation-transactions/).
 
 ## Directive Introspection
 
