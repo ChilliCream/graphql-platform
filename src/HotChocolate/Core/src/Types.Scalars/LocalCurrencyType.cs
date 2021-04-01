@@ -40,17 +40,83 @@ namespace HotChocolate.Types
 
         public override IValueNode ParseResult(object? resultValue)
         {
-            throw new NotImplementedException();
+            return resultValue switch
+            {
+                null => NullValueNode.Default,
+                string s => new StringValueNode(s),
+                decimal d => ParseValue(d),
+                _ => throw ThrowHelper.LocalCurrencyType_ParseValue_IsInvalid(this)
+            };
         }
 
         protected override decimal ParseLiteral(StringValueNode valueSyntax)
         {
-            throw new NotImplementedException();
+            if (TryDeserializeFromString(valueSyntax.Value, out var value))
+            {
+                return value.Value;
+            }
+
+            throw ThrowHelper.LocalTimeType_ParseLiteral_IsInvalid(this);
         }
 
         protected override StringValueNode ParseValue(decimal runtimeValue)
         {
-            throw new NotImplementedException();
+            return new(Serialize(runtimeValue));
+        }
+
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+        {
+            switch (runtimeValue)
+            {
+                case null:
+                    resultValue = null;
+                    return true;
+                case decimal d:
+                    resultValue = Serialize(d);
+                    return true;
+                default:
+                    resultValue = null;
+                    return false;
+            }
+        }
+
+        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
+        {
+            switch (resultValue)
+            {
+                case null:
+                    runtimeValue = null;
+                    return true;
+                case string s when TryDeserializeFromString(s, out var d):
+                    runtimeValue = d;
+                    return true;
+                case decimal d:
+                    runtimeValue = d;
+                    return true;
+                default:
+                    runtimeValue = null;
+                    return false;
+            }
+        }
+
+        private static string Serialize(IFormattable value)
+        {
+            return value.ToString("c", CultureInfo.CreateSpecificCulture(_cultureInfo.ToString()));
+        }
+
+        private static bool TryDeserializeFromString(
+            string? serialized,
+            [NotNullWhen(true)] out decimal? value)
+        {
+            if (serialized is not null
+                && decimal.TryParse(serialized, NumberStyles.Currency, _cultureInfo, out var dec))
+            {
+                value = dec;
+                return true;
+            }
+
+            value = null;
+            return false;
         }
     }
 }
