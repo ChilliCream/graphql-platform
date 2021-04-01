@@ -9,32 +9,22 @@ export const PageTop: FunctionComponent<{ onTopScroll: () => void }> = ({
   onTopScroll,
 }) => {
   const ref = createRef<HTMLButtonElement>();
-  const showButton = useSelector<State, boolean>(
-    (state) => state.common.yScrollPosition > 60
+  const hideButton = useSelector<State, boolean>(
+    (state) => state.common.yScrollPosition <= 60
   );
 
   return (
-    <JumpToTop
-      className={showButton ? "show" : ""}
-      ref={ref}
-      onClick={onTopScroll}
-    >
+    <JumpToTop hideButton={hideButton} ref={ref} onClick={onTopScroll}>
       <ArrowUpIconSvg />
     </JumpToTop>
   );
 };
 
-const JumpToTop = styled.button`
-  display: none;
-  &.show {
-    display: initial;
-  }
-
+const JumpToTop = styled.button<{ hideButton: boolean }>`
   position: fixed;
   right: 50px;
   bottom: 50px;
   z-index: 20;
-  display: none;
   border-radius: 50%;
   padding: 8px;
   width: 50px;
@@ -56,4 +46,14 @@ const JumpToTop = styled.button`
   @media only screen and (min-width: 1600px) {
     right: calc(((100vw - 1320px) / 2) - 100px);
   }
+
+  ${({ hideButton }) => {
+    if (hideButton) {
+      return `
+        height: 0;
+        overflow: hidden;
+        box-shadow: none;
+      `;
+    }
+  }}
 `;

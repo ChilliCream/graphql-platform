@@ -228,11 +228,11 @@ Welcome to your new app.
 <SurveyPrompt Title="How is Blazor working for you?" />
 
 @code {
-    private string[] titles = Array.Empty<string>(); 
+    private string[] titles = Array.Empty<string>();
 
-    protected override async Task OnInitializedAsync() 
+    protected override async Task OnInitializedAsync()
     {
-        var result = await ConferenceClient.GetSessions.ExecuteAsync(); 
+        var result = await ConferenceClient.GetSessions.ExecuteAsync();
         titles = result.Data.Sessions.Nodes.Select(t => t.Title).ToArray();
     }
 }
@@ -261,7 +261,7 @@ Welcome to your new app.
 
     protected override async Task OnInitializedAsync()
     {
-        var result = await ConferenceClient.GetSessions.ExecuteAsync(); 
+        var result = await ConferenceClient.GetSessions.ExecuteAsync();
         titles = result.Data.Sessions.Nodes.Select(t => t.Title).ToArray();
     }
 }
@@ -465,7 +465,7 @@ fragment SessionInfo on Session {
 mutation RenameSession($sessionId: ID!, $title: String!) {
   renameSession(input: { sessionId: $sessionId, title: $title }) {
     session {
-      ... SessionInfo
+      ...SessionInfo
     }
   }
 }

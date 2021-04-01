@@ -13,7 +13,7 @@ dotnet add package HotChocolate.Stitching
 ```
 
 ```csharp
-public static class WellKnownSchemaNames 
+public static class WellKnownSchemaNames
 {
     public const string Accounts = "accounts";
     public const string Inventory = "inventory";
@@ -59,4 +59,5 @@ services
 For further configuration with extension files, have a look at [Schema Configuration](/docs/hotchocolate/distributed-schema/schema-configuration)
 
 # Example
+
 You can find a full schema stitching example here [Centralized Schema Stitching](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/Stitching/centralized)

@@ -103,8 +103,8 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
                   ? "active"
                   : ""
                 : isActive(selectedPath, itemPath)
-                  ? "active"
-                  : ""
+                ? "active"
+                : ""
             }
             onClick={handleClickNavigationItem}
           >
@@ -256,16 +256,17 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
                 title: item!.title!,
                 items: item!.items
                   ? item?.items
-                    .filter((item) => !!item)
-                    .map<Item>((item) => ({
-                      path: item!.path!,
-                      title: item!.title!,
-                    }))
+                      .filter((item) => !!item)
+                      .map<Item>((item) => ({
+                        path: item!.path!,
+                        title: item!.title!,
+                      }))
                   : undefined,
               })),
-            `/docs/${activeProduct!.path!}${activeVersion?.path?.length && activeVersion.path.length > 0
-              ? "/" + activeVersion.path!
-              : ""
+            `/docs/${activeProduct!.path!}${
+              activeVersion?.path?.length && activeVersion.path.length > 0
+                ? "/" + activeVersion.path!
+                : ""
             }`
           )}
         </MostProminentSection>

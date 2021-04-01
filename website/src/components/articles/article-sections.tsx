@@ -37,7 +37,8 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
       .map((item) => ({
         id: item.url,
         position:
-          (document.getElementById(item.url.substring(1))?.offsetTop ?? 80) - 80,
+          (document.getElementById(item.url.substring(1))?.offsetTop ?? 80) -
+          80,
       }))
       .reverse();
 
@@ -45,9 +46,14 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
   }, [data]);
 
   useEffect(() => {
-    setActiveHeadingId(
-      headings.find((id) => yScrollPosition >= id.position)?.id
+    const activeHeading = headings.find((id) => yScrollPosition >= id.position)
+      ?.id;
+    window.history.pushState(
+      undefined,
+      activeHeading || "ChilliCream Docs",
+      "./" + (activeHeading || "")
     );
+    setActiveHeadingId(activeHeading);
   }, [headings, yScrollPosition]);
 
   const tocItems: TableOfContentItem[] = data.tableOfContents.items ?? [];
@@ -125,8 +131,8 @@ const Title = styled.h6`
 `;
 
 const TocItemContainer = styled.ul`
-  display: flex;
-  flex-direction: column;
+  position: absolute;
+  display: block;
   margin: 0;
   padding: 0 25px 10px;
   list-style-type: none;

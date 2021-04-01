@@ -311,7 +311,7 @@ descriptor.Field(...).UsePaging(maxPageSize = 100)...
 
 ## Projections
 
-The selection middleware, that was available in `HotChocolate.Types.Selections` was replaced by the projection middleware from `HotChocolate.Data`. 
+The selection middleware, that was available in `HotChocolate.Types.Selections` was replaced by the projection middleware from `HotChocolate.Data`.
 
 **Old:**
 
@@ -325,7 +325,7 @@ descriptor.Field(...).UseSelection()...
 descriptor.Field(...).UseProjection()...
 ```
 
-Similarly, the attribute `[UseSelection]` was replaced by `[UseProjection]`. 
+Similarly, the attribute `[UseSelection]` was replaced by `[UseProjection]`.
 
 To use projections with your GraphQL endpoint you have to register it on the schema:
 
@@ -692,6 +692,7 @@ downstream schemas.
 ```
 
 ## Batch responses
+
 In v10, responses to batched operations were returned as a JsonArray. In v11 the default is to return MultiPartChunked responses. To switch back to JsonArray, configure the HttpResult serializer as follows:
 
 ```csharp

@@ -284,8 +284,7 @@ A little simplified this is what happens during visitation:
 ```graphql
 {
   users(
-    where: # instance[0] = x # Create SCOPE 1 with parameter x of type User
-    # level[0] = []
+    where: # level[0] = [] # instance[0] = x # Create SCOPE 1 with parameter x of type User
     {
       # Push property User.Company onto the scope
       # instance[1] =  x.Company

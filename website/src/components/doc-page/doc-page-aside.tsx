@@ -42,6 +42,7 @@ export const DocPageAside: FunctionComponent = ({ children }) => {
 export const Aside = styled.aside<{ calculatedHeight: string }>`
   ${DocPageStickySideBarStyle}
 
+  height: 100%;
   margin-left: 0;
   transition: transform 250ms;
   background-color: white;

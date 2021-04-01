@@ -10,5 +10,10 @@ const rootReducer = combineReducers<State>({
 });
 
 export default function createStore(preloadedState: State) {
-  return createReduxStore(rootReducer, preloadedState);
+  return createReduxStore(
+    rootReducer,
+    preloadedState,
+    (window as any).__REDUX_DEVTOOLS_EXTENSION__ &&
+      (window as any).__REDUX_DEVTOOLS_EXTENSION__()
+  );
 }
