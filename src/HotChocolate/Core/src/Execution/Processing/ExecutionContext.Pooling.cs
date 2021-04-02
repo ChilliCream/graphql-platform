@@ -1,6 +1,5 @@
 using System;
 using System.Threading;
-using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
 
@@ -27,7 +26,6 @@ namespace HotChocolate.Execution.Processing
             _taskBacklog = new TaskBacklog(_taskStatistics, resolverTaskPool);
             _deferredTaskBacklog = new DeferredTaskBacklog();
             _taskPool = resolverTaskPool;
-            _taskStatistics.StateChanged += TaskStatisticsEventHandler;
             _taskStatistics.AllTasksCompleted += OnCompleted;
         }
 
@@ -40,10 +38,10 @@ namespace HotChocolate.Execution.Processing
             _completed = new CancellationTokenSource();
             requestAborted.Register(TryComplete);
 
-            _batchDispatcher = batchDispatcher;
-            _batchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
-
             _isPooled = false;
+
+            _batchDispatcher = batchDispatcher;
+            _batchDispatcher.Register(this);
         }
 
         private void TryComplete()
@@ -68,7 +66,7 @@ namespace HotChocolate.Execution.Processing
         {
             if (_batchDispatcher is not null!)
             {
-                _batchDispatcher.TaskEnqueued -= BatchDispatcherEventHandler;
+                _batchDispatcher.Unregister(this);
                 _batchDispatcher = default!;
             }
 

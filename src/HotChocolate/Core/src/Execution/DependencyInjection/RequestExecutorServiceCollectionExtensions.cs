@@ -185,14 +185,6 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        public static IServiceCollection AddBatchDispatcher<T>(this IServiceCollection services)
-            where T : class, IBatchDispatcher
-        {
-            services.RemoveAll<IBatchDispatcher>();
-            services.AddScoped<IBatchDispatcher, T>();
-            return services;
-        }
-
         public static IServiceCollection AddBatchScheduler<T>(this IServiceCollection services)
             where T : class, IBatchScheduler
         {

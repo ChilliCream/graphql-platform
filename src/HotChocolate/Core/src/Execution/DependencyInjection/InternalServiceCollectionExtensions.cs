@@ -14,6 +14,7 @@ using HotChocolate.Fetching;
 using HotChocolate.Language;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
+using HotChocolate.Execution.Batching;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

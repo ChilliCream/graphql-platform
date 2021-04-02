@@ -24,10 +24,7 @@ namespace HotChocolate.Execution.Processing
 
         ITaskStatistics TaskStats { get; }
 
-        /// <summary>
-        /// Gets the batch dispatcher.
-        /// </summary>
-        IBatchDispatcher BatchDispatcher { get; }
+        public IExecutionTaskContext TaskContext { get; }
 
         bool IsCompleted { get; }
 
