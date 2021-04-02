@@ -1,5 +1,9 @@
 using System;
+using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -317,6 +321,35 @@ namespace HotChocolate.Types
 
             // assert
             Assert.IsType<SerializationException>(result);
+        }
+
+        [Fact]
+        public async Task Integration_DefaultLocalCurrency()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<DefaultLocalCurrencyType>()
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult res = await executor.ExecuteAsync("{ test }");
+
+            // assert
+            res.ToJson().MatchSnapshot();
+        }
+
+        public class DefaultLocalCurrency
+        {
+            public decimal Test => new();
+        }
+
+        public class DefaultLocalCurrencyType : ObjectType<DefaultLocalCurrency>
+        {
+            protected override void Configure(IObjectTypeDescriptor<DefaultLocalCurrency> descriptor)
+            {
+                descriptor.Field(x => x.Test).Type<LocalCurrencyType>();
+            }
         }
     }
 }
