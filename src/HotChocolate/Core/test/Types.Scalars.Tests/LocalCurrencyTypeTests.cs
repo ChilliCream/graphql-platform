@@ -1,8 +1,5 @@
 using System;
-using System.Globalization;
-using System.Threading;
 using HotChocolate.Language;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -69,7 +66,7 @@ namespace HotChocolate.Types
             // arrange
             ScalarType scalar = CreateType<LocalCurrencyType>();
             var valueSyntax = new StringValueNode("$24.99");
-            var expectedResult = 24.99m;
+            const decimal expectedResult = 24.99m;
 
             // act
             object result = (decimal)scalar.ParseLiteral(valueSyntax)!;
@@ -84,7 +81,7 @@ namespace HotChocolate.Types
             // arrange
             ScalarType scalar = new LocalCurrencyType("Germany", "de-DE");
             var valueSyntax = new StringValueNode("24,99 €");
-            var expectedResult = 24.99m;
+            const decimal expectedResult = 24.99m;
 
             // act
             object result = (decimal)scalar.ParseLiteral(valueSyntax)!;
@@ -103,13 +100,13 @@ namespace HotChocolate.Types
             // arrange
             ScalarType scalar = new LocalCurrencyType(name, cultureName);
             var valueSyntax = new StringValueNode("9.99");
-            var expectedDateTime = 9.99m;
+            const decimal expectedDecimal = 9.99m;
 
             // act
-            var dateTime = (decimal)scalar.ParseLiteral(valueSyntax)!;
+            var result = (decimal)scalar.ParseLiteral(valueSyntax)!;
 
             // assert
-            Assert.Equal(expectedDateTime, dateTime);
+            Assert.Equal(expectedDecimal, result);
         }
 
         [Fact]
@@ -131,7 +128,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = CreateType<LocalCurrencyType>();
-            var valueSyntax = 24.95m;
+            const decimal valueSyntax = 24.95m;
 
             // act
             IValueNode result = scalar.ParseValue(valueSyntax);
@@ -159,11 +156,11 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LocalCurrencyType();
-            var dec = 9.99m;
+            const decimal runtimeValue = 9.99m;
             const string expectedValue = "$9.99";
 
             // act
-            string serializedValue = (string)scalar.Serialize(dec)!;
+            string serializedValue = (string)scalar.Serialize(runtimeValue)!;
 
             // assert
             Assert.Equal(expectedValue, serializedValue);
@@ -188,10 +185,10 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LocalCurrencyType();
-            decimal? dec = null;
+            decimal? runtimeValue = null;
 
             // act
-            var success = scalar.TryDeserialize(dec, out object? deserialized);
+            var success = scalar.TryDeserialize(runtimeValue, out object? deserialized);
 
             // assert
             Assert.True(success);
@@ -203,7 +200,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = CreateType<LocalCurrencyType>();
-            var runtimeValue = 7.99m;
+            const decimal runtimeValue = 7.99m;
 
             // act
             var deserializedValue = (decimal)scalar.Deserialize("$7.99")!;
@@ -295,7 +292,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void LocalTime_ExpectParseResultToMatchStringValue()
+        protected void LocalCurrency_ExpectParseResultToMatchStringValue()
         {
             // arrange
             ScalarType scalar = new LocalCurrencyType();
