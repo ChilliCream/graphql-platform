@@ -16,11 +16,26 @@ namespace HotChocolate.Execution.Batching
     {
         private readonly ConcurrentQueue<Func<ValueTask>> _scheduled = new();
         private readonly ConcurrentDictionary<IExecutionContext, bool> _contexts = new();
+        private int _suspended = 0;
 
         public void Schedule(Func<ValueTask> dispatch)
         {
             _scheduled.Enqueue(dispatch);
             TryDispatch();
+        }
+
+        public void Suspend()
+        {
+            Interlocked.Increment(ref _suspended);
+        }
+
+        public void Resume()
+        {
+            var suspended = Interlocked.Decrement(ref _suspended);
+            if (suspended == 0)
+            {
+                TryDispatch();
+            }
         }
 
         public void Register(IExecutionContext context)
@@ -47,7 +62,7 @@ namespace HotChocolate.Execution.Batching
 
         private void TryDispatch()
         {
-            if (_contexts.All(x => x.Key.TaskBacklog.IsEmpty) && _scheduled.Count > 0)
+            if (_suspended == 0 && _contexts.All(x => x.Key.TaskBacklog.IsEmpty) && _scheduled.Count > 0)
             {
                 Dispatch();
             }

@@ -14,6 +14,14 @@ namespace HotChocolate.Execution.Processing
         {
         }
 
+        public void Suspend()
+        {
+        }
+
+        public void Resume()
+        {
+        }
+
         public static NoopBatchDispatcher Default { get; } = new NoopBatchDispatcher();
     }
 }

@@ -9,6 +9,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Batching
@@ -29,6 +30,8 @@ namespace HotChocolate.Execution.Batching
             private DocumentNode? _previous;
             private Dictionary<string, FragmentDefinitionNode>? _fragments;
             private bool _allowParallelExecution;
+            private readonly List<IBatchDispatcher> _batchDispatchers;
+            private static readonly List<IBatchDispatcher> EmptyBatchDispatchers = new();
 
             public BatchExecutorEnumerable(
                 IEnumerable<IQueryRequest> requestBatch,
@@ -47,38 +50,70 @@ namespace HotChocolate.Execution.Batching
                     throw new ArgumentNullException(nameof(typeConverter));
                 _visitor = new CollectVariablesVisitor(requestExecutor.Schema);
                 _allowParallelExecution = allowParallelExecution;
+                if (_allowParallelExecution)
+                {
+                    // note: if Services isn't overwritten, a new IBatchDispatcher will
+                    //       be allocated for each request, so suspending/resuming will
+                    //       never have effect so we can ignore it here as well
+                    _batchDispatchers = requestBatch
+                        .Where(x => x.Services is not null)
+                        .Select(x => x.Services.GetRequiredService<IBatchDispatcher>())
+                        .Distinct()
+                        .ToList();
+                }
+                else
+                {
+                    _batchDispatchers = EmptyBatchDispatchers;
+                }
+
             }
 
             public async IAsyncEnumerator<IQueryResult> GetAsyncEnumerator(
                 CancellationToken cancellationToken = default)
             {
-                var pendingTasks = new List<Task<IQueryResult>>();
-                IEnumerator<IQueryRequest> requestIterator = _requestBatch.GetEnumerator();
-                bool hasRemaining = requestIterator.MoveNext();
-                while (hasRemaining)
+                _batchDispatchers.ForEach(x => x.Suspend());
+                try
                 {
-                    var request = (IReadOnlyQueryRequest)requestIterator.Current;
-                    NextResult next = ExecuteNextAsync(request, cancellationToken);
-                    pendingTasks.Add(next._task);
-                    hasRemaining = requestIterator.MoveNext();
-                    if (next._isBlocking || !_allowParallelExecution || !hasRemaining)
+                    var pendingTasks = new List<Task<IQueryResult>>();
+                    IEnumerator<IQueryRequest> requestIterator = _requestBatch.GetEnumerator();
+                    bool hasRemaining = requestIterator.MoveNext();
+                    while (hasRemaining)
                     {
-                        bool keepRunning = true;
-                        foreach (Task<IQueryResult> task in pendingTasks)
+                        var request = (IReadOnlyQueryRequest)requestIterator.Current;
+                        NextResult next = ExecuteNextAsync(request, cancellationToken);
+                        pendingTasks.Add(next._task);
+                        hasRemaining = requestIterator.MoveNext();
+                        if (next._isBlocking || !_allowParallelExecution || !hasRemaining)
                         {
-                            IQueryResult result = await task.ConfigureAwait(false);
-                            if (keepRunning)
+                            _batchDispatchers.ForEach(x => x.Resume());
+                            try
                             {
-                                yield return result;
+                                bool keepRunning = true;
+                                foreach (Task<IQueryResult> task in pendingTasks)
+                                {
+                                    IQueryResult result = await task.ConfigureAwait(false);
+                                    if (keepRunning)
+                                    {
+                                        yield return result;
+                                    }
+                                    if (result.Data is null)
+                                    {
+                                        keepRunning = false;
+                                    }
+                                }
+                                hasRemaining &= keepRunning;
+                                pendingTasks.Clear();
                             }
-                            if (result.Data is null)
+                            finally
                             {
-                                keepRunning = false;
+                                _batchDispatchers.ForEach(x => x.Suspend());
                             }
                         }
-                        hasRemaining &= keepRunning;
-                        pendingTasks.Clear();
                     }
+                }
+                finally
+                {
+                    _batchDispatchers.ForEach(x => x.Resume());
                 }
             }
 

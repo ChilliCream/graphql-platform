@@ -7,5 +7,9 @@ namespace HotChocolate.Execution.Processing
         void Register(IExecutionContext context);
 
         void Unregister(IExecutionContext context);
+
+        void Suspend();
+
+        void Resume();
     }
 }

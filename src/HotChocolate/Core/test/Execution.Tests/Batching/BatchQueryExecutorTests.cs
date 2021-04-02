@@ -433,8 +433,6 @@ namespace HotChocolate.Execution.Batching
             int batchCount = 0;
             var services = new ServiceCollection();
             services.AddGraphQL()
-                // DO NOT COMMIT
-                .ModifyRequestOptions(x => x.ExecutionTimeout = TimeSpan.FromMinutes(30))
                 .AddQueryType(d => d.Name("Query")
                     .Field("foo")
                     .Argument("bar", a => a.Type<StringType>())
