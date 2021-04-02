@@ -41,6 +41,8 @@ namespace HotChocolate.Types
                     return new BooleanValueNode(b);
                 case nameof(StringValueNode) when value is string s:
                     return new StringValueNode(s);
+                case nameof(FloatValueNode) when value is decimal d:
+                    return new FloatValueNode(d);
                 case nameof(NullValueNode):
                     return NullValueNode.Default;
                 default:
