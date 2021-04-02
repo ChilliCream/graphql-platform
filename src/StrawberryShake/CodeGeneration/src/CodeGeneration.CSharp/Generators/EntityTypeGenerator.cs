@@ -3,16 +3,20 @@ using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
-using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class EntityTypeGenerator : CodeGenerator<EntityTypeDescriptor>
     {
+        protected override bool CanHandle(
+            CodeGeneratorSettings settings,
+            EntityTypeDescriptor descriptor) => !settings.NoStore;
+
         protected override void Generate(
             CodeWriter writer,
             EntityTypeDescriptor descriptor,
+            CodeGeneratorSettings settings,
             out string fileName,
             out string? path)
         {
@@ -39,10 +43,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .SetType(item.Value.Type.ToStateTypeReference())
                     .SetPublic();
 
-                var paramName = item.Value.Name == WellKnownNames.TypeName 
+                var paramName = item.Value.Name == WellKnownNames.TypeName
                     ? WellKnownNames.TypeName
                     : GetParameterName(item.Value.Name);
-                    
+
                 constructorBuilder
                     .AddParameter(
                         paramName,

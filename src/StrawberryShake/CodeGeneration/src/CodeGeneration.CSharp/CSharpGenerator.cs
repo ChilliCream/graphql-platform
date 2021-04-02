@@ -43,6 +43,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             new ResultInfoGenerator(),
             new ResultTypeGenerator(),
             new StoreAccessorGenerator(),
+            new NoStoreAccessorGenerator(),
             new InputTypeGenerator(),
             new ResultInterfaceGenerator(),
             new DataTypeGenerator()
@@ -109,6 +110,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 fileLookup,
                 errors,
                 settings.StrictSchemaValidation,
+                settings.NoStore,
                 out ISchema? schema))
             {
                 return new(errors);
@@ -197,14 +199,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
             // Last we execute all our generators with the descriptors.
             var code = new StringBuilder();
             var documents = new List<SourceDocument>();
+            var codeGeneratorSettings = new CodeGeneratorSettings(settings.NoStore);
 
             foreach (var descriptor in context.GetAllDescriptors())
             {
                 foreach (var generator in _generators)
                 {
-                    if (generator.CanHandle(descriptor))
+                    if (generator.CanHandle(codeGeneratorSettings, descriptor))
                     {
-                        documents.Add(WriteDocument(generator, descriptor, code));
+                        documents.Add(WriteDocument(
+                            codeGeneratorSettings,
+                            generator,
+                            descriptor,
+                            code));
                     }
                 }
             }
@@ -225,6 +232,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         private static SourceDocument WriteDocument(
+            CodeGeneratorSettings settings,
             ICodeGenerator generator,
             ICodeDescriptor descriptor,
             StringBuilder code)
@@ -238,7 +246,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             writer.WriteLine();
 #endif
 
-            generator.Generate(writer, descriptor, out var fileName, out var path);
+            generator.Generate(writer, descriptor, settings, out var fileName, out var path);
 
             writer.Flush();
 
@@ -275,11 +283,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
             Dictionary<ISyntaxNode, string> fileLookup,
             ICollection<IError> errors,
             bool strictValidation,
+            bool noStore,
             [NotNullWhen(true)] out ISchema? schema)
         {
             try
             {
-                schema = SchemaHelper.Load(files, strictValidation);
+                schema = SchemaHelper.Load(files, strictValidation, noStore);
                 return true;
             }
             catch (SchemaException ex)

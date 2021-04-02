@@ -14,6 +14,7 @@ namespace StrawberryShake.CodeGeneration
         public const string OperationStore = StrawberryshakeNamespace + "OperationStore";
         public const string IOperationExecutor = StrawberryshakeNamespace + "IOperationExecutor";
         public const string OperationExecutor = StrawberryshakeNamespace + "OperationExecutor";
+        public const string StorelessOperationExecutor = StrawberryshakeNamespace + "StorelessOperationExecutor";
         public const string IOperationResult = StrawberryshakeNamespace + "IOperationResult";
         public const string OperationResult = StrawberryshakeNamespace + "OperationResult";
         public const string IOperationResultDataFactory = StrawberryshakeNamespace + "IOperationResultDataFactory";
@@ -65,6 +66,7 @@ namespace StrawberryShake.CodeGeneration
         public const string String = "global::System.String";
         public const string Byte = "global::System.Byte";
         public const string ByteArray = "global::System.Byte[]";
+        public const string Array = "global::System.Array";
         public const string Int16 = "global::System.Int16";
         public const string Int32 = "global::System.Int32";
         public const string Int64 = "global::System.Int64";

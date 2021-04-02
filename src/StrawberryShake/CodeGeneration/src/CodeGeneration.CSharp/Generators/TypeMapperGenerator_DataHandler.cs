@@ -10,6 +10,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _dataParameterName = "data";
 
         private void AddDataHandler(
+            CodeGeneratorSettings settings,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             MethodBuilder method,
@@ -22,9 +23,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .SetType(namedTypeDescriptor.ParentRuntimeType!
                     .ToString()
                     .MakeNullable(!isNonNullable));
-            method
-                .AddParameter(_snapshot)
-                .SetType(TypeNames.IEntityStoreSnapshot);
+
+            if (settings.IsStoreEnabled())
+            {
+                method
+                    .AddParameter(_snapshot)
+                    .SetType(TypeNames.IEntityStoreSnapshot);
+            }
 
             if (!isNonNullable)
             {
@@ -39,11 +44,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             GenerateIfForEachImplementedBy(
                 method,
                 namedTypeDescriptor,
-                o => GenerateDataInterfaceIfClause(o, isNonNullable, returnValue));
+                o => GenerateDataInterfaceIfClause(settings, o, isNonNullable, returnValue));
 
             method.AddCode($"return {returnValue};");
 
             AddRequiredMapMethods(
+                settings,
                 _dataParameterName,
                 namedTypeDescriptor,
                 classBuilder,
@@ -52,6 +58,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         }
 
         private IfBuilder GenerateDataInterfaceIfClause(
+            CodeGeneratorSettings settings,
             ObjectTypeDescriptor objectTypeDescriptor,
             bool isNonNullable,
             string variableName)
@@ -85,7 +92,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 var propAccess = $"{_dataParameterName}.{prop.Name}";
                 if (prop.Type.IsEntityType() || prop.Type.IsDataType())
                 {
-                    constructorCall.AddArgument(BuildMapMethodCall(_dataParameterName, prop, true));
+                    constructorCall.AddArgument(
+                        BuildMapMethodCall(settings, _dataParameterName, prop, true));
                 }
                 else if (prop.Type.IsNullableType())
                 {

@@ -6,7 +6,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class TransportProfileEnumGenerator : CodeGenerator<DependencyInjectionDescriptor>
     {
-        protected override bool CanHandle(DependencyInjectionDescriptor descriptor)
+        protected override bool CanHandle(
+            CodeGeneratorSettings settings,
+            DependencyInjectionDescriptor descriptor)
         {
             return descriptor.TransportProfiles.Count > 1;
         }
@@ -14,6 +16,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             DependencyInjectionDescriptor descriptor,
+            CodeGeneratorSettings settings,
             out string fileName,
             out string? path)
         {

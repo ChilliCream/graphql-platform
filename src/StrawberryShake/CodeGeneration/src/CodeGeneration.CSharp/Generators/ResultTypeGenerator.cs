@@ -8,14 +8,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class ResultTypeGenerator : CodeGenerator<ObjectTypeDescriptor>
     {
-        protected override bool CanHandle(ObjectTypeDescriptor descriptor)
-        {
-            return true;
-        }
-
         protected override void Generate(
             CodeWriter writer,
             ObjectTypeDescriptor descriptor,
+            CodeGeneratorSettings settings,
             out string fileName,
             out string? path)
         {
@@ -51,9 +47,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .AddCode(AssignmentBuilder
                         .New()
                         .SetLefthandSide(
-                            (prop.Name.Value is WellKnownNames.TypeName 
-                                ? "this." 
-                                : string.Empty) + 
+                            (prop.Name.Value is WellKnownNames.TypeName
+                                ? "this."
+                                : string.Empty) +
                             prop.Name)
                         .SetRighthandSide(paramName));
             }

@@ -24,6 +24,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             ResultBuilderDescriptor resultBuilderDescriptor,
+            CodeGeneratorSettings settings,
             out string fileName,
             out string? path)
         {
@@ -49,17 +50,20 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         TypeNames.JsonDocument,
                         resultTypeDescriptor.RuntimeType.ToString()));
 
-            AddConstructorAssignedField(
-                TypeNames.IEntityStore,
-                _entityStore,
-                classBuilder,
-                constructorBuilder);
+            if (settings.IsStoreEnabled())
+            {
+                AddConstructorAssignedField(
+                    TypeNames.IEntityStore,
+                    _entityStore,
+                    classBuilder,
+                    constructorBuilder);
 
-            AddConstructorAssignedField(
-                TypeNames.IEntityIdSerializer,
-                _idSerializer,
-                classBuilder,
-                constructorBuilder);
+                AddConstructorAssignedField(
+                    TypeNames.IEntityIdSerializer,
+                    _idSerializer,
+                    classBuilder,
+                    constructorBuilder);
+            }
 
             AddConstructorAssignedField(
                 TypeNames.IOperationResultDataFactory
@@ -110,7 +114,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             AddBuildMethod(resultTypeDescriptor, classBuilder);
 
-            AddBuildDataMethod(resultTypeDescriptor, classBuilder);
+            AddBuildDataMethod(settings, resultTypeDescriptor, classBuilder);
 
             var processed = new HashSet<string>();
             AddRequiredDeserializeMethods(resultTypeDescriptor, classBuilder, processed);

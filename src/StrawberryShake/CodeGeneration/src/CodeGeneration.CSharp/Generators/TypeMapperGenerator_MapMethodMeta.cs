@@ -14,6 +14,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         /// Adds all required deserializers of the given type descriptors properties
         /// </summary>
         protected void AddRequiredMapMethods(
+            CodeGeneratorSettings settings,
             string propAccess,
             ComplexTypeDescriptor typeDescriptor,
             ClassBuilder classBuilder,
@@ -26,6 +27,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 foreach (var objectTypeDescriptor in interfaceType.ImplementedBy)
                 {
                     AddRequiredMapMethods(
+                        settings,
                         propAccess,
                         objectTypeDescriptor,
                         classBuilder,
@@ -38,6 +40,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 foreach (var property in typeDescriptor.Properties)
                 {
                     AddMapMethod(
+                        settings,
                         propAccess,
                         property.Type,
                         classBuilder,
@@ -48,6 +51,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         !ct.IsLeafType() && !stopAtEntityMappers)
                     {
                         AddRequiredMapMethods(
+                            settings,
                             propAccess,
                             ct,
                             classBuilder,
@@ -78,6 +82,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 InterfaceTypeDescriptor
                 {
                     ImplementedBy: { Count: > 1 },
+                    Kind: TypeKind.EntityType,
                     ParentRuntimeType: { } parentRuntimeType
                 } => parentRuntimeType!.Name,
 
@@ -93,6 +98,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         }
 
         private void AddMapMethod(
+            CodeGeneratorSettings settings,
             string propAccess,
             ITypeDescriptor typeReference,
             ClassBuilder classBuilder,
@@ -112,6 +118,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 classBuilder.AddMethod(methodBuilder);
 
                 AddMapMethodBody(
+                    settings,
                     classBuilder,
                     constructorBuilder,
                     methodBuilder,
@@ -139,6 +146,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         }
 
         protected ICode BuildMapMethodCall(
+            CodeGeneratorSettings settings,
             string objectName,
             PropertyDescriptor property,
             bool addNullCheck = false)
@@ -167,7 +175,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
                     return mapperMethodCall
                         .AddArgument(argString)
-                        .AddArgument(_snapshot);
+                        .If(settings.IsStoreEnabled(), x => x.AddArgument(_snapshot));
 
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -175,6 +183,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         }
 
         private void AddMapMethodBody(
+            CodeGeneratorSettings settings,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             MethodBuilder methodBuilder,
@@ -186,6 +195,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             {
                 case ListTypeDescriptor listTypeDescriptor:
                     AddArrayHandler(
+                        settings,
                         classBuilder,
                         constructorBuilder,
                         methodBuilder,
@@ -199,6 +209,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
                 case ComplexTypeDescriptor { Kind: TypeKind.ComplexDataType } d:
                     AddComplexDataHandler(
+                        settings,
                         classBuilder,
                         constructorBuilder,
                         methodBuilder,
@@ -209,6 +220,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
                 case ComplexTypeDescriptor { Kind: TypeKind.DataType } d:
                     AddDataHandler(
+                        settings,
                         classBuilder,
                         constructorBuilder,
                         methodBuilder,
@@ -229,6 +241,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
                 case NonNullTypeDescriptor nonNullTypeDescriptor:
                     AddMapMethodBody(
+                        settings,
                         classBuilder,
                         constructorBuilder,
                         methodBuilder,

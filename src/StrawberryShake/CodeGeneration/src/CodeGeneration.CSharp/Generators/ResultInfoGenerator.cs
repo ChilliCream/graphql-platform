@@ -14,7 +14,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _entityIds = nameof(_entityIds);
         private const string _version = nameof(_version);
 
-        protected override bool CanHandle(ITypeDescriptor descriptor)
+        protected override bool CanHandle(
+            CodeGeneratorSettings settings,
+            ITypeDescriptor descriptor)
         {
             return descriptor.Kind == TypeKind.ResultType && !descriptor.IsInterface();
         }
@@ -22,6 +24,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override void Generate(
             CodeWriter writer,
             ITypeDescriptor typeDescriptor,
+            CodeGeneratorSettings settings,
             out string fileName,
             out string? path)
         {
@@ -67,25 +70,32 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             classBuilder
                 .AddProperty("EntityIds")
                 .SetType(TypeNames.IReadOnlyCollection.WithGeneric(TypeNames.EntityId))
-                .AsLambda(_entityIds);
+                .AsLambda(settings.IsStoreEnabled()
+                    ? CodeInlineBuilder.From(_entityIds)
+                    : MethodCallBuilder.Inline()
+                        .SetMethodName(TypeNames.Array, "Empty")
+                        .AddGeneric(TypeNames.EntityId));
 
             classBuilder
                 .AddProperty("Version")
                 .SetType(TypeNames.UInt64)
-                .AsLambda(_version);
+                .AsLambda(settings.IsStoreEnabled() ? _version : "0");
 
-            AddConstructorAssignedField(
-                TypeNames.IReadOnlyCollection.WithGeneric(TypeNames.EntityId),
-                _entityIds,
-                classBuilder,
-                constructorBuilder);
+            if (settings.IsStoreEnabled())
+            {
+                AddConstructorAssignedField(
+                    TypeNames.IReadOnlyCollection.WithGeneric(TypeNames.EntityId),
+                    _entityIds,
+                    classBuilder,
+                    constructorBuilder);
 
-            AddConstructorAssignedField(
-                TypeNames.UInt64,
-                _version,
-                classBuilder,
-                constructorBuilder,
-                true);
+                AddConstructorAssignedField(
+                    TypeNames.UInt64,
+                    _version,
+                    classBuilder,
+                    constructorBuilder,
+                    true);
+            }
 
 
             // WithVersion
@@ -103,8 +113,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .SetMethodName(className)
                     .AddArgumentRange(
                         complexTypeDescriptor.Properties.Select(x => x.Name.Value))
-                    .AddArgument(_entityIds)
-                    .AddArgument(version));
+                    .If(settings.IsStoreEnabled(),
+                        x => x.AddArgument(_entityIds).AddArgument(version)));
 
             CodeFileBuilder
                 .New()

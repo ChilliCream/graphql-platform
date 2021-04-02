@@ -16,6 +16,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _snapshot = "snapshot";
 
         private void AddBuildDataMethod(
+            CodeGeneratorSettings settings,
             InterfaceTypeDescriptor resultNamedType,
             ClassBuilder classBuilder)
         {
@@ -28,63 +29,71 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .SetPrivate()
                 .SetName("BuildData")
                 .SetReturnType($"({resultNamedType.RuntimeType.Name}, {concreteType})")
-                .AddParameter(_obj, x => x.SetType(TypeNames.JsonElement))
-                .AddCode(
-                    AssignmentBuilder
-                        .New()
-                        .SetLefthandSide($"var {_entityIds}")
-                        .SetRighthandSide(MethodCallBuilder
-                            .Inline()
-                            .SetNew()
-                            .SetMethodName(TypeNames.HashSet)
-                            .AddGeneric(TypeNames.EntityId)))
-                .AddCode(
-                    AssignmentBuilder
-                        .New()
-                        .SetLefthandSide($"{TypeNames.IEntityStoreSnapshot} {_snapshot}")
-                        .SetRighthandSide("default!"))
-                .AddEmptyLine();
+                .AddParameter(_obj, x => x.SetType(TypeNames.JsonElement));
+
+            if (settings.IsStoreEnabled())
+            {
+                buildDataMethod.AddCode(
+                        AssignmentBuilder
+                            .New()
+                            .SetLefthandSide($"var {_entityIds}")
+                            .SetRighthandSide(MethodCallBuilder
+                                .Inline()
+                                .SetNew()
+                                .SetMethodName(TypeNames.HashSet)
+                                .AddGeneric(TypeNames.EntityId)))
+                    .AddCode(
+                        AssignmentBuilder
+                            .New()
+                            .SetLefthandSide($"{TypeNames.IEntityStoreSnapshot} {_snapshot}")
+                            .SetRighthandSide("default!"));
+            }
+
+            buildDataMethod.AddEmptyLine();
 
 
             CodeBlockBuilder storeUpdateBody = CodeBlockBuilder.New();
 
-            foreach (PropertyDescriptor property in
-                resultNamedType.Properties.Where(prop => prop.Type.IsOrContainsEntityType()))
+            if (settings.IsStoreEnabled())
             {
-                var variableName = $"{GetParameterName(property.Name)}Id";
+                foreach (PropertyDescriptor property in
+                    resultNamedType.Properties.Where(prop => prop.Type.IsOrContainsEntityType()))
+                {
+                    var variableName = $"{GetParameterName(property.Name)}Id";
 
-                buildDataMethod
-                    .AddCode(AssignmentBuilder
-                        .New()
-                        .SetLefthandSide(CodeBlockBuilder
+                    buildDataMethod
+                        .AddCode(AssignmentBuilder
                             .New()
-                            .AddCode(property.Type.ToStateTypeReference())
-                            .AddCode(variableName))
-                        .SetRighthandSide("default!"));
+                            .SetLefthandSide(CodeBlockBuilder
+                                .New()
+                                .AddCode(property.Type.ToStateTypeReference())
+                                .AddCode(variableName))
+                            .SetRighthandSide("default!"));
+
+                    storeUpdateBody
+                        .AddCode(AssignmentBuilder
+                            .New()
+                            .SetLefthandSide(variableName)
+                            .SetRighthandSide(BuildUpdateMethodCall(property)));
+                }
 
                 storeUpdateBody
+                    .AddEmptyLine()
                     .AddCode(AssignmentBuilder
                         .New()
-                        .SetLefthandSide(variableName)
-                        .SetRighthandSide(BuildUpdateMethodCall(property)));
-            }
+                        .SetLefthandSide(_snapshot)
+                        .SetRighthandSide($"{_session}.CurrentSnapshot"));
 
-            storeUpdateBody
-                .AddEmptyLine()
-                .AddCode(AssignmentBuilder
-                    .New()
-                    .SetLefthandSide(_snapshot)
-                    .SetRighthandSide($"{_session}.CurrentSnapshot"));
-
-            buildDataMethod
-                .AddCode(MethodCallBuilder
-                    .New()
-                    .SetMethodName(_entityStore, "Update")
-                    .AddArgument(LambdaBuilder
+                buildDataMethod
+                    .AddCode(MethodCallBuilder
                         .New()
-                        .AddArgument(_session)
-                        .SetBlock(true)
-                        .SetCode(storeUpdateBody)));
+                        .SetMethodName(_entityStore, "Update")
+                        .AddArgument(LambdaBuilder
+                            .New()
+                            .AddArgument(_session)
+                            .SetBlock(true)
+                            .SetCode(storeUpdateBody)));
+            }
 
             buildDataMethod
                 .AddEmptyLine()
@@ -93,7 +102,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         .New()
                         .SetLefthandSide($"var {_resultInfo}")
                         .SetRighthandSide(
-                            CreateResultInfoMethodCall(resultNamedType, concreteType)))
+                            CreateResultInfoMethodCall(settings, resultNamedType, concreteType)))
                 .AddEmptyLine()
                 .AddCode(
                     TupleBuilder
@@ -108,6 +117,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         }
 
         private MethodCallBuilder CreateResultInfoMethodCall(
+            CodeGeneratorSettings settings,
             InterfaceTypeDescriptor resultNamedType,
             string concreteType)
         {
@@ -127,9 +137,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 }
             }
 
-            return resultInfoConstructor
-                .AddArgument(_entityIds)
-                .AddArgument($"{_snapshot}.Version");
+            if (settings.IsStoreEnabled())
+            {
+                resultInfoConstructor
+                    .AddArgument(_entityIds)
+                    .AddArgument($"{_snapshot}.Version");
+            }
+
+            return resultInfoConstructor;
         }
     }
 }

@@ -12,6 +12,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         public bool StrictSchemaValidation { get; set; } = true;
 
+        public bool NoStore { get; set; }
+
         public RequestStrategyGen RequestStrategy { get; set; } =
             RequestStrategyGen.Default;
 
