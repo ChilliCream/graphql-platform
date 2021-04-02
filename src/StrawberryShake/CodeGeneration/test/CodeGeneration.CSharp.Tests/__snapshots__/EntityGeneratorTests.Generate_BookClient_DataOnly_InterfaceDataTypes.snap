@@ -42,7 +42,7 @@ namespace Foo.Bar.State
 
             if (dataInfo is SearchSomethingResultInfo info)
             {
-                return new SearchSomethingResult(MapIPrintDataArray(
+                return new SearchSomethingResult(MapISearchSomething_PrintsArray(
                     info.Prints,
                     snapshot));
             }
@@ -50,7 +50,7 @@ namespace Foo.Bar.State
             throw new global::System.ArgumentException("SearchSomethingResultInfo expected.");
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.ISearchSomething_Prints?>? MapIPrintDataArray(
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.ISearchSomething_Prints?>? MapISearchSomething_PrintsArray(
             global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IPrintData?>? list,
             global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
@@ -63,7 +63,7 @@ namespace Foo.Bar.State
 
             foreach (global::Foo.Bar.State.IPrintData? child in list)
             {
-                prints.Add(MapIPrintData(
+                prints.Add(MapISearchSomething_Prints(
                     child,
                     snapshot));
             }
@@ -71,7 +71,7 @@ namespace Foo.Bar.State
             return prints;
         }
 
-        private global::Foo.Bar.ISearchSomething_Prints? MapIPrintData(
+        private global::Foo.Bar.ISearchSomething_Prints? MapISearchSomething_Prints(
             global::Foo.Bar.State.IPrintData? data,
             global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {

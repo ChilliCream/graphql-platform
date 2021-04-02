@@ -20,7 +20,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             ITypeDescriptor descriptor)
         {
             return descriptor.Kind == TypeKind.EntityType && !descriptor.IsInterface() &&
-                settings.NoStore;
+                !settings.NoStore;
         }
 
         protected override void Generate(

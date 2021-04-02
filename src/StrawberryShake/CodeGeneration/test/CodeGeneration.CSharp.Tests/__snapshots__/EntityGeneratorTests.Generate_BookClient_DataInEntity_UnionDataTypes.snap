@@ -273,7 +273,7 @@ namespace Foo.Bar.State
                 MapIGetStore2_SearchableStore_BooksArray(
                     entity.Books,
                     snapshot),
-                MapISearchResultData(
+                MapIGetStore2_SearchableStore_Search(
                     entity.Search,
                     snapshot));
         }
@@ -325,7 +325,7 @@ namespace Foo.Bar.State
             return returnValue;
         }
 
-        private global::Foo.Bar.IGetStore2_SearchableStore_Search? MapISearchResultData(
+        private global::Foo.Bar.IGetStore2_SearchableStore_Search? MapIGetStore2_SearchableStore_Search(
             global::Foo.Bar.State.ISearchResultData? data,
             global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {

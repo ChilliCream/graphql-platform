@@ -42,7 +42,7 @@ namespace Foo.Bar.State
 
             if (dataInfo is SearchSomethingResultInfo info)
             {
-                return new SearchSomethingResult(MapISearchResultData(
+                return new SearchSomethingResult(MapISearchSomething_Search(
                     info.Search,
                     snapshot));
             }
@@ -50,7 +50,7 @@ namespace Foo.Bar.State
             throw new global::System.ArgumentException("SearchSomethingResultInfo expected.");
         }
 
-        private global::Foo.Bar.ISearchSomething_Search? MapISearchResultData(
+        private global::Foo.Bar.ISearchSomething_Search? MapISearchSomething_Search(
             global::Foo.Bar.State.ISearchResultData? data,
             global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
