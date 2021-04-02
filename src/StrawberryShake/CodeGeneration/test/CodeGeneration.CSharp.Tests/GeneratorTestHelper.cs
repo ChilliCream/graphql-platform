@@ -195,6 +195,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             Descriptors.Operations.RequestStrategy requestStrategy =
                 Descriptors.Operations.RequestStrategy.Default,
             TransportProfile[]? profiles = null,
+            bool noStore = false,
             [CallerMemberName] string? testName = null)
         {
             SnapshotFullName snapshotFullName = Snapshot.FullName();
@@ -221,6 +222,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     snapshotFullName.FolderPath,
                     testName + "Test.Client.cs"),
                 RequestStrategy = requestStrategy,
+                NoStore = noStore,
                 Profiles = (profiles ?? new[]
                 {
                     TransportProfile.Default
