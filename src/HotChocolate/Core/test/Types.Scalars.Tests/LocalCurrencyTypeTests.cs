@@ -69,7 +69,7 @@ namespace HotChocolate.Types
             // arrange
             ScalarType scalar = CreateType<LocalCurrencyType>();
             var valueSyntax = new StringValueNode("$24.99");
-            var expectedResult = (decimal) 24.99;
+            var expectedResult = 24.99m;
 
             // act
             object result = (decimal)scalar.ParseLiteral(valueSyntax)!;
@@ -84,7 +84,7 @@ namespace HotChocolate.Types
             // arrange
             ScalarType scalar = new LocalCurrencyType("Germany", "de-DE");
             var valueSyntax = new StringValueNode("24,99 €");
-            var expectedResult = (decimal) 24.99;
+            var expectedResult = 24.99m;
 
             // act
             object result = (decimal)scalar.ParseLiteral(valueSyntax)!;
@@ -103,7 +103,7 @@ namespace HotChocolate.Types
             // arrange
             ScalarType scalar = new LocalCurrencyType(name, cultureName);
             var valueSyntax = new StringValueNode("9.99");
-            var expectedDateTime = (decimal)9.99;
+            var expectedDateTime = 9.99m;
 
             // act
             var dateTime = (decimal)scalar.ParseLiteral(valueSyntax)!;
@@ -131,7 +131,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = CreateType<LocalCurrencyType>();
-            var valueSyntax = (decimal)24.95;
+            var valueSyntax = 24.95m;
 
             // act
             IValueNode result = scalar.ParseValue(valueSyntax);
@@ -159,7 +159,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LocalCurrencyType();
-            var dec = (decimal) 9.99;
+            var dec = 9.99m;
             const string expectedValue = "$9.99";
 
             // act
