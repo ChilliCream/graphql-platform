@@ -108,7 +108,9 @@ namespace HotChocolate.AspNetCore
             }
 
             return await requestExecutor.ExecuteBatchAsync(
-                requestBatch, cancellationToken: context.RequestAborted);
+                requestBatch,
+                context.GetGraphQLServerOptions()?.AllowParallelBatchExecution ?? false,
+                context.RequestAborted);
         }
 
         protected async Task<IBatchQueryResult> ExecuteBatchAsync(
@@ -130,7 +132,9 @@ namespace HotChocolate.AspNetCore
             }
 
             return await requestExecutor.ExecuteBatchAsync(
-                requestBatch, cancellationToken: context.RequestAborted);
+                requestBatch,
+                context.GetGraphQLServerOptions()?.AllowParallelBatchExecution ?? false,
+                context.RequestAborted);
         }
 
         protected static AllowedContentType ParseContentType(HttpContext context)

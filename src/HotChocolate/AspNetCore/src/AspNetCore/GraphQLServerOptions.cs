@@ -32,6 +32,12 @@ namespace HotChocolate.AspNetCore
         /// Defines if the GraphQL schema SDL can be downloaded.
         /// </summary>
         public bool EnableSchemaRequests { get; set; } = true;
+
+        /// <summary>
+        /// \c true if the queries in a batch are allowed to be executed in parallel.
+        /// If \c false, queries in a batch are always executed one at a time.
+        /// </summary>
+        public bool AllowParallelBatchExecution { get; set; } = false;
     }
 
     /// <summary>
