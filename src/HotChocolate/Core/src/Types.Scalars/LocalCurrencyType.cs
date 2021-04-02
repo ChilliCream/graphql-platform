@@ -109,9 +109,9 @@ namespace HotChocolate.Types
             [NotNullWhen(true)] out decimal? value)
         {
             if (serialized is not null
-                && decimal.TryParse(serialized, NumberStyles.Currency, _cultureInfo, out var dec))
+                && decimal.TryParse(serialized, NumberStyles.Currency, _cultureInfo, out var d))
             {
-                value = dec;
+                value = d;
                 return true;
             }
 
