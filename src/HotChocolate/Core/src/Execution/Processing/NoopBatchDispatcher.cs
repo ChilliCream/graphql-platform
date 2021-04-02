@@ -6,11 +6,19 @@ namespace HotChocolate.Execution.Processing
     internal class NoopBatchDispatcher
         : IBatchDispatcher
     {
-        public bool HasTasks => false;
+        public void Register(IExecutionContext context)
+        {
+        }
 
-        public event EventHandler? TaskEnqueued;
+        public void Unregister(IExecutionContext context)
+        {
+        }
 
-        public void Dispatch(Action<IExecutionTaskDefinition> enqueue)
+        public void Suspend()
+        {
+        }
+
+        public void Resume()
         {
         }
 

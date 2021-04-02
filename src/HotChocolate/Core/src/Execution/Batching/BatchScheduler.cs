@@ -1,45 +1,96 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
-using HotChocolate.Execution;
+using HotChocolate.Execution.Processing;
+using HotChocolate.Fetching;
 
-namespace HotChocolate.Fetching
+namespace HotChocolate.Execution.Batching
 {
-    public class BatchScheduler
+    internal class BatchScheduler
         : IBatchScheduler
         , IBatchDispatcher
     {
-        private readonly ConcurrentQueue<Func<ValueTask>> _queue = new();
+        private readonly ConcurrentQueue<Func<ValueTask>> _scheduled = new();
+        private readonly ConcurrentDictionary<IExecutionContext, bool> _contexts = new();
+        private int _suspended = 0;
 
-        public bool HasTasks => _queue.Count > 0;
-
-        public event EventHandler? TaskEnqueued;
-
-        public void Dispatch(Action<IExecutionTaskDefinition> enqueue)
+        public void Schedule(Func<ValueTask> dispatch)
         {
-            lock (_queue)
+            _scheduled.Enqueue(dispatch);
+            TryDispatch();
+        }
+
+        public void Suspend()
+        {
+            Interlocked.Increment(ref _suspended);
+        }
+
+        public void Resume()
+        {
+            var suspended = Interlocked.Decrement(ref _suspended);
+            if (suspended == 0)
             {
-                if (_queue.Count > 0)
+                TryDispatch();
+            }
+        }
+
+        public void Register(IExecutionContext context)
+        {
+            if (!_contexts.TryAdd(context, true))
+            {
+                throw new ArgumentException("context is already registered", nameof(context));
+            }
+            context.TaskStats.StateChanged += TaskStatisticsEventHandler;
+        }
+
+        public void Unregister(IExecutionContext context)
+        {
+            if (!_contexts.TryRemove(context, out bool dummy))
+            {
+                throw new ArgumentException("context is not registered", nameof(context));
+            }
+            context.TaskStats.StateChanged -= TaskStatisticsEventHandler;
+        }
+
+        private void TaskStatisticsEventHandler(
+            object? source, EventArgs args) =>
+            TryDispatch();
+
+        private void TryDispatch()
+        {
+            if (_suspended == 0 && _contexts.All(x => x.Key.TaskBacklog.IsEmpty) && _scheduled.Count > 0)
+            {
+                Dispatch();
+            }
+        }
+
+        private void Dispatch()
+        {
+            lock (_scheduled)
+            {
+                if (_scheduled.Count > 0)
                 {
+                    var context = _contexts.Select(x => x.Key).Where(x => !x.IsCompleted).FirstOrDefault();
+                    if (context == null)
+                    {
+                        throw new Exception("Batch is scheduled but there are no remaining pending contexts");
+                    }
+
                     var tasks = new List<Func<ValueTask>>();
 
-                    while (_queue.TryDequeue(out Func<ValueTask>? dispatch))
+                    while (_scheduled.TryDequeue(out Func<ValueTask>? dispatch))
                     {
                         tasks.Add(dispatch);
                     }
 
-                    enqueue(new BatchExecutionTaskDefinition(tasks));
+                    var taskDefinition = new BatchExecutionTaskDefinition(tasks);
+                    context?.TaskBacklog.Register(taskDefinition.Create(context.TaskContext));
                 }
             }
-        }
-
-        public void Schedule(Func<ValueTask> dispatch)
-        {
-            _queue.Enqueue(dispatch);
-            TaskEnqueued?.Invoke(this, EventArgs.Empty);
         }
 
         private class BatchExecutionTaskDefinition

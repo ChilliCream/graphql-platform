@@ -6,6 +6,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
+using HotChocolate.AspNetCore.Serialization;
+using Microsoft.AspNetCore.Builder;
+using HotChocolate.AspNetCore.Extensions;
+using HotChocolate.Types;
+using HotChocolate.Resolvers;
+using System.Threading;
+using System.Linq;
 
 namespace HotChocolate.AspNetCore
 {
@@ -777,6 +784,77 @@ namespace HotChocolate.AspNetCore
 
             // assert
             result.MatchSnapshot();
+        }
+
+
+        private async Task OperationBatchRequest_AllowParallelExecution(bool allow)
+        {
+            Snapshot.FullName();
+
+            // arrange
+            int batchCount = 0;
+            TestServer server = ServerFactory.Create(
+                services => services
+                    .AddRouting()
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
+                    .AddGraphQLServer()
+                        .AddQueryType(d => d.Name("Query")
+                        .Field("foo")
+                        .Argument("bar", a => a.Type<StringType>())
+                        .Type<StringType>()
+                        .Resolve(async c =>
+                        {
+                            var bar = c.ArgumentValue<string>("bar");
+                            return await c.BatchDataLoader<string, string>((keys, ctxToken) =>
+                            {
+                                Interlocked.Increment(ref batchCount);
+                                return Task.FromResult(keys.ToDictionary(x => x, x => $"{x}-{batchCount}") as IReadOnlyDictionary<string, string>);
+                            }, "foo").LoadAsync(bar, CancellationToken.None);
+                        }))
+                    .AddExportDirectiveType()
+                ,
+                app => app
+                    .UseRouting()
+                    .UseEndpoints(endpoints =>
+                    {
+                        GraphQLEndpointConventionBuilder builder = endpoints.MapGraphQL("/graphql");
+                        builder.WithOptions(new GraphQLServerOptions { AllowParallelBatchExecution = allow });
+                    })
+                );
+
+
+            // act
+            IReadOnlyList<ClientQueryResult> result =
+                await server.PostOperationAsync(
+                    new ClientQueryRequest
+                    {
+                        Query =
+                            @"query q1 {
+                                f1: foo(bar: ""A""),
+                                f2: foo(bar: ""B"")
+                            }
+
+                            query q2 {
+                                f3: foo(bar: ""A""),
+                                f4: foo(bar: ""C"")
+                            }"
+                    },
+                    "q1, q2");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public Task OperationBatchRequest_AllowParallelExecution_Off()
+        {
+            return OperationBatchRequest_AllowParallelExecution(false);
+        }
+
+        [Fact]
+        public Task OperationBatchRequest_AllowParallelExecution_On()
+        {
+            return OperationBatchRequest_AllowParallelExecution(true);
         }
     }
 }
