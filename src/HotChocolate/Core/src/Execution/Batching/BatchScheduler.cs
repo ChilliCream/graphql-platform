@@ -77,7 +77,7 @@ namespace HotChocolate.Execution.Batching
                     var context = _contexts.Select(x => x.Key).Where(x => !x.IsCompleted).FirstOrDefault();
                     if (context == null)
                     {
-                        throw new Exception("Batch is scheduled but there are no remaining pending contexts");
+                        throw new InvalidOperationException("Batch is scheduled but there are no remaining pending contexts");
                     }
 
                     var tasks = new List<Func<ValueTask>>();
@@ -88,7 +88,7 @@ namespace HotChocolate.Execution.Batching
                     }
 
                     var taskDefinition = new BatchExecutionTaskDefinition(tasks);
-                    context?.TaskBacklog.Register(taskDefinition.Create(context.TaskContext));
+                    context.TaskBacklog.Register(taskDefinition.Create(context.TaskContext));
                 }
             }
         }
