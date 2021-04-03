@@ -49,6 +49,8 @@ namespace HotChocolate.Execution.Batching
                 {
                     operation
                 }).Print().MatchSnapshot();
+
+            Assert.Equal(0, visitor.ExportCount);
         }
 
         [Fact]
@@ -92,6 +94,8 @@ namespace HotChocolate.Execution.Batching
                 {
                     operation
                 }).Print().MatchSnapshot();
+
+            Assert.Equal(0, visitor.ExportCount);
         }
 
         [Fact]
@@ -142,6 +146,50 @@ namespace HotChocolate.Execution.Batching
                 document.Definitions.OfType<FragmentDefinitionNode>());
 
             new DocumentNode(definitions).Print().MatchSnapshot();
+
+            Assert.Equal(0, visitor.ExportCount);
+        }
+
+
+        [Fact]
+        public void ExportCount()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddStarWarsTypes()
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                @"
+                query getHero {
+                    ... q
+                }
+
+                fragment q on Query {
+                    hero(episode: $ep) @export(as: ""hero"") {
+                        name @export(as: ""name"")
+                        name2: name @export(as: ""name"")
+                    }
+                }
+                ");
+
+            OperationDefinitionNode operation = document.Definitions
+                .OfType<OperationDefinitionNode>()
+                .First();
+
+            var visitor = new CollectVariablesVisitor(schema);
+            var visitationMap = new CollectVariablesVisitationMap();
+            visitationMap.Initialize(
+                document.Definitions.OfType<FragmentDefinitionNode>()
+                    .ToDictionary(t => t.Name.Value));
+
+            // act
+            operation.Accept(
+                visitor,
+                visitationMap,
+                _ => VisitorAction.Continue);
+
+            Assert.Equal(3, visitor.ExportCount);
         }
     }
 }
