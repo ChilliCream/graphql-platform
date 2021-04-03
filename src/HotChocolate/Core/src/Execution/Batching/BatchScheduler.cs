@@ -74,21 +74,49 @@ namespace HotChocolate.Execution.Batching
             {
                 if (_scheduled.Count > 0)
                 {
-                    var context = _contexts.Select(x => x.Key).Where(x => !x.IsCompleted).FirstOrDefault();
-                    if (context == null)
+                    IExecutionContext safeContext = default!;
+                    Exception safeContextException = default!;
+                    foreach(var context in _contexts.Keys)
                     {
-                        throw new InvalidOperationException("Batch is scheduled but there are no remaining pending contexts");
+                        try
+                        {
+                            var taskStats = context.TaskStats;
+                            taskStats.SuspendCompletionEvent();
+                            if (!taskStats.IsCompleted)
+                            {
+                                safeContext = context;
+                                break;
+                            }
+                            else
+                            {
+                                taskStats.ResumeCompletionEvent();
+                            }
+                        }
+                        catch(Exception e)
+                        {
+                            safeContextException = e;
+                        }
                     }
-
-                    var tasks = new List<Func<ValueTask>>();
-
-                    while (_scheduled.TryDequeue(out Func<ValueTask>? dispatch))
+                    if (safeContext is null)
                     {
-                        tasks.Add(dispatch);
+                        throw new InvalidOperationException("Batch is scheduled but there are no remaining pending contexts", safeContextException);
                     }
+                    try
+                    {
+                        var tasks = new List<Func<ValueTask>>();
 
-                    var taskDefinition = new BatchExecutionTaskDefinition(tasks);
-                    context.TaskBacklog.Register(taskDefinition.Create(context.TaskContext));
+                        while (_scheduled.TryDequeue(out Func<ValueTask>? dispatch))
+                        {
+                            tasks.Add(dispatch);
+                        }
+
+                        var taskDefinition = new BatchExecutionTaskDefinition(tasks);
+                        safeContext.TaskBacklog.Register(taskDefinition.Create(safeContext.TaskContext));
+                    }
+                    finally
+                    {
+                        safeContext.TaskStats.ResumeCompletionEvent();
+                    }
                 }
             }
         }

@@ -10,6 +10,7 @@ namespace HotChocolate.Execution.Processing
         private int _allTasks;
         private int _newTasks;
         private int _completedTasks;
+        private int _suspendCompletionEvent;
 
         public event EventHandler<EventArgs>? StateChanged;
 
@@ -45,13 +46,37 @@ namespace HotChocolate.Execution.Processing
 
             if (allTasks == completedTasks)
             {
-                IsCompleted = true;
-                AllTasksCompleted?.Invoke(this, _empty);
+                if (_suspendCompletionEvent == 0)
+                {
+                    IsCompleted = true;
+                    AllTasksCompleted?.Invoke(this, _empty);
+                }
+            }
+        }
+
+        public void SuspendCompletionEvent()
+        {
+            Interlocked.Increment(ref _suspendCompletionEvent);
+        }
+
+        public void ResumeCompletionEvent()
+        {
+            if (0 == Interlocked.Decrement(ref _suspendCompletionEvent))
+            {
+                if (!IsCompleted && _allTasks == _completedTasks)
+                {
+                    IsCompleted = true;
+                    AllTasksCompleted?.Invoke(this, _empty);
+                }
             }
         }
 
         public void Clear()
         {
+            if (_suspendCompletionEvent != 0 || (_allTasks != 0 && !IsCompleted))
+            {
+                throw new InvalidOperationException("task statistics should not be cleared while still in progress");
+            }
             _newTasks = 0;
             _allTasks = 0;
             _completedTasks = 0;
