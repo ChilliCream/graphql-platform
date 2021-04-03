@@ -369,7 +369,7 @@ namespace HotChocolate.Execution.Batching
             var services = new ServiceCollection();
             services.AddGraphQL()
                 .AddQueryType(d => d.Name("Query")
-                .Field("foo")
+                    .Field("foo")
                     .Argument("bar", a => a.Type<StringType>())
                     .Type<StringType>()
                     .Resolve(async c =>
