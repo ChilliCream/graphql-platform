@@ -360,72 +360,93 @@ namespace HotChocolate.Execution.Batching
         }
 
         // shared code for AllowParallel_Basic_... tests
-        private async Task AllowParallel_Basic(bool allowParallelExecution)
+        private async Task AllowParallel_Basic(bool allowParallelExecution, bool batchScoped)
         {
             // arrange
             Snapshot.FullName();
 
-            int activeTaskCount = 0;
-            IRequestExecutor executor = await CreateExecutorAsync(c => c
+            int batchCount = 0;
+            var services = new ServiceCollection();
+            services.AddGraphQL()
                 .AddQueryType(d => d.Name("Query")
-                    .Field("foo")
+                .Field("foo")
                     .Argument("bar", a => a.Type<StringType>())
                     .Type<StringType>()
                     .Resolve(async c =>
                     {
-                        Interlocked.Increment(ref activeTaskCount);
-                        try
+                        var bar = c.ArgumentValue<string>("bar");
+                        return await c.BatchDataLoader<string, string>((keys, ctxToken) =>
                         {
-                            await Task.Delay(500);
-                            int activeTasks = activeTaskCount;
-                            await Task.Delay(500);
-                            var bar = c.ArgumentValue<string>("bar");
-                            return $"{bar}-{activeTasks}";
-                        }
-                        finally
-                        {
-                            Interlocked.Decrement(ref activeTaskCount);
-                        }
+                            Interlocked.Increment(ref batchCount);
+                            return Task.FromResult(keys.ToDictionary(x => x, x => $"{x}-{batchCount}") as IReadOnlyDictionary<string, string>);
+                        }, "foo").LoadAsync(bar, CancellationToken.None);
                     }))
-                .AddExportDirectiveType());
+                .AddExportDirectiveType();
 
-            // act
-            var batch = new List<IReadOnlyQueryRequest>
+            IServiceProvider serviceProvider = services.BuildServiceProvider();
+            IServiceScope scope = null;
+            if (batchScoped)
             {
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{ f1: foo(bar:""A""), f2: foo(bar:""B"") }")
-                    .Create(),
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{ f3: foo(bar:""C"") @export(as: ""var"") }")
-                    .Create(),
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{ f4: foo(bar:$var) }")
-                    .Create()
-            };
+                scope = serviceProvider.CreateScope();
+                serviceProvider = scope.ServiceProvider;
+            }
+            try
+            {
+                IRequestExecutor executor = await serviceProvider.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
+                var requestServices = scope is not null ? serviceProvider : null;
 
-            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch, allowParallelExecution);
+                // act
+                var batch = new List<IReadOnlyQueryRequest>
+                {
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{ f1: foo(bar:""A""), f2: foo(bar:""B"") }")
+                        .TrySetServices(requestServices)
+                        .Create(),
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{ f3: foo(bar:""C"") @export(as: ""var"") }")
+                        .TrySetServices(requestServices)
+                        .Create(),
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{ f4: foo(bar:$var) }")
+                        .TrySetServices(requestServices)
+                        .Create()
+                };
 
-            // assert
-            await batchResult.ToJsonAsync().MatchSnapshotAsync();
+                IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch, allowParallelExecution);
+
+                // assert
+                await batchResult.ToJsonAsync().MatchSnapshotAsync();
+            }
+            finally
+            {
+                scope?.Dispose();
+            }
         }
 
         [Fact]
         public Task AllowParallel_Basic_Off()
         {
-            return AllowParallel_Basic(false);
+            return AllowParallel_Basic(false, false);
         }
 
         [Fact]
         public Task AllowParallel_Basic_On()
         {
-            return AllowParallel_Basic(true);
+            return AllowParallel_Basic(true, true);
         }
 
         [Fact]
-        public async Task AllowParallel_DataLoading()
+        public Task AllowParallel_Basic_OnButNoScope()
+        {
+            return AllowParallel_Basic(true, false);
+        }
+
+        [Fact]
+        public async Task AllowParallel_Regression_BatchScheduler()
         {
             // arrange
             Snapshot.FullName();
