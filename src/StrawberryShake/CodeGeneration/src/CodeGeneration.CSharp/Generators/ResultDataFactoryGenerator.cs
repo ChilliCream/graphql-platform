@@ -9,6 +9,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class ResultDataFactoryGenerator : TypeMapperGenerator
     {
+        private const string entityStore = "entityStore";
         private const string _entityStore = "_entityStore";
         private const string _dataInfo = "dataInfo";
         private const string _snapshot = "snapshot";
@@ -52,6 +53,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 AddConstructorAssignedField(
                     TypeNames.IEntityStore,
                     _entityStore,
+                    entityStore,
                     classBuilder,
                     constructorBuilder);
             }

@@ -17,6 +17,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     {
         private const string _variables = "variables";
         private const string _operationExecutor = "_operationExecutor";
+        private const string operationExecutor = "operationExecutor";
         private const string _createRequest = "CreateRequest";
         private const string _strategy = "strategy";
         private const string _serializerResolver = "serializerResolver";
@@ -57,6 +58,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             AddConstructorAssignedField(
                 TypeNames.IOperationExecutor.WithGeneric(runtimeTypeName),
                 _operationExecutor,
+                operationExecutor,
                 classBuilder,
                 constructorBuilder);
 

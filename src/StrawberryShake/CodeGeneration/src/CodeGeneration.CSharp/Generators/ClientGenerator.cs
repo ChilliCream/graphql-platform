@@ -39,6 +39,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 AddConstructorAssignedField(
                     operation.InterfaceType.ToString(),
                     GetFieldName(operation.Name),
+                    GetParameterName(operation.Name),
                     classBuilder,
                     constructorBuilder);
 
