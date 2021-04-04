@@ -111,7 +111,7 @@ To replace the `TrackId` with a field `Track` that returns the `Tack` object we 
 [ExtendObjectType(typeof(Session))]
 public class SessionResolvers
 {
-    [BindProperty(nameof(Session.TrackId))]
+    [BindMember(nameof(Session.TrackId))]
     public async Task<Track> GetTrackAsync([Parent] Session session) => ...
 }
 ```
