@@ -2,13 +2,15 @@ import { graphql, useStaticQuery } from "gatsby";
 import Img from "gatsby-image";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
-import { GetBlogPostStrawberryShakeImageQuery } from "../../../graphql-types";
+import { GetBlogPostChilliCreamPlatformImageQuery } from "../../../graphql-types";
 
-export const BlogPostStrawberryShake: FunctionComponent = () => {
-  const data = useStaticQuery<GetBlogPostStrawberryShakeImageQuery>(graphql`
-    query getBlogPostStrawberryShakeImage {
+export const BlogPostChilliCreamPlatform: FunctionComponent = () => {
+  const data = useStaticQuery<GetBlogPostChilliCreamPlatformImageQuery>(graphql`
+    query getBlogPostChilliCreamPlatformImage {
       file(
-        relativePath: { eq: "shared/strawberry-shake-banner.png" }
+        relativePath: {
+          eq: "2021-03-31-chillicream-platform-11-1/chillicream-platform-11-1-banner.png"
+        }
         sourceInstanceName: { eq: "blog" }
       ) {
         childImageSharp {
