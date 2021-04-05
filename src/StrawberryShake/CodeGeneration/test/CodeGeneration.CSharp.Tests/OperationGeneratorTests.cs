@@ -55,6 +55,17 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         [Fact]
+        public void Generate_ChatClient_AllOperations_Records()
+        {
+            // arrange
+            AssertResult(
+                new AssertSettings { UseRecords = true },
+                FileResource.Open("ChatOperations.graphql"),
+                FileResource.Open("Schema.extensions.graphql"),
+                FileResource.Open("ChatSchema.graphql"));
+        }
+
+        [Fact]
         public void Nullable_List_Input()
         {
             AssertResult(

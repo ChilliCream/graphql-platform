@@ -26,6 +26,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
+                .SetRecord(settings.UseRecords)
                 .SetComment(descriptor.Documentation)
                 .SetName(fileName);
 
@@ -37,11 +38,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             // Add Properties to class
             foreach (KeyValuePair<string, PropertyDescriptor> item in descriptor.Properties)
             {
-                classBuilder
+                PropertyBuilder property = classBuilder
                     .AddProperty(item.Value.Name)
                     .SetComment(item.Value.Description)
                     .SetType(item.Value.Type.ToStateTypeReference())
                     .SetPublic();
+
+                if (settings.UseRecords)
+                {
+                    property.SetInit();
+                }
 
                 var paramName = item.Value.Name == WellKnownNames.TypeName
                     ? WellKnownNames.TypeName
