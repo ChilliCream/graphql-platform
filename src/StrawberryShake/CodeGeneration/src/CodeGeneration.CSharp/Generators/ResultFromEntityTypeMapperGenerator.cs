@@ -50,7 +50,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             AddConstructorAssignedField(
                 TypeNames.IEntityStore,
-                StoreFieldName,
+                _entityStore,
+                entityStore,
                 classBuilder,
                 constructorBuilder);
 

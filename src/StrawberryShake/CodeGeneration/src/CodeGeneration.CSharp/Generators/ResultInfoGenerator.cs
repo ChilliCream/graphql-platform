@@ -12,7 +12,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     public class ResultInfoGenerator : ClassBaseGenerator<ITypeDescriptor>
     {
         private const string _entityIds = nameof(_entityIds);
+        private const string entityIds = nameof(entityIds);
         private const string _version = nameof(_version);
+        private const string version = nameof(version);
 
         protected override bool CanHandle(ITypeDescriptor descriptor)
         {
@@ -77,20 +79,20 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             AddConstructorAssignedField(
                 TypeNames.IReadOnlyCollection.WithGeneric(TypeNames.EntityId),
                 _entityIds,
+                entityIds,
                 classBuilder,
                 constructorBuilder);
 
             AddConstructorAssignedField(
                 TypeNames.UInt64,
                 _version,
+                version,
                 classBuilder,
                 constructorBuilder,
                 true);
 
 
             // WithVersion
-            const string version = nameof(version);
-
             classBuilder
                 .AddMethod("WithVersion")
                 .SetAccessModifier(AccessModifier.Public)
