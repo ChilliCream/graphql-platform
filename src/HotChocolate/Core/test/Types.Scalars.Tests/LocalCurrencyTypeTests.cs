@@ -63,6 +63,19 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        protected void LocalCurrency_ParseResult_Null()
+        {
+            // arrange
+            ScalarType scalar = CreateType<LocalCurrencyType>();
+
+            // act
+            IValueNode result = scalar.ParseResult(null);
+
+            // assert
+            Assert.Equal(NullValueNode.Default, result);
+        }
+
+        [Fact]
         protected void LocalCurrency_ExpectIsStringValueToMatchEuro()
         {
             // arrange
