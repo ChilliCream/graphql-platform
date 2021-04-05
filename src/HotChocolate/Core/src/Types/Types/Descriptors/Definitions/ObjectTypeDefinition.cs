@@ -123,17 +123,20 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
             if (_knownClrTypes is { Count: > 0 })
             {
-                target._knownClrTypes = new List<Type>(_knownClrTypes);
+                target._knownClrTypes ??= new List<Type>();
+                target._knownClrTypes.AddRange(_knownClrTypes);
             }
 
             if (_interfaces is { Count: > 0 })
             {
-                target._interfaces = new List<ITypeReference>(_interfaces);
+                target._interfaces ??= new List<ITypeReference>();
+                target._interfaces.AddRange(_interfaces);
             }
 
             if (_fieldIgnores is { Count: > 0 })
             {
-                target._fieldIgnores = new List<ObjectFieldBinding>(_fieldIgnores);
+                target._fieldIgnores ??= new List<ObjectFieldBinding>();
+                target._fieldIgnores.AddRange(_fieldIgnores);
             }
 
             foreach (var field in Fields)
@@ -180,6 +183,13 @@ namespace HotChocolate.Types.Descriptors.Definitions
                     var newField = new ObjectFieldDefinition();
                     field.CopyTo(newField);
                     newField.SourceType = target.RuntimeType;
+
+                    if (newField.Member is not null && newField.ResolverMember is null)
+                    {
+                        newField.ResolverMember = newField.Member;
+                        newField.Member = targetField?.Member;
+                    }
+
                     target.Fields.Add(newField);
                 }
                 else

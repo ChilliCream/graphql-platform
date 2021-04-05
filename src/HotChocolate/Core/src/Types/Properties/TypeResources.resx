@@ -696,4 +696,7 @@ Type: `{0}`</value>
   <data name="ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed" xml:space="preserve">
     <value>The non-generic IExecutable interface cannot be used as a type in the schema.</value>
   </data>
+  <data name="BindingCompiler_AddBinding_BindingCannotBeHandled" xml:space="preserve">
+    <value>The specified binding cannot be handled.</value>
+  </data>
 </root>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace HotChocolate.Resolvers
@@ -32,19 +33,16 @@ namespace HotChocolate.Resolvers
             return new FieldReference(TypeName, fieldName);
         }
 
-        public FieldMember WithMember(MemberInfo member)
-        {
-            return new FieldMember(TypeName, FieldName, member);
-        }
+        public FieldMember WithMember(MemberInfo member) =>
+            new(TypeName, FieldName, member);
 
-        public FieldResolver WithResolver(FieldResolverDelegate resolver)
-        {
-            return new FieldResolver(TypeName, FieldName, resolver);
-        }
+        public FieldMember WithExpression(Expression expression) =>
+            new(TypeName, FieldName, expression);
 
-        public bool Equals(FieldReference other)
-        {
-            return IsEqualTo(other);
-        }
+        public FieldResolver WithResolver(FieldResolverDelegate resolver) =>
+            new(TypeName, FieldName, resolver);
+
+        public bool Equals(FieldReference other) =>
+            IsEqualTo(other);
     }
 }
