@@ -550,6 +550,33 @@ namespace HotChocolate.Data
             result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
         }
 
+        [Fact]
+        public async Task CreateSchema_OnDifferentScope()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddFiltering("Foo")
+                .AddSorting("Foo")
+                .AddProjections("Foo")
+                .AddQueryType<DifferentScope>()
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    books(where: { title: {eq: ""BookTitle""}}) {
+                        nodes { title }
+                    }
+                }
+                ");
+
+            // assert
+            executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
+            result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+        }
+
         public class FooType : ObjectType
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -594,6 +621,18 @@ namespace HotChocolate.Data
             [UseProjection]
             [UseFiltering]
             [UseSorting]
+            public IQueryable<Book> GetBooks() => new[]
+            {
+                new Book { Id = 1, Title = "BookTitle", Author = new Author { Name = "Author" } }
+            }.AsQueryable();
+        }
+
+        public class DifferentScope
+        {
+            [UsePaging]
+            [UseProjection(Scope = "Foo")]
+            [UseFiltering(Scope = "Foo")]
+            [UseSorting(Scope = "Foo")]
             public IQueryable<Book> GetBooks() => new[]
             {
                 new Book { Id = 1, Title = "BookTitle", Author = new Author { Name = "Author" } }

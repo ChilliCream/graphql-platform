@@ -15,11 +15,16 @@ namespace HotChocolate
         /// <param name="builder">
         /// The <see cref="ISchemaBuilder"/>.
         /// </param>
+        /// <param name="name">
+        /// The sort convention name.
+        /// </param>
         /// <returns>
         /// Returns the <see cref="ISchemaBuilder"/>.
         /// </returns>
-        public static ISchemaBuilder AddSorting(this ISchemaBuilder builder) =>
-            AddSorting(builder, x => x.AddDefaults());
+        public static ISchemaBuilder AddSorting(
+            this ISchemaBuilder builder,
+            string? name = null) =>
+            AddSorting(builder, x => x.AddDefaults(), name);
 
         /// <summary>
         /// Adds Sorting support.
@@ -41,7 +46,7 @@ namespace HotChocolate
             Action<ISortConventionDescriptor> configure,
             string? name = null) =>
             builder
-                .TryAddConvention<ISortConvention>(sp => new SortConvention(configure), name)
+                .TryAddConvention<ISortConvention>(_ => new SortConvention(configure), name)
                 .TryAddTypeInterceptor<SortTypeInterceptor>();
 
         /// <summary>
