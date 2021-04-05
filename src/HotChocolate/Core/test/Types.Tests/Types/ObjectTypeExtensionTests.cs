@@ -560,6 +560,34 @@ namespace HotChocolate.Types
             schema.Print().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Replace_Field_With_The_Same_Name()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType()
+                .AddTypeExtension<Replace_Field_PersonDto_2_Query>()
+                .AddTypeExtension<Replace_Field_PersonResolvers_2>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Replace_Field_With_The_Same_Name_Execute()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType()
+                .AddTypeExtension<Replace_Field_PersonDto_2_Query>()
+                .AddTypeExtension<Replace_Field_PersonResolvers_2>()
+                .ExecuteRequestAsync("{ person { someId(arg: \"efg\") } }")
+                .MatchSnapshotAsync();
+        }
+
         public class FooType
             : ObjectType<Foo>
         {
@@ -790,6 +818,30 @@ namespace HotChocolate.Types
         {
             [BindMember(nameof(Replace_Field_PersonDto.InternalId))]
             public string SomeId { get; } = "abc";
+        }
+
+        public interface IPersonDto
+        {
+            string SomeId();
+        }
+
+        [ExtendObjectType("Query")]
+        public class Replace_Field_PersonDto_2_Query
+        {
+            public Replace_Field_PersonDto_2 GetPerson() => new();
+        }
+
+        public class Replace_Field_PersonDto_2 : IPersonDto
+        {
+            public string SomeId() => "1";
+        }
+
+        [ExtendObjectType(typeof(IPersonDto))]
+        public class Replace_Field_PersonResolvers_2
+        {
+            [BindMember(nameof(Replace_Field_PersonDto_2.SomeId))]
+            public string SomeId([Parent] IPersonDto dto, string arg = "abc") =>
+                dto.SomeId() + arg;
         }
     }
 }

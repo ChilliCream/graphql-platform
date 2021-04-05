@@ -1190,5 +1190,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed", resourceCulture);
             }
         }
+        
+        internal static string BindingCompiler_AddBinding_BindingCannotBeHandled {
+            get {
+                return ResourceManager.GetString("BindingCompiler_AddBinding_BindingCannotBeHandled", resourceCulture);
+            }
+        }
     }
 }
