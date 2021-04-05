@@ -215,4 +215,7 @@
   <data name="ErrorHelper_DirectiveMustBeUniqueInLocation" xml:space="preserve">
     <value>Only one of each directive is allowed per location.</value>
   </data>
+  <data name="ErrorHelper_IntrospectionNotAllowed" xml:space="preserve">
+    <value>Introspection is not allowed for the current request.</value>
+  </data>
 </root>
