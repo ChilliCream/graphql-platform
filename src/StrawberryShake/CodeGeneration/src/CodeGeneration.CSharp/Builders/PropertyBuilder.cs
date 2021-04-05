@@ -14,6 +14,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private string? _value;
         private string? _interface;
         private bool _isStatic;
+        private bool _isInit;
 
         public static PropertyBuilder New() => new();
 
@@ -93,6 +94,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public PropertyBuilder SetInit(bool value = true)
+        {
+            _isReadOnly = false;
+            _isInit = value;
+            return this;
+        }
+
         public void Build(CodeWriter writer)
         {
             if (writer is null)
@@ -144,7 +152,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             writer.Write(" get;");
             if (!_isReadOnly)
             {
-                writer.Write(" set;");
+                writer.Write(_isInit ? " init;" : " set;");
             }
 
             writer.Write(" }");

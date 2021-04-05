@@ -25,6 +25,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         public bool NoStore { get; set; }
 
+        public bool UseRecords { get; set; }
+
         public List<StrawberryShakeTransportSettings>? TransportProfiles { get; set; }
     }
 }

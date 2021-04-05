@@ -18,6 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
+                .SetRecord(settings.UseRecords)
                 .SetComment(namedTypeDescriptor.Documentation)
                 .SetName(fileName);
 
@@ -29,6 +30,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .SetComment(prop.Description)
                     .SetType(prop.Type.ToTypeReference())
                     .MakeSettable()
+                    .SetInit(settings.UseRecords)
                     .SetValue("default!");
             }
 

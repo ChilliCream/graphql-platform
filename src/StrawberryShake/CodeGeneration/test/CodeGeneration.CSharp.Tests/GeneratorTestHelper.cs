@@ -88,7 +88,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     StrictSchemaValidation = settings.StrictValidation,
                     RequestStrategy = settings.RequestStrategy,
                     TransportProfiles = settings.Profiles,
-                    NoStore = settings.NoStore
+                    NoStore = settings.NoStore,
+                    UseRecords = settings.UseRecords
                 });
 
             Assert.False(
@@ -196,6 +197,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 Descriptors.Operations.RequestStrategy.Default,
             TransportProfile[]? profiles = null,
             bool noStore = false,
+            bool useRecords = false,
             [CallerMemberName] string? testName = null)
         {
             SnapshotFullName snapshotFullName = Snapshot.FullName();
@@ -223,6 +225,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     testName + "Test.Client.cs"),
                 RequestStrategy = requestStrategy,
                 NoStore = noStore,
+                UseRecords = useRecords,
                 Profiles = (profiles ?? new[]
                 {
                     TransportProfile.Default
@@ -265,6 +268,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             public string? SnapshotFile { get; set; }
 
             public bool NoStore { get; set; }
+
+            public bool UseRecords { get; set; }
 
             public List<TransportProfile> Profiles { get; set; } = new();
 

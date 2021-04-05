@@ -207,6 +207,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     RequestStrategy = context.Settings.RequestStrategy,
                     StrictSchemaValidation = context.Settings.StrictSchemaValidation,
                     NoStore = context.Settings.NoStore,
+                    UseRecords = context.Settings.UseRecords,
                     HashProvider = context.Settings.HashAlgorithm?.ToLowerInvariant() switch
                     {
                         "sha1" => new Sha1DocumentHashProvider(HashFormat.Hex),

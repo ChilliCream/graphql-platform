@@ -11,6 +11,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private bool _isStatic;
         private bool _isSealed;
         private bool _isAbstract;
+        private bool _isRecord;
         private string? _name;
         private XmlCommentBuilder? _xmlComment;
         private readonly List<FieldBuilder> _fields = new();
@@ -152,6 +153,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public ClassBuilder SetRecord(bool value = true)
+        {
+            _isRecord = value;
+            return this;
+        }
+
         public override void Build(CodeWriter writer)
         {
             if (writer is null)
@@ -187,7 +194,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 writer.Write("partial ");
             }
 
-            writer.Write("class ");
+            writer.Write(_isRecord ? "record " : "class ");
+
             writer.WriteLine(_name);
 
             if (!_isStatic && Implements.Count > 0)

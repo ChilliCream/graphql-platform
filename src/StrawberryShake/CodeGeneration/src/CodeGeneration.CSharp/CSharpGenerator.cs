@@ -199,7 +199,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             // Last we execute all our generators with the descriptors.
             var code = new StringBuilder();
             var documents = new List<SourceDocument>();
-            var codeGeneratorSettings = new CodeGeneratorSettings(settings.NoStore);
+            var codeGeneratorSettings =
+                new CodeGeneratorSettings(settings.NoStore, settings.UseRecords);
 
             foreach (var descriptor in context.GetAllDescriptors())
             {

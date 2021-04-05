@@ -14,6 +14,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         public bool NoStore { get; set; }
 
+        public bool UseRecords { get; set; }
+
         public RequestStrategyGen RequestStrategy { get; set; } =
             RequestStrategyGen.Default;
 
