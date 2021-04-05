@@ -77,6 +77,20 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        protected void LocalCurrency_ExpectIsStringValueToNotMatchEuro()
+        {
+            // arrange
+            ScalarType scalar = new LocalCurrencyType("Germany", "de-De");
+            var valueSyntax = new StringValueNode("$10.99");
+
+            // act
+            Exception? result = Record.Exception(() => scalar.ParseLiteral(valueSyntax));
+
+            // assert
+            Assert.IsType<SerializationException>(result);
+        }
+
+        [Fact]
         protected void LocalCurrency_ExpectParseLiteralToMatch()
         {
             // arrange

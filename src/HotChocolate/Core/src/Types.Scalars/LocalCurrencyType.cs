@@ -10,7 +10,7 @@ namespace HotChocolate.Types
     /// </summary>
     public class LocalCurrencyType : ScalarType<decimal, StringValueNode>
     {
-        private static CultureInfo _cultureInfo = null!;
+        private readonly CultureInfo _cultureInfo;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LocalCurrencyType"/> class.
@@ -38,6 +38,7 @@ namespace HotChocolate.Types
             Description = description;
         }
 
+        /// <inheritdoc />
         public override IValueNode ParseResult(object? resultValue)
         {
             return resultValue switch
@@ -49,6 +50,7 @@ namespace HotChocolate.Types
             };
         }
 
+        /// <inheritdoc />
         protected override decimal ParseLiteral(StringValueNode valueSyntax)
         {
             if (TryDeserializeFromString(valueSyntax.Value, out var value))
@@ -64,6 +66,7 @@ namespace HotChocolate.Types
             return new(Serialize(runtimeValue));
         }
 
+        /// <inheritdoc />
         public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
             switch (runtimeValue)
@@ -80,6 +83,7 @@ namespace HotChocolate.Types
             }
         }
 
+        /// <inheritdoc />
         public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
             switch (resultValue)
@@ -99,12 +103,12 @@ namespace HotChocolate.Types
             }
         }
 
-        private static string Serialize(IFormattable value)
+        private string Serialize(IFormattable value)
         {
             return value.ToString("c", _cultureInfo);
         }
 
-        private static bool TryDeserializeFromString(
+        private bool TryDeserializeFromString(
             string? serialized,
             [NotNullWhen(true)] out decimal? value)
         {
