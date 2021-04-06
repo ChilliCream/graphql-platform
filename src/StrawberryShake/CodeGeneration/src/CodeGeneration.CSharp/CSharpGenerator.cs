@@ -290,7 +290,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             code.AppendLine(Formatter.Format(compilationUnit, workspace).ToString());
 
             documents.Add(new(
-                settings.ClientName + ".Generated.cs",
+                settings.ClientName,
                 code.ToString(),
                 SourceDocumentKind.CSharp));
         }
@@ -351,7 +351,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     code.AppendLine(Formatter.Format(compilationUnit, workspace).ToString());
 
                     documents.Add(new(
-                        result.FileName + "." + settings.ClientName + ".Generated.cs",
+                        result.FileName,
                         code.ToString(),
                         SourceDocumentKind.CSharp,
                         path: result.Path));
