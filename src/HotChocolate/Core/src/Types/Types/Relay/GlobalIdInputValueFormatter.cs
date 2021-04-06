@@ -67,6 +67,25 @@ namespace HotChocolate.Types.Relay
                         .Build());
             }
 
+            if (runtimeValue is IEnumerable<IdValue?> nullableIdEnumerable)
+            {
+                IList list = _createList();
+
+                foreach (IdValue? idv in nullableIdEnumerable)
+                {
+                    if (idv is null)
+                    {
+                        list.Add(null);
+                    }
+                    else if (!_validateType || _typeName.Equals(idv.TypeName))
+                    {
+                        list.Add(idv.Value);
+                    }
+                }
+
+                return list;
+            }
+
             if (runtimeValue is IEnumerable<IdValue> idEnumerable)
             {
                 IList list = _createList();
@@ -80,6 +99,42 @@ namespace HotChocolate.Types.Relay
                 }
 
                 return list;
+            }
+
+            if (runtimeValue is IEnumerable<string?> nullableStringEnumerable)
+            {
+                try
+                {
+                    IList list = _createList();
+
+                    foreach (string? sv in nullableStringEnumerable)
+                    {
+                        if (sv is null)
+                        {
+                            list.Add(null);
+                        }
+                        else
+                        {
+                            id = _idSerializer.Deserialize(sv);
+
+                            if (!_validateType || _typeName.Equals(id.TypeName))
+                            {
+                                list.Add(id.Value);
+                            }
+                        }
+                    }
+
+                    return list;
+                }
+                catch
+                {
+                    throw new GraphQLException(
+                        ErrorBuilder.New()
+                            .SetMessage(
+                                "The IDs `{0}` have an invalid format.",
+                                string.Join(", ", nullableStringEnumerable))
+                            .Build());
+                }
             }
 
             if (runtimeValue is IEnumerable<string> stringEnumerable)
