@@ -5,11 +5,24 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Validation
 {
+    /// <summary>
+    /// The default document validator implementation.
+    /// </summary>
     public sealed class DocumentValidator : IDocumentValidator
     {
         private readonly DocumentValidatorContextPool _contextPool;
         private readonly IDocumentValidatorRule[] _rules;
 
+        /// <summary>
+        /// Creates a new instance of <see cref="DocumentValidator"/>.
+        /// </summary>
+        /// <param name="contextPool">
+        /// The document validator context pool.
+        /// </param>
+        /// <param name="rules">
+        /// The validation rules.
+        /// </param>
+        /// <exception cref="ArgumentNullException"></exception>
         public DocumentValidator(
             DocumentValidatorContextPool contextPool,
             IEnumerable<IDocumentValidatorRule> rules)
@@ -23,7 +36,17 @@ namespace HotChocolate.Validation
             _rules = rules.ToArray();
         }
 
-        public DocumentValidatorResult Validate(ISchema schema, DocumentNode document)
+        /// <inheritdoc />
+        public DocumentValidatorResult Validate(
+            ISchema schema,
+            DocumentNode document) =>
+            Validate(schema, document, null);
+
+        /// <inheritdoc />
+        public DocumentValidatorResult Validate(
+            ISchema schema,
+            DocumentNode document,
+            IEnumerable<KeyValuePair<string, object?>>? contextData)
         {
             if (schema is null)
             {
@@ -39,7 +62,7 @@ namespace HotChocolate.Validation
 
             try
             {
-                PrepareContext(schema, document, context);
+                PrepareContext(schema, document, context, contextData);
 
                 for (var i = 0; i < _rules.Length; i++)
                 {
@@ -59,7 +82,8 @@ namespace HotChocolate.Validation
         private void PrepareContext(
             ISchema schema,
             DocumentNode document,
-            DocumentValidatorContext context)
+            DocumentValidatorContext context,
+            IEnumerable<KeyValuePair<string, object?>>? contextData)
         {
             context.Schema = schema;
 
@@ -70,6 +94,14 @@ namespace HotChocolate.Validation
                 {
                     var fragmentDefinition = (FragmentDefinitionNode)definitionNode;
                     context.Fragments[fragmentDefinition.Name.Value] = fragmentDefinition;
+                }
+            }
+
+            if (contextData is not null)
+            {
+                foreach (KeyValuePair<string, object?> entry in contextData)
+                {
+                    context.ContextData[entry.Key] = entry.Value;
                 }
             }
         }
