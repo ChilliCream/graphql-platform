@@ -5,6 +5,10 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Types.Relay
 {
+    /// <summary>
+    /// Note: This functionality is distributed as a nuget package called
+    /// AutoGuru.HotChocolate.PolymorphicIds if you'd like to use it.
+    /// </summary>
     internal class PolymorphicGlobalIdInputValueFormatter : IInputValueFormatter
     {
         private readonly NameString _schemaName;

@@ -135,22 +135,76 @@ namespace HotChocolate.Types.Relay
                         QueryRequestBuilder.New()
                             .SetQuery(
                                 @"query foo ($someId: ID! $someIntId: ID!) {
-                                    foo(input: { someId: $someId someIds: [$someIntId] }) {
+                                    foo(input: {
+                                        someId: $someId someIds: [$someIntId]
+                                        someNullableId: $someId someNullableIds: [$someIntId] })
+                                    {
                                         someId
+                                        someNullableId
                                         ... on FooPayload {
                                             someIds
+                                            someNullableIds
                                         }
                                     }
                                 }")
                             .SetVariableValue("someId", someId)
+                            .SetVariableValue("someNullableId", null)
                             .SetVariableValue("someIntId", someIntId)
+                            .SetVariableValue("someNullableIntId", null)
                             .Create());
 
             // assert
             new
             {
                 result = result.ToJson(),
-                someId
+                someId,
+                someIntId
+            }.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Id_On_Objects_Given_Nulls()
+        {
+            // arrange
+            var idSerializer = new IdSerializer();
+            var someId = idSerializer.Serialize("Some", "1");
+            var someIntId = idSerializer.Serialize("Some", 1);
+
+            // act
+            IExecutionResult result =
+                await SchemaBuilder.New()
+                    .AddQueryType<Query>()
+                    .AddType<FooPayload>()
+                    .Create()
+                    .MakeExecutable()
+                    .ExecuteAsync(
+                        QueryRequestBuilder.New()
+                            .SetQuery(
+                                @"query foo ($someId: ID! $someIntId: ID! $someNullableId: ID $someNullableIntId: ID) {
+                                    foo(input: {
+                                        someId: $someId someIds: [$someIntId]
+                                        someNullableId: $someNullableId someNullableIds: [$someNullableIntId, $someIntId] })
+                                    {
+                                        someId
+                                        someNullableId
+                                        ... on FooPayload {
+                                            someIds
+                                            someNullableIds
+                                        }
+                                    }
+                                }")
+                            .SetVariableValue("someId", someId)
+                            .SetVariableValue("someNullableId", null)
+                            .SetVariableValue("someIntId", someIntId)
+                            .SetVariableValue("someNullableIntId", null)
+                            .Create());
+
+            // assert
+            new
+            {
+                result = result.ToJson(),
+                someId,
+                someIntId
             }.MatchSnapshot();
         }
 
@@ -174,15 +228,23 @@ namespace HotChocolate.Types.Relay
                         QueryRequestBuilder.New()
                             .SetQuery(
                                 @"query foo ($someId: ID! $someIntId: ID!) {
-                                    foo(input: { someId: $someId someIds: [$someIntId] }) {
+                                    foo(input: {
+                                        someId: $someId someIds: [$someIntId]
+                                        someNullableId: $someId someNullableIds: [$someIntId] })
+                                    {
                                         someId
+                                        someNullableId
                                         ... on FooPayload {
                                             someIds
+                                            someNullableIds
+                                            raw
                                         }
                                     }
                                 }")
                             .SetVariableValue("someId", someId)
+                            .SetVariableValue("someNullableId", null)
                             .SetVariableValue("someIntId", someIntId)
+                            .SetVariableValue("someNullableIntId", null)
                             .Create());
 
             // assert
@@ -303,38 +365,72 @@ namespace HotChocolate.Types.Relay
                 string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
 
             public IFooPayload Foo(FooInput input) =>
-                new FooPayload(input.SomeId, input.SomeIds);
+                new FooPayload(input.SomeId, input.SomeNullableId, input.SomeIds, input.SomeNullableIds);
         }
 
         public class FooInput
         {
-            public FooInput(string someId, IReadOnlyList<int> someIds)
+            public FooInput(
+                string someId,
+                string? someNullableId,
+                IReadOnlyList<int> someIds,
+                IReadOnlyList<int?> someNullableIds)
             {
                 SomeId = someId;
+                SomeNullableId = someNullableId;
                 SomeIds = someIds;
+                SomeNullableIds = someNullableIds;
             }
 
-            [ID("Some")] public string SomeId { get; set; }
+            [ID("Some")] public string SomeId { get; }
+
+            [ID("Some")] public string? SomeNullableId { get; }
 
             [ID("Some")] public IReadOnlyList<int> SomeIds { get; }
+
+            [ID("Some")] public IReadOnlyList<int?> SomeNullableIds { get; }
         }
 
         public class FooPayload : IFooPayload
         {
+            public FooPayload(
+                string someId,
+                string? someNullableId,
+                IReadOnlyList<int> someIds,
+                IReadOnlyList<int?> someNullableIds)
+            {
+                SomeId = someId;
+                SomeNullableId = someNullableId;
+                SomeIds = someIds;
+                SomeNullableIds = someNullableIds;
+            }
+
             [ID("Bar")] public string SomeId { get; }
 
             [ID("Bar")] public IReadOnlyList<int> SomeIds { get; }
 
-            public FooPayload(string someId, IReadOnlyList<int> someIds)
-            {
-                SomeId = someId;
-                SomeIds = someIds;
-            }
+            [ID("Bar")] public string? SomeNullableId { get; }
+
+            [ID("Bar")] public IReadOnlyList<int?> SomeNullableIds { get; }
+
+            public string Raw =>
+                $"{nameof(SomeId)}: {SomeId}, " +
+                $"{nameof(SomeIds)}: [{string.Join(", ", SomeIds)}], " +
+                $"{nameof(SomeNullableId)}: {SomeNullableId}, " +
+                $"{nameof(SomeNullableIds)}: [{string.Join(", ", SomeNullableIds)}]";
         }
 
         public interface IFooPayload
         {
             [ID] string SomeId { get; }
+
+            [ID] public string? SomeNullableId { get; }
+
+            [ID] IReadOnlyList<int> SomeIds { get; }
+
+            [ID] IReadOnlyList<int?> SomeNullableIds { get; }
+
+            string Raw { get; }
         }
     }
 }

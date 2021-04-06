@@ -11,8 +11,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types.Relay
 {
+    /// <summary>
+    /// Note: This functionality is distributed as a nuget package called
+    /// AutoGuru.HotChocolate.PolymorphicIds if you'd like to use it.
+    /// </summary>
     internal sealed class PolymorphicGlobalIdsTypeInterceptor : TypeInterceptor
     {
+        private const string StandardGlobalIdFormatterName = "GlobalIdInputValueFormatter";
+
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
             DefinitionBase? definition,
@@ -20,10 +26,9 @@ namespace HotChocolate.Types.Relay
         {
             if (definition is InputObjectTypeDefinition inputObjectTypeDefinition)
             {
-                foreach (InputFieldDefinition inputFieldDefinition in inputObjectTypeDefinition.Fields)
+                foreach (InputFieldDefinition? inputFieldDefinition in inputObjectTypeDefinition.Fields)
                 {
-                    (string NodeTypeName, Type IdRuntimeType)? idInfo =
-                        GetIdInfo(completionContext, inputFieldDefinition);
+                    (string NodeTypeName, Type IdRuntimeType)? idInfo = GetIdInfo(completionContext, inputFieldDefinition);
                     if (idInfo != null)
                     {
                         InsertFormatter(
@@ -36,12 +41,18 @@ namespace HotChocolate.Types.Relay
             }
             else if (definition is ObjectTypeDefinition objectTypeDefinition)
             {
-                foreach (ObjectFieldDefinition objectFieldDefinition in objectTypeDefinition.Fields)
+                var isQueryType = definition.Name == OperationTypeNames.Query;
+
+                foreach (ObjectFieldDefinition? objectFieldDefinition in objectTypeDefinition.Fields)
                 {
-                    foreach (ArgumentDefinition argumentDefinition in objectFieldDefinition.Arguments)
+                    if (isQueryType && objectFieldDefinition.Name == "node")
                     {
-                        (string NodeTypeName, Type IdRuntimeType)? idInfo =
-                            GetIdInfo(completionContext, argumentDefinition);
+                        continue;
+                    }
+
+                    foreach (ArgumentDefinition? argumentDefinition in objectFieldDefinition.Arguments)
+                    {
+                        (string NodeTypeName, Type IdRuntimeType)? idInfo = GetIdInfo(completionContext, argumentDefinition);
                         if (idInfo != null)
                         {
                             InsertFormatter(
@@ -59,7 +70,7 @@ namespace HotChocolate.Types.Relay
 
         private static void InsertFormatter(
             ITypeCompletionContext completionContext,
-            ArgumentDefinition definition,
+            ArgumentDefinition argumentDefinition,
             NameString typeName,
             Type idRuntimeType)
         {
@@ -68,17 +79,17 @@ namespace HotChocolate.Types.Relay
                 idRuntimeType,
                 GetIdSerializer(completionContext));
 
-            IInputValueFormatter? defaultFormatter = definition.Formatters
-                .FirstOrDefault(f => f is GlobalIdInputValueFormatter);
+            IInputValueFormatter? defaultFormatter = argumentDefinition.Formatters
+                .FirstOrDefault(f => f.GetType().Name == StandardGlobalIdFormatterName);
 
             if (defaultFormatter == null)
             {
-                definition.Formatters.Add(formatter);
+                argumentDefinition.Formatters.Insert(0, formatter);
             }
             else
             {
-                definition.Formatters.Insert(
-                    definition.Formatters.IndexOf(defaultFormatter) - 1,
+                argumentDefinition.Formatters.Insert(
+                    argumentDefinition.Formatters.IndexOf(defaultFormatter) - 1,
                     formatter);
             }
         }
@@ -87,12 +98,18 @@ namespace HotChocolate.Types.Relay
             ITypeCompletionContext completionContext,
             ArgumentDefinition definition)
         {
-            ITypeInspector typeInspector = completionContext.TypeInspector;
+            ITypeInspector? typeInspector = completionContext.TypeInspector;
             IDAttribute? idAttribute = null;
             IExtendedType? idType = null;
 
             if (definition is InputFieldDefinition inputField)
             {
+                // UseSorting arg/s seems to come in here with a null Property
+                if (inputField.Property == null)
+                {
+                    return null;
+                }
+
                 idAttribute = (IDAttribute?)inputField.Property
                    .GetCustomAttributes(inherit: true)
                    .SingleOrDefault(a => a is IDAttribute);
@@ -106,8 +123,8 @@ namespace HotChocolate.Types.Relay
             else if (definition.Parameter is not null)
             {
                 idAttribute = (IDAttribute?)definition.Parameter
-                           .GetCustomAttributes(inherit: true)
-                           .SingleOrDefault(a => a is IDAttribute);
+                    .GetCustomAttributes(inherit: true)
+                    .SingleOrDefault(a => a is IDAttribute);
                 if (idAttribute == null)
                 {
                     return null;
@@ -131,15 +148,13 @@ namespace HotChocolate.Types.Relay
                     .Build());
             }
 
-            Type idRuntimeType = idType.ElementType?.Source ?? idType.Source;
+            Type? idRuntimeType = idType.ElementType?.Source ?? idType.Source;
             string nodeTypeName = idAttribute?.TypeName.HasValue ?? false
                 ? idAttribute.TypeName
                 : completionContext.Type.Name;
 
             return (nodeTypeName, idRuntimeType);
         }
-
-
 
         private static IIdSerializer? _idSerializer;
         private static IIdSerializer GetIdSerializer(ITypeCompletionContext completionContext)
