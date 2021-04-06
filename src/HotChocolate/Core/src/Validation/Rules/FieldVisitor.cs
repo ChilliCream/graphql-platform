@@ -94,8 +94,8 @@ namespace HotChocolate.Validation.Rules
                     {
                         if (of.Type.NamedType().IsLeafType())
                         {
-                            context.Errors.Add
-                                (context.LeafFieldsCannotHaveSelections(node, ct, of.Type));
+                            context.Errors.Add(
+                                context.LeafFieldsCannotHaveSelections(node, ct, of.Type));
                             return Skip;
                         }
                     }

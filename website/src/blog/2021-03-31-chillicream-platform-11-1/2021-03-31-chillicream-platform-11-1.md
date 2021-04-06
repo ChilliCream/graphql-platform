@@ -352,7 +352,7 @@ With version 11.1, we can now do that by binding the resolver to the field of th
 [ExtendObjectType(nameof(Session))]
 public class SessionResolvers
 {
-    [BindProperty(nameof(Session.TrackId))]
+    [BindMember(nameof(Session.TrackId))]
     public async Task<Track> GetTrackAsync(
         [Parent] Session session,
         TrackByIdDataLoader trackById,
@@ -380,7 +380,7 @@ We can also now globally ignore members from the original type without binding t
     IgnoreProperties = new[] { nameof(Session.Abstract) })]
 public class SessionResolvers
 {
-    [BindProperty(nameof(Session.TrackId))]
+    [BindMember(nameof(Session.TrackId))]
     public async Task<Track> GetTrackAsync(
         [Parent] Session session,
         TrackByIdDataLoader trackById,
@@ -421,7 +421,7 @@ public class Speaker : IHasResourceKey
 [ExtendObjectType(typeof(IHasResourceKey))]
 public class HasResourceKeyResolvers
 {
-    [BindProperty(nameof(Session.Key))]
+    [BindMember(nameof(Session.Key))]
     public async Task<string?> GetDescriptionAsync(...)
         // ... omitted for brevity
 }

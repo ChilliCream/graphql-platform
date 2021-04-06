@@ -30,37 +30,6 @@ namespace HotChocolate.Internal
             RegisterAdditionalDependencies(context, definition);
             RegisterDirectiveDependencies(context, definition);
             RegisterFieldDependencies(context, definition.Fields);
-
-            foreach (ObjectFieldDefinition field in definition.Fields)
-            {
-                if (field.Resolver is null)
-                {
-                    if (field.Expression is not null)
-                    {
-                        context.RegisterResolver(
-                            field.Name,
-                            field.Expression,
-                            definition.RuntimeType,
-                            field.ResolverType);
-                    }
-                    else if (field.ResolverMember is not null)
-                    {
-                        context.RegisterResolver(
-                            field.Name,
-                            field.ResolverMember,
-                            definition.RuntimeType,
-                            field.ResolverType);
-                    }
-                    else if (field.Member is not null)
-                    {
-                        context.RegisterResolver(
-                            field.Name,
-                            field.Member,
-                            definition.RuntimeType,
-                            field.ResolverType);
-                    }
-                }
-            }
         }
 
         public static void RegisterDependencies(
