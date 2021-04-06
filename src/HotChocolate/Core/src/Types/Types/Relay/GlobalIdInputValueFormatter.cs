@@ -101,42 +101,6 @@ namespace HotChocolate.Types.Relay
                 return list;
             }
 
-            if (runtimeValue is IEnumerable<string?> nullableStringEnumerable)
-            {
-                try
-                {
-                    IList list = _createList();
-
-                    foreach (string? sv in nullableStringEnumerable)
-                    {
-                        if (sv is null)
-                        {
-                            list.Add(null);
-                        }
-                        else
-                        {
-                            id = _idSerializer.Deserialize(sv);
-
-                            if (!_validateType || _typeName.Equals(id.TypeName))
-                            {
-                                list.Add(id.Value);
-                            }
-                        }
-                    }
-
-                    return list;
-                }
-                catch
-                {
-                    throw new GraphQLException(
-                        ErrorBuilder.New()
-                            .SetMessage(
-                                "The IDs `{0}` have an invalid format.",
-                                string.Join(", ", nullableStringEnumerable))
-                            .Build());
-                }
-            }
-
             if (runtimeValue is IEnumerable<string> stringEnumerable)
             {
                 try
