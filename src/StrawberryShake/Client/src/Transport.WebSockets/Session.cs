@@ -53,7 +53,7 @@ namespace StrawberryShake.Transport.WebSockets
             {
                 try
                 {
-                    socketProtocol.Disposed += (sender, args) => StopOperationAsync(operation.Id);
+                    socketProtocol.Disposed += (sender, args) => BeginStopOperation(operation.Id);
 
                     await socketProtocol
                         .StartOperationAsync(operation.Id, request, cancellationToken)
@@ -72,6 +72,9 @@ namespace StrawberryShake.Transport.WebSockets
 
             return operation;
         }
+
+        private void BeginStopOperation(string operationId) =>
+            Task.Run(async () => await StopOperationAsync(operationId));
 
         /// <inheritdoc />
         public async Task StopOperationAsync(

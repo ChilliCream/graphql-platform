@@ -8,3 +8,4 @@ query GetPeople {
     }
   }
 }
+
