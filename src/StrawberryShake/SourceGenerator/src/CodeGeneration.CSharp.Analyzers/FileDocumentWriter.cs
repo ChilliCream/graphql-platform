@@ -12,7 +12,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         public void WriteDocument(ClientGeneratorContext context, SourceDocument document)
         {
-            string documentName = $"{document.Name}.StrawberryShake.cs";
+            string documentName = $"{document.Name}.{context.Settings.Name}.StrawberryShake.cs";
             context.Log.WriteDocument(documentName);
 
             var directory = document.Path is null

@@ -3,22 +3,26 @@ using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
-using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class EntityTypeGenerator : CodeGenerator<EntityTypeDescriptor>
     {
-        protected override void Generate(
+        protected override bool CanHandle(EntityTypeDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings) => !settings.NoStore;
+
+        protected override void Generate(EntityTypeDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
-            EntityTypeDescriptor descriptor,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             // Setup class
             fileName = descriptor.RuntimeType.Name;
             path = State;
+            ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -39,10 +43,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .SetType(item.Value.Type.ToStateTypeReference())
                     .SetPublic();
 
-                var paramName = item.Value.Name == WellKnownNames.TypeName 
+                var paramName = item.Value.Name == WellKnownNames.TypeName
                     ? WellKnownNames.TypeName
                     : GetParameterName(item.Value.Name);
-                    
+
                 constructorBuilder
                     .AddParameter(
                         paramName,
@@ -57,11 +61,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         .SetRighthandSide(paramName));
             }
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
-                .AddType(classBuilder)
-                .Build(writer);
+            classBuilder.Build(writer);
         }
     }
 }

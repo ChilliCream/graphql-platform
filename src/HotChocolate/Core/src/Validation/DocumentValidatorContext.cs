@@ -8,17 +8,11 @@ namespace HotChocolate.Validation
 {
     public sealed class DocumentValidatorContext : IDocumentValidatorContext
     {
-        private static readonly FieldInfoListBufferPool _fieldInfoPool =
-            new FieldInfoListBufferPool();
-        private readonly List<FieldInfoListBuffer> _buffers =
-            new List<FieldInfoListBuffer>
-            {
-                new FieldInfoListBuffer()
-            };
+        private static readonly FieldInfoListBufferPool _fieldInfoPool = new();
+        private readonly List<FieldInfoListBuffer> _buffers = new() { new FieldInfoListBuffer() };
 
         private ISchema? _schema;
         private IOutputType? _nonNullString;
-        private bool _unexpectedErrorsDetected;
 
         public ISchema Schema
         {
@@ -26,7 +20,6 @@ namespace HotChocolate.Validation
             {
                 if (_schema is null)
                 {
-                    // TODO : resources
                     throw new InvalidOperationException(
                         Resources.DocumentValidatorContext_Context_Invalid_State);
                 }
@@ -61,7 +54,7 @@ namespace HotChocolate.Validation
         public IDictionary<SelectionSetNode, IList<FieldInfo>> FieldSets { get; } =
             new Dictionary<SelectionSetNode, IList<FieldInfo>>();
 
-        public ISet<(FieldNode, FieldNode)> FieldTuples { get; } = 
+        public ISet<(FieldNode, FieldNode)> FieldTuples { get; } =
             new HashSet<(FieldNode, FieldNode)>();
 
         public ISet<string> VisitedFragments { get; } = new HashSet<string>();
@@ -95,20 +88,14 @@ namespace HotChocolate.Validation
 
         public ICollection<IError> Errors { get; } = new List<IError>();
 
-        public bool UnexpectedErrorsDetected
-        {
-            get => _unexpectedErrorsDetected;
-            set
-            {
-                _unexpectedErrorsDetected = value;
-            }
-        }
+        public bool UnexpectedErrorsDetected { get; set; }
 
         public int Count { get; set; }
 
         public int Max { get; set; }
 
-        public IDictionary<string, object> ContextData { get; } = new Dictionary<string, object>();
+        public IDictionary<string, object?> ContextData { get; } =
+            new Dictionary<string, object?>();
 
         public IList<FieldInfo> RentFieldInfoList()
         {
@@ -161,7 +148,7 @@ namespace HotChocolate.Validation
                 FieldInfoListBuffer buffer = _buffers.Pop();
                 buffer.Clear();
 
-                for (int i = 0; i < _buffers.Count; i++)
+                for (var i = 0; i < _buffers.Count; i++)
                 {
                     _fieldInfoPool.Return(_buffers[i]);
                 }
