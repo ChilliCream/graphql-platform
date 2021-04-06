@@ -338,6 +338,7 @@ namespace HotChocolate.Types.Relay
                 .MatchSnapshot();
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static")]
         public class Query
         {
             public string IntId([ID] int id) => id.ToString();
@@ -374,7 +375,7 @@ namespace HotChocolate.Types.Relay
                 string someId,
                 string? someNullableId,
                 IReadOnlyList<int> someIds,
-                IReadOnlyList<int?> someNullableIds)
+                IReadOnlyList<int?>? someNullableIds)
             {
                 SomeId = someId;
                 SomeNullableId = someNullableId;
@@ -397,7 +398,7 @@ namespace HotChocolate.Types.Relay
                 string someId,
                 string? someNullableId,
                 IReadOnlyList<int> someIds,
-                IReadOnlyList<int?> someNullableIds)
+                IReadOnlyList<int?>? someNullableIds)
             {
                 SomeId = someId;
                 SomeNullableId = someNullableId;
@@ -411,13 +412,13 @@ namespace HotChocolate.Types.Relay
 
             [ID("Bar")] public string? SomeNullableId { get; }
 
-            [ID("Bar")] public IReadOnlyList<int?> SomeNullableIds { get; }
+            [ID("Bar")] public IReadOnlyList<int?>? SomeNullableIds { get; }
 
             public string Raw =>
                 $"{nameof(SomeId)}: {SomeId}, " +
                 $"{nameof(SomeIds)}: [{string.Join(", ", SomeIds)}], " +
                 $"{nameof(SomeNullableId)}: {SomeNullableId}, " +
-                $"{nameof(SomeNullableIds)}: [{string.Join(", ", SomeNullableIds)}]";
+                $"{nameof(SomeNullableIds)}: [{string.Join(", ", SomeNullableIds ?? Array.Empty<int?>())}]";
         }
 
         public interface IFooPayload
@@ -428,7 +429,7 @@ namespace HotChocolate.Types.Relay
 
             [ID] IReadOnlyList<int> SomeIds { get; }
 
-            [ID] IReadOnlyList<int?> SomeNullableIds { get; }
+            [ID] IReadOnlyList<int?>? SomeNullableIds { get; }
 
             string Raw { get; }
         }
