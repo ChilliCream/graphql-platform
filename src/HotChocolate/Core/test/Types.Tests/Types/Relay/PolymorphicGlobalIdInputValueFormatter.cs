@@ -74,61 +74,30 @@ namespace HotChocolate.Types.Relay
 
         private IdValue DeserializeId(string value)
         {
-            if (_idRuntimeType == typeof(int) && value is string rawIntString &&
+            if (value is null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            if ((_idRuntimeType == typeof(int) || _idRuntimeType == typeof(int?)) &&
+                value is string rawIntString &&
                 int.TryParse(rawIntString, out var intValue))
             {
                 return new IdValue(_schemaName, _nodeTypeName, intValue);
             }
 
-            if (_idRuntimeType == typeof(int?))
-            {
-                if (value is null)
-                {
-                    return new IdValue(_schemaName, _nodeTypeName, null);
-                }
-                else if (value is string rawIntString2 &&
-                    int.TryParse(rawIntString2, out var intValue2))
-                {
-                    return new IdValue(_schemaName, _nodeTypeName, intValue2);
-                }
-            }
-
-            if (_idRuntimeType == typeof(long) && value is string rawLongString &&
+            if ((_idRuntimeType == typeof(long) || _idRuntimeType == typeof(long?)) &&
+                value is string rawLongString &&
                 long.TryParse(rawLongString, out var longValue))
             {
                 return new IdValue(_schemaName, _nodeTypeName, longValue);
             }
 
-            if (_idRuntimeType == typeof(long?))
-            {
-                if (value is null)
-                {
-                    return new IdValue(_schemaName, _nodeTypeName, null);
-                }
-                else if (value is string rawLongString2 &&
-                    long.TryParse(rawLongString2, out var longValue2))
-                {
-                    return new IdValue(_schemaName, _nodeTypeName, longValue2);
-                }
-            }
-
-            if (_idRuntimeType == typeof(Guid) && value is string rawGuidString &&
+            if ((_idRuntimeType == typeof(Guid) || _idRuntimeType == typeof(Guid?)) &&
+                value is string rawGuidString &&
                 Guid.TryParse(rawGuidString, out Guid guidValue))
             {
                 return new IdValue(_schemaName, _nodeTypeName, guidValue);
-            }
-
-            if (_idRuntimeType == typeof(Guid?))
-            {
-                if (value is null)
-                {
-                    return new IdValue(_schemaName, _nodeTypeName, null);
-                }
-                else if (value is string rawGuidString2 &&
-                    Guid.TryParse(rawGuidString2, out Guid guidValue2))
-                {
-                    return new IdValue(_schemaName, _nodeTypeName, guidValue2);
-                }
             }
 
             try

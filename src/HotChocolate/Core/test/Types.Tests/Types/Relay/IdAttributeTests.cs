@@ -388,7 +388,7 @@ namespace HotChocolate.Types.Relay
 
             [ID("Some")] public IReadOnlyList<int> SomeIds { get; }
 
-            [ID("Some")] public IReadOnlyList<int?> SomeNullableIds { get; }
+            [ID("Some")] public IReadOnlyList<int?>? SomeNullableIds { get; }
         }
 
         public class FooPayload : IFooPayload
