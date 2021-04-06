@@ -63,7 +63,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         public void Flush()
         {
-            throw new NotImplementedException();
+            
         }
     }
 }
