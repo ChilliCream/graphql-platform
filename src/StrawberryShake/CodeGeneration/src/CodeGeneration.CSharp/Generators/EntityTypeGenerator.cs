@@ -9,14 +9,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class EntityTypeGenerator : CodeGenerator<EntityTypeDescriptor>
     {
-        protected override bool CanHandle(
-            CodeGeneratorSettings settings,
-            EntityTypeDescriptor descriptor) => !settings.NoStore;
+        protected override bool CanHandle(EntityTypeDescriptor descriptor,
+            CodeGeneratorSettings settings) => !settings.NoStore;
 
-        protected override void Generate(
-            CodeWriter writer,
-            EntityTypeDescriptor descriptor,
+        protected override void Generate(EntityTypeDescriptor descriptor,
             CodeGeneratorSettings settings,
+            CodeWriter writer,
             out string fileName,
             out string? path)
         {

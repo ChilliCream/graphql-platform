@@ -8,10 +8,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class ResultTypeGenerator : CodeGenerator<ObjectTypeDescriptor>
     {
-        protected override void Generate(
-            CodeWriter writer,
-            ObjectTypeDescriptor descriptor,
+        protected override void Generate(ObjectTypeDescriptor descriptor,
             CodeGeneratorSettings settings,
+            CodeWriter writer,
             out string fileName,
             out string? path)
         {

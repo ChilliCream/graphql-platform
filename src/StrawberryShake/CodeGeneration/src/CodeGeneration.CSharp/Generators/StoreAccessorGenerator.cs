@@ -11,17 +11,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _requestFactories = "requestFactories";
         private const string _resultDataFactories = "resultDataFactories";
 
-        protected override bool CanHandle(
-            CodeGeneratorSettings settings,
-            StoreAccessorDescriptor descriptor)
+        protected override bool CanHandle(StoreAccessorDescriptor descriptor,
+            CodeGeneratorSettings settings)
         {
             return !settings.NoStore;
         }
 
-        protected override void Generate(
-            CodeWriter writer,
-            StoreAccessorDescriptor descriptor,
+        protected override void Generate(StoreAccessorDescriptor descriptor,
             CodeGeneratorSettings settings,
+            CodeWriter writer,
             out string fileName,
             out string? path)
         {

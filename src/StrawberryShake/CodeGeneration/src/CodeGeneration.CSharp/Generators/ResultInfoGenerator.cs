@@ -16,17 +16,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _version = nameof(_version);
         private const string version = nameof(version);
 
-        protected override bool CanHandle(
-            CodeGeneratorSettings settings,
-            ITypeDescriptor descriptor)
+        protected override bool CanHandle(ITypeDescriptor descriptor,
+            CodeGeneratorSettings settings)
         {
             return descriptor.Kind == TypeKind.ResultType && !descriptor.IsInterface();
         }
 
-        protected override void Generate(
-            CodeWriter writer,
-            ITypeDescriptor typeDescriptor,
+        protected override void Generate(ITypeDescriptor typeDescriptor,
             CodeGeneratorSettings settings,
+            CodeWriter writer,
             out string fileName,
             out string? path)
         {

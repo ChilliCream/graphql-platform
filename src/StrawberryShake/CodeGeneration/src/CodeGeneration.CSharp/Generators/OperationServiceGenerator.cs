@@ -25,10 +25,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _value = "value";
         private const string _cancellationToken = "cancellationToken";
 
-        protected override void Generate(
-            CodeWriter writer,
-            OperationDescriptor descriptor,
+        protected override void Generate(OperationDescriptor descriptor,
             CodeGeneratorSettings settings,
+            CodeWriter writer,
             out string fileName,
             out string? path)
         {

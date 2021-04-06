@@ -16,10 +16,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private static readonly string _keyValuePair =
             TypeNames.KeyValuePair.WithGeneric(TypeNames.String, TypeNames.Object.MakeNullable());
 
-        protected override void Generate(
-            CodeWriter writer,
-            InputObjectTypeDescriptor namedTypeDescriptor,
+        protected override void Generate(InputObjectTypeDescriptor namedTypeDescriptor,
             CodeGeneratorSettings settings,
+            CodeWriter writer,
             out string fileName,
             out string? path)
         {

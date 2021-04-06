@@ -8,18 +8,15 @@ namespace StrawberryShake.CodeGeneration
         where TDescriptor : ICodeDescriptor
     {
         public bool CanHandle(
-            CodeGeneratorSettings settings,
-            ICodeDescriptor descriptor) =>
-            descriptor is TDescriptor d && CanHandle(settings, d);
-
-        protected virtual bool CanHandle(
-            CodeGeneratorSettings settings,
-            TDescriptor descriptor) => true;
-
-        public void Generate(
-            CodeWriter writer,
             ICodeDescriptor descriptor,
+            CodeGeneratorSettings settings) =>
+            descriptor is TDescriptor d && CanHandle(d, settings);
+
+        protected virtual bool CanHandle(TDescriptor descriptor, CodeGeneratorSettings settings) => true;
+
+        public void Generate(ICodeDescriptor descriptor,
             CodeGeneratorSettings settings,
+            CodeWriter writer,
             out string fileName,
             out string? path)
         {
@@ -33,13 +30,13 @@ namespace StrawberryShake.CodeGeneration
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            Generate(writer, (TDescriptor)descriptor, settings, out fileName, out path);
+            Generate((TDescriptor)descriptor, settings, writer, out fileName, out path);
         }
 
         protected abstract void Generate(
-            CodeWriter writer,
             TDescriptor descriptor,
             CodeGeneratorSettings settings,
+            CodeWriter writer,
             out string fileName,
             out string? path);
 

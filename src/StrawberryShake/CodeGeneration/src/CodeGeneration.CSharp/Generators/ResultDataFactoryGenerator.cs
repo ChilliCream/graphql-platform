@@ -15,17 +15,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _snapshot = "snapshot";
         private const string _info = "info";
 
-        protected override bool CanHandle(
-            CodeGeneratorSettings settings,
-            ITypeDescriptor descriptor)
+        protected override bool CanHandle(ITypeDescriptor descriptor,
+            CodeGeneratorSettings settings)
         {
             return descriptor.Kind == TypeKind.ResultType && !descriptor.IsInterface();
         }
 
-        protected override void Generate(
-            CodeWriter writer,
-            ITypeDescriptor typeDescriptor,
+        protected override void Generate(ITypeDescriptor typeDescriptor,
             CodeGeneratorSettings settings,
+            CodeWriter writer,
             out string fileName,
             out string? path)
         {

@@ -11,10 +11,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class DataTypeGenerator : ClassBaseGenerator<DataTypeDescriptor>
     {
-        protected override void Generate(
-            CodeWriter writer,
-            DataTypeDescriptor descriptor,
+        protected override void Generate(DataTypeDescriptor descriptor,
             CodeGeneratorSettings settings,
+            CodeWriter writer,
             out string fileName,
             out string? path)
         {

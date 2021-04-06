@@ -205,7 +205,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 foreach (var generator in _generators)
                 {
-                    if (generator.CanHandle(codeGeneratorSettings, descriptor))
+                    if (generator.CanHandle(descriptor, codeGeneratorSettings))
                     {
                         documents.Add(WriteDocument(
                             codeGeneratorSettings,
@@ -246,7 +246,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             writer.WriteLine();
 #endif
 
-            generator.Generate(writer, descriptor, settings, out var fileName, out var path);
+            generator.Generate(descriptor, settings, writer, out var fileName, out var path);
 
             writer.Flush();
 

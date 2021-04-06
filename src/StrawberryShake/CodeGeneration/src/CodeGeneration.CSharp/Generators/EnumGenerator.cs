@@ -6,10 +6,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class EnumGenerator : CodeGenerator<EnumTypeDescriptor>
     {
-        protected override void Generate(
-            CodeWriter writer,
-            EnumTypeDescriptor descriptor,
+        protected override void Generate(EnumTypeDescriptor descriptor,
             CodeGeneratorSettings settings,
+            CodeWriter writer,
             out string fileName,
             out string? path)
         {

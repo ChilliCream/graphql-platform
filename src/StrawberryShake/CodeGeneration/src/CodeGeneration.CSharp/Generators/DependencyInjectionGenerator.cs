@@ -44,10 +44,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             TypeNames.TimeSpanSerializer
         };
 
-        protected override void Generate(
-            CodeWriter writer,
-            DependencyInjectionDescriptor descriptor,
+        protected override void Generate(DependencyInjectionDescriptor descriptor,
             CodeGeneratorSettings settings,
+            CodeWriter writer,
             out string fileName,
             out string? path)
         {
