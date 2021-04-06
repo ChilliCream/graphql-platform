@@ -13,7 +13,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\HotChocolate\AspNetCore\test\AspNetCore.Tests\HotChocolate.AspNetCore.Tests.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Core\test\StarWars\HotChocolate.StarWars.csproj" />
-    <ProjectReference Include="..\..\..\Client\src\Persistence.LiteDB\StrawberryShake.Persistence.LiteDB.csproj" />
     <ProjectReference Include="..\..\..\Client\src\Persistence.SQLite\StrawberryShake.Persistence.SQLite.csproj" />
     <ProjectReference Include="..\..\..\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />
     <ProjectReference Include="..\..\..\Client\src\Transport.InMemory\StrawberryShake.Transport.InMemory.csproj" />
