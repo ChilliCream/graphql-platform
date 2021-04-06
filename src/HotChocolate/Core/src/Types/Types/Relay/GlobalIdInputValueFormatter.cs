@@ -76,8 +76,10 @@ namespace HotChocolate.Types.Relay
                     if (idv is null)
                     {
                         list.Add(null);
+                        continue;
                     }
-                    else if (!_validateType || _typeName.Equals(idv.TypeName))
+                    
+                    if (!_validateType || _typeName.Equals(idv.TypeName))
                     {
                         list.Add(idv.Value);
                     }
@@ -101,14 +103,20 @@ namespace HotChocolate.Types.Relay
                 return list;
             }
 
-            if (runtimeValue is IEnumerable<string> stringEnumerable)
+            if (runtimeValue is IEnumerable<string?> stringEnumerable)
             {
                 try
                 {
                     IList list = _createList();
 
-                    foreach (string sv in stringEnumerable)
+                    foreach (string? sv in stringEnumerable)
                     {
+                        if (sv is null)
+                        {
+                            list.Add(null);
+                            continue;
+                        }
+                        
                         id = _idSerializer.Deserialize(sv);
 
                         if (!_validateType || _typeName.Equals(id.TypeName))
