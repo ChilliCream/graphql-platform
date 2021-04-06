@@ -46,9 +46,9 @@ namespace StrawberryShake.CodeGeneration
                 (TDescriptor)descriptor,
                 settings,
                 codeWriter,
-                out string fileName,
-                out string? path,
-                out string ns);
+                out var fileName,
+                out var path,
+                out var ns);
 
             codeWriter.Flush();
 
