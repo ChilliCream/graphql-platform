@@ -67,6 +67,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             var allDocuments = GetGraphQLFiles(context);
             var allConfigurations = GetGraphQLConfigs(context);
 
+            log.Flush();
+
             foreach (var config in allConfigurations)
             {
                 var clientContext = new ClientGeneratorContext(

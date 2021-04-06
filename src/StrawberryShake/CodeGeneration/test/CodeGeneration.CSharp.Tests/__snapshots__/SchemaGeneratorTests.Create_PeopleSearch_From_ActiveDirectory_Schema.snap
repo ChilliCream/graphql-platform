@@ -26,9 +26,12 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// Searches for people based on their id, name, and identites.
-                /// </summary>
-        public global::Foo.Bar.IPeopleSearch_People? People { get; }
+        /// Searches for people based on their id, name, and identites.
+        /// </summary>
+        public global::Foo.Bar.IPeopleSearch_People? People
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -96,14 +99,23 @@ namespace Foo.Bar
             Items = items;
         }
 
-        public global::System.Int32 TotalCount { get; }
+        public global::System.Int32 TotalCount
+        {
+            get;
+        }
 
         /// <summary>
-                /// Information to aid in pagination.
-                /// </summary>
-        public global::Foo.Bar.IPeopleSearch_People_PageInfo PageInfo { get; }
+        /// Information to aid in pagination.
+        /// </summary>
+        public global::Foo.Bar.IPeopleSearch_People_PageInfo PageInfo
+        {
+            get;
+        }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IPeopleSearch_People_Items>? Items { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IPeopleSearch_People_Items>? Items
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -167,8 +179,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
-        /// Information about the offset pagination.
-        /// </summary>
+    /// Information about the offset pagination.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PeopleSearch_People_PageInfo_CollectionSegmentInfo : global::System.IEquatable<PeopleSearch_People_PageInfo_CollectionSegmentInfo>, IPeopleSearch_People_PageInfo_CollectionSegmentInfo
     {
@@ -179,14 +191,20 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// Indicates whether more items exist following the set defined by the clients arguments.
-                /// </summary>
-        public global::System.Boolean HasNextPage { get; }
+        /// Indicates whether more items exist following the set defined by the clients arguments.
+        /// </summary>
+        public global::System.Boolean HasNextPage
+        {
+            get;
+        }
 
         /// <summary>
-                /// Indicates whether more items exist prior the set defined by the clients arguments.
-                /// </summary>
-        public global::System.Boolean HasPreviousPage { get; }
+        /// Indicates whether more items exist prior the set defined by the clients arguments.
+        /// </summary>
+        public global::System.Boolean HasPreviousPage
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -256,42 +274,66 @@ namespace Foo.Bar
             Manager = manager;
         }
 
-        public global::System.String Id { get; }
+        public global::System.String Id
+        {
+            get;
+        }
 
         /// <summary>
-                /// The database primary key for the person.
-                /// </summary>
-        public global::System.Int64 Key { get; }
+        /// The database primary key for the person.
+        /// </summary>
+        public global::System.Int64 Key
+        {
+            get;
+        }
 
         /// <summary>
-                /// The full of the person.
-                /// </summary>
-        public global::System.String? DisplayName { get; }
+        /// The full of the person.
+        /// </summary>
+        public global::System.String? DisplayName
+        {
+            get;
+        }
 
         /// <summary>
-                /// Indicates if the person is active.
-                /// </summary>
-        public global::System.Boolean IsActive { get; }
+        /// Indicates if the person is active.
+        /// </summary>
+        public global::System.Boolean IsActive
+        {
+            get;
+        }
 
         /// <summary>
-                /// The department the person belongs to.
-                /// </summary>
-        public global::Foo.Bar.IPeopleSearch_People_Items_Department? Department { get; }
+        /// The department the person belongs to.
+        /// </summary>
+        public global::Foo.Bar.IPeopleSearch_People_Items_Department? Department
+        {
+            get;
+        }
 
         /// <summary>
-                /// Url to image, you can specify a size in pixels by appending '?size=300' to get a square image.
-                /// </summary>
-        public global::System.Uri? Image { get; }
+        /// Url to image, you can specify a size in pixels by appending '?size=300' to get a square image.
+        /// </summary>
+        public global::System.Uri? Image
+        {
+            get;
+        }
 
         /// <summary>
-                /// The job title of the person.
-                /// </summary>
-        public global::System.String Title { get; }
+        /// The job title of the person.
+        /// </summary>
+        public global::System.String Title
+        {
+            get;
+        }
 
         /// <summary>
-                /// The person managing the person.
-                /// </summary>
-        public global::Foo.Bar.IPeopleSearch_People_Items_Manager? Manager { get; }
+        /// The person managing the person.
+        /// </summary>
+        public global::Foo.Bar.IPeopleSearch_People_Items_Manager? Manager
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -377,12 +419,18 @@ namespace Foo.Bar
             Name = name;
         }
 
-        public global::System.String Id { get; }
+        public global::System.String Id
+        {
+            get;
+        }
 
         /// <summary>
-                /// The name of the department.
-                /// </summary>
-        public global::System.String Name { get; }
+        /// The name of the department.
+        /// </summary>
+        public global::System.String Name
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -447,17 +495,26 @@ namespace Foo.Bar
             DisplayName = displayName;
         }
 
-        public global::System.String Id { get; }
+        public global::System.String Id
+        {
+            get;
+        }
 
         /// <summary>
-                /// The database primary key for the person.
-                /// </summary>
-        public global::System.Int64 Key { get; }
+        /// The database primary key for the person.
+        /// </summary>
+        public global::System.Int64 Key
+        {
+            get;
+        }
 
         /// <summary>
-                /// The full of the person.
-                /// </summary>
-        public global::System.String? DisplayName { get; }
+        /// The full of the person.
+        /// </summary>
+        public global::System.String? DisplayName
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -521,23 +578,35 @@ namespace Foo.Bar
     public interface IPeopleSearchQueryResult
     {
         /// <summary>
-                /// Searches for people based on their id, name, and identites.
-                /// </summary>
-        public global::Foo.Bar.IPeopleSearch_People? People { get; }
+        /// Searches for people based on their id, name, and identites.
+        /// </summary>
+        public global::Foo.Bar.IPeopleSearch_People? People
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IPeopleSearch_People
     {
-        public global::System.Int32 TotalCount { get; }
+        public global::System.Int32 TotalCount
+        {
+            get;
+        }
 
         /// <summary>
-                /// Information to aid in pagination.
-                /// </summary>
-        public global::Foo.Bar.IPeopleSearch_People_PageInfo PageInfo { get; }
+        /// Information to aid in pagination.
+        /// </summary>
+        public global::Foo.Bar.IPeopleSearch_People_PageInfo PageInfo
+        {
+            get;
+        }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IPeopleSearch_People_Items>? Items { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IPeopleSearch_People_Items>? Items
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -548,26 +617,32 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Information about the offset pagination.
-        /// </summary>
+    /// Information about the offset pagination.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IPeopleSearch_People_PageInfo
     {
         /// <summary>
-                /// Indicates whether more items exist following the set defined by the clients arguments.
-                /// </summary>
-        public global::System.Boolean HasNextPage { get; }
+        /// Indicates whether more items exist following the set defined by the clients arguments.
+        /// </summary>
+        public global::System.Boolean HasNextPage
+        {
+            get;
+        }
 
         /// <summary>
-                /// Indicates whether more items exist prior the set defined by the clients arguments.
-                /// </summary>
-        public global::System.Boolean HasPreviousPage { get; }
+        /// Indicates whether more items exist prior the set defined by the clients arguments.
+        /// </summary>
+        public global::System.Boolean HasPreviousPage
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Information about the offset pagination.
-        /// </summary>
+    /// Information about the offset pagination.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IPeopleSearch_People_PageInfo_CollectionSegmentInfo : IPeopleSearch_People_PageInfo
     {
@@ -577,42 +652,66 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IPeopleSearchResult
     {
-        public global::System.String Id { get; }
+        public global::System.String Id
+        {
+            get;
+        }
 
         /// <summary>
-                /// The database primary key for the person.
-                /// </summary>
-        public global::System.Int64 Key { get; }
+        /// The database primary key for the person.
+        /// </summary>
+        public global::System.Int64 Key
+        {
+            get;
+        }
 
         /// <summary>
-                /// The full of the person.
-                /// </summary>
-        public global::System.String? DisplayName { get; }
+        /// The full of the person.
+        /// </summary>
+        public global::System.String? DisplayName
+        {
+            get;
+        }
 
         /// <summary>
-                /// Indicates if the person is active.
-                /// </summary>
-        public global::System.Boolean IsActive { get; }
+        /// Indicates if the person is active.
+        /// </summary>
+        public global::System.Boolean IsActive
+        {
+            get;
+        }
 
         /// <summary>
-                /// The department the person belongs to.
-                /// </summary>
-        public global::Foo.Bar.IPeopleSearch_People_Items_Department? Department { get; }
+        /// The department the person belongs to.
+        /// </summary>
+        public global::Foo.Bar.IPeopleSearch_People_Items_Department? Department
+        {
+            get;
+        }
 
         /// <summary>
-                /// Url to image, you can specify a size in pixels by appending '?size=300' to get a square image.
-                /// </summary>
-        public global::System.Uri? Image { get; }
+        /// Url to image, you can specify a size in pixels by appending '?size=300' to get a square image.
+        /// </summary>
+        public global::System.Uri? Image
+        {
+            get;
+        }
 
         /// <summary>
-                /// The job title of the person.
-                /// </summary>
-        public global::System.String Title { get; }
+        /// The job title of the person.
+        /// </summary>
+        public global::System.String Title
+        {
+            get;
+        }
 
         /// <summary>
-                /// The person managing the person.
-                /// </summary>
-        public global::Foo.Bar.IPeopleSearch_People_Items_Manager? Manager { get; }
+        /// The person managing the person.
+        /// </summary>
+        public global::Foo.Bar.IPeopleSearch_People_Items_Manager? Manager
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -631,12 +730,18 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IPeopleSearch_People_Items_Department
     {
-        public global::System.String Id { get; }
+        public global::System.String Id
+        {
+            get;
+        }
 
         /// <summary>
-                /// The name of the department.
-                /// </summary>
-        public global::System.String Name { get; }
+        /// The name of the department.
+        /// </summary>
+        public global::System.String Name
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -649,17 +754,26 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IPeopleSearch_People_Items_Manager
     {
-        public global::System.String Id { get; }
+        public global::System.String Id
+        {
+            get;
+        }
 
         /// <summary>
-                /// The database primary key for the person.
-                /// </summary>
-        public global::System.Int64 Key { get; }
+        /// The database primary key for the person.
+        /// </summary>
+        public global::System.Int64 Key
+        {
+            get;
+        }
 
         /// <summary>
-                /// The full of the person.
-                /// </summary>
-        public global::System.String? DisplayName { get; }
+        /// The full of the person.
+        /// </summary>
+        public global::System.String? DisplayName
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -670,54 +784,54 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
-        /// Represents the operation service of the PeopleSearch GraphQL operation
-        /// <code>
-        /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
-        ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
-        ///     __typename
-        ///     totalCount
-        ///     pageInfo {
-        ///       __typename
-        ///       hasNextPage
-        ///       hasPreviousPage
-        ///     }
-        ///     items {
-        ///       __typename
-        ///       ... PeopleSearchResult
-        ///       ... on Person {
-        ///         id
-        ///       }
-        ///     }
-        ///   }
-        /// }
-        /// 
-        /// fragment PeopleSearchResult on Person {
-        ///   id
-        ///   key
-        ///   displayName
-        ///   isActive
-        ///   department {
-        ///     __typename
-        ///     id
-        ///     name
-        ///     ... on Department {
-        ///       id
-        ///     }
-        ///   }
-        ///   image
-        ///   title
-        ///   manager {
-        ///     __typename
-        ///     id
-        ///     key
-        ///     displayName
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the PeopleSearch GraphQL operation
+    /// <code>
+    /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
+    ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
+    ///     __typename
+    ///     totalCount
+    ///     pageInfo {
+    ///       __typename
+    ///       hasNextPage
+    ///       hasPreviousPage
+    ///     }
+    ///     items {
+    ///       __typename
+    ///       ... PeopleSearchResult
+    ///       ... on Person {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment PeopleSearchResult on Person {
+    ///   id
+    ///   key
+    ///   displayName
+    ///   isActive
+    ///   department {
+    ///     __typename
+    ///     id
+    ///     name
+    ///     ... on Department {
+    ///       id
+    ///     }
+    ///   }
+    ///   image
+    ///   title
+    ///   manager {
+    ///     __typename
+    ///     id
+    ///     key
+    ///     displayName
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PeopleSearchQueryDocument : global::StrawberryShake.IDocument
     {
@@ -725,14 +839,20 @@ namespace Foo.Bar
         {
         }
 
-        public static PeopleSearchQueryDocument Instance { get; } = new PeopleSearchQueryDocument();
+        public static PeopleSearchQueryDocument Instance
+        {
+            get;
+        }
 
+        = new PeopleSearchQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x50, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x28, 0x24, 0x74, 0x65, 0x72, 0x6d, 0x3a, 0x20, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x21, 0x2c, 0x20, 0x24, 0x73, 0x6b, 0x69, 0x70, 0x3a, 0x20, 0x49, 0x6e, 0x74, 0x2c, 0x20, 0x24, 0x74, 0x61, 0x6b, 0x65, 0x3a, 0x20, 0x49, 0x6e, 0x74, 0x2c, 0x20, 0x24, 0x69, 0x6e, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65, 0x3a, 0x20, 0x42, 0x6f, 0x6f, 0x6c, 0x65, 0x61, 0x6e, 0x29, 0x20, 0x7b, 0x20, 0x70, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x3a, 0x20, 0x70, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x28, 0x74, 0x65, 0x72, 0x6d, 0x3a, 0x20, 0x24, 0x74, 0x65, 0x72, 0x6d, 0x2c, 0x20, 0x69, 0x6e, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x49, 0x6e, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65, 0x3a, 0x20, 0x24, 0x69, 0x6e, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65, 0x2c, 0x20, 0x73, 0x6b, 0x69, 0x70, 0x3a, 0x20, 0x24, 0x73, 0x6b, 0x69, 0x70, 0x2c, 0x20, 0x74, 0x61, 0x6b, 0x65, 0x3a, 0x20, 0x24, 0x74, 0x61, 0x6b, 0x65, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x20, 0x70, 0x61, 0x67, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x68, 0x61, 0x73, 0x4e, 0x65, 0x78, 0x74, 0x50, 0x61, 0x67, 0x65, 0x20, 0x68, 0x61, 0x73, 0x50, 0x72, 0x65, 0x76, 0x69, 0x6f, 0x75, 0x73, 0x50, 0x61, 0x67, 0x65, 0x20, 0x7d, 0x20, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x50, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x6b, 0x65, 0x79, 0x20, 0x64, 0x69, 0x73, 0x70, 0x6c, 0x61, 0x79, 0x4e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x73, 0x41, 0x63, 0x74, 0x69, 0x76, 0x65, 0x20, 0x64, 0x65, 0x70, 0x61, 0x72, 0x74, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x64, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x44, 0x65, 0x70, 0x61, 0x72, 0x74, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x69, 0x6d, 0x61, 0x67, 0x65, 0x20, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x20, 0x6d, 0x61, 0x6e, 0x61, 0x67, 0x65, 0x72, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x64, 0x20, 0x6b, 0x65, 0x79, 0x20, 0x64, 0x69, 0x73, 0x70, 0x6c, 0x61, 0x79, 0x4e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d};
+        public global::StrawberryShake.DocumentHash Hash
+        {
+            get;
+        }
 
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[] { 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x50, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x28, 0x24, 0x74, 0x65, 0x72, 0x6d, 0x3a, 0x20, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x21, 0x2c, 0x20, 0x24, 0x73, 0x6b, 0x69, 0x70, 0x3a, 0x20, 0x49, 0x6e, 0x74, 0x2c, 0x20, 0x24, 0x74, 0x61, 0x6b, 0x65, 0x3a, 0x20, 0x49, 0x6e, 0x74, 0x2c, 0x20, 0x24, 0x69, 0x6e, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65, 0x3a, 0x20, 0x42, 0x6f, 0x6f, 0x6c, 0x65, 0x61, 0x6e, 0x29, 0x20, 0x7b, 0x20, 0x70, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x3a, 0x20, 0x70, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x28, 0x74, 0x65, 0x72, 0x6d, 0x3a, 0x20, 0x24, 0x74, 0x65, 0x72, 0x6d, 0x2c, 0x20, 0x69, 0x6e, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x49, 0x6e, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65, 0x3a, 0x20, 0x24, 0x69, 0x6e, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65, 0x2c, 0x20, 0x73, 0x6b, 0x69, 0x70, 0x3a, 0x20, 0x24, 0x73, 0x6b, 0x69, 0x70, 0x2c, 0x20, 0x74, 0x61, 0x6b, 0x65, 0x3a, 0x20, 0x24, 0x74, 0x61, 0x6b, 0x65, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x43, 0x6f, 0x75, 0x6e, 0x74, 0x20, 0x70, 0x61, 0x67, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x68, 0x61, 0x73, 0x4e, 0x65, 0x78, 0x74, 0x50, 0x61, 0x67, 0x65, 0x20, 0x68, 0x61, 0x73, 0x50, 0x72, 0x65, 0x76, 0x69, 0x6f, 0x75, 0x73, 0x50, 0x61, 0x67, 0x65, 0x20, 0x7d, 0x20, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x50, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x6b, 0x65, 0x79, 0x20, 0x64, 0x69, 0x73, 0x70, 0x6c, 0x61, 0x79, 0x4e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x73, 0x41, 0x63, 0x74, 0x69, 0x76, 0x65, 0x20, 0x64, 0x65, 0x70, 0x61, 0x72, 0x74, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x64, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x44, 0x65, 0x70, 0x61, 0x72, 0x74, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x69, 0x6d, 0x61, 0x67, 0x65, 0x20, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x20, 0x6d, 0x61, 0x6e, 0x61, 0x67, 0x65, 0x72, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x64, 0x20, 0x6b, 0x65, 0x79, 0x20, 0x64, 0x69, 0x73, 0x70, 0x6c, 0x61, 0x79, 0x4e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d };
-
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "0aa0e07a3648d30f705916cfe5d398a1c5c4beac");
-
+        = new global::StrawberryShake.DocumentHash("sha1Hash", "0aa0e07a3648d30f705916cfe5d398a1c5c4beac");
         public override global::System.String ToString()
         {
 #if NETSTANDARD2_0
@@ -745,54 +865,54 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
-        /// Represents the operation service of the PeopleSearch GraphQL operation
-        /// <code>
-        /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
-        ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
-        ///     __typename
-        ///     totalCount
-        ///     pageInfo {
-        ///       __typename
-        ///       hasNextPage
-        ///       hasPreviousPage
-        ///     }
-        ///     items {
-        ///       __typename
-        ///       ... PeopleSearchResult
-        ///       ... on Person {
-        ///         id
-        ///       }
-        ///     }
-        ///   }
-        /// }
-        /// 
-        /// fragment PeopleSearchResult on Person {
-        ///   id
-        ///   key
-        ///   displayName
-        ///   isActive
-        ///   department {
-        ///     __typename
-        ///     id
-        ///     name
-        ///     ... on Department {
-        ///       id
-        ///     }
-        ///   }
-        ///   image
-        ///   title
-        ///   manager {
-        ///     __typename
-        ///     id
-        ///     key
-        ///     displayName
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the PeopleSearch GraphQL operation
+    /// <code>
+    /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
+    ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
+    ///     __typename
+    ///     totalCount
+    ///     pageInfo {
+    ///       __typename
+    ///       hasNextPage
+    ///       hasPreviousPage
+    ///     }
+    ///     items {
+    ///       __typename
+    ///       ... PeopleSearchResult
+    ///       ... on Person {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment PeopleSearchResult on Person {
+    ///   id
+    ///   key
+    ///   displayName
+    ///   isActive
+    ///   department {
+    ///     __typename
+    ///     id
+    ///     name
+    ///     ... on Department {
+    ///       id
+    ///     }
+    ///   }
+    ///   image
+    ///   title
+    ///   manager {
+    ///     __typename
+    ///     id
+    ///     key
+    ///     displayName
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PeopleSearchQuery : global::Foo.Bar.IPeopleSearchQuery
     {
@@ -800,7 +920,6 @@ namespace Foo.Bar
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _intFormatter;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _booleanFormatter;
-
         public PeopleSearchQuery(global::StrawberryShake.IOperationExecutor<IPeopleSearchQueryResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
@@ -810,7 +929,6 @@ namespace Foo.Bar
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IPeopleSearchQueryResult);
-
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IPeopleSearchQueryResult>> ExecuteAsync(global::System.String term, global::System.Int32? skip, global::System.Int32? take, global::System.Boolean? inactive, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(term, skip, take, inactive);
@@ -892,54 +1010,54 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
-        /// Represents the operation service of the PeopleSearch GraphQL operation
-        /// <code>
-        /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
-        ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
-        ///     __typename
-        ///     totalCount
-        ///     pageInfo {
-        ///       __typename
-        ///       hasNextPage
-        ///       hasPreviousPage
-        ///     }
-        ///     items {
-        ///       __typename
-        ///       ... PeopleSearchResult
-        ///       ... on Person {
-        ///         id
-        ///       }
-        ///     }
-        ///   }
-        /// }
-        /// 
-        /// fragment PeopleSearchResult on Person {
-        ///   id
-        ///   key
-        ///   displayName
-        ///   isActive
-        ///   department {
-        ///     __typename
-        ///     id
-        ///     name
-        ///     ... on Department {
-        ///       id
-        ///     }
-        ///   }
-        ///   image
-        ///   title
-        ///   manager {
-        ///     __typename
-        ///     id
-        ///     key
-        ///     displayName
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the PeopleSearch GraphQL operation
+    /// <code>
+    /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
+    ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
+    ///     __typename
+    ///     totalCount
+    ///     pageInfo {
+    ///       __typename
+    ///       hasNextPage
+    ///       hasPreviousPage
+    ///     }
+    ///     items {
+    ///       __typename
+    ///       ... PeopleSearchResult
+    ///       ... on Person {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment PeopleSearchResult on Person {
+    ///   id
+    ///   key
+    ///   displayName
+    ///   isActive
+    ///   department {
+    ///     __typename
+    ///     id
+    ///     name
+    ///     ... on Department {
+    ///       id
+    ///     }
+    ///   }
+    ///   image
+    ///   title
+    ///   manager {
+    ///     __typename
+    ///     id
+    ///     key
+    ///     displayName
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IPeopleSearchQuery : global::StrawberryShake.IOperationRequestFactory
     {
@@ -949,31 +1067,32 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
     /// <summary>
-        /// Represents the FooClient GraphQL client
-        /// </summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient : global::Foo.Bar.IFooClient
     {
         private readonly global::Foo.Bar.IPeopleSearchQuery _peopleSearch;
-
         public FooClient(global::Foo.Bar.IPeopleSearchQuery peopleSearch)
         {
             _peopleSearch = peopleSearch ?? throw new global::System.ArgumentNullException(nameof(peopleSearch));
         }
 
         public static global::System.String ClientName => "FooClient";
-
         public global::Foo.Bar.IPeopleSearchQuery PeopleSearch => _peopleSearch;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
     /// <summary>
-        /// Represents the FooClient GraphQL client
-        /// </summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IFooClient
     {
-        global::Foo.Bar.IPeopleSearchQuery PeopleSearch { get; }
+        global::Foo.Bar.IPeopleSearchQuery PeopleSearch
+        {
+            get;
+        }
     }
 }
 
@@ -995,42 +1114,66 @@ namespace Foo.Bar.State
             Manager = manager;
         }
 
-        public global::System.String Id { get; }
+        public global::System.String Id
+        {
+            get;
+        }
 
         /// <summary>
-                /// The database primary key for the person.
-                /// </summary>
-        public global::System.Int64 Key { get; }
+        /// The database primary key for the person.
+        /// </summary>
+        public global::System.Int64 Key
+        {
+            get;
+        }
 
         /// <summary>
-                /// The full of the person.
-                /// </summary>
-        public global::System.String? DisplayName { get; }
+        /// The full of the person.
+        /// </summary>
+        public global::System.String? DisplayName
+        {
+            get;
+        }
 
         /// <summary>
-                /// Indicates if the person is active.
-                /// </summary>
-        public global::System.Boolean IsActive { get; }
+        /// Indicates if the person is active.
+        /// </summary>
+        public global::System.Boolean IsActive
+        {
+            get;
+        }
 
         /// <summary>
-                /// The department the person belongs to.
-                /// </summary>
-        public global::StrawberryShake.EntityId? Department { get; }
+        /// The department the person belongs to.
+        /// </summary>
+        public global::StrawberryShake.EntityId? Department
+        {
+            get;
+        }
 
         /// <summary>
-                /// Url to image, you can specify a size in pixels by appending '?size=300' to get a square image.
-                /// </summary>
-        public global::System.Uri? Image { get; }
+        /// Url to image, you can specify a size in pixels by appending '?size=300' to get a square image.
+        /// </summary>
+        public global::System.Uri? Image
+        {
+            get;
+        }
 
         /// <summary>
-                /// The job title of the person.
-                /// </summary>
-        public global::System.String Title { get; }
+        /// The job title of the person.
+        /// </summary>
+        public global::System.String Title
+        {
+            get;
+        }
 
         /// <summary>
-                /// The person managing the person.
-                /// </summary>
-        public global::StrawberryShake.EntityId? Manager { get; }
+        /// The person managing the person.
+        /// </summary>
+        public global::StrawberryShake.EntityId? Manager
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
@@ -1043,12 +1186,18 @@ namespace Foo.Bar.State
             Name = name;
         }
 
-        public global::System.String Id { get; }
+        public global::System.String Id
+        {
+            get;
+        }
 
         /// <summary>
-                /// The name of the department.
-                /// </summary>
-        public global::System.String Name { get; }
+        /// The name of the department.
+        /// </summary>
+        public global::System.String Name
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
@@ -1059,7 +1208,6 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Person> _peopleSearch_People_Items_PersonFromPersonEntityMapper;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, PeopleSearch_People_Items_Department_Department> _peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Manager_Person> _peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper;
-
         public PeopleSearchResultFactory(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Person> peopleSearch_People_Items_PersonFromPersonEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, PeopleSearch_People_Items_Department_Department> peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Manager_Person> peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -1069,7 +1217,6 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IPeopleSearchQueryResult);
-
         public PeopleSearchResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -1092,7 +1239,7 @@ namespace Foo.Bar.State
                 return null;
             }
 
-            IPeopleSearch_People returnValue = default!;
+            IPeopleSearch_People returnValue = default !;
             if (data?.__typename.Equals("PersonCollectionSegment", global::System.StringComparison.Ordinal) ?? false)
             {
                 returnValue = new PeopleSearch_People_PersonCollectionSegment(data.TotalCount ?? throw new global::System.ArgumentNullException(), MapNonNullableIPeopleSearch_People_PageInfo(data.PageInfo ?? throw new global::System.ArgumentNullException(), snapshot), MapIPeopleSearch_People_ItemsNonNullableArray(data.Items, snapshot));
@@ -1107,7 +1254,7 @@ namespace Foo.Bar.State
 
         private global::Foo.Bar.IPeopleSearch_People_PageInfo MapNonNullableIPeopleSearch_People_PageInfo(global::Foo.Bar.State.CollectionSegmentInfoData data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
-            IPeopleSearch_People_PageInfo returnValue = default!;
+            IPeopleSearch_People_PageInfo returnValue = default !;
             if (data.__typename.Equals("CollectionSegmentInfo", global::System.StringComparison.Ordinal))
             {
                 returnValue = new PeopleSearch_People_PageInfo_CollectionSegmentInfo(data.HasNextPage ?? throw new global::System.ArgumentNullException(), data.HasPreviousPage ?? throw new global::System.ArgumentNullException());
@@ -1188,7 +1335,6 @@ namespace Foo.Bar.State
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
         private readonly global::System.UInt64 _version;
-
         public PeopleSearchResultInfo(global::Foo.Bar.State.PersonCollectionSegmentData? people, global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds, global::System.UInt64 version)
         {
             People = people;
@@ -1197,14 +1343,15 @@ namespace Foo.Bar.State
         }
 
         /// <summary>
-                /// Searches for people based on their id, name, and identites.
-                /// </summary>
-        public global::Foo.Bar.State.PersonCollectionSegmentData? People { get; }
+        /// Searches for people based on their id, name, and identites.
+        /// </summary>
+        public global::Foo.Bar.State.PersonCollectionSegmentData? People
+        {
+            get;
+        }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
-
         public global::System.UInt64 Version => _version;
-
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new PeopleSearchResultInfo(People, _entityIds, version);
@@ -1218,7 +1365,6 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, PeopleSearch_People_Items_Department_Department> _peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Manager_Person> _peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper;
-
         public PeopleSearch_People_Items_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, PeopleSearch_People_Items_Department_Department> peopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Manager_Person> peopleSearch_People_Items_Manager_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -1272,7 +1418,6 @@ namespace Foo.Bar.State
     public partial class PeopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, PeopleSearch_People_Items_Department_Department>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-
         public PeopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -1294,7 +1439,6 @@ namespace Foo.Bar.State
     public partial class PeopleSearch_People_Items_Manager_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, PeopleSearch_People_Items_Manager_Person>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-
         public PeopleSearch_People_Items_Manager_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -1324,7 +1468,6 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int64, global::System.Int64> _longParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Uri> _urlParser;
-
         public PeopleSearchBuilder(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer idSerializer, global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IPeopleSearchQueryResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -1359,7 +1502,7 @@ namespace Foo.Bar.State
             }
             catch (global::System.Exception ex)
             {
-                errors = new global::StrawberryShake.IClientError[] { new global::StrawberryShake.ClientError(ex.Message, exception: ex) };
+                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex)};
             }
 
             return new global::StrawberryShake.OperationResult<IPeopleSearchQueryResult>(data?.Result, data?.Info, _resultDataFactory, errors);
@@ -1368,9 +1511,10 @@ namespace Foo.Bar.State
         private (IPeopleSearchQueryResult, PeopleSearchResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
-            global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
-            global::Foo.Bar.State.PersonCollectionSegmentData? peopleId = default!;
-            _entityStore.Update(session => {
+            global::StrawberryShake.IEntityStoreSnapshot snapshot = default !;
+            global::Foo.Bar.State.PersonCollectionSegmentData? peopleId = default !;
+            _entityStore.Update(session =>
+            {
                 peopleId = DeserializeIPeopleSearch_People(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "people"), entityIds);
                 snapshot = session.CurrentSnapshot;
             });
@@ -1555,7 +1699,7 @@ namespace Foo.Bar.State
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), DeserializeNonNullableInt64(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "key")), DeserializeString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "displayName")), default!, default!, default!, default!, default!));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), DeserializeNonNullableInt64(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "key")), DeserializeString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "displayName")), default !, default !, default !, default !, default !));
                 }
 
                 return entityId;
@@ -1577,22 +1721,34 @@ namespace Foo.Bar.State
             Items = items;
         }
 
-        public global::System.String __typename { get; }
+        public global::System.String __typename
+        {
+            get;
+        }
 
-        public global::System.Int32? TotalCount { get; }
+        public global::System.Int32? TotalCount
+        {
+            get;
+        }
 
         /// <summary>
-                /// Information to aid in pagination.
-                /// </summary>
-        public global::Foo.Bar.State.CollectionSegmentInfoData? PageInfo { get; }
+        /// Information to aid in pagination.
+        /// </summary>
+        public global::Foo.Bar.State.CollectionSegmentInfoData? PageInfo
+        {
+            get;
+        }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? Items { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? Items
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     /// <summary>
-        /// Information about the offset pagination.
-        /// </summary>
+    /// Information about the offset pagination.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CollectionSegmentInfoData
     {
@@ -1603,17 +1759,26 @@ namespace Foo.Bar.State
             HasPreviousPage = hasPreviousPage;
         }
 
-        public global::System.String __typename { get; }
+        public global::System.String __typename
+        {
+            get;
+        }
 
         /// <summary>
-                /// Indicates whether more items exist following the set defined by the clients arguments.
-                /// </summary>
-        public global::System.Boolean? HasNextPage { get; }
+        /// Indicates whether more items exist following the set defined by the clients arguments.
+        /// </summary>
+        public global::System.Boolean? HasNextPage
+        {
+            get;
+        }
 
         /// <summary>
-                /// Indicates whether more items exist prior the set defined by the clients arguments.
-                /// </summary>
-        public global::System.Boolean? HasPreviousPage { get; }
+        /// Indicates whether more items exist prior the set defined by the clients arguments.
+        /// </summary>
+        public global::System.Boolean? HasPreviousPage
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
@@ -1621,27 +1786,24 @@ namespace Foo.Bar.State
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
-        { Indented = false };
-
+        {Indented = false};
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;
             return __typename switch
             {
-                "Person" => ParsePersonEntityId(obj, __typename),
-                "Department" => ParseDepartmentEntityId(obj, __typename),
-                _ => throw new global::System.NotSupportedException()
-            };
+            "Person" => ParsePersonEntityId(obj, __typename), "Department" => ParseDepartmentEntityId(obj, __typename), _ => throw new global::System.NotSupportedException()}
+
+            ;
         }
 
         public global::System.String Format(global::StrawberryShake.EntityId entityId)
         {
             return entityId.Name switch
             {
-                "Person" => FormatPersonEntityId(entityId),
-                "Department" => FormatDepartmentEntityId(entityId),
-                _ => throw new global::System.NotSupportedException()
-            };
+            "Person" => FormatPersonEntityId(entityId), "Department" => FormatDepartmentEntityId(entityId), _ => throw new global::System.NotSupportedException()}
+
+            ;
         }
 
         private global::StrawberryShake.EntityId ParsePersonEntityId(global::System.Text.Json.JsonElement obj, global::System.String type)
@@ -1683,7 +1845,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClientStoreAccessor : global::StrawberryShake.StoreAccessor
     {
-        public FooClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories) : base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
+        public FooClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories): base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
         {
         }
     }
@@ -1697,7 +1859,8 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => {
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp =>
+            {
                 var serviceCollection = ConfigureClientDefault(sp, strategy);
                 return new ClientServiceProvider(global::Microsoft.Extensions.DependencyInjection.ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(serviceCollection));
             });
@@ -1713,7 +1876,8 @@ namespace Microsoft.Extensions.DependencyInjection
             var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(services, sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => {
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp =>
+            {
                 var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
                 return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
             });
@@ -1752,7 +1916,6 @@ namespace Microsoft.Extensions.DependencyInjection
         private class ClientServiceProvider : System.IServiceProvider, System.IDisposable
         {
             private readonly System.IServiceProvider _provider;
-
             public ClientServiceProvider(System.IServiceProvider provider)
             {
                 _provider = provider;

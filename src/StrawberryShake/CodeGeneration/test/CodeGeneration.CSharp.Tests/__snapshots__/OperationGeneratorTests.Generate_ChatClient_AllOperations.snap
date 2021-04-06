@@ -18,8 +18,8 @@ namespace Foo.Bar
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
-        /// Type Query
-        /// </summary>
+    /// Type Query
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleResult : global::System.IEquatable<GetPeopleResult>, IGetPeopleResult
     {
@@ -29,9 +29,12 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// Gets access to all the people known to this service.
-                /// </summary>
-        public global::Foo.Bar.IGetPeople_People? People { get; }
+        /// Gets access to all the people known to this service.
+        /// </summary>
+        public global::Foo.Bar.IGetPeople_People? People
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -90,8 +93,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
-        /// A connection to a list of items.
-        /// </summary>
+    /// A connection to a list of items.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_PersonConnection : global::System.IEquatable<GetPeople_People_PersonConnection>, IGetPeople_People_PersonConnection
     {
@@ -101,9 +104,12 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// A flattened list of the nodes.
-                /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes?>? Nodes { get; }
+        /// A flattened list of the nodes.
+        /// </summary>
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes?>? Nodes
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -168,8 +174,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_Nodes_Person : global::System.IEquatable<GetPeople_People_Nodes_Person>, IGetPeople_People_Nodes_Person
     {
@@ -183,29 +189,44 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// Field name
-                /// </summary>
-        public global::System.String Name { get; }
+        /// Field name
+        /// </summary>
+        public global::System.String Name
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field email
-                /// </summary>
-        public global::System.String Email { get; }
+        /// Field email
+        /// </summary>
+        public global::System.String Email
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field isOnline
-                /// </summary>
-        public global::System.Boolean IsOnline { get; }
+        /// Field isOnline
+        /// </summary>
+        public global::System.Boolean IsOnline
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field imageUri
-                /// </summary>
-        public global::System.Uri? ImageUri { get; }
+        /// Field imageUri
+        /// </summary>
+        public global::System.Uri? ImageUri
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field lastSeen
-                /// </summary>
-        public global::System.DateTimeOffset LastSeen { get; }
+        /// Field lastSeen
+        /// </summary>
+        public global::System.DateTimeOffset LastSeen
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -268,34 +289,40 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type Query
-        /// </summary>
+    /// Type Query
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeopleResult
     {
         /// <summary>
-                /// Gets access to all the people known to this service.
-                /// </summary>
-        public global::Foo.Bar.IGetPeople_People? People { get; }
+        /// Gets access to all the people known to this service.
+        /// </summary>
+        public global::Foo.Bar.IGetPeople_People? People
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// A connection to a list of items.
-        /// </summary>
+    /// A connection to a list of items.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_People
     {
         /// <summary>
-                /// A flattened list of the nodes.
-                /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes?>? Nodes { get; }
+        /// A flattened list of the nodes.
+        /// </summary>
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetPeople_People_Nodes?>? Nodes
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// A connection to a list of items.
-        /// </summary>
+    /// A connection to a list of items.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_People_PersonConnection : IGetPeople_People
     {
@@ -303,49 +330,64 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IParticipant
     {
         /// <summary>
-                /// Field name
-                /// </summary>
-        public global::System.String Name { get; }
+        /// Field name
+        /// </summary>
+        public global::System.String Name
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field email
-                /// </summary>
-        public global::System.String Email { get; }
+        /// Field email
+        /// </summary>
+        public global::System.String Email
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field isOnline
-                /// </summary>
-        public global::System.Boolean IsOnline { get; }
+        /// Field isOnline
+        /// </summary>
+        public global::System.Boolean IsOnline
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IPerson : IParticipant
     {
         /// <summary>
-                /// Field imageUri
-                /// </summary>
-        public global::System.Uri? ImageUri { get; }
+        /// Field imageUri
+        /// </summary>
+        public global::System.Uri? ImageUri
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field lastSeen
-                /// </summary>
-        public global::System.DateTimeOffset LastSeen { get; }
+        /// Field lastSeen
+        /// </summary>
+        public global::System.DateTimeOffset LastSeen
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_People_Nodes : IPerson
     {
@@ -353,8 +395,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_People_Nodes_Person : IGetPeople_People_Nodes
     {
@@ -362,8 +404,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
-        /// Type Query
-        /// </summary>
+    /// Type Query
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessagesResult : global::System.IEquatable<GetMessagesResult>, IGetMessagesResult
     {
@@ -373,9 +415,12 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// Field personByEmail
-                /// </summary>
-        public global::Foo.Bar.IGetMessages_PersonByEmail PersonByEmail { get; }
+        /// Field personByEmail
+        /// </summary>
+        public global::Foo.Bar.IGetMessages_PersonByEmail PersonByEmail
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -430,8 +475,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessages_PersonByEmail_Person : global::System.IEquatable<GetMessages_PersonByEmail_Person>, IGetMessages_PersonByEmail_Person
     {
@@ -441,9 +486,12 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// Field messages
-                /// </summary>
-        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages? Messages { get; }
+        /// Field messages
+        /// </summary>
+        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages? Messages
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -502,8 +550,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
-        /// A connection to a list of items.
-        /// </summary>
+    /// A connection to a list of items.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessages_PersonByEmail_Messages_MessageConnection : global::System.IEquatable<GetMessages_PersonByEmail_Messages_MessageConnection>, IGetMessages_PersonByEmail_Messages_MessageConnection
     {
@@ -513,9 +561,12 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// A flattened list of the nodes.
-                /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes?>? Nodes { get; }
+        /// A flattened list of the nodes.
+        /// </summary>
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes?>? Nodes
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -580,8 +631,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
-        /// Type message
-        /// </summary>
+    /// Type message
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessages_PersonByEmail_Messages_Nodes_Message : global::System.IEquatable<GetMessages_PersonByEmail_Messages_Nodes_Message>, IGetMessages_PersonByEmail_Messages_Nodes_Message
     {
@@ -596,34 +647,52 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// Field id
-                /// </summary>
-        public global::System.String Id { get; }
+        /// Field id
+        /// </summary>
+        public global::System.String Id
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field text
-                /// </summary>
-        public global::System.String Text { get; }
+        /// Field text
+        /// </summary>
+        public global::System.String Text
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field direction
-                /// </summary>
-        public global::Foo.Bar.Direction Direction { get; }
+        /// Field direction
+        /// </summary>
+        public global::Foo.Bar.Direction Direction
+        {
+            get;
+        }
 
         /// <summary>
-                /// Fiejld recipient
-                /// </summary>
-        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient { get; }
+        /// Fiejld recipient
+        /// </summary>
+        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field sender
-                /// </summary>
-        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender { get; }
+        /// Field sender
+        /// </summary>
+        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field sent
-                /// </summary>
-        public global::System.DateTimeOffset Sent { get; }
+        /// Field sent
+        /// </summary>
+        public global::System.DateTimeOffset Sent
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -683,8 +752,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person : global::System.IEquatable<GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person>, IGetMessages_PersonByEmail_Messages_Nodes_Recipient_Person
     {
@@ -696,19 +765,28 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// Field name
-                /// </summary>
-        public global::System.String Name { get; }
+        /// Field name
+        /// </summary>
+        public global::System.String Name
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field email
-                /// </summary>
-        public global::System.String Email { get; }
+        /// Field email
+        /// </summary>
+        public global::System.String Email
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field isOnline
-                /// </summary>
-        public global::System.Boolean IsOnline { get; }
+        /// Field isOnline
+        /// </summary>
+        public global::System.Boolean IsOnline
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -765,8 +843,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessages_PersonByEmail_Messages_Nodes_Sender_Person : global::System.IEquatable<GetMessages_PersonByEmail_Messages_Nodes_Sender_Person>, IGetMessages_PersonByEmail_Messages_Nodes_Sender_Person
     {
@@ -778,19 +856,28 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// Field name
-                /// </summary>
-        public global::System.String Name { get; }
+        /// Field name
+        /// </summary>
+        public global::System.String Name
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field email
-                /// </summary>
-        public global::System.String Email { get; }
+        /// Field email
+        /// </summary>
+        public global::System.String Email
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field isOnline
-                /// </summary>
-        public global::System.Boolean IsOnline { get; }
+        /// Field isOnline
+        /// </summary>
+        public global::System.Boolean IsOnline
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -847,34 +934,40 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type Query
-        /// </summary>
+    /// Type Query
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetMessagesResult
     {
         /// <summary>
-                /// Field personByEmail
-                /// </summary>
-        public global::Foo.Bar.IGetMessages_PersonByEmail PersonByEmail { get; }
+        /// Field personByEmail
+        /// </summary>
+        public global::Foo.Bar.IGetMessages_PersonByEmail PersonByEmail
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetMessages_PersonByEmail
     {
         /// <summary>
-                /// Field messages
-                /// </summary>
-        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages? Messages { get; }
+        /// Field messages
+        /// </summary>
+        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages? Messages
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetMessages_PersonByEmail_Person : IGetMessages_PersonByEmail
     {
@@ -882,21 +975,24 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// A connection to a list of items.
-        /// </summary>
+    /// A connection to a list of items.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetMessages_PersonByEmail_Messages
     {
         /// <summary>
-                /// A flattened list of the nodes.
-                /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes?>? Nodes { get; }
+        /// A flattened list of the nodes.
+        /// </summary>
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes?>? Nodes
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// A connection to a list of items.
-        /// </summary>
+    /// A connection to a list of items.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetMessages_PersonByEmail_Messages_MessageConnection : IGetMessages_PersonByEmail_Messages
     {
@@ -904,46 +1000,64 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type message
-        /// </summary>
+    /// Type message
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IMessage
     {
         /// <summary>
-                /// Field id
-                /// </summary>
-        public global::System.String Id { get; }
+        /// Field id
+        /// </summary>
+        public global::System.String Id
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field text
-                /// </summary>
-        public global::System.String Text { get; }
+        /// Field text
+        /// </summary>
+        public global::System.String Text
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field direction
-                /// </summary>
-        public global::Foo.Bar.Direction Direction { get; }
+        /// Field direction
+        /// </summary>
+        public global::Foo.Bar.Direction Direction
+        {
+            get;
+        }
 
         /// <summary>
-                /// Fiejld recipient
-                /// </summary>
-        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient { get; }
+        /// Fiejld recipient
+        /// </summary>
+        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field sender
-                /// </summary>
-        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender { get; }
+        /// Field sender
+        /// </summary>
+        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field sent
-                /// </summary>
-        public global::System.DateTimeOffset Sent { get; }
+        /// Field sent
+        /// </summary>
+        public global::System.DateTimeOffset Sent
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type message
-        /// </summary>
+    /// Type message
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetMessages_PersonByEmail_Messages_Nodes : IMessage
     {
@@ -951,8 +1065,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type message
-        /// </summary>
+    /// Type message
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetMessages_PersonByEmail_Messages_Nodes_Message : IGetMessages_PersonByEmail_Messages_Nodes
     {
@@ -960,8 +1074,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetMessages_PersonByEmail_Messages_Nodes_Recipient : IParticipant
     {
@@ -969,8 +1083,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetMessages_PersonByEmail_Messages_Nodes_Recipient_Person : IGetMessages_PersonByEmail_Messages_Nodes_Recipient
     {
@@ -978,8 +1092,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetMessages_PersonByEmail_Messages_Nodes_Sender : IParticipant
     {
@@ -987,8 +1101,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetMessages_PersonByEmail_Messages_Nodes_Sender_Person : IGetMessages_PersonByEmail_Messages_Nodes_Sender
     {
@@ -996,8 +1110,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
-        /// Type Mutation
-        /// </summary>
+    /// Type Mutation
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageInput_1Result : global::System.IEquatable<SendMessageInput_1Result>, ISendMessageInputResult
     {
@@ -1007,9 +1121,12 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// Field sendMessage
-                /// </summary>
-        public global::Foo.Bar.ISendMessageInput_SendMessage SendMessage { get; }
+        /// Field sendMessage
+        /// </summary>
+        public global::Foo.Bar.ISendMessageInput_SendMessage SendMessage
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -1064,8 +1181,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
-        /// Type SendMessagePayload
-        /// </summary>
+    /// Type SendMessagePayload
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageInput_SendMessage_SendMessagePayload : global::System.IEquatable<SendMessageInput_SendMessage_SendMessagePayload>, ISendMessageInput_SendMessage_SendMessagePayload
     {
@@ -1075,9 +1192,12 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// Field message
-                /// </summary>
-        public global::Foo.Bar.ISendMessageInput_SendMessage_Message Message { get; }
+        /// Field message
+        /// </summary>
+        public global::Foo.Bar.ISendMessageInput_SendMessage_Message Message
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -1132,8 +1252,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
-        /// Type message
-        /// </summary>
+    /// Type message
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageInput_SendMessage_Message_Message : global::System.IEquatable<SendMessageInput_SendMessage_Message_Message>, ISendMessageInput_SendMessage_Message_Message
     {
@@ -1148,34 +1268,52 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// Field id
-                /// </summary>
-        public global::System.String Id { get; }
+        /// Field id
+        /// </summary>
+        public global::System.String Id
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field text
-                /// </summary>
-        public global::System.String Text { get; }
+        /// Field text
+        /// </summary>
+        public global::System.String Text
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field direction
-                /// </summary>
-        public global::Foo.Bar.Direction Direction { get; }
+        /// Field direction
+        /// </summary>
+        public global::Foo.Bar.Direction Direction
+        {
+            get;
+        }
 
         /// <summary>
-                /// Fiejld recipient
-                /// </summary>
-        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient { get; }
+        /// Fiejld recipient
+        /// </summary>
+        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field sender
-                /// </summary>
-        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender { get; }
+        /// Field sender
+        /// </summary>
+        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field sent
-                /// </summary>
-        public global::System.DateTimeOffset Sent { get; }
+        /// Field sent
+        /// </summary>
+        public global::System.DateTimeOffset Sent
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -1235,8 +1373,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageInput_SendMessage_Message_Recipient_Person : global::System.IEquatable<SendMessageInput_SendMessage_Message_Recipient_Person>, ISendMessageInput_SendMessage_Message_Recipient_Person
     {
@@ -1248,19 +1386,28 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// Field name
-                /// </summary>
-        public global::System.String Name { get; }
+        /// Field name
+        /// </summary>
+        public global::System.String Name
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field email
-                /// </summary>
-        public global::System.String Email { get; }
+        /// Field email
+        /// </summary>
+        public global::System.String Email
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field isOnline
-                /// </summary>
-        public global::System.Boolean IsOnline { get; }
+        /// Field isOnline
+        /// </summary>
+        public global::System.Boolean IsOnline
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -1317,8 +1464,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageInput_SendMessage_Message_Sender_Person : global::System.IEquatable<SendMessageInput_SendMessage_Message_Sender_Person>, ISendMessageInput_SendMessage_Message_Sender_Person
     {
@@ -1330,19 +1477,28 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// Field name
-                /// </summary>
-        public global::System.String Name { get; }
+        /// Field name
+        /// </summary>
+        public global::System.String Name
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field email
-                /// </summary>
-        public global::System.String Email { get; }
+        /// Field email
+        /// </summary>
+        public global::System.String Email
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field isOnline
-                /// </summary>
-        public global::System.Boolean IsOnline { get; }
+        /// Field isOnline
+        /// </summary>
+        public global::System.Boolean IsOnline
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -1399,34 +1555,40 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type Mutation
-        /// </summary>
+    /// Type Mutation
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageInputResult
     {
         /// <summary>
-                /// Field sendMessage
-                /// </summary>
-        public global::Foo.Bar.ISendMessageInput_SendMessage SendMessage { get; }
+        /// Field sendMessage
+        /// </summary>
+        public global::Foo.Bar.ISendMessageInput_SendMessage SendMessage
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type SendMessagePayload
-        /// </summary>
+    /// Type SendMessagePayload
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageInput_SendMessage
     {
         /// <summary>
-                /// Field message
-                /// </summary>
-        public global::Foo.Bar.ISendMessageInput_SendMessage_Message Message { get; }
+        /// Field message
+        /// </summary>
+        public global::Foo.Bar.ISendMessageInput_SendMessage_Message Message
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type SendMessagePayload
-        /// </summary>
+    /// Type SendMessagePayload
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageInput_SendMessage_SendMessagePayload : ISendMessageInput_SendMessage
     {
@@ -1434,8 +1596,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type message
-        /// </summary>
+    /// Type message
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageInput_SendMessage_Message : IMessage
     {
@@ -1443,8 +1605,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type message
-        /// </summary>
+    /// Type message
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageInput_SendMessage_Message_Message : ISendMessageInput_SendMessage_Message
     {
@@ -1452,8 +1614,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageInput_SendMessage_Message_Recipient : IParticipant
     {
@@ -1461,8 +1623,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageInput_SendMessage_Message_Recipient_Person : ISendMessageInput_SendMessage_Message_Recipient
     {
@@ -1470,8 +1632,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageInput_SendMessage_Message_Sender : IParticipant
     {
@@ -1479,8 +1641,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageInput_SendMessage_Message_Sender_Person : ISendMessageInput_SendMessage_Message_Sender
     {
@@ -1488,8 +1650,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
-        /// Type Mutation
-        /// </summary>
+    /// Type Mutation
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageMutResult : global::System.IEquatable<SendMessageMutResult>, ISendMessageMutResult
     {
@@ -1499,9 +1661,12 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// Field sendMessage
-                /// </summary>
-        public global::Foo.Bar.ISendMessageMut_SendMessage SendMessage { get; }
+        /// Field sendMessage
+        /// </summary>
+        public global::Foo.Bar.ISendMessageMut_SendMessage SendMessage
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -1556,8 +1721,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
-        /// Type SendMessagePayload
-        /// </summary>
+    /// Type SendMessagePayload
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageMut_SendMessage_SendMessagePayload : global::System.IEquatable<SendMessageMut_SendMessage_SendMessagePayload>, ISendMessageMut_SendMessage_SendMessagePayload
     {
@@ -1567,9 +1732,12 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// Field message
-                /// </summary>
-        public global::Foo.Bar.ISendMessageMut_SendMessage_Message Message { get; }
+        /// Field message
+        /// </summary>
+        public global::Foo.Bar.ISendMessageMut_SendMessage_Message Message
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -1624,8 +1792,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
-        /// Type message
-        /// </summary>
+    /// Type message
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageMut_SendMessage_Message_Message : global::System.IEquatable<SendMessageMut_SendMessage_Message_Message>, ISendMessageMut_SendMessage_Message_Message
     {
@@ -1640,34 +1808,52 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// Field id
-                /// </summary>
-        public global::System.String Id { get; }
+        /// Field id
+        /// </summary>
+        public global::System.String Id
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field text
-                /// </summary>
-        public global::System.String Text { get; }
+        /// Field text
+        /// </summary>
+        public global::System.String Text
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field direction
-                /// </summary>
-        public global::Foo.Bar.Direction Direction { get; }
+        /// Field direction
+        /// </summary>
+        public global::Foo.Bar.Direction Direction
+        {
+            get;
+        }
 
         /// <summary>
-                /// Fiejld recipient
-                /// </summary>
-        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient { get; }
+        /// Fiejld recipient
+        /// </summary>
+        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field sender
-                /// </summary>
-        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender { get; }
+        /// Field sender
+        /// </summary>
+        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field sent
-                /// </summary>
-        public global::System.DateTimeOffset Sent { get; }
+        /// Field sent
+        /// </summary>
+        public global::System.DateTimeOffset Sent
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -1727,8 +1913,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageMut_SendMessage_Message_Recipient_Person : global::System.IEquatable<SendMessageMut_SendMessage_Message_Recipient_Person>, ISendMessageMut_SendMessage_Message_Recipient_Person
     {
@@ -1740,19 +1926,28 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// Field name
-                /// </summary>
-        public global::System.String Name { get; }
+        /// Field name
+        /// </summary>
+        public global::System.String Name
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field email
-                /// </summary>
-        public global::System.String Email { get; }
+        /// Field email
+        /// </summary>
+        public global::System.String Email
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field isOnline
-                /// </summary>
-        public global::System.Boolean IsOnline { get; }
+        /// Field isOnline
+        /// </summary>
+        public global::System.Boolean IsOnline
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -1809,8 +2004,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageMut_SendMessage_Message_Sender_Person : global::System.IEquatable<SendMessageMut_SendMessage_Message_Sender_Person>, ISendMessageMut_SendMessage_Message_Sender_Person
     {
@@ -1822,19 +2017,28 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// Field name
-                /// </summary>
-        public global::System.String Name { get; }
+        /// Field name
+        /// </summary>
+        public global::System.String Name
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field email
-                /// </summary>
-        public global::System.String Email { get; }
+        /// Field email
+        /// </summary>
+        public global::System.String Email
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field isOnline
-                /// </summary>
-        public global::System.Boolean IsOnline { get; }
+        /// Field isOnline
+        /// </summary>
+        public global::System.Boolean IsOnline
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -1891,34 +2095,40 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type Mutation
-        /// </summary>
+    /// Type Mutation
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageMutResult
     {
         /// <summary>
-                /// Field sendMessage
-                /// </summary>
-        public global::Foo.Bar.ISendMessageMut_SendMessage SendMessage { get; }
+        /// Field sendMessage
+        /// </summary>
+        public global::Foo.Bar.ISendMessageMut_SendMessage SendMessage
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type SendMessagePayload
-        /// </summary>
+    /// Type SendMessagePayload
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageMut_SendMessage
     {
         /// <summary>
-                /// Field message
-                /// </summary>
-        public global::Foo.Bar.ISendMessageMut_SendMessage_Message Message { get; }
+        /// Field message
+        /// </summary>
+        public global::Foo.Bar.ISendMessageMut_SendMessage_Message Message
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type SendMessagePayload
-        /// </summary>
+    /// Type SendMessagePayload
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageMut_SendMessage_SendMessagePayload : ISendMessageMut_SendMessage
     {
@@ -1926,8 +2136,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type message
-        /// </summary>
+    /// Type message
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageMut_SendMessage_Message : IMessage
     {
@@ -1935,8 +2145,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type message
-        /// </summary>
+    /// Type message
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageMut_SendMessage_Message_Message : ISendMessageMut_SendMessage_Message
     {
@@ -1944,8 +2154,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageMut_SendMessage_Message_Recipient : IParticipant
     {
@@ -1953,8 +2163,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageMut_SendMessage_Message_Recipient_Person : ISendMessageMut_SendMessage_Message_Recipient
     {
@@ -1962,8 +2172,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageMut_SendMessage_Message_Sender : IParticipant
     {
@@ -1971,8 +2181,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageMut_SendMessage_Message_Sender_Person : ISendMessageMut_SendMessage_Message_Sender
     {
@@ -1980,8 +2190,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
-        /// Type SubscriptionType
-        /// </summary>
+    /// Type SubscriptionType
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReadMessagesResult : global::System.IEquatable<ReadMessagesResult>, IReadMessagesResult
     {
@@ -1991,9 +2201,12 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// field onMessageReceived
-                /// </summary>
-        public global::Foo.Bar.IReadMessages_Message Message { get; }
+        /// field onMessageReceived
+        /// </summary>
+        public global::Foo.Bar.IReadMessages_Message Message
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -2048,8 +2261,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
-        /// Type message
-        /// </summary>
+    /// Type message
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReadMessages_Message_Message : global::System.IEquatable<ReadMessages_Message_Message>, IReadMessages_Message_Message
     {
@@ -2064,34 +2277,52 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// Field id
-                /// </summary>
-        public global::System.String Id { get; }
+        /// Field id
+        /// </summary>
+        public global::System.String Id
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field text
-                /// </summary>
-        public global::System.String Text { get; }
+        /// Field text
+        /// </summary>
+        public global::System.String Text
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field direction
-                /// </summary>
-        public global::Foo.Bar.Direction Direction { get; }
+        /// Field direction
+        /// </summary>
+        public global::Foo.Bar.Direction Direction
+        {
+            get;
+        }
 
         /// <summary>
-                /// Fiejld recipient
-                /// </summary>
-        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient { get; }
+        /// Fiejld recipient
+        /// </summary>
+        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Recipient Recipient
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field sender
-                /// </summary>
-        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender { get; }
+        /// Field sender
+        /// </summary>
+        public global::Foo.Bar.IGetMessages_PersonByEmail_Messages_Nodes_Sender Sender
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field sent
-                /// </summary>
-        public global::System.DateTimeOffset Sent { get; }
+        /// Field sent
+        /// </summary>
+        public global::System.DateTimeOffset Sent
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -2151,8 +2382,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReadMessages_Message_Recipient_Person : global::System.IEquatable<ReadMessages_Message_Recipient_Person>, IReadMessages_Message_Recipient_Person
     {
@@ -2164,19 +2395,28 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// Field name
-                /// </summary>
-        public global::System.String Name { get; }
+        /// Field name
+        /// </summary>
+        public global::System.String Name
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field email
-                /// </summary>
-        public global::System.String Email { get; }
+        /// Field email
+        /// </summary>
+        public global::System.String Email
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field isOnline
-                /// </summary>
-        public global::System.Boolean IsOnline { get; }
+        /// Field isOnline
+        /// </summary>
+        public global::System.Boolean IsOnline
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -2233,8 +2473,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReadMessages_Message_Sender_Person : global::System.IEquatable<ReadMessages_Message_Sender_Person>, IReadMessages_Message_Sender_Person
     {
@@ -2246,19 +2486,28 @@ namespace Foo.Bar
         }
 
         /// <summary>
-                /// Field name
-                /// </summary>
-        public global::System.String Name { get; }
+        /// Field name
+        /// </summary>
+        public global::System.String Name
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field email
-                /// </summary>
-        public global::System.String Email { get; }
+        /// Field email
+        /// </summary>
+        public global::System.String Email
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field isOnline
-                /// </summary>
-        public global::System.Boolean IsOnline { get; }
+        /// Field isOnline
+        /// </summary>
+        public global::System.Boolean IsOnline
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -2315,21 +2564,24 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type SubscriptionType
-        /// </summary>
+    /// Type SubscriptionType
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IReadMessagesResult
     {
         /// <summary>
-                /// field onMessageReceived
-                /// </summary>
-        public global::Foo.Bar.IReadMessages_Message Message { get; }
+        /// field onMessageReceived
+        /// </summary>
+        public global::Foo.Bar.IReadMessages_Message Message
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type message
-        /// </summary>
+    /// Type message
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IReadMessages_Message : IMessage
     {
@@ -2337,8 +2589,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type message
-        /// </summary>
+    /// Type message
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IReadMessages_Message_Message : IReadMessages_Message
     {
@@ -2346,8 +2598,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IReadMessages_Message_Recipient : IParticipant
     {
@@ -2355,8 +2607,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IReadMessages_Message_Recipient_Person : IReadMessages_Message_Recipient
     {
@@ -2364,8 +2616,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IReadMessages_Message_Sender : IParticipant
     {
@@ -2373,8 +2625,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IReadMessages_Message_Sender_Person : IReadMessages_Message_Sender
     {
@@ -2384,10 +2636,8 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageInputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
-        private global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter = default!;
-
+        private global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter = default !;
         public global::System.String TypeName => "SendMessageInput";
-
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _stringFormatter = serializerResolver.GetInputValueFormatter("String");
@@ -2405,7 +2655,7 @@ namespace Foo.Bar
                 throw new global::System.ArgumentException(nameof(runtimeValue));
             }
 
-            return new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>[] { new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("clientMutationId", FormatClientMutationId(d.ClientMutationId)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("recipientEmail", FormatRecipientEmail(d.RecipientEmail)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("text", FormatText(d.Text)) };
+            return new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>[]{new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("clientMutationId", FormatClientMutationId(d.ClientMutationId)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("recipientEmail", FormatRecipientEmail(d.RecipientEmail)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("text", FormatText(d.Text))};
         }
 
         private global::System.Object? FormatClientMutationId(global::System.String? value)
@@ -2444,13 +2694,29 @@ namespace Foo.Bar
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     public partial class SendMessageInput
     {
-        public global::System.String? ClientMutationId { get; set; } = default!;
+        public global::System.String? ClientMutationId
+        {
+            get;
+            set;
+        }
 
+        = default !;
         ///<summary>The email of the person to which a message shall be send.</summary>
-        public global::System.String RecipientEmail { get; set; } = default!;
+        public global::System.String RecipientEmail
+        {
+            get;
+            set;
+        }
 
+        = default !;
         ///<summary>The message text.</summary>
-        public global::System.String Text { get; set; } = default!;
+        public global::System.String Text
+        {
+            get;
+            set;
+        }
+
+        = default !;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
@@ -2458,12 +2724,12 @@ namespace Foo.Bar
     public enum Direction
     {
         /// <summary>
-                /// enum value Incoming
-                /// </summary>
+        /// enum value Incoming
+        /// </summary>
         Incoming,
         /// <summary>
-                /// enum value Outgoung
-                /// </summary>
+        /// enum value Outgoung
+        /// </summary>
         Outgoing
     }
 
@@ -2472,58 +2738,55 @@ namespace Foo.Bar
     public partial class DirectionSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, Direction>
     {
         public global::System.String TypeName => "Direction";
-
         public Direction Parse(global::System.String serializedValue)
         {
             return serializedValue switch
             {
-                "INCOMING" => Direction.Incoming,
-                "OUTGOING" => Direction.Outgoing,
-                _ => throw new global::StrawberryShake.GraphQLClientException()
-            };
+            "INCOMING" => Direction.Incoming, "OUTGOING" => Direction.Outgoing, _ => throw new global::StrawberryShake.GraphQLClientException()}
+
+            ;
         }
 
         public global::System.Object Format(global::System.Object? runtimeValue)
         {
             return runtimeValue switch
             {
-                Direction.Incoming => "INCOMING",
-                Direction.Outgoing => "OUTGOING",
-                _ => throw new global::StrawberryShake.GraphQLClientException()
-            };
+            Direction.Incoming => "INCOMING", Direction.Outgoing => "OUTGOING", _ => throw new global::StrawberryShake.GraphQLClientException()}
+
+            ;
         }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
-        /// Represents the operation service of the GetPeople GraphQL operation
-        /// <code>
-        /// query GetPeople {
-        ///   people(order_by: { name: ASC }) {
-        ///     __typename
-        ///     nodes {
-        ///       __typename
-        ///       ... Person
-        ///       ... on Person {
-        ///         id
-        ///       }
-        ///     }
-        ///   }
-        /// }
-        /// 
-        /// fragment Person on Person {
-        ///   ... Participant
-        ///   imageUri
-        ///   lastSeen
-        /// }
-        /// 
-        /// fragment Participant on Person {
-        ///   name
-        ///   email
-        ///   isOnline
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the GetPeople GraphQL operation
+    /// <code>
+    /// query GetPeople {
+    ///   people(order_by: { name: ASC }) {
+    ///     __typename
+    ///     nodes {
+    ///       __typename
+    ///       ... Person
+    ///       ... on Person {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment Person on Person {
+    ///   ... Participant
+    ///   imageUri
+    ///   lastSeen
+    /// }
+    /// 
+    /// fragment Participant on Person {
+    ///   name
+    ///   email
+    ///   isOnline
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleQueryDocument : global::StrawberryShake.IDocument
     {
@@ -2531,14 +2794,20 @@ namespace Foo.Bar
         {
         }
 
-        public static GetPeopleQueryDocument Instance { get; } = new GetPeopleQueryDocument();
+        public static GetPeopleQueryDocument Instance
+        {
+            get;
+        }
 
+        = new GetPeopleQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x50, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x20, 0x7b, 0x20, 0x70, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x28, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x5f, 0x62, 0x79, 0x3a, 0x20, 0x7b, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x3a, 0x20, 0x41, 0x53, 0x43, 0x20, 0x7d, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x6f, 0x64, 0x65, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x69, 0x6d, 0x61, 0x67, 0x65, 0x55, 0x72, 0x69, 0x20, 0x6c, 0x61, 0x73, 0x74, 0x53, 0x65, 0x65, 0x6e, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x20, 0x69, 0x73, 0x4f, 0x6e, 0x6c, 0x69, 0x6e, 0x65, 0x20, 0x7d};
+        public global::StrawberryShake.DocumentHash Hash
+        {
+            get;
+        }
 
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[] { 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x50, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x20, 0x7b, 0x20, 0x70, 0x65, 0x6f, 0x70, 0x6c, 0x65, 0x28, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x5f, 0x62, 0x79, 0x3a, 0x20, 0x7b, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x3a, 0x20, 0x41, 0x53, 0x43, 0x20, 0x7d, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x6f, 0x64, 0x65, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x69, 0x6d, 0x61, 0x67, 0x65, 0x55, 0x72, 0x69, 0x20, 0x6c, 0x61, 0x73, 0x74, 0x53, 0x65, 0x65, 0x6e, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x20, 0x69, 0x73, 0x4f, 0x6e, 0x6c, 0x69, 0x6e, 0x65, 0x20, 0x7d };
-
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "91253402b90b965c3f43c2d774692ae8366270c6");
-
+        = new global::StrawberryShake.DocumentHash("sha1Hash", "91253402b90b965c3f43c2d774692ae8366270c6");
         public override global::System.String ToString()
         {
 #if NETSTANDARD2_0
@@ -2551,46 +2820,44 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
-        /// Represents the operation service of the GetPeople GraphQL operation
-        /// <code>
-        /// query GetPeople {
-        ///   people(order_by: { name: ASC }) {
-        ///     __typename
-        ///     nodes {
-        ///       __typename
-        ///       ... Person
-        ///       ... on Person {
-        ///         id
-        ///       }
-        ///     }
-        ///   }
-        /// }
-        /// 
-        /// fragment Person on Person {
-        ///   ... Participant
-        ///   imageUri
-        ///   lastSeen
-        /// }
-        /// 
-        /// fragment Participant on Person {
-        ///   name
-        ///   email
-        ///   isOnline
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the GetPeople GraphQL operation
+    /// <code>
+    /// query GetPeople {
+    ///   people(order_by: { name: ASC }) {
+    ///     __typename
+    ///     nodes {
+    ///       __typename
+    ///       ... Person
+    ///       ... on Person {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment Person on Person {
+    ///   ... Participant
+    ///   imageUri
+    ///   lastSeen
+    /// }
+    /// 
+    /// fragment Participant on Person {
+    ///   name
+    ///   email
+    ///   isOnline
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleQuery : global::Foo.Bar.IGetPeopleQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetPeopleResult> _operationExecutor;
-
         public GetPeopleQuery(global::StrawberryShake.IOperationExecutor<IGetPeopleResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetPeopleResult);
-
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetPeopleResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
@@ -2621,34 +2888,34 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
-        /// Represents the operation service of the GetPeople GraphQL operation
-        /// <code>
-        /// query GetPeople {
-        ///   people(order_by: { name: ASC }) {
-        ///     __typename
-        ///     nodes {
-        ///       __typename
-        ///       ... Person
-        ///       ... on Person {
-        ///         id
-        ///       }
-        ///     }
-        ///   }
-        /// }
-        /// 
-        /// fragment Person on Person {
-        ///   ... Participant
-        ///   imageUri
-        ///   lastSeen
-        /// }
-        /// 
-        /// fragment Participant on Person {
-        ///   name
-        ///   email
-        ///   isOnline
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the GetPeople GraphQL operation
+    /// <code>
+    /// query GetPeople {
+    ///   people(order_by: { name: ASC }) {
+    ///     __typename
+    ///     nodes {
+    ///       __typename
+    ///       ... Person
+    ///       ... on Person {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment Person on Person {
+    ///   ... Participant
+    ///   imageUri
+    ///   lastSeen
+    /// }
+    /// 
+    /// fragment Participant on Person {
+    ///   name
+    ///   email
+    ///   isOnline
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeopleQuery : global::StrawberryShake.IOperationRequestFactory
     {
@@ -2658,55 +2925,55 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
-        /// Represents the operation service of the GetMessages GraphQL operation
-        /// <code>
-        /// query GetMessages($email: String!) {
-        ///   personByEmail(email: $email) {
-        ///     __typename
-        ///     messages(order_by: { sent: ASC }) {
-        ///       __typename
-        ///       nodes {
-        ///         __typename
-        ///         ... Message
-        ///         ... on Message {
-        ///           id
-        ///         }
-        ///       }
-        ///     }
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        /// }
-        /// 
-        /// fragment Message on Message {
-        ///   id
-        ///   text
-        ///   direction
-        ///   recipient {
-        ///     __typename
-        ///     ... Participant
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        ///   sender {
-        ///     __typename
-        ///     ... Participant
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        ///   sent
-        /// }
-        /// 
-        /// fragment Participant on Person {
-        ///   name
-        ///   email
-        ///   isOnline
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the GetMessages GraphQL operation
+    /// <code>
+    /// query GetMessages($email: String!) {
+    ///   personByEmail(email: $email) {
+    ///     __typename
+    ///     messages(order_by: { sent: ASC }) {
+    ///       __typename
+    ///       nodes {
+    ///         __typename
+    ///         ... Message
+    ///         ... on Message {
+    ///           id
+    ///         }
+    ///       }
+    ///     }
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment Message on Message {
+    ///   id
+    ///   text
+    ///   direction
+    ///   recipient {
+    ///     __typename
+    ///     ... Participant
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    ///   sender {
+    ///     __typename
+    ///     ... Participant
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    ///   sent
+    /// }
+    /// 
+    /// fragment Participant on Person {
+    ///   name
+    ///   email
+    ///   isOnline
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessagesQueryDocument : global::StrawberryShake.IDocument
     {
@@ -2714,14 +2981,20 @@ namespace Foo.Bar
         {
         }
 
-        public static GetMessagesQueryDocument Instance { get; } = new GetMessagesQueryDocument();
+        public static GetMessagesQueryDocument Instance
+        {
+            get;
+        }
 
+        = new GetMessagesQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x28, 0x24, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x3a, 0x20, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x21, 0x29, 0x20, 0x7b, 0x20, 0x70, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x42, 0x79, 0x45, 0x6d, 0x61, 0x69, 0x6c, 0x28, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x3a, 0x20, 0x24, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x28, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x5f, 0x62, 0x79, 0x3a, 0x20, 0x7b, 0x20, 0x73, 0x65, 0x6e, 0x74, 0x3a, 0x20, 0x41, 0x53, 0x43, 0x20, 0x7d, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x6f, 0x64, 0x65, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x74, 0x65, 0x78, 0x74, 0x20, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x72, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x6e, 0x74, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x20, 0x69, 0x73, 0x4f, 0x6e, 0x6c, 0x69, 0x6e, 0x65, 0x20, 0x7d};
+        public global::StrawberryShake.DocumentHash Hash
+        {
+            get;
+        }
 
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[] { 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x28, 0x24, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x3a, 0x20, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x21, 0x29, 0x20, 0x7b, 0x20, 0x70, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x42, 0x79, 0x45, 0x6d, 0x61, 0x69, 0x6c, 0x28, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x3a, 0x20, 0x24, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x28, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x5f, 0x62, 0x79, 0x3a, 0x20, 0x7b, 0x20, 0x73, 0x65, 0x6e, 0x74, 0x3a, 0x20, 0x41, 0x53, 0x43, 0x20, 0x7d, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x6f, 0x64, 0x65, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x74, 0x65, 0x78, 0x74, 0x20, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x72, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x6e, 0x74, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x20, 0x69, 0x73, 0x4f, 0x6e, 0x6c, 0x69, 0x6e, 0x65, 0x20, 0x7d };
-
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "c9975fca1ca78b7c96f298130fccfc181f3d5309");
-
+        = new global::StrawberryShake.DocumentHash("sha1Hash", "c9975fca1ca78b7c96f298130fccfc181f3d5309");
         public override global::System.String ToString()
         {
 #if NETSTANDARD2_0
@@ -2734,61 +3007,60 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
-        /// Represents the operation service of the GetMessages GraphQL operation
-        /// <code>
-        /// query GetMessages($email: String!) {
-        ///   personByEmail(email: $email) {
-        ///     __typename
-        ///     messages(order_by: { sent: ASC }) {
-        ///       __typename
-        ///       nodes {
-        ///         __typename
-        ///         ... Message
-        ///         ... on Message {
-        ///           id
-        ///         }
-        ///       }
-        ///     }
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        /// }
-        /// 
-        /// fragment Message on Message {
-        ///   id
-        ///   text
-        ///   direction
-        ///   recipient {
-        ///     __typename
-        ///     ... Participant
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        ///   sender {
-        ///     __typename
-        ///     ... Participant
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        ///   sent
-        /// }
-        /// 
-        /// fragment Participant on Person {
-        ///   name
-        ///   email
-        ///   isOnline
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the GetMessages GraphQL operation
+    /// <code>
+    /// query GetMessages($email: String!) {
+    ///   personByEmail(email: $email) {
+    ///     __typename
+    ///     messages(order_by: { sent: ASC }) {
+    ///       __typename
+    ///       nodes {
+    ///         __typename
+    ///         ... Message
+    ///         ... on Message {
+    ///           id
+    ///         }
+    ///       }
+    ///     }
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment Message on Message {
+    ///   id
+    ///   text
+    ///   direction
+    ///   recipient {
+    ///     __typename
+    ///     ... Participant
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    ///   sender {
+    ///     __typename
+    ///     ... Participant
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    ///   sent
+    /// }
+    /// 
+    /// fragment Participant on Person {
+    ///   name
+    ///   email
+    ///   isOnline
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetMessagesQuery : global::Foo.Bar.IGetMessagesQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetMessagesResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
-
         public GetMessagesQuery(global::StrawberryShake.IOperationExecutor<IGetMessagesResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
@@ -2796,7 +3068,6 @@ namespace Foo.Bar
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetMessagesResult);
-
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetMessagesResult>> ExecuteAsync(global::System.String email, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(email);
@@ -2839,55 +3110,55 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
-        /// Represents the operation service of the GetMessages GraphQL operation
-        /// <code>
-        /// query GetMessages($email: String!) {
-        ///   personByEmail(email: $email) {
-        ///     __typename
-        ///     messages(order_by: { sent: ASC }) {
-        ///       __typename
-        ///       nodes {
-        ///         __typename
-        ///         ... Message
-        ///         ... on Message {
-        ///           id
-        ///         }
-        ///       }
-        ///     }
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        /// }
-        /// 
-        /// fragment Message on Message {
-        ///   id
-        ///   text
-        ///   direction
-        ///   recipient {
-        ///     __typename
-        ///     ... Participant
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        ///   sender {
-        ///     __typename
-        ///     ... Participant
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        ///   sent
-        /// }
-        /// 
-        /// fragment Participant on Person {
-        ///   name
-        ///   email
-        ///   isOnline
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the GetMessages GraphQL operation
+    /// <code>
+    /// query GetMessages($email: String!) {
+    ///   personByEmail(email: $email) {
+    ///     __typename
+    ///     messages(order_by: { sent: ASC }) {
+    ///       __typename
+    ///       nodes {
+    ///         __typename
+    ///         ... Message
+    ///         ... on Message {
+    ///           id
+    ///         }
+    ///       }
+    ///     }
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment Message on Message {
+    ///   id
+    ///   text
+    ///   direction
+    ///   recipient {
+    ///     __typename
+    ///     ... Participant
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    ///   sender {
+    ///     __typename
+    ///     ... Participant
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    ///   sent
+    /// }
+    /// 
+    /// fragment Participant on Person {
+    ///   name
+    ///   email
+    ///   isOnline
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetMessagesQuery : global::StrawberryShake.IOperationRequestFactory
     {
@@ -2897,49 +3168,49 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
-        /// Represents the operation service of the SendMessageInput GraphQL operation
-        /// <code>
-        /// mutation SendMessageInput($input: SendMessageInput!) {
-        ///   sendMessage(input: $input) {
-        ///     __typename
-        ///     message {
-        ///       __typename
-        ///       ... Message
-        ///       ... on Message {
-        ///         id
-        ///       }
-        ///     }
-        ///   }
-        /// }
-        /// 
-        /// fragment Message on Message {
-        ///   id
-        ///   text
-        ///   direction
-        ///   recipient {
-        ///     __typename
-        ///     ... Participant
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        ///   sender {
-        ///     __typename
-        ///     ... Participant
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        ///   sent
-        /// }
-        /// 
-        /// fragment Participant on Person {
-        ///   name
-        ///   email
-        ///   isOnline
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the SendMessageInput GraphQL operation
+    /// <code>
+    /// mutation SendMessageInput($input: SendMessageInput!) {
+    ///   sendMessage(input: $input) {
+    ///     __typename
+    ///     message {
+    ///       __typename
+    ///       ... Message
+    ///       ... on Message {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment Message on Message {
+    ///   id
+    ///   text
+    ///   direction
+    ///   recipient {
+    ///     __typename
+    ///     ... Participant
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    ///   sender {
+    ///     __typename
+    ///     ... Participant
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    ///   sent
+    /// }
+    /// 
+    /// fragment Participant on Person {
+    ///   name
+    ///   email
+    ///   isOnline
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageInputMutationDocument : global::StrawberryShake.IDocument
     {
@@ -2947,14 +3218,20 @@ namespace Foo.Bar
         {
         }
 
-        public static SendMessageInputMutationDocument Instance { get; } = new SendMessageInputMutationDocument();
+        public static SendMessageInputMutationDocument Instance
+        {
+            get;
+        }
 
+        = new SendMessageInputMutationDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Mutation;
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x6d, 0x75, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x53, 0x65, 0x6e, 0x64, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x28, 0x24, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x3a, 0x20, 0x53, 0x65, 0x6e, 0x64, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x21, 0x29, 0x20, 0x7b, 0x20, 0x73, 0x65, 0x6e, 0x64, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x28, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x3a, 0x20, 0x24, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x74, 0x65, 0x78, 0x74, 0x20, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x72, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x6e, 0x74, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x20, 0x69, 0x73, 0x4f, 0x6e, 0x6c, 0x69, 0x6e, 0x65, 0x20, 0x7d};
+        public global::StrawberryShake.DocumentHash Hash
+        {
+            get;
+        }
 
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[] { 0x6d, 0x75, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x53, 0x65, 0x6e, 0x64, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x28, 0x24, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x3a, 0x20, 0x53, 0x65, 0x6e, 0x64, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x49, 0x6e, 0x70, 0x75, 0x74, 0x21, 0x29, 0x20, 0x7b, 0x20, 0x73, 0x65, 0x6e, 0x64, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x28, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x3a, 0x20, 0x24, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x74, 0x65, 0x78, 0x74, 0x20, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x72, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x6e, 0x74, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x20, 0x69, 0x73, 0x4f, 0x6e, 0x6c, 0x69, 0x6e, 0x65, 0x20, 0x7d };
-
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "abbee600b2246c20ab39b641561c4a0312560356");
-
+        = new global::StrawberryShake.DocumentHash("sha1Hash", "abbee600b2246c20ab39b641561c4a0312560356");
         public override global::System.String ToString()
         {
 #if NETSTANDARD2_0
@@ -2967,55 +3244,54 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
-        /// Represents the operation service of the SendMessageInput GraphQL operation
-        /// <code>
-        /// mutation SendMessageInput($input: SendMessageInput!) {
-        ///   sendMessage(input: $input) {
-        ///     __typename
-        ///     message {
-        ///       __typename
-        ///       ... Message
-        ///       ... on Message {
-        ///         id
-        ///       }
-        ///     }
-        ///   }
-        /// }
-        /// 
-        /// fragment Message on Message {
-        ///   id
-        ///   text
-        ///   direction
-        ///   recipient {
-        ///     __typename
-        ///     ... Participant
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        ///   sender {
-        ///     __typename
-        ///     ... Participant
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        ///   sent
-        /// }
-        /// 
-        /// fragment Participant on Person {
-        ///   name
-        ///   email
-        ///   isOnline
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the SendMessageInput GraphQL operation
+    /// <code>
+    /// mutation SendMessageInput($input: SendMessageInput!) {
+    ///   sendMessage(input: $input) {
+    ///     __typename
+    ///     message {
+    ///       __typename
+    ///       ... Message
+    ///       ... on Message {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment Message on Message {
+    ///   id
+    ///   text
+    ///   direction
+    ///   recipient {
+    ///     __typename
+    ///     ... Participant
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    ///   sender {
+    ///     __typename
+    ///     ... Participant
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    ///   sent
+    /// }
+    /// 
+    /// fragment Participant on Person {
+    ///   name
+    ///   email
+    ///   isOnline
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageInputMutation : global::Foo.Bar.ISendMessageInputMutation
     {
         private readonly global::StrawberryShake.IOperationExecutor<ISendMessageInputResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _sendMessageInputFormatter;
-
         public SendMessageInputMutation(global::StrawberryShake.IOperationExecutor<ISendMessageInputResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
@@ -3023,7 +3299,6 @@ namespace Foo.Bar
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ISendMessageInputResult);
-
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISendMessageInputResult>> ExecuteAsync(global::Foo.Bar.SendMessageInput input, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(input);
@@ -3066,49 +3341,49 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
-        /// Represents the operation service of the SendMessageInput GraphQL operation
-        /// <code>
-        /// mutation SendMessageInput($input: SendMessageInput!) {
-        ///   sendMessage(input: $input) {
-        ///     __typename
-        ///     message {
-        ///       __typename
-        ///       ... Message
-        ///       ... on Message {
-        ///         id
-        ///       }
-        ///     }
-        ///   }
-        /// }
-        /// 
-        /// fragment Message on Message {
-        ///   id
-        ///   text
-        ///   direction
-        ///   recipient {
-        ///     __typename
-        ///     ... Participant
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        ///   sender {
-        ///     __typename
-        ///     ... Participant
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        ///   sent
-        /// }
-        /// 
-        /// fragment Participant on Person {
-        ///   name
-        ///   email
-        ///   isOnline
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the SendMessageInput GraphQL operation
+    /// <code>
+    /// mutation SendMessageInput($input: SendMessageInput!) {
+    ///   sendMessage(input: $input) {
+    ///     __typename
+    ///     message {
+    ///       __typename
+    ///       ... Message
+    ///       ... on Message {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment Message on Message {
+    ///   id
+    ///   text
+    ///   direction
+    ///   recipient {
+    ///     __typename
+    ///     ... Participant
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    ///   sender {
+    ///     __typename
+    ///     ... Participant
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    ///   sent
+    /// }
+    /// 
+    /// fragment Participant on Person {
+    ///   name
+    ///   email
+    ///   isOnline
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageInputMutation : global::StrawberryShake.IOperationRequestFactory
     {
@@ -3118,49 +3393,49 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
-        /// Represents the operation service of the SendMessageMut GraphQL operation
-        /// <code>
-        /// mutation SendMessageMut($email: String!, $text: String!) {
-        ///   sendMessage(input: { recipientEmail: $email, text: $text }) {
-        ///     __typename
-        ///     message {
-        ///       __typename
-        ///       ... Message
-        ///       ... on Message {
-        ///         id
-        ///       }
-        ///     }
-        ///   }
-        /// }
-        /// 
-        /// fragment Message on Message {
-        ///   id
-        ///   text
-        ///   direction
-        ///   recipient {
-        ///     __typename
-        ///     ... Participant
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        ///   sender {
-        ///     __typename
-        ///     ... Participant
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        ///   sent
-        /// }
-        /// 
-        /// fragment Participant on Person {
-        ///   name
-        ///   email
-        ///   isOnline
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the SendMessageMut GraphQL operation
+    /// <code>
+    /// mutation SendMessageMut($email: String!, $text: String!) {
+    ///   sendMessage(input: { recipientEmail: $email, text: $text }) {
+    ///     __typename
+    ///     message {
+    ///       __typename
+    ///       ... Message
+    ///       ... on Message {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment Message on Message {
+    ///   id
+    ///   text
+    ///   direction
+    ///   recipient {
+    ///     __typename
+    ///     ... Participant
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    ///   sender {
+    ///     __typename
+    ///     ... Participant
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    ///   sent
+    /// }
+    /// 
+    /// fragment Participant on Person {
+    ///   name
+    ///   email
+    ///   isOnline
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageMutMutationDocument : global::StrawberryShake.IDocument
     {
@@ -3168,14 +3443,20 @@ namespace Foo.Bar
         {
         }
 
-        public static SendMessageMutMutationDocument Instance { get; } = new SendMessageMutMutationDocument();
+        public static SendMessageMutMutationDocument Instance
+        {
+            get;
+        }
 
+        = new SendMessageMutMutationDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Mutation;
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x6d, 0x75, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x53, 0x65, 0x6e, 0x64, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x4d, 0x75, 0x74, 0x28, 0x24, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x3a, 0x20, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x21, 0x2c, 0x20, 0x24, 0x74, 0x65, 0x78, 0x74, 0x3a, 0x20, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x21, 0x29, 0x20, 0x7b, 0x20, 0x73, 0x65, 0x6e, 0x64, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x28, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x3a, 0x20, 0x7b, 0x20, 0x72, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74, 0x45, 0x6d, 0x61, 0x69, 0x6c, 0x3a, 0x20, 0x24, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x2c, 0x20, 0x74, 0x65, 0x78, 0x74, 0x3a, 0x20, 0x24, 0x74, 0x65, 0x78, 0x74, 0x20, 0x7d, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x74, 0x65, 0x78, 0x74, 0x20, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x72, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x6e, 0x74, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x20, 0x69, 0x73, 0x4f, 0x6e, 0x6c, 0x69, 0x6e, 0x65, 0x20, 0x7d};
+        public global::StrawberryShake.DocumentHash Hash
+        {
+            get;
+        }
 
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[] { 0x6d, 0x75, 0x74, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x53, 0x65, 0x6e, 0x64, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x4d, 0x75, 0x74, 0x28, 0x24, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x3a, 0x20, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x21, 0x2c, 0x20, 0x24, 0x74, 0x65, 0x78, 0x74, 0x3a, 0x20, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x21, 0x29, 0x20, 0x7b, 0x20, 0x73, 0x65, 0x6e, 0x64, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x28, 0x69, 0x6e, 0x70, 0x75, 0x74, 0x3a, 0x20, 0x7b, 0x20, 0x72, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74, 0x45, 0x6d, 0x61, 0x69, 0x6c, 0x3a, 0x20, 0x24, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x2c, 0x20, 0x74, 0x65, 0x78, 0x74, 0x3a, 0x20, 0x24, 0x74, 0x65, 0x78, 0x74, 0x20, 0x7d, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x74, 0x65, 0x78, 0x74, 0x20, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x72, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x6e, 0x74, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x20, 0x69, 0x73, 0x4f, 0x6e, 0x6c, 0x69, 0x6e, 0x65, 0x20, 0x7d };
-
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "0a0b8bf5246ce3dca815397d3d9be98e9a35a867");
-
+        = new global::StrawberryShake.DocumentHash("sha1Hash", "0a0b8bf5246ce3dca815397d3d9be98e9a35a867");
         public override global::System.String ToString()
         {
 #if NETSTANDARD2_0
@@ -3188,55 +3469,54 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
-        /// Represents the operation service of the SendMessageMut GraphQL operation
-        /// <code>
-        /// mutation SendMessageMut($email: String!, $text: String!) {
-        ///   sendMessage(input: { recipientEmail: $email, text: $text }) {
-        ///     __typename
-        ///     message {
-        ///       __typename
-        ///       ... Message
-        ///       ... on Message {
-        ///         id
-        ///       }
-        ///     }
-        ///   }
-        /// }
-        /// 
-        /// fragment Message on Message {
-        ///   id
-        ///   text
-        ///   direction
-        ///   recipient {
-        ///     __typename
-        ///     ... Participant
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        ///   sender {
-        ///     __typename
-        ///     ... Participant
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        ///   sent
-        /// }
-        /// 
-        /// fragment Participant on Person {
-        ///   name
-        ///   email
-        ///   isOnline
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the SendMessageMut GraphQL operation
+    /// <code>
+    /// mutation SendMessageMut($email: String!, $text: String!) {
+    ///   sendMessage(input: { recipientEmail: $email, text: $text }) {
+    ///     __typename
+    ///     message {
+    ///       __typename
+    ///       ... Message
+    ///       ... on Message {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment Message on Message {
+    ///   id
+    ///   text
+    ///   direction
+    ///   recipient {
+    ///     __typename
+    ///     ... Participant
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    ///   sender {
+    ///     __typename
+    ///     ... Participant
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    ///   sent
+    /// }
+    /// 
+    /// fragment Participant on Person {
+    ///   name
+    ///   email
+    ///   isOnline
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessageMutMutation : global::Foo.Bar.ISendMessageMutMutation
     {
         private readonly global::StrawberryShake.IOperationExecutor<ISendMessageMutResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
-
         public SendMessageMutMutation(global::StrawberryShake.IOperationExecutor<ISendMessageMutResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
@@ -3244,7 +3524,6 @@ namespace Foo.Bar
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ISendMessageMutResult);
-
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISendMessageMutResult>> ExecuteAsync(global::System.String email, global::System.String text, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(email, text);
@@ -3298,49 +3577,49 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
-        /// Represents the operation service of the SendMessageMut GraphQL operation
-        /// <code>
-        /// mutation SendMessageMut($email: String!, $text: String!) {
-        ///   sendMessage(input: { recipientEmail: $email, text: $text }) {
-        ///     __typename
-        ///     message {
-        ///       __typename
-        ///       ... Message
-        ///       ... on Message {
-        ///         id
-        ///       }
-        ///     }
-        ///   }
-        /// }
-        /// 
-        /// fragment Message on Message {
-        ///   id
-        ///   text
-        ///   direction
-        ///   recipient {
-        ///     __typename
-        ///     ... Participant
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        ///   sender {
-        ///     __typename
-        ///     ... Participant
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        ///   sent
-        /// }
-        /// 
-        /// fragment Participant on Person {
-        ///   name
-        ///   email
-        ///   isOnline
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the SendMessageMut GraphQL operation
+    /// <code>
+    /// mutation SendMessageMut($email: String!, $text: String!) {
+    ///   sendMessage(input: { recipientEmail: $email, text: $text }) {
+    ///     __typename
+    ///     message {
+    ///       __typename
+    ///       ... Message
+    ///       ... on Message {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment Message on Message {
+    ///   id
+    ///   text
+    ///   direction
+    ///   recipient {
+    ///     __typename
+    ///     ... Participant
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    ///   sender {
+    ///     __typename
+    ///     ... Participant
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    ///   sent
+    /// }
+    /// 
+    /// fragment Participant on Person {
+    ///   name
+    ///   email
+    ///   isOnline
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISendMessageMutMutation : global::StrawberryShake.IOperationRequestFactory
     {
@@ -3350,46 +3629,46 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
-        /// Represents the operation service of the ReadMessages GraphQL operation
-        /// <code>
-        /// subscription ReadMessages {
-        ///   message: onMessageReceived {
-        ///     __typename
-        ///     ... Message
-        ///     ... on Message {
-        ///       id
-        ///     }
-        ///   }
-        /// }
-        /// 
-        /// fragment Message on Message {
-        ///   id
-        ///   text
-        ///   direction
-        ///   recipient {
-        ///     __typename
-        ///     ... Participant
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        ///   sender {
-        ///     __typename
-        ///     ... Participant
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        ///   sent
-        /// }
-        /// 
-        /// fragment Participant on Person {
-        ///   name
-        ///   email
-        ///   isOnline
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the ReadMessages GraphQL operation
+    /// <code>
+    /// subscription ReadMessages {
+    ///   message: onMessageReceived {
+    ///     __typename
+    ///     ... Message
+    ///     ... on Message {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment Message on Message {
+    ///   id
+    ///   text
+    ///   direction
+    ///   recipient {
+    ///     __typename
+    ///     ... Participant
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    ///   sender {
+    ///     __typename
+    ///     ... Participant
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    ///   sent
+    /// }
+    /// 
+    /// fragment Participant on Person {
+    ///   name
+    ///   email
+    ///   isOnline
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReadMessagesSubscriptionDocument : global::StrawberryShake.IDocument
     {
@@ -3397,14 +3676,20 @@ namespace Foo.Bar
         {
         }
 
-        public static ReadMessagesSubscriptionDocument Instance { get; } = new ReadMessagesSubscriptionDocument();
+        public static ReadMessagesSubscriptionDocument Instance
+        {
+            get;
+        }
 
+        = new ReadMessagesSubscriptionDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Subscription;
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x73, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x52, 0x65, 0x61, 0x64, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x20, 0x7b, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x3a, 0x20, 0x6f, 0x6e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x64, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x74, 0x65, 0x78, 0x74, 0x20, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x72, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x6e, 0x74, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x20, 0x69, 0x73, 0x4f, 0x6e, 0x6c, 0x69, 0x6e, 0x65, 0x20, 0x7d};
+        public global::StrawberryShake.DocumentHash Hash
+        {
+            get;
+        }
 
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[] { 0x73, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x52, 0x65, 0x61, 0x64, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x20, 0x7b, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x3a, 0x20, 0x6f, 0x6e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x52, 0x65, 0x63, 0x65, 0x69, 0x76, 0x65, 0x64, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x6f, 0x6e, 0x20, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x74, 0x65, 0x78, 0x74, 0x20, 0x64, 0x69, 0x72, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x72, 0x65, 0x63, 0x69, 0x70, 0x69, 0x65, 0x6e, 0x74, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x6e, 0x64, 0x65, 0x72, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x73, 0x65, 0x6e, 0x74, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x50, 0x61, 0x72, 0x74, 0x69, 0x63, 0x69, 0x70, 0x61, 0x6e, 0x74, 0x20, 0x6f, 0x6e, 0x20, 0x50, 0x65, 0x72, 0x73, 0x6f, 0x6e, 0x20, 0x7b, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x20, 0x69, 0x73, 0x4f, 0x6e, 0x6c, 0x69, 0x6e, 0x65, 0x20, 0x7d };
-
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "d814e26af4f48099826de75f91993d52b3568a02");
-
+        = new global::StrawberryShake.DocumentHash("sha1Hash", "d814e26af4f48099826de75f91993d52b3568a02");
         public override global::System.String ToString()
         {
 #if NETSTANDARD2_0
@@ -3417,58 +3702,56 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
-        /// Represents the operation service of the ReadMessages GraphQL operation
-        /// <code>
-        /// subscription ReadMessages {
-        ///   message: onMessageReceived {
-        ///     __typename
-        ///     ... Message
-        ///     ... on Message {
-        ///       id
-        ///     }
-        ///   }
-        /// }
-        /// 
-        /// fragment Message on Message {
-        ///   id
-        ///   text
-        ///   direction
-        ///   recipient {
-        ///     __typename
-        ///     ... Participant
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        ///   sender {
-        ///     __typename
-        ///     ... Participant
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        ///   sent
-        /// }
-        /// 
-        /// fragment Participant on Person {
-        ///   name
-        ///   email
-        ///   isOnline
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the ReadMessages GraphQL operation
+    /// <code>
+    /// subscription ReadMessages {
+    ///   message: onMessageReceived {
+    ///     __typename
+    ///     ... Message
+    ///     ... on Message {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment Message on Message {
+    ///   id
+    ///   text
+    ///   direction
+    ///   recipient {
+    ///     __typename
+    ///     ... Participant
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    ///   sender {
+    ///     __typename
+    ///     ... Participant
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    ///   sent
+    /// }
+    /// 
+    /// fragment Participant on Person {
+    ///   name
+    ///   email
+    ///   isOnline
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ReadMessagesSubscription : global::Foo.Bar.IReadMessagesSubscription
     {
         private readonly global::StrawberryShake.IOperationExecutor<IReadMessagesResult> _operationExecutor;
-
         public ReadMessagesSubscription(global::StrawberryShake.IOperationExecutor<IReadMessagesResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IReadMessagesResult);
-
         public global::System.IObservable<global::StrawberryShake.IOperationResult<IReadMessagesResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
             var request = CreateRequest();
@@ -3493,46 +3776,46 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
-        /// Represents the operation service of the ReadMessages GraphQL operation
-        /// <code>
-        /// subscription ReadMessages {
-        ///   message: onMessageReceived {
-        ///     __typename
-        ///     ... Message
-        ///     ... on Message {
-        ///       id
-        ///     }
-        ///   }
-        /// }
-        /// 
-        /// fragment Message on Message {
-        ///   id
-        ///   text
-        ///   direction
-        ///   recipient {
-        ///     __typename
-        ///     ... Participant
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        ///   sender {
-        ///     __typename
-        ///     ... Participant
-        ///     ... on Person {
-        ///       id
-        ///     }
-        ///   }
-        ///   sent
-        /// }
-        /// 
-        /// fragment Participant on Person {
-        ///   name
-        ///   email
-        ///   isOnline
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the ReadMessages GraphQL operation
+    /// <code>
+    /// subscription ReadMessages {
+    ///   message: onMessageReceived {
+    ///     __typename
+    ///     ... Message
+    ///     ... on Message {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment Message on Message {
+    ///   id
+    ///   text
+    ///   direction
+    ///   recipient {
+    ///     __typename
+    ///     ... Participant
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    ///   sender {
+    ///     __typename
+    ///     ... Participant
+    ///     ... on Person {
+    ///       id
+    ///     }
+    ///   }
+    ///   sent
+    /// }
+    /// 
+    /// fragment Participant on Person {
+    ///   name
+    ///   email
+    ///   isOnline
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IReadMessagesSubscription : global::StrawberryShake.IOperationRequestFactory
     {
@@ -3541,8 +3824,8 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
     /// <summary>
-        /// Represents the FooClient GraphQL client
-        /// </summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient : global::Foo.Bar.IFooClient
     {
@@ -3551,7 +3834,6 @@ namespace Foo.Bar
         private readonly global::Foo.Bar.ISendMessageInputMutation _sendMessageInput;
         private readonly global::Foo.Bar.ISendMessageMutMutation _sendMessageMut;
         private readonly global::Foo.Bar.IReadMessagesSubscription _readMessages;
-
         public FooClient(global::Foo.Bar.IGetPeopleQuery getPeople, global::Foo.Bar.IGetMessagesQuery getMessages, global::Foo.Bar.ISendMessageInputMutation sendMessageInput, global::Foo.Bar.ISendMessageMutMutation sendMessageMut, global::Foo.Bar.IReadMessagesSubscription readMessages)
         {
             _getPeople = getPeople ?? throw new global::System.ArgumentNullException(nameof(getPeople));
@@ -3562,34 +3844,44 @@ namespace Foo.Bar
         }
 
         public static global::System.String ClientName => "FooClient";
-
         public global::Foo.Bar.IGetPeopleQuery GetPeople => _getPeople;
-
         public global::Foo.Bar.IGetMessagesQuery GetMessages => _getMessages;
-
         public global::Foo.Bar.ISendMessageInputMutation SendMessageInput => _sendMessageInput;
-
         public global::Foo.Bar.ISendMessageMutMutation SendMessageMut => _sendMessageMut;
-
         public global::Foo.Bar.IReadMessagesSubscription ReadMessages => _readMessages;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
     /// <summary>
-        /// Represents the FooClient GraphQL client
-        /// </summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IFooClient
     {
-        global::Foo.Bar.IGetPeopleQuery GetPeople { get; }
+        global::Foo.Bar.IGetPeopleQuery GetPeople
+        {
+            get;
+        }
 
-        global::Foo.Bar.IGetMessagesQuery GetMessages { get; }
+        global::Foo.Bar.IGetMessagesQuery GetMessages
+        {
+            get;
+        }
 
-        global::Foo.Bar.ISendMessageInputMutation SendMessageInput { get; }
+        global::Foo.Bar.ISendMessageInputMutation SendMessageInput
+        {
+            get;
+        }
 
-        global::Foo.Bar.ISendMessageMutMutation SendMessageMut { get; }
+        global::Foo.Bar.ISendMessageMutMutation SendMessageMut
+        {
+            get;
+        }
 
-        global::Foo.Bar.IReadMessagesSubscription ReadMessages { get; }
+        global::Foo.Bar.IReadMessagesSubscription ReadMessages
+        {
+            get;
+        }
     }
 }
 
@@ -3597,8 +3889,8 @@ namespace Foo.Bar.State
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
     /// <summary>
-        /// Type person
-        /// </summary>
+    /// Type person
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PersonEntity
     {
@@ -3613,40 +3905,58 @@ namespace Foo.Bar.State
         }
 
         /// <summary>
-                /// Field name
-                /// </summary>
-        public global::System.String Name { get; }
+        /// Field name
+        /// </summary>
+        public global::System.String Name
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field email
-                /// </summary>
-        public global::System.String Email { get; }
+        /// Field email
+        /// </summary>
+        public global::System.String Email
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field isOnline
-                /// </summary>
-        public global::System.Boolean IsOnline { get; }
+        /// Field isOnline
+        /// </summary>
+        public global::System.Boolean IsOnline
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field imageUri
-                /// </summary>
-        public global::System.Uri? ImageUri { get; }
+        /// Field imageUri
+        /// </summary>
+        public global::System.Uri? ImageUri
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field lastSeen
-                /// </summary>
-        public global::System.DateTimeOffset LastSeen { get; }
+        /// Field lastSeen
+        /// </summary>
+        public global::System.DateTimeOffset LastSeen
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field messages
-                /// </summary>
-        public global::Foo.Bar.State.MessageConnectionData? Messages { get; }
+        /// Field messages
+        /// </summary>
+        public global::Foo.Bar.State.MessageConnectionData? Messages
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
     /// <summary>
-        /// Type message
-        /// </summary>
+    /// Type message
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class MessageEntity
     {
@@ -3661,34 +3971,52 @@ namespace Foo.Bar.State
         }
 
         /// <summary>
-                /// Field id
-                /// </summary>
-        public global::System.String Id { get; }
+        /// Field id
+        /// </summary>
+        public global::System.String Id
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field text
-                /// </summary>
-        public global::System.String Text { get; }
+        /// Field text
+        /// </summary>
+        public global::System.String Text
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field direction
-                /// </summary>
-        public global::Foo.Bar.Direction Direction { get; }
+        /// Field direction
+        /// </summary>
+        public global::Foo.Bar.Direction Direction
+        {
+            get;
+        }
 
         /// <summary>
-                /// Fiejld recipient
-                /// </summary>
-        public global::StrawberryShake.EntityId Recipient { get; }
+        /// Fiejld recipient
+        /// </summary>
+        public global::StrawberryShake.EntityId Recipient
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field sender
-                /// </summary>
-        public global::StrawberryShake.EntityId Sender { get; }
+        /// Field sender
+        /// </summary>
+        public global::StrawberryShake.EntityId Sender
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field sent
-                /// </summary>
-        public global::System.DateTimeOffset Sent { get; }
+        /// Field sent
+        /// </summary>
+        public global::System.DateTimeOffset Sent
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
@@ -3697,7 +4025,6 @@ namespace Foo.Bar.State
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetPeople_People_Nodes_Person> _getPeople_People_Nodes_PersonFromPersonEntityMapper;
-
         public GetPeopleResultFactory(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetPeople_People_Nodes_Person> getPeople_People_Nodes_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -3705,7 +4032,6 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IGetPeopleResult);
-
         public GetPeopleResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -3728,7 +4054,7 @@ namespace Foo.Bar.State
                 return null;
             }
 
-            IGetPeople_People returnValue = default!;
+            IGetPeople_People returnValue = default !;
             if (data?.__typename.Equals("PersonConnection", global::System.StringComparison.Ordinal) ?? false)
             {
                 returnValue = new GetPeople_People_PersonConnection(MapIGetPeople_People_NodesArray(data.Nodes, snapshot));
@@ -3784,7 +4110,6 @@ namespace Foo.Bar.State
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
         private readonly global::System.UInt64 _version;
-
         public GetPeopleResultInfo(global::Foo.Bar.State.PersonConnectionData? people, global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds, global::System.UInt64 version)
         {
             People = people;
@@ -3793,14 +4118,15 @@ namespace Foo.Bar.State
         }
 
         /// <summary>
-                /// Gets access to all the people known to this service.
-                /// </summary>
-        public global::Foo.Bar.State.PersonConnectionData? People { get; }
+        /// Gets access to all the people known to this service.
+        /// </summary>
+        public global::Foo.Bar.State.PersonConnectionData? People
+        {
+            get;
+        }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
-
         public global::System.UInt64 Version => _version;
-
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new GetPeopleResultInfo(People, _entityIds, version);
@@ -3812,7 +4138,6 @@ namespace Foo.Bar.State
     public partial class GetPeople_People_Nodes_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetPeople_People_Nodes_Person>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-
         public GetPeople_People_Nodes_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -3835,7 +4160,6 @@ namespace Foo.Bar.State
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Person> _getMessages_PersonByEmail_PersonFromPersonEntityMapper;
-
         public GetMessagesResultFactory(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Person> getMessages_PersonByEmail_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -3843,7 +4167,6 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IGetMessagesResult);
-
         public GetMessagesResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -3881,7 +4204,6 @@ namespace Foo.Bar.State
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
         private readonly global::System.UInt64 _version;
-
         public GetMessagesResultInfo(global::StrawberryShake.EntityId personByEmail, global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds, global::System.UInt64 version)
         {
             PersonByEmail = personByEmail;
@@ -3890,14 +4212,15 @@ namespace Foo.Bar.State
         }
 
         /// <summary>
-                /// Field personByEmail
-                /// </summary>
-        public global::StrawberryShake.EntityId PersonByEmail { get; }
+        /// Field personByEmail
+        /// </summary>
+        public global::StrawberryShake.EntityId PersonByEmail
+        {
+            get;
+        }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
-
         public global::System.UInt64 Version => _version;
-
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new GetMessagesResultInfo(PersonByEmail, _entityIds, version);
@@ -3912,7 +4235,6 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, GetMessages_PersonByEmail_Messages_Nodes_Message> _getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
-
         public GetMessages_PersonByEmail_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, GetMessages_PersonByEmail_Messages_Nodes_Message> getMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -3938,7 +4260,7 @@ namespace Foo.Bar.State
                 return null;
             }
 
-            IGetMessages_PersonByEmail_Messages returnValue = default!;
+            IGetMessages_PersonByEmail_Messages returnValue = default !;
             if (data?.__typename.Equals("MessageConnection", global::System.StringComparison.Ordinal) ?? false)
             {
                 returnValue = new GetMessages_PersonByEmail_Messages_MessageConnection(MapIGetMessages_PersonByEmail_Messages_NodesArray(data.Nodes, snapshot));
@@ -4010,7 +4332,6 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
-
         public GetMessages_PersonByEmail_Messages_Nodes_MessageFromMessageEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -4054,7 +4375,6 @@ namespace Foo.Bar.State
     public partial class GetMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-
         public GetMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -4076,7 +4396,6 @@ namespace Foo.Bar.State
     public partial class GetMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-
         public GetMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -4101,7 +4420,6 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, SendMessageInput_SendMessage_Message_Message> _sendMessageInput_SendMessage_Message_MessageFromMessageEntityMapper;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
-
         public SendMessageInput_1ResultFactory(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, SendMessageInput_SendMessage_Message_Message> sendMessageInput_SendMessage_Message_MessageFromMessageEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -4111,7 +4429,6 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.ISendMessageInputResult);
-
         public SendMessageInput_1Result Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -4129,7 +4446,7 @@ namespace Foo.Bar.State
 
         private global::Foo.Bar.ISendMessageInput_SendMessage MapNonNullableISendMessageInput_SendMessage(global::Foo.Bar.State.SendMessagePayloadData data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
-            ISendMessageInput_SendMessage returnValue = default!;
+            ISendMessageInput_SendMessage returnValue = default !;
             if (data.__typename.Equals("SendMessagePayload", global::System.StringComparison.Ordinal))
             {
                 returnValue = new SendMessageInput_SendMessage_SendMessagePayload(MapNonNullableISendMessageInput_SendMessage_Message(data.Message ?? throw new global::System.ArgumentNullException(), snapshot));
@@ -4184,7 +4501,6 @@ namespace Foo.Bar.State
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
         private readonly global::System.UInt64 _version;
-
         public SendMessageInput_1ResultInfo(global::Foo.Bar.State.SendMessagePayloadData sendMessage, global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds, global::System.UInt64 version)
         {
             SendMessage = sendMessage;
@@ -4193,14 +4509,15 @@ namespace Foo.Bar.State
         }
 
         /// <summary>
-                /// Field sendMessage
-                /// </summary>
-        public global::Foo.Bar.State.SendMessagePayloadData SendMessage { get; }
+        /// Field sendMessage
+        /// </summary>
+        public global::Foo.Bar.State.SendMessagePayloadData SendMessage
+        {
+            get;
+        }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
-
         public global::System.UInt64 Version => _version;
-
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new SendMessageInput_1ResultInfo(SendMessage, _entityIds, version);
@@ -4214,7 +4531,6 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
-
         public SendMessageInput_SendMessage_Message_MessageFromMessageEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -4258,7 +4574,6 @@ namespace Foo.Bar.State
     public partial class SendMessageInput_SendMessage_Message_Recipient_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, SendMessageInput_SendMessage_Message_Recipient_Person>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-
         public SendMessageInput_SendMessage_Message_Recipient_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -4280,7 +4595,6 @@ namespace Foo.Bar.State
     public partial class SendMessageInput_SendMessage_Message_Sender_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, SendMessageInput_SendMessage_Message_Sender_Person>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-
         public SendMessageInput_SendMessage_Message_Sender_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -4305,7 +4619,6 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, SendMessageMut_SendMessage_Message_Message> _sendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
-
         public SendMessageMutResultFactory(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, SendMessageMut_SendMessage_Message_Message> sendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -4315,7 +4628,6 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.ISendMessageMutResult);
-
         public SendMessageMutResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -4333,7 +4645,7 @@ namespace Foo.Bar.State
 
         private global::Foo.Bar.ISendMessageMut_SendMessage MapNonNullableISendMessageMut_SendMessage(global::Foo.Bar.State.SendMessagePayloadData data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
-            ISendMessageMut_SendMessage returnValue = default!;
+            ISendMessageMut_SendMessage returnValue = default !;
             if (data.__typename.Equals("SendMessagePayload", global::System.StringComparison.Ordinal))
             {
                 returnValue = new SendMessageMut_SendMessage_SendMessagePayload(MapNonNullableISendMessageMut_SendMessage_Message(data.Message ?? throw new global::System.ArgumentNullException(), snapshot));
@@ -4388,7 +4700,6 @@ namespace Foo.Bar.State
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
         private readonly global::System.UInt64 _version;
-
         public SendMessageMutResultInfo(global::Foo.Bar.State.SendMessagePayloadData sendMessage, global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds, global::System.UInt64 version)
         {
             SendMessage = sendMessage;
@@ -4397,14 +4708,15 @@ namespace Foo.Bar.State
         }
 
         /// <summary>
-                /// Field sendMessage
-                /// </summary>
-        public global::Foo.Bar.State.SendMessagePayloadData SendMessage { get; }
+        /// Field sendMessage
+        /// </summary>
+        public global::Foo.Bar.State.SendMessagePayloadData SendMessage
+        {
+            get;
+        }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
-
         public global::System.UInt64 Version => _version;
-
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new SendMessageMutResultInfo(SendMessage, _entityIds, version);
@@ -4418,7 +4730,6 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
-
         public SendMessageMut_SendMessage_Message_MessageFromMessageEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -4462,7 +4773,6 @@ namespace Foo.Bar.State
     public partial class SendMessageMut_SendMessage_Message_Recipient_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, SendMessageMut_SendMessage_Message_Recipient_Person>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-
         public SendMessageMut_SendMessage_Message_Recipient_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -4484,7 +4794,6 @@ namespace Foo.Bar.State
     public partial class SendMessageMut_SendMessage_Message_Sender_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, SendMessageMut_SendMessage_Message_Sender_Person>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-
         public SendMessageMut_SendMessage_Message_Sender_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -4507,7 +4816,6 @@ namespace Foo.Bar.State
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, ReadMessages_Message_Message> _readMessages_Message_MessageFromMessageEntityMapper;
-
         public ReadMessagesResultFactory(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.MessageEntity, ReadMessages_Message_Message> readMessages_Message_MessageFromMessageEntityMapper)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -4515,7 +4823,6 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IReadMessagesResult);
-
         public ReadMessagesResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -4553,7 +4860,6 @@ namespace Foo.Bar.State
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
         private readonly global::System.UInt64 _version;
-
         public ReadMessagesResultInfo(global::StrawberryShake.EntityId message, global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds, global::System.UInt64 version)
         {
             Message = message;
@@ -4562,14 +4868,15 @@ namespace Foo.Bar.State
         }
 
         /// <summary>
-                /// field onMessageReceived
-                /// </summary>
-        public global::StrawberryShake.EntityId Message { get; }
+        /// field onMessageReceived
+        /// </summary>
+        public global::StrawberryShake.EntityId Message
+        {
+            get;
+        }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
-
         public global::System.UInt64 Version => _version;
-
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new ReadMessagesResultInfo(Message, _entityIds, version);
@@ -4583,7 +4890,6 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> _getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> _getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper;
-
         public ReadMessages_Message_MessageFromMessageEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person> getMessages_PersonByEmail_Messages_Nodes_Recipient_PersonFromPersonEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, GetMessages_PersonByEmail_Messages_Nodes_Sender_Person> getMessages_PersonByEmail_Messages_Nodes_Sender_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -4627,7 +4933,6 @@ namespace Foo.Bar.State
     public partial class ReadMessages_Message_Recipient_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, ReadMessages_Message_Recipient_Person>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-
         public ReadMessages_Message_Recipient_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -4649,7 +4954,6 @@ namespace Foo.Bar.State
     public partial class ReadMessages_Message_Sender_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, ReadMessages_Message_Sender_Person>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-
         public ReadMessages_Message_Sender_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -4677,7 +4981,6 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Uri> _urlParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
-
         public GetPeopleBuilder(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer idSerializer, global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetPeopleResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -4710,7 +5013,7 @@ namespace Foo.Bar.State
             }
             catch (global::System.Exception ex)
             {
-                errors = new global::StrawberryShake.IClientError[] { new global::StrawberryShake.ClientError(ex.Message, exception: ex) };
+                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex)};
             }
 
             return new global::StrawberryShake.OperationResult<IGetPeopleResult>(data?.Result, data?.Info, _resultDataFactory, errors);
@@ -4719,9 +5022,10 @@ namespace Foo.Bar.State
         private (IGetPeopleResult, GetPeopleResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
-            global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
-            global::Foo.Bar.State.PersonConnectionData? peopleId = default!;
-            _entityStore.Update(session => {
+            global::StrawberryShake.IEntityStoreSnapshot snapshot = default !;
+            global::Foo.Bar.State.PersonConnectionData? peopleId = default !;
+            _entityStore.Update(session =>
+            {
                 peopleId = DeserializeIGetPeople_People(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "people"), entityIds);
                 snapshot = session.CurrentSnapshot;
             });
@@ -4778,7 +5082,7 @@ namespace Foo.Bar.State
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), DeserializeNonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), DeserializeUri(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "imageUri")), DeserializeNonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "lastSeen")), default!));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), DeserializeNonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), DeserializeUri(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "imageUri")), DeserializeNonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "lastSeen")), default !));
                 }
 
                 return entityId;
@@ -4840,7 +5144,6 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
-
         public GetMessagesBuilder(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer idSerializer, global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetMessagesResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -4874,7 +5177,7 @@ namespace Foo.Bar.State
             }
             catch (global::System.Exception ex)
             {
-                errors = new global::StrawberryShake.IClientError[] { new global::StrawberryShake.ClientError(ex.Message, exception: ex) };
+                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex)};
             }
 
             return new global::StrawberryShake.OperationResult<IGetMessagesResult>(data?.Result, data?.Info, _resultDataFactory, errors);
@@ -4883,9 +5186,10 @@ namespace Foo.Bar.State
         private (IGetMessagesResult, GetMessagesResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
-            global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
-            global::StrawberryShake.EntityId personByEmailId = default!;
-            _entityStore.Update(session => {
+            global::StrawberryShake.IEntityStoreSnapshot snapshot = default !;
+            global::StrawberryShake.EntityId personByEmailId = default !;
+            _entityStore.Update(session =>
+            {
                 personByEmailId = UpdateNonNullableIGetMessages_PersonByEmailEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "personByEmail"), entityIds);
                 snapshot = session.CurrentSnapshot;
             });
@@ -4910,7 +5214,7 @@ namespace Foo.Bar.State
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(default!, default!, default!, default!, default!, DeserializeIGetMessages_PersonByEmail_Messages(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "messages"), entityIds)));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(default !, default !, default !, default !, default !, DeserializeIGetMessages_PersonByEmail_Messages(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "messages"), entityIds)));
                 }
 
                 return entityId;
@@ -5014,7 +5318,7 @@ namespace Foo.Bar.State
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), DeserializeNonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), default!, default!, default!));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), DeserializeNonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), default !, default !, default !));
                 }
 
                 return entityId;
@@ -5050,7 +5354,7 @@ namespace Foo.Bar.State
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), DeserializeNonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), default!, default!, default!));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), DeserializeNonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), default !, default !, default !));
                 }
 
                 return entityId;
@@ -5082,7 +5386,6 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
-
         public SendMessageInputBuilder(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer idSerializer, global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ISendMessageInputResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -5116,7 +5419,7 @@ namespace Foo.Bar.State
             }
             catch (global::System.Exception ex)
             {
-                errors = new global::StrawberryShake.IClientError[] { new global::StrawberryShake.ClientError(ex.Message, exception: ex) };
+                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex)};
             }
 
             return new global::StrawberryShake.OperationResult<ISendMessageInputResult>(data?.Result, data?.Info, _resultDataFactory, errors);
@@ -5125,9 +5428,10 @@ namespace Foo.Bar.State
         private (ISendMessageInputResult, SendMessageInput_1ResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
-            global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
-            global::Foo.Bar.State.SendMessagePayloadData sendMessageId = default!;
-            _entityStore.Update(session => {
+            global::StrawberryShake.IEntityStoreSnapshot snapshot = default !;
+            global::Foo.Bar.State.SendMessagePayloadData sendMessageId = default !;
+            _entityStore.Update(session =>
+            {
                 sendMessageId = DeserializeNonNullableISendMessageInput_SendMessage(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sendMessage"), entityIds);
                 snapshot = session.CurrentSnapshot;
             });
@@ -5214,7 +5518,7 @@ namespace Foo.Bar.State
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), DeserializeNonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), default!, default!, default!));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), DeserializeNonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), default !, default !, default !));
                 }
 
                 return entityId;
@@ -5250,7 +5554,7 @@ namespace Foo.Bar.State
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), DeserializeNonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), default!, default!, default!));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), DeserializeNonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), default !, default !, default !));
                 }
 
                 return entityId;
@@ -5282,7 +5586,6 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
-
         public SendMessageMutBuilder(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer idSerializer, global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ISendMessageMutResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -5316,7 +5619,7 @@ namespace Foo.Bar.State
             }
             catch (global::System.Exception ex)
             {
-                errors = new global::StrawberryShake.IClientError[] { new global::StrawberryShake.ClientError(ex.Message, exception: ex) };
+                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex)};
             }
 
             return new global::StrawberryShake.OperationResult<ISendMessageMutResult>(data?.Result, data?.Info, _resultDataFactory, errors);
@@ -5325,9 +5628,10 @@ namespace Foo.Bar.State
         private (ISendMessageMutResult, SendMessageMutResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
-            global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
-            global::Foo.Bar.State.SendMessagePayloadData sendMessageId = default!;
-            _entityStore.Update(session => {
+            global::StrawberryShake.IEntityStoreSnapshot snapshot = default !;
+            global::Foo.Bar.State.SendMessagePayloadData sendMessageId = default !;
+            _entityStore.Update(session =>
+            {
                 sendMessageId = DeserializeNonNullableISendMessageMut_SendMessage(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "sendMessage"), entityIds);
                 snapshot = session.CurrentSnapshot;
             });
@@ -5414,7 +5718,7 @@ namespace Foo.Bar.State
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), DeserializeNonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), default!, default!, default!));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), DeserializeNonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), default !, default !, default !));
                 }
 
                 return entityId;
@@ -5450,7 +5754,7 @@ namespace Foo.Bar.State
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), DeserializeNonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), default!, default!, default!));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), DeserializeNonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), default !, default !, default !));
                 }
 
                 return entityId;
@@ -5482,7 +5786,6 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
-
         public ReadMessagesBuilder(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer idSerializer, global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IReadMessagesResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -5516,7 +5819,7 @@ namespace Foo.Bar.State
             }
             catch (global::System.Exception ex)
             {
-                errors = new global::StrawberryShake.IClientError[] { new global::StrawberryShake.ClientError(ex.Message, exception: ex) };
+                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex)};
             }
 
             return new global::StrawberryShake.OperationResult<IReadMessagesResult>(data?.Result, data?.Info, _resultDataFactory, errors);
@@ -5525,9 +5828,10 @@ namespace Foo.Bar.State
         private (IReadMessagesResult, ReadMessagesResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
-            global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
-            global::StrawberryShake.EntityId messageId = default!;
-            _entityStore.Update(session => {
+            global::StrawberryShake.IEntityStoreSnapshot snapshot = default !;
+            global::StrawberryShake.EntityId messageId = default !;
+            _entityStore.Update(session =>
+            {
                 messageId = UpdateNonNullableIReadMessages_MessageEntity(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "message"), entityIds);
                 snapshot = session.CurrentSnapshot;
             });
@@ -5598,7 +5902,7 @@ namespace Foo.Bar.State
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), DeserializeNonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), default!, default!, default!));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), DeserializeNonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), default !, default !, default !));
                 }
 
                 return entityId;
@@ -5634,7 +5938,7 @@ namespace Foo.Bar.State
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), DeserializeNonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), default!, default!, default!));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.PersonEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), DeserializeNonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), default !, default !, default !));
                 }
 
                 return entityId;
@@ -5656,8 +5960,8 @@ namespace Foo.Bar.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     /// <summary>
-        /// A connection to a list of items.
-        /// </summary>
+    /// A connection to a list of items.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PersonConnectionData
     {
@@ -5667,18 +5971,24 @@ namespace Foo.Bar.State
             Nodes = nodes;
         }
 
-        public global::System.String __typename { get; }
+        public global::System.String __typename
+        {
+            get;
+        }
 
         /// <summary>
-                /// A flattened list of the nodes.
-                /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
+        /// A flattened list of the nodes.
+        /// </summary>
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     /// <summary>
-        /// A connection to a list of items.
-        /// </summary>
+    /// A connection to a list of items.
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class MessageConnectionData
     {
@@ -5688,18 +5998,24 @@ namespace Foo.Bar.State
             Nodes = nodes;
         }
 
-        public global::System.String __typename { get; }
+        public global::System.String __typename
+        {
+            get;
+        }
 
         /// <summary>
-                /// A flattened list of the nodes.
-                /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
+        /// A flattened list of the nodes.
+        /// </summary>
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     /// <summary>
-        /// Type SendMessagePayload
-        /// </summary>
+    /// Type SendMessagePayload
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SendMessagePayloadData
     {
@@ -5709,12 +6025,18 @@ namespace Foo.Bar.State
             Message = message;
         }
 
-        public global::System.String __typename { get; }
+        public global::System.String __typename
+        {
+            get;
+        }
 
         /// <summary>
-                /// Field message
-                /// </summary>
-        public global::StrawberryShake.EntityId? Message { get; }
+        /// Field message
+        /// </summary>
+        public global::StrawberryShake.EntityId? Message
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
@@ -5722,27 +6044,24 @@ namespace Foo.Bar.State
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
-        { Indented = false };
-
+        {Indented = false};
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;
             return __typename switch
             {
-                "Person" => ParsePersonEntityId(obj, __typename),
-                "Message" => ParseMessageEntityId(obj, __typename),
-                _ => throw new global::System.NotSupportedException()
-            };
+            "Person" => ParsePersonEntityId(obj, __typename), "Message" => ParseMessageEntityId(obj, __typename), _ => throw new global::System.NotSupportedException()}
+
+            ;
         }
 
         public global::System.String Format(global::StrawberryShake.EntityId entityId)
         {
             return entityId.Name switch
             {
-                "Person" => FormatPersonEntityId(entityId),
-                "Message" => FormatMessageEntityId(entityId),
-                _ => throw new global::System.NotSupportedException()
-            };
+            "Person" => FormatPersonEntityId(entityId), "Message" => FormatMessageEntityId(entityId), _ => throw new global::System.NotSupportedException()}
+
+            ;
         }
 
         private global::StrawberryShake.EntityId ParsePersonEntityId(global::System.Text.Json.JsonElement obj, global::System.String type)
@@ -5784,7 +6103,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClientStoreAccessor : global::StrawberryShake.StoreAccessor
     {
-        public FooClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories) : base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
+        public FooClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories): base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
         {
         }
     }
@@ -5798,7 +6117,8 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => {
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp =>
+            {
                 var serviceCollection = ConfigureClientDefault(sp, strategy);
                 return new ClientServiceProvider(global::Microsoft.Extensions.DependencyInjection.ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(serviceCollection));
             });
@@ -5818,11 +6138,13 @@ namespace Microsoft.Extensions.DependencyInjection
             var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(services, sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => {
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp =>
+            {
                 var sessionPool = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.WebSockets.ISessionPool>(parentServices);
                 return new global::StrawberryShake.Transport.WebSockets.WebSocketConnection(async ct => await sessionPool.CreateAsync("FooClient", ct));
             });
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => {
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp =>
+            {
                 var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
                 return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
             });
@@ -5902,7 +6224,6 @@ namespace Microsoft.Extensions.DependencyInjection
         private class ClientServiceProvider : System.IServiceProvider, System.IDisposable
         {
             private readonly System.IServiceProvider _provider;
-
             public ClientServiceProvider(System.IServiceProvider provider)
             {
                 _provider = provider;

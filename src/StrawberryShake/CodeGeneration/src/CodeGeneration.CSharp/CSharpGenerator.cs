@@ -10,8 +10,6 @@ using HotChocolate.Language;
 using HotChocolate.Validation;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.CSharp.Generators;
@@ -236,7 +234,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var generatorSettings = new CSharpSyntaxGeneratorSettings(
                 settings.NoStore,
                 settings.InputRecords);
-            using var workspace = new AdhocWorkspace();
 
             var results = new List<(Type Generator, CSharpSyntaxGeneratorResult Result)>();
 
@@ -287,7 +284,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             compilationUnit = compilationUnit.NormalizeWhitespace(elasticTrivia: true);
 
             code.AppendLine();
-            code.AppendLine(Formatter.Format(compilationUnit, workspace).ToString());
+            code.AppendLine(compilationUnit.ToFullString());
 
             documents.Add(new(
                 settings.ClientName,
@@ -303,7 +300,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var generatorSettings = new CSharpSyntaxGeneratorSettings(
                 settings.NoStore,
                 settings.InputRecords);
-            using var workspace = new AdhocWorkspace();
 
             var results = new List<(Type Generator, CSharpSyntaxGeneratorResult Result)>();
 
@@ -348,7 +344,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     code.AppendLine("#nullable enable");
 
                     code.AppendLine();
-                    code.AppendLine(Formatter.Format(compilationUnit, workspace).ToString());
+                    code.AppendLine(compilationUnit.ToFullString());
 
                     documents.Add(new(
                         result.FileName,
