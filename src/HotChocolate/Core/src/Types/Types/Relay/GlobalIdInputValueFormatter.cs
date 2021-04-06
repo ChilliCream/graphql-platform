@@ -73,15 +73,15 @@ namespace HotChocolate.Types.Relay
 
                 foreach (IdValue? idv in nullableIdEnumerable)
                 {
-                    if (idv is null)
+                    if (!idv.HasValue)
                     {
                         list.Add(null);
                         continue;
                     }
                     
-                    if (!_validateType || _typeName.Equals(idv.TypeName))
+                    if (!_validateType || _typeName.Equals(idv.Value.TypeName))
                     {
-                        list.Add(idv.Value);
+                        list.Add(idv.Value.Value);
                     }
                 }
 
@@ -116,7 +116,7 @@ namespace HotChocolate.Types.Relay
                             list.Add(null);
                             continue;
                         }
-                        
+
                         id = _idSerializer.Deserialize(sv);
 
                         if (!_validateType || _typeName.Equals(id.TypeName))

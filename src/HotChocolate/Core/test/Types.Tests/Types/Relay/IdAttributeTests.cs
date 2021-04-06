@@ -6,6 +6,8 @@ using HotChocolate.Execution;
 using Snapshooter.Xunit;
 using Xunit;
 
+#nullable enable
+
 namespace HotChocolate.Types.Relay
 {
     public class IdAttributeTests
@@ -17,7 +19,7 @@ namespace HotChocolate.Types.Relay
             var idSerializer = new IdSerializer();
             var intId = idSerializer.Serialize("Query", 1);
             var stringId = idSerializer.Serialize("Query", "abc");
-            var guidId = idSerializer.Serialize("Query", Guid.Empty);
+            var guidId = idSerializer.Serialize("Query", new Guid("26a2dc8f-4dab-408c-88c6-523a0a89a2b5"));
 
             // act
             IExecutionResult result =
@@ -29,13 +31,29 @@ namespace HotChocolate.Types.Relay
                     .ExecuteAsync(
                         QueryRequestBuilder.New()
                             .SetQuery(
-                                @"query foo ($intId: ID! $stringId: ID! $guidId: ID!) {
+                                @"query foo (
+                                    $intId: ID!
+                                    $nullIntId: ID = null
+                                    $stringId: ID!
+                                    $nullStringId: ID = null
+                                    $guidId: ID!
+                                    $nullGuidId: ID = null)
+                                {
                                     intId(id: $intId)
+                                    nullableIntId(id: $intId)
+                                    nullableIntIdGivenNull: nullableIntId(id: $nullIntId)
                                     intIdList(id: [$intId])
+                                    nullableIntIdList(id: [$intId, $nullIntId])
                                     stringId(id: $stringId)
+                                    nullableStringId(id: $stringId)
+                                    nullableStringIdGivenNull: nullableStringId(id: $nullStringId)
                                     stringIdList(id: [$stringId])
+                                    nullableStringIdList(id: [$stringId, $nullStringId])
                                     guidId(id: $guidId)
+                                    nullableGuidId(id: $guidId)
+                                    nullableGuidIdGivenNull: nullableGuidId(id: $nullGuidId)
                                     guidIdList(id: [$guidId $guidId])
+                                    nullableGuidIdList(id: [$guidId $nullGuidId $guidId])
                                 }")
                             .SetVariableValue("intId", intId)
                             .SetVariableValue("stringId", stringId)
@@ -66,9 +84,12 @@ namespace HotChocolate.Types.Relay
                     .ExecuteAsync(
                         QueryRequestBuilder.New()
                             .SetQuery(
-                                @"query foo ($intId: ID! $stringId: ID! $guidId: ID!) {
+                                @"query foo ($intId: ID! $nullIntId: ID = null $stringId: ID! $guidId: ID!) {
                                     intId(id: $intId)
                                     intIdList(id: [$intId])
+                                    nullableIntId(id: $intId)
+                                    nullableIntIdGivenNull: nullableIntId
+                                    nullableIntIdListGivenNull: nullableIntIdList(id: [$intId, $nullIntId])
                                     stringId(id: $stringId)
                                     stringIdList(id: [$stringId])
                                     guidId(id: $guidId)
@@ -254,13 +275,29 @@ namespace HotChocolate.Types.Relay
             public string IntId([ID] int id) => id.ToString();
             public string IntIdList([ID] int[] id) =>
                 string.Join(", ", id.Select(t => t.ToString()));
+
+            public string NullableIntId([ID] int? id) => id?.ToString() ?? "null";
+            public string NullableIntIdList([ID] int?[] id) =>
+                string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
+
             public string StringId([ID] string id) => id;
             public string StringIdList([ID] string[] id) =>
                 string.Join(", ", id.Select(t => t.ToString()));
+
+            public string NullableStringId([ID] string? id) => id ?? "null";
+            public string NullableStringIdList([ID] string?[] id) =>
+                string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
+
             public string GuidId([ID] Guid id) => id.ToString();
             public string GuidIdList([ID] IReadOnlyList<Guid> id) =>
                 string.Join(", ", id.Select(t => t.ToString()));
-            public IFooPayload Foo(FooInput input) => new FooPayload { SomeId = input.SomeId };
+
+            public string NullableGuidId([ID] Guid? id) => id?.ToString() ?? "null";
+            public string NullableGuidIdList([ID] IReadOnlyList<Guid?> id) =>
+                string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
+
+            public IFooPayload Foo(FooInput input) =>
+                new FooPayload(input.SomeId, input.SomeIds);
         }
 
         public class FooInput
@@ -278,14 +315,20 @@ namespace HotChocolate.Types.Relay
 
         public class FooPayload : IFooPayload
         {
-            [ID("Bar")] public string SomeId { get; set; }
+            [ID("Bar")] public string SomeId { get; }
 
-            [ID("Bar")] public IReadOnlyList<int> SomeIds { get; set; }
+            [ID("Bar")] public IReadOnlyList<int> SomeIds { get; }
+
+            public FooPayload(string someId, IReadOnlyList<int> someIds)
+            {
+                SomeId = someId;
+                SomeIds = someIds;
+            }
         }
 
         public interface IFooPayload
         {
-            [ID] string SomeId { get; set; }
+            [ID] string SomeId { get; }
         }
     }
 }
