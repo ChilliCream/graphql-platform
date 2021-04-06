@@ -9,13 +9,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     public class ResultTypeGenerator : CodeGenerator<ObjectTypeDescriptor>
     {
         protected override void Generate(ObjectTypeDescriptor descriptor,
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             fileName = descriptor.RuntimeType.Name;
             path = null;
+            ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -54,12 +56,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             }
 
             classBuilder.AddImplementsRange(descriptor.Implements.Select(x => x.Value));
-
-            CodeFileBuilder
-                .New()
-                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
-                .AddType(classBuilder)
-                .Build(writer);
+            classBuilder.Build(writer);
         }
     }
 }

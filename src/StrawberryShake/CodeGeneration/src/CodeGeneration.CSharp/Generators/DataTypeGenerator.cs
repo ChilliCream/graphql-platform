@@ -12,13 +12,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     public class DataTypeGenerator : ClassBaseGenerator<DataTypeDescriptor>
     {
         protected override void Generate(DataTypeDescriptor descriptor,
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             fileName = descriptor.RuntimeType.Name;
             path = State;
+            ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
             AbstractTypeBuilder typeBuilder;
             ConstructorBuilder? constructorBuilder = null;
@@ -99,11 +101,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             // implement interfaces
             typeBuilder.AddImplementsRange(descriptor.Implements.Select(CreateDataTypeName));
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
-                .AddType(typeBuilder)
-                .Build(writer);
+            typeBuilder.Build(writer);
         }
     }
 }

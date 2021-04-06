@@ -18,16 +18,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _entityIdValues = "entityIdValues";
 
         protected override bool CanHandle(EntityIdFactoryDescriptor descriptor,
-            CodeGeneratorSettings settings) => !settings.NoStore;
+            CSharpSyntaxGeneratorSettings settings) => !settings.NoStore;
 
         protected override void Generate(EntityIdFactoryDescriptor descriptor,
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             fileName = descriptor.Name;
             path = State;
+            ns = descriptor.Namespace;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -80,11 +82,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .AddCode(FormatSpecificEntityIdBody(entity));
             }
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(descriptor.Namespace)
-                .AddType(classBuilder)
-                .Build(writer);
+            classBuilder.Build(writer);
         }
 
         private ICode ParseEntityIdBody(EntityIdFactoryDescriptor descriptor)

@@ -12,7 +12,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     public partial class TypeMapperGenerator
     {
         private void AddComplexDataHandler(
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             MethodBuilder method,
@@ -89,7 +89,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         }
 
         private IfBuilder GenerateComplexDataInterfaceIfClause(
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             ObjectTypeDescriptor objectTypeDescriptor,
             string variableName)
         {

@@ -110,7 +110,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     ? new SingleFileDocumentWriter()
                     : new FileDocumentWriter();
 
-                foreach (SourceDocument document in
+                foreach (SourceDocument document in 
                     result.Documents.Where(t => t.Kind == SourceDocumentKind.CSharp))
                 {
                     writer.WriteDocument(context, document);
@@ -207,6 +207,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     RequestStrategy = context.Settings.RequestStrategy,
                     StrictSchemaValidation = context.Settings.StrictSchemaValidation,
                     NoStore = context.Settings.NoStore,
+                    InputRecords = context.Settings.Records?.Inputs ?? false,
+                    SingleCodeFile = context.Settings.UseSingleFile,
                     HashProvider = context.Settings.HashAlgorithm?.ToLowerInvariant() switch
                     {
                         "sha1" => new Sha1DocumentHashProvider(HashFormat.Hex),

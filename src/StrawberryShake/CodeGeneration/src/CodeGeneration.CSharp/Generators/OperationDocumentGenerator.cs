@@ -11,14 +11,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     public class OperationDocumentGenerator : ClassBaseGenerator<OperationDescriptor>
     {
         protected override void Generate(OperationDescriptor descriptor,
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             var documentName = CreateDocumentTypeName(descriptor.RuntimeType.Name);
             fileName = documentName;
             path = null;
+            ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
             string operationKind = descriptor switch
             {
@@ -98,11 +100,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .AddArgument("Body"))
                 .AddCode("#endif");
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
-                .AddType(classBuilder)
-                .Build(writer);
+            classBuilder.Build(writer);
         }
 
         private static string GetByteArray(byte[] bytes)

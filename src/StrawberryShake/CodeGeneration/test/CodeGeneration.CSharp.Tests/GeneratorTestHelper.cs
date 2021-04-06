@@ -88,7 +88,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     StrictSchemaValidation = settings.StrictValidation,
                     RequestStrategy = settings.RequestStrategy,
                     TransportProfiles = settings.Profiles,
-                    NoStore = settings.NoStore
+                    NoStore = settings.NoStore,
+                    InputRecords = settings.InputRecords
                 });
 
             Assert.False(
@@ -265,6 +266,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             public string? SnapshotFile { get; set; }
 
             public bool NoStore { get; set; }
+
+            public bool InputRecords { get; set; }
 
             public List<TransportProfile> Profiles { get; set; } = new();
 

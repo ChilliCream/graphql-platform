@@ -12,7 +12,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _child = "child";
 
         private void AddArrayHandler(
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             MethodBuilder methodBuilder,

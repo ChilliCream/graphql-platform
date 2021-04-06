@@ -14,7 +14,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         /// Adds all required deserializers of the given type descriptors properties
         /// </summary>
         protected void AddRequiredMapMethods(
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             string propAccess,
             ComplexTypeDescriptor typeDescriptor,
             ClassBuilder classBuilder,
@@ -98,7 +98,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         }
 
         private void AddMapMethod(
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             string propAccess,
             ITypeDescriptor typeReference,
             ClassBuilder classBuilder,
@@ -146,7 +146,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         }
 
         protected ICode BuildMapMethodCall(
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             string objectName,
             PropertyDescriptor property,
             bool addNullCheck = false)
@@ -183,7 +183,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         }
 
         private void AddMapMethodBody(
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             MethodBuilder methodBuilder,

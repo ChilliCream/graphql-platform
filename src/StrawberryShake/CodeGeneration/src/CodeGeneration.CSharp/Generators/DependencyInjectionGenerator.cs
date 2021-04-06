@@ -45,13 +45,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         };
 
         protected override void Generate(DependencyInjectionDescriptor descriptor,
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             fileName = CreateServiceCollectionExtensions(descriptor.Name);
             path = DependencyInjection;
+            ns = TypeNames.DependencyInjectionNamespace;
 
             ClassBuilder factory = ClassBuilder
                 .New(fileName)
@@ -90,15 +92,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             factory.AddClass(_clientServiceProvider);
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(TypeNames.DependencyInjectionNamespace)
-                .AddType(factory)
-                .Build(writer);
+            factory.Build(writer);
         }
 
         private static void GenerateClientForProfile(
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             ClassBuilder factory,
             DependencyInjectionDescriptor descriptor,
             TransportProfile profile)
@@ -194,7 +192,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         }
 
         private static ICode GenerateMethodBody(
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             DependencyInjectionDescriptor descriptor) =>
             CodeBlockBuilder
                 .New()
@@ -264,7 +262,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                     .AddArgument(_sp)))));
 
         private static ICode RegisterStoreAccessor(
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             StoreAccessorDescriptor storeAccessor)
         {
             if (settings.IsStoreDisabled())
@@ -369,7 +367,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         .AddGeneric(generic)));
 
         private static ICode GenerateInternalMethodBody(
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             DependencyInjectionDescriptor descriptor,
             TransportProfile profile)
         {
@@ -579,7 +577,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         }
 
         private static ICode RegisterOperation(
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             string connectionKind,
             string operationFullName,
             string operationInterfaceName,
@@ -816,7 +814,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                     .AddArgument(clientName.AsStringToken())
                                     .AddArgument(_ct))))));
 
-        private static ICode CreateBaseCode(CodeGeneratorSettings settings)
+        private static ICode CreateBaseCode(CSharpSyntaxGeneratorSettings settings)
         {
             if (settings.IsStoreDisabled())
             {

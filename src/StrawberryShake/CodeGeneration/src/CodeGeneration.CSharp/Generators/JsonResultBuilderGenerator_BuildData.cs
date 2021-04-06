@@ -16,7 +16,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _snapshot = "snapshot";
 
         private void AddBuildDataMethod(
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             InterfaceTypeDescriptor resultNamedType,
             ClassBuilder classBuilder)
         {
@@ -117,7 +117,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         }
 
         private MethodCallBuilder CreateResultInfoMethodCall(
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             InterfaceTypeDescriptor resultNamedType,
             string concreteType)
         {

@@ -12,6 +12,11 @@
     <ProjectReference Include="..\..\..\..\HotChocolate\Core\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Stitching\src\Stitching\HotChocolate.Stitching.csproj" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.8.0" />
+  </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Update="Properties\CodeGenerationResources.resx">

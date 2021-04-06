@@ -7,13 +7,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     public class EnumGenerator : CodeGenerator<EnumTypeDescriptor>
     {
         protected override void Generate(EnumTypeDescriptor descriptor,
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             fileName = descriptor.Name;
             path = null;
+            ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
             EnumBuilder enumBuilder = EnumBuilder
                 .New()
@@ -26,11 +28,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 enumBuilder.AddElement(element.RuntimeValue, element.Value, element.Documentation);
             }
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
-                .AddType(enumBuilder)
-                .Build(writer);
+            enumBuilder.Build(writer);
         }
     }
 }

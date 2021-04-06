@@ -1,9 +1,11 @@
 using System;
 using HotChocolate;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Extensions
 {
@@ -27,6 +29,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
                 ? CreateEntityType(descriptor.Name, descriptor.RuntimeType.NamespaceWithoutGlobal)
                 : new (descriptor.Name, descriptor.RuntimeType.NamespaceWithoutGlobal);
         }
+
+        public static TypeSyntax ToTypeSyntax(
+            this ITypeDescriptor typeReferenceDescriptor,
+            TypeReferenceBuilder? builder = null) =>
+            ParseTypeName(typeReferenceDescriptor.ToTypeReference(builder).ToString());
 
         public static TypeReferenceBuilder ToTypeReference(
             this ITypeDescriptor typeReferenceDescriptor,

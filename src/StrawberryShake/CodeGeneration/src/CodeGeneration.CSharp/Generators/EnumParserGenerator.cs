@@ -8,16 +8,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     public class EnumParserGenerator : CodeGenerator<EnumTypeDescriptor>
     {
         protected override void Generate(EnumTypeDescriptor descriptor,
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             const string serializedValue = nameof(serializedValue);
             const string runtimeValue = nameof(runtimeValue);
 
             fileName = CreateEnumParserName(descriptor.Name);
             path = Serialization;
+            ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New(fileName)
@@ -44,11 +46,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .SetPublic()
                 .SetType(String);
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
-                .AddType(classBuilder)
-                .Build(writer);
+            classBuilder.Build(writer);
         }
 
         private ICode CreateEnumParsingSwitch(

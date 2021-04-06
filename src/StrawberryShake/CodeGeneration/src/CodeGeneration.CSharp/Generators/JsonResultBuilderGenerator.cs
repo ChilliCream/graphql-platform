@@ -25,10 +25,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _response = "response";
 
         protected override void Generate(ResultBuilderDescriptor resultBuilderDescriptor,
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             InterfaceTypeDescriptor resultTypeDescriptor =
                 resultBuilderDescriptor.ResultNamedType as InterfaceTypeDescriptor
@@ -37,6 +38,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             fileName = resultBuilderDescriptor.RuntimeType.Name;
             path = State;
+            ns = resultBuilderDescriptor.RuntimeType.NamespaceWithoutGlobal;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -124,11 +126,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             var processed = new HashSet<string>();
             AddRequiredDeserializeMethods(resultTypeDescriptor, classBuilder, processed);
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(resultBuilderDescriptor.RuntimeType.NamespaceWithoutGlobal)
-                .AddType(classBuilder)
-                .Build(writer);
+            classBuilder.Build(writer);
         }
 
         /// <summary>
