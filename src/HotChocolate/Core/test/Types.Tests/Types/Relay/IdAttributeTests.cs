@@ -68,10 +68,9 @@ namespace HotChocolate.Types.Relay
         public async Task PolyId_On_Arguments()
         {
             // arrange
-            var idSerializer = new IdSerializer();
             var intId = 1;
             var stringId = "abc";
-            Guid guidId = Guid.Empty;
+            var guidId = new Guid("26a2dc8f-4dab-408c-88c6-523a0a89a2b5");
 
             // act
             IExecutionResult result =
@@ -84,16 +83,29 @@ namespace HotChocolate.Types.Relay
                     .ExecuteAsync(
                         QueryRequestBuilder.New()
                             .SetQuery(
-                                @"query foo ($intId: ID! $nullIntId: ID = null $stringId: ID! $guidId: ID!) {
+                                @"query foo (
+                                    $intId: ID!
+                                    $nullIntId: ID = null
+                                    $stringId: ID!
+                                    $nullStringId: ID = null
+                                    $guidId: ID!
+                                    $nullGuidId: ID = null)
+                                {
                                     intId(id: $intId)
-                                    intIdList(id: [$intId])
                                     nullableIntId(id: $intId)
-                                    nullableIntIdGivenNull: nullableIntId
-                                    nullableIntIdListGivenNull: nullableIntIdList(id: [$intId, $nullIntId])
+                                    nullableIntIdGivenNull: nullableIntId(id: $nullIntId)
+                                    intIdList(id: [$intId])
+                                    nullableIntIdList(id: [$intId, $nullIntId])
                                     stringId(id: $stringId)
+                                    nullableStringId(id: $stringId)
+                                    nullableStringIdGivenNull: nullableStringId(id: $nullStringId)
                                     stringIdList(id: [$stringId])
+                                    nullableStringIdList(id: [$stringId, $nullStringId])
                                     guidId(id: $guidId)
+                                    nullableGuidId(id: $guidId)
+                                    nullableGuidIdGivenNull: nullableGuidId(id: $nullGuidId)
                                     guidIdList(id: [$guidId $guidId])
+                                    nullableGuidIdList(id: [$guidId $nullGuidId $guidId])
                                 }")
                             .SetVariableValue("intId", intId)
                             .SetVariableValue("stringId", stringId)
@@ -101,13 +113,7 @@ namespace HotChocolate.Types.Relay
                             .Create());
 
             // assert
-            new
-            {
-                result = result.ToJson(),
-                intId,
-                stringId,
-                guidId
-            }.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
