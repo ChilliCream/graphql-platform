@@ -6,7 +6,7 @@ interface IFooPayload {
   someId: ID!
   someNullableId: ID
   someIds: [ID!]!
-  someNullableIds: [ID]!
+  someNullableIds: [ID]
   raw: String!
 }
 
@@ -14,7 +14,7 @@ type FooPayload implements IFooPayload {
   someId: ID!
   someIds: [ID!]!
   someNullableId: ID
-  someNullableIds: [ID]!
+  someNullableIds: [ID]
   raw: String!
 }
 
