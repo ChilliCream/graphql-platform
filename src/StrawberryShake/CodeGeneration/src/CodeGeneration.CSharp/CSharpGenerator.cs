@@ -269,10 +269,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                 foreach ((Type generator, CSharpSyntaxGeneratorResult result) in group)
                 {
-                    TypeDeclarationSyntax typeDeclaration = result.TypeDeclaration;
+                    BaseTypeDeclarationSyntax typeDeclaration = result.TypeDeclaration;
 #if DEBUG
-                    typeDeclaration = typeDeclaration.WithLeadingTrivia(
-                        Comment("// " + generator.FullName));
+                    SyntaxTriviaList trivia = typeDeclaration
+                        .GetLeadingTrivia()
+                        .Insert(0, Comment("// " + generator.FullName));
+
+                    typeDeclaration = typeDeclaration.WithLeadingTrivia(trivia);
 #endif
                     namespaceDeclaration = namespaceDeclaration.AddMembers(typeDeclaration);
                 }
@@ -320,15 +323,20 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 foreach ((Type generator, CSharpSyntaxGeneratorResult result) in group)
                 {
-                    TypeDeclarationSyntax typeDeclaration = result.TypeDeclaration;
+                    BaseTypeDeclarationSyntax typeDeclaration = result.TypeDeclaration;
 #if DEBUG
-                    typeDeclaration = typeDeclaration.WithLeadingTrivia(
-                        Comment("// " + generator.FullName));
+                    SyntaxTriviaList trivia = typeDeclaration
+                        .GetLeadingTrivia()
+                        .Insert(0, Comment("// " + generator.FullName));
+
+                    typeDeclaration = typeDeclaration.WithLeadingTrivia(trivia);
 #endif
                     CompilationUnitSyntax compilationUnit =
                         CompilationUnit().AddMembers(
                             NamespaceDeclaration(IdentifierName(group.Key)).AddMembers(
                                 typeDeclaration));
+
+                    compilationUnit = compilationUnit.NormalizeWhitespace(elasticTrivia: true);
 
                     var code = new StringBuilder();
 

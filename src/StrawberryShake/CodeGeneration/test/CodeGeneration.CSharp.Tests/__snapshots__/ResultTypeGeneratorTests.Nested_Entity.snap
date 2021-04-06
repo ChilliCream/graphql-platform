@@ -417,6 +417,51 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
+    /// <summary>
+        /// Represents the operation service of the DecodeVIN GraphQL operation
+        /// <code>
+        /// query DecodeVIN {
+        ///   decodeVIN {
+        ///     __typename
+        ///     ... DecodeVINModel
+        ///   }
+        /// }
+        /// 
+        /// fragment DecodeVINModel on DecodeVIN {
+        ///   isValid
+        ///   vehicleMake {
+        ///     __typename
+        ///     ... VehicleMakeModel
+        ///     ... on VehicleMake {
+        ///       id
+        ///     }
+        ///   }
+        ///   vehicleModel {
+        ///     __typename
+        ///     ... VehicleModelModel
+        ///     ... on VehicleModel {
+        ///       id
+        ///     }
+        ///   }
+        /// }
+        /// 
+        /// fragment VehicleMakeModel on VehicleMake {
+        ///   id
+        ///   make
+        ///   makeCode
+        ///   isDisabled
+        /// }
+        /// 
+        /// fragment VehicleModelModel on VehicleModel {
+        ///   id
+        ///   model
+        ///   modelCode
+        ///   vehicleMakeId
+        ///   isDisabled
+        ///   modelType
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class DecodeVINQueryDocument : global::StrawberryShake.IDocument
     {
@@ -443,6 +488,51 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
+    /// <summary>
+        /// Represents the operation service of the DecodeVIN GraphQL operation
+        /// <code>
+        /// query DecodeVIN {
+        ///   decodeVIN {
+        ///     __typename
+        ///     ... DecodeVINModel
+        ///   }
+        /// }
+        /// 
+        /// fragment DecodeVINModel on DecodeVIN {
+        ///   isValid
+        ///   vehicleMake {
+        ///     __typename
+        ///     ... VehicleMakeModel
+        ///     ... on VehicleMake {
+        ///       id
+        ///     }
+        ///   }
+        ///   vehicleModel {
+        ///     __typename
+        ///     ... VehicleModelModel
+        ///     ... on VehicleModel {
+        ///       id
+        ///     }
+        ///   }
+        /// }
+        /// 
+        /// fragment VehicleMakeModel on VehicleMake {
+        ///   id
+        ///   make
+        ///   makeCode
+        ///   isDisabled
+        /// }
+        /// 
+        /// fragment VehicleModelModel on VehicleModel {
+        ///   id
+        ///   model
+        ///   modelCode
+        ///   vehicleMakeId
+        ///   isDisabled
+        ///   modelType
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class DecodeVINQuery : global::Foo.Bar.IDecodeVINQuery
     {
@@ -484,6 +574,51 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+    /// <summary>
+        /// Represents the operation service of the DecodeVIN GraphQL operation
+        /// <code>
+        /// query DecodeVIN {
+        ///   decodeVIN {
+        ///     __typename
+        ///     ... DecodeVINModel
+        ///   }
+        /// }
+        /// 
+        /// fragment DecodeVINModel on DecodeVIN {
+        ///   isValid
+        ///   vehicleMake {
+        ///     __typename
+        ///     ... VehicleMakeModel
+        ///     ... on VehicleMake {
+        ///       id
+        ///     }
+        ///   }
+        ///   vehicleModel {
+        ///     __typename
+        ///     ... VehicleModelModel
+        ///     ... on VehicleModel {
+        ///       id
+        ///     }
+        ///   }
+        /// }
+        /// 
+        /// fragment VehicleMakeModel on VehicleMake {
+        ///   id
+        ///   make
+        ///   makeCode
+        ///   isDisabled
+        /// }
+        /// 
+        /// fragment VehicleModelModel on VehicleModel {
+        ///   id
+        ///   model
+        ///   modelCode
+        ///   vehicleMakeId
+        ///   isDisabled
+        ///   modelType
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IDecodeVINQuery : global::StrawberryShake.IOperationRequestFactory
     {
@@ -492,6 +627,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
+    /// <summary>
+        /// Represents the FooClient GraphQL client
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient : global::Foo.Bar.IFooClient
     {
@@ -508,6 +646,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
+    /// <summary>
+        /// Represents the FooClient GraphQL client
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IFooClient
     {

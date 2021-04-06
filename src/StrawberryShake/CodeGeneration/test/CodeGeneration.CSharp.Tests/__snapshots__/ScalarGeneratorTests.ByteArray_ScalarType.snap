@@ -86,6 +86,14 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
+    /// <summary>
+        /// Represents the operation service of the GetAttachment GraphQL operation
+        /// <code>
+        /// query GetAttachment {
+        ///   byteArray
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetAttachmentQueryDocument : global::StrawberryShake.IDocument
     {
@@ -112,6 +120,14 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
+    /// <summary>
+        /// Represents the operation service of the GetAttachment GraphQL operation
+        /// <code>
+        /// query GetAttachment {
+        ///   byteArray
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetAttachmentQuery : global::Foo.Bar.IGetAttachmentQuery
     {
@@ -153,6 +169,14 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+    /// <summary>
+        /// Represents the operation service of the GetAttachment GraphQL operation
+        /// <code>
+        /// query GetAttachment {
+        ///   byteArray
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetAttachmentQuery : global::StrawberryShake.IOperationRequestFactory
     {
@@ -161,6 +185,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
+    /// <summary>
+        /// Represents the FooClient GraphQL client
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient : global::Foo.Bar.IFooClient
     {
@@ -177,6 +204,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
+    /// <summary>
+        /// Represents the FooClient GraphQL client
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IFooClient
     {

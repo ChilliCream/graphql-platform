@@ -47,7 +47,7 @@ namespace StrawberryShake.CodeGeneration
                 settings,
                 codeWriter,
                 out string fileName,
-                out string path,
+                out string? path,
                 out string ns);
 
             codeWriter.Flush();
@@ -59,7 +59,7 @@ namespace StrawberryShake.CodeGeneration
                 fileName,
                 path,
                 ns,
-                tree.GetRoot().DescendantNodes().OfType<TypeDeclarationSyntax>().First());
+                tree.GetRoot().DescendantNodes().OfType<BaseTypeDeclarationSyntax>().First());
         }
 
         protected abstract void Generate(

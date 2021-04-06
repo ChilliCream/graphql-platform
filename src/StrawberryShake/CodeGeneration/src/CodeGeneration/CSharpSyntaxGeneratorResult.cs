@@ -8,7 +8,7 @@ namespace StrawberryShake.CodeGeneration
             string fileName,
             string? path,
             string ns,
-            TypeDeclarationSyntax typeDeclaration)
+            BaseTypeDeclarationSyntax typeDeclaration)
         {
             FileName = fileName;
             Path = path;
@@ -22,6 +22,6 @@ namespace StrawberryShake.CodeGeneration
 
         public string Namespace { get; }
 
-        public TypeDeclarationSyntax TypeDeclaration { get; }
+        public BaseTypeDeclarationSyntax TypeDeclaration { get; }
     }
 }

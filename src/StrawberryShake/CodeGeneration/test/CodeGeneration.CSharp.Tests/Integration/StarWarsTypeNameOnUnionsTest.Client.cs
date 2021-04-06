@@ -401,6 +401,25 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUn
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
+    /// <summary>
+        /// Represents the operation service of the SearchHero GraphQL operation
+        /// <code>
+        /// query SearchHero {
+        ///   search(text: "l") {
+        ///     __typename
+        ///     ... on Starship {
+        ///       id
+        ///     }
+        ///     ... on Human {
+        ///       id
+        ///     }
+        ///     ... on Droid {
+        ///       id
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchHeroQueryDocument : global::StrawberryShake.IDocument
     {
@@ -427,6 +446,25 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUn
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
+    /// <summary>
+        /// Represents the operation service of the SearchHero GraphQL operation
+        /// <code>
+        /// query SearchHero {
+        ///   search(text: "l") {
+        ///     __typename
+        ///     ... on Starship {
+        ///       id
+        ///     }
+        ///     ... on Human {
+        ///       id
+        ///     }
+        ///     ... on Droid {
+        ///       id
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchHeroQuery : global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUnions.ISearchHeroQuery
     {
@@ -468,6 +506,25 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUn
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+    /// <summary>
+        /// Represents the operation service of the SearchHero GraphQL operation
+        /// <code>
+        /// query SearchHero {
+        ///   search(text: "l") {
+        ///     __typename
+        ///     ... on Starship {
+        ///       id
+        ///     }
+        ///     ... on Human {
+        ///       id
+        ///     }
+        ///     ... on Droid {
+        ///       id
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISearchHeroQuery : global::StrawberryShake.IOperationRequestFactory
     {
@@ -476,6 +533,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUn
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
+    /// <summary>
+        /// Represents the StarWarsTypeNameOnUnionsClient GraphQL client
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class StarWarsTypeNameOnUnionsClient : global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUnions.IStarWarsTypeNameOnUnionsClient
     {
@@ -492,6 +552,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUn
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
+    /// <summary>
+        /// Represents the StarWarsTypeNameOnUnionsClient GraphQL client
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IStarWarsTypeNameOnUnionsClient
     {

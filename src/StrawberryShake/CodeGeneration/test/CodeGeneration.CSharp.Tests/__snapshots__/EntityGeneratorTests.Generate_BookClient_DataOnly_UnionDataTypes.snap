@@ -234,6 +234,22 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
+    /// <summary>
+        /// Represents the operation service of the SearchSomething GraphQL operation
+        /// <code>
+        /// query SearchSomething {
+        ///   search {
+        ///     __typename
+        ///     ... on Author {
+        ///       name
+        ///     }
+        ///     ... on Book {
+        ///       title
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingQueryDocument : global::StrawberryShake.IDocument
     {
@@ -260,6 +276,22 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
+    /// <summary>
+        /// Represents the operation service of the SearchSomething GraphQL operation
+        /// <code>
+        /// query SearchSomething {
+        ///   search {
+        ///     __typename
+        ///     ... on Author {
+        ///       name
+        ///     }
+        ///     ... on Book {
+        ///       title
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SearchSomethingQuery : global::Foo.Bar.ISearchSomethingQuery
     {
@@ -301,6 +333,22 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+    /// <summary>
+        /// Represents the operation service of the SearchSomething GraphQL operation
+        /// <code>
+        /// query SearchSomething {
+        ///   search {
+        ///     __typename
+        ///     ... on Author {
+        ///       name
+        ///     }
+        ///     ... on Book {
+        ///       title
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISearchSomethingQuery : global::StrawberryShake.IOperationRequestFactory
     {
@@ -309,6 +357,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
+    /// <summary>
+        /// Represents the FooClient GraphQL client
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient : global::Foo.Bar.IFooClient
     {
@@ -325,6 +376,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
+    /// <summary>
+        /// Represents the FooClient GraphQL client
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IFooClient
     {

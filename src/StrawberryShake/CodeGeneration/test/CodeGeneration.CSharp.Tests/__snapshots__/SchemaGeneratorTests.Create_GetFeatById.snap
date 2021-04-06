@@ -347,6 +347,32 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
+    /// <summary>
+        /// Represents the operation service of the GetFeatById GraphQL operation
+        /// <code>
+        /// query GetFeatById($id: Uuid!) {
+        ///   feats(where: { id: { eq: $id } }) {
+        ///     __typename
+        ///     items {
+        ///       __typename
+        ///       id
+        ///       name
+        ///       level
+        ///       details {
+        ///         __typename
+        ///         text
+        ///         ... on FeatDetailsBlock {
+        ///           id
+        ///         }
+        ///       }
+        ///       ... on Feat {
+        ///         id
+        ///       }
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetFeatByIdQueryDocument : global::StrawberryShake.IDocument
     {
@@ -373,6 +399,32 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
+    /// <summary>
+        /// Represents the operation service of the GetFeatById GraphQL operation
+        /// <code>
+        /// query GetFeatById($id: Uuid!) {
+        ///   feats(where: { id: { eq: $id } }) {
+        ///     __typename
+        ///     items {
+        ///       __typename
+        ///       id
+        ///       name
+        ///       level
+        ///       details {
+        ///         __typename
+        ///         text
+        ///         ... on FeatDetailsBlock {
+        ///           id
+        ///         }
+        ///       }
+        ///       ... on Feat {
+        ///         id
+        ///       }
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetFeatByIdQuery : global::Foo.Bar.IGetFeatByIdQuery
     {
@@ -423,6 +475,32 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+    /// <summary>
+        /// Represents the operation service of the GetFeatById GraphQL operation
+        /// <code>
+        /// query GetFeatById($id: Uuid!) {
+        ///   feats(where: { id: { eq: $id } }) {
+        ///     __typename
+        ///     items {
+        ///       __typename
+        ///       id
+        ///       name
+        ///       level
+        ///       details {
+        ///         __typename
+        ///         text
+        ///         ... on FeatDetailsBlock {
+        ///           id
+        ///         }
+        ///       }
+        ///       ... on Feat {
+        ///         id
+        ///       }
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetFeatByIdQuery : global::StrawberryShake.IOperationRequestFactory
     {
@@ -431,6 +509,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
+    /// <summary>
+        /// Represents the FooClient GraphQL client
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient : global::Foo.Bar.IFooClient
     {
@@ -447,6 +528,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
+    /// <summary>
+        /// Represents the FooClient GraphQL client
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IFooClient
     {

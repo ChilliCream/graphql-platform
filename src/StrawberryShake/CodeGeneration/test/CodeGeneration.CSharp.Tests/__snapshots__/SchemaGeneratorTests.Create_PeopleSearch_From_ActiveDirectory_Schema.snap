@@ -166,6 +166,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    /// <summary>
+        /// Information about the offset pagination.
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PeopleSearch_People_PageInfo_CollectionSegmentInfo : global::System.IEquatable<PeopleSearch_People_PageInfo_CollectionSegmentInfo>, IPeopleSearch_People_PageInfo_CollectionSegmentInfo
     {
@@ -544,6 +547,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+        /// Information about the offset pagination.
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IPeopleSearch_People_PageInfo
     {
@@ -559,6 +565,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+        /// Information about the offset pagination.
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IPeopleSearch_People_PageInfo_CollectionSegmentInfo : IPeopleSearch_People_PageInfo
     {
@@ -660,6 +669,55 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
+    /// <summary>
+        /// Represents the operation service of the PeopleSearch GraphQL operation
+        /// <code>
+        /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
+        ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
+        ///     __typename
+        ///     totalCount
+        ///     pageInfo {
+        ///       __typename
+        ///       hasNextPage
+        ///       hasPreviousPage
+        ///     }
+        ///     items {
+        ///       __typename
+        ///       ... PeopleSearchResult
+        ///       ... on Person {
+        ///         id
+        ///       }
+        ///     }
+        ///   }
+        /// }
+        /// 
+        /// fragment PeopleSearchResult on Person {
+        ///   id
+        ///   key
+        ///   displayName
+        ///   isActive
+        ///   department {
+        ///     __typename
+        ///     id
+        ///     name
+        ///     ... on Department {
+        ///       id
+        ///     }
+        ///   }
+        ///   image
+        ///   title
+        ///   manager {
+        ///     __typename
+        ///     id
+        ///     key
+        ///     displayName
+        ///     ... on Person {
+        ///       id
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PeopleSearchQueryDocument : global::StrawberryShake.IDocument
     {
@@ -686,6 +744,55 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
+    /// <summary>
+        /// Represents the operation service of the PeopleSearch GraphQL operation
+        /// <code>
+        /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
+        ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
+        ///     __typename
+        ///     totalCount
+        ///     pageInfo {
+        ///       __typename
+        ///       hasNextPage
+        ///       hasPreviousPage
+        ///     }
+        ///     items {
+        ///       __typename
+        ///       ... PeopleSearchResult
+        ///       ... on Person {
+        ///         id
+        ///       }
+        ///     }
+        ///   }
+        /// }
+        /// 
+        /// fragment PeopleSearchResult on Person {
+        ///   id
+        ///   key
+        ///   displayName
+        ///   isActive
+        ///   department {
+        ///     __typename
+        ///     id
+        ///     name
+        ///     ... on Department {
+        ///       id
+        ///     }
+        ///   }
+        ///   image
+        ///   title
+        ///   manager {
+        ///     __typename
+        ///     id
+        ///     key
+        ///     displayName
+        ///     ... on Person {
+        ///       id
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class PeopleSearchQuery : global::Foo.Bar.IPeopleSearchQuery
     {
@@ -784,6 +891,55 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+    /// <summary>
+        /// Represents the operation service of the PeopleSearch GraphQL operation
+        /// <code>
+        /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
+        ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
+        ///     __typename
+        ///     totalCount
+        ///     pageInfo {
+        ///       __typename
+        ///       hasNextPage
+        ///       hasPreviousPage
+        ///     }
+        ///     items {
+        ///       __typename
+        ///       ... PeopleSearchResult
+        ///       ... on Person {
+        ///         id
+        ///       }
+        ///     }
+        ///   }
+        /// }
+        /// 
+        /// fragment PeopleSearchResult on Person {
+        ///   id
+        ///   key
+        ///   displayName
+        ///   isActive
+        ///   department {
+        ///     __typename
+        ///     id
+        ///     name
+        ///     ... on Department {
+        ///       id
+        ///     }
+        ///   }
+        ///   image
+        ///   title
+        ///   manager {
+        ///     __typename
+        ///     id
+        ///     key
+        ///     displayName
+        ///     ... on Person {
+        ///       id
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IPeopleSearchQuery : global::StrawberryShake.IOperationRequestFactory
     {
@@ -792,6 +948,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
+    /// <summary>
+        /// Represents the FooClient GraphQL client
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient : global::Foo.Bar.IFooClient
     {
@@ -808,6 +967,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
+    /// <summary>
+        /// Represents the FooClient GraphQL client
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IFooClient
     {
@@ -1428,6 +1590,9 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    /// <summary>
+        /// Information about the offset pagination.
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CollectionSegmentInfoData
     {

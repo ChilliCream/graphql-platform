@@ -305,6 +305,17 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
+    /// <summary>
+        /// Represents the operation service of the CreateReview GraphQL operation
+        /// <code>
+        /// mutation CreateReview($stars: Int!) {
+        ///   createReview(episode: EMPIRE, review: { stars: $stars, commentary: "good" }) {
+        ///     __typename
+        ///     stars
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMutationDocument : global::StrawberryShake.IDocument
     {
@@ -331,6 +342,17 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
+    /// <summary>
+        /// Represents the operation service of the CreateReview GraphQL operation
+        /// <code>
+        /// mutation CreateReview($stars: Int!) {
+        ///   createReview(episode: EMPIRE, review: { stars: $stars, commentary: "good" }) {
+        ///     __typename
+        ///     stars
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMutation : global::Foo.Bar.ICreateReviewMutation
     {
@@ -381,6 +403,17 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+    /// <summary>
+        /// Represents the operation service of the CreateReview GraphQL operation
+        /// <code>
+        /// mutation CreateReview($stars: Int!) {
+        ///   createReview(episode: EMPIRE, review: { stars: $stars, commentary: "good" }) {
+        ///     __typename
+        ///     stars
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ICreateReviewMutation : global::StrawberryShake.IOperationRequestFactory
     {
@@ -389,6 +422,17 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
+    /// <summary>
+        /// Represents the operation service of the OnReview GraphQL operation
+        /// <code>
+        /// subscription OnReview {
+        ///   onReview(episode: EMPIRE) {
+        ///     __typename
+        ///     stars
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReviewSubscriptionDocument : global::StrawberryShake.IDocument
     {
@@ -415,6 +459,17 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
+    /// <summary>
+        /// Represents the operation service of the OnReview GraphQL operation
+        /// <code>
+        /// subscription OnReview {
+        ///   onReview(episode: EMPIRE) {
+        ///     __typename
+        ///     stars
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReviewSubscription : global::Foo.Bar.IOnReviewSubscription
     {
@@ -450,6 +505,17 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+    /// <summary>
+        /// Represents the operation service of the OnReview GraphQL operation
+        /// <code>
+        /// subscription OnReview {
+        ///   onReview(episode: EMPIRE) {
+        ///     __typename
+        ///     stars
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IOnReviewSubscription : global::StrawberryShake.IOperationRequestFactory
     {
@@ -457,6 +523,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
+    /// <summary>
+        /// Represents the FooClient GraphQL client
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient : global::Foo.Bar.IFooClient
     {
@@ -477,6 +546,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
+    /// <summary>
+        /// Represents the FooClient GraphQL client
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IFooClient
     {

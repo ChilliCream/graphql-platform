@@ -317,6 +317,23 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
+    /// <summary>
+        /// Represents the operation service of the GetHero GraphQL operation
+        /// <code>
+        /// query GetHero {
+        ///   hero(episode: NEW_HOPE) {
+        ///     __typename
+        ///     name
+        ///     ... on Droid {
+        ///       id
+        ///     }
+        ///     ... on Human {
+        ///       id
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroQueryDocument : global::StrawberryShake.IDocument
     {
@@ -343,6 +360,23 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
+    /// <summary>
+        /// Represents the operation service of the GetHero GraphQL operation
+        /// <code>
+        /// query GetHero {
+        ///   hero(episode: NEW_HOPE) {
+        ///     __typename
+        ///     name
+        ///     ... on Droid {
+        ///       id
+        ///     }
+        ///     ... on Human {
+        ///       id
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroQuery : global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.IGetHeroQuery
     {
@@ -384,6 +418,23 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+    /// <summary>
+        /// Represents the operation service of the GetHero GraphQL operation
+        /// <code>
+        /// query GetHero {
+        ///   hero(episode: NEW_HOPE) {
+        ///     __typename
+        ///     name
+        ///     ... on Droid {
+        ///       id
+        ///     }
+        ///     ... on Human {
+        ///       id
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetHeroQuery : global::StrawberryShake.IOperationRequestFactory
     {
@@ -392,6 +443,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
+    /// <summary>
+        /// Represents the StarWarsGetHeroClient GraphQL client
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class StarWarsGetHeroClient : global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.IStarWarsGetHeroClient
     {
@@ -408,6 +462,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
+    /// <summary>
+        /// Represents the StarWarsGetHeroClient GraphQL client
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IStarWarsGetHeroClient
     {

@@ -19,7 +19,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         .AddModifiers(
                             Token(SyntaxKind.PublicKeyword),
                             Token(SyntaxKind.PartialKeyword))
-                        .AddSummary(descriptor.Documentation);
+                        .AddSummary(descriptor.Documentation)
+                        .WithOpenBraceToken(Token(SyntaxKind.OpenBraceToken));
 
                 foreach (var prop in descriptor.Properties)
                 {
@@ -31,6 +32,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                             .WithSuppressNullableWarningExpression());
                 }
 
+                recordDeclarationSyntax = recordDeclarationSyntax.WithCloseBraceToken(
+                    Token(SyntaxKind.CloseBraceToken));
+
                 return new(
                     descriptor.Name,
                     null,
@@ -40,10 +44,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             ClassDeclarationSyntax classDeclaration =
                 ClassDeclaration(descriptor.Name.Value)
-                    .AddSummary(descriptor.Documentation)
                     .AddModifiers(
                         Token(SyntaxKind.PublicKeyword),
-                        Token(SyntaxKind.PartialKeyword));
+                        Token(SyntaxKind.PartialKeyword))
+                    .AddSummary(descriptor.Documentation);
 
             foreach (var prop in descriptor.Properties)
             {

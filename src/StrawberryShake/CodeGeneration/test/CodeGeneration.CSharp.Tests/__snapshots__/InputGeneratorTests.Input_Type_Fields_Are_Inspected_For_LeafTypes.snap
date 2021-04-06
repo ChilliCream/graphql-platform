@@ -141,6 +141,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    /// <summary>
+        /// A human character in the Star Wars universe.
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ChangeHomePlanet_ChangeHomePlanet_Human_Human : global::System.IEquatable<ChangeHomePlanet_ChangeHomePlanet_Human_Human>, IChangeHomePlanet_ChangeHomePlanet_Human_Human
     {
@@ -230,6 +233,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+        /// A human character in the Star Wars universe.
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IChangeHomePlanet_ChangeHomePlanet_Human
     {
@@ -240,6 +246,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+        /// A human character in the Star Wars universe.
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IChangeHomePlanet_ChangeHomePlanet_Human_Human : IChangeHomePlanet_ChangeHomePlanet_Human
     {
@@ -299,6 +308,23 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
+    /// <summary>
+        /// Represents the operation service of the ChangeHomePlanet GraphQL operation
+        /// <code>
+        /// mutation ChangeHomePlanet($input: ChangeHomePlanetInput!) {
+        ///   changeHomePlanet(input: $input) {
+        ///     __typename
+        ///     human {
+        ///       __typename
+        ///       homePlanet
+        ///       ... on Human {
+        ///         id
+        ///       }
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ChangeHomePlanetMutationDocument : global::StrawberryShake.IDocument
     {
@@ -325,6 +351,23 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
+    /// <summary>
+        /// Represents the operation service of the ChangeHomePlanet GraphQL operation
+        /// <code>
+        /// mutation ChangeHomePlanet($input: ChangeHomePlanetInput!) {
+        ///   changeHomePlanet(input: $input) {
+        ///     __typename
+        ///     human {
+        ///       __typename
+        ///       homePlanet
+        ///       ... on Human {
+        ///         id
+        ///       }
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class ChangeHomePlanetMutation : global::Foo.Bar.IChangeHomePlanetMutation
     {
@@ -380,6 +423,23 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+    /// <summary>
+        /// Represents the operation service of the ChangeHomePlanet GraphQL operation
+        /// <code>
+        /// mutation ChangeHomePlanet($input: ChangeHomePlanetInput!) {
+        ///   changeHomePlanet(input: $input) {
+        ///     __typename
+        ///     human {
+        ///       __typename
+        ///       homePlanet
+        ///       ... on Human {
+        ///         id
+        ///       }
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IChangeHomePlanetMutation : global::StrawberryShake.IOperationRequestFactory
     {
@@ -388,6 +448,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
+    /// <summary>
+        /// Represents the FooClient GraphQL client
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient : global::Foo.Bar.IFooClient
     {
@@ -404,6 +467,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
+    /// <summary>
+        /// Represents the FooClient GraphQL client
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IFooClient
     {
@@ -414,6 +480,9 @@ namespace Foo.Bar
 namespace Foo.Bar.State
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
+    /// <summary>
+        /// A human character in the Star Wars universe.
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class HumanEntity
     {

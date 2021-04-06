@@ -83,6 +83,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    /// <summary>
+        /// Baz Type
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetFoo_Foo_Baz : global::System.IEquatable<GetFoo_Foo_Baz>, IGetFoo_Foo_Baz
     {
@@ -204,6 +207,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    /// <summary>
+        /// Baz Type
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetFoo_Foo_Nested_Baz : global::System.IEquatable<GetFoo_Foo_Nested_Baz>, IGetFoo_Foo_Nested_Baz
     {
@@ -273,6 +279,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    /// <summary>
+        /// Baz Type
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetFoo_Foo_NestedList_Baz : global::System.IEquatable<GetFoo_Foo_NestedList_Baz>, IGetFoo_Foo_NestedList_Baz
     {
@@ -342,6 +351,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    /// <summary>
+        /// Baz Type
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetFoo_Foo_NestedMatrix_Baz : global::System.IEquatable<GetFoo_Foo_NestedMatrix_Baz>, IGetFoo_Foo_NestedMatrix_Baz
     {
@@ -418,6 +430,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+        /// Baz Type
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetFoo_Foo
     {
@@ -448,12 +463,18 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+        /// Baz Type
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetFoo_Foo_Baz : IGetFoo_Foo
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+        /// Baz Type
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetFoo_Foo_Nested
     {
@@ -464,12 +485,18 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+        /// Baz Type
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetFoo_Foo_Nested_Baz : IGetFoo_Foo_Nested
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+        /// Baz Type
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetFoo_Foo_NestedList
     {
@@ -480,12 +507,18 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+        /// Baz Type
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetFoo_Foo_NestedList_Baz : IGetFoo_Foo_NestedList
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+        /// Baz Type
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetFoo_Foo_NestedMatrix
     {
@@ -496,12 +529,39 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+        /// Baz Type
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetFoo_Foo_NestedMatrix_Baz : IGetFoo_Foo_NestedMatrix
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
+    /// <summary>
+        /// Represents the operation service of the GetFoo GraphQL operation
+        /// <code>
+        /// query GetFoo {
+        ///   foo {
+        ///     __typename
+        ///     str
+        ///     strNonNullable
+        ///     nested {
+        ///       __typename
+        ///       str
+        ///     }
+        ///     nestedList {
+        ///       __typename
+        ///       str
+        ///     }
+        ///     nestedMatrix {
+        ///       __typename
+        ///       str
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetFooQueryDocument : global::StrawberryShake.IDocument
     {
@@ -528,6 +588,30 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
+    /// <summary>
+        /// Represents the operation service of the GetFoo GraphQL operation
+        /// <code>
+        /// query GetFoo {
+        ///   foo {
+        ///     __typename
+        ///     str
+        ///     strNonNullable
+        ///     nested {
+        ///       __typename
+        ///       str
+        ///     }
+        ///     nestedList {
+        ///       __typename
+        ///       str
+        ///     }
+        ///     nestedMatrix {
+        ///       __typename
+        ///       str
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetFooQuery : global::Foo.Bar.IGetFooQuery
     {
@@ -569,6 +653,30 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+    /// <summary>
+        /// Represents the operation service of the GetFoo GraphQL operation
+        /// <code>
+        /// query GetFoo {
+        ///   foo {
+        ///     __typename
+        ///     str
+        ///     strNonNullable
+        ///     nested {
+        ///       __typename
+        ///       str
+        ///     }
+        ///     nestedList {
+        ///       __typename
+        ///       str
+        ///     }
+        ///     nestedMatrix {
+        ///       __typename
+        ///       str
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetFooQuery : global::StrawberryShake.IOperationRequestFactory
     {
@@ -577,6 +685,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
+    /// <summary>
+        /// Represents the FooClient GraphQL client
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient : global::Foo.Bar.IFooClient
     {
@@ -593,6 +704,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
+    /// <summary>
+        /// Represents the FooClient GraphQL client
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IFooClient
     {
@@ -974,6 +1088,9 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    /// <summary>
+        /// Baz Type
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class BazData
     {

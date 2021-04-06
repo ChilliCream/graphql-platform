@@ -17,6 +17,9 @@
 namespace Foo.Bar
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    /// <summary>
+        /// Root type pro read operace nemovizor API.
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetListingsCountResult : global::System.IEquatable<GetListingsCountResult>, IGetListingsCountResult
     {
@@ -144,6 +147,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+        /// Root type pro read operace nemovizor API.
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetListingsCountResult
     {
@@ -173,6 +179,21 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
+    /// <summary>
+        /// Represents the operation service of the GetListingsCount GraphQL operation
+        /// <code>
+        /// query GetListingsCount {
+        ///   listings {
+        ///     __typename
+        ///     ... ListingsPayload
+        ///   }
+        /// }
+        /// 
+        /// fragment ListingsPayload on ListingsPayload {
+        ///   count
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetListingsCountQueryDocument : global::StrawberryShake.IDocument
     {
@@ -199,6 +220,21 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
+    /// <summary>
+        /// Represents the operation service of the GetListingsCount GraphQL operation
+        /// <code>
+        /// query GetListingsCount {
+        ///   listings {
+        ///     __typename
+        ///     ... ListingsPayload
+        ///   }
+        /// }
+        /// 
+        /// fragment ListingsPayload on ListingsPayload {
+        ///   count
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetListingsCountQuery : global::Foo.Bar.IGetListingsCountQuery
     {
@@ -240,6 +276,21 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+    /// <summary>
+        /// Represents the operation service of the GetListingsCount GraphQL operation
+        /// <code>
+        /// query GetListingsCount {
+        ///   listings {
+        ///     __typename
+        ///     ... ListingsPayload
+        ///   }
+        /// }
+        /// 
+        /// fragment ListingsPayload on ListingsPayload {
+        ///   count
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetListingsCountQuery : global::StrawberryShake.IOperationRequestFactory
     {
@@ -248,6 +299,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
+    /// <summary>
+        /// Represents the FooClient GraphQL client
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient : global::Foo.Bar.IFooClient
     {
@@ -264,6 +318,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
+    /// <summary>
+        /// Represents the FooClient GraphQL client
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IFooClient
     {

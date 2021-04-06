@@ -83,6 +83,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    /// <summary>
+        /// A connection to a list of items.
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetSessions_Sessions_SessionConnection : global::System.IEquatable<GetSessions_Sessions_SessionConnection>, IGetSessions_Sessions_SessionConnection
     {
@@ -224,6 +227,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+        /// A connection to a list of items.
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetSessions_Sessions
     {
@@ -234,6 +240,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    /// <summary>
+        /// A connection to a list of items.
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetSessions_Sessions_SessionConnection : IGetSessions_Sessions
     {
@@ -253,6 +262,23 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
+    /// <summary>
+        /// Represents the operation service of the GetSessions GraphQL operation
+        /// <code>
+        /// query GetSessions {
+        ///   sessions(order: { title: ASC }) {
+        ///     __typename
+        ///     nodes {
+        ///       __typename
+        ///       title
+        ///       ... on Session {
+        ///         id
+        ///       }
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetSessionsQueryDocument : global::StrawberryShake.IDocument
     {
@@ -279,6 +305,23 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
+    /// <summary>
+        /// Represents the operation service of the GetSessions GraphQL operation
+        /// <code>
+        /// query GetSessions {
+        ///   sessions(order: { title: ASC }) {
+        ///     __typename
+        ///     nodes {
+        ///       __typename
+        ///       title
+        ///       ... on Session {
+        ///         id
+        ///       }
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetSessionsQuery : global::Foo.Bar.IGetSessionsQuery
     {
@@ -320,6 +363,23 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+    /// <summary>
+        /// Represents the operation service of the GetSessions GraphQL operation
+        /// <code>
+        /// query GetSessions {
+        ///   sessions(order: { title: ASC }) {
+        ///     __typename
+        ///     nodes {
+        ///       __typename
+        ///       title
+        ///       ... on Session {
+        ///         id
+        ///       }
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetSessionsQuery : global::StrawberryShake.IOperationRequestFactory
     {
@@ -328,6 +388,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
+    /// <summary>
+        /// Represents the FooClient GraphQL client
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient : global::Foo.Bar.IFooClient
     {
@@ -344,6 +407,9 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
+    /// <summary>
+        /// Represents the FooClient GraphQL client
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IFooClient
     {
@@ -622,6 +688,9 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    /// <summary>
+        /// A connection to a list of items.
+        /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class SessionConnectionData
     {
