@@ -1,44 +1,74 @@
 using System;
+using System.IO;
+using System.Linq;
+using System.Text;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 using StrawberryShake.CodeGeneration.Descriptors;
 
 namespace StrawberryShake.CodeGeneration
 {
     public abstract class CodeGenerator<TDescriptor>
-        : ICodeGenerator
+        : ICSharpSyntaxGenerator
         where TDescriptor : ICodeDescriptor
     {
         public bool CanHandle(
             ICodeDescriptor descriptor,
-            CodeGeneratorSettings settings) =>
+            CSharpSyntaxGeneratorSettings settings) =>
             descriptor is TDescriptor d && CanHandle(d, settings);
 
-        protected virtual bool CanHandle(TDescriptor descriptor, CodeGeneratorSettings settings) => true;
+        protected virtual bool CanHandle(
+            TDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings) =>
+            true;
 
-        public void Generate(ICodeDescriptor descriptor,
-            CodeGeneratorSettings settings,
-            CodeWriter writer,
-            out string fileName,
-            out string? path)
+        public CSharpSyntaxGeneratorResult Generate(
+            ICodeDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings)
         {
-            if (writer is null)
-            {
-                throw new ArgumentNullException(nameof(writer));
-            }
-
             if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            Generate((TDescriptor)descriptor, settings, writer, out fileName, out path);
+            if (settings is null)
+            {
+                throw new ArgumentNullException(nameof(settings));
+            }
+
+            var code = new StringBuilder();
+            using var stringWriter = new StringWriter(code);
+            using var codeWriter = new CodeWriter(stringWriter);
+
+            Generate(
+                (TDescriptor)descriptor,
+                settings,
+                codeWriter,
+                out string fileName,
+                out string path,
+                out string ns);
+
+            codeWriter.Flush();
+
+            var sourceText = SourceText.From(code.ToString());
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(sourceText);
+
+            return new CSharpSyntaxGeneratorResult(
+                fileName,
+                path,
+                ns,
+                tree.GetRoot().DescendantNodes().OfType<TypeDeclarationSyntax>().First());
         }
 
         protected abstract void Generate(
             TDescriptor descriptor,
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
             out string fileName,
-            out string? path);
+            out string? path,
+            out string ns);
 
         protected static string State => nameof(State);
         protected static string DependencyInjection => nameof(DependencyInjection);

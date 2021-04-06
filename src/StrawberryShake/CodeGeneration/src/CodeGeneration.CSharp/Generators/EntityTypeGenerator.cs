@@ -10,17 +10,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     public class EntityTypeGenerator : CodeGenerator<EntityTypeDescriptor>
     {
         protected override bool CanHandle(EntityTypeDescriptor descriptor,
-            CodeGeneratorSettings settings) => !settings.NoStore;
+            CSharpSyntaxGeneratorSettings settings) => !settings.NoStore;
 
         protected override void Generate(EntityTypeDescriptor descriptor,
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             // Setup class
             fileName = descriptor.RuntimeType.Name;
             path = State;
+            ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -59,11 +61,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         .SetRighthandSide(paramName));
             }
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
-                .AddType(classBuilder)
-                .Build(writer);
+            classBuilder.Build(writer);
         }
     }
 }

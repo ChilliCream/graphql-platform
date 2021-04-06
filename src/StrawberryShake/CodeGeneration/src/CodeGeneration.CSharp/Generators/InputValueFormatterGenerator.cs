@@ -17,10 +17,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             TypeNames.KeyValuePair.WithGeneric(TypeNames.String, TypeNames.Object.MakeNullable());
 
         protected override void Generate(InputObjectTypeDescriptor namedTypeDescriptor,
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             const string serializerResolver = nameof(serializerResolver);
             const string runtimeValue = nameof(runtimeValue);
@@ -28,6 +29,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             fileName = CreateInputValueFormatter(namedTypeDescriptor);
             path = Serialization;
+            ns = namedTypeDescriptor.RuntimeType.NamespaceWithoutGlobal;
 
             NameString typeName = namedTypeDescriptor.Name;
 
@@ -126,11 +128,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .AddCode(GenerateSerializer(property.Type, value));
             }
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(namedTypeDescriptor.RuntimeType.NamespaceWithoutGlobal)
-                .AddType(classBuilder)
-                .Build(writer);
+            classBuilder.Build(writer);
         }
 
         public static ICode GenerateSerializer(

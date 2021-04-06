@@ -10,7 +10,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _dataParameterName = "data";
 
         private void AddDataHandler(
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             MethodBuilder method,
@@ -58,7 +58,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         }
 
         private IfBuilder GenerateDataInterfaceIfClause(
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             ObjectTypeDescriptor objectTypeDescriptor,
             bool isNonNullable,
             string variableName)

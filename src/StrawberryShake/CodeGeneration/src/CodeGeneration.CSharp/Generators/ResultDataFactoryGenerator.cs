@@ -16,16 +16,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _info = "info";
 
         protected override bool CanHandle(ITypeDescriptor descriptor,
-            CodeGeneratorSettings settings)
+            CSharpSyntaxGeneratorSettings settings)
         {
             return descriptor.Kind == TypeKind.ResultType && !descriptor.IsInterface();
         }
 
         protected override void Generate(ITypeDescriptor typeDescriptor,
-            CodeGeneratorSettings settings,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             ComplexTypeDescriptor descriptor =
                 typeDescriptor as ComplexTypeDescriptor ??
@@ -34,6 +35,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             fileName = CreateResultFactoryName(descriptor.RuntimeType.Name);
             path = State;
+            ns = CreateStateNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal);
 
             ClassBuilder classBuilder =
                 ClassBuilder
@@ -139,11 +141,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         .AddArgument(_dataInfo)
                         .AddArgument(_snapshot));
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(CreateStateNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal))
-                .AddType(classBuilder)
-                .Build(writer);
+            classBuilder.Build(writer);
         }
     }
 }
