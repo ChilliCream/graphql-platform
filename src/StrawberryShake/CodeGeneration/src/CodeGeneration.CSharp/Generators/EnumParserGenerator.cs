@@ -7,7 +7,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class EnumParserGenerator : CodeGenerator<EnumTypeDescriptor>
     {
-        protected override void Generate(
+        protected override void Generate(EnumTypeDescriptor descriptor,
+            CodeGeneratorSettings settings,
             CodeWriter writer,
             EnumTypeDescriptor descriptor,
             CodeGeneratorSettings settings,

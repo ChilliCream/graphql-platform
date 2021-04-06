@@ -23,7 +23,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 !settings.NoStore;
         }
 
-        protected override void Generate(
+        protected override void Generate(ITypeDescriptor typeDescriptor,
+            CodeGeneratorSettings settings,
             CodeWriter writer,
             ITypeDescriptor typeDescriptor,
             CodeGeneratorSettings settings,

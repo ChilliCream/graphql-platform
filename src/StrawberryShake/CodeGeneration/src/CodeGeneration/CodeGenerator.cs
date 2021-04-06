@@ -16,7 +16,8 @@ namespace StrawberryShake.CodeGeneration
             CodeGeneratorSettings settings,
             TDescriptor descriptor) => true;
 
-        public void Generate(
+        public void Generate(ICodeDescriptor descriptor,
+            CodeGeneratorSettings settings,
             CodeWriter writer,
             ICodeDescriptor descriptor,
             CodeGeneratorSettings settings,
@@ -37,7 +38,6 @@ namespace StrawberryShake.CodeGeneration
         }
 
         protected abstract void Generate(
-            CodeWriter writer,
             TDescriptor descriptor,
             CodeGeneratorSettings settings,
             out string fileName,

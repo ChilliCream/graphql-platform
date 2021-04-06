@@ -24,7 +24,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _obj = "obj";
         private const string _response = "response";
 
-        protected override void Generate(
+        protected override void Generate(ResultBuilderDescriptor resultBuilderDescriptor,
+            CodeGeneratorSettings settings,
             CodeWriter writer,
             ResultBuilderDescriptor resultBuilderDescriptor,
             CodeGeneratorSettings settings,

@@ -22,7 +22,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             return descriptor.Kind == TypeKind.ResultType && !descriptor.IsInterface();
         }
 
-        protected override void Generate(
+        protected override void Generate(ITypeDescriptor typeDescriptor,
+            CodeGeneratorSettings settings,
             CodeWriter writer,
             ITypeDescriptor typeDescriptor,
             CodeGeneratorSettings settings,

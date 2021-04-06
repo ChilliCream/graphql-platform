@@ -13,7 +13,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             return descriptor.TransportProfiles.Count > 1;
         }
 
-        protected override void Generate(
+        protected override void Generate(DependencyInjectionDescriptor descriptor,
+            CodeGeneratorSettings settings,
             CodeWriter writer,
             DependencyInjectionDescriptor descriptor,
             CodeGeneratorSettings settings,
