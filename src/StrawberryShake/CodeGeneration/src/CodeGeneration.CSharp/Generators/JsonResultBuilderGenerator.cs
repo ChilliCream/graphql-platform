@@ -24,9 +24,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _obj = "obj";
         private const string _response = "response";
 
-        protected override void Generate(
+        protected override void Generate(ResultBuilderDescriptor resultBuilderDescriptor,
+            CodeGeneratorSettings settings,
             CodeWriter writer,
-            ResultBuilderDescriptor resultBuilderDescriptor,
             out string fileName,
             out string? path)
         {
@@ -52,19 +52,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         TypeNames.JsonDocument,
                         resultTypeDescriptor.RuntimeType.ToString()));
 
-            AddConstructorAssignedField(
-                TypeNames.IEntityStore,
-                _entityStore,
-                entityStore,
-                classBuilder,
-                constructorBuilder);
+            if (settings.IsStoreEnabled())
+            {
+                AddConstructorAssignedField(
+                    TypeNames.IEntityStore,
+                    _entityStore,
+                    entityStore,
+                    classBuilder,
+                    constructorBuilder);
 
-            AddConstructorAssignedField(
-                TypeNames.IEntityIdSerializer,
-                _idSerializer,
-                idSerializer,
-                classBuilder,
-                constructorBuilder);
+                AddConstructorAssignedField(
+                    TypeNames.IEntityIdSerializer,
+                    _idSerializer,
+                    idSerializer,
+                    classBuilder,
+                    constructorBuilder);
+            }
 
             AddConstructorAssignedField(
                 TypeNames.IOperationResultDataFactory
@@ -116,7 +119,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             AddBuildMethod(resultTypeDescriptor, classBuilder);
 
-            AddBuildDataMethod(resultTypeDescriptor, classBuilder);
+            AddBuildDataMethod(settings, resultTypeDescriptor, classBuilder);
 
             var processed = new HashSet<string>();
             AddRequiredDeserializeMethods(resultTypeDescriptor, classBuilder, processed);

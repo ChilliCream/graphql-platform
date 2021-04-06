@@ -15,14 +15,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _map = "Map";
         private const string _snapshot = "snapshot";
 
-        protected override bool CanHandle(ITypeDescriptor descriptor)
+        protected override bool CanHandle(ITypeDescriptor descriptor,
+            CodeGeneratorSettings settings)
         {
-            return descriptor.Kind == TypeKind.EntityType && !descriptor.IsInterface();
+            return descriptor.Kind == TypeKind.EntityType && !descriptor.IsInterface() &&
+                !settings.NoStore;
         }
 
-        protected override void Generate(
+        protected override void Generate(ITypeDescriptor typeDescriptor,
+            CodeGeneratorSettings settings,
             CodeWriter writer,
-            ITypeDescriptor typeDescriptor,
             out string fileName,
             out string? path)
         {
@@ -98,7 +100,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             {
                 foreach (PropertyDescriptor property in complexTypeDescriptor.Properties)
                 {
-                    constructorCall.AddArgument(BuildMapMethodCall(_entity, property));
+                    constructorCall.AddArgument(BuildMapMethodCall(settings, _entity, property));
                 }
             }
 
@@ -112,6 +114,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             classBuilder.AddMethod(mapMethod);
 
             AddRequiredMapMethods(
+                settings,
                 _entity,
                 descriptor,
                 classBuilder,

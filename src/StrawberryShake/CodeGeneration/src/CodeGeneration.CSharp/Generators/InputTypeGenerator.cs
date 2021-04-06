@@ -6,11 +6,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class InputTypeGenerator : CodeGenerator<InputObjectTypeDescriptor>
     {
-        protected override bool CanHandle(InputObjectTypeDescriptor descriptor) => true;
-
-        protected override void Generate(
+        protected override void Generate(InputObjectTypeDescriptor namedTypeDescriptor,
+            CodeGeneratorSettings settings,
             CodeWriter writer,
-            InputObjectTypeDescriptor namedTypeDescriptor,
             out string fileName,
             out string? path)
         {

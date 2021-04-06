@@ -60,7 +60,7 @@ namespace Foo.Bar.State
                     "ListingsPayload",
                     global::System.StringComparison.Ordinal))
             {
-                returnValue = new GetAll_Listings_ListingsPayload(MapNonNullableIListingDataNonNullableArray(
+                returnValue = new GetAll_Listings_ListingsPayload(MapNonNullableIGetAll_Listings_ItemsNonNullableArray(
                     data.Items ?? throw new global::System.ArgumentNullException(),
                     snapshot));
             }
@@ -71,7 +71,7 @@ namespace Foo.Bar.State
             return returnValue;
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetAll_Listings_Items> MapNonNullableIListingDataNonNullableArray(
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetAll_Listings_Items> MapNonNullableIGetAll_Listings_ItemsNonNullableArray(
             global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IListingData>? list,
             global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
@@ -84,7 +84,7 @@ namespace Foo.Bar.State
 
             foreach (global::Foo.Bar.State.IListingData child in list)
             {
-                listings.Add(MapNonNullableIListingData(
+                listings.Add(MapNonNullableIGetAll_Listings_Items(
                     child,
                     snapshot));
             }
@@ -92,7 +92,7 @@ namespace Foo.Bar.State
             return listings;
         }
 
-        private global::Foo.Bar.IGetAll_Listings_Items MapNonNullableIListingData(
+        private global::Foo.Bar.IGetAll_Listings_Items MapNonNullableIGetAll_Listings_Items(
             global::Foo.Bar.State.IListingData data,
             global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {

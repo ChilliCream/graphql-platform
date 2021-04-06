@@ -10,9 +10,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class OperationDocumentGenerator : ClassBaseGenerator<OperationDescriptor>
     {
-        protected override void Generate(
+        protected override void Generate(OperationDescriptor descriptor,
+            CodeGeneratorSettings settings,
             CodeWriter writer,
-            OperationDescriptor descriptor,
             out string fileName,
             out string? path)
         {

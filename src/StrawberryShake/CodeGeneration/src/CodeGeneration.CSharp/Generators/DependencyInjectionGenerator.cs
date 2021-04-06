@@ -44,9 +44,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             TypeNames.TimeSpanSerializer
         };
 
-        protected override void Generate(
+        protected override void Generate(DependencyInjectionDescriptor descriptor,
+            CodeGeneratorSettings settings,
             CodeWriter writer,
-            DependencyInjectionDescriptor descriptor,
             out string fileName,
             out string? path)
         {
@@ -71,7 +71,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     _strategy,
                     x => x.SetType(TypeNames.ExecutionStrategy)
                         .SetDefault(TypeNames.ExecutionStrategy + "." + "NetworkOnly"))
-                .AddCode(GenerateMethodBody(descriptor));
+                .AddCode(GenerateMethodBody(settings, descriptor));
 
             if (descriptor.TransportProfiles.Count > 1)
             {
@@ -84,7 +84,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             foreach (var profile in descriptor.TransportProfiles)
             {
-                GenerateClientForProfile(factory, descriptor, profile);
+                GenerateClientForProfile(settings, factory, descriptor, profile);
             }
 
 
@@ -98,6 +98,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         }
 
         private static void GenerateClientForProfile(
+            CodeGeneratorSettings settings,
             ClassBuilder factory,
             DependencyInjectionDescriptor descriptor,
             TransportProfile profile)
@@ -112,7 +113,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     _strategy,
                     x => x.SetType(TypeNames.ExecutionStrategy)
                         .SetDefault(TypeNames.ExecutionStrategy + "." + "NetworkOnly"))
-                .AddCode(GenerateInternalMethodBody(descriptor, profile));
+                .AddCode(GenerateInternalMethodBody(settings, descriptor, profile));
         }
 
         private static ICode GenerateClientServiceProviderFactory(
@@ -192,7 +193,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             return $"{rootNamespace}.{CreateClientProfileKind(descriptor.Name)}";
         }
 
-        private static ICode GenerateMethodBody(DependencyInjectionDescriptor descriptor) =>
+        private static ICode GenerateMethodBody(
+            CodeGeneratorSettings settings,
+            DependencyInjectionDescriptor descriptor) =>
             CodeBlockBuilder
                 .New()
                 .AddMethodCall(x => x
@@ -204,7 +207,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         .AddArgument(_sp)
                         .SetCode(GenerateClientServiceProviderFactory(descriptor))))
                 .AddEmptyLine()
-                .AddCode(RegisterStoreAccessor(descriptor.StoreAccessor))
+                .AddCode(RegisterStoreAccessor(settings, descriptor.StoreAccessor))
                 .AddEmptyLine()
                 .ForEach(
                     descriptor.Operations,
@@ -260,8 +263,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                         TypeNames.IEnumerable.WithGeneric(TypeNames.ISerializer))
                                     .AddArgument(_sp)))));
 
-        private static ICode RegisterStoreAccessor(StoreAccessorDescriptor storeAccessor) =>
-            MethodCallBuilder
+        private static ICode RegisterStoreAccessor(
+            CodeGeneratorSettings settings,
+            StoreAccessorDescriptor storeAccessor)
+        {
+            if (settings.IsStoreDisabled())
+            {
+                return MethodCallBuilder
+                    .New()
+                    .SetMethodName(TypeNames.AddSingleton)
+                    .AddArgument(_services)
+                    .AddArgument(LambdaBuilder
+                        .New()
+                        .AddArgument(_sp)
+                        .SetCode(MethodCallBuilder
+                            .Inline()
+                            .SetNew()
+                            .SetMethodName(storeAccessor.RuntimeType.ToString())));
+            }
+
+            return MethodCallBuilder
                 .New()
                 .SetMethodName(TypeNames.AddSingleton)
                 .AddArgument(_services)
@@ -326,6 +347,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                             .AddGeneric(
                                 TypeNames.IEnumerable.WithGeneric(
                                     TypeNames.IOperationResultDataFactory)))));
+        }
 
         private static ICode ForwardSingletonToClientServiceProvider(string generic) =>
             MethodCallBuilder
@@ -347,6 +369,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         .AddGeneric(generic)));
 
         private static ICode GenerateInternalMethodBody(
+            CodeGeneratorSettings settings,
             DependencyInjectionDescriptor descriptor,
             TransportProfile profile)
         {
@@ -367,7 +390,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         .Inline()
                         .SetNew()
                         .SetMethodName(TypeNames.ServiceCollection)))
-                .AddCode(CreateBaseCode(CreateStateNamespace(rootNamespace)));
+                .AddCode(CreateBaseCode(settings));
 
             var generatedConnections = new HashSet<TransportType>();
             if (hasSubscriptions)
@@ -508,6 +531,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 var builderName = CreateResultBuilderName(operationName);
                 body.AddCode(
                     RegisterOperation(
+                        settings,
                         connectionKind,
                         fullName,
                         operationInterfaceName,
@@ -516,13 +540,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         $"{CreateStateNamespace(operation.RuntimeType.Namespace)}.{builderName}"));
             }
 
-            body.AddCode(
-                MethodCallBuilder
-                    .New()
-                    .SetMethodName(TypeNames.AddSingleton)
-                    .AddGeneric(TypeNames.IEntityIdSerializer)
-                    .AddGeneric(descriptor.EntityIdFactoryDescriptor.Type.ToString())
-                    .AddArgument(_services));
+            if (settings.IsStoreEnabled())
+            {
+                body.AddCode(
+                    MethodCallBuilder
+                        .New()
+                        .SetMethodName(TypeNames.AddSingleton)
+                        .AddGeneric(TypeNames.IEntityIdSerializer)
+                        .AddGeneric(descriptor.EntityIdFactoryDescriptor.Type.ToString())
+                        .AddArgument(_services));
+            }
 
             body.AddCode(
                 MethodCallBuilder
@@ -552,6 +579,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         }
 
         private static ICode RegisterOperation(
+            CodeGeneratorSettings settings,
             string connectionKind,
             string operationFullName,
             string operationInterfaceName,
@@ -619,7 +647,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                             .SetCode(MethodCallBuilder
                                 .Inline()
                                 .SetNew()
-                                .SetMethodName(TypeNames.OperationExecutor)
+                                .SetMethodName(settings.IsStoreEnabled()
+                                    ? TypeNames.OperationExecutor
+                                    : TypeNames.StorelessOperationExecutor)
                                 .AddGeneric(TypeNames.JsonDocument)
                                 .AddGeneric(resultInterface)
                                 .AddArgument(
@@ -641,13 +671,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                                         TypeNames.JsonDocument,
                                                         resultInterface))
                                                 .AddArgument(_sp)))
-                                .AddArgument(
-                                    MethodCallBuilder
-                                        .Inline()
-                                        .SetMethodName(TypeNames.GetRequiredService)
-                                        .AddGeneric(TypeNames.IOperationStore)
-                                        .AddArgument(_sp))
-                                .AddArgument(_strategy))))
+                                .If(settings.IsStoreEnabled(),
+                                    x => x
+                                        .AddArgument(
+                                            MethodCallBuilder
+                                                .Inline()
+                                                .SetMethodName(TypeNames.GetRequiredService)
+                                                .AddGeneric(TypeNames.IOperationStore)
+                                                .AddArgument(_sp))
+                                        .AddArgument(_strategy)))))
                 .AddCode(MethodCallBuilder
                     .New()
                     .SetMethodName(TypeNames.AddSingleton)
@@ -784,8 +816,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                     .AddArgument(clientName.AsStringToken())
                                     .AddArgument(_ct))))));
 
-        private static ICode CreateBaseCode(string stateNamespace) =>
-            CodeBlockBuilder
+        private static ICode CreateBaseCode(CodeGeneratorSettings settings)
+        {
+            if (settings.IsStoreDisabled())
+            {
+                return CodeBlockBuilder.New();
+            }
+
+            return CodeBlockBuilder
                 .New()
                 .AddCode(MethodCallBuilder
                     .New()
@@ -810,6 +848,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                 .SetMethodName(TypeNames.GetRequiredService)
                                 .AddGeneric(TypeNames.IEntityStore)
                                 .AddArgument(_sp)))));
+        }
 
         private static string _clientServiceProvider = @"
         private class ClientServiceProvider

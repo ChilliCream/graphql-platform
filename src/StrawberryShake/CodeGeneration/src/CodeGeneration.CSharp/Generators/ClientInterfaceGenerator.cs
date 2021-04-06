@@ -7,9 +7,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class ClientInterfaceGenerator : ClassBaseGenerator<ClientDescriptor>
     {
-        protected override void Generate(
+        protected override void Generate(ClientDescriptor descriptor,
+            CodeGeneratorSettings settings,
             CodeWriter writer,
-            ClientDescriptor descriptor,
             out string fileName,
             out string? path)
         {

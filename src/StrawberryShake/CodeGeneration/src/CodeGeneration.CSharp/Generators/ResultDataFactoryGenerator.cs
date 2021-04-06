@@ -15,14 +15,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _snapshot = "snapshot";
         private const string _info = "info";
 
-        protected override bool CanHandle(ITypeDescriptor descriptor)
+        protected override bool CanHandle(ITypeDescriptor descriptor,
+            CodeGeneratorSettings settings)
         {
             return descriptor.Kind == TypeKind.ResultType && !descriptor.IsInterface();
         }
 
-        protected override void Generate(
+        protected override void Generate(ITypeDescriptor typeDescriptor,
+            CodeGeneratorSettings settings,
             CodeWriter writer,
-            ITypeDescriptor typeDescriptor,
             out string fileName,
             out string? path)
         {
@@ -45,12 +46,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .AddConstructor()
                 .SetTypeName(descriptor.Name);
 
-            AddConstructorAssignedField(
-                TypeNames.IEntityStore,
-                _entityStore,
-                entityStore,
-                classBuilder,
-                constructorBuilder);
+            if (settings.IsStoreEnabled())
+            {
+                AddConstructorAssignedField(
+                    TypeNames.IEntityStore,
+                    _entityStore,
+                    entityStore,
+                    classBuilder,
+                    constructorBuilder);
+            }
 
             MethodCallBuilder returnStatement = MethodCallBuilder
                 .New()
@@ -61,7 +65,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             foreach (PropertyDescriptor property in descriptor.Properties)
             {
                 returnStatement
-                    .AddArgument(BuildMapMethodCall(_info, property));
+                    .AddArgument(BuildMapMethodCall(settings, _info, property));
             }
 
             IfBuilder ifHasCorrectType = IfBuilder
@@ -70,7 +74,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     $"{_dataInfo} is {CreateResultInfoName(descriptor.RuntimeType.Name)} {_info}")
                 .AddCode(returnStatement);
 
-            classBuilder
+            MethodBuilder createMethod = classBuilder
                 .AddMethod("Create")
                 .SetAccessModifier(AccessModifier.Public)
                 .SetReturnType(descriptor.RuntimeType.Name)
@@ -78,17 +82,23 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .AddParameter(
                     _snapshot,
                     b => b.SetDefault("null")
-                        .SetType(TypeNames.IEntityStoreSnapshot.MakeNullable()))
-                .AddCode(
-                    IfBuilder.New()
-                        .SetCondition($"{_snapshot} is null")
-                        .AddCode(
-                            AssignmentBuilder
-                                .New()
-                                .SetLefthandSide(_snapshot)
-                                .SetRighthandSide($"{_entityStore}.CurrentSnapshot")))
-                .AddEmptyLine()
-                .AddCode(ifHasCorrectType)
+                        .SetType(TypeNames.IEntityStoreSnapshot.MakeNullable()));
+
+            if (settings.IsStoreEnabled())
+            {
+                createMethod
+                    .AddCode(
+                        IfBuilder.New()
+                            .SetCondition($"{_snapshot} is null")
+                            .AddCode(
+                                AssignmentBuilder
+                                    .New()
+                                    .SetLefthandSide(_snapshot)
+                                    .SetRighthandSide($"{_entityStore}.CurrentSnapshot")))
+                    .AddEmptyLine();
+            }
+
+            createMethod.AddCode(ifHasCorrectType)
                 .AddEmptyLine()
                 .AddCode(
                     ExceptionBuilder
@@ -99,6 +109,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             var processed = new HashSet<string>();
 
             AddRequiredMapMethods(
+                settings,
                 _info,
                 descriptor,
                 classBuilder,
@@ -109,7 +120,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             classBuilder
                 .AddProperty("ResultType")
                 .SetType(TypeNames.Type)
-                .AsLambda($"typeof({descriptor.RuntimeType.Namespace}.{ descriptor.Implements[0]})")
+                .AsLambda($"typeof({descriptor.RuntimeType.Namespace}.{descriptor.Implements[0]})")
                 .SetInterface(TypeNames.IOperationResultDataFactory);
 
             classBuilder

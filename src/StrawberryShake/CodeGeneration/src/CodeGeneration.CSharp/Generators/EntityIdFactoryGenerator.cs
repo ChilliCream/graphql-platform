@@ -17,9 +17,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _entityId = "entityId";
         private const string _entityIdValues = "entityIdValues";
 
-        protected override void Generate(
+        protected override bool CanHandle(EntityIdFactoryDescriptor descriptor,
+            CodeGeneratorSettings settings) => !settings.NoStore;
+
+        protected override void Generate(EntityIdFactoryDescriptor descriptor,
+            CodeGeneratorSettings settings,
             CodeWriter writer,
-            EntityIdFactoryDescriptor descriptor,
             out string fileName,
             out string? path)
         {
