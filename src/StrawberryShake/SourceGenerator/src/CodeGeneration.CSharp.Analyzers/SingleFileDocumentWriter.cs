@@ -12,6 +12,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         private StringBuilder _content = new();
         private GeneratorExecutionContext? _execution;
         private string? _fileName;
+        private bool _emitCode;
 
         public void WriteDocument(ClientGeneratorContext context, SourceDocument document)
         {
@@ -27,6 +28,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 _fileName = IOPath.Combine(
                     context.OutputDirectory,
                     $"{context.Settings.Name}.StrawberryShake.cs");
+                _emitCode = context.Settings.EmitGeneratedCode;
                 context.FileNames.Add(_fileName);
             }
 
@@ -47,7 +49,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 IOPath.GetFileName(_fileName),
                 SourceText.From(_content.ToString(), Encoding.UTF8));
 
-            if (_fileName is not null)
+            if (_emitCode && _fileName is not null)
             {
                 string directory = IOPath.GetDirectoryName(_fileName);
 
