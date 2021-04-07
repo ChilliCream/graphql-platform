@@ -25,7 +25,10 @@ namespace Foo.Bar
             Feats = feats;
         }
 
-        public global::Foo.Bar.IGetFeatById_Feats? Feats { get; }
+        public global::Foo.Bar.IGetFeatById_Feats? Feats
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -91,7 +94,10 @@ namespace Foo.Bar
             Items = items;
         }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items?>? Items { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items?>? Items
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -166,13 +172,25 @@ namespace Foo.Bar
             Details = details;
         }
 
-        public global::System.Guid Id { get; }
+        public global::System.Guid Id
+        {
+            get;
+        }
 
-        public global::System.String Name { get; }
+        public global::System.String Name
+        {
+            get;
+        }
 
-        public global::System.Int32 Level { get; }
+        public global::System.Int32 Level
+        {
+            get;
+        }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items_Details> Details { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items_Details> Details
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -241,7 +259,10 @@ namespace Foo.Bar
             Text = text;
         }
 
-        public global::System.String Text { get; }
+        public global::System.String Text
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -298,14 +319,20 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetFeatByIdResult
     {
-        public global::Foo.Bar.IGetFeatById_Feats? Feats { get; }
+        public global::Foo.Bar.IGetFeatById_Feats? Feats
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetFeatById_Feats
     {
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items?>? Items { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items?>? Items
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -318,13 +345,25 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetFeatById_Feats_Items
     {
-        public global::System.Guid Id { get; }
+        public global::System.Guid Id
+        {
+            get;
+        }
 
-        public global::System.String Name { get; }
+        public global::System.String Name
+        {
+            get;
+        }
 
-        public global::System.Int32 Level { get; }
+        public global::System.Int32 Level
+        {
+            get;
+        }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items_Details> Details { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items_Details> Details
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -337,7 +376,10 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetFeatById_Feats_Items_Details
     {
-        public global::System.String Text { get; }
+        public global::System.String Text
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -348,31 +390,31 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
-        /// Represents the operation service of the GetFeatById GraphQL operation
-        /// <code>
-        /// query GetFeatById($id: Uuid!) {
-        ///   feats(where: { id: { eq: $id } }) {
-        ///     __typename
-        ///     items {
-        ///       __typename
-        ///       id
-        ///       name
-        ///       level
-        ///       details {
-        ///         __typename
-        ///         text
-        ///         ... on FeatDetailsBlock {
-        ///           id
-        ///         }
-        ///       }
-        ///       ... on Feat {
-        ///         id
-        ///       }
-        ///     }
-        ///   }
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the GetFeatById GraphQL operation
+    /// <code>
+    /// query GetFeatById($id: Uuid!) {
+    ///   feats(where: { id: { eq: $id } }) {
+    ///     __typename
+    ///     items {
+    ///       __typename
+    ///       id
+    ///       name
+    ///       level
+    ///       details {
+    ///         __typename
+    ///         text
+    ///         ... on FeatDetailsBlock {
+    ///           id
+    ///         }
+    ///       }
+    ///       ... on Feat {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetFeatByIdQueryDocument : global::StrawberryShake.IDocument
     {
@@ -380,14 +422,20 @@ namespace Foo.Bar
         {
         }
 
-        public static GetFeatByIdQueryDocument Instance { get; } = new GetFeatByIdQueryDocument();
+        public static GetFeatByIdQueryDocument Instance
+        {
+            get;
+        }
 
+        = new GetFeatByIdQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x46, 0x65, 0x61, 0x74, 0x42, 0x79, 0x49, 0x64, 0x28, 0x24, 0x69, 0x64, 0x3a, 0x20, 0x55, 0x75, 0x69, 0x64, 0x21, 0x29, 0x20, 0x7b, 0x20, 0x66, 0x65, 0x61, 0x74, 0x73, 0x28, 0x77, 0x68, 0x65, 0x72, 0x65, 0x3a, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x3a, 0x20, 0x7b, 0x20, 0x65, 0x71, 0x3a, 0x20, 0x24, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x64, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6c, 0x65, 0x76, 0x65, 0x6c, 0x20, 0x64, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x74, 0x65, 0x78, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x46, 0x65, 0x61, 0x74, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x46, 0x65, 0x61, 0x74, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d};
+        public global::StrawberryShake.DocumentHash Hash
+        {
+            get;
+        }
 
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[] { 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x46, 0x65, 0x61, 0x74, 0x42, 0x79, 0x49, 0x64, 0x28, 0x24, 0x69, 0x64, 0x3a, 0x20, 0x55, 0x75, 0x69, 0x64, 0x21, 0x29, 0x20, 0x7b, 0x20, 0x66, 0x65, 0x61, 0x74, 0x73, 0x28, 0x77, 0x68, 0x65, 0x72, 0x65, 0x3a, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x3a, 0x20, 0x7b, 0x20, 0x65, 0x71, 0x3a, 0x20, 0x24, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x64, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6c, 0x65, 0x76, 0x65, 0x6c, 0x20, 0x64, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x74, 0x65, 0x78, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x46, 0x65, 0x61, 0x74, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x46, 0x65, 0x61, 0x74, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d };
-
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "f1f9f6354f622482f1770300696a15f2ffc25244");
-
+        = new global::StrawberryShake.DocumentHash("sha1Hash", "f1f9f6354f622482f1770300696a15f2ffc25244");
         public override global::System.String ToString()
         {
 #if NETSTANDARD2_0
@@ -400,37 +448,36 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
-        /// Represents the operation service of the GetFeatById GraphQL operation
-        /// <code>
-        /// query GetFeatById($id: Uuid!) {
-        ///   feats(where: { id: { eq: $id } }) {
-        ///     __typename
-        ///     items {
-        ///       __typename
-        ///       id
-        ///       name
-        ///       level
-        ///       details {
-        ///         __typename
-        ///         text
-        ///         ... on FeatDetailsBlock {
-        ///           id
-        ///         }
-        ///       }
-        ///       ... on Feat {
-        ///         id
-        ///       }
-        ///     }
-        ///   }
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the GetFeatById GraphQL operation
+    /// <code>
+    /// query GetFeatById($id: Uuid!) {
+    ///   feats(where: { id: { eq: $id } }) {
+    ///     __typename
+    ///     items {
+    ///       __typename
+    ///       id
+    ///       name
+    ///       level
+    ///       details {
+    ///         __typename
+    ///         text
+    ///         ... on FeatDetailsBlock {
+    ///           id
+    ///         }
+    ///       }
+    ///       ... on Feat {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetFeatByIdQuery : global::Foo.Bar.IGetFeatByIdQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetFeatByIdResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _uuidFormatter;
-
         public GetFeatByIdQuery(global::StrawberryShake.IOperationExecutor<IGetFeatByIdResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
@@ -438,7 +485,6 @@ namespace Foo.Bar
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetFeatByIdResult);
-
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetFeatByIdResult>> ExecuteAsync(global::System.Guid id, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(id);
@@ -476,31 +522,31 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
-        /// Represents the operation service of the GetFeatById GraphQL operation
-        /// <code>
-        /// query GetFeatById($id: Uuid!) {
-        ///   feats(where: { id: { eq: $id } }) {
-        ///     __typename
-        ///     items {
-        ///       __typename
-        ///       id
-        ///       name
-        ///       level
-        ///       details {
-        ///         __typename
-        ///         text
-        ///         ... on FeatDetailsBlock {
-        ///           id
-        ///         }
-        ///       }
-        ///       ... on Feat {
-        ///         id
-        ///       }
-        ///     }
-        ///   }
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the GetFeatById GraphQL operation
+    /// <code>
+    /// query GetFeatById($id: Uuid!) {
+    ///   feats(where: { id: { eq: $id } }) {
+    ///     __typename
+    ///     items {
+    ///       __typename
+    ///       id
+    ///       name
+    ///       level
+    ///       details {
+    ///         __typename
+    ///         text
+    ///         ... on FeatDetailsBlock {
+    ///           id
+    ///         }
+    ///       }
+    ///       ... on Feat {
+    ///         id
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetFeatByIdQuery : global::StrawberryShake.IOperationRequestFactory
     {
@@ -510,31 +556,32 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
     /// <summary>
-        /// Represents the FooClient GraphQL client
-        /// </summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient : global::Foo.Bar.IFooClient
     {
         private readonly global::Foo.Bar.IGetFeatByIdQuery _getFeatById;
-
         public FooClient(global::Foo.Bar.IGetFeatByIdQuery getFeatById)
         {
             _getFeatById = getFeatById ?? throw new global::System.ArgumentNullException(nameof(getFeatById));
         }
 
         public static global::System.String ClientName => "FooClient";
-
         public global::Foo.Bar.IGetFeatByIdQuery GetFeatById => _getFeatById;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
     /// <summary>
-        /// Represents the FooClient GraphQL client
-        /// </summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IFooClient
     {
-        global::Foo.Bar.IGetFeatByIdQuery GetFeatById { get; }
+        global::Foo.Bar.IGetFeatByIdQuery GetFeatById
+        {
+            get;
+        }
     }
 }
 
@@ -552,13 +599,25 @@ namespace Foo.Bar.State
             Details = details;
         }
 
-        public global::System.Guid Id { get; }
+        public global::System.Guid Id
+        {
+            get;
+        }
 
-        public global::System.String Name { get; }
+        public global::System.String Name
+        {
+            get;
+        }
 
-        public global::System.Int32 Level { get; }
+        public global::System.Int32 Level
+        {
+            get;
+        }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId> Details { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId> Details
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
@@ -570,7 +629,10 @@ namespace Foo.Bar.State
             Text = text;
         }
 
-        public global::System.String Text { get; }
+        public global::System.String Text
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
@@ -580,7 +642,6 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatEntity, GetFeatById_Feats_Items_Feat> _getFeatById_Feats_Items_FeatFromFeatEntityMapper;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatDetailsBlockEntity, GetFeatById_Feats_Items_Details_FeatDetailsBlock> _getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper;
-
         public GetFeatByIdResultFactory(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatEntity, GetFeatById_Feats_Items_Feat> getFeatById_Feats_Items_FeatFromFeatEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatDetailsBlockEntity, GetFeatById_Feats_Items_Details_FeatDetailsBlock> getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -589,7 +650,6 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IGetFeatByIdResult);
-
         public GetFeatByIdResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -612,7 +672,7 @@ namespace Foo.Bar.State
                 return null;
             }
 
-            IGetFeatById_Feats returnValue = default!;
+            IGetFeatById_Feats returnValue = default !;
             if (data?.__typename.Equals("FeatCollectionSegment", global::System.StringComparison.Ordinal) ?? false)
             {
                 returnValue = new GetFeatById_Feats_FeatCollectionSegment(MapIGetFeatById_Feats_ItemsArray(data.Items, snapshot));
@@ -694,7 +754,6 @@ namespace Foo.Bar.State
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
         private readonly global::System.UInt64 _version;
-
         public GetFeatByIdResultInfo(global::Foo.Bar.State.FeatCollectionSegmentData? feats, global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds, global::System.UInt64 version)
         {
             Feats = feats;
@@ -702,12 +761,13 @@ namespace Foo.Bar.State
             _version = version;
         }
 
-        public global::Foo.Bar.State.FeatCollectionSegmentData? Feats { get; }
+        public global::Foo.Bar.State.FeatCollectionSegmentData? Feats
+        {
+            get;
+        }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
-
         public global::System.UInt64 Version => _version;
-
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new GetFeatByIdResultInfo(Feats, _entityIds, version);
@@ -720,7 +780,6 @@ namespace Foo.Bar.State
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatDetailsBlockEntity, GetFeatById_Feats_Items_Details_FeatDetailsBlock> _getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper;
-
         public GetFeatById_Feats_Items_FeatFromFeatEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatDetailsBlockEntity, GetFeatById_Feats_Items_Details_FeatDetailsBlock> getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -769,7 +828,6 @@ namespace Foo.Bar.State
     public partial class GetFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatDetailsBlockEntity, GetFeatById_Feats_Items_Details_FeatDetailsBlock>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-
         public GetFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -796,7 +854,6 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Guid, global::System.Guid> _uuidParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
-
         public GetFeatByIdBuilder(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer idSerializer, global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetFeatByIdResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -828,7 +885,7 @@ namespace Foo.Bar.State
             }
             catch (global::System.Exception ex)
             {
-                errors = new global::StrawberryShake.IClientError[] { new global::StrawberryShake.ClientError(ex.Message, exception: ex) };
+                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex)};
             }
 
             return new global::StrawberryShake.OperationResult<IGetFeatByIdResult>(data?.Result, data?.Info, _resultDataFactory, errors);
@@ -837,9 +894,10 @@ namespace Foo.Bar.State
         private (IGetFeatByIdResult, GetFeatByIdResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
-            global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
-            global::Foo.Bar.State.FeatCollectionSegmentData? featsId = default!;
-            _entityStore.Update(session => {
+            global::StrawberryShake.IEntityStoreSnapshot snapshot = default !;
+            global::Foo.Bar.State.FeatCollectionSegmentData? featsId = default !;
+            _entityStore.Update(session =>
+            {
                 featsId = DeserializeIGetFeatById_Feats(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "feats"), entityIds);
                 snapshot = session.CurrentSnapshot;
             });
@@ -988,9 +1046,15 @@ namespace Foo.Bar.State
             Items = items;
         }
 
-        public global::System.String __typename { get; }
+        public global::System.String __typename
+        {
+            get;
+        }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Items { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Items
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
@@ -998,27 +1062,24 @@ namespace Foo.Bar.State
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
-        { Indented = false };
-
+        {Indented = false};
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;
             return __typename switch
             {
-                "Feat" => ParseFeatEntityId(obj, __typename),
-                "FeatDetailsBlock" => ParseFeatDetailsBlockEntityId(obj, __typename),
-                _ => throw new global::System.NotSupportedException()
-            };
+            "Feat" => ParseFeatEntityId(obj, __typename), "FeatDetailsBlock" => ParseFeatDetailsBlockEntityId(obj, __typename), _ => throw new global::System.NotSupportedException()}
+
+            ;
         }
 
         public global::System.String Format(global::StrawberryShake.EntityId entityId)
         {
             return entityId.Name switch
             {
-                "Feat" => FormatFeatEntityId(entityId),
-                "FeatDetailsBlock" => FormatFeatDetailsBlockEntityId(entityId),
-                _ => throw new global::System.NotSupportedException()
-            };
+            "Feat" => FormatFeatEntityId(entityId), "FeatDetailsBlock" => FormatFeatDetailsBlockEntityId(entityId), _ => throw new global::System.NotSupportedException()}
+
+            ;
         }
 
         private global::StrawberryShake.EntityId ParseFeatEntityId(global::System.Text.Json.JsonElement obj, global::System.String type)
@@ -1060,7 +1121,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClientStoreAccessor : global::StrawberryShake.StoreAccessor
     {
-        public FooClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories) : base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
+        public FooClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories): base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
         {
         }
     }
@@ -1074,7 +1135,8 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => {
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp =>
+            {
                 var serviceCollection = ConfigureClientDefault(sp, strategy);
                 return new ClientServiceProvider(global::Microsoft.Extensions.DependencyInjection.ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(serviceCollection));
             });
@@ -1090,7 +1152,8 @@ namespace Microsoft.Extensions.DependencyInjection
             var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(services, sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => {
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp =>
+            {
                 var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
                 return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
             });
@@ -1128,7 +1191,6 @@ namespace Microsoft.Extensions.DependencyInjection
         private class ClientServiceProvider : System.IServiceProvider, System.IDisposable
         {
             private readonly System.IServiceProvider _provider;
-
             public ClientServiceProvider(System.IServiceProvider provider)
             {
                 _provider = provider;
