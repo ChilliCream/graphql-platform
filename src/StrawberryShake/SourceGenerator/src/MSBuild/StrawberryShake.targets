@@ -8,7 +8,7 @@
     <StrawberryShake_DesignTimeBuild Condition="$(IsOmniSharp)">false</StrawberryShake_DesignTimeBuild>
     <StrawberryShake_DefaultNamespace Condition="'$(StrawberryShake_DefaultNamespace)' == ''">$(RootNamespace)</StrawberryShake_DefaultNamespace>
     <StrawberryShake_DefaultNamespace Condition="'$(StrawberryShake_DefaultNamespace)' == ''">$(AssemblyName)</StrawberryShake_DefaultNamespace>
-    <StrawberryShake_State>$(BaseIntermediateOutputPath)\berry</StrawberryShake_State>
+    <StrawberryShake_State Condition="'$(StrawberryShake_State)' == '' AND '$(BaseIntermediateOutputPath)' != ''">$(BaseIntermediateOutputPath)\berry</StrawberryShake_State>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)VSCode.targets" Condition="'$(IsOmniSharp)' == 'true'" />

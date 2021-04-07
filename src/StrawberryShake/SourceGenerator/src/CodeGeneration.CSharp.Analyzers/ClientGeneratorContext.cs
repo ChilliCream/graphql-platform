@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using DotNet.Globbing;
 using HotChocolate;
+using HotChocolate.Language;
 using IOPath = System.IO.Path;
 using static StrawberryShake.CodeGeneration.ErrorHelper;
 using static StrawberryShake.CodeGeneration.CSharp.Analyzers.SourceGeneratorErrorCodes;
@@ -14,8 +17,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 {
     public class ClientGeneratorContext
     {
+        private readonly MD5DocumentHashProvider _hashProvider = new(HashFormat.Hex);
         private readonly IReadOnlyList<string> _allDocuments;
         private IReadOnlyList<string>? _documents;
+        private string? _stateDirectory;
 
         public ClientGeneratorContext(
             GeneratorExecutionContext execution,
@@ -138,21 +143,31 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         public string? GetStateDirectory()
         {
+            if (_stateDirectory is not null)
+            {
+                return _stateDirectory;
+            }
+
             if (Execution.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
                 "build_property.StrawberryShake_State",
                 out string? value) &&
                 !string.IsNullOrEmpty(value))
             {
-                if (!Directory.Exists(value))
-                {
-                    Directory.CreateDirectory(value);
-                }
-
-                return value;
+                _stateDirectory = value;
+            }
+            else
+            {
+                string hash = _hashProvider.ComputeHash(
+                    Encoding.UTF8.GetBytes($"{Settings.Namespace}.{Settings.Name}"));
+                _stateDirectory = IOPath.Combine(IOPath.GetTempPath(), hash);
             }
 
-            throw new GraphQLException(
-                $"The MSBuild property `StrawberryShake_State` cannot be empty.");
+            if (!Directory.Exists(_stateDirectory))
+            {
+                Directory.CreateDirectory(_stateDirectory);
+            }
+
+            return _stateDirectory;
         }
     }
 }
