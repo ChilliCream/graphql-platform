@@ -47,10 +47,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         public void Initialize(GeneratorInitializationContext context)
         {
+            context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
         }
 
         public void Execute(GeneratorExecutionContext context)
         {
+            var receiver = context.SyntaxReceiver;
+
             // if preconditions are not met we just stop and do not process any further.
             if (!EnsurePreconditionsAreMet(context))
             {
@@ -111,7 +114,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     ? new SingleFileDocumentWriter()
                     : new FileDocumentWriter();
 
-                foreach (SourceDocument document in 
+                foreach (SourceDocument document in
                     result.Documents.Where(t => t.Kind == SourceDocumentKind.CSharp))
                 {
                     writer.WriteDocument(context, document);
@@ -392,5 +395,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
             return _location;
         }
-    }    
+    }
+
+    public class SyntaxReceiver : ISyntaxReceiver
+    {
+        public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
+        {
+        }
+    }
 }
