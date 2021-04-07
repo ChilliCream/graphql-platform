@@ -20,6 +20,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
     public class CSharpClientGenerator : ISourceGenerator
     {
         private const string _category = "StrawberryShakeGenerator";
+        private readonly MD5DocumentHashProvider _hashProvider = new();
 
         private static string _location = System.IO.Path.GetDirectoryName(
             typeof(CSharpClientGenerator).Assembly.Location)!;
@@ -94,8 +95,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         {
             try
             {
-                CreateDirectoryIfNotExists(context.OutputDirectory);
-
                 if (!TryGenerateClient(context, out CSharpGeneratorResult? result))
                 {
                     // there were unexpected errors and we will stop generating this client.
@@ -157,14 +156,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             string documentName = document.Hash + ".graphql";
             string fileName = IOPath.Combine(persistedQueryDirectory, documentName);
 
-            context.Log.WriteDocument(documentName);
-
-            if (File.Exists(fileName))
+            // we only write the file if it does not exist to not trigger
+            // dotnet watch.
+            if (!File.Exists(fileName))
             {
-                File.Delete(fileName);
+                context.Log.WriteDocument(documentName);
+                File.WriteAllText(fileName, document.SourceText, Encoding.UTF8);
             }
-
-            File.WriteAllText(fileName, document.SourceText, Encoding.UTF8);
         }
 
         private void Clean(ClientGeneratorContext context)
@@ -361,14 +359,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 .Select(t => t.Path)
                 .Where(t => IOPath.GetFileName(t).EqualsOrdinal(".graphqlrc.json"))
                 .ToList();
-
-        private void CreateDirectoryIfNotExists(string? directory)
-        {
-            if (!Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-        }
 
         private ILogger CreateLogger(GeneratorExecutionContext context)
         {
