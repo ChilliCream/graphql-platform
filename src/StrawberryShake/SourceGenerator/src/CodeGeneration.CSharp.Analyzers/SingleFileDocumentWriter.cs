@@ -81,6 +81,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     }
 
                     File.WriteAllText(_fileName, _content.ToString(), Encoding.UTF8);
+                    File.WriteAllText(_hashFile, currentHash, Encoding.UTF8);
                 }
             }
         }
