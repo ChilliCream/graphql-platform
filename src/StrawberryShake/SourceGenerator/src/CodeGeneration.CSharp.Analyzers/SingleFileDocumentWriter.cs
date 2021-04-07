@@ -11,7 +11,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
     public class SingleFileDocumentWriter : IDocumentWriter
     {
         private readonly StringBuilder _content = new();
-        private readonly MD5DocumentHashProvider _hashProvider = new();
+        private readonly MD5DocumentHashProvider _hashProvider = new(HashFormat.Hex);
         private GeneratorExecutionContext? _execution;
         private string? _fileName;
         private string? _hashFile;
