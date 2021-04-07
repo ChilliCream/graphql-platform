@@ -835,7 +835,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ListingsPayloadData
     {
-        public ListingsPayloadData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IListingData>? items)
+        public ListingsPayloadData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IListingData>? items = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Items = items;
@@ -866,7 +866,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class AuctionData : IListingData
     {
-        public AuctionData(global::System.String __typename, global::System.String? listingId, global::System.Int32? startingPrice)
+        public AuctionData(global::System.String __typename, global::System.String? listingId = default !, global::System.Int32? startingPrice = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             ListingId = listingId;
@@ -893,7 +893,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class OfferData : IListingData
     {
-        public OfferData(global::System.String __typename, global::System.String? listingId, global::System.Int32? price)
+        public OfferData(global::System.String __typename, global::System.String? listingId = default !, global::System.Int32? price = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             ListingId = listingId;

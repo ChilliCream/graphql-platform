@@ -502,7 +502,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnIn
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DroidEntity
     {
-        public DroidEntity(global::System.String __typename)
+        public DroidEntity(global::System.String __typename = default !)
         {
             this.__typename = __typename;
         }
@@ -518,7 +518,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnIn
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class HumanEntity
     {
-        public HumanEntity(global::System.String __typename)
+        public HumanEntity(global::System.String __typename = default !)
         {
             this.__typename = __typename;
         }

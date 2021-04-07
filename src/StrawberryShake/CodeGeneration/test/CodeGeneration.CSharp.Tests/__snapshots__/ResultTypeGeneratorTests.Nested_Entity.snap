@@ -751,7 +751,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class VehicleMakeEntity
     {
-        public VehicleMakeEntity(global::System.Guid id, global::System.String? make, global::System.String? makeCode, global::System.Boolean isDisabled)
+        public VehicleMakeEntity(global::System.Guid id = default !, global::System.String? make = default !, global::System.String? makeCode = default !, global::System.Boolean isDisabled = default !)
         {
             Id = id;
             Make = make;
@@ -784,7 +784,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class VehicleModelEntity
     {
-        public VehicleModelEntity(global::System.Guid id, global::System.String? model, global::System.String? modelCode, global::System.Guid vehicleMakeId, global::System.Boolean isDisabled, global::System.String? modelType)
+        public VehicleModelEntity(global::System.Guid id = default !, global::System.String? model = default !, global::System.String? modelCode = default !, global::System.Guid vehicleMakeId = default !, global::System.Boolean isDisabled = default !, global::System.String? modelType = default !)
         {
             Id = id;
             Model = model;
@@ -1138,7 +1138,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DecodeVINData
     {
-        public DecodeVINData(global::System.String __typename, global::System.Boolean? isValid, global::StrawberryShake.EntityId? vehicleMake, global::StrawberryShake.EntityId? vehicleModel)
+        public DecodeVINData(global::System.String __typename, global::System.Boolean? isValid = default !, global::StrawberryShake.EntityId? vehicleMake = default !, global::StrawberryShake.EntityId? vehicleModel = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             IsValid = isValid;

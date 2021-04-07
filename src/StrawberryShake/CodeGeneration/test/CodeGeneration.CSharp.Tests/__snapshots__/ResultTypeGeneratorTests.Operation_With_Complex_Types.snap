@@ -1064,7 +1064,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class BazData
     {
-        public BazData(global::System.String __typename, global::System.String? str, global::System.String? strNonNullable, global::Foo.Bar.State.BazData? nested, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData>? nestedList, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData?>?>? nestedMatrix)
+        public BazData(global::System.String __typename, global::System.String? str = default !, global::System.String? strNonNullable = default !, global::Foo.Bar.State.BazData? nested = default !, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData>? nestedList = default !, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData?>?>? nestedMatrix = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Str = str;

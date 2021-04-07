@@ -732,7 +732,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FooNotificationData
     {
-        public FooNotificationData(global::System.String __typename, global::System.String? action, global::Foo.Bar.State.FooNotificationDataData? data)
+        public FooNotificationData(global::System.String __typename, global::System.String? action = default !, global::Foo.Bar.State.FooNotificationDataData? data = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Action = action;
@@ -759,7 +759,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FooNotificationDataData
     {
-        public FooNotificationDataData(global::System.String __typename, global::System.String? barGUID, global::System.String? thingGUID, global::System.String? thingDATE, global::System.String? thingSTATUS, global::System.String? fooGUID, global::System.String? fooAUTHOR, global::System.String? fooDATE, global::System.String? fooTEXT)
+        public FooNotificationDataData(global::System.String __typename, global::System.String? barGUID = default !, global::System.String? thingGUID = default !, global::System.String? thingDATE = default !, global::System.String? thingSTATUS = default !, global::System.String? fooGUID = default !, global::System.String? fooAUTHOR = default !, global::System.String? fooDATE = default !, global::System.String? fooTEXT = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             BarGUID = barGUID;

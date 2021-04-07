@@ -607,7 +607,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FeatEntity
     {
-        public FeatEntity(global::System.String name, global::System.Int32 level, global::System.Boolean canBeLearnedMoreThanOnce, global::StrawberryShake.EntityId actionType)
+        public FeatEntity(global::System.String name = default !, global::System.Int32 level = default !, global::System.Boolean canBeLearnedMoreThanOnce = default !, global::StrawberryShake.EntityId actionType = default !)
         {
             Name = name;
             Level = level;
@@ -640,7 +640,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ActionTypeEntity
     {
-        public ActionTypeEntity(global::System.String name)
+        public ActionTypeEntity(global::System.String name = default !)
         {
             Name = name;
         }
@@ -1008,7 +1008,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FeatCollectionSegmentData
     {
-        public FeatCollectionSegmentData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? items)
+        public FeatCollectionSegmentData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? items = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Items = items;

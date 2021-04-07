@@ -654,7 +654,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial record SearchableStoreEntity
     {
-        public SearchableStoreEntity(global::System.String id, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BookData?>? books, global::Foo.Bar.State.ISearchResultData? search)
+        public SearchableStoreEntity(global::System.String id = default !, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BookData?>? books = default !, global::Foo.Bar.State.ISearchResultData? search = default !)
         {
             Id = id;
             Books = books;
@@ -1002,7 +1002,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial record BookData : ISearchResultData, IPrintData
     {
-        public BookData(global::System.String __typename, global::System.String? isbn, global::System.String? title)
+        public BookData(global::System.String __typename, global::System.String? isbn = default !, global::System.String? title = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Isbn = isbn;

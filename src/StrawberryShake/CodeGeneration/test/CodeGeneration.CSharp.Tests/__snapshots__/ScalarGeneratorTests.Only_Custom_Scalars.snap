@@ -489,7 +489,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class PersonData
     {
-        public PersonData(global::System.String __typename, global::System.String? email)
+        public PersonData(global::System.String __typename, global::System.String? email = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Email = email;

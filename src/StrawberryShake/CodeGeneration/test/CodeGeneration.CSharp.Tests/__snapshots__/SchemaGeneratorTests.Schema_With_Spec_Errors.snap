@@ -509,7 +509,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ListingsPayloadData
     {
-        public ListingsPayloadData(global::System.String __typename, global::System.Int32? count)
+        public ListingsPayloadData(global::System.String __typename, global::System.Int32? count = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Count = count;

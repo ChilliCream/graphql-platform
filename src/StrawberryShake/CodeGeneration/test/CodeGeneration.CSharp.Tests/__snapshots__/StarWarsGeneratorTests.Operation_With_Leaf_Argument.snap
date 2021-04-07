@@ -505,7 +505,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DroidEntity
     {
-        public DroidEntity(global::System.String name, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Episode?>? appearsIn)
+        public DroidEntity(global::System.String name = default !, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Episode?>? appearsIn = default !)
         {
             Name = name;
             AppearsIn = appearsIn;
@@ -526,7 +526,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class HumanEntity
     {
-        public HumanEntity(global::System.String name, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Episode?>? appearsIn)
+        public HumanEntity(global::System.String name = default !, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Episode?>? appearsIn = default !)
         {
             Name = name;
             AppearsIn = appearsIn;

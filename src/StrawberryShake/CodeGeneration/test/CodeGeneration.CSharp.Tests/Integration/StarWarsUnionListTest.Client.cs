@@ -919,7 +919,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class HumanEntity
     {
-        public HumanEntity(global::System.String name, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.State.CharacterConnectionData? friends)
+        public HumanEntity(global::System.String name = default !, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.State.CharacterConnectionData? friends = default !)
         {
             Name = name;
             Friends = friends;
@@ -940,7 +940,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DroidEntity
     {
-        public DroidEntity(global::System.String name)
+        public DroidEntity(global::System.String name = default !)
         {
             Name = name;
         }
@@ -1436,7 +1436,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class CharacterConnectionData
     {
-        public CharacterConnectionData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes)
+        public CharacterConnectionData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Nodes = nodes;

@@ -506,7 +506,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class NewsItemEntity
     {
-        public NewsItemEntity(global::System.String id, global::System.String title, global::System.String summary)
+        public NewsItemEntity(global::System.String id = default !, global::System.String title = default !, global::System.String summary = default !)
         {
             Id = id;
             Title = title;
@@ -795,7 +795,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class NewsItemCollectionSegmentData
     {
-        public NewsItemCollectionSegmentData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? items)
+        public NewsItemCollectionSegmentData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? items = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Items = items;

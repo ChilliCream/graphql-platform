@@ -858,7 +858,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DroidEntity
     {
-        public DroidEntity(global::System.String name, global::System.String? primaryFunction, global::Foo.Bar.State.CharacterConnectionData? friends)
+        public DroidEntity(global::System.String name = default !, global::System.String? primaryFunction = default !, global::Foo.Bar.State.CharacterConnectionData? friends = default !)
         {
             Name = name;
             PrimaryFunction = primaryFunction;
@@ -885,7 +885,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class HumanEntity
     {
-        public HumanEntity(global::System.String name, global::System.String? homePlanet, global::Foo.Bar.State.CharacterConnectionData? friends)
+        public HumanEntity(global::System.String name = default !, global::System.String? homePlanet = default !, global::Foo.Bar.State.CharacterConnectionData? friends = default !)
         {
             Name = name;
             HomePlanet = homePlanet;
@@ -1389,7 +1389,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class CharacterConnectionData
     {
-        public CharacterConnectionData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes)
+        public CharacterConnectionData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Nodes = nodes;

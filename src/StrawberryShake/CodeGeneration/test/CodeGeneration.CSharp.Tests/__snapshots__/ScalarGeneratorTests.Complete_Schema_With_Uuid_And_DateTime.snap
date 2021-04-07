@@ -619,7 +619,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ExpenseEntity
     {
-        public ExpenseEntity(global::System.Guid id, global::System.Decimal amount, global::System.DateTimeOffset date, global::System.String? description, global::Foo.Bar.ExpenseCategory category, global::Foo.Bar.PaymentMethod paymentMethod, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.TagData?>? tags)
+        public ExpenseEntity(global::System.Guid id = default !, global::System.Decimal amount = default !, global::System.DateTimeOffset date = default !, global::System.String? description = default !, global::Foo.Bar.ExpenseCategory category = default !, global::Foo.Bar.PaymentMethod paymentMethod = default !, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.TagData?>? tags = default !)
         {
             Id = id;
             Amount = amount;
@@ -1020,7 +1020,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class TagData
     {
-        public TagData(global::System.String __typename, global::System.String? name)
+        public TagData(global::System.String __typename, global::System.String? name = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Name = name;

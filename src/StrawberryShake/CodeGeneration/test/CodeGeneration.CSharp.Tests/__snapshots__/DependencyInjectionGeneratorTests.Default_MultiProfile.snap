@@ -913,7 +913,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class PersonEntity
     {
-        public PersonEntity(global::System.String name)
+        public PersonEntity(global::System.String name = default !)
         {
             Name = name;
         }

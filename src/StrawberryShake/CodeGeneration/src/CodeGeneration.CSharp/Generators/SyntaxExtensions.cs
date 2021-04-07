@@ -180,7 +180,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         public static ConstructorDeclarationSyntax AddStateParameter(
             this ConstructorDeclarationSyntax constructor,
             PropertyDescriptor property) =>
-            AddParameter(constructor, property.Name, property.Type.ToStateTypeSyntax());
+            AddParameter(
+                constructor, 
+                property.Name, 
+                property.Type.ToStateTypeSyntax(), 
+                withNullDefault: true);
 
         public static ConstructorDeclarationSyntax AddTypeParameter(
             this ConstructorDeclarationSyntax constructor) =>
@@ -194,7 +198,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             this ConstructorDeclarationSyntax constructor,
             string name,
             TypeSyntax typeSyntax,
-            bool assertNotNull = false)
+            bool assertNotNull = false,
+            bool withNullDefault = false)
         {
             string paramName;
             string propertyName;
@@ -210,10 +215,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 propertyName = name;
             }
 
+            var parameter = Parameter(Identifier(paramName)).WithType(typeSyntax);
+
+            if (withNullDefault)
+            {
+                parameter =
+                    parameter.WithDefault(
+                        EqualsValueClause(
+                            PostfixUnaryExpression(
+                                SyntaxKind.SuppressNullableWarningExpression,
+                                LiteralExpression(
+                                    SyntaxKind.DefaultLiteralExpression,
+                                    Token(SyntaxKind.DefaultKeyword)))));
+            }
+
             return constructor
-                .AddParameterListParameters(
-                    Parameter(Identifier(paramName))
-                        .WithType(typeSyntax))
+                .AddParameterListParameters(parameter)
                 .AssignParameter(propertyName, paramName, assertNotNull);
         }
 

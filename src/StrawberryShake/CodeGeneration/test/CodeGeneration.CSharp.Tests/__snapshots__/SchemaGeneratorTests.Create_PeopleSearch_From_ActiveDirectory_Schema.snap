@@ -1102,7 +1102,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class PersonEntity
     {
-        public PersonEntity(global::System.String id, global::System.Int64 key, global::System.String? displayName, global::System.Boolean isActive, global::StrawberryShake.EntityId? department, global::System.Uri? image, global::System.String title, global::StrawberryShake.EntityId? manager)
+        public PersonEntity(global::System.String id = default !, global::System.Int64 key = default !, global::System.String? displayName = default !, global::System.Boolean isActive = default !, global::StrawberryShake.EntityId? department = default !, global::System.Uri? image = default !, global::System.String title = default !, global::StrawberryShake.EntityId? manager = default !)
         {
             Id = id;
             Key = key;
@@ -1166,7 +1166,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DepartmentEntity
     {
-        public DepartmentEntity(global::System.String id, global::System.String name)
+        public DepartmentEntity(global::System.String id = default !, global::System.String name = default !)
         {
             Id = id;
             Name = name;
@@ -1697,7 +1697,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class PersonCollectionSegmentData
     {
-        public PersonCollectionSegmentData(global::System.String __typename, global::System.Int32? totalCount, global::Foo.Bar.State.CollectionSegmentInfoData? pageInfo, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? items)
+        public PersonCollectionSegmentData(global::System.String __typename, global::System.Int32? totalCount = default !, global::Foo.Bar.State.CollectionSegmentInfoData? pageInfo = default !, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? items = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             TotalCount = totalCount;
@@ -1732,7 +1732,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class CollectionSegmentInfoData
     {
-        public CollectionSegmentInfoData(global::System.String __typename, global::System.Boolean? hasNextPage, global::System.Boolean? hasPreviousPage)
+        public CollectionSegmentInfoData(global::System.String __typename, global::System.Boolean? hasNextPage = default !, global::System.Boolean? hasPreviousPage = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             HasNextPage = hasNextPage;

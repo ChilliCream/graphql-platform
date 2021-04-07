@@ -819,7 +819,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ProjectMutationsData
     {
-        public ProjectMutationsData(global::System.String __typename, global::Foo.Bar.State.MutationResultData? updateMembers)
+        public ProjectMutationsData(global::System.String __typename, global::Foo.Bar.State.MutationResultData? updateMembers = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             UpdateMembers = updateMembers;
@@ -841,7 +841,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class MutationResultData
     {
-        public MutationResultData(global::System.String __typename, global::System.Guid? correlationId)
+        public MutationResultData(global::System.String __typename, global::System.Guid? correlationId = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             CorrelationId = correlationId;

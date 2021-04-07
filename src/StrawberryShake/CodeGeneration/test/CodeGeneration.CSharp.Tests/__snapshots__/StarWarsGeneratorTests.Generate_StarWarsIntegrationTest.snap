@@ -909,7 +909,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ReviewData
     {
-        public ReviewData(global::System.String __typename, global::System.Int32? stars)
+        public ReviewData(global::System.String __typename, global::System.Int32? stars = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Stars = stars;
