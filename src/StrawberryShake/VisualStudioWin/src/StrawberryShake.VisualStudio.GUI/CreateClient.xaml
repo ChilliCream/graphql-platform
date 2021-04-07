@@ -1,0 +1,48 @@
+<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:StrawberryShake.VisualStudio.GUI"
+        xmlns:System="clr-namespace:System;assembly=mscorlib" x:Class="StrawberryShake.VisualStudio.GUI.CreateClient"
+        mc:Ignorable="d"
+        Title="Add GraphQL Client" Height="620.92" Width="634.929" ResizeMode="NoResize" WindowStartupLocation="CenterOwner">
+  <Grid>
+    <Image HorizontalAlignment="Left" Height="208" Margin="10,10,0,0" VerticalAlignment="Top" Width="204" Source="strawberryshake-signet.png"/>
+    <TextBlock HorizontalAlignment="Left" Margin="219,12,0,0" TextWrapping="Wrap" Text="Add GraphQL Client" VerticalAlignment="Top" FontSize="24" FontWeight="Bold" Grid.ColumnSpan="2" Height="32" Width="225"/>
+
+    <RadioButton Content="" HorizontalAlignment="Left" Margin="221,89,0,0" VerticalAlignment="Top" Height="15" Width="19" IsChecked="{Binding UseServerUrl}"/>
+    <Label Content="GraphQL Server URL" HorizontalAlignment="Left" Margin="240,80,0,0" VerticalAlignment="Top" FontSize="14" RenderTransformOrigin="0.55,-0.483" Height="28" Width="136"/>
+    <TextBox HorizontalAlignment="Left" Height="28" Margin="240,108,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="320" FontSize="14" Text="{Binding ServerUrl}" IsEnabled="{Binding UseServerUrl}"/>
+    <Button Content="..." HorizontalAlignment="Left" Margin="565,108,0,0" VerticalAlignment="Top" Width="37" Height="28" Click="HttpDetails_Click" IsEnabled="{Binding UseServerUrl}"/>
+
+    <RadioButton Content="" HorizontalAlignment="Left" Margin="221,150,0,0" VerticalAlignment="Top" Height="15" Width="19"/>
+    <Label Content="GraphQL Schema File" HorizontalAlignment="Left" Margin="240,141,0,0" VerticalAlignment="Top" FontSize="14" Height="29" Width="142"/>
+    <TextBox HorizontalAlignment="Left" Height="28" Margin="240,169,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="320" FontSize="14" Grid.ColumnSpan="2"  Text="{Binding SchemaFile}" IsEnabled="{Binding UseSchemaFile}"/>
+    <Button Content="..." HorizontalAlignment="Left" Margin="565,169,0,0" VerticalAlignment="Top" Width="37" Height="28" Click="OpenFile_Click" IsEnabled="{Binding UseSchemaFile}"/>
+
+    <Label Content="Client Name" HorizontalAlignment="Left" Margin="240,202,0,0" VerticalAlignment="Top" FontSize="14" RenderTransformOrigin="0.55,-0.483" Height="29" Width="142"/>
+    <TextBox HorizontalAlignment="Left" Height="28" Margin="240,230,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="362" FontSize="14" RenderTransformOrigin="0.489,0.475" Text="StarWars" />
+    <CheckBox Content="Create Client Folder" HorizontalAlignment="Left" Margin="240,275,0,0" VerticalAlignment="Top" Width="171" Height="15" IsChecked="{Binding UseHttpTransport}"/>
+
+    <Label Content="Access Modifier" HorizontalAlignment="Left" Margin="240,311,0,0" VerticalAlignment="Top" FontSize="14" Height="28" Width="108"/>
+    <ComboBox HorizontalAlignment="Left" Margin="240,339,0,0" VerticalAlignment="Top" Width="362" FontSize="14" SelectedIndex="0" Height="28" IsEnabled="False">
+      <System:String>Public</System:String>
+      <System:String>Public Models / Internal Client</System:String>
+      <System:String>Internal</System:String>
+    </ComboBox>
+
+    <CheckBox Content="" HorizontalAlignment="Left" Margin="220,381,0,0" VerticalAlignment="Top" Width="17" Height="15" IsChecked="{Binding UseCustomNamespace}"/>
+    <Label Content="Namespace" HorizontalAlignment="Left" Margin="243,372,0,0" VerticalAlignment="Top" FontSize="14" Height="29" Width="82"/>
+    <TextBox HorizontalAlignment="Left" Height="28" Margin="240,401,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="362" FontSize="14" IsEnabled="{Binding UseCustomNamespace}" Text="{Binding CustomNamespace}"/>
+
+    <CheckBox Content="" HorizontalAlignment="Left" Margin="220,442,0,0" VerticalAlignment="Top" Width="17" IsChecked="True" Height="15" IsEnabled="False"/>
+    <Label Content="Depnedency Injection" HorizontalAlignment="Left" Margin="240,434,0,0" VerticalAlignment="Top" FontSize="14" Height="29" Width="192"/>
+    <ComboBox HorizontalAlignment="Left" Margin="240,462,0,0" VerticalAlignment="Top" Width="362" FontSize="14" Height="28" SelectedIndex="0" IsEnabled="False">
+      <System:String>Microsoft DI</System:String>
+    </ComboBox>
+
+    <Button Content="OK" HorizontalAlignment="Left" Margin="381,537,0,0" VerticalAlignment="Top" Width="108" FontSize="14" Height="28" Command="" />
+    <Button Content="Cancel" HorizontalAlignment="Left" Margin="494,537,0,0" VerticalAlignment="Top" Width="108" FontSize="14" Height="28" Click="Cancel_Click"/>
+  </Grid>
+</Window>

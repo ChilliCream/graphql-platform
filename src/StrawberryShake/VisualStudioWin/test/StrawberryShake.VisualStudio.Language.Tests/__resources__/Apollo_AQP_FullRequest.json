@@ -1,0 +1,11 @@
+{
+  "operationName": null,
+  "variables": {},
+  "extensions": {
+    "persistedQuery": {
+      "version": 1,
+      "sha256Hash": "0f1dbd90e1cf63cc96c4ebb3d0a9813ee387be56bc291704d8b46d68283d0847"
+    }
+  },
+  "query": "{\n  Services {\n    id\n    name\n    domain\n    poc\n    owner\n    description\n    tags\n    versions {\n      notes\n      version\n      state\n      url\n      dependencies {\n        id\n        name\n        domain\n        poc\n        owner\n        description\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n"
+}
