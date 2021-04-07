@@ -108,7 +108,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 out string? value) &&
                 !string.IsNullOrEmpty(value))
             {
-                return  $"{value}.GraphQL";
+                return value;
             }
 
             throw new GraphQLException(
