@@ -1,8 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -12,32 +16,6 @@ namespace HotChocolate.Types.Relay
 {
     public class IdAttributeTests
     {
-        private const string OnArgumentsQuery =
-            @"query foo (
-                $intId: ID!
-                $nullIntId: ID = null
-                $stringId: ID!
-                $nullStringId: ID = null
-                $guidId: ID!
-                $nullGuidId: ID = null)
-            {
-                intId(id: $intId)
-                nullableIntId(id: $intId)
-                nullableIntIdGivenNull: nullableIntId(id: $nullIntId)
-                intIdList(id: [$intId])
-                nullableIntIdList(id: [$intId, $nullIntId])
-                stringId(id: $stringId)
-                nullableStringId(id: $stringId)
-                nullableStringIdGivenNull: nullableStringId(id: $nullStringId)
-                stringIdList(id: [$stringId])
-                nullableStringIdList(id: [$stringId, $nullStringId])
-                guidId(id: $guidId)
-                nullableGuidId(id: $guidId)
-                nullableGuidIdGivenNull: nullableGuidId(id: $nullGuidId)
-                guidIdList(id: [$guidId $guidId])
-                nullableGuidIdList(id: [$guidId $nullGuidId $guidId])
-            }";
-
         [Fact]
         public async Task Id_On_Arguments()
         {
@@ -56,7 +34,30 @@ namespace HotChocolate.Types.Relay
                     .MakeExecutable()
                     .ExecuteAsync(
                         QueryRequestBuilder.New()
-                            .SetQuery(OnArgumentsQuery)
+                            .SetQuery(@"query foo (
+                                $intId: ID!
+                                $nullIntId: ID = null
+                                $stringId: ID!
+                                $nullStringId: ID = null
+                                $guidId: ID!
+                                $nullGuidId: ID = null)
+                            {
+                                intId(id: $intId)
+                                nullableIntId(id: $intId)
+                                nullableIntIdGivenNull: nullableIntId(id: $nullIntId)
+                                intIdList(id: [$intId])
+                                nullableIntIdList(id: [$intId, $nullIntId])
+                                stringId(id: $stringId)
+                                nullableStringId(id: $stringId)
+                                nullableStringIdGivenNull: nullableStringId(id: $nullStringId)
+                                stringIdList(id: [$stringId])
+                                nullableStringIdList(id: [$stringId, $nullStringId])
+                                guidId(id: $guidId)
+                                nullableGuidId(id: $guidId)
+                                nullableGuidIdGivenNull: nullableGuidId(id: $nullGuidId)
+                                guidIdList(id: [$guidId $guidId])
+                                nullableGuidIdList(id: [$guidId $nullGuidId $guidId])
+                            }")
                             .SetVariableValue("intId", intId)
                             .SetVariableValue("stringId", stringId)
                             .SetVariableValue("guidId", guidId)
@@ -67,11 +68,9 @@ namespace HotChocolate.Types.Relay
         }
 
         [Fact]
-        public async Task PolyId_On_Arguments()
+        public async Task InterceptedId_On_Arguments()
         {
             // arrange
-            var intId = 1;
-            var stringId = "abc";
             var guidId = new Guid("26a2dc8f-4dab-408c-88c6-523a0a89a2b5");
 
             // act
@@ -79,15 +78,14 @@ namespace HotChocolate.Types.Relay
                 await SchemaBuilder.New()
                     .AddQueryType<Query>()
                     .AddType<FooPayload>()
-                    .TryAddTypeInterceptor<PolymorphicGlobalIdsTypeInterceptor>()
                     .Create()
                     .MakeExecutable()
                     .ExecuteAsync(
                         QueryRequestBuilder.New()
-                            .SetQuery(OnArgumentsQuery)
-                            .SetVariableValue("intId", intId)
-                            .SetVariableValue("stringId", stringId)
-                            .SetVariableValue("guidId", guidId.ToString())
+                            .SetQuery(@"query foo {
+                                interceptedId(id: 1)
+                                interceptedIds(id: [1, 2])
+                            }")
                             .Create());
 
             // assert
@@ -187,51 +185,43 @@ namespace HotChocolate.Types.Relay
         }
 
         [Fact]
-        public async Task PolyId_On_Objects()
+        public async Task InterceptedId_On_Objects()
         {
             // arrange
             var idSerializer = new IdSerializer();
-            var someId = "1";
-            var someIntId = 1;
+            var someId = idSerializer.Serialize("Some", "1");
+            var someIntId = idSerializer.Serialize("Some", 1);
+
+            IRequestExecutor executor = SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .AddType<FooPayload>()
+                .Create()
+                .MakeExecutable();
 
             // act
-            IExecutionResult result =
-                await SchemaBuilder.New()
-                    .AddQueryType<Query>()
-                    .AddType<FooPayload>()
-                    .TryAddTypeInterceptor<PolymorphicGlobalIdsTypeInterceptor>()
-                    .Create()
-                    .MakeExecutable()
-                    .ExecuteAsync(
-                        QueryRequestBuilder.New()
-                            .SetQuery(
-                                @"query foo ($someId: ID! $someIntId: ID!) {
-                                    foo(input: {
-                                        someId: $someId someIds: [$someIntId]
-                                        someNullableId: $someId someNullableIds: [$someIntId] })
-                                    {
-                                        someId
-                                        someNullableId
-                                        ... on FooPayload {
-                                            someIds
-                                            someNullableIds
-                                            raw
-                                        }
-                                    }
-                                }")
-                            .SetVariableValue("someId", someId)
-                            .SetVariableValue("someNullableId", null)
-                            .SetVariableValue("someIntId", someIntId)
-                            .SetVariableValue("someNullableIntId", null)
-                            .Create());
+            IExecutionResult result = await executor
+                .ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"query foo($someId: ID! $someIntId: ID!) {
+                                foo(input: {
+                                    someId: $someId
+                                    someIds: [$someIntId]
+                                    interceptedId: 1
+                                    interceptedIds: [1, 2] })
+                                {
+                                    someId
+                                    someIds
+                                    interceptedId
+                                    interceptedIds
+                                }
+                            }")
+                        .SetVariableValue("someId", someId)
+                        .SetVariableValue("someIntId", someIntId)
+                        .Create());
 
             // assert
-            new
-            {
-                result = result.ToJson(),
-                someId,
-                someIntId
-            }.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -316,7 +306,7 @@ namespace HotChocolate.Types.Relay
                 .MatchSnapshot();
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static")]
+        [SuppressMessage("Performance", "CA1822:Mark members as static")]
         public class Query
         {
             public string IntId([ID] int id) => id.ToString();
@@ -343,8 +333,18 @@ namespace HotChocolate.Types.Relay
             public string NullableGuidIdList([ID] IReadOnlyList<Guid?> id) =>
                 string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
 
+            public string InterceptedId([InterceptedID] [ID] int id) => id.ToString();
+            public string InterceptedIds([InterceptedID(IsList = true)] [ID] int[] id) =>
+                string.Join(", ", id.Select(t => t.ToString()));
+
             public IFooPayload Foo(FooInput input) =>
-                new FooPayload(input.SomeId, input.SomeNullableId, input.SomeIds, input.SomeNullableIds);
+                new FooPayload(
+                    input.SomeId,
+                    input.SomeNullableId,
+                    input.SomeIds,
+                    input.SomeNullableIds,
+                    input.InterceptedId,
+                    input.InterceptedIds);
         }
 
         public class FooInput
@@ -353,12 +353,16 @@ namespace HotChocolate.Types.Relay
                 string someId,
                 string? someNullableId,
                 IReadOnlyList<int> someIds,
-                IReadOnlyList<int?>? someNullableIds)
+                IReadOnlyList<int?>? someNullableIds,
+                int? interceptedId,
+                IReadOnlyList<int>? interceptedIds)
             {
                 SomeId = someId;
                 SomeNullableId = someNullableId;
                 SomeIds = someIds;
                 SomeNullableIds = someNullableIds;
+                InterceptedId = interceptedId;
+                InterceptedIds = interceptedIds;
             }
 
             [ID("Some")] public string SomeId { get; }
@@ -368,6 +372,12 @@ namespace HotChocolate.Types.Relay
             [ID("Some")] public IReadOnlyList<int> SomeIds { get; }
 
             [ID("Some")] public IReadOnlyList<int?>? SomeNullableIds { get; }
+
+            [ID, InterceptedID]
+            public int? InterceptedId { get; }
+
+            [ID, InterceptedID(IsList = true)]
+            public IReadOnlyList<int>? InterceptedIds { get; }
         }
 
         public class FooPayload : IFooPayload
@@ -376,12 +386,16 @@ namespace HotChocolate.Types.Relay
                 string someId,
                 string? someNullableId,
                 IReadOnlyList<int> someIds,
-                IReadOnlyList<int?>? someNullableIds)
+                IReadOnlyList<int?>? someNullableIds,
+                int? interceptedId,
+                IReadOnlyList<int>? interceptedIds)
             {
                 SomeId = someId;
                 SomeNullableId = someNullableId;
                 SomeIds = someIds;
                 SomeNullableIds = someNullableIds;
+                InterceptedId = interceptedId;
+                InterceptedIds = interceptedIds;
             }
 
             [ID("Bar")] public string SomeId { get; }
@@ -392,11 +406,17 @@ namespace HotChocolate.Types.Relay
 
             [ID("Bar")] public IReadOnlyList<int?>? SomeNullableIds { get; }
 
+            public int? InterceptedId { get; }
+
+            public IReadOnlyList<int>? InterceptedIds { get; }
+
             public string Raw =>
                 $"{nameof(SomeId)}: {SomeId}, " +
                 $"{nameof(SomeIds)}: [{string.Join(", ", SomeIds)}], " +
                 $"{nameof(SomeNullableId)}: {SomeNullableId}, " +
-                $"{nameof(SomeNullableIds)}: [{string.Join(", ", SomeNullableIds ?? Array.Empty<int?>())}]";
+                $"{nameof(SomeNullableIds)}: [{string.Join(", ", SomeNullableIds ?? Array.Empty<int?>())}]" +
+                $"{nameof(InterceptedId)}: {InterceptedId}" +
+                $"{nameof(InterceptedIds)}: [{string.Join(", ", InterceptedIds ?? Array.Empty<int>())}]";
         }
 
         public interface IFooPayload
@@ -409,7 +429,56 @@ namespace HotChocolate.Types.Relay
 
             [ID] IReadOnlyList<int?>? SomeNullableIds { get; }
 
+            int? InterceptedId { get; }
+
+            IReadOnlyList<int>? InterceptedIds { get; }
+
             string Raw { get; }
+        }
+
+        [AttributeUsage(
+            AttributeTargets.Parameter |
+            AttributeTargets.Property |
+            AttributeTargets.Method)]
+        public class InterceptedIDAttribute : DescriptorAttribute
+        {
+            public bool IsList { get; set; } = false;
+
+            protected internal override void TryConfigure(
+                IDescriptorContext context,
+                IDescriptor descriptor,
+                ICustomAttributeProvider element)
+            {
+                switch (descriptor)
+                {
+                    case IInputFieldDescriptor d when element is PropertyInfo:
+                        d.Extend().OnBeforeCompletion((c, d) => AddInterceptingSerializer(d, IsList));
+                        break;
+                    case IArgumentDescriptor d when element is ParameterInfo:
+                        d.Extend().OnBeforeCompletion((c, d) => AddInterceptingSerializer(d, IsList));
+                        break;
+                }
+            }
+
+            private static void AddInterceptingSerializer(ArgumentDefinition definition, bool isList) =>
+                definition.Formatters.Insert(0, new InterceptingFormatter(isList));
+
+            private class InterceptingFormatter : IInputValueFormatter
+            {
+                public InterceptingFormatter(bool isList)
+                {
+                    IsList = isList;
+                }
+
+                public bool IsList { get; }
+
+                public object? OnAfterDeserialize(object? runtimeValue) =>
+                    IsList
+                        ? ((IEnumerable<string>)runtimeValue!)
+                            .Select(x => new IdValue("x", "y", int.Parse(x)))
+                            .ToArray()
+                        : new IdValue("x", "y", int.Parse((string)runtimeValue!));
+            }
         }
     }
 }

@@ -7,6 +7,8 @@ interface IFooPayload {
   someNullableId: ID
   someIds: [ID!]!
   someNullableIds: [ID]
+  interceptedId: Int
+  interceptedIds: [Int!]
   raw: String!
 }
 
@@ -15,6 +17,8 @@ type FooPayload implements IFooPayload {
   someIds: [ID!]!
   someNullableId: ID
   someNullableIds: [ID]
+  interceptedId: Int
+  interceptedIds: [Int!]
   raw: String!
 }
 
@@ -31,6 +35,8 @@ type Query {
   guidIdList(id: [ID!]!): String!
   nullableGuidId(id: ID): String!
   nullableGuidIdList(id: [ID]!): String!
+  interceptedId(id: ID!): String!
+  interceptedIds(id: [ID!]!): String!
   foo(input: FooInput!): IFooPayload!
 }
 
@@ -39,6 +45,8 @@ input FooInput {
   someNullableId: ID
   someIds: [ID!]!
   someNullableIds: [ID]
+  interceptedId: ID
+  interceptedIds: [ID!]
 }
 
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
