@@ -12,6 +12,32 @@ namespace HotChocolate.Types.Relay
 {
     public class IdAttributeTests
     {
+        private const string OnArgumentsQuery =
+            @"query foo (
+                $intId: ID!
+                $nullIntId: ID = null
+                $stringId: ID!
+                $nullStringId: ID = null
+                $guidId: ID!
+                $nullGuidId: ID = null)
+            {
+                intId(id: $intId)
+                nullableIntId(id: $intId)
+                nullableIntIdGivenNull: nullableIntId(id: $nullIntId)
+                intIdList(id: [$intId])
+                nullableIntIdList(id: [$intId, $nullIntId])
+                stringId(id: $stringId)
+                nullableStringId(id: $stringId)
+                nullableStringIdGivenNull: nullableStringId(id: $nullStringId)
+                stringIdList(id: [$stringId])
+                nullableStringIdList(id: [$stringId, $nullStringId])
+                guidId(id: $guidId)
+                nullableGuidId(id: $guidId)
+                nullableGuidIdGivenNull: nullableGuidId(id: $nullGuidId)
+                guidIdList(id: [$guidId $guidId])
+                nullableGuidIdList(id: [$guidId $nullGuidId $guidId])
+            }";
+
         [Fact]
         public async Task Id_On_Arguments()
         {
@@ -30,31 +56,7 @@ namespace HotChocolate.Types.Relay
                     .MakeExecutable()
                     .ExecuteAsync(
                         QueryRequestBuilder.New()
-                            .SetQuery(
-                                @"query foo (
-                                    $intId: ID!
-                                    $nullIntId: ID = null
-                                    $stringId: ID!
-                                    $nullStringId: ID = null
-                                    $guidId: ID!
-                                    $nullGuidId: ID = null)
-                                {
-                                    intId(id: $intId)
-                                    nullableIntId(id: $intId)
-                                    nullableIntIdGivenNull: nullableIntId(id: $nullIntId)
-                                    intIdList(id: [$intId])
-                                    nullableIntIdList(id: [$intId, $nullIntId])
-                                    stringId(id: $stringId)
-                                    nullableStringId(id: $stringId)
-                                    nullableStringIdGivenNull: nullableStringId(id: $nullStringId)
-                                    stringIdList(id: [$stringId])
-                                    nullableStringIdList(id: [$stringId, $nullStringId])
-                                    guidId(id: $guidId)
-                                    nullableGuidId(id: $guidId)
-                                    nullableGuidIdGivenNull: nullableGuidId(id: $nullGuidId)
-                                    guidIdList(id: [$guidId $guidId])
-                                    nullableGuidIdList(id: [$guidId $nullGuidId $guidId])
-                                }")
+                            .SetQuery(OnArgumentsQuery)
                             .SetVariableValue("intId", intId)
                             .SetVariableValue("stringId", stringId)
                             .SetVariableValue("guidId", guidId)
@@ -82,31 +84,7 @@ namespace HotChocolate.Types.Relay
                     .MakeExecutable()
                     .ExecuteAsync(
                         QueryRequestBuilder.New()
-                            .SetQuery(
-                                @"query foo (
-                                    $intId: ID!
-                                    $nullIntId: ID = null
-                                    $stringId: ID!
-                                    $nullStringId: ID = null
-                                    $guidId: ID!
-                                    $nullGuidId: ID = null)
-                                {
-                                    intId(id: $intId)
-                                    nullableIntId(id: $intId)
-                                    nullableIntIdGivenNull: nullableIntId(id: $nullIntId)
-                                    intIdList(id: [$intId])
-                                    nullableIntIdList(id: [$intId, $nullIntId])
-                                    stringId(id: $stringId)
-                                    nullableStringId(id: $stringId)
-                                    nullableStringIdGivenNull: nullableStringId(id: $nullStringId)
-                                    stringIdList(id: [$stringId])
-                                    nullableStringIdList(id: [$stringId, $nullStringId])
-                                    guidId(id: $guidId)
-                                    nullableGuidId(id: $guidId)
-                                    nullableGuidIdGivenNull: nullableGuidId(id: $nullGuidId)
-                                    guidIdList(id: [$guidId $guidId])
-                                    nullableGuidIdList(id: [$guidId $nullGuidId $guidId])
-                                }")
+                            .SetQuery(OnArgumentsQuery)
                             .SetVariableValue("intId", intId)
                             .SetVariableValue("stringId", stringId)
                             .SetVariableValue("guidId", guidId.ToString())
