@@ -334,7 +334,7 @@ namespace HotChocolate.Types.Relay
                 string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
 
             public string InterceptedId([InterceptedID] [ID] int id) => id.ToString();
-            public string InterceptedIds([InterceptedID(IsList = true)] [ID] int[] id) =>
+            public string InterceptedIds([InterceptedID] [ID] int[] id) =>
                 string.Join(", ", id.Select(t => t.ToString()));
 
             public IFooPayload Foo(FooInput input) =>
@@ -376,7 +376,7 @@ namespace HotChocolate.Types.Relay
             [ID, InterceptedID]
             public int? InterceptedId { get; }
 
-            [ID, InterceptedID(IsList = true)]
+            [ID, InterceptedID]
             public IReadOnlyList<int>? InterceptedIds { get; }
         }
 
@@ -442,8 +442,6 @@ namespace HotChocolate.Types.Relay
             AttributeTargets.Method)]
         public class InterceptedIDAttribute : DescriptorAttribute
         {
-            public bool IsList { get; set; } = false;
-
             protected internal override void TryConfigure(
                 IDescriptorContext context,
                 IDescriptor descriptor,
@@ -452,29 +450,22 @@ namespace HotChocolate.Types.Relay
                 switch (descriptor)
                 {
                     case IInputFieldDescriptor d when element is PropertyInfo:
-                        d.Extend().OnBeforeCompletion((c, d) => AddInterceptingSerializer(d, IsList));
+                        d.Extend().OnBeforeCompletion((c, d) => AddInterceptingSerializer(d));
                         break;
                     case IArgumentDescriptor d when element is ParameterInfo:
-                        d.Extend().OnBeforeCompletion((c, d) => AddInterceptingSerializer(d, IsList));
+                        d.Extend().OnBeforeCompletion((c, d) => AddInterceptingSerializer(d));
                         break;
                 }
             }
 
-            private static void AddInterceptingSerializer(ArgumentDefinition definition, bool isList) =>
-                definition.Formatters.Insert(0, new InterceptingFormatter(isList));
+            private static void AddInterceptingSerializer(ArgumentDefinition definition) =>
+                definition.Formatters.Insert(0, new InterceptingFormatter());
 
             private class InterceptingFormatter : IInputValueFormatter
             {
-                public InterceptingFormatter(bool isList)
-                {
-                    IsList = isList;
-                }
-
-                public bool IsList { get; }
-
                 public object? OnAfterDeserialize(object? runtimeValue) =>
-                    IsList
-                        ? ((IEnumerable<string>)runtimeValue!)
+                    runtimeValue is IEnumerable<string> list
+                        ? list
                             .Select(x => new IdValue("x", "y", int.Parse(x)))
                             .ToArray()
                         : new IdValue("x", "y", int.Parse((string)runtimeValue!));
