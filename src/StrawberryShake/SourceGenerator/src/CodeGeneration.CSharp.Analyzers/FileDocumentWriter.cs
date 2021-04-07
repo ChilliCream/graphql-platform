@@ -32,7 +32,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 documentName,
                 SourceText.From(document.SourceText, Encoding.UTF8));
 
-            if (context.OutputFiles)
+            if (context.OutputFiles && context.Settings.EmitGeneratedCode)
             {
                 context.FileNames.Add(fileName);
                 WriteFile(fileName, document.SourceText);
