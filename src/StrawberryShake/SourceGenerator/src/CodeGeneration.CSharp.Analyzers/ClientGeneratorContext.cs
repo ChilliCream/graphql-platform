@@ -1,16 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using DotNet.Globbing;
 using HotChocolate;
+using HotChocolate.Language;
 using IOPath = System.IO.Path;
 using static StrawberryShake.CodeGeneration.ErrorHelper;
 using static StrawberryShake.CodeGeneration.CSharp.Analyzers.SourceGeneratorErrorCodes;
 using static StrawberryShake.CodeGeneration.CSharp.Analyzers.DiagnosticErrorHelper;
-using System.IO;
-using HotChocolate.Language;
-using System.Text;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 {
@@ -42,12 +43,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         }
 
         public HashSet<string> FileNames { get; } = new();
+
         public StrawberryShakeSettings Settings { get; }
+
         public string Filter { get; }
+
         public string ClientDirectory { get; }
+
         public string OutputDirectory { get; }
+
         public bool OutputFiles { get; }
+
         public GeneratorExecutionContext Execution { get; }
+        
         public ILogger Log { get; }
 
         public IReadOnlyList<string> GetDocuments()

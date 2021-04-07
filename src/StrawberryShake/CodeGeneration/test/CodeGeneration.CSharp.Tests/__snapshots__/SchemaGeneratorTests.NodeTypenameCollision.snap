@@ -363,7 +363,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class WorkspaceEntity
     {
-        public WorkspaceEntity(global::System.String __typename, global::System.String id)
+        public WorkspaceEntity(global::System.String __typename = default !, global::System.String id = default !)
         {
             this.__typename = __typename;
             Id = id;

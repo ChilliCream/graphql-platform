@@ -170,15 +170,21 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
             try
             {
-                foreach (string fileName in Directory.GetFiles(
-                    context.OutputDirectory,
-                    "*.cs",
-                    SearchOption.AllDirectories))
+                if (Directory.Exists(context.OutputDirectory))
                 {
-                    if (!context.FileNames.Contains(fileName))
+                    foreach (string fileName in GetGeneratedFiles(context.OutputDirectory))
                     {
-                        context.Log.RemoveFile(fileName);
-                        File.Delete(fileName);
+                        if (!context.Settings.EmitGeneratedCode ||
+                            !context.FileNames.Contains(fileName))
+                        {
+                            context.Log.RemoveFile(fileName);
+                            File.Delete(fileName);
+                        }
+                    }
+
+                    if (!GetGeneratedFiles(context.OutputDirectory).Any())
+                    {
+                        Directory.Delete(context.OutputDirectory, true);
                     }
                 }
             }
@@ -192,6 +198,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 context.Log.EndClean();
             }
         }
+
+        private IEnumerable<string> GetGeneratedFiles(string outputDirectory) =>
+            Directory.EnumerateFiles(outputDirectory, "*.cs", SearchOption.AllDirectories);
 
         private bool TryGenerateClient(
             ClientGeneratorContext context,

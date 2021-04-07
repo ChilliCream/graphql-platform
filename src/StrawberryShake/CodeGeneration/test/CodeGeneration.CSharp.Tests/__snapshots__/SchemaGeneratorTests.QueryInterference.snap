@@ -2118,7 +2118,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FeatEntity
     {
-        public FeatEntity(global::System.Guid id, global::System.String name, global::System.Int32 level, global::System.Boolean canBeLearnedMoreThanOnce, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId> details, global::System.String? special, global::System.String? trigger, global::StrawberryShake.EntityId actionType)
+        public FeatEntity(global::System.Guid id = default !, global::System.String name = default !, global::System.Int32 level = default !, global::System.Boolean canBeLearnedMoreThanOnce = default !, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId> details = default !, global::System.String? special = default !, global::System.String? trigger = default !, global::StrawberryShake.EntityId actionType = default !)
         {
             Id = id;
             Name = name;
@@ -2175,7 +2175,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FeatDetailsBlockEntity
     {
-        public FeatDetailsBlockEntity(global::System.String text)
+        public FeatDetailsBlockEntity(global::System.String text = default !)
         {
             Text = text;
         }
@@ -2190,7 +2190,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ActionTypeEntity
     {
-        public ActionTypeEntity(global::System.String name)
+        public ActionTypeEntity(global::System.String name = default !)
         {
             Name = name;
         }
@@ -3099,10 +3099,10 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FeatCollectionSegmentData
     {
-        public FeatCollectionSegmentData(global::System.String __typename, global::System.Int32? totalCount = null, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? items = null)
+        public FeatCollectionSegmentData(global::System.String __typename, global::System.Int32? totalCount = default !, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? items = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             TotalCount = totalCount;
