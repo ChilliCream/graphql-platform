@@ -144,10 +144,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
         /// <summary>
         /// Gets access to all the people known to this service.
         /// </summary>
-        public global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeople_People? People
-        {
-            get;
-        }
+        public global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeople_People? People { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -219,10 +216,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeople_People_Nodes?>? Nodes
-        {
-            get;
-        }
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeople_People_Nodes?>? Nodes { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -297,25 +291,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
             LastSeen = lastSeen;
         }
 
-        public global::System.String Name
-        {
-            get;
-        }
+        public global::System.String Name { get; }
 
-        public global::System.String Email
-        {
-            get;
-        }
+        public global::System.String Email { get; }
 
-        public global::System.Boolean IsOnline
-        {
-            get;
-        }
+        public global::System.Boolean IsOnline { get; }
 
-        public global::System.DateTimeOffset LastSeen
-        {
-            get;
-        }
+        public global::System.DateTimeOffset LastSeen { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -378,10 +360,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
         /// <summary>
         /// Gets access to all the people known to this service.
         /// </summary>
-        public global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeople_People? People
-        {
-            get;
-        }
+        public global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeople_People? People { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -394,10 +373,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeople_People_Nodes?>? Nodes
-        {
-            get;
-        }
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeople_People_Nodes?>? Nodes { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -413,25 +389,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_People_Nodes
     {
-        public global::System.String Name
-        {
-            get;
-        }
+        public global::System.String Name { get; }
 
-        public global::System.String Email
-        {
-            get;
-        }
+        public global::System.String Email { get; }
 
-        public global::System.Boolean IsOnline
-        {
-            get;
-        }
+        public global::System.Boolean IsOnline { get; }
 
-        public global::System.DateTimeOffset LastSeen
-        {
-            get;
-        }
+        public global::System.DateTimeOffset LastSeen { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -468,20 +432,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
         {
         }
 
-        public static GetPeopleQueryDocument Instance
-        {
-            get;
-        }
-
-        = new GetPeopleQueryDocument();
+        public static GetPeopleQueryDocument Instance { get; } = new GetPeopleQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
         public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[0];
-        public global::StrawberryShake.DocumentHash Hash
-        {
-            get;
-        }
-
-        = new global::StrawberryShake.DocumentHash("md5Hash", "22e3b8ba92883af43c70567c7d1cf143");
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "22e3b8ba92883af43c70567c7d1cf143");
         public override global::System.String ToString()
         {
 #if NETSTANDARD2_0
@@ -603,10 +557,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IStarWarsClient
     {
-        global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleQuery GetPeople
-        {
-            get;
-        }
+        global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleQuery GetPeople { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.TransportProfileEnumGenerator
@@ -632,25 +583,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State
             LastSeen = lastSeen;
         }
 
-        public global::System.String Name
-        {
-            get;
-        }
+        public global::System.String Name { get; }
 
-        public global::System.String Email
-        {
-            get;
-        }
+        public global::System.String Email { get; }
 
-        public global::System.Boolean IsOnline
-        {
-            get;
-        }
+        public global::System.Boolean IsOnline { get; }
 
-        public global::System.DateTimeOffset LastSeen
-        {
-            get;
-        }
+        public global::System.DateTimeOffset LastSeen { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
@@ -754,10 +693,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State
         /// <summary>
         /// Gets access to all the people known to this service.
         /// </summary>
-        public global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.PersonConnectionData? People
-        {
-            get;
-        }
+        public global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.PersonConnectionData? People { get; }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
@@ -951,18 +887,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State
             Nodes = nodes;
         }
 
-        public global::System.String __typename
-        {
-            get;
-        }
+        public global::System.String __typename { get; }
 
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes
-        {
-            get;
-        }
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator

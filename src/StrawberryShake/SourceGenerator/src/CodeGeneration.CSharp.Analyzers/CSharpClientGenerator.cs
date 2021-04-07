@@ -20,7 +20,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
     public class CSharpClientGenerator : ISourceGenerator
     {
         private const string _category = "StrawberryShakeGenerator";
-        private readonly MD5DocumentHashProvider _hashProvider = new();
 
         private static string _location = System.IO.Path.GetDirectoryName(
             typeof(CSharpClientGenerator).Assembly.Location)!;
