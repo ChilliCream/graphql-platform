@@ -46,6 +46,7 @@
     <CompilerVisibleProperty Include="StrawberryShake_LogFile" />
     <CompilerVisibleProperty Include="StrawberryShake_BuildDirectory" />
     <CompilerVisibleProperty Include="StrawberryShake_PersistedQueryDirectory" />
+    <CompilerVisibleProperty Include="StrawberryShake_State" />
   </ItemGroup>
 
 </Project>

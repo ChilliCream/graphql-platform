@@ -94,8 +94,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         {
             try
             {
-                CreateDirectoryIfNotExists(context.OutputDirectory);
-
                 if (!TryGenerateClient(context, out CSharpGeneratorResult? result))
                 {
                     // there were unexpected errors and we will stop generating this client.
@@ -361,14 +359,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 .Select(t => t.Path)
                 .Where(t => IOPath.GetFileName(t).EqualsOrdinal(".graphqlrc.json"))
                 .ToList();
-
-        private void CreateDirectoryIfNotExists(string? directory)
-        {
-            if (!Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-        }
 
         private ILogger CreateLogger(GeneratorExecutionContext context)
         {
