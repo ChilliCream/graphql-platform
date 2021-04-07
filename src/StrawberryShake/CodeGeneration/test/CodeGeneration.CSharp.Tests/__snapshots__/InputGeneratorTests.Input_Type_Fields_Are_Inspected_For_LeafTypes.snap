@@ -317,6 +317,7 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ChangeHomePlanetInput
     {
         public global::System.Int32 Id
@@ -513,10 +514,8 @@ namespace Foo.Bar
 namespace Foo.Bar.State
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    /// <summary>
-    /// A human character in the Star Wars universe.
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    ///<summary>A human character in the Star Wars universe.</summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class HumanEntity
     {
         public HumanEntity(global::System.String? homePlanet)
@@ -524,9 +523,7 @@ namespace Foo.Bar.State
             HomePlanet = homePlanet;
         }
 
-        /// <summary>
-        /// The planet the character is originally from.
-        /// </summary>
+        ///<summary>The planet the character is originally from.</summary>
         public global::System.String? HomePlanet
         {
             get;

@@ -629,10 +629,8 @@ namespace Foo.Bar
 namespace Foo.Bar.State
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    /// <summary>
-    /// Type person
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    ///<summary>Type person</summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class PersonEntity
     {
         public PersonEntity(global::Foo.Bar.State.PersonConnectionData? friends, global::System.String name, global::System.String email, global::System.Boolean isOnline)
@@ -643,33 +641,25 @@ namespace Foo.Bar.State
             IsOnline = isOnline;
         }
 
-        /// <summary>
-        /// Field friends
-        /// </summary>
+        ///<summary>Field friends</summary>
         public global::Foo.Bar.State.PersonConnectionData? Friends
         {
             get;
         }
 
-        /// <summary>
-        /// Field name
-        /// </summary>
+        ///<summary>Field name</summary>
         public global::System.String Name
         {
             get;
         }
 
-        /// <summary>
-        /// Field email
-        /// </summary>
+        ///<summary>Field email</summary>
         public global::System.String Email
         {
             get;
         }
 
-        /// <summary>
-        /// Field isOnline
-        /// </summary>
+        ///<summary>Field isOnline</summary>
         public global::System.Boolean IsOnline
         {
             get;

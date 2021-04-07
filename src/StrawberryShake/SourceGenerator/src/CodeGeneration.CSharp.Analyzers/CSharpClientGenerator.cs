@@ -6,7 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -48,10 +47,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         public void Initialize(GeneratorInitializationContext context)
         {
+            context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
         }
 
         public void Execute(GeneratorExecutionContext context)
         {
+            var receiver = context.SyntaxReceiver;
+
             // if preconditions are not met we just stop and do not process any further.
             if (!EnsurePreconditionsAreMet(context))
             {
@@ -112,7 +114,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     ? new SingleFileDocumentWriter()
                     : new FileDocumentWriter();
 
-                foreach (SourceDocument document in 
+                foreach (SourceDocument document in
                     result.Documents.Where(t => t.Kind == SourceDocumentKind.CSharp))
                 {
                     writer.WriteDocument(context, document);
@@ -210,6 +212,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     StrictSchemaValidation = context.Settings.StrictSchemaValidation,
                     NoStore = context.Settings.NoStore,
                     InputRecords = context.Settings.Records?.Inputs ?? false,
+                    EntityRecords = context.Settings.Records?.Entities ?? false,
                     SingleCodeFile = context.Settings.UseSingleFile,
                     HashProvider = context.Settings.HashAlgorithm?.ToLowerInvariant() switch
                     {
@@ -391,6 +394,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             }
 
             return _location;
+        }
+    }
+
+    public class SyntaxReceiver : ISyntaxReceiver
+    {
+        public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
+        {
         }
     }
 }

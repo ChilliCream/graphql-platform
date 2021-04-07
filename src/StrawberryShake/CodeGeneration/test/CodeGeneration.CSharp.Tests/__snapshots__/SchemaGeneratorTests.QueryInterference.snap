@@ -1125,6 +1125,7 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FeatSortInput
     {
         public global::Foo.Bar.SortEnumType? Name
@@ -1279,6 +1280,7 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ActionTypeSortInput
     {
         public global::Foo.Bar.SortEnumType? Name
@@ -1349,6 +1351,7 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FeatTypeSortInput
     {
         public global::Foo.Bar.SortEnumType? Name
@@ -1443,6 +1446,7 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FrequencySortInput
     {
         public global::Foo.Bar.SortEnumType? Name
@@ -1563,6 +1567,7 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class RollableEffectSortInput
     {
         public global::Foo.Bar.SortEnumType? CriticalSuccess
@@ -2110,7 +2115,7 @@ namespace Foo.Bar
 namespace Foo.Bar.State
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FeatEntity
     {
         public FeatEntity(global::System.Guid id, global::System.String name, global::System.Int32 level, global::System.Boolean canBeLearnedMoreThanOnce, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId> details, global::System.String? special, global::System.String? trigger, global::StrawberryShake.EntityId actionType)
@@ -2167,7 +2172,7 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FeatDetailsBlockEntity
     {
         public FeatDetailsBlockEntity(global::System.String text)
@@ -2182,7 +2187,7 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ActionTypeEntity
     {
         public ActionTypeEntity(global::System.String name)

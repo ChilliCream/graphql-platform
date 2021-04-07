@@ -35,6 +35,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
         public bool InputRecords { get; set; }
 
         /// <summary>
+        /// Generates entity as records.
+        /// </summary>
+        public bool EntityRecords { get; set; }
+
+        /// <summary>
         /// Generate a single CSharp code file.
         /// </summary>
         public bool SingleCodeFile { get; set; } = true;

@@ -6,6 +6,8 @@
     <StrawberryShake_DesignTimeBuild Condition="$(DesignTimeBuild) == 'true'">true</StrawberryShake_DesignTimeBuild>
     <StrawberryShake_DesignTimeBuild Condition="$(DesignTimeBuild) != 'true'">false</StrawberryShake_DesignTimeBuild>
     <StrawberryShake_DesignTimeBuild Condition="$(IsOmniSharp)">false</StrawberryShake_DesignTimeBuild>
+    <StrawberryShake_DefaultNamespace Condition="'$(StrawberryShake_DefaultNamespace)' == ''">$(RootNamespace)</StrawberryShake_DefaultNamespace>
+    <StrawberryShake_DefaultNamespace Condition="'$(StrawberryShake_DefaultNamespace)' == ''">$(AssemblyName)</StrawberryShake_DefaultNamespace>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)VSCode.targets" Condition="'$(IsOmniSharp)' == 'true'" />

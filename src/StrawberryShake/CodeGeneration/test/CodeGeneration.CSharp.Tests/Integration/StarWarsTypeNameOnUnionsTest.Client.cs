@@ -589,7 +589,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUn
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUnions.State
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class StarshipEntity
     {
         public StarshipEntity(global::System.String __typename)
@@ -597,9 +597,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUn
             this.__typename = __typename;
         }
 
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
+        ///<summary>The name of the current Object type at runtime.</summary>
         public global::System.String __typename
         {
             get;
@@ -607,7 +605,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUn
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class HumanEntity
     {
         public HumanEntity(global::System.String __typename)
@@ -615,9 +613,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUn
             this.__typename = __typename;
         }
 
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
+        ///<summary>The name of the current Object type at runtime.</summary>
         public global::System.String __typename
         {
             get;
@@ -625,7 +621,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUn
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DroidEntity
     {
         public DroidEntity(global::System.String __typename)
@@ -633,9 +629,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnUn
             this.__typename = __typename;
         }
 
-        /// <summary>
-        /// The name of the current Object type at runtime.
-        /// </summary>
+        ///<summary>The name of the current Object type at runtime.</summary>
         public global::System.String __typename
         {
             get;

@@ -822,7 +822,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.State
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DroidEntity
     {
         public DroidEntity(global::System.String name, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.State.CharacterConnectionData? friends)
@@ -843,7 +843,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.S
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class HumanEntity
     {
         public HumanEntity(global::System.String name, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.State.CharacterConnectionData? friends)
