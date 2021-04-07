@@ -104,15 +104,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             }
 
             if (Execution.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
-                "build_property.RootNamespace",
+                "build_property.StrawberryShake_DefaultNamespace",
                 out string? value) &&
                 !string.IsNullOrEmpty(value))
             {
-                return value + "." + Settings.Name;
+                return  $"{value}.GraphQL";
             }
 
             throw new GraphQLException(
-                $"Specify a namespace for the client `{Settings.Name}`.");
+                $"Specify a namespace for the client `{Settings.Name}` in the `.graphqlrc.json`.");
         }
 
         public string? GetPersistedQueryDirectory()

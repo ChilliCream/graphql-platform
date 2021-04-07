@@ -42,7 +42,7 @@
     <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="GraphQLConfig" />
 
     <!-- Build Options -->
-    <CompilerVisibleProperty Include="RootNamespace" />
+    <CompilerVisibleProperty Include="StrawberryShake_DefaultNamespace" />
     <CompilerVisibleProperty Include="StrawberryShake_LogFile" />
     <CompilerVisibleProperty Include="StrawberryShake_BuildDirectory" />
     <CompilerVisibleProperty Include="StrawberryShake_PersistedQueryDirectory" />

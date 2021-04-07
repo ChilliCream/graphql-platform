@@ -392,5 +392,5 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
             return _location;
         }
-    }
+    }    
 }
