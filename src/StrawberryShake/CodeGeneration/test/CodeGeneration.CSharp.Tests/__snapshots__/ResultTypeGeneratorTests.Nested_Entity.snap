@@ -25,7 +25,10 @@ namespace Foo.Bar
             DecodeVIN = decodeVIN;
         }
 
-        public global::Foo.Bar.IDecodeVIN_DecodeVIN DecodeVIN { get; }
+        public global::Foo.Bar.IDecodeVIN_DecodeVIN DecodeVIN
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -89,11 +92,20 @@ namespace Foo.Bar
             VehicleModel = vehicleModel;
         }
 
-        public global::System.Boolean IsValid { get; }
+        public global::System.Boolean IsValid
+        {
+            get;
+        }
 
-        public global::Foo.Bar.IDecodeVIN_DecodeVIN_VehicleMake? VehicleMake { get; }
+        public global::Foo.Bar.IDecodeVIN_DecodeVIN_VehicleMake? VehicleMake
+        {
+            get;
+        }
 
-        public global::Foo.Bar.IDecodeVIN_DecodeVIN_VehicleModel? VehicleModel { get; }
+        public global::Foo.Bar.IDecodeVIN_DecodeVIN_VehicleModel? VehicleModel
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -168,13 +180,25 @@ namespace Foo.Bar
             IsDisabled = isDisabled;
         }
 
-        public global::System.Guid Id { get; }
+        public global::System.Guid Id
+        {
+            get;
+        }
 
-        public global::System.String? Make { get; }
+        public global::System.String? Make
+        {
+            get;
+        }
 
-        public global::System.String? MakeCode { get; }
+        public global::System.String? MakeCode
+        {
+            get;
+        }
 
-        public global::System.Boolean IsDisabled { get; }
+        public global::System.Boolean IsDisabled
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -252,17 +276,35 @@ namespace Foo.Bar
             ModelType = modelType;
         }
 
-        public global::System.Guid Id { get; }
+        public global::System.Guid Id
+        {
+            get;
+        }
 
-        public global::System.String? Model { get; }
+        public global::System.String? Model
+        {
+            get;
+        }
 
-        public global::System.String? ModelCode { get; }
+        public global::System.String? ModelCode
+        {
+            get;
+        }
 
-        public global::System.Guid VehicleMakeId { get; }
+        public global::System.Guid VehicleMakeId
+        {
+            get;
+        }
 
-        public global::System.Boolean IsDisabled { get; }
+        public global::System.Boolean IsDisabled
+        {
+            get;
+        }
 
-        public global::System.String? ModelType { get; }
+        public global::System.String? ModelType
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -336,18 +378,30 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IDecodeVINResult
     {
-        public global::Foo.Bar.IDecodeVIN_DecodeVIN DecodeVIN { get; }
+        public global::Foo.Bar.IDecodeVIN_DecodeVIN DecodeVIN
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IDecodeVINModel
     {
-        public global::System.Boolean IsValid { get; }
+        public global::System.Boolean IsValid
+        {
+            get;
+        }
 
-        public global::Foo.Bar.IDecodeVIN_DecodeVIN_VehicleMake? VehicleMake { get; }
+        public global::Foo.Bar.IDecodeVIN_DecodeVIN_VehicleMake? VehicleMake
+        {
+            get;
+        }
 
-        public global::Foo.Bar.IDecodeVIN_DecodeVIN_VehicleModel? VehicleModel { get; }
+        public global::Foo.Bar.IDecodeVIN_DecodeVIN_VehicleModel? VehicleModel
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -366,13 +420,25 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IVehicleMakeModel
     {
-        public global::System.Guid Id { get; }
+        public global::System.Guid Id
+        {
+            get;
+        }
 
-        public global::System.String? Make { get; }
+        public global::System.String? Make
+        {
+            get;
+        }
 
-        public global::System.String? MakeCode { get; }
+        public global::System.String? MakeCode
+        {
+            get;
+        }
 
-        public global::System.Boolean IsDisabled { get; }
+        public global::System.Boolean IsDisabled
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -391,17 +457,35 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IVehicleModelModel
     {
-        public global::System.Guid Id { get; }
+        public global::System.Guid Id
+        {
+            get;
+        }
 
-        public global::System.String? Model { get; }
+        public global::System.String? Model
+        {
+            get;
+        }
 
-        public global::System.String? ModelCode { get; }
+        public global::System.String? ModelCode
+        {
+            get;
+        }
 
-        public global::System.Guid VehicleMakeId { get; }
+        public global::System.Guid VehicleMakeId
+        {
+            get;
+        }
 
-        public global::System.Boolean IsDisabled { get; }
+        public global::System.Boolean IsDisabled
+        {
+            get;
+        }
 
-        public global::System.String? ModelType { get; }
+        public global::System.String? ModelType
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -418,50 +502,50 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
-        /// Represents the operation service of the DecodeVIN GraphQL operation
-        /// <code>
-        /// query DecodeVIN {
-        ///   decodeVIN {
-        ///     __typename
-        ///     ... DecodeVINModel
-        ///   }
-        /// }
-        /// 
-        /// fragment DecodeVINModel on DecodeVIN {
-        ///   isValid
-        ///   vehicleMake {
-        ///     __typename
-        ///     ... VehicleMakeModel
-        ///     ... on VehicleMake {
-        ///       id
-        ///     }
-        ///   }
-        ///   vehicleModel {
-        ///     __typename
-        ///     ... VehicleModelModel
-        ///     ... on VehicleModel {
-        ///       id
-        ///     }
-        ///   }
-        /// }
-        /// 
-        /// fragment VehicleMakeModel on VehicleMake {
-        ///   id
-        ///   make
-        ///   makeCode
-        ///   isDisabled
-        /// }
-        /// 
-        /// fragment VehicleModelModel on VehicleModel {
-        ///   id
-        ///   model
-        ///   modelCode
-        ///   vehicleMakeId
-        ///   isDisabled
-        ///   modelType
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the DecodeVIN GraphQL operation
+    /// <code>
+    /// query DecodeVIN {
+    ///   decodeVIN {
+    ///     __typename
+    ///     ... DecodeVINModel
+    ///   }
+    /// }
+    /// 
+    /// fragment DecodeVINModel on DecodeVIN {
+    ///   isValid
+    ///   vehicleMake {
+    ///     __typename
+    ///     ... VehicleMakeModel
+    ///     ... on VehicleMake {
+    ///       id
+    ///     }
+    ///   }
+    ///   vehicleModel {
+    ///     __typename
+    ///     ... VehicleModelModel
+    ///     ... on VehicleModel {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment VehicleMakeModel on VehicleMake {
+    ///   id
+    ///   make
+    ///   makeCode
+    ///   isDisabled
+    /// }
+    /// 
+    /// fragment VehicleModelModel on VehicleModel {
+    ///   id
+    ///   model
+    ///   modelCode
+    ///   vehicleMakeId
+    ///   isDisabled
+    ///   modelType
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class DecodeVINQueryDocument : global::StrawberryShake.IDocument
     {
@@ -469,14 +553,20 @@ namespace Foo.Bar
         {
         }
 
-        public static DecodeVINQueryDocument Instance { get; } = new DecodeVINQueryDocument();
+        public static DecodeVINQueryDocument Instance
+        {
+            get;
+        }
 
+        = new DecodeVINQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x44, 0x65, 0x63, 0x6f, 0x64, 0x65, 0x56, 0x49, 0x4e, 0x20, 0x7b, 0x20, 0x64, 0x65, 0x63, 0x6f, 0x64, 0x65, 0x56, 0x49, 0x4e, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x44, 0x65, 0x63, 0x6f, 0x64, 0x65, 0x56, 0x49, 0x4e, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x44, 0x65, 0x63, 0x6f, 0x64, 0x65, 0x56, 0x49, 0x4e, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x20, 0x6f, 0x6e, 0x20, 0x44, 0x65, 0x63, 0x6f, 0x64, 0x65, 0x56, 0x49, 0x4e, 0x20, 0x7b, 0x20, 0x69, 0x73, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x20, 0x76, 0x65, 0x68, 0x69, 0x63, 0x6c, 0x65, 0x4d, 0x61, 0x6b, 0x65, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x56, 0x65, 0x68, 0x69, 0x63, 0x6c, 0x65, 0x4d, 0x61, 0x6b, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x56, 0x65, 0x68, 0x69, 0x63, 0x6c, 0x65, 0x4d, 0x61, 0x6b, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x76, 0x65, 0x68, 0x69, 0x63, 0x6c, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x56, 0x65, 0x68, 0x69, 0x63, 0x6c, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x56, 0x65, 0x68, 0x69, 0x63, 0x6c, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x56, 0x65, 0x68, 0x69, 0x63, 0x6c, 0x65, 0x4d, 0x61, 0x6b, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x20, 0x6f, 0x6e, 0x20, 0x56, 0x65, 0x68, 0x69, 0x63, 0x6c, 0x65, 0x4d, 0x61, 0x6b, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x6d, 0x61, 0x6b, 0x65, 0x20, 0x6d, 0x61, 0x6b, 0x65, 0x43, 0x6f, 0x64, 0x65, 0x20, 0x69, 0x73, 0x44, 0x69, 0x73, 0x61, 0x62, 0x6c, 0x65, 0x64, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x56, 0x65, 0x68, 0x69, 0x63, 0x6c, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x20, 0x6f, 0x6e, 0x20, 0x56, 0x65, 0x68, 0x69, 0x63, 0x6c, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x6d, 0x6f, 0x64, 0x65, 0x6c, 0x20, 0x6d, 0x6f, 0x64, 0x65, 0x6c, 0x43, 0x6f, 0x64, 0x65, 0x20, 0x76, 0x65, 0x68, 0x69, 0x63, 0x6c, 0x65, 0x4d, 0x61, 0x6b, 0x65, 0x49, 0x64, 0x20, 0x69, 0x73, 0x44, 0x69, 0x73, 0x61, 0x62, 0x6c, 0x65, 0x64, 0x20, 0x6d, 0x6f, 0x64, 0x65, 0x6c, 0x54, 0x79, 0x70, 0x65, 0x20, 0x7d};
+        public global::StrawberryShake.DocumentHash Hash
+        {
+            get;
+        }
 
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[] { 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x44, 0x65, 0x63, 0x6f, 0x64, 0x65, 0x56, 0x49, 0x4e, 0x20, 0x7b, 0x20, 0x64, 0x65, 0x63, 0x6f, 0x64, 0x65, 0x56, 0x49, 0x4e, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x44, 0x65, 0x63, 0x6f, 0x64, 0x65, 0x56, 0x49, 0x4e, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x44, 0x65, 0x63, 0x6f, 0x64, 0x65, 0x56, 0x49, 0x4e, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x20, 0x6f, 0x6e, 0x20, 0x44, 0x65, 0x63, 0x6f, 0x64, 0x65, 0x56, 0x49, 0x4e, 0x20, 0x7b, 0x20, 0x69, 0x73, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x20, 0x76, 0x65, 0x68, 0x69, 0x63, 0x6c, 0x65, 0x4d, 0x61, 0x6b, 0x65, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x56, 0x65, 0x68, 0x69, 0x63, 0x6c, 0x65, 0x4d, 0x61, 0x6b, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x56, 0x65, 0x68, 0x69, 0x63, 0x6c, 0x65, 0x4d, 0x61, 0x6b, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x76, 0x65, 0x68, 0x69, 0x63, 0x6c, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x56, 0x65, 0x68, 0x69, 0x63, 0x6c, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x56, 0x65, 0x68, 0x69, 0x63, 0x6c, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x56, 0x65, 0x68, 0x69, 0x63, 0x6c, 0x65, 0x4d, 0x61, 0x6b, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x20, 0x6f, 0x6e, 0x20, 0x56, 0x65, 0x68, 0x69, 0x63, 0x6c, 0x65, 0x4d, 0x61, 0x6b, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x6d, 0x61, 0x6b, 0x65, 0x20, 0x6d, 0x61, 0x6b, 0x65, 0x43, 0x6f, 0x64, 0x65, 0x20, 0x69, 0x73, 0x44, 0x69, 0x73, 0x61, 0x62, 0x6c, 0x65, 0x64, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x56, 0x65, 0x68, 0x69, 0x63, 0x6c, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x20, 0x6f, 0x6e, 0x20, 0x56, 0x65, 0x68, 0x69, 0x63, 0x6c, 0x65, 0x4d, 0x6f, 0x64, 0x65, 0x6c, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x6d, 0x6f, 0x64, 0x65, 0x6c, 0x20, 0x6d, 0x6f, 0x64, 0x65, 0x6c, 0x43, 0x6f, 0x64, 0x65, 0x20, 0x76, 0x65, 0x68, 0x69, 0x63, 0x6c, 0x65, 0x4d, 0x61, 0x6b, 0x65, 0x49, 0x64, 0x20, 0x69, 0x73, 0x44, 0x69, 0x73, 0x61, 0x62, 0x6c, 0x65, 0x64, 0x20, 0x6d, 0x6f, 0x64, 0x65, 0x6c, 0x54, 0x79, 0x70, 0x65, 0x20, 0x7d };
-
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "3f6909b5b7145f91544b46b59247799ab1582d49");
-
+        = new global::StrawberryShake.DocumentHash("sha1Hash", "3f6909b5b7145f91544b46b59247799ab1582d49");
         public override global::System.String ToString()
         {
 #if NETSTANDARD2_0
@@ -489,62 +579,60 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
-        /// Represents the operation service of the DecodeVIN GraphQL operation
-        /// <code>
-        /// query DecodeVIN {
-        ///   decodeVIN {
-        ///     __typename
-        ///     ... DecodeVINModel
-        ///   }
-        /// }
-        /// 
-        /// fragment DecodeVINModel on DecodeVIN {
-        ///   isValid
-        ///   vehicleMake {
-        ///     __typename
-        ///     ... VehicleMakeModel
-        ///     ... on VehicleMake {
-        ///       id
-        ///     }
-        ///   }
-        ///   vehicleModel {
-        ///     __typename
-        ///     ... VehicleModelModel
-        ///     ... on VehicleModel {
-        ///       id
-        ///     }
-        ///   }
-        /// }
-        /// 
-        /// fragment VehicleMakeModel on VehicleMake {
-        ///   id
-        ///   make
-        ///   makeCode
-        ///   isDisabled
-        /// }
-        /// 
-        /// fragment VehicleModelModel on VehicleModel {
-        ///   id
-        ///   model
-        ///   modelCode
-        ///   vehicleMakeId
-        ///   isDisabled
-        ///   modelType
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the DecodeVIN GraphQL operation
+    /// <code>
+    /// query DecodeVIN {
+    ///   decodeVIN {
+    ///     __typename
+    ///     ... DecodeVINModel
+    ///   }
+    /// }
+    /// 
+    /// fragment DecodeVINModel on DecodeVIN {
+    ///   isValid
+    ///   vehicleMake {
+    ///     __typename
+    ///     ... VehicleMakeModel
+    ///     ... on VehicleMake {
+    ///       id
+    ///     }
+    ///   }
+    ///   vehicleModel {
+    ///     __typename
+    ///     ... VehicleModelModel
+    ///     ... on VehicleModel {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment VehicleMakeModel on VehicleMake {
+    ///   id
+    ///   make
+    ///   makeCode
+    ///   isDisabled
+    /// }
+    /// 
+    /// fragment VehicleModelModel on VehicleModel {
+    ///   id
+    ///   model
+    ///   modelCode
+    ///   vehicleMakeId
+    ///   isDisabled
+    ///   modelType
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class DecodeVINQuery : global::Foo.Bar.IDecodeVINQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IDecodeVINResult> _operationExecutor;
-
         public DecodeVINQuery(global::StrawberryShake.IOperationExecutor<IDecodeVINResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IDecodeVINResult);
-
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IDecodeVINResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
@@ -575,50 +663,50 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
-        /// Represents the operation service of the DecodeVIN GraphQL operation
-        /// <code>
-        /// query DecodeVIN {
-        ///   decodeVIN {
-        ///     __typename
-        ///     ... DecodeVINModel
-        ///   }
-        /// }
-        /// 
-        /// fragment DecodeVINModel on DecodeVIN {
-        ///   isValid
-        ///   vehicleMake {
-        ///     __typename
-        ///     ... VehicleMakeModel
-        ///     ... on VehicleMake {
-        ///       id
-        ///     }
-        ///   }
-        ///   vehicleModel {
-        ///     __typename
-        ///     ... VehicleModelModel
-        ///     ... on VehicleModel {
-        ///       id
-        ///     }
-        ///   }
-        /// }
-        /// 
-        /// fragment VehicleMakeModel on VehicleMake {
-        ///   id
-        ///   make
-        ///   makeCode
-        ///   isDisabled
-        /// }
-        /// 
-        /// fragment VehicleModelModel on VehicleModel {
-        ///   id
-        ///   model
-        ///   modelCode
-        ///   vehicleMakeId
-        ///   isDisabled
-        ///   modelType
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the DecodeVIN GraphQL operation
+    /// <code>
+    /// query DecodeVIN {
+    ///   decodeVIN {
+    ///     __typename
+    ///     ... DecodeVINModel
+    ///   }
+    /// }
+    /// 
+    /// fragment DecodeVINModel on DecodeVIN {
+    ///   isValid
+    ///   vehicleMake {
+    ///     __typename
+    ///     ... VehicleMakeModel
+    ///     ... on VehicleMake {
+    ///       id
+    ///     }
+    ///   }
+    ///   vehicleModel {
+    ///     __typename
+    ///     ... VehicleModelModel
+    ///     ... on VehicleModel {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// 
+    /// fragment VehicleMakeModel on VehicleMake {
+    ///   id
+    ///   make
+    ///   makeCode
+    ///   isDisabled
+    /// }
+    /// 
+    /// fragment VehicleModelModel on VehicleModel {
+    ///   id
+    ///   model
+    ///   modelCode
+    ///   vehicleMakeId
+    ///   isDisabled
+    ///   modelType
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IDecodeVINQuery : global::StrawberryShake.IOperationRequestFactory
     {
@@ -628,31 +716,32 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
     /// <summary>
-        /// Represents the FooClient GraphQL client
-        /// </summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient : global::Foo.Bar.IFooClient
     {
         private readonly global::Foo.Bar.IDecodeVINQuery _decodeVIN;
-
         public FooClient(global::Foo.Bar.IDecodeVINQuery decodeVIN)
         {
             _decodeVIN = decodeVIN ?? throw new global::System.ArgumentNullException(nameof(decodeVIN));
         }
 
         public static global::System.String ClientName => "FooClient";
-
         public global::Foo.Bar.IDecodeVINQuery DecodeVIN => _decodeVIN;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
     /// <summary>
-        /// Represents the FooClient GraphQL client
-        /// </summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IFooClient
     {
-        global::Foo.Bar.IDecodeVINQuery DecodeVIN { get; }
+        global::Foo.Bar.IDecodeVINQuery DecodeVIN
+        {
+            get;
+        }
     }
 }
 
@@ -670,13 +759,25 @@ namespace Foo.Bar.State
             IsDisabled = isDisabled;
         }
 
-        public global::System.Guid Id { get; }
+        public global::System.Guid Id
+        {
+            get;
+        }
 
-        public global::System.String? Make { get; }
+        public global::System.String? Make
+        {
+            get;
+        }
 
-        public global::System.String? MakeCode { get; }
+        public global::System.String? MakeCode
+        {
+            get;
+        }
 
-        public global::System.Boolean IsDisabled { get; }
+        public global::System.Boolean IsDisabled
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
@@ -693,17 +794,35 @@ namespace Foo.Bar.State
             ModelType = modelType;
         }
 
-        public global::System.Guid Id { get; }
+        public global::System.Guid Id
+        {
+            get;
+        }
 
-        public global::System.String? Model { get; }
+        public global::System.String? Model
+        {
+            get;
+        }
 
-        public global::System.String? ModelCode { get; }
+        public global::System.String? ModelCode
+        {
+            get;
+        }
 
-        public global::System.Guid VehicleMakeId { get; }
+        public global::System.Guid VehicleMakeId
+        {
+            get;
+        }
 
-        public global::System.Boolean IsDisabled { get; }
+        public global::System.Boolean IsDisabled
+        {
+            get;
+        }
 
-        public global::System.String? ModelType { get; }
+        public global::System.String? ModelType
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
@@ -713,7 +832,6 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.VehicleMakeEntity, DecodeVIN_DecodeVIN_VehicleMake_VehicleMake> _decodeVIN_DecodeVIN_VehicleMake_VehicleMakeFromVehicleMakeEntityMapper;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.VehicleModelEntity, DecodeVIN_DecodeVIN_VehicleModel_VehicleModel> _decodeVIN_DecodeVIN_VehicleModel_VehicleModelFromVehicleModelEntityMapper;
-
         public DecodeVINResultFactory(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.VehicleMakeEntity, DecodeVIN_DecodeVIN_VehicleMake_VehicleMake> decodeVIN_DecodeVIN_VehicleMake_VehicleMakeFromVehicleMakeEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.VehicleModelEntity, DecodeVIN_DecodeVIN_VehicleModel_VehicleModel> decodeVIN_DecodeVIN_VehicleModel_VehicleModelFromVehicleModelEntityMapper)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -722,7 +840,6 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IDecodeVINResult);
-
         public DecodeVINResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -740,7 +857,7 @@ namespace Foo.Bar.State
 
         private global::Foo.Bar.IDecodeVIN_DecodeVIN MapNonNullableIDecodeVIN_DecodeVIN(global::Foo.Bar.State.DecodeVINData data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
-            IDecodeVIN_DecodeVIN returnValue = default!;
+            IDecodeVIN_DecodeVIN returnValue = default !;
             if (data.__typename.Equals("DecodeVIN", global::System.StringComparison.Ordinal))
             {
                 returnValue = new DecodeVIN_DecodeVIN_DecodeVIN(data.IsValid ?? throw new global::System.ArgumentNullException(), MapIDecodeVIN_DecodeVIN_VehicleMake(data.VehicleMake, snapshot), MapIDecodeVIN_DecodeVIN_VehicleModel(data.VehicleModel, snapshot));
@@ -795,7 +912,6 @@ namespace Foo.Bar.State
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
         private readonly global::System.UInt64 _version;
-
         public DecodeVINResultInfo(global::Foo.Bar.State.DecodeVINData decodeVIN, global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds, global::System.UInt64 version)
         {
             DecodeVIN = decodeVIN;
@@ -803,12 +919,13 @@ namespace Foo.Bar.State
             _version = version;
         }
 
-        public global::Foo.Bar.State.DecodeVINData DecodeVIN { get; }
+        public global::Foo.Bar.State.DecodeVINData DecodeVIN
+        {
+            get;
+        }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
-
         public global::System.UInt64 Version => _version;
-
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new DecodeVINResultInfo(DecodeVIN, _entityIds, version);
@@ -820,7 +937,6 @@ namespace Foo.Bar.State
     public partial class DecodeVIN_DecodeVIN_VehicleMake_VehicleMakeFromVehicleMakeEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.VehicleMakeEntity, DecodeVIN_DecodeVIN_VehicleMake_VehicleMake>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-
         public DecodeVIN_DecodeVIN_VehicleMake_VehicleMakeFromVehicleMakeEntityMapper(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -842,7 +958,6 @@ namespace Foo.Bar.State
     public partial class DecodeVIN_DecodeVIN_VehicleModel_VehicleModelFromVehicleModelEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.VehicleModelEntity, DecodeVIN_DecodeVIN_VehicleModel_VehicleModel>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-
         public DecodeVIN_DecodeVIN_VehicleModel_VehicleModelFromVehicleModelEntityMapper(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -869,7 +984,6 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Guid, global::System.Guid> _uuidParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
-
         public DecodeVINBuilder(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer idSerializer, global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IDecodeVINResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -901,7 +1015,7 @@ namespace Foo.Bar.State
             }
             catch (global::System.Exception ex)
             {
-                errors = new global::StrawberryShake.IClientError[] { new global::StrawberryShake.ClientError(ex.Message, exception: ex) };
+                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex)};
             }
 
             return new global::StrawberryShake.OperationResult<IDecodeVINResult>(data?.Result, data?.Info, _resultDataFactory, errors);
@@ -910,9 +1024,10 @@ namespace Foo.Bar.State
         private (IDecodeVINResult, DecodeVINResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
-            global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
-            global::Foo.Bar.State.DecodeVINData decodeVINId = default!;
-            _entityStore.Update(session => {
+            global::StrawberryShake.IEntityStoreSnapshot snapshot = default !;
+            global::Foo.Bar.State.DecodeVINData decodeVINId = default !;
+            _entityStore.Update(session =>
+            {
                 decodeVINId = DeserializeNonNullableIDecodeVIN_DecodeVIN(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "decodeVIN"), entityIds);
                 snapshot = session.CurrentSnapshot;
             });
@@ -1031,13 +1146,25 @@ namespace Foo.Bar.State
             VehicleModel = vehicleModel;
         }
 
-        public global::System.String __typename { get; }
+        public global::System.String __typename
+        {
+            get;
+        }
 
-        public global::System.Boolean? IsValid { get; }
+        public global::System.Boolean? IsValid
+        {
+            get;
+        }
 
-        public global::StrawberryShake.EntityId? VehicleMake { get; }
+        public global::StrawberryShake.EntityId? VehicleMake
+        {
+            get;
+        }
 
-        public global::StrawberryShake.EntityId? VehicleModel { get; }
+        public global::StrawberryShake.EntityId? VehicleModel
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
@@ -1045,27 +1172,24 @@ namespace Foo.Bar.State
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
-        { Indented = false };
-
+        {Indented = false};
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;
             return __typename switch
             {
-                "VehicleMake" => ParseVehicleMakeEntityId(obj, __typename),
-                "VehicleModel" => ParseVehicleModelEntityId(obj, __typename),
-                _ => throw new global::System.NotSupportedException()
-            };
+            "VehicleMake" => ParseVehicleMakeEntityId(obj, __typename), "VehicleModel" => ParseVehicleModelEntityId(obj, __typename), _ => throw new global::System.NotSupportedException()}
+
+            ;
         }
 
         public global::System.String Format(global::StrawberryShake.EntityId entityId)
         {
             return entityId.Name switch
             {
-                "VehicleMake" => FormatVehicleMakeEntityId(entityId),
-                "VehicleModel" => FormatVehicleModelEntityId(entityId),
-                _ => throw new global::System.NotSupportedException()
-            };
+            "VehicleMake" => FormatVehicleMakeEntityId(entityId), "VehicleModel" => FormatVehicleModelEntityId(entityId), _ => throw new global::System.NotSupportedException()}
+
+            ;
         }
 
         private global::StrawberryShake.EntityId ParseVehicleMakeEntityId(global::System.Text.Json.JsonElement obj, global::System.String type)
@@ -1107,7 +1231,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClientStoreAccessor : global::StrawberryShake.StoreAccessor
     {
-        public FooClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories) : base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
+        public FooClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories): base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
         {
         }
     }
@@ -1121,7 +1245,8 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => {
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp =>
+            {
                 var serviceCollection = ConfigureClientDefault(sp, strategy);
                 return new ClientServiceProvider(global::Microsoft.Extensions.DependencyInjection.ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(serviceCollection));
             });
@@ -1137,7 +1262,8 @@ namespace Microsoft.Extensions.DependencyInjection
             var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(services, sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => {
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp =>
+            {
                 var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
                 return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
             });
@@ -1175,7 +1301,6 @@ namespace Microsoft.Extensions.DependencyInjection
         private class ClientServiceProvider : System.IServiceProvider, System.IDisposable
         {
             private readonly System.IServiceProvider _provider;
-
             public ClientServiceProvider(System.IServiceProvider provider)
             {
                 _provider = provider;
