@@ -1330,13 +1330,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.S
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    /// <summary>
-    /// A connection to a list of items.
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    ///<summary>A connection to a list of items.</summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class CharacterConnectionData
     {
-        public CharacterConnectionData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes = null)
+        public CharacterConnectionData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Nodes = nodes;
@@ -1347,9 +1345,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriends.S
             get;
         }
 
-        /// <summary>
-        /// A flattened list of the nodes.
-        /// </summary>
+        ///<summary>A flattened list of the nodes.</summary>
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes
         {
             get;

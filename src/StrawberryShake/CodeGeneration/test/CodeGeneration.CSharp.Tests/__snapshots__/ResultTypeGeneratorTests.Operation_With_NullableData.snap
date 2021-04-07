@@ -729,10 +729,10 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FooNotificationData
     {
-        public FooNotificationData(global::System.String __typename, global::System.String? action = null, global::Foo.Bar.State.FooNotificationDataData? data = null)
+        public FooNotificationData(global::System.String __typename, global::System.String? action, global::Foo.Bar.State.FooNotificationDataData? data)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Action = action;
@@ -756,10 +756,10 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FooNotificationDataData
     {
-        public FooNotificationDataData(global::System.String __typename, global::System.String? barGUID = null, global::System.String? thingGUID = null, global::System.String? thingDATE = null, global::System.String? thingSTATUS = null, global::System.String? fooGUID = null, global::System.String? fooAUTHOR = null, global::System.String? fooDATE = null, global::System.String? fooTEXT = null)
+        public FooNotificationDataData(global::System.String __typename, global::System.String? barGUID, global::System.String? thingGUID, global::System.String? thingDATE, global::System.String? thingSTATUS, global::System.String? fooGUID, global::System.String? fooAUTHOR, global::System.String? fooDATE, global::System.String? fooTEXT)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             BarGUID = barGUID;

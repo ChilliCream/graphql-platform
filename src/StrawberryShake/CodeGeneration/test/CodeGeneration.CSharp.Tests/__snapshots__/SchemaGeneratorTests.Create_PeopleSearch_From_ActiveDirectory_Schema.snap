@@ -1694,10 +1694,10 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class PersonCollectionSegmentData
     {
-        public PersonCollectionSegmentData(global::System.String __typename, global::System.Int32? totalCount = null, global::Foo.Bar.State.CollectionSegmentInfoData? pageInfo = null, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? items = null)
+        public PersonCollectionSegmentData(global::System.String __typename, global::System.Int32? totalCount, global::Foo.Bar.State.CollectionSegmentInfoData? pageInfo, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? items)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             TotalCount = totalCount;
@@ -1715,9 +1715,7 @@ namespace Foo.Bar.State
             get;
         }
 
-        /// <summary>
-        /// Information to aid in pagination.
-        /// </summary>
+        ///<summary>Information to aid in pagination.</summary>
         public global::Foo.Bar.State.CollectionSegmentInfoData? PageInfo
         {
             get;
@@ -1730,13 +1728,11 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    /// <summary>
-    /// Information about the offset pagination.
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    ///<summary>Information about the offset pagination.</summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class CollectionSegmentInfoData
     {
-        public CollectionSegmentInfoData(global::System.String __typename, global::System.Boolean? hasNextPage = null, global::System.Boolean? hasPreviousPage = null)
+        public CollectionSegmentInfoData(global::System.String __typename, global::System.Boolean? hasNextPage, global::System.Boolean? hasPreviousPage)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             HasNextPage = hasNextPage;
@@ -1748,17 +1744,13 @@ namespace Foo.Bar.State
             get;
         }
 
-        /// <summary>
-        /// Indicates whether more items exist following the set defined by the clients arguments.
-        /// </summary>
+        ///<summary>Indicates whether more items exist following the set defined by the clients arguments.</summary>
         public global::System.Boolean? HasNextPage
         {
             get;
         }
 
-        /// <summary>
-        /// Indicates whether more items exist prior the set defined by the clients arguments.
-        /// </summary>
+        ///<summary>Indicates whether more items exist prior the set defined by the clients arguments.</summary>
         public global::System.Boolean? HasPreviousPage
         {
             get;

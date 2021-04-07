@@ -1061,10 +1061,10 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class BazData
     {
-        public BazData(global::System.String __typename, global::System.String? str = null, global::System.String? strNonNullable = null, global::Foo.Bar.State.BazData? nested = null, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData>? nestedList = null, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData?>?>? nestedMatrix = null)
+        public BazData(global::System.String __typename, global::System.String? str, global::System.String? strNonNullable, global::Foo.Bar.State.BazData? nested, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData>? nestedList, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData?>?>? nestedMatrix)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Str = str;

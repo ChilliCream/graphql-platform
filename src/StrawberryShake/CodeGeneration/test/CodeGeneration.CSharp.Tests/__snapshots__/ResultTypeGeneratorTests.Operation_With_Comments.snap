@@ -1145,13 +1145,11 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    /// <summary>
-    /// Baz Type
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    ///<summary>Baz Type</summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class BazData
     {
-        public BazData(global::System.String __typename, global::System.String? str = null, global::System.String? strNonNullable = null, global::Foo.Bar.State.BazData? nested = null, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData>? nestedList = null, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData?>?>? nestedMatrix = null)
+        public BazData(global::System.String __typename, global::System.String? str, global::System.String? strNonNullable, global::Foo.Bar.State.BazData? nested, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData>? nestedList, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData?>?>? nestedMatrix)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Str = str;
@@ -1166,41 +1164,31 @@ namespace Foo.Bar.State
             get;
         }
 
-        /// <summary>
-        /// Field str
-        /// </summary>
+        ///<summary>Field str</summary>
         public global::System.String? Str
         {
             get;
         }
 
-        /// <summary>
-        /// Field strNonNullable
-        /// </summary>
+        ///<summary>Field strNonNullable</summary>
         public global::System.String? StrNonNullable
         {
             get;
         }
 
-        /// <summary>
-        /// Field nested
-        /// </summary>
+        ///<summary>Field nested</summary>
         public global::Foo.Bar.State.BazData? Nested
         {
             get;
         }
 
-        /// <summary>
-        /// Field nestedList
-        /// </summary>
+        ///<summary>Field nestedList</summary>
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData>? NestedList
         {
             get;
         }
 
-        /// <summary>
-        /// Field nestedMatrix
-        /// </summary>
+        ///<summary>Field nestedMatrix</summary>
         public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BazData?>?>? NestedMatrix
         {
             get;

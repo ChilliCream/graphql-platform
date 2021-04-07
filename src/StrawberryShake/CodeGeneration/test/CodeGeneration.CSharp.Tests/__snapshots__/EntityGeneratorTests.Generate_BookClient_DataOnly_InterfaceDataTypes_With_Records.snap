@@ -654,30 +654,30 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchResultData
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    public partial interface ISearchResultData
     {
-        public global::System.String __typename
+        global::System.String __typename
         {
             get;
         }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IPrintData
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    public partial interface IPrintData
     {
-        public global::System.String __typename
+        global::System.String __typename
         {
             get;
         }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class BookData : ISearchResultData, IPrintData
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    public partial record BookData : ISearchResultData, IPrintData
     {
-        public BookData(global::System.String __typename, global::System.String? isbn = null, global::System.String? title = null)
+        public BookData(global::System.String __typename, global::System.String? isbn, global::System.String? title)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Isbn = isbn;
@@ -687,24 +687,27 @@ namespace Foo.Bar.State
         public global::System.String __typename
         {
             get;
+            init;
         }
 
         public global::System.String? Isbn
         {
             get;
+            init;
         }
 
         public global::System.String? Title
         {
             get;
+            init;
         }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class MagazineData : IPrintData
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    public partial record MagazineData : IPrintData
     {
-        public MagazineData(global::System.String __typename, global::System.String? isbn = null, global::System.String? coverImageUrl = null)
+        public MagazineData(global::System.String __typename, global::System.String? isbn, global::System.String? coverImageUrl)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Isbn = isbn;
@@ -714,16 +717,19 @@ namespace Foo.Bar.State
         public global::System.String __typename
         {
             get;
+            init;
         }
 
         public global::System.String? Isbn
         {
             get;
+            init;
         }
 
         public global::System.String? CoverImageUrl
         {
             get;
+            init;
         }
     }
 

@@ -476,10 +476,10 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ReviewData
     {
-        public ReviewData(global::System.String __typename, global::System.Int32? stars = null, global::System.String? commentary = null)
+        public ReviewData(global::System.String __typename, global::System.Int32? stars, global::System.String? commentary)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Stars = stars;

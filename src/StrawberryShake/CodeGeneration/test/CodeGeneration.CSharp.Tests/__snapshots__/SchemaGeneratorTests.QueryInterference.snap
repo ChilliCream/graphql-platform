@@ -3099,10 +3099,10 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FeatCollectionSegmentData
     {
-        public FeatCollectionSegmentData(global::System.String __typename, global::System.Int32? totalCount = null, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? items = null)
+        public FeatCollectionSegmentData(global::System.String __typename, global::System.Int32? totalCount, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? items)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             TotalCount = totalCount;

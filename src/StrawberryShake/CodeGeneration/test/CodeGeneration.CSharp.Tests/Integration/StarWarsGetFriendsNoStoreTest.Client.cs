@@ -1019,30 +1019,30 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchResultData
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    public partial interface ISearchResultData
     {
-        public global::System.String __typename
+        global::System.String __typename
         {
             get;
         }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ICharacterData
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    public partial interface ICharacterData
     {
-        public global::System.String __typename
+        global::System.String __typename
         {
             get;
         }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DroidData : ISearchResultData, ICharacterData
     {
-        public DroidData(global::System.String __typename, global::System.String? name = null, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNoStore.State.CharacterConnectionData? friends = null)
+        public DroidData(global::System.String __typename, global::System.String? name, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNoStore.State.CharacterConnectionData? friends)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Name = name;
@@ -1066,10 +1066,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class HumanData : ISearchResultData, ICharacterData
     {
-        public HumanData(global::System.String __typename, global::System.String? name = null, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNoStore.State.CharacterConnectionData? friends = null)
+        public HumanData(global::System.String __typename, global::System.String? name, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNoStore.State.CharacterConnectionData? friends)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Name = name;
@@ -1093,13 +1093,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    /// <summary>
-    /// A connection to a list of items.
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    ///<summary>A connection to a list of items.</summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class CharacterConnectionData
     {
-        public CharacterConnectionData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNoStore.State.ICharacterData?>? nodes = null)
+        public CharacterConnectionData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNoStore.State.ICharacterData?>? nodes)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Nodes = nodes;
@@ -1110,9 +1108,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
             get;
         }
 
-        /// <summary>
-        /// A flattened list of the nodes.
-        /// </summary>
+        ///<summary>A flattened list of the nodes.</summary>
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNoStore.State.ICharacterData?>? Nodes
         {
             get;

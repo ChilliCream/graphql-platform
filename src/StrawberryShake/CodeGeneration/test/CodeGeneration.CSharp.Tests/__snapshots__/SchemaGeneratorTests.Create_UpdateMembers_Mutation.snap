@@ -816,10 +816,10 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ProjectMutationsData
     {
-        public ProjectMutationsData(global::System.String __typename, global::Foo.Bar.State.MutationResultData? updateMembers = null)
+        public ProjectMutationsData(global::System.String __typename, global::Foo.Bar.State.MutationResultData? updateMembers)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             UpdateMembers = updateMembers;
@@ -830,9 +830,7 @@ namespace Foo.Bar.State
             get;
         }
 
-        /// <summary>
-        /// Update the project members
-        /// </summary>
+        ///<summary>Update the project members</summary>
         public global::Foo.Bar.State.MutationResultData? UpdateMembers
         {
             get;
@@ -840,10 +838,10 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class MutationResultData
     {
-        public MutationResultData(global::System.String __typename, global::System.Guid? correlationId = null)
+        public MutationResultData(global::System.String __typename, global::System.Guid? correlationId)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             CorrelationId = correlationId;

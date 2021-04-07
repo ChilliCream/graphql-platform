@@ -2492,13 +2492,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    /// <summary>
-    /// A connection to a list of items.
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    ///<summary>A connection to a list of items.</summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class CharacterConnectionData
     {
-        public CharacterConnectionData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes = null)
+        public CharacterConnectionData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Nodes = nodes;
@@ -2509,9 +2507,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
             get;
         }
 
-        /// <summary>
-        /// A flattened list of the nodes.
-        /// </summary>
+        ///<summary>A flattened list of the nodes.</summary>
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes
         {
             get;
@@ -2519,10 +2515,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ReviewData
     {
-        public ReviewData(global::System.String __typename, global::System.Int32? stars = null, global::System.String? commentary = null)
+        public ReviewData(global::System.String __typename, global::System.Int32? stars, global::System.String? commentary)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Stars = stars;

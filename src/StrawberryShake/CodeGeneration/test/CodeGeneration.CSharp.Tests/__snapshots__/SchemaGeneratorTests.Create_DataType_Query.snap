@@ -634,10 +634,10 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FooData
     {
-        public FooData(global::System.String __typename, global::Foo.Bar.State.ProfileData? profile = null)
+        public FooData(global::System.String __typename, global::Foo.Bar.State.ProfileData? profile)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Profile = profile;
@@ -655,10 +655,10 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ProfileData
     {
-        public ProfileData(global::System.String __typename, global::System.String? name = null)
+        public ProfileData(global::System.String __typename, global::System.String? name)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Name = name;

@@ -976,30 +976,30 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchResultData
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    public partial interface ISearchResultData
     {
-        public global::System.String __typename
+        global::System.String __typename
         {
             get;
         }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IPrintData
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    public partial interface IPrintData
     {
-        public global::System.String __typename
+        global::System.String __typename
         {
             get;
         }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class BookData : ISearchResultData, IPrintData
     {
-        public BookData(global::System.String __typename, global::System.String? isbn = null, global::System.String? title = null)
+        public BookData(global::System.String __typename, global::System.String? isbn, global::System.String? title)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Isbn = isbn;
@@ -1023,7 +1023,7 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class AuthorData : ISearchResultData
     {
         public AuthorData(global::System.String __typename)

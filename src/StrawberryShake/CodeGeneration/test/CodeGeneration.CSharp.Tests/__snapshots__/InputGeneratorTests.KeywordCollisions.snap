@@ -788,10 +788,10 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class readonlyData
     {
-        public readonlyData(global::System.String __typename, global::System.String? @abstract = null)
+        public readonlyData(global::System.String __typename, global::System.String? @abstract)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Abstract = @abstract;

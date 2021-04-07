@@ -1135,10 +1135,10 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DecodeVINData
     {
-        public DecodeVINData(global::System.String __typename, global::System.Boolean? isValid = null, global::StrawberryShake.EntityId? vehicleMake = null, global::StrawberryShake.EntityId? vehicleModel = null)
+        public DecodeVINData(global::System.String __typename, global::System.Boolean? isValid, global::StrawberryShake.EntityId? vehicleMake, global::StrawberryShake.EntityId? vehicleModel)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             IsValid = isValid;
