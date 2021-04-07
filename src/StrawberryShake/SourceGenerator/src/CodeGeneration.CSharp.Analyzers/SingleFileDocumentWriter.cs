@@ -64,9 +64,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 string currentHash = _hashProvider.ComputeHash(
                     Encoding.UTF8.GetBytes(_content.ToString()));
 
+                bool fileExists = File.Exists(_fileName);
+
                 // we only write the file if it has changed so we do not trigger a loop on
                 // dotnet watch.
-                if (!currentHash.Equals(hash, StringComparison.Ordinal))
+                if (!fileExists || !currentHash.Equals(hash, StringComparison.Ordinal))
                 {
                     string directory = IOPath.GetDirectoryName(_fileName);
 
@@ -75,7 +77,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                         Directory.CreateDirectory(directory);
                     }
 
-                    if (File.Exists(_fileName))
+                    if (fileExists)
                     {
                         File.Delete(_fileName);
                     }
