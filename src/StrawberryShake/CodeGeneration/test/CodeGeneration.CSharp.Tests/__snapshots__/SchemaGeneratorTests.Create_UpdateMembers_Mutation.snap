@@ -322,6 +322,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>Update the project members</summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class UpdateProjectMembersInput
     {
         ///<summary>The id of the project</summary>
@@ -389,6 +390,7 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class UpdateProjectMemberInput
     {
         ///<summary>The member id</summary>

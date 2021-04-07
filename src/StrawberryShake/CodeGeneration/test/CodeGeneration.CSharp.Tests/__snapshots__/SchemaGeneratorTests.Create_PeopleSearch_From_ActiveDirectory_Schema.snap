@@ -1099,7 +1099,7 @@ namespace Foo.Bar
 namespace Foo.Bar.State
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class PersonEntity
     {
         public PersonEntity(global::System.String id, global::System.Int64 key, global::System.String? displayName, global::System.Boolean isActive, global::StrawberryShake.EntityId? department, global::System.Uri? image, global::System.String title, global::StrawberryShake.EntityId? manager)
@@ -1119,57 +1119,43 @@ namespace Foo.Bar.State
             get;
         }
 
-        /// <summary>
-        /// The database primary key for the person.
-        /// </summary>
+        ///<summary>The database primary key for the person.</summary>
         public global::System.Int64 Key
         {
             get;
         }
 
-        /// <summary>
-        /// The full of the person.
-        /// </summary>
+        ///<summary>The full of the person.</summary>
         public global::System.String? DisplayName
         {
             get;
         }
 
-        /// <summary>
-        /// Indicates if the person is active.
-        /// </summary>
+        ///<summary>Indicates if the person is active.</summary>
         public global::System.Boolean IsActive
         {
             get;
         }
 
-        /// <summary>
-        /// The department the person belongs to.
-        /// </summary>
+        ///<summary>The department the person belongs to.</summary>
         public global::StrawberryShake.EntityId? Department
         {
             get;
         }
 
-        /// <summary>
-        /// Url to image, you can specify a size in pixels by appending '?size=300' to get a square image.
-        /// </summary>
+        ///<summary>Url to image, you can specify a size in pixels by appending '?size=300' to get a square image.</summary>
         public global::System.Uri? Image
         {
             get;
         }
 
-        /// <summary>
-        /// The job title of the person.
-        /// </summary>
+        ///<summary>The job title of the person.</summary>
         public global::System.String Title
         {
             get;
         }
 
-        /// <summary>
-        /// The person managing the person.
-        /// </summary>
+        ///<summary>The person managing the person.</summary>
         public global::StrawberryShake.EntityId? Manager
         {
             get;
@@ -1177,7 +1163,7 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DepartmentEntity
     {
         public DepartmentEntity(global::System.String id, global::System.String name)
@@ -1191,9 +1177,7 @@ namespace Foo.Bar.State
             get;
         }
 
-        /// <summary>
-        /// The name of the department.
-        /// </summary>
+        ///<summary>The name of the department.</summary>
         public global::System.String Name
         {
             get;

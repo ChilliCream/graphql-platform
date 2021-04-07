@@ -89,7 +89,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     RequestStrategy = settings.RequestStrategy,
                     TransportProfiles = settings.Profiles,
                     NoStore = settings.NoStore,
-                    InputRecords = settings.InputRecords
+                    InputRecords = settings.InputRecords,
+                    EntityRecords = settings.EntityRecords
                 });
 
             Assert.False(
@@ -268,6 +269,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             public bool NoStore { get; set; }
 
             public bool InputRecords { get; set; }
+
+            public bool EntityRecords { get; set; }
 
             public List<TransportProfile> Profiles { get; set; } = new();
 

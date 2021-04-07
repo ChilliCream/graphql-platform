@@ -1477,7 +1477,7 @@ namespace Foo.Bar.State
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
     ///<summary>Type person</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class PersonEntity
+    public partial record PersonEntity
     {
         public PersonEntity(global::System.String name, global::Foo.Bar.State.MessageConnectionData? messages)
         {
@@ -1489,19 +1489,21 @@ namespace Foo.Bar.State
         public global::System.String Name
         {
             get;
+            init;
         }
 
         ///<summary>Field messages</summary>
         public global::Foo.Bar.State.MessageConnectionData? Messages
         {
             get;
+            init;
         }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
     ///<summary>Type message</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class MessageEntity
+    public partial record MessageEntity
     {
         public MessageEntity(global::StrawberryShake.EntityId sender, global::System.String text)
         {
@@ -1513,12 +1515,14 @@ namespace Foo.Bar.State
         public global::StrawberryShake.EntityId Sender
         {
             get;
+            init;
         }
 
         ///<summary>Field text</summary>
         public global::System.String Text
         {
             get;
+            init;
         }
     }
 

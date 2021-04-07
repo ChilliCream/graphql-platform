@@ -604,7 +604,7 @@ namespace Foo.Bar
 namespace Foo.Bar.State
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FeatEntity
     {
         public FeatEntity(global::System.String name, global::System.Int32 level, global::System.Boolean canBeLearnedMoreThanOnce, global::StrawberryShake.EntityId actionType)
@@ -637,7 +637,7 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ActionTypeEntity
     {
         public ActionTypeEntity(global::System.String name)

@@ -748,7 +748,7 @@ namespace Foo.Bar
 namespace Foo.Bar.State
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class VehicleMakeEntity
     {
         public VehicleMakeEntity(global::System.Guid id, global::System.String? make, global::System.String? makeCode, global::System.Boolean isDisabled)
@@ -781,7 +781,7 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class VehicleModelEntity
     {
         public VehicleModelEntity(global::System.Guid id, global::System.String? model, global::System.String? modelCode, global::System.Guid vehicleMakeId, global::System.Boolean isDisabled, global::System.String? modelType)

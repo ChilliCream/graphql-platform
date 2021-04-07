@@ -8,22 +8,22 @@ namespace Microsoft.Extensions.DependencyInjection
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class StarWarsClientServiceCollectionExtensions
     {
-        public static global::StrawberryShake.IClientBuilder<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.StarWarsClientStoreAccessor> AddStarWarsClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.StarWarsClientProfileKind profile = global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.StarWarsClientProfileKind.Default)
+        public static global::StrawberryShake.IClientBuilder<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.StarWarsClientStoreAccessor> AddStarWarsClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.StarWarsClientProfileKind profile = global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.StarWarsClientProfileKind.Default)
         {
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp =>
             {
                 var serviceCollection = profile switch
                 {
-                global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.StarWarsClientProfileKind.Default => ConfigureClientDefault(sp, strategy), global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.StarWarsClientProfileKind.WebSocket => ConfigureClientWebSocket(sp, strategy), _ => throw new global::System.ArgumentOutOfRangeException()}
+                global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.StarWarsClientProfileKind.Default => ConfigureClientDefault(sp, strategy), global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.StarWarsClientProfileKind.WebSocket => ConfigureClientWebSocket(sp, strategy), _ => throw new global::System.ArgumentOutOfRangeException()}
 
                 ;
                 return new ClientServiceProvider(global::Microsoft.Extensions.DependencyInjection.ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(serviceCollection));
             });
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => new global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.StarWarsClientStoreAccessor(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityIdSerializer>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp))));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.GetPeopleQuery>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.StarWarsClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IStarWarsClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
-            return new global::StrawberryShake.ClientBuilder<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.StarWarsClientStoreAccessor>("StarWarsClient", services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => new global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.StarWarsClientStoreAccessor(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityIdSerializer>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp))));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.GetPeopleQuery>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.StarWarsClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IStarWarsClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            return new global::StrawberryShake.ClientBuilder<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.StarWarsClientStoreAccessor>("StarWarsClient", services);
         }
 
         private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClientDefault(global::System.IServiceProvider parentServices, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
@@ -36,7 +36,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
                 return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("StarWarsClient"));
             });
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonEntity, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.GetPeople_People_Nodes_Person>, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.GetPeople_People_Nodes_PersonFromPersonEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.PersonEntity, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.GetPeople_People_Nodes_Person>, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.GetPeople_People_Nodes_PersonFromPersonEntityMapper>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteSerializer>(services);
@@ -53,16 +53,16 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(services, sp => new global::StrawberryShake.Serialization.SerializerResolver(global::System.Linq.Enumerable.Concat(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(parentServices), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(sp))));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleResult>, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.GetPeopleResultFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleResult>>(sp));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleQuery>(sp));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleResult>, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.GetPeopleBuilder>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleResult>>(services, sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleResult>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleResult>>(sp), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp), strategy));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.GetPeopleQuery>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleQuery>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.GetPeopleQuery>(sp));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityIdSerializer, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.StarWarsClientEntityIdFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.StarWarsClient>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IStarWarsClient>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.StarWarsClient>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleResult>, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.GetPeopleResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleResult>>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleQuery>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleResult>, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.GetPeopleBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleResult>>(services, sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleResult>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleResult>>(sp), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp), strategy));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.GetPeopleQuery>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleQuery>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.GetPeopleQuery>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityIdSerializer, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.StarWarsClientEntityIdFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.StarWarsClient>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IStarWarsClient>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.StarWarsClient>(sp));
             return services;
         }
 
@@ -76,7 +76,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 var sessionPool = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.WebSockets.ISessionPool>(parentServices);
                 return new global::StrawberryShake.Transport.WebSockets.WebSocketConnection(async ct => await sessionPool.CreateAsync("StarWarsClient", ct));
             });
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonEntity, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.GetPeople_People_Nodes_Person>, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.GetPeople_People_Nodes_PersonFromPersonEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.PersonEntity, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.GetPeople_People_Nodes_Person>, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.GetPeople_People_Nodes_PersonFromPersonEntityMapper>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteSerializer>(services);
@@ -93,16 +93,16 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(services, sp => new global::StrawberryShake.Serialization.SerializerResolver(global::System.Linq.Enumerable.Concat(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(parentServices), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(sp))));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleResult>, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.GetPeopleResultFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleResult>>(sp));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleQuery>(sp));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleResult>, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.GetPeopleBuilder>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleResult>>(services, sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleResult>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.WebSockets.WebSocketConnection>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleResult>>(sp), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp), strategy));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.GetPeopleQuery>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleQuery>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.GetPeopleQuery>(sp));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityIdSerializer, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.StarWarsClientEntityIdFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.StarWarsClient>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IStarWarsClient>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.StarWarsClient>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleResult>, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.GetPeopleResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleResult>>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleQuery>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleResult>, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.GetPeopleBuilder>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleResult>>(services, sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleResult>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.WebSockets.WebSocketConnection>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleResult>>(sp), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp), strategy));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.GetPeopleQuery>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleQuery>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.GetPeopleQuery>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityIdSerializer, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.StarWarsClientEntityIdFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.StarWarsClient>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IStarWarsClient>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.StarWarsClient>(sp));
             return services;
         }
 
@@ -130,13 +130,13 @@ namespace Microsoft.Extensions.DependencyInjection
     }
 }
 
-namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
+namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeopleResult : global::System.IEquatable<GetPeopleResult>, IGetPeopleResult
     {
-        public GetPeopleResult(global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeople_People? people)
+        public GetPeopleResult(global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeople_People? people)
         {
             People = people;
         }
@@ -144,10 +144,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
         /// <summary>
         /// Gets access to all the people known to this service.
         /// </summary>
-        public global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeople_People? People
-        {
-            get;
-        }
+        public global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeople_People? People { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -211,7 +208,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetPeople_People_PersonConnection : global::System.IEquatable<GetPeople_People_PersonConnection>, IGetPeople_People_PersonConnection
     {
-        public GetPeople_People_PersonConnection(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeople_People_Nodes?>? nodes)
+        public GetPeople_People_PersonConnection(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeople_People_Nodes?>? nodes)
         {
             Nodes = nodes;
         }
@@ -219,10 +216,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeople_People_Nodes?>? Nodes
-        {
-            get;
-        }
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeople_People_Nodes?>? Nodes { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -297,25 +291,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
             LastSeen = lastSeen;
         }
 
-        public global::System.String Name
-        {
-            get;
-        }
+        public global::System.String Name { get; }
 
-        public global::System.String Email
-        {
-            get;
-        }
+        public global::System.String Email { get; }
 
-        public global::System.Boolean IsOnline
-        {
-            get;
-        }
+        public global::System.Boolean IsOnline { get; }
 
-        public global::System.DateTimeOffset LastSeen
-        {
-            get;
-        }
+        public global::System.DateTimeOffset LastSeen { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -378,10 +360,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
         /// <summary>
         /// Gets access to all the people known to this service.
         /// </summary>
-        public global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeople_People? People
-        {
-            get;
-        }
+        public global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeople_People? People { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -394,10 +373,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeople_People_Nodes?>? Nodes
-        {
-            get;
-        }
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeople_People_Nodes?>? Nodes { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -413,25 +389,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetPeople_People_Nodes
     {
-        public global::System.String Name
-        {
-            get;
-        }
+        public global::System.String Name { get; }
 
-        public global::System.String Email
-        {
-            get;
-        }
+        public global::System.String Email { get; }
 
-        public global::System.Boolean IsOnline
-        {
-            get;
-        }
+        public global::System.Boolean IsOnline { get; }
 
-        public global::System.DateTimeOffset LastSeen
-        {
-            get;
-        }
+        public global::System.DateTimeOffset LastSeen { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -468,20 +432,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
         {
         }
 
-        public static GetPeopleQueryDocument Instance
-        {
-            get;
-        }
-
-        = new GetPeopleQueryDocument();
+        public static GetPeopleQueryDocument Instance { get; } = new GetPeopleQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
         public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[0];
-        public global::StrawberryShake.DocumentHash Hash
-        {
-            get;
-        }
-
-        = new global::StrawberryShake.DocumentHash("md5Hash", "22e3b8ba92883af43c70567c7d1cf143");
+        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("md5Hash", "22e3b8ba92883af43c70567c7d1cf143");
         public override global::System.String ToString()
         {
 #if NETSTANDARD2_0
@@ -514,7 +468,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetPeopleQuery : global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleQuery
+    public partial class GetPeopleQuery : global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetPeopleResult> _operationExecutor;
         public GetPeopleQuery(global::StrawberryShake.IOperationExecutor<IGetPeopleResult> operationExecutor)
@@ -584,16 +538,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
     /// Represents the StarWarsClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class StarWarsClient : global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IStarWarsClient
+    public partial class StarWarsClient : global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IStarWarsClient
     {
-        private readonly global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleQuery _getPeople;
-        public StarWarsClient(global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleQuery getPeople)
+        private readonly global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleQuery _getPeople;
+        public StarWarsClient(global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleQuery getPeople)
         {
             _getPeople = getPeople ?? throw new global::System.ArgumentNullException(nameof(getPeople));
         }
 
         public static global::System.String ClientName => "StarWarsClient";
-        public global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleQuery GetPeople => _getPeople;
+        public global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleQuery GetPeople => _getPeople;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
@@ -603,10 +557,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IStarWarsClient
     {
-        global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleQuery GetPeople
-        {
-            get;
-        }
+        global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleQuery GetPeople { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.TransportProfileEnumGenerator
@@ -618,10 +569,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars
     }
 }
 
-namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
+namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.2.0.0")]
     public partial class PersonEntity
     {
         public PersonEntity(global::System.String name, global::System.String email, global::System.Boolean isOnline, global::System.DateTimeOffset lastSeen)
@@ -632,40 +583,28 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
             LastSeen = lastSeen;
         }
 
-        public global::System.String Name
-        {
-            get;
-        }
+        public global::System.String Name { get; }
 
-        public global::System.String Email
-        {
-            get;
-        }
+        public global::System.String Email { get; }
 
-        public global::System.Boolean IsOnline
-        {
-            get;
-        }
+        public global::System.Boolean IsOnline { get; }
 
-        public global::System.DateTimeOffset LastSeen
-        {
-            get;
-        }
+        public global::System.DateTimeOffset LastSeen { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetPeopleResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.GetPeopleResult>
+    public partial class GetPeopleResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.GetPeopleResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonEntity, GetPeople_People_Nodes_Person> _getPeople_People_Nodes_PersonFromPersonEntityMapper;
-        public GetPeopleResultFactory(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonEntity, GetPeople_People_Nodes_Person> getPeople_People_Nodes_PersonFromPersonEntityMapper)
+        private readonly global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.PersonEntity, GetPeople_People_Nodes_Person> _getPeople_People_Nodes_PersonFromPersonEntityMapper;
+        public GetPeopleResultFactory(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.PersonEntity, GetPeople_People_Nodes_Person> getPeople_People_Nodes_PersonFromPersonEntityMapper)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
             _getPeople_People_Nodes_PersonFromPersonEntityMapper = getPeople_People_Nodes_PersonFromPersonEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getPeople_People_Nodes_PersonFromPersonEntityMapper));
         }
 
-        global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleResult);
+        global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleResult);
         public GetPeopleResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -681,7 +620,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
             throw new global::System.ArgumentException("GetPeopleResultInfo expected.");
         }
 
-        private global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeople_People? MapIGetPeople_People(global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonConnectionData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        private global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeople_People? MapIGetPeople_People(global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.PersonConnectionData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             if (data is null)
             {
@@ -701,14 +640,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
             return returnValue;
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeople_People_Nodes?>? MapIGetPeople_People_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeople_People_Nodes?>? MapIGetPeople_People_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list, global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             if (list is null)
             {
                 return null;
             }
 
-            var persons = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeople_People_Nodes?>();
+            var persons = new global::System.Collections.Generic.List<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeople_People_Nodes?>();
             foreach (global::StrawberryShake.EntityId? child in list)
             {
                 persons.Add(MapIGetPeople_People_Nodes(child, snapshot));
@@ -717,7 +656,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
             return persons;
         }
 
-        private global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeople_People_Nodes? MapIGetPeople_People_Nodes(global::StrawberryShake.EntityId? entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        private global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeople_People_Nodes? MapIGetPeople_People_Nodes(global::StrawberryShake.EntityId? entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             if (entityId is null)
             {
@@ -726,7 +665,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
 
             if (entityId.Value.Name.Equals("Person", global::System.StringComparison.Ordinal))
             {
-                return _getPeople_People_Nodes_PersonFromPersonEntityMapper.Map(snapshot.GetEntity<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
+                return _getPeople_People_Nodes_PersonFromPersonEntityMapper.Map(snapshot.GetEntity<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.PersonEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
             }
 
             throw new global::System.NotSupportedException();
@@ -744,7 +683,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
         private readonly global::System.UInt64 _version;
-        public GetPeopleResultInfo(global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonConnectionData? people, global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds, global::System.UInt64 version)
+        public GetPeopleResultInfo(global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.PersonConnectionData? people, global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds, global::System.UInt64 version)
         {
             People = people;
             _entityIds = entityIds ?? throw new global::System.ArgumentNullException(nameof(entityIds));
@@ -754,10 +693,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
         /// <summary>
         /// Gets access to all the people known to this service.
         /// </summary>
-        public global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonConnectionData? People
-        {
-            get;
-        }
+        public global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.PersonConnectionData? People { get; }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
         public global::System.UInt64 Version => _version;
@@ -769,7 +705,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetPeople_People_Nodes_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonEntity, GetPeople_People_Nodes_Person>
+    public partial class GetPeople_People_Nodes_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.PersonEntity, GetPeople_People_Nodes_Person>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         public GetPeople_People_Nodes_PersonFromPersonEntityMapper(global::StrawberryShake.IEntityStore entityStore)
@@ -777,7 +713,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
         }
 
-        public GetPeople_People_Nodes_Person Map(global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        public GetPeople_People_Nodes_Person Map(global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.PersonEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
             {
@@ -790,15 +726,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetPeopleBuilder : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleResult>
+    public partial class GetPeopleBuilder : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityIdSerializer _idSerializer;
-        private readonly global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleResult> _resultDataFactory;
+        private readonly global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleResult> _resultDataFactory;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
-        public GetPeopleBuilder(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer idSerializer, global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.IGetPeopleResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        public GetPeopleBuilder(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer idSerializer, global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
             _idSerializer = idSerializer ?? throw new global::System.ArgumentNullException(nameof(idSerializer));
@@ -839,7 +775,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
         {
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
             global::StrawberryShake.IEntityStoreSnapshot snapshot = default !;
-            global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonConnectionData? peopleId = default !;
+            global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.PersonConnectionData? peopleId = default !;
             _entityStore.Update(session =>
             {
                 peopleId = DeserializeIGetPeople_People(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "people"), entityIds);
@@ -849,7 +785,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
             return (_resultDataFactory.Create(resultInfo), resultInfo);
         }
 
-        private global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonConnectionData? DeserializeIGetPeople_People(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        private global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.PersonConnectionData? DeserializeIGetPeople_People(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
             {
@@ -859,7 +795,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("PersonConnection", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonConnectionData(typename, nodes: UpdateIGetPeople_People_NodesEntityArray(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "nodes"), entityIds));
+                return new global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.PersonConnectionData(typename, nodes: UpdateIGetPeople_People_NodesEntityArray(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "nodes"), entityIds));
             }
 
             throw new global::System.NotSupportedException();
@@ -892,13 +828,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
             entityIds.Add(entityId);
             if (entityId.Name.Equals("Person", global::System.StringComparison.Ordinal))
             {
-                if (session.CurrentSnapshot.TryGetEntity(entityId, out global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonEntity? entity))
+                if (session.CurrentSnapshot.TryGetEntity(entityId, out global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.PersonEntity? entity))
                 {
-                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), DeserializeNonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), DeserializeNonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "lastSeen"))));
+                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.PersonEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), DeserializeNonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), DeserializeNonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "lastSeen"))));
                 }
                 else
                 {
-                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State.PersonEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), DeserializeNonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), DeserializeNonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "lastSeen"))));
+                    session.SetEntity(entityId, new global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.PersonEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "email")), DeserializeNonNullableBoolean(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "isOnline")), DeserializeNonNullableDateTimeOffset(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "lastSeen"))));
                 }
 
                 return entityId;
@@ -951,18 +887,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars.State
             Nodes = nodes;
         }
 
-        public global::System.String __typename
-        {
-            get;
-        }
+        public global::System.String __typename { get; }
 
         /// <summary>
         /// A flattened list of the nodes.
         /// </summary>
-        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes
-        {
-            get;
-        }
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator

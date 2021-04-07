@@ -652,7 +652,7 @@ namespace Foo.Bar.State
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class SearchableStoreEntity
+    public partial record SearchableStoreEntity
     {
         public SearchableStoreEntity(global::System.String id, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BookData?>? books, global::Foo.Bar.State.ISearchResultData? search)
         {
@@ -664,16 +664,19 @@ namespace Foo.Bar.State
         public global::System.String Id
         {
             get;
+            init;
         }
 
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.BookData?>? Books
         {
             get;
+            init;
         }
 
         public global::Foo.Bar.State.ISearchResultData? Search
         {
             get;
+            init;
         }
     }
 

@@ -2692,6 +2692,7 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class SendMessageInput
     {
         public global::System.String? ClientMutationId
@@ -3888,10 +3889,8 @@ namespace Foo.Bar
 namespace Foo.Bar.State
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    /// <summary>
-    /// Type person
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    ///<summary>Type person</summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class PersonEntity
     {
         public PersonEntity(global::System.String name, global::System.String email, global::System.Boolean isOnline, global::System.Uri? imageUri, global::System.DateTimeOffset lastSeen, global::Foo.Bar.State.MessageConnectionData? messages)
@@ -3904,49 +3903,37 @@ namespace Foo.Bar.State
             Messages = messages;
         }
 
-        /// <summary>
-        /// Field name
-        /// </summary>
+        ///<summary>Field name</summary>
         public global::System.String Name
         {
             get;
         }
 
-        /// <summary>
-        /// Field email
-        /// </summary>
+        ///<summary>Field email</summary>
         public global::System.String Email
         {
             get;
         }
 
-        /// <summary>
-        /// Field isOnline
-        /// </summary>
+        ///<summary>Field isOnline</summary>
         public global::System.Boolean IsOnline
         {
             get;
         }
 
-        /// <summary>
-        /// Field imageUri
-        /// </summary>
+        ///<summary>Field imageUri</summary>
         public global::System.Uri? ImageUri
         {
             get;
         }
 
-        /// <summary>
-        /// Field lastSeen
-        /// </summary>
+        ///<summary>Field lastSeen</summary>
         public global::System.DateTimeOffset LastSeen
         {
             get;
         }
 
-        /// <summary>
-        /// Field messages
-        /// </summary>
+        ///<summary>Field messages</summary>
         public global::Foo.Bar.State.MessageConnectionData? Messages
         {
             get;
@@ -3954,10 +3941,8 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    /// <summary>
-    /// Type message
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    ///<summary>Type message</summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class MessageEntity
     {
         public MessageEntity(global::System.String id, global::System.String text, global::Foo.Bar.Direction direction, global::StrawberryShake.EntityId recipient, global::StrawberryShake.EntityId sender, global::System.DateTimeOffset sent)
@@ -3970,49 +3955,37 @@ namespace Foo.Bar.State
             Sent = sent;
         }
 
-        /// <summary>
-        /// Field id
-        /// </summary>
+        ///<summary>Field id</summary>
         public global::System.String Id
         {
             get;
         }
 
-        /// <summary>
-        /// Field text
-        /// </summary>
+        ///<summary>Field text</summary>
         public global::System.String Text
         {
             get;
         }
 
-        /// <summary>
-        /// Field direction
-        /// </summary>
+        ///<summary>Field direction</summary>
         public global::Foo.Bar.Direction Direction
         {
             get;
         }
 
-        /// <summary>
-        /// Fiejld recipient
-        /// </summary>
+        ///<summary>Fiejld recipient</summary>
         public global::StrawberryShake.EntityId Recipient
         {
             get;
         }
 
-        /// <summary>
-        /// Field sender
-        /// </summary>
+        ///<summary>Field sender</summary>
         public global::StrawberryShake.EntityId Sender
         {
             get;
         }
 
-        /// <summary>
-        /// Field sent
-        /// </summary>
+        ///<summary>Field sent</summary>
         public global::System.DateTimeOffset Sent
         {
             get;

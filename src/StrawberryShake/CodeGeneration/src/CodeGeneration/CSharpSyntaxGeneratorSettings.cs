@@ -8,10 +8,14 @@ namespace StrawberryShake.CodeGeneration
         /// <summary>
         /// Creates a new code generator settings instance.
         /// </summary>
-        public CSharpSyntaxGeneratorSettings(bool noStore, bool inputRecords)
+        public CSharpSyntaxGeneratorSettings(
+            bool noStore,
+            bool inputRecords,
+            bool entityRecords)
         {
             NoStore = noStore;
             InputRecords = inputRecords;
+            EntityRecords = entityRecords;
         }
 
         /// <summary>
@@ -23,5 +27,10 @@ namespace StrawberryShake.CodeGeneration
         /// Generates input types as records.
         /// </summary>
         public bool InputRecords { get; }
+
+        /// <summary>
+        /// Generates entities as records.
+        /// </summary>
+        public bool EntityRecords { get; }
     }
 }

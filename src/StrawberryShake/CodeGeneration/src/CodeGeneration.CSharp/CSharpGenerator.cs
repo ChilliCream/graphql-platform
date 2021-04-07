@@ -233,7 +233,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             var generatorSettings = new CSharpSyntaxGeneratorSettings(
                 settings.NoStore,
-                settings.InputRecords);
+                settings.InputRecords,
+                settings.EntityRecords);
 
             var results = new List<(Type Generator, CSharpSyntaxGeneratorResult Result)>();
 
@@ -299,7 +300,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             var generatorSettings = new CSharpSyntaxGeneratorSettings(
                 settings.NoStore,
-                settings.InputRecords);
+                settings.InputRecords,
+                settings.EntityRecords);
 
             var results = new List<(Type Generator, CSharpSyntaxGeneratorResult Result)>();
 
