@@ -910,16 +910,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.State
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class StarshipEntity
     {
-        public StarshipEntity()
-        {
-        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class HumanEntity
     {
         public HumanEntity(global::System.String name, global::StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.State.CharacterConnectionData? friends)
@@ -940,7 +937,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList.St
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DroidEntity
     {
         public DroidEntity(global::System.String name)

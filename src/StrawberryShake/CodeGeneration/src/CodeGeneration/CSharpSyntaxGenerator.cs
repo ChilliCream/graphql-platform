@@ -37,5 +37,9 @@ namespace StrawberryShake.CodeGeneration
         protected abstract CSharpSyntaxGeneratorResult Generate(
             TDescriptor descriptor,
             CSharpSyntaxGeneratorSettings settings);
+
+        protected static string State => nameof(State);
+        protected static string DependencyInjection => nameof(DependencyInjection);
+        protected static string Serialization => nameof(Serialization);
     }
 }

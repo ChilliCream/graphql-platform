@@ -496,7 +496,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.State
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DroidEntity
     {
         public DroidEntity(global::System.String name)
@@ -511,7 +511,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.Stat
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class HumanEntity
     {
         public HumanEntity(global::System.String name)

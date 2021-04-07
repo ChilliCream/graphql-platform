@@ -68,6 +68,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
             };
         }
 
+        public static TypeSyntax ToStateTypeSyntax(
+            this ITypeDescriptor typeDescriptor,
+            TypeReferenceBuilder? builder = null) =>
+            ParseTypeName(typeDescriptor.ToStateTypeReference(builder).ToString());
+
         public static TypeReferenceBuilder ToStateTypeReference(
             this ITypeDescriptor typeDescriptor,
             TypeReferenceBuilder? builder = null)

@@ -1114,6 +1114,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ReviewInput
     {
         public global::System.Int32 Stars
@@ -1637,7 +1638,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DroidEntity
     {
         public DroidEntity(global::System.String name, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.CharacterConnectionData? friends)
@@ -1658,7 +1659,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class HumanEntity
     {
         public HumanEntity(global::System.String name, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.CharacterConnectionData? friends)

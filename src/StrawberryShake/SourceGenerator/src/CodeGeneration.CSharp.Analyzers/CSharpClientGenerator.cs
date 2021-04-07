@@ -6,7 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -210,6 +209,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     StrictSchemaValidation = context.Settings.StrictSchemaValidation,
                     NoStore = context.Settings.NoStore,
                     InputRecords = context.Settings.Records?.Inputs ?? false,
+                    EntityRecords = context.Settings.Records?.Entities ?? false,
                     SingleCodeFile = context.Settings.UseSingleFile,
                     HashProvider = context.Settings.HashAlgorithm?.ToLowerInvariant() switch
                     {

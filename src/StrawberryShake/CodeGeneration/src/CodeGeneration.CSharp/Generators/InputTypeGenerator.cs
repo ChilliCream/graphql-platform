@@ -19,6 +19,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         .AddModifiers(
                             Token(SyntaxKind.PublicKeyword),
                             Token(SyntaxKind.PartialKeyword))
+                        .AddGeneratedAttribute()
                         .AddSummary(descriptor.Documentation)
                         .WithOpenBraceToken(Token(SyntaxKind.OpenBraceToken));
 
@@ -47,6 +48,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .AddModifiers(
                         Token(SyntaxKind.PublicKeyword),
                         Token(SyntaxKind.PartialKeyword))
+                    .AddGeneratedAttribute()
                     .AddSummary(descriptor.Documentation);
 
             foreach (var prop in descriptor.Properties)

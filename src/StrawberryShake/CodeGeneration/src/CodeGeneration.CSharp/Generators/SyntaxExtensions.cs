@@ -23,6 +23,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 AccessorDeclaration(SyntaxKind.InitAccessorDeclaration)
                     .WithSemicolonToken(Token(SyntaxKind.SemicolonToken)));
 
+        public static PropertyDeclarationSyntax WithGetter(
+            this PropertyDeclarationSyntax property) =>
+            property.AddAccessorListAccessors(
+                AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                    .WithSemicolonToken(Token(SyntaxKind.SemicolonToken)));
+
         public static PropertyDeclarationSyntax WithSuppressNullableWarningExpression(
             this PropertyDeclarationSyntax property) =>
             property
@@ -66,6 +72,42 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             }
 
             return member;
+        }
+
+        public static T AddGeneratedAttribute<T>(this T type) where T : BaseTypeDeclarationSyntax
+        {
+            var version = typeof(SyntaxExtensions).Assembly.GetName().Version.ToString();
+
+            AttributeSyntax attribute =
+                Attribute(
+                    QualifiedName(
+                        QualifiedName(
+                            QualifiedName(
+                                AliasQualifiedName(
+                                    IdentifierName(
+                                        Token(SyntaxKind.GlobalKeyword)),
+                                    IdentifierName("System")),
+                                IdentifierName("CodeDom")),
+                            IdentifierName("Compiler")),
+                        IdentifierName("GeneratedCode")))
+                    .AddArgumentListArguments(
+                        AttributeArgument(
+                            LiteralExpression(
+                                SyntaxKind.StringLiteralExpression,
+                                Literal("StrawberryShake"))))
+                    .AddArgumentListArguments(
+                        AttributeArgument(
+                            LiteralExpression(
+                                SyntaxKind.StringLiteralExpression,
+                                Literal(version))));
+
+
+            return (T)type
+                .WithAttributeLists(
+                    SingletonList(
+                        AttributeList(
+                            SingletonSeparatedList(
+                                attribute))));
         }
     }
 }

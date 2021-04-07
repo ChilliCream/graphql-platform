@@ -376,6 +376,7 @@ namespace Foo.Bar
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class Bar
     {
         public global::System.String? Str
