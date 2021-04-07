@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using HotChocolate.Language;
 using HotChocolate.Utilities.Introspection;
-using StrawberryShake.Tools.Config;
 using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.VisualStudio.GUI
