@@ -5,7 +5,6 @@ namespace StrawberryShake.VisualStudio.GUI
 {
     public partial class CreateClient : Window
     {
-        private readonly HttpDetails _httpDetails = new HttpDetails();
         private readonly CreateClientViewModel _viewModel;
 
         public CreateClient()
@@ -26,10 +25,14 @@ namespace StrawberryShake.VisualStudio.GUI
 
         private void HttpDetails_Click(object sender, RoutedEventArgs e)
         {
-            if(_httpDetails.ShowDialog() ?? false)
+            HttpDetails httpDetails = new HttpDetails();
+            httpDetails.Scheme.Text = _viewModel.AccessTokenScheme ?? "bearer";
+            httpDetails.Token.Text = _viewModel.AccessTokenValue ?? "bearer";
+
+            if (httpDetails.ShowDialog() ?? false)
             {
-                _viewModel.AccessTokenScheme = _httpDetails.Scheme.Text;
-                _viewModel.AccessTokenValue= _httpDetails.Token.Text;
+                _viewModel.AccessTokenScheme = httpDetails.Scheme.Text;
+                _viewModel.AccessTokenValue = httpDetails.Token.Text;
             }
         }
 

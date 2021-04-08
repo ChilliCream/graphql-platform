@@ -35,7 +35,7 @@ namespace StrawberryShake.VisualStudio.GUI
         private string _dependencyInjection;
         private bool _useCustomNamespace;
         private string _customNamespace;
-        private Visibility _progressVisibility = Visibility.Collapsed;
+        private Visibility _progressVisibility = Visibility.Hidden;
         private int _progress;
         private int _progressMax = 100;
 
@@ -259,7 +259,7 @@ namespace StrawberryShake.VisualStudio.GUI
             }
             finally
             {
-                ProgressVisibility = Visibility.Collapsed;
+                ProgressVisibility = Visibility.Hidden;
             }
         }
 
@@ -367,7 +367,7 @@ namespace StrawberryShake.VisualStudio.GUI
         internal class DelegateCommand : ICommand
         {
             private Action _action;
-            private bool _enabled;
+            private bool _enabled = true;
 
             public DelegateCommand(Action action)
             {
