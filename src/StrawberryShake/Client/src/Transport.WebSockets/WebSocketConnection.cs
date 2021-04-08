@@ -11,7 +11,7 @@ namespace StrawberryShake.Transport.WebSockets
     /// <summary>
     /// A WebSocket connection to a GraphQL server and allows to execute requests against it.
     /// </summary>
-    public class WebSocketConnection : IConnection<JsonDocument>
+    public class WebSocketConnection : IWebSocketConnection
     {
         private readonly Func<CancellationToken, ValueTask<ISession>> _sessionFactory;
 
