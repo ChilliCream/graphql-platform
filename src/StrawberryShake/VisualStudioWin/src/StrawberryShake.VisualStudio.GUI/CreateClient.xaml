@@ -42,8 +42,8 @@
             <System:String>Microsoft DI</System:String>
         </ComboBox>
 
-        <Button Content="OK" HorizontalAlignment="Left" Margin="381,537,0,0" VerticalAlignment="Top" Width="108" FontSize="14" Height="28" Command="{Binding CreateClientCommand}" />
+        <Button Content="OK" HorizontalAlignment="Left" Margin="381,537,0,0" VerticalAlignment="Top" Width="108" FontSize="14" Height="28" Click="Ok_Click" Command="{Binding CreateClientCommand}" />
         <Button Content="Cancel" HorizontalAlignment="Left" Margin="494,537,0,0" VerticalAlignment="Top" Width="108" FontSize="14" Height="28" Command="{Binding CancelCommand}" />
-        <ProgressBar HorizontalAlignment="Left" Height="10" Margin="25,572,0,0" VerticalAlignment="Top" Width="577" Value="{Binding Progress}" Visibility="{Binding ProgressVisibility}" Maximum="{Binding ProgressMax}" />
+        <ProgressBar Name="Progress" HorizontalAlignment="Left" Height="10" Margin="25,572,0,0" VerticalAlignment="Top" Width="577" IsIndeterminate="True" Visibility="Hidden" />
     </Grid>
 </Window>

@@ -1,3 +1,4 @@
+using System;
 using System.Windows;
 using Microsoft.Win32;
 
@@ -15,6 +16,7 @@ namespace StrawberryShake.VisualStudio.GUI
 
             _viewModel.Canceled += OnCanceled;
             _viewModel.ClientCreated += OnClientCreated;
+            _viewModel.ErrorOccured += OnError;
         }
 
         public IProject Project
@@ -52,9 +54,25 @@ namespace StrawberryShake.VisualStudio.GUI
             DialogResult = true;
         }
 
-        private void OnCanceled(object sender, System.EventArgs e)
+        private void OnCanceled(object sender, System.EventArgs e) => DialogResult = false;
+
+        private void OnError(object sender, Exception e)
+        {            
+            Progress.Visibility = Visibility.Hidden;
+            UI.AllowUIToUpdate();
+
+            if(e is AggregateException a)
+            {
+                e = a.InnerException;
+            }
+
+            MessageBox.Show(e.Message);
+        }
+
+        private void Ok_Click(object sender, RoutedEventArgs e)
         {
-            DialogResult = false;
+            Progress.Visibility = Visibility.Visible;
+            UI.AllowUIToUpdate();
         }
     }
 }

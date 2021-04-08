@@ -1,12 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using HotChocolate.Language;
@@ -35,7 +30,7 @@ namespace StrawberryShake.VisualStudio.GUI
         private string _dependencyInjection;
         private bool _useCustomNamespace;
         private string _customNamespace;
-        private Visibility _progressVisibility = Visibility.Hidden;
+        private Visibility _progressVisibility = Visibility.Visible;
         private int _progress;
         private int _progressMax = 100;
 
@@ -230,6 +225,7 @@ namespace StrawberryShake.VisualStudio.GUI
             ProgressMax = _packages.Length + 8;
             Progress = 1;
             ProgressVisibility = Visibility.Visible;
+            UI.AllowUIToUpdate();
 
             try
             {
@@ -266,7 +262,7 @@ namespace StrawberryShake.VisualStudio.GUI
         private void EnsurePackagesAreInstalled()
         {
             foreach (string packageId in _packages)
-            {
+            {                
                 Project.EnsurePackageIsInstalled(packageId);
                 Progress++;
             }

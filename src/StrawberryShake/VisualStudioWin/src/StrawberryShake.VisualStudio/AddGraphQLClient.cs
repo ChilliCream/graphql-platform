@@ -1,12 +1,7 @@
 using System;
 using System.ComponentModel.Design;
-using System.Globalization;
-using System.Threading;
-using System.Threading.Tasks;
-using EnvDTE80;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using NuGet.VisualStudio;
 using StrawberryShake.VisualStudio.GUI;
 using Task = System.Threading.Tasks.Task;
@@ -67,7 +62,7 @@ namespace StrawberryShake.VisualStudio
         /// <summary>
         /// Gets the service provider from the owner package.
         /// </summary>
-        private Microsoft.VisualStudio.Shell.IAsyncServiceProvider ServiceProvider
+        private IAsyncServiceProvider ServiceProvider
         {
             get
             {
@@ -112,32 +107,6 @@ namespace StrawberryShake.VisualStudio
                 dialog.Project = new VisualStudioProject(project.Project, _packageInstallerServices, _packageInstaller);
                 dialog.ShowDialog();
             }
-        }
-    }
-
-    public static class AsyncPackageExtensions
-    {
-#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-        public static TService GetService<TService>(this AsyncPackage package) =>
-            GetServiceAsync<TService, TService>(package).Result;
-#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
-
-        public static Task<TService> GetServiceAsync<TService>(this AsyncPackage package) =>
-            GetServiceAsync<TService, TService>(package);
-
-        public static async Task<TCast> GetServiceAsync<TService, TCast>(this AsyncPackage package)
-        {
-            if (package is null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
-
-            if ((await package.GetServiceAsync(typeof(TService)).ConfigureAwait(false)) is TCast casted)
-            {
-                return casted;
-            }
-
-            throw new ArgumentException($"The service {typeof(TCast).FullName} was not found.");
         }
     }
 }

@@ -35,12 +35,19 @@ namespace StrawberryShake.VisualStudio
 
             if (!_packageInstallerServices.IsPackageInstalled(_project, packageId))
             {
-                _packageInstaller.InstallLatestPackage(
-                    "https://api.nuget.org/v3/index.json",
-                    _project,
-                    packageId,
-                    includePrerelease: false,
-                    ignoreDependencies: false);
+                try
+                {
+                    _packageInstaller.InstallLatestPackage(
+                        "https://api.nuget.org/v3/index.json",
+                        _project,
+                        packageId,
+                        includePrerelease: false,
+                        ignoreDependencies: false);
+                }
+                catch
+                {
+                    // we ignore any error here.
+                }
             }
         }
 
