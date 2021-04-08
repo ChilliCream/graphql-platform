@@ -25,14 +25,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _value = "value";
         private const string _cancellationToken = "cancellationToken";
 
-        protected override void Generate(
+        protected override void Generate(OperationDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
-            OperationDescriptor descriptor,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             fileName = descriptor.RuntimeType.Name;
             path = null;
+            ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -102,11 +104,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                             .MakeNullable()))
                 .AddCode(createRequestCall);
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
-                .AddType(classBuilder)
-                .Build(writer);
+            classBuilder.Build(writer);
         }
 
         private static void AddFormatMethods(

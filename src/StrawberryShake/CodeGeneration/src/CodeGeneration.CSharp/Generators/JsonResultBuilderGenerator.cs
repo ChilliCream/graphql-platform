@@ -24,11 +24,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _obj = "obj";
         private const string _response = "response";
 
-        protected override void Generate(
+        protected override void Generate(ResultBuilderDescriptor resultBuilderDescriptor,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
-            ResultBuilderDescriptor resultBuilderDescriptor,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             InterfaceTypeDescriptor resultTypeDescriptor =
                 resultBuilderDescriptor.ResultNamedType as InterfaceTypeDescriptor
@@ -37,6 +38,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             fileName = resultBuilderDescriptor.RuntimeType.Name;
             path = State;
+            ns = resultBuilderDescriptor.RuntimeType.NamespaceWithoutGlobal;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -52,19 +54,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         TypeNames.JsonDocument,
                         resultTypeDescriptor.RuntimeType.ToString()));
 
-            AddConstructorAssignedField(
-                TypeNames.IEntityStore,
-                _entityStore,
-                entityStore,
-                classBuilder,
-                constructorBuilder);
+            if (settings.IsStoreEnabled())
+            {
+                AddConstructorAssignedField(
+                    TypeNames.IEntityStore,
+                    _entityStore,
+                    entityStore,
+                    classBuilder,
+                    constructorBuilder);
 
-            AddConstructorAssignedField(
-                TypeNames.IEntityIdSerializer,
-                _idSerializer,
-                idSerializer,
-                classBuilder,
-                constructorBuilder);
+                AddConstructorAssignedField(
+                    TypeNames.IEntityIdSerializer,
+                    _idSerializer,
+                    idSerializer,
+                    classBuilder,
+                    constructorBuilder);
+            }
 
             AddConstructorAssignedField(
                 TypeNames.IOperationResultDataFactory
@@ -116,16 +121,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             AddBuildMethod(resultTypeDescriptor, classBuilder);
 
-            AddBuildDataMethod(resultTypeDescriptor, classBuilder);
+            AddBuildDataMethod(settings, resultTypeDescriptor, classBuilder);
 
             var processed = new HashSet<string>();
             AddRequiredDeserializeMethods(resultTypeDescriptor, classBuilder, processed);
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(resultBuilderDescriptor.RuntimeType.NamespaceWithoutGlobal)
-                .AddType(classBuilder)
-                .Build(writer);
+            classBuilder.Build(writer);
         }
 
         /// <summary>

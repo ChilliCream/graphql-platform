@@ -23,6 +23,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         public string OutputDirectoryName { get; set; } = "Generated";
 
+        public bool NoStore { get; set; }
+
+        public bool EmitGeneratedCode { get; set; } = true;
+
+        public StrawberryShakeSettingsRecords? Records { get; set; }
+
         public List<StrawberryShakeTransportSettings>? TransportProfiles { get; set; }
     }
 }

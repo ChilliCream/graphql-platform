@@ -26,26 +26,27 @@
 
   <ItemGroup>
     <!-- GraphQL Files -->
-    <None Remove="**/*.graphql" />
-    <Content Remove="**/*.graphql" />
-    <GraphQL Include="**/*.graphql" />
-    <Watch Include="**/*.graphql" />
+    <None Remove="**\*.graphql" />
+    <Content Remove="**\*.graphql" />
+    <GraphQL Include="**\*.graphql" />
+    <Watch Include="**\*.graphql" />
     <AdditionalFiles Include="@(GraphQL)" GraphQL="true" />
     <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="GraphQL" />
 
     <!-- GraphQL Config Files -->
-    <None Remove="**/.graphqlrc.json" />
-    <Content Remove="**/.graphqlrc.json" />
-    <GraphQLConfig Include="**/.graphqlrc.json" />
-    <Watch Include="**/.graphqlrc.json" />
+    <None Remove="**\.graphqlrc.json" />
+    <Content Remove="**\.graphqlrc.json" />
+    <GraphQLConfig Include="**\.graphqlrc.json" />
+    <Watch Include="**\.graphqlrc.json" />
     <AdditionalFiles Include="@(GraphQLConfig)" GraphQLConfig="true" />
     <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="GraphQLConfig" />
 
     <!-- Build Options -->
-    <CompilerVisibleProperty Include="RootNamespace" />
+    <CompilerVisibleProperty Include="StrawberryShake_DefaultNamespace" />
     <CompilerVisibleProperty Include="StrawberryShake_LogFile" />
     <CompilerVisibleProperty Include="StrawberryShake_BuildDirectory" />
     <CompilerVisibleProperty Include="StrawberryShake_PersistedQueryDirectory" />
+    <CompilerVisibleProperty Include="StrawberryShake_State" />
   </ItemGroup>
 
 </Project>
