@@ -4,6 +4,11 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Instrumentation
 {
+    /// <summary>
+    /// This class can be used as a base class for <see cref="IDiagnosticEventListener"/>
+    /// implementations, so that they only have to override the methods they
+    /// are interested in instead of having to provide implementations for all of them.
+    /// </summary>
     public class DiagnosticEventListener : IDiagnosticEventListener
     {
         protected DiagnosticEventListener()
@@ -12,6 +17,10 @@ namespace HotChocolate.Execution.Instrumentation
 
         public virtual bool EnableResolveFieldValue => false;
 
+        /// <summary>
+        /// A no-op <see cref="IActivityScope"/> that can be returned from
+        /// event methods that are not interested in when the scope is disposed.
+        /// </summary>
         protected IActivityScope EmptyScope { get; } = new EmptyActivityScope();
 
         public virtual IActivityScope ExecuteRequest(IRequestContext context) => EmptyScope;
@@ -76,7 +85,7 @@ namespace HotChocolate.Execution.Instrumentation
         {
         }
 
-        private class EmptyActivityScope : IActivityScope
+        private sealed class EmptyActivityScope : IActivityScope
         {
             public void Dispose()
             {
