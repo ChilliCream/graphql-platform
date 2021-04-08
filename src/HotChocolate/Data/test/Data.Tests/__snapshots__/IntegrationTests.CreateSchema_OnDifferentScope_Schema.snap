@@ -34,7 +34,7 @@ type BookEdge {
 }
 
 type DifferentScope {
-  books(first: Int after: String last: Int before: String where: Foo_FooBookFilterInput order: [Foo_BookSortInput!]): BookConnection
+  books(first: Int after: String last: Int before: String where: Foo_BookFilterInput order: [Foo_BookSortInput!]): BookConnection
 }
 
 "Information about pagination in a connection."
@@ -49,9 +49,26 @@ type PageInfo {
   endCursor: String
 }
 
+input Foo_AuthorFilterInput {
+  and: [Foo_AuthorFilterInput!]
+  or: [Foo_AuthorFilterInput!]
+  id: Foo_ComparableInt32OperationFilterInput
+  name: Foo_StringOperationFilterInput
+  books: Foo_ListFilterInputTypeOfBookFilterInput
+}
+
 input Foo_AuthorSortInput {
   id: Foo_SortEnumType
   name: Foo_SortEnumType
+}
+
+input Foo_BookFilterInput {
+  and: [Foo_BookFilterInput!]
+  or: [Foo_BookFilterInput!]
+  id: Foo_ComparableInt32OperationFilterInput
+  authorId: Foo_ComparableInt32OperationFilterInput
+  title: Foo_StringOperationFilterInput
+  author: Foo_AuthorFilterInput
 }
 
 input Foo_BookSortInput {
@@ -61,24 +78,7 @@ input Foo_BookSortInput {
   author: Foo_AuthorSortInput
 }
 
-input Foo_FooAuthorFilterInput {
-  and: [Foo_FooAuthorFilterInput!]
-  or: [Foo_FooAuthorFilterInput!]
-  id: Foo_FooComparableInt32OperationFilterInput
-  name: Foo_FooStringOperationFilterInput
-  books: Foo_FooListFooFilterInputTypeOfBookFilterInput
-}
-
-input Foo_FooBookFilterInput {
-  and: [Foo_FooBookFilterInput!]
-  or: [Foo_FooBookFilterInput!]
-  id: Foo_FooComparableInt32OperationFilterInput
-  authorId: Foo_FooComparableInt32OperationFilterInput
-  title: Foo_FooStringOperationFilterInput
-  author: Foo_FooAuthorFilterInput
-}
-
-input Foo_FooComparableInt32OperationFilterInput {
+input Foo_ComparableInt32OperationFilterInput {
   eq: Int
   neq: Int
   in: [Int!]
@@ -93,16 +93,16 @@ input Foo_FooComparableInt32OperationFilterInput {
   nlte: Int
 }
 
-input Foo_FooListFooFilterInputTypeOfBookFilterInput {
-  all: Foo_FooBookFilterInput
-  none: Foo_FooBookFilterInput
-  some: Foo_FooBookFilterInput
+input Foo_ListFilterInputTypeOfBookFilterInput {
+  all: Foo_BookFilterInput
+  none: Foo_BookFilterInput
+  some: Foo_BookFilterInput
   any: Boolean
 }
 
-input Foo_FooStringOperationFilterInput {
-  and: [Foo_FooStringOperationFilterInput!]
-  or: [Foo_FooStringOperationFilterInput!]
+input Foo_StringOperationFilterInput {
+  and: [Foo_StringOperationFilterInput!]
+  or: [Foo_StringOperationFilterInput!]
   eq: String
   neq: String
   contains: String
