@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using HotChocolate.Language;
 using HotChocolate.Utilities.Introspection;
@@ -16,8 +17,16 @@ namespace StrawberryShake.VisualStudio.GUI
 {
     internal class CreateClientViewModel : INotifyPropertyChanged
     {
+        private static readonly string[] _packages = new string[]
+        {
+            "StrawberryShake.Transport.Http",
+            "StrawberryShake.CodeGeneration.CSharp.Analyzers"
+        };
+
         private bool _useServerUrl = true;
         private string _serverUrl = "http://localhost:5000/graphql";
+        private string _accessTokenScheme;
+        private string _accessTokenValue;
         private string _schemaFile;
         private string _clientName = "StarWarsClient";
         private bool _createClientFolder = true;
@@ -26,12 +35,19 @@ namespace StrawberryShake.VisualStudio.GUI
         private string _dependencyInjection;
         private bool _useCustomNamespace;
         private string _customNamespace;
+        private Visibility _progressVisibility = Visibility.Collapsed;
+        private int _progress;
+        private int _progressMax = 100;
 
         public event PropertyChangedEventHandler PropertyChanged;
+        public event EventHandler ClientCreated;
+        public event EventHandler Canceled;
+        public event EventHandler<Exception> ErrorOccured;
 
         public CreateClientViewModel()
         {
             CreateClientCommand = new DelegateCommand(CreateClient);
+            CancelCommand= new DelegateCommand(() => Canceled(this, EventArgs.Empty));
         }
 
         public bool UseServerUrl
@@ -42,6 +58,7 @@ namespace StrawberryShake.VisualStudio.GUI
                 _useServerUrl = value;
                 OnPropertyChanged(nameof(UseServerUrl));
                 OnPropertyChanged(nameof(UseSchemaFile));
+                ValidateSchema();
             }
         }
 
@@ -52,6 +69,27 @@ namespace StrawberryShake.VisualStudio.GUI
             {
                 _serverUrl = value;
                 OnPropertyChanged(nameof(ServerUrl));
+                ValidateSchema();
+            }
+        }
+
+        public string AccessTokenScheme
+        {
+            get => _accessTokenScheme;
+            set
+            {
+                _accessTokenScheme = value;
+                OnPropertyChanged(nameof(AccessTokenScheme));
+            }
+        }
+
+        public string AccessTokenValue
+        {
+            get => _accessTokenValue;
+            set
+            {
+                _accessTokenValue = value;
+                OnPropertyChanged(nameof(AccessTokenValue));
             }
         }
 
@@ -63,6 +101,7 @@ namespace StrawberryShake.VisualStudio.GUI
                 _useServerUrl = !value;
                 OnPropertyChanged(nameof(UseServerUrl));
                 OnPropertyChanged(nameof(UseSchemaFile));
+                ValidateSchema();
             }
         }
 
@@ -73,6 +112,7 @@ namespace StrawberryShake.VisualStudio.GUI
             {
                 _schemaFile = value;
                 OnPropertyChanged(nameof(SchemaFile));
+                ValidateSchema();
             }
         }
 
@@ -146,29 +186,94 @@ namespace StrawberryShake.VisualStudio.GUI
             }
         }
 
-        public string ProjectFileName { get; set; }
+        public Visibility ProgressVisibility
+        {
+            get => _progressVisibility;
+            set
+            {
+                _progressVisibility = value;
+                OnPropertyChanged(nameof(ProgressVisibility));
+            }
+        }
 
-        public ICommand CreateClientCommand { get; }
+        public int Progress
+        {
+            get => _progress;
+            set
+            {
+                _progress = value;
+                OnPropertyChanged(nameof(Progress));
+            }
+        }
+
+        public int ProgressMax
+        {
+            get => _progressMax;
+            set
+            {
+                _progressMax = value;
+                OnPropertyChanged(nameof(ProgressMax));
+            }
+        }
+
+        public IProject Project{ get; set; }
+
+        public DelegateCommand CreateClientCommand { get; }
+
+        public DelegateCommand CancelCommand { get; }
 
         private void CreateClient()
         {
-            if(UseSchemaFile && !File.Exists(SchemaFile))
+            CancelCommand.Disable();
+            CreateClientCommand.Disable();
+
+            ProgressMax = _packages.Length + 8;
+            Progress = 1;
+            ProgressVisibility = Visibility.Visible;
+
+            try
             {
-                // todo : signal that schema file is invalid
+                EnsurePackagesAreInstalled();
+                Progress++;
+
+                string configuration = CreateConfiguration();
+                Progress++;
+
+                if (!TryLoadSchema(out string schema))
+                {
+                    CancelCommand.Enable();
+                    CreateClientCommand.Enable();
+                    return;
+                }
+
+                Project.SaveFile(CreateFileName(Defaults.GraphQLConfigFile), configuration);
+                Progress++;
+
+                Project.SaveFile(CreateFileName(Defaults.SchemaExtensionFile), Defaults.SchemaExtensionFileContent);
+                Progress++;
+
+                Project.SaveFile(CreateFileName(Defaults.SchemaFile), schema);
+                Progress = ProgressMax;
+
+                ClientCreated(this, EventArgs.Empty);
             }
-
-            string directory = Path.GetDirectoryName(ProjectFileName);
-
-            if(CreateClientFolder)
+            finally
             {
-                directory = Path.Combine(directory, ClientName);
+                ProgressVisibility = Visibility.Collapsed;
             }
+        }
 
-            if(!Directory.Exists(directory))
+        private void EnsurePackagesAreInstalled()
+        {
+            foreach (string packageId in _packages)
             {
-                Directory.CreateDirectory(directory);
+                Project.EnsurePackageIsInstalled(packageId);
+                Progress++;
             }
+        }
 
+        private string CreateConfiguration()
+        {
             var configuration = new GraphQLConfig();
 
             configuration.Extensions.StrawberryShake.Name = ClientName;
@@ -178,25 +283,52 @@ namespace StrawberryShake.VisualStudio.GUI
                 configuration.Extensions.StrawberryShake.Namespace = CustomNamespace;
             }
 
-            // todo : async
-            // todo : handle errors
-            // todo : auth
             if (UseServerUrl)
             {
-                using var client = new HttpClient{ BaseAddress = new Uri(ServerUrl) };
-                DocumentNode result = IntrospectionClient.Default.DownloadSchemaAsync(client).Result;
-                File.WriteAllText(Path.Combine(directory, Defaults.SchemaFile), result.ToString(true));
-                File.WriteAllText(Path.Combine(directory, Defaults.SchemaExtensionFile), Defaults.SchemaExtensionFileContent);
                 configuration.Extensions.StrawberryShake.Url = ServerUrl;
             }
             else
             {
-                File.Copy(SchemaFile, Path.Combine(directory, Defaults.SchemaFile));
-                File.WriteAllText(Path.Combine(directory, Defaults.SchemaExtensionFile), Defaults.SchemaExtensionFileContent);
                 configuration.Extensions.StrawberryShake.Url = new Uri("file://" + SchemaFile).ToString();
             }
 
-            configuration.Save(Path.Combine(directory, Defaults.GraphQLConfigFile));
+            return configuration.ToString();
+        }
+
+        private bool TryLoadSchema(out string schema)
+        {
+            try
+            {
+                if (UseServerUrl)
+                {
+                    using var client = new HttpClient { BaseAddress = new Uri(ServerUrl) };
+                    schema = IntrospectionClient.Default.DownloadSchemaAsync(client).Result.ToString(true);
+                    return true;
+                }
+                else
+                {
+                    schema = Utf8GraphQLParser.Parse(File.ReadAllText(SchemaFile)).ToString(true);
+                    return true;
+                }
+            }
+#pragma warning disable CA1031 // Do not catch general exception types
+            catch (Exception ex)
+#pragma warning restore CA1031 // Do not catch general exception types
+            {
+                ErrorOccured(this, ex);
+                schema = null;
+                return false;
+            }
+        }
+
+        private string CreateFileName(string fileName)
+        {
+            if (CreateClientFolder)
+            {
+                return Path.Combine(ClientName, fileName);
+            }
+
+            return fileName;
         }
 
         private void OnPropertyChanged(string propertyName)
@@ -204,9 +336,38 @@ namespace StrawberryShake.VisualStudio.GUI
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private class DelegateCommand : ICommand
+        private void ValidateSchema()
+        {
+            if (UseSchemaFile)
+            {
+                if(File.Exists(SchemaFile))
+                {
+                    CreateClientCommand.Enable();
+                }
+                else
+                {
+                    CreateClientCommand.Disable();
+                }
+            }
+
+            if(UseServerUrl)
+            {
+                if(Uri.TryCreate(ServerUrl, UriKind.Absolute, out Uri uri) &&
+                    (uri.Scheme == "http" || uri.Scheme == "https"))
+                {
+                    CreateClientCommand.Enable();
+                }
+                else
+                {
+                    CreateClientCommand.Disable();
+                }
+            }
+        }
+
+        internal class DelegateCommand : ICommand
         {
             private Action _action;
+            private bool _enabled;
 
             public DelegateCommand(Action action)
             {
@@ -215,9 +376,21 @@ namespace StrawberryShake.VisualStudio.GUI
 
             public event EventHandler CanExecuteChanged;
 
+            public void Enable()
+            {
+                _enabled = true;
+                CanExecuteChanged(this, EventArgs.Empty);
+            }
+
+            public void Disable()
+            {
+                _enabled = false;
+                CanExecuteChanged(this, EventArgs.Empty);
+            }
+
             public bool CanExecute(object parameter)
             {
-                return true;
+                return _enabled;
             }
 
             public void Execute(object parameter)
@@ -240,6 +413,4 @@ directive @key(fields: _KeyFieldSet!) on SCHEMA | OBJECT
 extend schema @key(fields: ""id"")";
         public const string GraphQLConfigFile = ".graphqlrc.json";
     }
-
-
 }

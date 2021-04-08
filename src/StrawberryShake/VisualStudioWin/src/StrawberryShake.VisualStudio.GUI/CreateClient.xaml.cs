@@ -5,25 +5,32 @@ namespace StrawberryShake.VisualStudio.GUI
 {
     public partial class CreateClient : Window
     {
-        private CreateClientViewModel _viewModel;
+        private readonly HttpDetails _httpDetails = new HttpDetails();
+        private readonly CreateClientViewModel _viewModel;
 
         public CreateClient()
         {
             _viewModel = new CreateClientViewModel();
             InitializeComponent();
             DataContext = _viewModel;
+
+            _viewModel.Canceled += OnCanceled;
+            _viewModel.ClientCreated += OnClientCreated;
         }
 
-        public string ProjectFileName
+        public IProject Project
         {
-            get => _viewModel.ProjectFileName;
-            set => _viewModel.ProjectFileName = value;
+            get => _viewModel.Project;
+            set => _viewModel.Project = value;
         }
-
 
         private void HttpDetails_Click(object sender, RoutedEventArgs e)
         {
-
+            if(_httpDetails.ShowDialog() ?? false)
+            {
+                _viewModel.AccessTokenScheme = _httpDetails.Scheme.Text;
+                _viewModel.AccessTokenValue= _httpDetails.Token.Text;
+            }
         }
 
         private void OpenFile_Click(object sender, RoutedEventArgs e)
@@ -37,7 +44,12 @@ namespace StrawberryShake.VisualStudio.GUI
             }
         }
 
-        private void Cancel_Click(object sender, RoutedEventArgs e)
+        private void OnClientCreated(object sender, System.EventArgs e)
+        {
+            DialogResult = true;
+        }
+
+        private void OnCanceled(object sender, System.EventArgs e)
         {
             DialogResult = false;
         }

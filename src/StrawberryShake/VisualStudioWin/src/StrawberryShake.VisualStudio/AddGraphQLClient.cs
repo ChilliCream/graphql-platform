@@ -4,15 +4,17 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using EnvDTE80;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using NuGet.VisualStudio;
 using StrawberryShake.VisualStudio.GUI;
 using Task = System.Threading.Tasks.Task;
 
 namespace StrawberryShake.VisualStudio
 {
     /// <summary>
-    /// Command handler
+    /// The AddGraphQL client handler.
     /// </summary>
     internal sealed class AddGraphQLClient
     {
@@ -26,10 +28,10 @@ namespace StrawberryShake.VisualStudio
         /// </summary>
         public static readonly Guid CommandSet = new Guid("2170a3df-e63b-4e90-a8e9-54bf12d8a112");
 
-        /// <summary>
-        /// VS Package that provides this command, not null.
-        /// </summary>
-        private readonly AsyncPackage package;
+
+        private readonly AsyncPackage _package;
+        private readonly IVsPackageInstallerServices _packageInstallerServices;
+        private readonly IVsPackageInstaller2 _packageInstaller;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AddGraphQLClient"/> class.
@@ -37,9 +39,15 @@ namespace StrawberryShake.VisualStudio
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
         /// <param name="commandService">Command service to add command to, not null.</param>
-        private AddGraphQLClient(AsyncPackage package, OleMenuCommandService commandService)
+        private AddGraphQLClient(
+            AsyncPackage package,
+            OleMenuCommandService commandService,
+            IVsPackageInstallerServices packageInstallerServices,
+            IVsPackageInstaller2 packageInstaller)
         {
-            this.package = package ?? throw new ArgumentNullException(nameof(package));
+            _package = package ?? throw new ArgumentNullException(nameof(package));
+            _packageInstallerServices = packageInstallerServices ?? throw new ArgumentNullException(nameof(packageInstallerServices));
+            _packageInstaller = packageInstaller ?? throw new ArgumentNullException(nameof(packageInstaller));
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
 
             var menuCommandID = new CommandID(CommandSet, CommandId);
@@ -63,7 +71,7 @@ namespace StrawberryShake.VisualStudio
         {
             get
             {
-                return package;
+                return _package;
             }
         }
 
@@ -73,12 +81,13 @@ namespace StrawberryShake.VisualStudio
         /// <param name="package">Owner package, not null.</param>
         public static async Task InitializeAsync(AsyncPackage package)
         {
-            // Switch to the main thread - the call to AddCommand in Command1's constructor requires
-            // the UI thread.
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
+            OleMenuCommandService commandService = await package.GetServiceAsync<IMenuCommandService, OleMenuCommandService>().ConfigureAwait(false);
+            IComponentModel componentModel = await package.GetServiceAsync<SComponentModel, IComponentModel>().ConfigureAwait(false);
+            IVsPackageInstaller2 packageInstaller = componentModel.GetService<IVsPackageInstaller2>();
+            IVsPackageInstallerServices packageInstallerServices = componentModel.GetService<IVsPackageInstallerServices>();
 
-            var commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
-            Instance = new AddGraphQLClient(package, commandService);
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
+            Instance = new AddGraphQLClient(package, commandService, packageInstallerServices, packageInstaller);
         }
 
         /// <summary>
@@ -90,17 +99,45 @@ namespace StrawberryShake.VisualStudio
         /// <param name="e">Event args.</param>
         private void Execute(object sender, EventArgs e)
         {
-            var dte = (EnvDTE.DTE)this.ServiceProvider.GetServiceAsync(typeof(EnvDTE.DTE)).Result;
-            object activeSolutionProject = dte.SelectedItems.Item(1);
+            ThreadHelper.ThrowIfNotOnUIThread();
 
+            var dte = (EnvDTE.DTE)ServiceProvider.GetServiceAsync(typeof(EnvDTE.DTE)).Result;
+            object activeSolutionProject = dte.SelectedItems.Item(1);
+            
             var project = activeSolutionProject as EnvDTE.SelectedItem;
 
             if (project != null)
             {
                 var dialog = new CreateClient();
-                dialog.ProjectFileName = project.Project.FileName;
+                dialog.Project = new VisualStudioProject(project.Project, _packageInstallerServices, _packageInstaller);
                 dialog.ShowDialog();
             }
+        }
+    }
+
+    public static class AsyncPackageExtensions
+    {
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
+        public static TService GetService<TService>(this AsyncPackage package) =>
+            GetServiceAsync<TService, TService>(package).Result;
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
+
+        public static Task<TService> GetServiceAsync<TService>(this AsyncPackage package) =>
+            GetServiceAsync<TService, TService>(package);
+
+        public static async Task<TCast> GetServiceAsync<TService, TCast>(this AsyncPackage package)
+        {
+            if (package is null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
+            if ((await package.GetServiceAsync(typeof(TService)).ConfigureAwait(false)) is TCast casted)
+            {
+                return casted;
+            }
+
+            throw new ArgumentException($"The service {typeof(TCast).FullName} was not found.");
         }
     }
 }

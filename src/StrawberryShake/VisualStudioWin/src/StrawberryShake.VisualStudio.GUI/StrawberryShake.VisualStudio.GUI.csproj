@@ -53,12 +53,25 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Compile Include="Configuration\GraphQLConfig.cs" />
+    <Compile Include="Configuration\GraphQLConfigExtensions.cs" />
+    <Compile Include="Configuration\StrawberryShakeSettings.cs" />
+    <Compile Include="Configuration\StrawberryShakeSettingsRecords.cs" />
+    <Compile Include="Configuration\StrawberryShakeTransportSettings.cs" />
+    <Compile Include="Configuration\TransportType.cs" />
     <Compile Include="CreateClientViewModel.cs" />
     <Compile Include="CreateClient.xaml.cs">
       <DependentUpon>CreateClient.xaml</DependentUpon>
     </Compile>
+    <Page Include="HttpDetails.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HttpDetails.xaml.cs">
+      <DependentUpon>HttpDetails.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="IProject.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -88,11 +101,8 @@
     <PackageReference Include="HotChocolate.Utilities.Introspection">
       <Version>11.1.0</Version>
     </PackageReference>
-    <PackageReference Include="System.Memory">
-      <Version>4.5.4</Version>
-    </PackageReference>
-    <PackageReference Include="System.Text.Json">
-      <Version>5.0.2</Version>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>13.0.1</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
