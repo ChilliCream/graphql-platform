@@ -71,8 +71,23 @@ namespace HotChocolate.Execution.Instrumentation
         /// <param name="error"></param>
         void ResolverError(IMiddlewareContext context, IError error);
 
+        /// <summary>
+        /// Called when starting to run an execution task.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="IDiagnosticEventListener.EnableResolveFieldValue"/> must be true if
+        /// a listener implements this method to ensure that it is called.
+        /// </remarks>
+        /// <param name="task"></param>
+        /// <returns>A scope that will be disposed when the task has finished.</returns>
         IActivityScope RunTask(IExecutionTask task);
 
+        /// <summary>
+        /// Called for any errors reported on a <see cref="IExecutionTaskContext"/>
+        /// during task execution.
+        /// </summary>
+        /// <param name="task"></param>
+        /// <param name="error"></param>
         void TaskError(IExecutionTask task, IError error);
 
         void AddedDocumentToCache(IRequestContext context);
