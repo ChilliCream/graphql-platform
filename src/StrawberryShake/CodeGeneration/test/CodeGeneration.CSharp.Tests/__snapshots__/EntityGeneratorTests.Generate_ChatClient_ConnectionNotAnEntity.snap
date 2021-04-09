@@ -519,7 +519,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class PersonEntity
     {
-        public PersonEntity(global::System.String name, global::System.String email, global::System.Boolean isOnline)
+        public PersonEntity(global::System.String name = default !, global::System.String email = default !, global::System.Boolean isOnline = default !)
         {
             Name = name;
             Email = email;
@@ -819,13 +819,11 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    /// <summary>
-    /// A connection to a list of items.
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    ///<summary>A connection to a list of items.</summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class PersonConnectionData
     {
-        public PersonConnectionData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes = null)
+        public PersonConnectionData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Nodes = nodes;
@@ -836,9 +834,7 @@ namespace Foo.Bar.State
             get;
         }
 
-        /// <summary>
-        /// A flattened list of the nodes.
-        /// </summary>
+        ///<summary>A flattened list of the nodes.</summary>
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes
         {
             get;

@@ -832,10 +832,10 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ListingsPayloadData
     {
-        public ListingsPayloadData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IListingData>? items = null)
+        public ListingsPayloadData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.IListingData>? items = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Items = items;
@@ -853,20 +853,20 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IListingData
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    public partial interface IListingData
     {
-        public global::System.String __typename
+        global::System.String __typename
         {
             get;
         }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class AuctionData : IListingData
     {
-        public AuctionData(global::System.String __typename, global::System.String? listingId = null, global::System.Int32? startingPrice = null)
+        public AuctionData(global::System.String __typename, global::System.String? listingId = default !, global::System.Int32? startingPrice = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             ListingId = listingId;
@@ -890,10 +890,10 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class OfferData : IListingData
     {
-        public OfferData(global::System.String __typename, global::System.String? listingId = null, global::System.Int32? price = null)
+        public OfferData(global::System.String __typename, global::System.String? listingId = default !, global::System.Int32? price = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             ListingId = listingId;

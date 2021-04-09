@@ -353,7 +353,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class PersonEntity
     {
-        public PersonEntity(global::System.Guid id, global::System.String? email)
+        public PersonEntity(global::System.Guid id = default !, global::System.String? email = default !)
         {
             Id = id;
             Email = email;

@@ -518,7 +518,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class HumanEntity
     {
-        public HumanEntity(global::System.String? homePlanet)
+        public HumanEntity(global::System.String? homePlanet = default !)
         {
             HomePlanet = homePlanet;
         }
@@ -749,10 +749,10 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ChangeHomePlanetPayloadData
     {
-        public ChangeHomePlanetPayloadData(global::System.String __typename, global::StrawberryShake.EntityId? human = null)
+        public ChangeHomePlanetPayloadData(global::System.String __typename, global::StrawberryShake.EntityId? human = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Human = human;

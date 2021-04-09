@@ -1479,7 +1479,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class PersonEntity
     {
-        public PersonEntity(global::System.String name, global::Foo.Bar.State.MessageConnectionData? messages)
+        public PersonEntity(global::System.String name = default !, global::Foo.Bar.State.MessageConnectionData? messages = default !)
         {
             Name = name;
             Messages = messages;
@@ -1503,7 +1503,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class MessageEntity
     {
-        public MessageEntity(global::StrawberryShake.EntityId sender, global::System.String text)
+        public MessageEntity(global::StrawberryShake.EntityId sender = default !, global::System.String text = default !)
         {
             Sender = sender;
             Text = text;
@@ -2342,13 +2342,11 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    /// <summary>
-    /// A connection to a list of items.
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    ///<summary>A connection to a list of items.</summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class PersonConnectionData
     {
-        public PersonConnectionData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes = null)
+        public PersonConnectionData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Nodes = nodes;
@@ -2359,9 +2357,7 @@ namespace Foo.Bar.State
             get;
         }
 
-        /// <summary>
-        /// A flattened list of the nodes.
-        /// </summary>
+        ///<summary>A flattened list of the nodes.</summary>
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes
         {
             get;
@@ -2369,13 +2365,11 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    /// <summary>
-    /// A connection to a list of items.
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    ///<summary>A connection to a list of items.</summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class MessageConnectionData
     {
-        public MessageConnectionData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes = null)
+        public MessageConnectionData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Nodes = nodes;
@@ -2386,9 +2380,7 @@ namespace Foo.Bar.State
             get;
         }
 
-        /// <summary>
-        /// A flattened list of the nodes.
-        /// </summary>
+        ///<summary>A flattened list of the nodes.</summary>
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes
         {
             get;
@@ -2396,13 +2388,11 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    /// <summary>
-    /// Type SendMessagePayload
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    ///<summary>Type SendMessagePayload</summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class SendMessagePayloadData
     {
-        public SendMessagePayloadData(global::System.String __typename, global::StrawberryShake.EntityId? message = null)
+        public SendMessagePayloadData(global::System.String __typename, global::StrawberryShake.EntityId? message = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Message = message;
@@ -2413,9 +2403,7 @@ namespace Foo.Bar.State
             get;
         }
 
-        /// <summary>
-        /// Field message
-        /// </summary>
+        ///<summary>Field message</summary>
         public global::StrawberryShake.EntityId? Message
         {
             get;
