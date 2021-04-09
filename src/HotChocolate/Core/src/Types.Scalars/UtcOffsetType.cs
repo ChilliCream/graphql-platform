@@ -45,7 +45,7 @@ namespace HotChocolate.Types
 
                 TimeSpan ts => ParseValue(ts),
 
-                _ => throw ThrowHelper.UtcOffset_ParseValue_IsInvalid(this)
+                _ => throw ThrowHelper.UtcOffsetType_ParseValue_IsInvalid(this)
             };
         }
 
@@ -57,7 +57,7 @@ namespace HotChocolate.Types
                 return parsed;
             }
 
-            throw ThrowHelper.UtcOffset_ParseLiteral_IsInvalid(this);
+            throw ThrowHelper.UtcOffsetType_ParseLiteral_IsInvalid(this);
         }
 
         /// <inheritdoc />
@@ -68,7 +68,7 @@ namespace HotChocolate.Types
                 return new StringValueNode(serialized);
             }
 
-            throw ThrowHelper.UtcOffset_ParseValue_IsInvalid(this);
+            throw ThrowHelper.UtcOffsetType_ParseValue_IsInvalid(this);
         }
 
         /// <inheritdoc />
