@@ -6,6 +6,9 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data
 {
+    /// <summary>
+    /// Registers the middleware and adds the arguments for sorting
+    /// </summary>
     public sealed class UseSortingAttribute : ObjectFieldDescriptorAttribute
     {
         private static readonly MethodInfo _generic = typeof(SortObjectFieldDescriptorExtensions)
