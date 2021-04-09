@@ -18,7 +18,7 @@ namespace HotChocolate.Types
         public LocalCurrencyType()
             : this(
                 WellKnownScalarTypes.LocalCurency,
-               description: ScalarResources.LocalCurrencyType_Description)
+                description: ScalarResources.LocalCurrencyType_Description)
         {
         }
 
