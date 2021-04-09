@@ -10,6 +10,9 @@ using HotChocolate.Validation;
 
 namespace HotChocolate.Execution
 {
+    /// <summary>
+    /// Encapsulates all GraphQL-specific information about an individual GraphQL request.
+    /// </summary>
     public interface IRequestContext : IHasContextData
     {
         /// <summary>
