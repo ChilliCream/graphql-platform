@@ -46,10 +46,10 @@ namespace StrawberryShake.VisualStudio
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
 
             var menuCommandID = new CommandID(CommandSet, CommandId);
-            var menuItem = new MenuCommand(Execute, menuCommandID);
+            var menuItem = new OleMenuCommand(Execute, menuCommandID) { Supported = true };
             commandService.AddCommand(menuItem);
         }
-
+       
         /// <summary>
         /// Gets the instance of the command.
         /// </summary>
@@ -62,13 +62,7 @@ namespace StrawberryShake.VisualStudio
         /// <summary>
         /// Gets the service provider from the owner package.
         /// </summary>
-        private IAsyncServiceProvider ServiceProvider
-        {
-            get
-            {
-                return _package;
-            }
-        }
+        private IServiceProvider ServiceProvider => _package;
 
         /// <summary>
         /// Initializes the singleton instance of the command.
@@ -96,9 +90,8 @@ namespace StrawberryShake.VisualStudio
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            var dte = (EnvDTE.DTE)ServiceProvider.GetServiceAsync(typeof(EnvDTE.DTE)).Result;
+            var dte = (EnvDTE.DTE)ServiceProvider.GetService(typeof(EnvDTE.DTE));
             object activeSolutionProject = dte.SelectedItems.Item(1);
-            
             var project = activeSolutionProject as EnvDTE.SelectedItem;
 
             if (project != null)

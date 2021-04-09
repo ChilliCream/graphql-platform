@@ -2,6 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Task = System.Threading.Tasks.Task;
 
 namespace StrawberryShake.VisualStudio
@@ -24,16 +25,21 @@ namespace StrawberryShake.VisualStudio
     /// </para>
     /// </remarks>
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
-    [Guid(StrawberryShakePackage.PackageGuidString)]
+    [Guid(PackageGuidString)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
+    [ProvideUIContextRule(
+        UIContextSupportedFiles,
+        name: "Supported Files",
+        expression: "CSharp",
+        termNames: new[] { "CSharp" },
+        termValues: new[] { "HierSingleSelectionName:.csproj$" })]
     public sealed class StrawberryShakePackage : AsyncPackage
     {
         /// <summary>
         /// StrawberryShakePackage GUID string.
         /// </summary>
         public const string PackageGuidString = "369dd335-f812-4174-8d94-a3ec7437a0c3";
-
-        #region Package Members
+        public const string UIContextSupportedFiles = "24551deb-f034-43e9-a279-0e541241687e";
 
         /// <summary>
         /// Initialization of the package; this method is called right after the package is sited, so this is the place
@@ -44,12 +50,8 @@ namespace StrawberryShake.VisualStudio
         /// <returns>A task representing the async work of package initialization, or an already completed task if there is none. Do not return null from this method.</returns>
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            // When initialized asynchronously, the current thread may be a background thread at this point.
-            // Do any initialization that requires the UI thread after switching to the UI thread.
-            await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             await AddGraphQLClient.InitializeAsync(this).ConfigureAwait(false);
         }
-
-        #endregion
     }
 }

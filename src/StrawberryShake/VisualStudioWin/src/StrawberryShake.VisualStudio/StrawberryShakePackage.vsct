@@ -15,6 +15,7 @@
       <Button guid="guidStrawberryShakePackageCmdSet" id="AddGraphQLClient" priority="0x0100" type="Button">
         <Parent guid="guidStrawberryShakePackageCmdSet" id="MyMenuGroup" />
         <Icon guid="guidImages" id="bmpLogo" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
           <ButtonText>GraphQL Client</ButtonText>
         </Strings>
@@ -26,8 +27,13 @@
     </Bitmaps>
   </Commands>
 
+  <VisibilityConstraints>
+    <VisibilityItem guid="guidStrawberryShakePackageCmdSet" id="AddGraphQLClient" context="uiContextSupportedFiles" />
+  </VisibilityConstraints>
+
   <Symbols>
     <GuidSymbol name="guidStrawberryShakePackage" value="{369dd335-f812-4174-8d94-a3ec7437a0c3}" />
+    <GuidSymbol name="uiContextSupportedFiles" value="{24551deb-f034-43e9-a279-0e541241687e}" />
 
     <GuidSymbol name="guidStrawberryShakePackageCmdSet" value="{2170a3df-e63b-4e90-a8e9-54bf12d8a112}">
       <IDSymbol name="MyMenuGroup" value="0x1020" />

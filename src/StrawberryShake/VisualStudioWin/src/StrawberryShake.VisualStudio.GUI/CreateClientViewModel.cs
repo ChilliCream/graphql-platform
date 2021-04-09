@@ -24,7 +24,7 @@ namespace StrawberryShake.VisualStudio.GUI
         private string _accessTokenValue;
         private string _schemaFile;
         private string _clientName = "StarWarsClient";
-        private bool _createClientFolder = true;
+        private bool _createClientFolder = false;
         private string _accessModifier;
         private bool _useDependencyInjection = true;
         private string _dependencyInjection;

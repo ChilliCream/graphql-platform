@@ -29,7 +29,7 @@ namespace StrawberryShake.VisualStudio.GUI
         {
             HttpDetails httpDetails = new HttpDetails();
             httpDetails.Scheme.Text = _viewModel.AccessTokenScheme ?? "bearer";
-            httpDetails.Token.Text = _viewModel.AccessTokenValue ?? "bearer";
+            httpDetails.Token.Text = _viewModel.AccessTokenValue;
 
             if (httpDetails.ShowDialog() ?? false)
             {
