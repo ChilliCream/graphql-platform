@@ -15,6 +15,7 @@ namespace HotChocolate.Execution.Instrumentation
         {
         }
 
+        /// <inheritdoc />
         public virtual bool EnableResolveFieldValue => false;
 
         /// <summary>
