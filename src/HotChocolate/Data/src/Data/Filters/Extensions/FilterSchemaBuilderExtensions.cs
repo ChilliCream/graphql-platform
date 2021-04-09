@@ -15,12 +15,16 @@ namespace HotChocolate
         /// <param name="builder">
         /// The <see cref="ISchemaBuilder"/>.
         /// </param>
+        /// <param name="name">
+        /// The filter convention name.
+        /// </param>
         /// <returns>
         /// Returns the <see cref="ISchemaBuilder"/>.
         /// </returns>
         public static ISchemaBuilder AddFiltering(
-            this ISchemaBuilder builder) =>
-            AddFiltering(builder, x => x.AddDefaults());
+            this ISchemaBuilder builder,
+            string? name = null) =>
+            AddFiltering(builder, x => x.AddDefaults(), name);
 
         /// <summary>
         /// Adds filtering support.
