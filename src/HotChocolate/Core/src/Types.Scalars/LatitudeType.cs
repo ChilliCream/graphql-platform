@@ -50,13 +50,13 @@ namespace HotChocolate.Types
         private static class Latitude
         {
             // Minimum latitude
-            private static readonly double _minLat = -90.0;
+            private const double MinLat = -90.0;
 
             // Maximum latitude
-            private static readonly double _maxLat = 90.0;
+            private const double MaxLat = 90.0;
 
             // See https://en.wikipedia.org/wiki/Decimal_degrees#Precision
-            private static readonly int _maxPrecision = 8;
+            private const int MaxPrecision = 8;
 
             public static bool TrySerialize(
                 double value,
@@ -64,13 +64,20 @@ namespace HotChocolate.Types
             {
                 throw new System.NotImplementedException();
             }
+
             public static bool TryDeserialize(
                 string serialized,
                 [NotNullWhen(true)] out double? value)
             {
                 if (double.TryParse(serialized, out var d))
                 {
-                    value = Math.Round(d, _maxPrecision, MidpointRounding.AwayFromZero);
+                    if (d < MinLat || d > MaxLat)
+                    {
+                        value = null;
+                        return false;
+                    }
+
+                    value = Math.Round(d, MaxPrecision, MidpointRounding.AwayFromZero);
                     return true;
                 }
 
