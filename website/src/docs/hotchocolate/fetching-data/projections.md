@@ -200,7 +200,7 @@ public class UserType : ObjectType<User>
     protected override void Configure(
         IObjectTypeDescriptor<User> descriptor)
     {
-        descriptor.Feild(x => x.Email).IsProjected(true);
+        descriptor.Field(x => x.Email).IsProjected(true);
         descriptor.Field("messages")
             .Type<MessageType>()
             .Resolver(
