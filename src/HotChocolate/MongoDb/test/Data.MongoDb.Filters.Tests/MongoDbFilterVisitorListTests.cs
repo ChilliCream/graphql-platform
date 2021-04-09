@@ -59,7 +59,9 @@ namespace HotChocolate.Data.MongoDb.Filters
                     new FooNested { Bar = "d" },
                     new FooNested { Bar = "b" }
                 }
-            }
+            },
+            new Foo { FooNested = null },
+            new Foo { FooNested = new FooNested[0] }
         };
 
         public MongoDbFilterVisitorListTests(MongoResource resource)
@@ -190,24 +192,21 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { fooNested: { any: false}}){ fooNested {bar}}}")
+                    .SetQuery("{ root(where: { fooNested: { any: false}}){ fooNested {bar}}}")
                     .Create());
 
             res1.MatchDocumentSnapshot("false");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { fooNested: { any: true}}){ fooNested {bar}}}")
+                    .SetQuery("{ root(where: { fooNested: { any: true}}){ fooNested {bar}}}")
                     .Create());
 
             res2.MatchDocumentSnapshot("true");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { fooNested: { all: null}}){ fooNested {bar}}}")
+                    .SetQuery("{ root(where: { fooNested: { all: null}}){ fooNested {bar}}}")
                     .Create());
 
             res3.MatchDocumentSnapshot("null");
@@ -237,8 +236,7 @@ namespace HotChocolate.Data.MongoDb.Filters
         public class FooFilterType
             : FilterInputType<Foo>
         {
-            protected override void Configure(
-                IFilterInputTypeDescriptor<Foo> descriptor)
+            protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Field(t => t.FooNested);
             }
@@ -247,8 +245,7 @@ namespace HotChocolate.Data.MongoDb.Filters
         public class FooSimpleFilterType
             : FilterInputType<FooSimple>
         {
-            protected override void Configure(
-                IFilterInputTypeDescriptor<FooSimple> descriptor)
+            protected override void Configure(IFilterInputTypeDescriptor<FooSimple> descriptor)
             {
                 descriptor.Field(t => t.Bar);
             }
