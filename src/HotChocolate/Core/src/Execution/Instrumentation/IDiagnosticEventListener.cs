@@ -8,8 +8,7 @@ namespace HotChocolate.Execution.Instrumentation
     /// and they will all be called in the registration order.
     /// </summary>
     /// <seealso cref="DiagnosticEventListener"/>
-    public interface IDiagnosticEventListener
-        : IDiagnosticEvents
+    public interface IDiagnosticEventListener : IDiagnosticEvents
     {
         /// <summary>
         /// Return true to tell the event dispatcher that the listener has

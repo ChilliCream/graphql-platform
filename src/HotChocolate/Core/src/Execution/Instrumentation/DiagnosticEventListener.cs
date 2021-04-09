@@ -23,64 +23,82 @@ namespace HotChocolate.Execution.Instrumentation
         /// </summary>
         protected IActivityScope EmptyScope { get; } = new EmptyActivityScope();
 
+        /// <inheritdoc />
         public virtual IActivityScope ExecuteRequest(IRequestContext context) => EmptyScope;
 
+        /// <inheritdoc />
         public virtual void RequestError(IRequestContext context, Exception exception)
         {
         }
 
+        /// <inheritdoc />
         public virtual IActivityScope ParseDocument(IRequestContext context) => EmptyScope;
 
+        /// <inheritdoc />
         public virtual void SyntaxError(IRequestContext context, IError error)
         {
         }
 
+        /// <inheritdoc />
         public virtual IActivityScope ValidateDocument(IRequestContext context) => EmptyScope;
 
+        /// <inheritdoc />
         public virtual void ValidationErrors(IRequestContext context, IReadOnlyList<IError> errors)
         {
         }
 
+        /// <inheritdoc />
         public virtual IActivityScope ResolveFieldValue(IMiddlewareContext context) => EmptyScope;
 
+        /// <inheritdoc />
         public virtual void ResolverError(IMiddlewareContext context, IError error)
         {
         }
 
+        /// <inheritdoc />
         public virtual IActivityScope RunTask(IExecutionTask task) => EmptyScope;
 
+        /// <inheritdoc />
         public virtual void TaskError(IExecutionTask task, IError error)
         {
         }
 
+        /// <inheritdoc />
         public virtual void AddedDocumentToCache(IRequestContext context)
         {
         }
 
+        /// <inheritdoc />
         public virtual void RetrievedDocumentFromCache(IRequestContext context)
         {
         }
 
+        /// <inheritdoc />
         public virtual void RetrievedDocumentFromStorage(IRequestContext context)
         {
         }
 
+        /// <inheritdoc />
         public virtual void AddedOperationToCache(IRequestContext context)
         {
         }
 
+        /// <inheritdoc />
         public virtual void RetrievedOperationFromCache(IRequestContext context)
         {
         }
 
+        /// <inheritdoc />
         public virtual void BatchDispatched(IRequestContext context)
         {
         }
 
+        /// <inheritdoc />
         public virtual void ExecutorCreated(string name, IRequestExecutor executor)
         {
         }
 
+        /// <inheritdoc />
         public virtual void ExecutorEvicted(string name, IRequestExecutor executor)
         {
         }
