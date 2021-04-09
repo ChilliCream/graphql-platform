@@ -69,20 +69,7 @@ namespace HotChocolate.Types
                 string serialized,
                 [NotNullWhen(true)] out double? value)
             {
-                if (double.TryParse(serialized, out var d))
-                {
-                    if (d < MinLat || d > MaxLat)
-                    {
-                        value = null;
-                        return false;
-                    }
-
-                    value = Math.Round(d, MaxPrecision, MidpointRounding.AwayFromZero);
-                    return true;
-                }
-
-                value = null;
-                return false;
+                throw new System.NotImplementedException();
             }
         }
     }
