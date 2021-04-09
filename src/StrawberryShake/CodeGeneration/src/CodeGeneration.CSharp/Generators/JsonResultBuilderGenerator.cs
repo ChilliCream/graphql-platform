@@ -14,18 +14,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     public partial class JsonResultBuilderGenerator : ClassBaseGenerator<ResultBuilderDescriptor>
     {
         private const string _entityStore = "_entityStore";
+        private const string entityStore = "entityStore";
         private const string _idSerializer = "_idSerializer";
         private const string _resultDataFactory = "_resultDataFactory";
+        private const string idSerializer = "idSerializer";
+        private const string resultDataFactory = "resultDataFactory";
         private const string _serializerResolver = "serializerResolver";
         private const string _entityIds = "entityIds";
         private const string _obj = "obj";
         private const string _response = "response";
 
-        protected override void Generate(
+        protected override void Generate(ResultBuilderDescriptor resultBuilderDescriptor,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
-            ResultBuilderDescriptor resultBuilderDescriptor,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             InterfaceTypeDescriptor resultTypeDescriptor =
                 resultBuilderDescriptor.ResultNamedType as InterfaceTypeDescriptor
@@ -34,6 +38,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             fileName = resultBuilderDescriptor.RuntimeType.Name;
             path = State;
+            ns = resultBuilderDescriptor.RuntimeType.NamespaceWithoutGlobal;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -49,22 +54,28 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         TypeNames.JsonDocument,
                         resultTypeDescriptor.RuntimeType.ToString()));
 
-            AddConstructorAssignedField(
-                TypeNames.IEntityStore,
-                _entityStore,
-                classBuilder,
-                constructorBuilder);
+            if (settings.IsStoreEnabled())
+            {
+                AddConstructorAssignedField(
+                    TypeNames.IEntityStore,
+                    _entityStore,
+                    entityStore,
+                    classBuilder,
+                    constructorBuilder);
 
-            AddConstructorAssignedField(
-                TypeNames.IEntityIdSerializer,
-                _idSerializer,
-                classBuilder,
-                constructorBuilder);
+                AddConstructorAssignedField(
+                    TypeNames.IEntityIdSerializer,
+                    _idSerializer,
+                    idSerializer,
+                    classBuilder,
+                    constructorBuilder);
+            }
 
             AddConstructorAssignedField(
                 TypeNames.IOperationResultDataFactory
                     .WithGeneric(resultTypeDescriptor.RuntimeType.ToString()),
                 _resultDataFactory,
+                resultDataFactory,
                 classBuilder,
                 constructorBuilder);
 
@@ -110,16 +121,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             AddBuildMethod(resultTypeDescriptor, classBuilder);
 
-            AddBuildDataMethod(resultTypeDescriptor, classBuilder);
+            AddBuildDataMethod(settings, resultTypeDescriptor, classBuilder);
 
             var processed = new HashSet<string>();
             AddRequiredDeserializeMethods(resultTypeDescriptor, classBuilder, processed);
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(resultBuilderDescriptor.RuntimeType.NamespaceWithoutGlobal)
-                .AddType(classBuilder)
-                .Build(writer);
+            classBuilder.Build(writer);
         }
 
         /// <summary>
@@ -171,7 +178,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .SetName(methodName);
 
 
-                if (typeReference.IsEntityType() || typeReference.ContainsEntity())
+                if (typeReference.IsOrContainsEntityType())
                 {
                     methodBuilder
                         .AddParameter(_session, x => x.SetType(TypeNames.IEntityStoreUpdateSession))
@@ -279,30 +286,55 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             buildMethod.AddEmptyLine();
             buildMethod.AddCode(
-                IfBuilder
+                TryCatchBuilder
                     .New()
-                    .SetCondition(
-                        ConditionBuilder
-                            .New()
-                            .Set("response.Body != null"))
-                    .AddCode(
+                    .AddTryCode(
                         IfBuilder
                             .New()
                             .SetCondition(
                                 ConditionBuilder
                                     .New()
-                                    .Set("response.Body.RootElement.TryGetProperty(\"data\"," +
-                                        $" out {TypeNames.JsonElement} dataElement)"))
-                            .AddCode("data = BuildData(dataElement);"))
-                    .AddCode(
-                        IfBuilder
-                            .New()
-                            .SetCondition(
-                                ConditionBuilder
+                                    .Set("response.Body != null"))
+                            .AddCode(
+                                IfBuilder
                                     .New()
-                                    .Set("response.Body.RootElement.TryGetProperty(\"errors\"," +
-                                        $" out {TypeNames.JsonElement} errorsElement)"))
-                            .AddCode($"errors = {TypeNames.ParseError}(errorsElement);")));
+                                    .SetCondition(
+                                        ConditionBuilder
+                                            .New()
+                                            .Set("response.Body.RootElement.TryGetProperty(" +
+                                                $"\"data\", out {TypeNames.JsonElement} " +
+                                                "dataElement) && dataElement.ValueKind == " +
+                                                $"{TypeNames.JsonValueKind}.Object"))
+                                    .AddCode("data = BuildData(dataElement);"))
+                            .AddCode(
+                                IfBuilder
+                                    .New()
+                                    .SetCondition(
+                                        ConditionBuilder
+                                            .New()
+                                            .Set(
+                                                "response.Body.RootElement.TryGetProperty(" +
+                                                $"\"errors\", out {TypeNames.JsonElement} " +
+                                                "errorsElement)"))
+                                    .AddCode($"errors = {TypeNames.ParseError}(errorsElement);")))
+                    .AddCatchBlock(
+                        CatchBlockBuilder
+                            .New()
+                            .SetExceptionVariable("ex")
+                            .AddCode(
+                                AssignmentBuilder.New()
+                                    .SetLefthandSide("errors")
+                                    .SetRighthandSide(
+                                        ArrayBuilder.New()
+                                            .SetDetermineStatement(false)
+                                            .SetType(TypeNames.IClientError)
+                                            .AddAssigment(
+                                                MethodCallBuilder
+                                                    .Inline()
+                                                    .SetNew()
+                                                    .SetMethodName(TypeNames.ClientError)
+                                                    .AddArgument("ex.Message")
+                                                    .AddArgument("exception: ex"))))));
 
             buildMethod.AddEmptyLine();
             buildMethod.AddCode(
@@ -337,7 +369,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .Inline()
                 .SetMethodName(DeserializerMethodNameFromTypeName(property));
 
-            if (property.IsEntityType() || property.ContainsEntity())
+            if (property.IsOrContainsEntityType())
             {
                 deserializeMethodCaller
                     .AddArgument(_session)

@@ -83,7 +83,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddGraphQLCore()
                 .AddValidation(schemaName);
 
-            return new DefaultRequestExecutorBuilder(services, schemaName);
+            return CreateBuilder(services, schemaName);
         }
 
         /// <summary>
@@ -112,7 +112,27 @@ namespace Microsoft.Extensions.DependencyInjection
 
             builder.Services.AddValidation(schemaName);
 
-            return new DefaultRequestExecutorBuilder(builder.Services, schemaName);
+            return CreateBuilder(builder.Services, schemaName);
+        }
+
+        private static IRequestExecutorBuilder CreateBuilder(
+            IServiceCollection services,
+            NameString schemaName)
+        {
+            var builder = new DefaultRequestExecutorBuilder(services, schemaName);
+
+            builder.Configure(
+                (sp, e) =>
+                {
+                    e.OnRequestExecutorEvicted.Add(
+                        // when ever we evict this schema we will clear the caches.
+                        new OnRequestExecutorEvictedAction(
+                            _ => sp.GetRequiredService<IPreparedOperationCache>().Clear()));
+                });
+
+            builder.TryAddNoOpTransactionScopeHandler();
+
+            return builder;
         }
 
         public static IServiceCollection AddDocumentCache(
@@ -165,8 +185,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        public static IServiceCollection AddBatchDispatcher<T>(
-            this IServiceCollection services)
+        public static IServiceCollection AddBatchDispatcher<T>(this IServiceCollection services)
             where T : class, IBatchDispatcher
         {
             services.RemoveAll<IBatchDispatcher>();
@@ -174,8 +193,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        public static IServiceCollection AddBatchScheduler<T>(
-            this IServiceCollection services)
+        public static IServiceCollection AddBatchScheduler<T>(this IServiceCollection services)
             where T : class, IBatchScheduler
         {
             services.RemoveAll<IBatchScheduler>();
@@ -183,8 +201,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        public static IServiceCollection AddDefaultBatchDispatcher(
-            this IServiceCollection services)
+        public static IServiceCollection AddDefaultBatchDispatcher(this IServiceCollection services)
         {
             services.RemoveAll<IBatchScheduler>();
             services.TryAddDefaultBatchDispatcher();

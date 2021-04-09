@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Addtional HotChocolate scalars  (HotChocolate.Types.Scalars)
+## [11.1.0]
+
+### Added
+
+- Additional HotChocolate scalars  (HotChocolate.Types.Scalars)
     - PhoneNumber (#2995)
     - EmailAddress (#2989)
     - NegativeFloat (#2996)
@@ -33,10 +37,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - HexColor (#3077)
     - UnsignedInt (#3052)
     - PostalCode (#3046)
+    - UtcOffset (#3362)
+
+- Added support for GraphQL multipart request specification to Hot Chocolate (#2936).
+- Added Strawberry Shake GraphQL client.
+- Added MongoDB integration
+- Added support for .NET 6
+- Added support for experimental directive introspection.
+- Added schema interceptor delegates + extensions (#3005)
+- Added transaction support to mutation requests. (#2913)
+- Added type overload to UseProjection (#3093)
+- Adds re-projection features to spatial types aka spatial transformations (#2904)
+- Added support for the FromServicesAttribute (#3084)
+
+### Changed
+
+- Reduced the type system memory footprint. (#3071)
+- Reworked ExtendObjectType to be able to extend by System.Type (#3316).
+- Made the ExtendObjectType Name setter obsolete (#3363)
+- Added some minor improvements to make type extensions easier (#3361)
+- Exposed more details about the cache (#3340)
+- Cleared document cache on schema eviction (#3303)
+- Allow sorting handler to be set directly via ExtendObjectType (#3222)
+- Allow nullable context data (#3000)
 
 ### Fixed
 
 - Fixed issue where the PagingHelper introduced a self-reference which cause type system initialization issues.
+- Fixed dependency injection behavior of type extensions. (#3376)
+- Allow to ignore members by name. (#3366)
+- Ensured that Authorize can be applied on extension types (#3364)
+- Fixed DateTimeType with default(DateTime) (#3347)
+- Ensure subscriptions work when fragments are used (#3343)
+- Fixed issue with `HotChocolate.Data` attributes on extended types (#3333)
+- Fixed operation compiler issue with nested fragments. (#3328)
+- Added missing timeout middleware (#3329)
+- Fixed nullability issue in input formatter (#3323)
+- Fixed error message in execution (#3324)
+- Fixed nullability issue in mapper (#3322)
+- Fixed bug where query interfere with each other (#3321)
+- Fixed schema inference of operation cache (#3306)
+- Fixed AnyType for schema stitching (#2997)
+- Fixed operation cancelled exception on subscription backend (#3075)
+- Fixed issue where an empty root selection-set lead to an execution timeout (#3257)
+- Fixed TypeTrimmer interface detection (#3079)
+- Fixed nullable matrix types in schema first. (#2998)
+- Fixed fragment projections issue with the operation compiler. (#2920)
 
 ## [11.0.9]
 

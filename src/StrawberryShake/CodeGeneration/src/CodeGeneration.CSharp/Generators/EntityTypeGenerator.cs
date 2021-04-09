@@ -1,60 +1,98 @@
-using System.Collections.Generic;
-using StrawberryShake.CodeGeneration.CSharp.Builders;
-using StrawberryShake.CodeGeneration.CSharp.Extensions;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using StrawberryShake.CodeGeneration.Descriptors;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
-using StrawberryShake.CodeGeneration.Extensions;
-using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
-    public class EntityTypeGenerator : CodeGenerator<EntityTypeDescriptor>
+    public class EntityTypeGenerator : CSharpSyntaxGenerator<EntityTypeDescriptor>
     {
-        protected override void Generate(
-            CodeWriter writer,
+        protected override bool CanHandle(
             EntityTypeDescriptor descriptor,
-            out string fileName,
-            out string? path)
+            CSharpSyntaxGeneratorSettings settings) =>
+            !settings.NoStore;
+
+        protected override CSharpSyntaxGeneratorResult Generate(
+            EntityTypeDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings)
         {
-            // Setup class
-            fileName = descriptor.RuntimeType.Name;
-            path = State;
-
-            ClassBuilder classBuilder = ClassBuilder
-                .New()
-                .SetComment(descriptor.Documentation)
-                .SetName(fileName);
-
-            ConstructorBuilder constructorBuilder = classBuilder
-                .AddConstructor()
-                .SetPublic()
-                .SetTypeName(fileName);
-
-            // Add Properties to class
-            foreach (KeyValuePair<string, PropertyDescriptor> item in descriptor.Properties)
+            if (settings.EntityRecords)
             {
-                classBuilder
-                    .AddProperty(item.Value.Name)
-                    .SetComment(item.Value.Description)
-                    .SetType(item.Value.Type.ToStateTypeReference())
-                    .SetPublic();
+                RecordDeclarationSyntax recordDeclarationSyntax =
+                    RecordDeclaration(Token(SyntaxKind.RecordKeyword), descriptor.RuntimeType.Name)
+                        .AddModifiers(
+                            Token(SyntaxKind.PublicKeyword),
+                            Token(SyntaxKind.PartialKeyword))
+                        .AddGeneratedAttribute()
+                        .AddSummary(descriptor.Documentation)
+                        .WithOpenBraceToken(Token(SyntaxKind.OpenBraceToken));
 
-                var paramName = GetParameterName(item.Value.Name);
-                constructorBuilder
-                    .AddParameter(
-                        paramName,
-                        x => x.SetType(item.Value.Type.ToStateTypeReference()))
-                    .AddCode(AssignmentBuilder
-                        .New()
-                        .SetLefthandSide(item.Value.Name)
-                        .SetRighthandSide(paramName));
+                if (descriptor.Properties.Count > 0)
+                {
+                    ConstructorDeclarationSyntax constructor =
+                        ConstructorDeclaration(descriptor.RuntimeType.Name)
+                            .AddModifiers(Token(SyntaxKind.PublicKeyword));
+
+                    foreach (PropertyDescriptor property in descriptor.Properties.Select(t =>
+                        t.Value))
+                    {
+                        constructor = constructor.AddStateParameter(property);
+                    }
+
+                    recordDeclarationSyntax = recordDeclarationSyntax.AddMembers(constructor);
+
+                    foreach (PropertyDescriptor property in descriptor.Properties.Select(t =>
+                        t.Value))
+                    {
+                        recordDeclarationSyntax = recordDeclarationSyntax.AddStateProperty(property);
+                    }
+                }
+
+                recordDeclarationSyntax = recordDeclarationSyntax.WithCloseBraceToken(
+                    Token(SyntaxKind.CloseBraceToken));
+
+                return new(
+                    descriptor.RuntimeType.Name,
+                    State,
+                    descriptor.RuntimeType.NamespaceWithoutGlobal,
+                    recordDeclarationSyntax);
             }
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
-                .AddType(classBuilder)
-                .Build(writer);
+            ClassDeclarationSyntax classDeclaration =
+                ClassDeclaration(descriptor.RuntimeType.Name)
+                    .AddModifiers(
+                        Token(SyntaxKind.PublicKeyword),
+                        Token(SyntaxKind.PartialKeyword))
+                    .AddGeneratedAttribute()
+                    .AddSummary(descriptor.Documentation);
+
+            if (descriptor.Properties.Count > 0)
+            {
+                ConstructorDeclarationSyntax constructor =
+                    ConstructorDeclaration(descriptor.RuntimeType.Name)
+                        .AddModifiers(Token(SyntaxKind.PublicKeyword));
+
+                foreach (PropertyDescriptor property in descriptor.Properties.Select(t =>
+                    t.Value))
+                {
+                    constructor = constructor.AddStateParameter(property);
+                }
+
+                classDeclaration = classDeclaration.AddMembers(constructor);
+
+                foreach (PropertyDescriptor property in descriptor.Properties.Select(t => t.Value))
+                {
+                    classDeclaration = classDeclaration.AddStateProperty(property);
+                }
+            }
+
+            return new(
+                descriptor.RuntimeType.Name,
+                State,
+                descriptor.RuntimeType.NamespaceWithoutGlobal,
+                classDeclaration);
         }
     }
 }

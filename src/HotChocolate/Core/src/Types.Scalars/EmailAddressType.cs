@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The `EmailAddress` scalar type constitutes a valid email address, represented as a UTF-8
@@ -20,11 +20,25 @@ namespace HotChocolate.Types.Scalars
         /// Initializes a new instance of the <see cref="EmailAddressType"/> class.
         /// </summary>
         public EmailAddressType()
-            : base(
+            : this(
                 WellKnownScalarTypes.EmailAddress,
+                ScalarResources.EmailAddressType_Description)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EmailAddressType"/> class.
+        /// </summary>
+        public EmailAddressType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(
+                name,
                 _validationPattern,
-                ScalarResources.EmailAddressType_Description,
-                RegexOptions.Compiled | RegexOptions.IgnoreCase)
+                description,
+                RegexOptions.Compiled | RegexOptions.IgnoreCase,
+                bind)
         {
         }
 

@@ -24,7 +24,7 @@ namespace StrawberryShake.Transport.WebSockets
             IOptionsMonitor<SocketClientFactoryOptions> monitor = services.BuildServiceProvider()
                 .GetRequiredService<IOptionsMonitor<SocketClientFactoryOptions>>();
 
-            Assert.Contains(configure, monitor.Get(name).SocketClientActions);
+            Assert.Single(monitor.Get(name).SocketClientActions);
         }
 
         [Fact]

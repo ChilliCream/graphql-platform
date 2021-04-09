@@ -8,16 +8,14 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Configuration
 {
-    internal sealed class TypeBindingInfo
-        : ITypeBindingInfo
+    internal sealed class TypeBindingInfo : ITypeBindingInfo
     {
         private readonly IDescriptorContext _context;
         private readonly Dictionary<NameString, RegisteredResolver> _resolvers;
         private readonly Dictionary<NameString, MemberInfo> _members;
         private readonly BindingBehavior _bindingBehavior;
-        private readonly HashSet<NameString> _fieldNames =
-            new HashSet<NameString>();
-        private List<MemberInfo> _allMembers;        
+        private readonly HashSet<NameString> _fieldNames = new();
+        private List<MemberInfo> _allMembers;
 
         public TypeBindingInfo(
             IDescriptorContext context,
@@ -39,15 +37,12 @@ namespace HotChocolate.Configuration
 
             name.EnsureNotEmpty(nameof(name));
 
-            _context = context
-                ?? throw new ArgumentNullException(nameof(context));
+            _context = context ?? throw new ArgumentNullException(nameof(context));
             Name = name;
             SourceType = sourceType;
             _bindingBehavior = bindingBehavior;
-            _resolvers = new Dictionary<NameString, RegisteredResolver>(
-                resolvers);
-            _members = new Dictionary<NameString, MemberInfo>(
-                members);
+            _resolvers = new Dictionary<NameString, RegisteredResolver>(resolvers);
+            _members = new Dictionary<NameString, MemberInfo>(members);
         }
 
         public NameString Name { get; }
@@ -140,6 +135,7 @@ namespace HotChocolate.Configuration
                 _resolvers.Add(
                     fieldName,
                     new RegisteredResolver(
+                        SourceType,
                         SourceType,
                         new FieldMember(Name, fieldName, member)));
             }

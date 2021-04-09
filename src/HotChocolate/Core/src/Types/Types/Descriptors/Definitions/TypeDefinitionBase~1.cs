@@ -6,6 +6,10 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {
+    /// <summary>
+    /// A definition that represents a type.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class TypeDefinitionBase<T>
         : DefinitionBase<T>
         , ITypeDefinition
@@ -15,19 +19,24 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         protected TypeDefinitionBase() { }
 
-        private Type? _clrType;
+        private Type _runtimeType = typeof(object);
 
         /// <summary>
         /// Gets or sets the .net type representation of this type.
         /// </summary>
         public virtual Type RuntimeType
         {
-            get => _clrType;
+            get => _runtimeType;
             set
             {
-                _clrType = value ?? throw new ArgumentNullException(nameof(value));
+                _runtimeType = value ?? throw new ArgumentNullException(nameof(value));
             }
         }
+
+        /// <summary>
+        /// If this is a type definition extension this is the type we want to extend.
+        /// </summary>
+        public Type? ExtendsType { get; set; }
 
         /// <summary>
         /// Gets the list of directives that are annotated to this type.
@@ -46,6 +55,32 @@ namespace HotChocolate.Types.Descriptors.Definitions
             }
 
             return _directives;
+        }
+
+        protected void CopyTo(TypeDefinitionBase<T> target)
+        {
+            base.CopyTo(target);
+
+            target._runtimeType = _runtimeType;
+            target.ExtendsType = ExtendsType;
+
+            if (_directives is not null and { Count: > 0 })
+            {
+                target._directives = new List<DirectiveDefinition>(_directives);
+            }
+        }
+
+        protected void MergeInto(TypeDefinitionBase<T> target)
+        {
+            base.MergeInto(target);
+
+            // Note: we will not change ExtendsType or _runtimeType on merge.
+
+            if (_directives is not null and { Count: > 0 })
+            {
+                target._directives ??= new List<DirectiveDefinition>();
+                target._directives.AddRange(Directives);
+            }
         }
     }
 }

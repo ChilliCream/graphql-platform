@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
@@ -7,25 +8,25 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
 {
-    public class ObjectTypeDescriptorBase<T>
+    public abstract class ObjectTypeDescriptorBase<T>
         : ObjectTypeDescriptor
         , IObjectTypeDescriptor<T>
         , IHasRuntimeType
     {
-        protected internal ObjectTypeDescriptorBase(
+        protected ObjectTypeDescriptorBase(
             IDescriptorContext context,
             Type clrType)
             : base(context, clrType)
         {
         }
 
-        protected internal ObjectTypeDescriptorBase(
+        protected ObjectTypeDescriptorBase(
             IDescriptorContext context)
             : base(context)
         {
         }
 
-        protected internal ObjectTypeDescriptorBase(
+        protected ObjectTypeDescriptorBase(
             IDescriptorContext context,
             ObjectTypeDefinition definition)
             : base(context, definition)
@@ -40,7 +41,8 @@ namespace HotChocolate.Types.Descriptors
         {
             HashSet<string> subscribeResolver = null;
 
-            if (Definition.Fields.IsImplicitBinding())
+            if (Definition.Fields.IsImplicitBinding() &&
+                Definition.FieldBindingType is not null)
             {
                 FieldDescriptorUtilities.AddImplicitFields(
                     this,
@@ -49,37 +51,55 @@ namespace HotChocolate.Types.Descriptors
                     {
                         var descriptor = ObjectFieldDescriptor.New(
                             Context, p, Definition.RuntimeType, Definition.FieldBindingType);
+
+                        if(Definition.IsExtension && Context.TypeInspector.IsMemberIgnored(p))
+                        {
+                            descriptor.Ignore();
+                        }
+
                         Fields.Add(descriptor);
                         return descriptor.CreateDefinition();
                     },
                     fields,
                     handledMembers,
-                    include: IncludeField);
+                    include: IncludeField,
+                    includeIgnoredMembers
+                    : Definition.IsExtension);
             }
 
             base.OnCompleteFields(fields, handledMembers);
 
             bool IncludeField(IReadOnlyList<MemberInfo> all, MemberInfo current)
             {
+                NameString name = Context.Naming.GetMemberName(current, MemberKind.ObjectField);
+
+                if (Fields.Any(t => t.Definition.Name.Equals(name)))
+                {
+                    return false;
+                }
+
                 if (subscribeResolver is null)
                 {
                     subscribeResolver = new HashSet<string>();
 
                     foreach(MemberInfo member in all)
                     {
-                        if(member.IsDefined(typeof(SubscribeAttribute)))
-                        {
-                            SubscribeAttribute attribute =
-                                member.GetCustomAttribute<SubscribeAttribute>();
-                            if(attribute.With is not null)
-                            {
-                                subscribeResolver.Add(attribute.With);
-                            }
-                        }
+                        HandlePossibleSubscribeMember(member);
                     }
                 }
 
                 return !subscribeResolver.Contains(current.Name);
+            }
+
+            void HandlePossibleSubscribeMember(MemberInfo member)
+            {
+                if(member.IsDefined(typeof(SubscribeAttribute)))
+                {
+                    if(member.GetCustomAttribute<SubscribeAttribute>() is { With: not null } attr)
+                    {
+                        subscribeResolver.Add(attr.With);
+                    }
+                }
             }
         }
 

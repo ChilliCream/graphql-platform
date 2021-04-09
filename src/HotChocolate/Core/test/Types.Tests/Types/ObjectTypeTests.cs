@@ -1930,7 +1930,7 @@ namespace HotChocolate.Types
                 [DefaultValue("abc")] string b) => null;
         }
 
-        [ExtendObjectType(Name = "Some")]
+        [ExtendObjectType("Some")]
         public class SomeTypeExtensionWithInterface : INode
         {
             [GraphQLType(typeof(NonNullType<IdType>))]

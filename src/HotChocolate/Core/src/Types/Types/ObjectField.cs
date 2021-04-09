@@ -27,7 +27,7 @@ namespace HotChocolate.Types
             bool sortArgumentsByName = false)
             : base(definition, fieldCoordinate, sortArgumentsByName)
         {
-            Member = definition.Member ?? definition.ResolverMember;
+            Member = definition.Member;
             Middleware = _empty;
             Resolver = definition.Resolver!;
             Expression = definition.Expression;
@@ -63,8 +63,9 @@ namespace HotChocolate.Types
         public IReadOnlyList<IDirective> ExecutableDirectives => _executableDirectives;
 
         /// <summary>
-        /// Gets the associated .net type member of this field.
-        /// This member can be <c>null</c>.
+        /// Gets the associated member of the runtime type for this field.
+        /// This property can be <c>null</c> if this field is not associated to
+        /// a concrete member on the runtime type.
         /// </summary>
         public MemberInfo? Member { get; }
 

@@ -32,6 +32,11 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public MemberInfo? Member { get; set; }
 
         /// <summary>
+        /// Defines a binding to another object field.
+        /// </summary>
+        public ObjectFieldBinding? BindTo { get; set; }
+
+        /// <summary>
         /// The member that represents the resolver.
         /// </summary>
         public MemberInfo? ResolverMember { get; set; }
@@ -79,6 +84,73 @@ namespace HotChocolate.Types.Descriptors.Definitions
             }
 
             return _middlewareComponents;
+        }
+
+        internal void CopyTo(ObjectFieldDefinition target)
+        {
+            base.CopyTo(target);
+
+            if (_middlewareComponents is { Count: > 0 })
+            {
+                target._middlewareComponents = new List<FieldMiddleware>(_middlewareComponents);
+            }
+
+            target.SourceType = SourceType;
+            target.ResolverType = ResolverType;
+            target.Member = Member;
+            target.BindTo = BindTo;
+            target.ResolverMember = ResolverMember;
+            target.Expression = Expression;
+            target.ResultType = ResultType;
+            target.Resolver = Resolver;
+            target.SubscribeResolver = SubscribeResolver;
+            target.IsIntrospectionField = IsIntrospectionField;
+        }
+
+        internal void MergeInto(ObjectFieldDefinition target)
+        {
+            base.MergeInto(target);
+
+            if (_middlewareComponents is { Count: > 0 })
+            {
+                target._middlewareComponents ??= new List<FieldMiddleware>();
+                target._middlewareComponents.AddRange(_middlewareComponents);
+            }
+
+            if (ResolverType is not null)
+            {
+                target.ResolverType = ResolverType;
+            }
+
+            if (Member is not null)
+            {
+                target.Member = Member;
+            }
+
+            if (ResolverMember is not null)
+            {
+                target.ResolverMember = ResolverMember;
+            }
+
+            if (Expression is not null)
+            {
+                target.Expression = Expression;
+            }
+
+            if (ResultType is not null)
+            {
+                target.ResultType = ResultType;
+            }
+
+            if (Resolver is not null)
+            {
+                target.Resolver = Resolver;
+            }
+
+            if (SubscribeResolver is not null)
+            {
+                target.SubscribeResolver = SubscribeResolver;
+            }
         }
     }
 }

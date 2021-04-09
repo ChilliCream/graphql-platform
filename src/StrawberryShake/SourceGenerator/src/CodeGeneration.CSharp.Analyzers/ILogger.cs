@@ -30,5 +30,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         void Error(Exception exception);
 
         void End();
+
+        void Flush();
     }
 }

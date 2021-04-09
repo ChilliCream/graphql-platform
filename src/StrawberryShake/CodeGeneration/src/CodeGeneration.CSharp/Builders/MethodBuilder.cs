@@ -8,6 +8,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private AccessModifier _accessModifier = AccessModifier.Private;
         private Inheritance _inheritance = Inheritance.None;
         private bool _isStatic;
+        private bool _isOnlyDeclaration;
         private bool _isOverride;
         private bool _is;
         private TypeReferenceBuilder _returnType = TypeReferenceBuilder.New().SetName("void");
@@ -58,6 +59,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         public MethodBuilder SetInheritance(Inheritance value)
         {
             _inheritance = value;
+            return this;
+        }
+
+        public MethodBuilder SetOnlyDeclaration(bool value = true)
+        {
+            _isOnlyDeclaration = value;
             return this;
         }
 
@@ -137,7 +144,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             writer.WriteIndent();
 
 
-            if (_interface is null)
+            if (_interface is null && !_isOnlyDeclaration)
             {
                 writer.Write($"{modifier} ");
 
@@ -171,6 +178,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 writer.Write(_interface);
                 writer.Write(".");
             }
+
             writer.Write($"{_name}(");
 
             if (_parameters.Count == 0)
@@ -205,18 +213,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 }
             }
 
-            writer.WriteLine();
-            writer.WriteIndentedLine("{");
-
-            using (writer.IncreaseIndent())
+            if (_isOnlyDeclaration)
             {
-                foreach (ICode code in _lines)
-                {
-                    code.Build(writer);
-                }
+                writer.Write(";");
+                writer.WriteLine();
             }
+            else
+            {
+                writer.WriteLine();
+                writer.WriteIndentedLine("{");
 
-            writer.WriteIndentedLine("}");
+                using (writer.IncreaseIndent())
+                {
+                    foreach (ICode code in _lines)
+                    {
+                        code.Build(writer);
+                    }
+                }
+
+                writer.WriteIndentedLine("}");
+            }
         }
 
         private string CreateInheritance()

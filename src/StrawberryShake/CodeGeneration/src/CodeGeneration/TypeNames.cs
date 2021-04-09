@@ -14,6 +14,7 @@ namespace StrawberryShake.CodeGeneration
         public const string OperationStore = StrawberryshakeNamespace + "OperationStore";
         public const string IOperationExecutor = StrawberryshakeNamespace + "IOperationExecutor";
         public const string OperationExecutor = StrawberryshakeNamespace + "OperationExecutor";
+        public const string StorelessOperationExecutor = StrawberryshakeNamespace + "StorelessOperationExecutor";
         public const string IOperationResult = StrawberryshakeNamespace + "IOperationResult";
         public const string OperationResult = StrawberryshakeNamespace + "OperationResult";
         public const string IOperationResultDataFactory = StrawberryshakeNamespace + "IOperationResultDataFactory";
@@ -30,6 +31,7 @@ namespace StrawberryShake.CodeGeneration
         public const string IDocument = StrawberryshakeNamespace + "IDocument";
         public const string GraphQLClientException = StrawberryshakeNamespace + "GraphQLClientException";
         public const string IClientError = StrawberryshakeNamespace + "IClientError";
+        public const string ClientError = StrawberryshakeNamespace + "ClientError";
         public const string DocumentHash = StrawberryshakeNamespace + "DocumentHash";
         public const string RequestStrategy = StrawberryshakeNamespace + "RequestStrategy";
 
@@ -57,12 +59,14 @@ namespace StrawberryShake.CodeGeneration
         public const string Type = "global::System.Type";
         public const string JsonElement = "global::System.Text.Json.JsonElement";
         public const string JsonDocument = "global::System.Text.Json.JsonDocument";
+        public const string JsonValueKind = "global::System.Text.Json.JsonValueKind";
         public const string JsonWriterOptions = "global::System.Text.Json.JsonWriterOptions";
         public const string Utf8JsonWriter= "global::System.Text.Json.Utf8JsonWriter";
         public const string ParseError = StrawberryshakeNamespace + "Json.JsonErrorParser.ParseErrors";
         public const string String = "global::System.String";
         public const string Byte = "global::System.Byte";
         public const string ByteArray = "global::System.Byte[]";
+        public const string Array = "global::System.Array";
         public const string Int16 = "global::System.Int16";
         public const string Int32 = "global::System.Int32";
         public const string Int64 = "global::System.Int64";
@@ -98,6 +102,8 @@ namespace StrawberryShake.CodeGeneration
         public const string NotSupportedException = "global::System.NotSupportedException";
         public const string ArgumentNullException = "global::System.ArgumentNullException";
         public const string ArgumentException = "global::System.ArgumentException";
+        public const string ArgumentOutOfRangeException = "global::System.ArgumentOutOfRangeException";
+        public const string Exception = "global::System.Exception";
 
         public const string IServiceCollection = GlobalDependencyInjectionNamespace + "IServiceCollection";
         public const string IServiceProvider = "global::System.IServiceProvider";

@@ -12,6 +12,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     public partial class TypeMapperGenerator
     {
         private void AddComplexDataHandler(
+            CSharpSyntaxGeneratorSettings settings,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             MethodBuilder method,
@@ -31,9 +32,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .MakeNullable(!isNonNullable))
                 .SetName(_dataParameterName);
 
-            method
-                .AddParameter(_snapshot)
-                .SetType(TypeNames.IEntityStoreSnapshot);
+            if (settings.IsStoreEnabled())
+            {
+                method
+                    .AddParameter(_snapshot)
+                    .SetType(TypeNames.IEntityStoreSnapshot);
+            }
 
             if (!isNonNullable)
             {
@@ -47,11 +51,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             GenerateIfForEachImplementedBy(
                 method,
                 complexTypeDescriptor,
-                o => GenerateComplexDataInterfaceIfClause(o, returnValue));
+                o => GenerateComplexDataInterfaceIfClause(settings, o, returnValue));
 
             method.AddCode($"return {returnValue};");
 
             AddRequiredMapMethods(
+                settings,
                 _dataParameterName,
                 complexTypeDescriptor,
                 classBuilder,
@@ -84,6 +89,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         }
 
         private IfBuilder GenerateComplexDataInterfaceIfClause(
+            CSharpSyntaxGeneratorSettings settings,
             ObjectTypeDescriptor objectTypeDescriptor,
             string variableName)
         {
@@ -95,6 +101,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 CreateDataTypeName(objectTypeDescriptor.Name),
                 $"{objectTypeDescriptor.RuntimeType.Namespace}.State");
 
+            var block = CodeBlockBuilder.New();
+
             MethodCallBuilder constructorCall = MethodCallBuilder
                 .Inline()
                 .SetNew()
@@ -102,32 +110,51 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             foreach (PropertyDescriptor prop in objectTypeDescriptor.Properties)
             {
-                if (prop.Type.IsEntityType())
+                if (prop.Type.IsEntityType() || prop.Type.IsDataType())
                 {
-                    constructorCall.AddArgument(BuildMapMethodCall(matchedTypeName, prop));
+                    constructorCall.AddArgument(
+                        BuildMapMethodCall(settings, matchedTypeName, prop));
+                }
+                else if (prop.Type.IsNonNullableType())
+                {
+                    if (prop.Type.NamedType() is ILeafTypeDescriptor
+                        { RuntimeType: { IsValueType: true } })
+                    {
+                        block
+                            .AddCode(IfBuilder
+                                .New()
+                                .SetCondition($"{matchedTypeName}.{prop.Name}.HasValue")
+                                .AddCode(ExceptionBuilder.New(TypeNames.ArgumentNullException)))
+                            .AddEmptyLine();
+
+                        constructorCall.AddArgument($"{matchedTypeName}.{prop.Name}!.Value");
+                    }
+                    else
+                    {
+                        constructorCall
+                            .AddArgument(
+                                NullCheckBuilder
+                                    .Inline()
+                                    .SetCondition($"{matchedTypeName}.{prop.Name}")
+                                    .SetCode(ExceptionBuilder.Inline(
+                                        TypeNames.ArgumentNullException)));
+                    }
                 }
                 else
                 {
-                    var isNonNullableValueType =
-                        prop.Type is NonNullTypeDescriptor
-                            { InnerType: ILeafTypeDescriptor leaf } &&
-                        leaf.RuntimeType.IsValueType;
-
-                    constructorCall
-                        .AddArgument(
-                            $"{matchedTypeName}.{prop.Name}" +
-                            (isNonNullableValueType ? ".Value" : ""));
+                    constructorCall.AddArgument($"{matchedTypeName}.{prop.Name}");
                 }
             }
+
+            block.AddCode(AssignmentBuilder
+                .New()
+                .SetLefthandSide(variableName)
+                .SetRighthandSide(constructorCall));
 
             return IfBuilder
                 .New()
                 .SetCondition($"{_dataParameterName} is {dataTypeName} {matchedTypeName}")
-                .AddCode(
-                    AssignmentBuilder
-                        .New()
-                        .SetLefthandSide(variableName)
-                        .SetRighthandSide(constructorCall));
+                .AddCode(block);
         }
     }
 }

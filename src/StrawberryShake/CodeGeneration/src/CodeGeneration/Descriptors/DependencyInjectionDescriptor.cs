@@ -12,8 +12,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors
     public class DependencyInjectionDescriptor : ICodeDescriptor
     {
         public DependencyInjectionDescriptor(
-            NameString name,
-            string @namespace,
+            ClientDescriptor clientDescriptor,
             IReadOnlyList<EntityTypeDescriptor> entities,
             List<OperationDescriptor> operations,
             IReadOnlyList<ITypeDescriptor> typeDescriptors,
@@ -21,22 +20,23 @@ namespace StrawberryShake.CodeGeneration.Descriptors
             EntityIdFactoryDescriptor entityIdFactoryDescriptor,
             StoreAccessorDescriptor storeAccessorDescriptor)
         {
-            RuntimeType = new(name, @namespace);
+            ClientDescriptor = clientDescriptor;
+            Name = clientDescriptor.Name;
             Entities = entities;
             Operations = operations;
             TypeDescriptors = typeDescriptors;
             TransportProfiles = transportProfiles;
             EntityIdFactoryDescriptor = entityIdFactoryDescriptor;
             StoreAccessor = storeAccessorDescriptor;
-            EnumTypeDescriptor = typeDescriptors.OfType<EnumTypeDescriptor>().ToList();;
+            EnumTypeDescriptor = typeDescriptors.OfType<EnumTypeDescriptor>().ToList();
         }
 
         /// <summary>
         /// The name of the client
         /// </summary>
-        public NameString Name => RuntimeType.Name;
+        public NameString Name { get; }
 
-        public RuntimeTypeInfo RuntimeType { get; }
+        public ClientDescriptor ClientDescriptor { get; }
 
         public IReadOnlyList<EntityTypeDescriptor> Entities { get; }
 

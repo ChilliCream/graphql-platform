@@ -17,6 +17,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     {
         private const string _variables = "variables";
         private const string _operationExecutor = "_operationExecutor";
+        private const string operationExecutor = "operationExecutor";
         private const string _createRequest = "CreateRequest";
         private const string _strategy = "strategy";
         private const string _serializerResolver = "serializerResolver";
@@ -24,14 +25,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _value = "value";
         private const string _cancellationToken = "cancellationToken";
 
-        protected override void Generate(
+        protected override void Generate(OperationDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
-            OperationDescriptor descriptor,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             fileName = descriptor.RuntimeType.Name;
             path = null;
+            ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -43,7 +46,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                 CodeGenerationResources.OperationServiceDescriptor_Description,
                                 descriptor.Name))
                         .AddCode(descriptor.BodyString))
-                .AddImplements(TypeNames.IOperationRequestFactory)
+                .AddImplements(descriptor.InterfaceType.ToString())
                 .SetName(fileName);
 
             ConstructorBuilder constructorBuilder = classBuilder
@@ -56,6 +59,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             AddConstructorAssignedField(
                 TypeNames.IOperationExecutor.WithGeneric(runtimeTypeName),
                 _operationExecutor,
+                operationExecutor,
                 classBuilder,
                 constructorBuilder);
 
@@ -100,11 +104,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                             .MakeNullable()))
                 .AddCode(createRequestCall);
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
-                .AddType(classBuilder)
-                .Build(writer);
+            classBuilder.Build(writer);
         }
 
         private static void AddFormatMethods(

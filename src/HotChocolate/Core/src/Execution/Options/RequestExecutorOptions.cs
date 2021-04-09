@@ -7,8 +7,7 @@ namespace HotChocolate.Execution.Options
     /// Represents the entirety of settings to configure the behavior of the
     /// query execution engine.
     /// </summary>
-    public class RequestExecutorOptions
-        : IRequestExecutorOptionsAccessor
+    public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
     {
         private const int _minQueryCacheSize = 10;
         private static readonly TimeSpan _minExecutionTimeout =
@@ -42,10 +41,13 @@ namespace HotChocolate.Execution.Options
             Debugger.IsAttached;
 
         /// <summary>
-        /// Gets or sets the maximum amount of queries that can be cached. The
+        /// Gets or sets the maximum amount of compiled queries that can be cached. The
         /// default value is <c>100</c>. The minimum allowed value is
         /// <c>10</c>.
         /// </summary>
+        [Obsolete(
+            "Use AddDocumentCache or AddOperationCache on the IServiceCollection.",
+            true)]
         public int QueryCacheSize
         {
             get => _queryCacheSize;
@@ -62,8 +64,10 @@ namespace HotChocolate.Execution.Options
         /// measurement of query requests is enabled. The default value is
         /// <see cref="TracingPreference.Never"/>.
         /// </summary>
+        [Obsolete("Use AddApolloTracing on the IRequestExecutorBuilder.", true)]
         public TracingPreference TracingPreference { get; set; }
 
+        [Obsolete("This can now be configured on the validation rule.", true)]
         public bool? UseComplexityMultipliers { get; set; }
     }
 }

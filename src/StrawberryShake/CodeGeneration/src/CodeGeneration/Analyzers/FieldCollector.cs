@@ -62,7 +62,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     foreach (ObjectType objectType in _schema.GetPossibleTypes(type))
                     {
                         SelectionSet objectSelection = CollectFieldsInternal(
-                            selectionSetSyntax, objectType, path);
+                            selectionSetSyntax,
+                            objectType,
+                            path);
                         list.Add(objectSelection);
 
                         // TODO : do we always want to generate all shapes?
@@ -162,15 +164,19 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         internal static void ResolveFieldSelection(
             FieldNode fieldSyntax,
-            IComplexOutputType type,
+            INamedOutputType type,
             Path path,
             IDictionary<string, FieldSelection> fields)
         {
             NameString fieldName = fieldSyntax.Name.Value;
             NameString responseName = fieldSyntax.Alias?.Value ?? fieldSyntax.Name.Value;
+            IOutputField? field = null;
 
-            if (type.Fields.TryGetField(fieldName, out IOutputField? field))
+            if ((type is IComplexOutputType ct && ct.Fields.TryGetField(fieldName, out field)) ||
+                fieldSyntax.Name.Value is WellKnownNames.TypeName)
             {
+                field ??= TypeNameField.Default;
+
                 if (fields.TryGetValue(responseName, out FieldSelection? fieldSelection))
                 {
                     if (fieldSelection.IsConditional && !IsConditional(fieldSyntax))
@@ -269,8 +275,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                         return false;
                     }
                 }
+
                 return true;
             }
+
             return false;
         }
 
@@ -330,11 +338,54 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 inlineFragmentSyntax.SelectionSet);
         }
 
-        private static string CreateInlineFragmentName(
-            InlineFragmentNode inlineFragmentSyntax) =>
+        private static string CreateInlineFragmentName(InlineFragmentNode inlineFragmentSyntax) =>
             $"^{inlineFragmentSyntax.Location!.Start}_{inlineFragmentSyntax.Location.End}";
 
-        private class Cache : Dictionary<INamedOutputType, SelectionCache> { }
-        private class SelectionCache : Dictionary<SelectionSetNode, SelectionSetVariants> { }
+        private class Cache : Dictionary<INamedOutputType, SelectionCache>
+        {
+        }
+
+        private class SelectionCache : Dictionary<SelectionSetNode, SelectionSetVariants>
+        {
+        }
+
+        private class TypeNameField : IOutputField
+        {
+            private TypeNameField()
+            {
+                Name = WellKnownNames.TypeName;
+                Type = new NonNullType(new StringType());
+                Arguments = FieldCollection<IInputField>.Empty;
+            }
+
+            public NameString Name { get; }
+            public string? Description => null;
+
+            public IDirectiveCollection Directives => throw new NotImplementedException();
+
+            public ISyntaxNode? SyntaxNode => null;
+
+            public Type RuntimeType => typeof(string);
+
+            public IReadOnlyDictionary<string, object?> ContextData { get; } = new ExtensionData();
+
+            public bool IsIntrospectionField => true;
+
+            public bool IsDeprecated => false;
+
+            public string? DeprecationReason => null;
+
+            public IOutputType Type { get; }
+
+            public IFieldCollection<IInputField> Arguments { get; }
+
+            public IComplexOutputType DeclaringType => throw new NotImplementedException();
+
+            ITypeSystemObject IField.DeclaringType => throw new NotImplementedException();
+
+            public FieldCoordinate Coordinate => throw new NotImplementedException();
+
+            public static TypeNameField Default { get; } = new();
+        }
     }
 }

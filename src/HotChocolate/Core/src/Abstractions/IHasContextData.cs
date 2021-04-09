@@ -4,6 +4,10 @@ using System.Collections.Generic;
 
 namespace HotChocolate
 {
+    /// <summary>
+    /// Defines that the implementor of this interface allows to
+    /// access and store arbitrary context data.
+    /// </summary>
     public interface IHasContextData
     {
         /// <summary>

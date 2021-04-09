@@ -11,21 +11,25 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _obj = "obj";
         private const string _type = "type";
         private const string _typeName = "typeName";
-        private const string __typename = "__typename";
         private const string _options = "_options";
         private const string _writer = "writer";
         private const string _jsonWriter = "jsonWriter";
         private const string _entityId = "entityId";
         private const string _entityIdValues = "entityIdValues";
 
-        protected override void Generate(
+        protected override bool CanHandle(EntityIdFactoryDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings) => !settings.NoStore;
+
+        protected override void Generate(EntityIdFactoryDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
-            EntityIdFactoryDescriptor descriptor,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             fileName = descriptor.Name;
             path = State;
+            ns = descriptor.Namespace;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -78,24 +82,20 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .AddCode(FormatSpecificEntityIdBody(entity));
             }
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(descriptor.Namespace)
-                .AddType(classBuilder)
-                .Build(writer);
+            classBuilder.Build(writer);
         }
 
         private ICode ParseEntityIdBody(EntityIdFactoryDescriptor descriptor)
         {
-            AssignmentBuilder typeNameAssigment =
+            AssignmentBuilder typeNameAssignment =
                 AssignmentBuilder
                     .New()
-                    .SetLefthandSide($"{TypeNames.String} {_typeName}")
+                    .SetLefthandSide($"{TypeNames.String} {WellKnownNames.TypeName}")
                     .SetRighthandSide(
                         MethodCallBuilder
                             .Inline()
                             .SetMethodName(_obj, nameof(JsonElement.GetProperty))
-                            .AddArgument(__typename.AsStringToken())
+                            .AddArgument(WellKnownNames.TypeName.AsStringToken())
                             .Chain(x => x
                                 .SetMethodName(nameof(JsonElement.GetString))
                                 .SetNullForgiving()));
@@ -104,7 +104,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 SwitchExpressionBuilder
                     .New()
                     .SetReturn()
-                    .SetExpression(_typeName)
+                    .SetExpression(WellKnownNames.TypeName)
                     .SetDefaultCase(ExceptionBuilder.Inline(TypeNames.NotSupportedException));
 
             foreach (var entity in descriptor.Entities)
@@ -115,12 +115,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         .Inline()
                         .SetMethodName($"Parse{entity.Name}EntityId")
                         .AddArgument(_obj)
-                        .AddArgument(_typeName));
+                        .AddArgument(WellKnownNames.TypeName));
             }
 
             return CodeBlockBuilder
                 .New()
-                .AddCode(typeNameAssigment)
+                .AddCode(typeNameAssignment)
                 .AddEmptyLine()
                 .AddCode(typeNameSwitch);
         }
@@ -217,7 +217,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             body.AddMethodCall()
                 .SetMethodName(_jsonWriter, nameof(Utf8JsonWriter.WriteString))
-                .AddArgument(__typename.AsStringToken())
+                .AddArgument(WellKnownNames.TypeName.AsStringToken())
                 .AddArgument($"{_entityId}.Name");
 
             body.AddEmptyLine();

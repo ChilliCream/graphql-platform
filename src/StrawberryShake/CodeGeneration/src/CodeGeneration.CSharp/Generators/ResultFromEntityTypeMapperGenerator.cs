@@ -15,16 +15,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _map = "Map";
         private const string _snapshot = "snapshot";
 
-        protected override bool CanHandle(ITypeDescriptor descriptor)
+        protected override bool CanHandle(ITypeDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings)
         {
-            return descriptor.Kind == TypeKind.EntityType && !descriptor.IsInterface();
+            return descriptor.Kind == TypeKind.EntityType && !descriptor.IsInterface() &&
+                !settings.NoStore;
         }
 
-        protected override void Generate(
+        protected override void Generate(ITypeDescriptor typeDescriptor,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
-            ITypeDescriptor typeDescriptor,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             // Setup class
             ComplexTypeDescriptor descriptor =
@@ -34,7 +37,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             fileName = descriptor.ExtractMapperName();
             path = State;
-            var containsEntity = descriptor.ContainsEntity();
+            ns = CreateStateNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal);
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -49,14 +52,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .New()
                 .SetTypeName(descriptor.Name);
 
-            if (containsEntity)
-            {
-                AddConstructorAssignedField(
-                    TypeNames.IEntityStore,
-                    StoreFieldName,
-                    classBuilder,
-                    constructorBuilder);
-            }
+            AddConstructorAssignedField(
+                TypeNames.IEntityStore,
+                _entityStore,
+                entityStore,
+                classBuilder,
+                constructorBuilder);
 
             // Define map method
             MethodBuilder mapMethod = MethodBuilder
@@ -80,18 +81,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     b => b.SetDefault("null")
                         .SetType(TypeNames.IEntityStoreSnapshot.MakeNullable()));
 
-            if (containsEntity)
-            {
-                mapMethod
-                    .AddCode(IfBuilder
+            mapMethod
+                .AddCode(IfBuilder
+                    .New()
+                    .SetCondition($"{_snapshot} is null")
+                    .AddCode(AssignmentBuilder
                         .New()
-                        .SetCondition($"{_snapshot} is null")
-                        .AddCode(AssignmentBuilder
-                            .New()
-                            .SetLefthandSide(_snapshot)
-                            .SetRighthandSide($"{_entityStore}.CurrentSnapshot")))
-                    .AddEmptyLine();
-            }
+                        .SetLefthandSide(_snapshot)
+                        .SetRighthandSide($"{_entityStore}.CurrentSnapshot")))
+                .AddEmptyLine();
 
             MethodCallBuilder constructorCall =
                 MethodCallBuilder
@@ -104,7 +102,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             {
                 foreach (PropertyDescriptor property in complexTypeDescriptor.Properties)
                 {
-                    constructorCall.AddArgument(BuildMapMethodCall(_entity, property));
+                    constructorCall.AddArgument(BuildMapMethodCall(settings, _entity, property));
                 }
             }
 
@@ -118,17 +116,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             classBuilder.AddMethod(mapMethod);
 
             AddRequiredMapMethods(
+                settings,
                 _entity,
                 descriptor,
                 classBuilder,
                 constructorBuilder,
                 new HashSet<string>());
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(CreateStateNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal))
-                .AddType(classBuilder)
-                .Build(writer);
+            classBuilder.Build(writer);
         }
     }
 }

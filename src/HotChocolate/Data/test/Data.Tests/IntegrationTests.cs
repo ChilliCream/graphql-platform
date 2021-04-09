@@ -6,6 +6,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -447,7 +448,8 @@ namespace HotChocolate.Data
         }
 
         [Fact]
-        public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField()
+        public async Task
+            ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField()
         {
             // arrange
             IRequestExecutor executor = await new ServiceCollection()
@@ -483,10 +485,115 @@ namespace HotChocolate.Data
             result.ToJson().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task
+            ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField_With_Extensions()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddFiltering()
+                .EnableRelaySupport()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType(c => c.Name("Query"))
+                .AddTypeExtension<PagingAndProjectionExtension>()
+                .AddObjectType<Book>(x =>
+                    x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    books {
+                        nodes {
+                            ... Test
+                        }
+                    }
+                }
+                fragment Test on Book {
+                    title
+                    author {
+                       name
+                    }
+                }
+                ");
+
+            // assert
+            executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
+            result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+        }
+
+        [Fact]
+        public async Task CreateSchema_CodeFirst_AsyncQueryable()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddFiltering()
+                .AddQueryType<FooType>()
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    foos(where: { qux: {eq: ""a""}}) {
+                        qux
+                    }
+                }
+                ");
+
+            // assert
+            executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
+            result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+        }
+
+        public class FooType : ObjectType
+        {
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                descriptor
+                    .Field("foos")
+                    .Type<ListType<ObjectType<Bar>>>()
+                    .Resolver(_ =>
+                    {
+                        IQueryable<Bar> data = new Bar[]
+                        {
+                            Bar.Create("a"),
+                            Bar.Create("b")
+                        }.AsQueryable();
+                        return Task.FromResult(data);
+                    })
+                    .UseFiltering();
+            }
+        }
+
+        public class Bar
+        {
+            public string Qux { get; set; }
+
+            public static Bar Create(string qux) => new() { Qux = qux };
+        }
+
         public class PagingAndProjection
         {
             [UsePaging]
             [UseProjection]
+            public IQueryable<Book> GetBooks() => new[]
+            {
+                new Book { Id = 1, Title = "BookTitle", Author = new Author { Name = "Author" } }
+            }.AsQueryable();
+        }
+
+        [ExtendObjectType("Query")]
+        public class PagingAndProjectionExtension
+        {
+            [UsePaging]
+            [UseProjection]
+            [UseFiltering]
+            [UseSorting]
             public IQueryable<Book> GetBooks() => new[]
             {
                 new Book { Id = 1, Title = "BookTitle", Author = new Author { Name = "Author" } }

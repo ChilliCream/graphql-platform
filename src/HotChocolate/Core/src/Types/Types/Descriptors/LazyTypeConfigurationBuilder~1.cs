@@ -12,8 +12,7 @@ namespace HotChocolate.Types.Descriptors
         private TypeDependencyKind _completeKind = TypeDependencyKind.Named;
         private Action<ITypeCompletionContext, T> _configure;
         private T _definition;
-        private readonly List<(ITypeReference r, bool c)> _dependencies =
-            new List<(ITypeReference, bool)>();
+        private readonly List<(ITypeReference r, bool c)> _dependencies = new();
 
         public LazyTypeConfigurationBuilder<T> On(ApplyConfigurationOn kind)
         {

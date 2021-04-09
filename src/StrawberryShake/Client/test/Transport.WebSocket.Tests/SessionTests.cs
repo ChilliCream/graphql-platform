@@ -164,7 +164,7 @@ namespace StrawberryShake.Transport.WebSockets
         {
             // arrange
             var protocolMock = new Mock<ISocketProtocol>();
-            var client = new SocketClientStub() { Protocol = protocolMock.Object };
+            var client = new SocketClientStub { Protocol = protocolMock.Object };
             OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
             var manager = new Session(client);
             await manager.OpenSessionAsync();
@@ -181,6 +181,8 @@ namespace StrawberryShake.Transport.WebSockets
             // act
             await manager.StartOperationAsync(request);
             protocolMock.Raise(x => x.Disposed += null, new EventArgs());
+
+            await Task.Delay(500);
 
             // assert
             protocolMock.VerifyAll();

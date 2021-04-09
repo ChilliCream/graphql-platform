@@ -102,9 +102,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             _log.AppendLine($"End {DateTime.UtcNow - _allStart}.");
         }
 
-        public void Dispose()
+        public void Flush()
         {
             File.AppendAllText(_logFile, _log.ToString(), Encoding.UTF8);
+        }
+
+        public void Dispose()
+        {
+            Flush();
         }
     }
 }

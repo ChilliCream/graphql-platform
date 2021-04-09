@@ -7,5 +7,7 @@ namespace HotChocolate
         public const string DocumentSaved = "HotChocolate.Execution.DocumentSaved";
         public const string ValidationErrors = "HotChocolate.Execution.ValidationErrors";
         public const string OperationNotAllowed = "HotChocolate.Execution.OperationNotAllowed";
+        public const string IntrospectionAllowed = "HotChocolate.Execution.Introspection.Allowed";
+        public const string IntrospectionMessage = "HotChocolate.Execution.Introspection.Message";
     }
 }

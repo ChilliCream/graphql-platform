@@ -48,7 +48,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
             AssertSettings settings,
             params string[] sourceTexts)
         {
-            ClientModel clientModel = CreateClientModel(sourceTexts, settings.StrictValidation);
+            AssertResult(settings, false, sourceTexts);
+        }
+
+        public static void AssertResult(
+            AssertSettings settings,
+            bool skipWarnings,
+            params string[] sourceTexts)
+        {
+            ClientModel clientModel =
+                CreateClientModel(sourceTexts, settings.StrictValidation, settings.NoStore);
 
             var documents = new StringBuilder();
             var documentNames = new HashSet<string>();
@@ -78,7 +87,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     ClientName = settings.ClientName ?? "FooClient",
                     StrictSchemaValidation = settings.StrictValidation,
                     RequestStrategy = settings.RequestStrategy,
-                    TransportProfiles = settings.Profiles
+                    TransportProfiles = settings.Profiles,
+                    NoStore = settings.NoStore,
+                    InputRecords = settings.InputRecords,
+                    EntityRecords = settings.EntityRecords
                 });
 
             Assert.False(
@@ -137,6 +149,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
             IReadOnlyList<Diagnostic> diagnostics =
                 CSharpCompiler.GetDiagnosticErrors(documents.ToString());
 
+            if (skipWarnings)
+            {
+                diagnostics = diagnostics
+                    .Where(x => x.Severity == DiagnosticSeverity.Error)
+                    .ToList();
+            }
+
             if (diagnostics.Any())
             {
                 Assert.True(false,
@@ -171,13 +190,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 destinationIndex: 2,
                 length: sourceTexts.Length);
 
-            AssertResult(settings, source);
+            AssertResult(settings, true, source);
         }
 
         public static AssertSettings CreateIntegrationTest(
             Descriptors.Operations.RequestStrategy requestStrategy =
                 Descriptors.Operations.RequestStrategy.Default,
             TransportProfile[]? profiles = null,
+            bool noStore = false,
             [CallerMemberName] string? testName = null)
         {
             SnapshotFullName snapshotFullName = Snapshot.FullName();
@@ -204,11 +224,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     snapshotFullName.FolderPath,
                     testName + "Test.Client.cs"),
                 RequestStrategy = requestStrategy,
-                Profiles = (profiles ?? new []{TransportProfile.Default }).ToList()
+                NoStore = noStore,
+                Profiles = (profiles ?? new[]
+                {
+                    TransportProfile.Default
+                }).ToList()
             };
         }
 
-        private static ClientModel CreateClientModel(string[] sourceText, bool strictValidation)
+        private static ClientModel CreateClientModel(
+            string[] sourceText,
+            bool strictValidation,
+            bool noStore)
         {
             var files = sourceText
                 .Select(s => new GraphQLFile(Utf8GraphQLParser.Parse(s)))
@@ -219,7 +246,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var analyzer = new DocumentAnalyzer();
 
-            analyzer.SetSchema(SchemaHelper.Load(typeSystemDocs, strictValidation));
+            analyzer.SetSchema(SchemaHelper.Load(typeSystemDocs, strictValidation, noStore));
 
             foreach (DocumentNode executable in executableDocs.Select(file => file.Document))
             {
@@ -238,6 +265,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
             public bool StrictValidation { get; set; }
 
             public string? SnapshotFile { get; set; }
+
+            public bool NoStore { get; set; }
+
+            public bool InputRecords { get; set; }
+
+            public bool EntityRecords { get; set; }
 
             public List<TransportProfile> Profiles { get; set; } = new();
 
