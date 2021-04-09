@@ -221,13 +221,16 @@ namespace HotChocolate.Types
             convention.ConfigureField(fieldDescriptor);
 
             MethodInfo factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
-            var middleware = (FieldMiddleware)factory.Invoke(null, new object[] { convention })!;
+            var middleware = (FieldMiddleware)factory.Invoke(null,
+                new object[]
+                {
+                    convention
+                })!;
             var index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
         }
 
-        private static FieldMiddleware CreateMiddleware<TEntity>(
-            IFilterConvention convention) =>
+        private static FieldMiddleware CreateMiddleware<TEntity>(IFilterConvention convention) =>
             convention.CreateExecutor<TEntity>();
     }
 }
