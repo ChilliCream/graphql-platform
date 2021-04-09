@@ -1,3 +1,5 @@
+using System;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types
@@ -55,6 +57,26 @@ namespace HotChocolate.Types
 
             // See https://en.wikipedia.org/wiki/Decimal_degrees#Precision
             private static readonly int _maxPrecision = 8;
+
+            public static bool TrySerialize(
+                double value,
+                [NotNullWhen(true)] out string? result)
+            {
+                throw new System.NotImplementedException();
+            }
+            public static bool TryDeserialize(
+                string serialized,
+                [NotNullWhen(true)] out double? value)
+            {
+                if (double.TryParse(serialized, out var d))
+                {
+                    value = Math.Round(d, _maxPrecision, MidpointRounding.AwayFromZero);
+                    return true;
+                }
+
+                value = null;
+                return false;
+            }
         }
     }
 }
