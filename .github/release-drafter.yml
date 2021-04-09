@@ -1,4 +1,4 @@
-name-template: 'Hot Chocolate $RESOLVED_VERSION'
+name-template: '$RESOLVED_VERSION'
 tag-template: '$RESOLVED_VERSION'
 change-template: '- $TITLE by @$AUTHOR (#$NUMBER)'
 no-changes-template: '- No changes'
