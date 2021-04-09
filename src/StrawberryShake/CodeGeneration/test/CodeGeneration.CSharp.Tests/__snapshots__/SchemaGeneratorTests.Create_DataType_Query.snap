@@ -25,7 +25,10 @@ namespace Foo.Bar
             Test = test;
         }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetAllFoos_Test> Test { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetAllFoos_Test> Test
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -91,7 +94,10 @@ namespace Foo.Bar
             Profile = profile;
         }
 
-        public global::Foo.Bar.IGetAllFoos_Test_Profile Profile { get; }
+        public global::Foo.Bar.IGetAllFoos_Test_Profile Profile
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -153,7 +159,10 @@ namespace Foo.Bar
             Name = name;
         }
 
-        public global::System.String? Name { get; }
+        public global::System.String? Name
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -214,14 +223,20 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetAllFoosResult
     {
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetAllFoos_Test> Test { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetAllFoos_Test> Test
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetAllFoos_Test
     {
-        public global::Foo.Bar.IGetAllFoos_Test_Profile Profile { get; }
+        public global::Foo.Bar.IGetAllFoos_Test_Profile Profile
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -234,7 +249,10 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetAllFoos_Test_Profile
     {
-        public global::System.String? Name { get; }
+        public global::System.String? Name
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -245,19 +263,19 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
-        /// Represents the operation service of the GetAllFoos GraphQL operation
-        /// <code>
-        /// query GetAllFoos {
-        ///   test {
-        ///     __typename
-        ///     profile {
-        ///       __typename
-        ///       name
-        ///     }
-        ///   }
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the GetAllFoos GraphQL operation
+    /// <code>
+    /// query GetAllFoos {
+    ///   test {
+    ///     __typename
+    ///     profile {
+    ///       __typename
+    ///       name
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetAllFoosQueryDocument : global::StrawberryShake.IDocument
     {
@@ -265,14 +283,20 @@ namespace Foo.Bar
         {
         }
 
-        public static GetAllFoosQueryDocument Instance { get; } = new GetAllFoosQueryDocument();
+        public static GetAllFoosQueryDocument Instance
+        {
+            get;
+        }
 
+        = new GetAllFoosQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x46, 0x6f, 0x6f, 0x73, 0x20, 0x7b, 0x20, 0x74, 0x65, 0x73, 0x74, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x70, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d};
+        public global::StrawberryShake.DocumentHash Hash
+        {
+            get;
+        }
 
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[] { 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x46, 0x6f, 0x6f, 0x73, 0x20, 0x7b, 0x20, 0x74, 0x65, 0x73, 0x74, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x70, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d };
-
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "0bed3e95cee021d9969785b8c1aac3425587955c");
-
+        = new global::StrawberryShake.DocumentHash("sha1Hash", "0bed3e95cee021d9969785b8c1aac3425587955c");
         public override global::System.String ToString()
         {
 #if NETSTANDARD2_0
@@ -285,31 +309,29 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
-        /// Represents the operation service of the GetAllFoos GraphQL operation
-        /// <code>
-        /// query GetAllFoos {
-        ///   test {
-        ///     __typename
-        ///     profile {
-        ///       __typename
-        ///       name
-        ///     }
-        ///   }
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the GetAllFoos GraphQL operation
+    /// <code>
+    /// query GetAllFoos {
+    ///   test {
+    ///     __typename
+    ///     profile {
+    ///       __typename
+    ///       name
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetAllFoosQuery : global::Foo.Bar.IGetAllFoosQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetAllFoosResult> _operationExecutor;
-
         public GetAllFoosQuery(global::StrawberryShake.IOperationExecutor<IGetAllFoosResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetAllFoosResult);
-
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetAllFoosResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
@@ -340,19 +362,19 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
-        /// Represents the operation service of the GetAllFoos GraphQL operation
-        /// <code>
-        /// query GetAllFoos {
-        ///   test {
-        ///     __typename
-        ///     profile {
-        ///       __typename
-        ///       name
-        ///     }
-        ///   }
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the GetAllFoos GraphQL operation
+    /// <code>
+    /// query GetAllFoos {
+    ///   test {
+    ///     __typename
+    ///     profile {
+    ///       __typename
+    ///       name
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetAllFoosQuery : global::StrawberryShake.IOperationRequestFactory
     {
@@ -362,31 +384,32 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
     /// <summary>
-        /// Represents the FooClient GraphQL client
-        /// </summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient : global::Foo.Bar.IFooClient
     {
         private readonly global::Foo.Bar.IGetAllFoosQuery _getAllFoos;
-
         public FooClient(global::Foo.Bar.IGetAllFoosQuery getAllFoos)
         {
             _getAllFoos = getAllFoos ?? throw new global::System.ArgumentNullException(nameof(getAllFoos));
         }
 
         public static global::System.String ClientName => "FooClient";
-
         public global::Foo.Bar.IGetAllFoosQuery GetAllFoos => _getAllFoos;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
     /// <summary>
-        /// Represents the FooClient GraphQL client
-        /// </summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IFooClient
     {
-        global::Foo.Bar.IGetAllFoosQuery GetAllFoos { get; }
+        global::Foo.Bar.IGetAllFoosQuery GetAllFoos
+        {
+            get;
+        }
     }
 }
 
@@ -397,14 +420,12 @@ namespace Foo.Bar.State
     public partial class GetAllFoosResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.GetAllFoosResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-
         public GetAllFoosResultFactory(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IGetAllFoosResult);
-
         public GetAllFoosResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -438,7 +459,7 @@ namespace Foo.Bar.State
 
         private global::Foo.Bar.IGetAllFoos_Test MapNonNullableIGetAllFoos_Test(global::Foo.Bar.State.FooData data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
-            IGetAllFoos_Test returnValue = default!;
+            IGetAllFoos_Test returnValue = default !;
             if (data.__typename.Equals("Foo", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetAllFoos_Test_Foo(MapNonNullableIGetAllFoos_Test_Profile(data.Profile ?? throw new global::System.ArgumentNullException(), snapshot));
@@ -453,7 +474,7 @@ namespace Foo.Bar.State
 
         private global::Foo.Bar.IGetAllFoos_Test_Profile MapNonNullableIGetAllFoos_Test_Profile(global::Foo.Bar.State.ProfileData data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
-            IGetAllFoos_Test_Profile returnValue = default!;
+            IGetAllFoos_Test_Profile returnValue = default !;
             if (data.__typename.Equals("Profile", global::System.StringComparison.Ordinal))
             {
                 returnValue = new GetAllFoos_Test_Profile_Profile(data.Name);
@@ -478,7 +499,6 @@ namespace Foo.Bar.State
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
         private readonly global::System.UInt64 _version;
-
         public GetAllFoosResultInfo(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.FooData> test, global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds, global::System.UInt64 version)
         {
             Test = test;
@@ -486,12 +506,13 @@ namespace Foo.Bar.State
             _version = version;
         }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.FooData> Test { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.FooData> Test
+        {
+            get;
+        }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
-
         public global::System.UInt64 Version => _version;
-
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new GetAllFoosResultInfo(Test, _entityIds, version);
@@ -506,7 +527,6 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.IEntityIdSerializer _idSerializer;
         private readonly global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetAllFoosResult> _resultDataFactory;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
-
         public GetAllFoosBuilder(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer idSerializer, global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetAllFoosResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -536,7 +556,7 @@ namespace Foo.Bar.State
             }
             catch (global::System.Exception ex)
             {
-                errors = new global::StrawberryShake.IClientError[] { new global::StrawberryShake.ClientError(ex.Message, exception: ex) };
+                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex)};
             }
 
             return new global::StrawberryShake.OperationResult<IGetAllFoosResult>(data?.Result, data?.Info, _resultDataFactory, errors);
@@ -545,8 +565,9 @@ namespace Foo.Bar.State
         private (IGetAllFoosResult, GetAllFoosResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
-            global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
-            _entityStore.Update(session => {
+            global::StrawberryShake.IEntityStoreSnapshot snapshot = default !;
+            _entityStore.Update(session =>
+            {
                 snapshot = session.CurrentSnapshot;
             });
             var resultInfo = new GetAllFoosResultInfo(DeserializeNonNullableIGetAllFoos_TestNonNullableArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "test")), entityIds, snapshot.Version);
@@ -613,33 +634,45 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FooData
     {
-        public FooData(global::System.String __typename, global::Foo.Bar.State.ProfileData? profile = null)
+        public FooData(global::System.String __typename, global::Foo.Bar.State.ProfileData? profile = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Profile = profile;
         }
 
-        public global::System.String __typename { get; }
+        public global::System.String __typename
+        {
+            get;
+        }
 
-        public global::Foo.Bar.State.ProfileData? Profile { get; }
+        public global::Foo.Bar.State.ProfileData? Profile
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ProfileData
     {
-        public ProfileData(global::System.String __typename, global::System.String? name = null)
+        public ProfileData(global::System.String __typename, global::System.String? name = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Name = name;
         }
 
-        public global::System.String __typename { get; }
+        public global::System.String __typename
+        {
+            get;
+        }
 
-        public global::System.String? Name { get; }
+        public global::System.String? Name
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
@@ -647,23 +680,24 @@ namespace Foo.Bar.State
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
-        { Indented = false };
-
+        {Indented = false};
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;
             return __typename switch
             {
-                _ => throw new global::System.NotSupportedException()
-            };
+            _ => throw new global::System.NotSupportedException()}
+
+            ;
         }
 
         public global::System.String Format(global::StrawberryShake.EntityId entityId)
         {
             return entityId.Name switch
             {
-                _ => throw new global::System.NotSupportedException()
-            };
+            _ => throw new global::System.NotSupportedException()}
+
+            ;
         }
     }
 
@@ -671,7 +705,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClientStoreAccessor : global::StrawberryShake.StoreAccessor
     {
-        public FooClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories) : base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
+        public FooClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories): base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
         {
         }
     }
@@ -685,7 +719,8 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => {
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp =>
+            {
                 var serviceCollection = ConfigureClientDefault(sp, strategy);
                 return new ClientServiceProvider(global::Microsoft.Extensions.DependencyInjection.ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(serviceCollection));
             });
@@ -701,7 +736,8 @@ namespace Microsoft.Extensions.DependencyInjection
             var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(services, sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => {
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp =>
+            {
                 var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
                 return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
             });
@@ -737,7 +773,6 @@ namespace Microsoft.Extensions.DependencyInjection
         private class ClientServiceProvider : System.IServiceProvider, System.IDisposable
         {
             private readonly System.IServiceProvider _provider;
-
             public ClientServiceProvider(System.IServiceProvider provider)
             {
                 _provider = provider;

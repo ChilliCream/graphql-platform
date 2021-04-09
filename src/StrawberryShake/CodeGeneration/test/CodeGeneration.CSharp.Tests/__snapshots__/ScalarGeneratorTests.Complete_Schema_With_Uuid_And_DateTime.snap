@@ -25,7 +25,10 @@ namespace Foo.Bar
             Expense = expense;
         }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IAllExpenses_Expense?>? Expense { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IAllExpenses_Expense?>? Expense
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -103,19 +106,40 @@ namespace Foo.Bar
             Tags = tags;
         }
 
-        public global::System.Guid Id { get; }
+        public global::System.Guid Id
+        {
+            get;
+        }
 
-        public global::System.Decimal Amount { get; }
+        public global::System.Decimal Amount
+        {
+            get;
+        }
 
-        public global::System.DateTimeOffset Date { get; }
+        public global::System.DateTimeOffset Date
+        {
+            get;
+        }
 
-        public global::System.String? Description { get; }
+        public global::System.String? Description
+        {
+            get;
+        }
 
-        public global::Foo.Bar.ExpenseCategory Category { get; }
+        public global::Foo.Bar.ExpenseCategory Category
+        {
+            get;
+        }
 
-        public global::Foo.Bar.PaymentMethod PaymentMethod { get; }
+        public global::Foo.Bar.PaymentMethod PaymentMethod
+        {
+            get;
+        }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IAllExpenses_Expense_Tags?>? Tags { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IAllExpenses_Expense_Tags?>? Tags
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -197,7 +221,10 @@ namespace Foo.Bar
             Name = name;
         }
 
-        public global::System.String? Name { get; }
+        public global::System.String? Name
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -258,26 +285,50 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IAllExpensesResult
     {
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IAllExpenses_Expense?>? Expense { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IAllExpenses_Expense?>? Expense
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IAllExpenses_Expense
     {
-        public global::System.Guid Id { get; }
+        public global::System.Guid Id
+        {
+            get;
+        }
 
-        public global::System.Decimal Amount { get; }
+        public global::System.Decimal Amount
+        {
+            get;
+        }
 
-        public global::System.DateTimeOffset Date { get; }
+        public global::System.DateTimeOffset Date
+        {
+            get;
+        }
 
-        public global::System.String? Description { get; }
+        public global::System.String? Description
+        {
+            get;
+        }
 
-        public global::Foo.Bar.ExpenseCategory Category { get; }
+        public global::Foo.Bar.ExpenseCategory Category
+        {
+            get;
+        }
 
-        public global::Foo.Bar.PaymentMethod PaymentMethod { get; }
+        public global::Foo.Bar.PaymentMethod PaymentMethod
+        {
+            get;
+        }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IAllExpenses_Expense_Tags?>? Tags { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IAllExpenses_Expense_Tags?>? Tags
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -290,7 +341,10 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IAllExpenses_Expense_Tags
     {
-        public global::System.String? Name { get; }
+        public global::System.String? Name
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
@@ -326,53 +380,22 @@ namespace Foo.Bar
     public partial class ExpenseCategorySerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, ExpenseCategory>
     {
         public global::System.String TypeName => "ExpenseCategory";
-
         public ExpenseCategory Parse(global::System.String serializedValue)
         {
             return serializedValue switch
             {
-                "UNKNOWN_EXPENSE_CATEGORY" => ExpenseCategory.UnknownExpenseCategory,
-                "RENT" => ExpenseCategory.Rent,
-                "FOOD" => ExpenseCategory.Food,
-                "BILLS" => ExpenseCategory.Bills,
-                "UTILITIES" => ExpenseCategory.Utilities,
-                "TRANSPORTATION" => ExpenseCategory.Transportation,
-                "INSURANCE" => ExpenseCategory.Insurance,
-                "SHOPPING" => ExpenseCategory.Shopping,
-                "ENTERTAINMENT" => ExpenseCategory.Entertainment,
-                "HEALTHCARE" => ExpenseCategory.Healthcare,
-                "HOUSING" => ExpenseCategory.Housing,
-                "TAX" => ExpenseCategory.Tax,
-                "CLOTHING" => ExpenseCategory.Clothing,
-                "EDUCATION" => ExpenseCategory.Education,
-                "MISCELLANEOUS" => ExpenseCategory.Miscellaneous,
-                "PERSONAL_CARE" => ExpenseCategory.PersonalCare,
-                _ => throw new global::StrawberryShake.GraphQLClientException()
-            };
+            "UNKNOWN_EXPENSE_CATEGORY" => ExpenseCategory.UnknownExpenseCategory, "RENT" => ExpenseCategory.Rent, "FOOD" => ExpenseCategory.Food, "BILLS" => ExpenseCategory.Bills, "UTILITIES" => ExpenseCategory.Utilities, "TRANSPORTATION" => ExpenseCategory.Transportation, "INSURANCE" => ExpenseCategory.Insurance, "SHOPPING" => ExpenseCategory.Shopping, "ENTERTAINMENT" => ExpenseCategory.Entertainment, "HEALTHCARE" => ExpenseCategory.Healthcare, "HOUSING" => ExpenseCategory.Housing, "TAX" => ExpenseCategory.Tax, "CLOTHING" => ExpenseCategory.Clothing, "EDUCATION" => ExpenseCategory.Education, "MISCELLANEOUS" => ExpenseCategory.Miscellaneous, "PERSONAL_CARE" => ExpenseCategory.PersonalCare, _ => throw new global::StrawberryShake.GraphQLClientException()}
+
+            ;
         }
 
         public global::System.Object Format(global::System.Object? runtimeValue)
         {
             return runtimeValue switch
             {
-                ExpenseCategory.UnknownExpenseCategory => "UNKNOWN_EXPENSE_CATEGORY",
-                ExpenseCategory.Rent => "RENT",
-                ExpenseCategory.Food => "FOOD",
-                ExpenseCategory.Bills => "BILLS",
-                ExpenseCategory.Utilities => "UTILITIES",
-                ExpenseCategory.Transportation => "TRANSPORTATION",
-                ExpenseCategory.Insurance => "INSURANCE",
-                ExpenseCategory.Shopping => "SHOPPING",
-                ExpenseCategory.Entertainment => "ENTERTAINMENT",
-                ExpenseCategory.Healthcare => "HEALTHCARE",
-                ExpenseCategory.Housing => "HOUSING",
-                ExpenseCategory.Tax => "TAX",
-                ExpenseCategory.Clothing => "CLOTHING",
-                ExpenseCategory.Education => "EDUCATION",
-                ExpenseCategory.Miscellaneous => "MISCELLANEOUS",
-                ExpenseCategory.PersonalCare => "PERSONAL_CARE",
-                _ => throw new global::StrawberryShake.GraphQLClientException()
-            };
+            ExpenseCategory.UnknownExpenseCategory => "UNKNOWN_EXPENSE_CATEGORY", ExpenseCategory.Rent => "RENT", ExpenseCategory.Food => "FOOD", ExpenseCategory.Bills => "BILLS", ExpenseCategory.Utilities => "UTILITIES", ExpenseCategory.Transportation => "TRANSPORTATION", ExpenseCategory.Insurance => "INSURANCE", ExpenseCategory.Shopping => "SHOPPING", ExpenseCategory.Entertainment => "ENTERTAINMENT", ExpenseCategory.Healthcare => "HEALTHCARE", ExpenseCategory.Housing => "HOUSING", ExpenseCategory.Tax => "TAX", ExpenseCategory.Clothing => "CLOTHING", ExpenseCategory.Education => "EDUCATION", ExpenseCategory.Miscellaneous => "MISCELLANEOUS", ExpenseCategory.PersonalCare => "PERSONAL_CARE", _ => throw new global::StrawberryShake.GraphQLClientException()}
+
+            ;
         }
     }
 
@@ -392,58 +415,49 @@ namespace Foo.Bar
     public partial class PaymentMethodSerializer : global::StrawberryShake.Serialization.IInputValueFormatter, global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, PaymentMethod>
     {
         public global::System.String TypeName => "PaymentMethod";
-
         public PaymentMethod Parse(global::System.String serializedValue)
         {
             return serializedValue switch
             {
-                "UNKNOWN_PAYMENT_METHOD" => PaymentMethod.UnknownPaymentMethod,
-                "CASH" => PaymentMethod.Cash,
-                "DEBIT_CARD" => PaymentMethod.DebitCard,
-                "CREDIT_CARD" => PaymentMethod.CreditCard,
-                "PAY_PAL" => PaymentMethod.PayPal,
-                _ => throw new global::StrawberryShake.GraphQLClientException()
-            };
+            "UNKNOWN_PAYMENT_METHOD" => PaymentMethod.UnknownPaymentMethod, "CASH" => PaymentMethod.Cash, "DEBIT_CARD" => PaymentMethod.DebitCard, "CREDIT_CARD" => PaymentMethod.CreditCard, "PAY_PAL" => PaymentMethod.PayPal, _ => throw new global::StrawberryShake.GraphQLClientException()}
+
+            ;
         }
 
         public global::System.Object Format(global::System.Object? runtimeValue)
         {
             return runtimeValue switch
             {
-                PaymentMethod.UnknownPaymentMethod => "UNKNOWN_PAYMENT_METHOD",
-                PaymentMethod.Cash => "CASH",
-                PaymentMethod.DebitCard => "DEBIT_CARD",
-                PaymentMethod.CreditCard => "CREDIT_CARD",
-                PaymentMethod.PayPal => "PAY_PAL",
-                _ => throw new global::StrawberryShake.GraphQLClientException()
-            };
+            PaymentMethod.UnknownPaymentMethod => "UNKNOWN_PAYMENT_METHOD", PaymentMethod.Cash => "CASH", PaymentMethod.DebitCard => "DEBIT_CARD", PaymentMethod.CreditCard => "CREDIT_CARD", PaymentMethod.PayPal => "PAY_PAL", _ => throw new global::StrawberryShake.GraphQLClientException()}
+
+            ;
         }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
-        /// Represents the operation service of the AllExpenses GraphQL operation
-        /// <code>
-        /// query AllExpenses {
-        ///   expense {
-        ///     __typename
-        ///     id
-        ///     amount
-        ///     date
-        ///     description
-        ///     category
-        ///     paymentMethod
-        ///     tags {
-        ///       __typename
-        ///       name
-        ///     }
-        ///     ... on Expense {
-        ///       id
-        ///     }
-        ///   }
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the AllExpenses GraphQL operation
+    /// <code>
+    /// query AllExpenses {
+    ///   expense {
+    ///     __typename
+    ///     id
+    ///     amount
+    ///     date
+    ///     description
+    ///     category
+    ///     paymentMethod
+    ///     tags {
+    ///       __typename
+    ///       name
+    ///     }
+    ///     ... on Expense {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpensesQueryDocument : global::StrawberryShake.IDocument
     {
@@ -451,14 +465,20 @@ namespace Foo.Bar
         {
         }
 
-        public static AllExpensesQueryDocument Instance { get; } = new AllExpensesQueryDocument();
+        public static AllExpensesQueryDocument Instance
+        {
+            get;
+        }
 
+        = new AllExpensesQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x41, 0x6c, 0x6c, 0x45, 0x78, 0x70, 0x65, 0x6e, 0x73, 0x65, 0x73, 0x20, 0x7b, 0x20, 0x65, 0x78, 0x70, 0x65, 0x6e, 0x73, 0x65, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x64, 0x20, 0x61, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x20, 0x64, 0x61, 0x74, 0x65, 0x20, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x63, 0x61, 0x74, 0x65, 0x67, 0x6f, 0x72, 0x79, 0x20, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x4d, 0x65, 0x74, 0x68, 0x6f, 0x64, 0x20, 0x74, 0x61, 0x67, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x45, 0x78, 0x70, 0x65, 0x6e, 0x73, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d};
+        public global::StrawberryShake.DocumentHash Hash
+        {
+            get;
+        }
 
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[] { 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x41, 0x6c, 0x6c, 0x45, 0x78, 0x70, 0x65, 0x6e, 0x73, 0x65, 0x73, 0x20, 0x7b, 0x20, 0x65, 0x78, 0x70, 0x65, 0x6e, 0x73, 0x65, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x64, 0x20, 0x61, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x20, 0x64, 0x61, 0x74, 0x65, 0x20, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x20, 0x63, 0x61, 0x74, 0x65, 0x67, 0x6f, 0x72, 0x79, 0x20, 0x70, 0x61, 0x79, 0x6d, 0x65, 0x6e, 0x74, 0x4d, 0x65, 0x74, 0x68, 0x6f, 0x64, 0x20, 0x74, 0x61, 0x67, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x45, 0x78, 0x70, 0x65, 0x6e, 0x73, 0x65, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d };
-
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "2c6c9362bd54e9b97f02c5b99f7ac6c1fab8169b");
-
+        = new global::StrawberryShake.DocumentHash("sha1Hash", "2c6c9362bd54e9b97f02c5b99f7ac6c1fab8169b");
         public override global::System.String ToString()
         {
 #if NETSTANDARD2_0
@@ -471,40 +491,38 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
-        /// Represents the operation service of the AllExpenses GraphQL operation
-        /// <code>
-        /// query AllExpenses {
-        ///   expense {
-        ///     __typename
-        ///     id
-        ///     amount
-        ///     date
-        ///     description
-        ///     category
-        ///     paymentMethod
-        ///     tags {
-        ///       __typename
-        ///       name
-        ///     }
-        ///     ... on Expense {
-        ///       id
-        ///     }
-        ///   }
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the AllExpenses GraphQL operation
+    /// <code>
+    /// query AllExpenses {
+    ///   expense {
+    ///     __typename
+    ///     id
+    ///     amount
+    ///     date
+    ///     description
+    ///     category
+    ///     paymentMethod
+    ///     tags {
+    ///       __typename
+    ///       name
+    ///     }
+    ///     ... on Expense {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class AllExpensesQuery : global::Foo.Bar.IAllExpensesQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IAllExpensesResult> _operationExecutor;
-
         public AllExpensesQuery(global::StrawberryShake.IOperationExecutor<IAllExpensesResult> operationExecutor)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IAllExpensesResult);
-
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IAllExpensesResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest();
@@ -535,28 +553,28 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
-        /// Represents the operation service of the AllExpenses GraphQL operation
-        /// <code>
-        /// query AllExpenses {
-        ///   expense {
-        ///     __typename
-        ///     id
-        ///     amount
-        ///     date
-        ///     description
-        ///     category
-        ///     paymentMethod
-        ///     tags {
-        ///       __typename
-        ///       name
-        ///     }
-        ///     ... on Expense {
-        ///       id
-        ///     }
-        ///   }
-        /// }
-        /// </code>
-        /// </summary>
+    /// Represents the operation service of the AllExpenses GraphQL operation
+    /// <code>
+    /// query AllExpenses {
+    ///   expense {
+    ///     __typename
+    ///     id
+    ///     amount
+    ///     date
+    ///     description
+    ///     category
+    ///     paymentMethod
+    ///     tags {
+    ///       __typename
+    ///       name
+    ///     }
+    ///     ... on Expense {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IAllExpensesQuery : global::StrawberryShake.IOperationRequestFactory
     {
@@ -566,41 +584,42 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
     /// <summary>
-        /// Represents the FooClient GraphQL client
-        /// </summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClient : global::Foo.Bar.IFooClient
     {
         private readonly global::Foo.Bar.IAllExpensesQuery _allExpenses;
-
         public FooClient(global::Foo.Bar.IAllExpensesQuery allExpenses)
         {
             _allExpenses = allExpenses ?? throw new global::System.ArgumentNullException(nameof(allExpenses));
         }
 
         public static global::System.String ClientName => "FooClient";
-
         public global::Foo.Bar.IAllExpensesQuery AllExpenses => _allExpenses;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
     /// <summary>
-        /// Represents the FooClient GraphQL client
-        /// </summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IFooClient
     {
-        global::Foo.Bar.IAllExpensesQuery AllExpenses { get; }
+        global::Foo.Bar.IAllExpensesQuery AllExpenses
+        {
+            get;
+        }
     }
 }
 
 namespace Foo.Bar.State
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ExpenseEntity
     {
-        public ExpenseEntity(global::System.Guid id, global::System.Decimal amount, global::System.DateTimeOffset date, global::System.String? description, global::Foo.Bar.ExpenseCategory category, global::Foo.Bar.PaymentMethod paymentMethod, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.TagData?>? tags)
+        public ExpenseEntity(global::System.Guid id = default !, global::System.Decimal amount = default !, global::System.DateTimeOffset date = default !, global::System.String? description = default !, global::Foo.Bar.ExpenseCategory category = default !, global::Foo.Bar.PaymentMethod paymentMethod = default !, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.TagData?>? tags = default !)
         {
             Id = id;
             Amount = amount;
@@ -611,19 +630,40 @@ namespace Foo.Bar.State
             Tags = tags;
         }
 
-        public global::System.Guid Id { get; }
+        public global::System.Guid Id
+        {
+            get;
+        }
 
-        public global::System.Decimal Amount { get; }
+        public global::System.Decimal Amount
+        {
+            get;
+        }
 
-        public global::System.DateTimeOffset Date { get; }
+        public global::System.DateTimeOffset Date
+        {
+            get;
+        }
 
-        public global::System.String? Description { get; }
+        public global::System.String? Description
+        {
+            get;
+        }
 
-        public global::Foo.Bar.ExpenseCategory Category { get; }
+        public global::Foo.Bar.ExpenseCategory Category
+        {
+            get;
+        }
 
-        public global::Foo.Bar.PaymentMethod PaymentMethod { get; }
+        public global::Foo.Bar.PaymentMethod PaymentMethod
+        {
+            get;
+        }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.TagData?>? Tags { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.State.TagData?>? Tags
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
@@ -632,7 +672,6 @@ namespace Foo.Bar.State
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.ExpenseEntity, AllExpenses_Expense_Expense> _allExpenses_Expense_ExpenseFromExpenseEntityMapper;
-
         public AllExpensesResultFactory(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.ExpenseEntity, AllExpenses_Expense_Expense> allExpenses_Expense_ExpenseFromExpenseEntityMapper)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -640,7 +679,6 @@ namespace Foo.Bar.State
         }
 
         global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IAllExpensesResult);
-
         public AllExpensesResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
             if (snapshot is null)
@@ -699,7 +737,6 @@ namespace Foo.Bar.State
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
         private readonly global::System.UInt64 _version;
-
         public AllExpensesResultInfo(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? expense, global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds, global::System.UInt64 version)
         {
             Expense = expense;
@@ -707,12 +744,13 @@ namespace Foo.Bar.State
             _version = version;
         }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Expense { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Expense
+        {
+            get;
+        }
 
         public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
-
         public global::System.UInt64 Version => _version;
-
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new AllExpensesResultInfo(Expense, _entityIds, version);
@@ -724,7 +762,6 @@ namespace Foo.Bar.State
     public partial class AllExpenses_Expense_ExpenseFromExpenseEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.ExpenseEntity, AllExpenses_Expense_Expense>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-
         public AllExpenses_Expense_ExpenseFromExpenseEntityMapper(global::StrawberryShake.IEntityStore entityStore)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -763,7 +800,7 @@ namespace Foo.Bar.State
                 return null;
             }
 
-            IAllExpenses_Expense_Tags returnValue = default!;
+            IAllExpenses_Expense_Tags returnValue = default !;
             if (data?.__typename.Equals("Tag", global::System.StringComparison.Ordinal) ?? false)
             {
                 returnValue = new AllExpenses_Expense_Tags_Tag(data.Name);
@@ -790,7 +827,6 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Decimal, global::System.Decimal> _decimalParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.DateTimeOffset> _dateTimeParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
-
         public AllExpensesBuilder(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer idSerializer, global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IAllExpensesResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
@@ -825,7 +861,7 @@ namespace Foo.Bar.State
             }
             catch (global::System.Exception ex)
             {
-                errors = new global::StrawberryShake.IClientError[] { new global::StrawberryShake.ClientError(ex.Message, exception: ex) };
+                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex)};
             }
 
             return new global::StrawberryShake.OperationResult<IAllExpensesResult>(data?.Result, data?.Info, _resultDataFactory, errors);
@@ -834,9 +870,10 @@ namespace Foo.Bar.State
         private (IAllExpensesResult, AllExpensesResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
-            global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
-            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? expenseId = default!;
-            _entityStore.Update(session => {
+            global::StrawberryShake.IEntityStoreSnapshot snapshot = default !;
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? expenseId = default !;
+            _entityStore.Update(session =>
+            {
                 expenseId = UpdateIAllExpenses_ExpenseEntityArray(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "expense"), entityIds);
                 snapshot = session.CurrentSnapshot;
             });
@@ -980,18 +1017,24 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class TagData
     {
-        public TagData(global::System.String __typename, global::System.String? name = null)
+        public TagData(global::System.String __typename, global::System.String? name = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Name = name;
         }
 
-        public global::System.String __typename { get; }
+        public global::System.String __typename
+        {
+            get;
+        }
 
-        public global::System.String? Name { get; }
+        public global::System.String? Name
+        {
+            get;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
@@ -999,25 +1042,24 @@ namespace Foo.Bar.State
     public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
-        { Indented = false };
-
+        {Indented = false};
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
             global::System.String __typename = obj.GetProperty("__typename").GetString()!;
             return __typename switch
             {
-                "Expense" => ParseExpenseEntityId(obj, __typename),
-                _ => throw new global::System.NotSupportedException()
-            };
+            "Expense" => ParseExpenseEntityId(obj, __typename), _ => throw new global::System.NotSupportedException()}
+
+            ;
         }
 
         public global::System.String Format(global::StrawberryShake.EntityId entityId)
         {
             return entityId.Name switch
             {
-                "Expense" => FormatExpenseEntityId(entityId),
-                _ => throw new global::System.NotSupportedException()
-            };
+            "Expense" => FormatExpenseEntityId(entityId), _ => throw new global::System.NotSupportedException()}
+
+            ;
         }
 
         private global::StrawberryShake.EntityId ParseExpenseEntityId(global::System.Text.Json.JsonElement obj, global::System.String type)
@@ -1042,7 +1084,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class FooClientStoreAccessor : global::StrawberryShake.StoreAccessor
     {
-        public FooClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories) : base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
+        public FooClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories): base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
         {
         }
     }
@@ -1056,7 +1098,8 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => {
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp =>
+            {
                 var serviceCollection = ConfigureClientDefault(sp, strategy);
                 return new ClientServiceProvider(global::Microsoft.Extensions.DependencyInjection.ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(serviceCollection));
             });
@@ -1072,7 +1115,8 @@ namespace Microsoft.Extensions.DependencyInjection
             var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(services, sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => {
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp =>
+            {
                 var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
                 return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
             });
@@ -1111,7 +1155,6 @@ namespace Microsoft.Extensions.DependencyInjection
         private class ClientServiceProvider : System.IServiceProvider, System.IDisposable
         {
             private readonly System.IServiceProvider _provider;
-
             public ClientServiceProvider(System.IServiceProvider provider)
             {
                 _provider = provider;

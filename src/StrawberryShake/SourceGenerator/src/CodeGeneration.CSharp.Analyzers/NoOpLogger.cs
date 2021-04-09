@@ -60,5 +60,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         public void Dispose()
         {
         }
+
+        public void Flush()
+        {
+            
+        }
     }
 }
