@@ -25,7 +25,7 @@ namespace StarWars.Characters
         /// </summary>
         /// <param name="repository"></param>
         /// <returns>The character.</returns>
-        [UsePaging]
+        [UsePaging(typeof(InterfaceType<ICharacter>))]
         [UseFiltering]
         [UseSorting]
         public IEnumerable<ICharacter> GetCharacters(
