@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Subscriptions;
 using HotChocolate.Types;
@@ -6,7 +6,7 @@ using StarWars.Repositories;
 
 namespace StarWars.Reviews
 {
-    [ExtendObjectType(Name = "Mutation")]
+    [ExtendObjectType("Mutation")]
     public class ReviewMutations
     {
         /// <summary>

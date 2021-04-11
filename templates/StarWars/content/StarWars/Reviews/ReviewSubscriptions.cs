@@ -1,10 +1,10 @@
-﻿using HotChocolate;
+using HotChocolate;
 using HotChocolate.Types;
 using StarWars.Characters;
 
 namespace StarWars.Reviews
 {
-    [ExtendObjectType(Name = "Subscription")]
+    [ExtendObjectType("Subscription")]
     public class ReviewSubscriptions
     {
         [Subscribe]

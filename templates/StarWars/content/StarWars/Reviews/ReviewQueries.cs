@@ -7,7 +7,7 @@ using StarWars.Repositories;
 
 namespace StarWars.Reviews
 {
-    [ExtendObjectType(Name = "Query")]
+    [ExtendObjectType("Query")]
     public class ReviewQueries
     {
         [UsePaging]

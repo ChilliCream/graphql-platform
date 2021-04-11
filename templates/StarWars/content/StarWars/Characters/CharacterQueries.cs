@@ -6,7 +6,7 @@ using StarWars.Repositories;
 
 namespace StarWars.Characters
 {
-    [ExtendObjectType(Name = "Query")]
+    [ExtendObjectType("Query")]
     public class CharacterQueries
     {
         /// <summary>
