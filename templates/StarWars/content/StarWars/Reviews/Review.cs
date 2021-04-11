@@ -7,6 +7,15 @@ namespace StarWars.Reviews
     /// </summary>
     public class Review
     {
+        /// <summary>
+        /// Creates a new instance of <see cref="Review"/>.
+        /// </summary>
+        /// <param name="stars">
+        /// The number of stars given for this review.
+        /// </param>
+        /// <param name="commentary">
+        /// The explanation for the rating.
+        /// </param>
         public Review(int stars, string commentary)
         {
             Id = Guid.NewGuid();
@@ -14,6 +23,9 @@ namespace StarWars.Reviews
             Commentary = commentary;
         }
 
+        /// <summary>
+        /// The ID of the review.
+        /// </summary>
         public Guid Id { get; }
 
         /// <summary>

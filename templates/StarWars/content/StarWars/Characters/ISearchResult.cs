@@ -2,7 +2,7 @@ using HotChocolate.Types;
 
 namespace StarWars.Characters
 {
-    [UnionType(Name = "SearchResult")]
+    [UnionType("SearchResult")]
     public interface ISearchResult
     {
     }

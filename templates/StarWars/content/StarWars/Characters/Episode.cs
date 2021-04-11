@@ -14,7 +14,7 @@ namespace StarWars.Characters
         /// Star Wars Episode V: Empire Strikes Back
         /// </summary>
         Empire,
-        
+
         /// <summary>
         /// Star Wars Episode VI: Return of the Jedi
         /// </summary>
