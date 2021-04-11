@@ -6,7 +6,7 @@
     /// </summary>
     public class BooleanFunctionCondition : Condition
     {
-        public override ClauseKind Kind { get; } = ClauseKind.BooleanFunctionCondition;
+        public override ClauseKind Kind => ClauseKind.BooleanFunctionCondition;
 
         private readonly FunctionInvocation _functionInvocation;
 
