@@ -22,17 +22,14 @@ namespace HotChocolate.Data.Neo4J.Language
         private readonly Operator _operator;
         private readonly List<Condition> _conditions;
 
-        public new Condition And(Condition condition) {
-            return Add(Operator.And, condition);
-        }
+        public new void And(Condition condition) =>
+            Add(Operator.And, condition);
 
-        public new Condition Or(Condition condition) {
-            return Add(Operator.Or, condition);
-        }
+        public new void Or(Condition condition) =>
+            Add(Operator.Or, condition);
 
-        public new Condition XOr(Condition condition) {
-            return Add(Operator.XOr, condition);
-        }
+        public new void XOr(Condition condition)  =>
+            Add(Operator.XOr, condition);
 
         public static CompoundCondition Empty() {
             return _emptyCondition;
