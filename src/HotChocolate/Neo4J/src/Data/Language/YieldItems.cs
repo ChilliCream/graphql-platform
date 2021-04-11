@@ -3,9 +3,9 @@
 namespace HotChocolate.Data.Neo4J.Language
 {
     public class YieldItems
-        : TypedSubtree<Expression>
+        : TypedSubtree<Expression>, ITypedSubtree
     {
-        public override ClauseKind Kind { get; } = ClauseKind.YieldItems;
+        public override ClauseKind Kind => ClauseKind.YieldItems;
 
         public static YieldItems YieldAllOf(params Expression[] c)
         {
