@@ -7,7 +7,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Types
         protected override void Configure(IDirectiveTypeDescriptor<EnumValueDirective> descriptor)
         {
             descriptor.Name("enumValue");
-            descriptor.Argument(t => t.Value).Type<NonNullType<LongType>>();
+            descriptor.Argument(t => t.Value).Type<NonNullType<IntType>>();
+            descriptor.Location(DirectiveLocation.EnumValue);
         }
     }
 }

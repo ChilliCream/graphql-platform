@@ -8,6 +8,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Types
         {
             descriptor.Name("rename");
             descriptor.Argument(t => t.Name).Type<NonNullType<StringType>>();
+            descriptor.Location(DirectiveLocation.InputFieldDefinition);
         }
     }
 }

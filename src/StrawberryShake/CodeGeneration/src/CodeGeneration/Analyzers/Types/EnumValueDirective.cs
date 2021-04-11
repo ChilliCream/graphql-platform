@@ -2,11 +2,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Types
 {
     public class EnumValueDirective
     {
-        public EnumValueDirective(string value)
+        public EnumValueDirective(int value)
         {
             Value = value;
         }
 
-        public string Value { get; }
+        public int Value { get; }
     }
 }

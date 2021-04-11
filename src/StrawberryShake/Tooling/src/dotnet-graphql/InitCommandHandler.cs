@@ -96,7 +96,19 @@ namespace StrawberryShake.Tools
             {
                 await FileSystem.WriteTextAsync(
                     schemaExtensionFilePath,
-                    @"extend schema @key(fields: ""id"")")
+                    @"scalar _KeyFieldSet
+
+directive @key(fields: _KeyFieldSet!) on SCHEMA | OBJECT
+
+directive @serializationType(name: String!) on SCALAR
+
+directive @runtimeType(name: String!) on SCALAR
+
+directive @enumValue(value: Int!) on ENUM_VALUE
+
+directive @rename(value: Int!) on INPUT_FIELD_DEFINITION
+
+extend schema @key(fields: ""id"")")
                     .ConfigureAwait(false);
                 return true;
             }
