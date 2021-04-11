@@ -3,7 +3,7 @@ using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     public class UnsignedIntTypeTests : ScalarTypeTestBase
     {
@@ -114,7 +114,7 @@ namespace HotChocolate.Types.Scalars
         [InlineData(1d)]
         [InlineData(true)]
         [InlineData("foo")]
-        public void ParseLiteral_GivenObject_ThrowSerializationException(object value)
+        public void ParseValue_GivenObject_ThrowSerializationException(object value)
         {
             // arrange
             // act
@@ -179,6 +179,32 @@ namespace HotChocolate.Types.Scalars
             // act
             // assert
             ExpectSerializeToThrowSerializationException<UnsignedIntType>(value);
+        }
+
+        [Theory]
+        [InlineData(typeof(IntValueNode), (uint)1)]
+        [InlineData(typeof(IntValueNode), uint.MaxValue)]
+        [InlineData(typeof(IntValueNode), uint.MinValue)]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToMatchType<UnsignedIntType>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(true)]
+        [InlineData("foo")]
+        public void ParseResult_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToThrowSerializationException<UnsignedIntType>(value);
         }
     }
 }

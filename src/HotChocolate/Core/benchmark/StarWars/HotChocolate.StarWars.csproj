@@ -3,7 +3,6 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.StarWars</AssemblyName>
     <RootNamespace>HotChocolate.StarWars</RootNamespace>
-    <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>

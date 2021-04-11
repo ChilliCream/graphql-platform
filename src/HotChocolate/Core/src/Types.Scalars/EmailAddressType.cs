@@ -1,8 +1,7 @@
-using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The `EmailAddress` scalar type constitutes a valid email address, represented as a UTF-8
@@ -17,25 +16,40 @@ namespace HotChocolate.Types.Scalars
             "^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?" +
             "(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$";
 
-
         /// <summary>
         /// Initializes a new instance of the <see cref="EmailAddressType"/> class.
         /// </summary>
         public EmailAddressType()
-            : base(
+            : this(
                 WellKnownScalarTypes.EmailAddress,
-                _validationPattern,
-                ScalarResources.EmailAddressType_Description,
-                RegexOptions.Compiled | RegexOptions.IgnoreCase)
+                ScalarResources.EmailAddressType_Description)
         {
         }
 
-        protected override Exception CreateParseLiteralError(StringValueNode valueSyntax)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EmailAddressType"/> class.
+        /// </summary>
+        public EmailAddressType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(
+                name,
+                _validationPattern,
+                description,
+                RegexOptions.Compiled | RegexOptions.IgnoreCase,
+                bind)
+        {
+        }
+
+        /// <inheritdoc />
+        protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
         {
             return ThrowHelper.EmailAddressType_ParseLiteral_IsInvalid(this);
         }
 
-        protected override Exception CreateParseValueError(string runtimeValue)
+        /// <inheritdoc />
+        protected override SerializationException CreateParseValueError(object runtimeValue)
         {
             return ThrowHelper.EmailAddressType_ParseValue_IsInvalid(this);
         }

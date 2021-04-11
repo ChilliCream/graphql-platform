@@ -8,6 +8,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private AccessModifier _accessModifier = AccessModifier.Private;
         private Inheritance _inheritance = Inheritance.None;
         private bool _isStatic;
+        private bool _isOnlyDeclaration;
         private bool _isOverride;
         private bool _is;
         private TypeReferenceBuilder _returnType = TypeReferenceBuilder.New().SetName("void");
@@ -15,6 +16,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private readonly List<ParameterBuilder> _parameters = new();
         private readonly List<ICode> _lines = new();
         private bool _isAsync;
+        private string? _interface;
 
         public static MethodBuilder New() => new();
 
@@ -36,6 +38,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public MethodBuilder SetInterface(string value)
+        {
+            _interface = value;
+            return this;
+        }
+
         public MethodBuilder SetOverride()
         {
             _isOverride = true;
@@ -54,12 +62,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public MethodBuilder SetOnlyDeclaration(bool value = true)
+        {
+            _isOnlyDeclaration = value;
+            return this;
+        }
+
         public MethodBuilder SetReturnType(string value, bool condition = true)
         {
             if (condition)
             {
                 _returnType = TypeReferenceBuilder.New().SetName(value);
             }
+
             return this;
         }
 
@@ -69,6 +84,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             {
                 _returnType = value;
             }
+
             return this;
         }
 
@@ -90,6 +106,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             {
                 _lines.Add(CodeLineBuilder.New().SetLine(code));
             }
+
             return this;
         }
 
@@ -99,6 +116,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             {
                 _lines.Add(code);
             }
+
             return this;
         }
 
@@ -125,30 +143,42 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             writer.WriteIndent();
 
-            writer.Write($"{modifier} ");
 
-            if (_isStatic)
+            if (_interface is null && !_isOnlyDeclaration)
             {
-                writer.Write("static ");
+                writer.Write($"{modifier} ");
+
+                if (_isStatic)
+                {
+                    writer.Write("static ");
+                }
+
+                if (_isOverride)
+                {
+                    writer.Write("override ");
+                }
+
+                if (_isAsync)
+                {
+                    writer.Write("async ");
+                }
+
+                if (_is)
+                {
+                    writer.Write(" ");
+                }
+
+                writer.Write($"{CreateInheritance()}");
             }
 
-            if (_isOverride)
-            {
-                writer.Write("override ");
-            }
-
-            if (_isAsync)
-            {
-                writer.Write("async ");
-            }
-
-            if (_is)
-            {
-                writer.Write(" ");
-            }
-
-            writer.Write($"{CreateInheritance()}");
             _returnType.Build(writer);
+
+            if (_interface is not null)
+            {
+                writer.Write(_interface);
+                writer.Write(".");
+            }
+
             writer.Write($"{_name}(");
 
             if (_parameters.Count == 0)
@@ -183,18 +213,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 }
             }
 
-            writer.WriteLine();
-            writer.WriteIndentedLine("{");
-
-            using (writer.IncreaseIndent())
+            if (_isOnlyDeclaration)
             {
-                foreach (ICode code in _lines)
-                {
-                    code.Build(writer);
-                }
+                writer.Write(";");
+                writer.WriteLine();
             }
+            else
+            {
+                writer.WriteLine();
+                writer.WriteIndentedLine("{");
 
-            writer.WriteIndentedLine("}");
+                using (writer.IncreaseIndent())
+                {
+                    foreach (ICode code in _lines)
+                    {
+                        code.Build(writer);
+                    }
+                }
+
+                writer.WriteIndentedLine("}");
+            }
         }
 
         private string CreateInheritance()

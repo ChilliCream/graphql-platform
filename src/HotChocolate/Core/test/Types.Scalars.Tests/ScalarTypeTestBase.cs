@@ -2,7 +2,7 @@ using System;
 using HotChocolate.Language;
 using Xunit;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     public class ScalarTypeTestBase
     {
@@ -34,6 +34,8 @@ namespace HotChocolate.Types.Scalars
                 case nameof(IntValueNode) when value is int i:
                     return new IntValueNode(i);
                 case nameof(IntValueNode) when value is uint i:
+                    return new IntValueNode(i);
+                case nameof(IntValueNode) when value is ulong i:
                     return new IntValueNode(i);
                 case nameof(BooleanValueNode) when value is bool b:
                     return new BooleanValueNode(b);
@@ -85,7 +87,7 @@ namespace HotChocolate.Types.Scalars
             ScalarType scalar = CreateType<TType>();
 
             // act
-            object result = scalar.ParseLiteral(valueSyntax);
+            object? result = scalar.ParseLiteral(valueSyntax);
 
             // assert
             Assert.Equal(expectedResult, result);
@@ -184,6 +186,34 @@ namespace HotChocolate.Types.Scalars
 
             // act
             Exception? result = Record.Exception(() => scalar.Deserialize(runtimeValue));
+
+            // assert
+            Assert.IsType<SerializationException>(result);
+        }
+
+        protected void ExpectParseResultToMatchType<TType>(
+            object? valueSyntax,
+            Type type)
+            where TType : ScalarType
+        {
+            // arrange
+            ScalarType scalar = CreateType<TType>();
+
+            // act
+            IValueNode result = scalar.ParseResult(valueSyntax);
+
+            // assert
+            Assert.Equal(type, result.GetType());
+        }
+
+        protected void ExpectParseResultToThrowSerializationException<TType>(object? runtimeValue)
+            where TType : ScalarType
+        {
+            // arrange
+            ScalarType scalar = CreateType<TType>();
+
+            // act
+            Exception? result = Record.Exception(() => scalar.ParseResult(runtimeValue));
 
             // assert
             Assert.IsType<SerializationException>(result);

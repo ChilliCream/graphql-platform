@@ -3,7 +3,7 @@ using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     public class EmailAddressTypeTests : ScalarTypeTestBase
     {
@@ -153,6 +153,64 @@ namespace HotChocolate.Types.Scalars
             // act
             // assert
             ExpectSerializeToThrowSerializationException<EmailAddressType>(value);
+        }
+
+        [Theory]
+        [InlineData(typeof(StringValueNode), "test@chillicream.com")]
+        [InlineData(typeof(StringValueNode), "CapitalizeTest@chillicream.com")]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToMatchType<EmailAddressType>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(1)]
+        [InlineData(true)]
+        [InlineData("invalid.email.com")]
+        [InlineData("email@-example.com")]
+        [InlineData("email@example..com")]
+        [InlineData("")]
+        public void ParseValue_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToThrowSerializationException<EmailAddressType>(value);
+        }
+
+        [Theory]
+        [InlineData(typeof(StringValueNode), "test@chillicream.com")]
+        [InlineData(typeof(StringValueNode), "CapitalizeTest@chillicream.com")]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToMatchType<EmailAddressType>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(1)]
+        [InlineData(true)]
+        [InlineData("invalid.email.com")]
+        [InlineData("email@-example.com")]
+        [InlineData("email@example..com")]
+        [InlineData("")]
+        public void ParseResult_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToThrowSerializationException<EmailAddressType>(value);
         }
     }
 }

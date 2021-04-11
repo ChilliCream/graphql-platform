@@ -1,8 +1,7 @@
-using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The `IPv4` scalar type represents a valid a IPv4 address as defined in
@@ -19,20 +18,36 @@ namespace HotChocolate.Types.Scalars
         /// Initializes a new instance of the <see cref="IPv4Type"/> class.
         /// </summary>
         public IPv4Type()
-            : base(
+            : this(
                 WellKnownScalarTypes.IPv4,
-                _validationPattern,
-                ScalarResources.IPv4Type_Description,
-                RegexOptions.Compiled | RegexOptions.IgnoreCase)
+                ScalarResources.IPv4Type_Description)
         {
         }
 
-        protected override Exception CreateParseLiteralError(StringValueNode valueSyntax)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IPv4Type"/> class.
+        /// </summary>
+        public IPv4Type(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(
+                name,
+                _validationPattern,
+                description,
+                RegexOptions.Compiled | RegexOptions.IgnoreCase,
+                bind)
+        {
+        }
+
+        /// <inheritdoc />
+        protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
         {
             return ThrowHelper.IPv4Type_ParseLiteral_IsInvalid(this);
         }
 
-        protected override Exception CreateParseValueError(string runtimeValue)
+        /// <inheritdoc />
+        protected override SerializationException CreateParseValueError(object runtimeValue)
         {
             return ThrowHelper.IPv4Type_ParseValue_IsInvalid(this);
         }

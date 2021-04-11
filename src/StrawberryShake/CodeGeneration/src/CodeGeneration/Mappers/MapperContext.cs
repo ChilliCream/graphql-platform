@@ -20,6 +20,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
         private ClientDescriptor? _client;
         private EntityIdFactoryDescriptor? _entityIdFactory;
         private DependencyInjectionDescriptor? _dependencyInjectionDescriptor;
+        private StoreAccessorDescriptor? _storeAccessorDescriptor;
 
         public MapperContext(
             string @namespace,
@@ -57,13 +58,16 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public IReadOnlyCollection<ResultBuilderDescriptor> ResultBuilders => _resultBuilder.Values;
 
         public ClientDescriptor Client =>
-            _client ?? throw new NotImplementedException();
+            _client ?? throw new InvalidOperationException();
 
         public EntityIdFactoryDescriptor EntityIdFactory =>
-            _entityIdFactory ?? throw new NotImplementedException();
+            _entityIdFactory ?? throw new InvalidOperationException();
 
         public DependencyInjectionDescriptor DependencyInjection =>
-            _dependencyInjectionDescriptor ?? throw new NotImplementedException();
+            _dependencyInjectionDescriptor ?? throw new InvalidOperationException();
+
+        public StoreAccessorDescriptor StoreAccessor =>
+            _storeAccessorDescriptor ?? throw new NotImplementedException();
 
         public IEnumerable<ICodeDescriptor> GetAllDescriptors()
         {
@@ -97,6 +101,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
             yield return EntityIdFactory;
 
             yield return DependencyInjection;
+
+            yield return StoreAccessor;
         }
 
         public RuntimeTypeInfo GetRuntimeType(NameString typeName, TypeKind kind)
@@ -168,6 +174,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public void Register(DependencyInjectionDescriptor dependencyInjectionDescriptor)
         {
             _dependencyInjectionDescriptor = dependencyInjectionDescriptor;
+        }
+
+        public void Register(StoreAccessorDescriptor storeAccessorDescriptor)
+        {
+            _storeAccessorDescriptor = storeAccessorDescriptor;
         }
 
         public bool Register(NameString typeName, TypeKind kind, RuntimeTypeInfo runtimeType)

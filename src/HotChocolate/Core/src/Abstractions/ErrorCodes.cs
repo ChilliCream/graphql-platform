@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace HotChocolate
 {
     public static class ErrorCodes
@@ -17,8 +19,12 @@ namespace HotChocolate
             public const string CannotResolveAbstractType = "EXEC_UNABLE_TO_RESOLVE_ABSTRACT_TYPE";
             public const string ListTypeNotSupported = "EXEC_LIST_TYPE_NOT_SUPPORTED";
             public const string AutoMapVarError = "EXEC_BATCH_AUTO_MAP_VAR_TYPE";
-            public const string Incomplete = "EXEC_MIDDLEWARE_INCOMPLETE";
-            public const string Timeout = "EXEC_TIMEOUT";
+            
+            /// <summary>
+            /// The request exceeded the configured timeout.
+            /// </summary>
+            public const string Timeout = "HC0045";
+            
             public const string NonNullViolation = "HC0018";
             public const string MustBeInputType = "HC0017";
             public const string InvalidType = "HC0016";
@@ -33,6 +39,9 @@ namespace HotChocolate
             public const string CannotCreateRootValue = "HC0019";
         }
 
+        /// <summary>
+        /// The server error codes.
+        /// </summary>
         public static class Server
         {
             public const string RequestInvalid = "HC0009";
@@ -40,6 +49,62 @@ namespace HotChocolate
             public const string SyntaxError = "HC0011";
             public const string UnexpectedRequestParserError = "HC0012";
             public const string QueryAndIdMissing = "HC0013";
+
+            /// <summary>
+            /// At least an 'operations' field and a 'map' field need to be present.
+            /// </summary>
+            public const string MultiPartFormIncomplete = "HC0033";
+
+            /// <summary>
+            /// No 'operations' specified.
+            /// </summary>
+            public const string MultiPartNoOperationsSpecified = "HC0034";
+
+            /// <summary>
+            /// Misordered multipart fields; 'map' should follow 'operations'.
+            /// </summary>
+            public const string MultiPartFieldsMisordered = "HC0035";
+
+            /// <summary>
+            /// No object paths specified for a key in the 'map'.
+            /// </summary>
+            public const string MultiPartNoObjectPath = "HC0037";
+
+            /// <summary>
+            /// A key is referring to a file that was not provided.
+            /// </summary>
+            public const string MultiPartFileMissing = "HC00038";
+
+            /// <summary>
+            /// The variable path is referring to a variable that does not exist.
+            /// </summary>
+            public const string MultiPartVariableNotFound = "HC0039";
+
+            /// <summary>
+            /// No object paths specified for key in 'map'.
+            /// </summary>
+            public const string MultiPartVariableStructureInvalid = "HC0040";
+
+            /// <summary>
+            /// Invalid variable path in `map`.
+            /// </summary>
+            public const string MultiPartInvalidPath = "HC0041";
+
+            /// <summary>
+            /// The variable path must start with `variables`.
+            /// </summary>
+            public const string MultiPartPathMustStartWithVariable = "HC0042";
+
+            /// <summary>
+            /// Invalid JSON in the `map` multipart field; Expected type of
+            /// <see cref="Dictionary{TKey,TValue}" />.
+            /// </summary>
+            public const string MultiPartInvalidMapJson = "HC0043";
+
+            /// <summary>
+            /// No `map` specified.
+            /// </summary>
+            public const string MultiPartMapNotSpecified = "HC0044";
         }
 
         public static class Schema
@@ -70,36 +135,11 @@ namespace HotChocolate
             public const string InvalidSyntaxFormat = "HC0002";
         }
 
-        public static class Apollo
-        {
-            public static class Federation
-            {
-                /// <summary>
-                /// The key attribute is used on the type level without specifying the the
-                /// fieldset.
-                /// </summary>
-                public const string KeyFieldSetNullOrEmpty = "HC0003";
-
-                /// <summary>
-                /// The provides attribute is used and the fieldset is set to <c>null</c> or
-                /// <see cref="string.Empty"/>.
-                /// </summary>
-                public const string ProvidesFieldSetNullOrEmpty = "HC0004";
-
-                /// <summary>
-                /// The requires attribute is used and the fieldset is set to <c>null</c> or
-                /// <see cref="string.Empty"/>.
-                /// </summary>
-                public const string RequiresFieldSetNullOrEmpty = "HC0005";
-            }
-        }
-
         public static class Filtering
         {
             public const string FilterObjectType = "FILTER_OBJECT_TYPE";
             public const string FilterFieldDescriptorType = "FILTER_FIELD_DESCRIPTOR_TYPE";
         }
-
 
         public static class Stitching
         {
@@ -141,6 +181,24 @@ namespace HotChocolate
             /// Type does not contain a valid node field. Only `items` and `nodes` are supported
             /// </summary>
             public const string NodeFieldWasNotFound = "HC0028";
+        }
+
+        public static class Types
+        {
+            /// <summary>
+            /// Unable to infer the element type from the current resolver.
+            /// This often happens if the resolver is not an iterable type like
+            /// IEnumerable, IQueryable, IList etc. Ensure that you either
+            /// explicitly specify the element type or that the return type of your resolver
+            /// is an iterable type.
+            /// </summary>
+            public const string NodeTypeUnkown = "HC0031";
+
+            /// <summary>
+            /// The element schema type for pagination must be a valid GraphQL output type
+            /// (ObjectType, InterfaceType, UnionType, EnumType, ScalarType).
+            /// </summary>
+            public const string SchemaTypeInvalid = "HC0032";
         }
     }
 }

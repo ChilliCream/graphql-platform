@@ -29,6 +29,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.Operations
             HashAlgorithm = hashAlgorithm;
             HashValue = hashValue;
             Strategy = strategy;
+            InterfaceType = new("I" + runtimeType.Name, runtimeType.Namespace);
         }
 
         /// <summary>
@@ -49,7 +50,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.Operations
         /// <summary>
         /// Gets the GraphQL Document.
         /// </summary>
-        public byte[] Body { get;  }
+        public byte[] Body { get; }
 
         /// <summary>
         /// Gets the GraphQL Document as readable string.
@@ -75,5 +76,10 @@ namespace StrawberryShake.CodeGeneration.Descriptors.Operations
         ///
         /// </summary>
         public RequestStrategy Strategy { get; }
+
+        /// <summary>
+        /// The interface of this operation
+        /// </summary>
+        public RuntimeTypeInfo InterfaceType { get; }
     }
 }

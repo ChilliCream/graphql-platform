@@ -87,62 +87,65 @@ namespace HotChocolate
 
                 if (builder._documents.Count > 0)
                 {
-                    types.AddRange(ParseDocuments(builder, context, bindingLookup));
+                    types.AddRange(
+                        ParseDocuments(
+                            builder,
+                            context.Services,
+                            context.Options,
+                            bindingLookup));
                 }
 
-                if (builder._schema is null)
-                {
-                    types.Add(new SchemaTypeReference(new Schema()));
-                }
-                else
-                {
-                    types.Add(builder._schema(context.TypeInspector));
-                }
+                types.Add(builder._schema is null
+                    ? new SchemaTypeReference(new Schema())
+                    : builder._schema(context.TypeInspector));
 
                 return types;
             }
 
             private static IEnumerable<ITypeReference> ParseDocuments(
                 SchemaBuilder builder,
-                DescriptorContext context,
+                IServiceProvider services,
+                IReadOnlySchemaOptions options,
                 IBindingLookup bindingLookup)
             {
                 var types = new List<ITypeReference>();
 
                 foreach (LoadSchemaDocument fetchSchema in builder._documents)
                 {
-                    DocumentNode schemaDocument = fetchSchema(context.Services);
+                    DocumentNode schemaDocument = fetchSchema(services);
                     schemaDocument = schemaDocument.RemoveBuiltInTypes();
 
-                    var visitor = new SchemaSyntaxVisitor(bindingLookup);
-                    visitor.Visit(schemaDocument, null);
-                    types.AddRange(visitor.Types);
+                    var visitorContext = new SchemaSyntaxVisitorContext(bindingLookup, options);
+                    var visitor = new SchemaSyntaxVisitor();
+                    visitor.Visit(schemaDocument, visitorContext);
+
+                    types.AddRange(visitorContext.Types);
 
                     RegisterOperationName(
                         builder,
                         OperationType.Query,
-                        visitor.QueryTypeName);
+                        visitorContext.QueryTypeName);
 
                     RegisterOperationName(
                         builder,
                         OperationType.Mutation,
-                        visitor.MutationTypeName);
+                        visitorContext.MutationTypeName);
 
                     RegisterOperationName(
                         builder,
                         OperationType.Subscription,
-                        visitor.SubscriptionTypeName);
+                        visitorContext.SubscriptionTypeName);
 
                     IReadOnlyCollection<DirectiveNode> directives =
-                        visitor.Directives ?? Array.Empty<DirectiveNode>();
+                        visitorContext.Directives ?? Array.Empty<DirectiveNode>();
 
                     if (builder._schema is null
                         && (directives.Count > 0
-                        || visitor.Description != null))
+                        || visitorContext.Description != null))
                     {
                         builder.SetSchema(new Schema(d =>
                         {
-                            d.Description(visitor.Description);
+                            d.Description(visitorContext.Description);
                             foreach (DirectiveNode directive in directives)
                             {
                                 d.Directive(directive);
@@ -200,8 +203,7 @@ namespace HotChocolate
                     typeReferences,
                     builder._resolverTypes,
                     builder._isOfType,
-                    type => IsQueryType(context.TypeInspector, type, operations),
-                    type => IsMutationType(context.TypeInspector, type, operations));
+                    type => GetOperationKind(type, context.TypeInspector, operations));
 
                 foreach (FieldMiddleware component in builder._globalComponents)
                 {
@@ -267,69 +269,79 @@ namespace HotChocolate
                 }
             }
 
-            private static bool IsQueryType(
-                ITypeInspector typeInspector,
+            private static RootTypeKind GetOperationKind(
                 TypeSystemObjectBase type,
+                ITypeInspector typeInspector,
                 Dictionary<OperationType, ITypeReference> operations)
             {
                 if (type is ObjectType objectType)
                 {
-                    if (operations.TryGetValue(OperationType.Query, out ITypeReference? typeRef))
+                    if (IsOperationType(
+                        objectType,
+                        OperationType.Query,
+                        typeInspector,
+                        operations))
                     {
-                        if (typeRef is SchemaTypeReference sr)
-                        {
-                            return sr.Type == objectType;
-                        }
-
-                        if (typeRef is ExtendedTypeReference cr)
-                        {
-                            return cr.Type == typeInspector.GetType(objectType.GetType())
-                                || cr.Type == typeInspector.GetType(objectType.RuntimeType);
-                        }
-
-                        if (typeRef is SyntaxTypeReference str)
-                        {
-                            return objectType.Name.Equals(str.Type.NamedType().Name.Value);
-                        }
+                        return RootTypeKind.Query;
                     }
-                    else
+
+                    if (IsOperationType(
+                        objectType,
+                        OperationType.Mutation,
+                        typeInspector,
+                        operations))
                     {
-                        return type.Name.Equals(WellKnownTypes.Query);
+                        return RootTypeKind.Mutation;
+                    }
+
+                    if (IsOperationType(
+                        objectType,
+                        OperationType.Subscription,
+                        typeInspector,
+                        operations))
+                    {
+                        return RootTypeKind.Subscription;
                     }
                 }
 
-                return false;
+                return RootTypeKind.None;
             }
 
-            private static bool IsMutationType(
+            private static bool IsOperationType(
+                ObjectType objectType,
+                OperationType operationType,
                 ITypeInspector typeInspector,
-                TypeSystemObjectBase type,
                 Dictionary<OperationType, ITypeReference> operations)
             {
-                if (type is ObjectType objectType)
+                if (operations.TryGetValue(operationType, out ITypeReference? typeRef))
                 {
-                    if (operations.TryGetValue(OperationType.Mutation, out ITypeReference? typeRef))
+                    if (typeRef is SchemaTypeReference sr)
                     {
-                        if (typeRef is SchemaTypeReference sr)
-                        {
-                            return sr.Type == objectType;
-                        }
-
-                        if (typeRef is ExtendedTypeReference cr)
-                        {
-                            return cr.Type == typeInspector.GetType(objectType.GetType())
-                                || cr.Type == typeInspector.GetType(objectType.RuntimeType);
-                        }
-
-                        if (typeRef is SyntaxTypeReference str)
-                        {
-                            return objectType.Name.Equals(str.Type.NamedType().Name.Value);
-                        }
+                        return sr.Type == objectType;
                     }
-                    else
+
+                    if (typeRef is ExtendedTypeReference cr)
                     {
-                        return type.Name.Equals(WellKnownTypes.Mutation);
+                        return cr.Type == typeInspector.GetType(objectType.GetType())
+                            || cr.Type == typeInspector.GetType(objectType.RuntimeType);
                     }
+
+                    if (typeRef is SyntaxTypeReference str)
+                    {
+                        return objectType.Name.Equals(str.Type.NamedType().Name.Value);
+                    }
+                }
+                else if(operationType == OperationType.Query)
+                {
+                    return objectType.Name.Equals(OperationTypeNames.Query);
+                }
+                else if(operationType == OperationType.Mutation)
+                {
+                    return objectType.Name.Equals(OperationTypeNames.Mutation);
+                }
+                else if(operationType == OperationType.Subscription)
+                {
+                    return objectType.Name.Equals(OperationTypeNames.Subscription);
                 }
 
                 return false;

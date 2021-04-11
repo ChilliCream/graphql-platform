@@ -4,6 +4,8 @@ title: "Schema basics"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
+> We are still working on the documentation for Hot Chocolate 11.1 so help us by finding typos, missing things or write some additional docs with us.
+
 The schema in GraphQL represents the type system and exposes your business model in a strong and rich way. The schema fully describes the shape of your data and how you can interact with it.
 
 # Object Type
@@ -19,7 +21,9 @@ type Book {
 
 ## Operations
 
-In GraphQL, we have three root types from which only the Query type has to be defined. Root types provide the entry points that let you fetch data, mutate data, or subscribe to events. Root types themself are object types.
+In GraphQL, we have three root types from which only the Query type has to be defined. Root types provide the entry points that let you fetch data, mutate data, or subscribe to events. Root types themselves are object types.
+
+> Read more about GraphQL operation types [here](operations).
 
 ```sdl
 schema {
@@ -387,7 +391,8 @@ public class Startup
         services
             .AddRouting()
             .AddGraphQLServer()
-            .AddQueryType<Query>();
+            .AddQueryType<Query>()
+            .AddMutationType<Mutation>();
     }
 
     // Omitted code for brevity

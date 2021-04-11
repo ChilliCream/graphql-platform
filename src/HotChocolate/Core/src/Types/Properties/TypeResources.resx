@@ -678,4 +678,22 @@ Type: `{0}`</value>
     <value>Unknown format. Guid supports the following format chars: {{ `N`, `D`, `B`, `P` }}.
  https://docs.microsoft.com/en-us/dotnet/api/system.buffers.text.utf8parser.tryparse?view=netcore-3.1#System_Buffers_Text_Utf8Parser_TryParse_System_ReadOnlySpan_System_Byte__System_Guid__System_Int32__System_Char</value>
   </data>
+  <data name="Directive_GetArgument_ArgumentNameIsInvalid" xml:space="preserve">
+    <value>The argument name is invalid.</value>
+  </data>
+  <data name="__AppliedDirective_Description" xml:space="preserve">
+    <value>An Applied Directive is an instances of a directive as applied to a schema element. This type is NOT specified by the graphql specification presently.</value>
+  </data>
+  <data name="__DirectiveArgument_Description" xml:space="preserve">
+    <value>Directive arguments can have names and values. The values are in graphql SDL syntax printed as a string. This type is NOT specified by the graphql specification presently.</value>
+  </data>
+  <data name="ThrowHelper_UsePagingAttribute_NodeTypeUnknown" xml:space="preserve">
+    <value>Unable to infer the element type from the current resolver. This often happens if the resolver is not an iterable type like IEnumerable, IQueryable, IList etc. Ensure that you either explicitly specify the element type or that the return type of your resolver is an iterable type.</value>
+  </data>
+  <data name="Schema_GetDirectiveType_DoesNotExist" xml:space="preserve">
+    <value>The specified type `{0}` does not exist.</value>
+  </data>
+  <data name="ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed" xml:space="preserve">
+    <value>The non-generic IExecutable interface cannot be used as a type in the schema.</value>
+  </data>
 </root>

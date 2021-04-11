@@ -1,44 +1,88 @@
 using System;
 using System.Collections.Concurrent;
-using System.Linq;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Processing
 {
     internal sealed class DefaultActivator : IActivator
     {
-        private readonly ConcurrentDictionary<Type, object?> _instances =
-            new ConcurrentDictionary<Type, object?>();
-        private readonly IServiceProvider _services;
+        private readonly ConcurrentDictionary<Type, Service> _instances = new();
 
-        public DefaultActivator(IServiceProvider services)
-        {
-            _services = services ?? throw new ArgumentNullException(nameof(services));
-        }
+        public T CreateInstance<T>(IServiceProvider services) =>
+            ActivatorHelper.CompileFactory<T>()(services);
 
-        public T CreateInstance<T>() =>
-            ActivatorHelper.CompileFactory<T>()(_services);
+        public object? CreateInstance(Type type, IServiceProvider services) =>
+            ActivatorHelper.CompileFactory(type)(services);
 
-        public object? CreateInstance(Type type) =>
-            ActivatorHelper.CompileFactory(type)(_services);
+        public T GetOrCreate<T>(IServiceProvider services) =>
+            (T)GetOrCreate(typeof(T), services)!;
 
-        public T GetOrCreate<T>() => (T)GetOrCreate(typeof(T))!;
-
-        public object? GetOrCreate(Type type) =>
-            _instances.GetOrAdd(type, CreateInstance);
+        public object? GetOrCreate(Type type, IServiceProvider services) =>
+            _instances.GetOrAdd(type, _ => new Service(this, type)).GetOrCreateService(services);
 
         public void Dispose()
         {
-            if(_instances.Count > 0) 
+            if(_instances.Count > 0)
             {
-                foreach (object? instance in _instances.Values.ToArray())
+                foreach (Service service in _instances.Values)
                 {
-                    if (instance is IDisposable d)
+                    service.Dispose();
+                }
+                _instances.Clear();
+            }
+        }
+
+        private class Service : IDisposable
+        {
+            private readonly DefaultActivator _activator;
+            private readonly Type _type;
+            private object? _value;
+            private bool _disposed;
+
+            public Service(DefaultActivator activator, Type type)
+            {
+                _activator = activator;
+                _type = type;
+            }
+
+            public object? GetOrCreateService(IServiceProvider services)
+            {
+                if (_disposed)
+                {
+                    throw new ObjectDisposedException(typeof(Service).FullName);
+                }
+
+                if (_value is not null)
+                {
+                    return _value;
+                }
+
+                if (_type != typeof(object))
+                {
+                    services.TryGetService(_type, out object? value);
+
+                    if (value is null && !_type.IsAbstract && !_type.IsInterface)
+                    {
+                        value = _activator.CreateInstance(_type, services);
+                        _value = value;
+                    }
+
+                    return value;
+                }
+
+                return null;
+            }
+
+            public void Dispose()
+            {
+                if (!_disposed)
+                {
+                    if (_value is IDisposable d)
                     {
                         d.Dispose();
                     }
+                    _disposed = true;
                 }
-                _instances.Clear();
             }
         }
     }

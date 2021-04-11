@@ -60,6 +60,9 @@ namespace StrawberryShake.CodeGeneration.Descriptors
         public static string CreateServiceCollectionExtensions(string clientName) =>
             clientName + "ServiceCollectionExtensions";
 
+        public static string CreateStoreAccessor(string clientName) =>
+            clientName + "StoreAccessor";
+
         public static string CreateClientProfileKind(string clientName) =>
             clientName + "ProfileKind";
 

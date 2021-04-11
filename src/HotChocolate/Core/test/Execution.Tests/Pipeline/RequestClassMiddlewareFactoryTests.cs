@@ -35,6 +35,7 @@ namespace HotChocolate.Execution.Pipeline
                 optionsAccessor);
             var context = new RequestContext(
                 new Mock<ISchema>().Object,
+                1,
                 new Mock<IServiceProvider>().Object,
                 new Mock<IErrorHandler>().Object,
                 new Mock<ITypeConverter>().Object,

@@ -1,6 +1,4 @@
-using System;
 using HotChocolate.Language;
-using HotChocolate.Types.Scalars;
 
 namespace HotChocolate.Types
 {
@@ -45,25 +43,21 @@ namespace HotChocolate.Types
         }
 
         /// <inheritdoc />
-        protected override int ParseLiteral(IntValueNode valueSyntax)
+        protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
         {
-            if (valueSyntax.ToInt32() > MaxValue)
-            {
-                throw ThrowHelper.NegativeIntType_ParseLiteral_IsNotNegative(this);
-            }
-
-            return base.ParseLiteral(valueSyntax);
+            throw ThrowHelper.NegativeIntType_ParseLiteral_IsNotNegative(this);
         }
 
         /// <inheritdoc />
-        protected override IntValueNode ParseValue(int runtimeValue)
+        protected override SerializationException CreateParseValueError(object runtimeValue)
         {
-            if (runtimeValue > MaxValue)
-            {
-                throw ThrowHelper.NegativeIntType_ParseValue_IsNotNegative(this);
-            }
+            throw ThrowHelper.NegativeIntType_ParseValue_IsNotNegative(this);
+        }
 
-            return base.ParseValue(runtimeValue);
+        /// <inheritdoc />
+        protected override SerializationException CreateParseResultError(object runtimeValue)
+        {
+            throw ThrowHelper.NegativeIntType_ParseValue_IsNotNegative(this);
         }
     }
 }

@@ -1,6 +1,7 @@
 #pragma warning disable IDE1006 // Naming Styles
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Language;
 using HotChocolate.Properties;
 
 #nullable enable
@@ -70,6 +71,14 @@ namespace HotChocolate.Types.Introspection
                 .Field(Names.SpecifiedBy)
                 .Type<StringType>()
                 .ResolveWith<Resolvers>(t => t.GetSpecifiedBy(default!));
+
+            if (descriptor.Extend().Context.Options.EnableDirectiveIntrospection)
+            {
+                descriptor
+                    .Field(Names.AppliedDirectives)
+                    .Type<NonNullType<ListType<NonNullType<__AppliedDirective>>>>()
+                    .ResolveWith<Resolvers>(t => t.GetAppliedDirectives(default!));
+            }
         }
 
         private class Resolvers
@@ -127,6 +136,11 @@ namespace HotChocolate.Types.Introspection
                 type is ScalarType scalar
                     ? scalar.SpecifiedBy?.ToString()
                     : null;
+
+            public IEnumerable<DirectiveNode> GetAppliedDirectives([Parent] IType type) =>
+                type is IHasDirectives hasDirectives
+                    ? hasDirectives.Directives.Where(t => t.Type.IsPublic).Select(d => d.ToNode())
+                    : Enumerable.Empty<DirectiveNode>();
         }
 
         public static class Names
@@ -143,6 +157,7 @@ namespace HotChocolate.Types.Introspection
             public const string OfType = "ofType";
             public const string SpecifiedBy = "specifiedBy";
             public const string IncludeDeprecated = "includeDeprecated";
+            public const string AppliedDirectives = "appliedDirectives";
         }
     }
 }

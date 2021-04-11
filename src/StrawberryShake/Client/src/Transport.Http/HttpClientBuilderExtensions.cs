@@ -1,12 +1,13 @@
 using System;
 using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
+using StrawberryShake;
 using StrawberryShake.Transport.Http;
 
-namespace StrawberryShake
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
-    /// Common extensions of <see cref="IClientBuilder"/> for <see cref="HttpConnection"/>
+    /// Common extensions of <see cref="IClientBuilder{T}"/> for <see cref="HttpConnection"/>
     /// </summary>
     public static class HttpClientBuilderExtensions
     {
@@ -21,9 +22,15 @@ namespace StrawberryShake
         /// <param name="configureClient">
         /// A delegate that is used to configure an <see cref="HttpClient"/>.
         /// </param>
-        public static IClientBuilder ConfigureHttpClient(
-            this IClientBuilder clientBuilder,
-            Action<HttpClient> configureClient)
+        /// <param name="configureClientBuilder">
+        /// A delegate that is used to additionally configure the <see cref="HttpClient"/>
+        /// with a <see cref="IHttpClientBuilder"/>
+        /// </param>
+        public static IClientBuilder<T> ConfigureHttpClient<T>(
+            this IClientBuilder<T> clientBuilder,
+            Action<HttpClient> configureClient,
+            Action<IHttpClientBuilder>? configureClientBuilder = null)
+            where T : IStoreAccessor
         {
             if (clientBuilder == null)
             {
@@ -35,7 +42,12 @@ namespace StrawberryShake
                 throw new ArgumentNullException(nameof(configureClient));
             }
 
-            clientBuilder.Services.AddHttpClient(clientBuilder.ClientName, configureClient);
+
+            IHttpClientBuilder builder = clientBuilder.Services
+                .AddHttpClient(clientBuilder.ClientName, configureClient);
+
+            configureClientBuilder?.Invoke(builder);
+
             return clientBuilder;
         }
 
@@ -50,9 +62,15 @@ namespace StrawberryShake
         /// <param name="configureClient">
         /// A delegate that is used to configure an <see cref="HttpClient"/>.
         /// </param>
-        public static IClientBuilder ConfigureHttpClient(
-            this IClientBuilder clientBuilder,
-            Action<IServiceProvider, HttpClient> configureClient)
+        /// <param name="configureClientBuilder">
+        /// A delegate that is used to additionally configure the <see cref="HttpClient"/>
+        /// with a <see cref="IHttpClientBuilder"/>
+        /// </param>
+        public static IClientBuilder<T> ConfigureHttpClient<T>(
+            this IClientBuilder<T> clientBuilder,
+            Action<IServiceProvider, HttpClient> configureClient,
+            Action<IHttpClientBuilder>? configureClientBuilder = null)
+            where T : IStoreAccessor
         {
             if (clientBuilder == null)
             {
@@ -64,7 +82,11 @@ namespace StrawberryShake
                 throw new ArgumentNullException(nameof(configureClient));
             }
 
-            clientBuilder.Services.AddHttpClient(clientBuilder.ClientName, configureClient);
+            IHttpClientBuilder builder = clientBuilder.Services
+                .AddHttpClient(clientBuilder.ClientName, configureClient);
+
+            configureClientBuilder?.Invoke(builder);
+
             return clientBuilder;
         }
     }

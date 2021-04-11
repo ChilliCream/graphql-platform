@@ -3,12 +3,13 @@ using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
-    public class ObjectTypeExtension<T>
-        : ObjectTypeExtension
+    public class ObjectTypeExtension<T> : ObjectTypeExtension
     {
-        private readonly Action<IObjectTypeDescriptor<T>> _configure;
+        private Action<IObjectTypeDescriptor<T>>? _configure;
 
         public ObjectTypeExtension()
         {
@@ -24,9 +25,12 @@ namespace HotChocolate.Types
         protected override ObjectTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
         {
-            var descriptor = ObjectTypeDescriptor.NewExtension<T>(
-                context.DescriptorContext);
-            _configure(descriptor);
+            ObjectTypeExtensionDescriptor<T> descriptor =
+                ObjectTypeDescriptor.NewExtension<T>(context.DescriptorContext);
+
+            _configure!(descriptor);
+            _configure = null;
+
             return descriptor.CreateDefinition();
         }
 

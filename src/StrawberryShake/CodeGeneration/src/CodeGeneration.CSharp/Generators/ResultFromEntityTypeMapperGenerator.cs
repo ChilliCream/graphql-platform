@@ -11,7 +11,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     public class ResultFromEntityTypeMapperGenerator : TypeMapperGenerator
     {
         private const string _entity = "entity";
+        private const string _entityStore = "_entityStore";
         private const string _map = "Map";
+        private const string _snapshot = "snapshot";
 
         protected override bool CanHandle(ITypeDescriptor descriptor)
         {
@@ -46,14 +48,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .New()
                 .SetTypeName(descriptor.Name);
 
-            if (descriptor.ContainsEntity())
-            {
-                AddConstructorAssignedField(
-                    TypeNames.IEntityStore,
-                    StoreFieldName,
-                    classBuilder,
-                    constructorBuilder);
-            }
+            AddConstructorAssignedField(
+                TypeNames.IEntityStore,
+                StoreFieldName,
+                classBuilder,
+                constructorBuilder);
 
             // Define map method
             MethodBuilder mapMethod = MethodBuilder
@@ -67,11 +66,25 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         .SetType(
                             descriptor.Kind == TypeKind.EntityType
                                 ? CreateEntityType(
-                                    descriptor.Name,
-                                    descriptor.RuntimeType.NamespaceWithoutGlobal)
+                                        descriptor.Name,
+                                        descriptor.RuntimeType.NamespaceWithoutGlobal)
                                     .ToString()
                                 : descriptor.Name)
-                        .SetName(_entity));
+                        .SetName(_entity))
+                .AddParameter(
+                    _snapshot,
+                    b => b.SetDefault("null")
+                        .SetType(TypeNames.IEntityStoreSnapshot.MakeNullable()));
+
+            mapMethod
+                .AddCode(IfBuilder
+                    .New()
+                    .SetCondition($"{_snapshot} is null")
+                    .AddCode(AssignmentBuilder
+                        .New()
+                        .SetLefthandSide(_snapshot)
+                        .SetRighthandSide($"{_entityStore}.CurrentSnapshot")))
+                .AddEmptyLine();
 
             MethodCallBuilder constructorCall =
                 MethodCallBuilder

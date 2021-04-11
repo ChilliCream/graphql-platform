@@ -5,6 +5,7 @@ using Xunit;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete]
     public class SortingNamingConventionTests
         : TypeTestBase
     {

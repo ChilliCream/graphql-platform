@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The NonNegativeIntType scalar type represents a unsigned 32-bit numeric non-fractional value
@@ -27,7 +27,6 @@ namespace HotChocolate.Types.Scalars
             BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, description, 0, int.MaxValue, bind)
         {
-            Description = description;
         }
 
         /// <inheritdoc />
@@ -43,25 +42,21 @@ namespace HotChocolate.Types.Scalars
         }
 
         /// <inheritdoc />
-        protected override int ParseLiteral(IntValueNode valueSyntax)
+        protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
         {
-            if (valueSyntax.ToInt32() < MinValue)
-            {
-                throw ThrowHelper.NonNegativeIntType_ParseLiteral_IsNotNonNegative(this);
-            }
-
-            return base.ParseLiteral(valueSyntax);
+            throw ThrowHelper.NonNegativeIntType_ParseLiteral_IsNotNonNegative(this);
         }
 
         /// <inheritdoc />
-        protected override IntValueNode ParseValue(int runtimeValue)
+        protected override SerializationException CreateParseValueError(object runtimeValue)
         {
-            if (runtimeValue < MinValue)
-            {
-                throw ThrowHelper.NonNegativeIntType_ParseValue_IsNotNonNegative(this);
-            }
+            throw ThrowHelper.NonNegativeIntType_ParseValue_IsNotNonNegative(this);
+        }
 
-            return base.ParseValue(runtimeValue);
+        /// <inheritdoc />
+        protected override SerializationException CreateParseResultError(object runtimeValue)
+        {
+            throw ThrowHelper.NonNegativeIntType_ParseValue_IsNotNonNegative(this);
         }
     }
 }

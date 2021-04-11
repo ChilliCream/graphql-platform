@@ -47,6 +47,49 @@ namespace HotChocolate.Types.Relay
         }
 
         [Fact]
+        public async Task PolyId_On_Arguments()
+        {
+            // arrange
+            var idSerializer = new IdSerializer();
+            var intId = 1;
+            var stringId = "abc";
+            Guid guidId = Guid.Empty;
+
+            // act
+            IExecutionResult result =
+                await SchemaBuilder.New()
+                    .AddQueryType<Query>()
+                    .AddType<FooPayload>()
+                    .TryAddTypeInterceptor<PolymorphicGlobalIdsTypeInterceptor>()
+                    .Create()
+                    .MakeExecutable()
+                    .ExecuteAsync(
+                        QueryRequestBuilder.New()
+                            .SetQuery(
+                                @"query foo ($intId: ID! $stringId: ID! $guidId: ID!) {
+                                    intId(id: $intId)
+                                    intIdList(id: [$intId])
+                                    stringId(id: $stringId)
+                                    stringIdList(id: [$stringId])
+                                    guidId(id: $guidId)
+                                    guidIdList(id: [$guidId $guidId])
+                                }")
+                            .SetVariableValue("intId", intId)
+                            .SetVariableValue("stringId", stringId)
+                            .SetVariableValue("guidId", guidId.ToString())
+                            .Create());
+
+            // assert
+            new
+            {
+                result = result.ToJson(),
+                intId,
+                stringId,
+                guidId
+            }.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task Id_On_Objects()
         {
             // arrange
@@ -81,6 +124,46 @@ namespace HotChocolate.Types.Relay
             {
                 result = result.ToJson(),
                 someId
+            }.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task PolyId_On_Objects()
+        {
+            // arrange
+            var idSerializer = new IdSerializer();
+            var someId = "1";
+            var someIntId = 1;
+
+            // act
+            IExecutionResult result =
+                await SchemaBuilder.New()
+                    .AddQueryType<Query>()
+                    .AddType<FooPayload>()
+                    .TryAddTypeInterceptor<PolymorphicGlobalIdsTypeInterceptor>()
+                    .Create()
+                    .MakeExecutable()
+                    .ExecuteAsync(
+                        QueryRequestBuilder.New()
+                            .SetQuery(
+                                @"query foo ($someId: ID! $someIntId: ID!) {
+                                    foo(input: { someId: $someId someIds: [$someIntId] }) {
+                                        someId
+                                        ... on FooPayload {
+                                            someIds
+                                        }
+                                    }
+                                }")
+                            .SetVariableValue("someId", someId)
+                            .SetVariableValue("someIntId", someIntId)
+                            .Create());
+
+            // assert
+            new
+            {
+                result = result.ToJson(),
+                someId,
+                someIntId
             }.MatchSnapshot();
         }
 
@@ -170,13 +253,13 @@ namespace HotChocolate.Types.Relay
         {
             public string IntId([ID] int id) => id.ToString();
             public string IntIdList([ID] int[] id) =>
-                string.Join("-", id.Select(t => t.ToString()));
+                string.Join(", ", id.Select(t => t.ToString()));
             public string StringId([ID] string id) => id;
             public string StringIdList([ID] string[] id) =>
-                string.Join("-", id.Select(t => t.ToString()));
+                string.Join(", ", id.Select(t => t.ToString()));
             public string GuidId([ID] Guid id) => id.ToString();
             public string GuidIdList([ID] IReadOnlyList<Guid> id) =>
-                string.Join("-", id.Select(t => t.ToString()));
+                string.Join(", ", id.Select(t => t.ToString()));
             public IFooPayload Foo(FooInput input) => new FooPayload { SomeId = input.SomeId };
         }
 

@@ -20,5 +20,12 @@ namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
                 CompleteProperties(properties);
             }
         }
+
+        public EntityTypeDescriptor EntityTypeDescriptor { get; private set; }
+
+        public void CompleteEntityType(EntityTypeDescriptor descriptor)
+        {
+            EntityTypeDescriptor = descriptor;
+        }
     }
 }

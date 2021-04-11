@@ -22,6 +22,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .SetType(namedTypeDescriptor.ParentRuntimeType!
                     .ToString()
                     .MakeNullable(!isNonNullable));
+            method
+                .AddParameter(_snapshot)
+                .SetType(TypeNames.IEntityStoreSnapshot);
 
             if (!isNonNullable)
             {
@@ -57,7 +60,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .Inline()
                 .SetMethodName(
                     _dataParameterName.MakeNullable(!isNonNullable),
-                    "__typename",
+                    WellKnownNames.TypeName,
                     nameof(string.Equals))
                 .AddArgument(objectTypeDescriptor.Name.AsStringToken())
                 .AddArgument(TypeNames.OrdinalStringComparison);
@@ -83,6 +86,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 if (prop.Type.IsEntityType() || prop.Type.IsDataType())
                 {
                     constructorCall.AddArgument(BuildMapMethodCall(_dataParameterName, prop, true));
+                }
+                else if (prop.Type.IsNullableType())
+                {
+                    constructorCall.AddArgument(propAccess);
                 }
                 else
                 {

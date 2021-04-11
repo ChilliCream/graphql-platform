@@ -15,8 +15,8 @@ namespace StrawberryShake.CodeGeneration.Descriptors
         /// The name of the GraphQL type
         /// </param>
         /// <param name="runtimeType"></param>
-        /// <param name="operationTypes">
-        /// The operation types of this entity
+        /// <param name="possibleTypes">
+        /// The possible types this entity can have
         /// </param>
         /// <param name="documentation">
         /// The documentation of this entity
@@ -24,24 +24,23 @@ namespace StrawberryShake.CodeGeneration.Descriptors
         public EntityTypeDescriptor(
             NameString name,
             RuntimeTypeInfo runtimeType,
-            IReadOnlyList<ComplexTypeDescriptor> operationTypes,
+            IReadOnlyList<ComplexTypeDescriptor> possibleTypes,
             string? documentation)
         {
             var allProperties = new Dictionary<string, PropertyDescriptor>();
 
             foreach (PropertyDescriptor namedTypeReferenceDescriptor in
-                operationTypes.SelectMany(operationType => operationType.Properties))
+                possibleTypes.SelectMany(operationType => operationType.Properties))
             {
                 if (!allProperties.ContainsKey(namedTypeReferenceDescriptor.Name))
                 {
-                    allProperties.Add(
-                        namedTypeReferenceDescriptor.Name,
-                        namedTypeReferenceDescriptor);
+                    allProperties
+                        .Add(namedTypeReferenceDescriptor.Name, namedTypeReferenceDescriptor);
                 }
             }
 
             Name = name;
-            RuntimeType = runtimeType;;
+            RuntimeType = runtimeType;
             Properties = allProperties;
             Documentation = documentation;
         }

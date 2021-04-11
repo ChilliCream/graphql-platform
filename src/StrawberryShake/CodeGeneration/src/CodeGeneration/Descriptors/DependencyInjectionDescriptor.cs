@@ -12,27 +12,31 @@ namespace StrawberryShake.CodeGeneration.Descriptors
     public class DependencyInjectionDescriptor : ICodeDescriptor
     {
         public DependencyInjectionDescriptor(
-            NameString name,
-            string @namespace,
+            ClientDescriptor clientDescriptor,
             IReadOnlyList<EntityTypeDescriptor> entities,
             List<OperationDescriptor> operations,
             IReadOnlyList<ITypeDescriptor> typeDescriptors,
-            IReadOnlyList<TransportProfile> transportProfiles)
+            IReadOnlyList<TransportProfile> transportProfiles,
+            EntityIdFactoryDescriptor entityIdFactoryDescriptor,
+            StoreAccessorDescriptor storeAccessorDescriptor)
         {
-            RuntimeType = new(name, @namespace);
+            ClientDescriptor = clientDescriptor;
+            Name = clientDescriptor.Name;
             Entities = entities;
             Operations = operations;
             TypeDescriptors = typeDescriptors;
             TransportProfiles = transportProfiles;
-            EnumTypeDescriptor = typeDescriptors.OfType<EnumTypeDescriptor>().ToList();;
+            EntityIdFactoryDescriptor = entityIdFactoryDescriptor;
+            StoreAccessor = storeAccessorDescriptor;
+            EnumTypeDescriptor = typeDescriptors.OfType<EnumTypeDescriptor>().ToList();
         }
 
         /// <summary>
         /// The name of the client
         /// </summary>
-        public NameString Name => RuntimeType.Name;
+        public NameString Name { get; }
 
-        public RuntimeTypeInfo RuntimeType { get; }
+        public ClientDescriptor ClientDescriptor { get; }
 
         public IReadOnlyList<EntityTypeDescriptor> Entities { get; }
 
@@ -41,6 +45,10 @@ namespace StrawberryShake.CodeGeneration.Descriptors
         public IReadOnlyList<EnumTypeDescriptor> EnumTypeDescriptor { get; }
 
         public IReadOnlyList<TransportProfile> TransportProfiles { get; }
+
+        public EntityIdFactoryDescriptor EntityIdFactoryDescriptor { get; }
+
+        public StoreAccessorDescriptor StoreAccessor { get; }
 
         /// <summary>
         /// The operations that are contained in this client class

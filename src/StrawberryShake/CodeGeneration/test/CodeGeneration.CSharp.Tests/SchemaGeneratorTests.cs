@@ -57,6 +57,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "extend schema @key(fields: \"id\")");
         }
 
+        [Fact]
         public void Create_Query_With_Skip_Take()
         {
             AssertResult(
@@ -177,6 +178,26 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         [Fact]
+        public void Create_GetFeatById()
+        {
+            AssertResult(
+                @"query GetFeatById($id: Uuid!) {
+                    feats(where: {id: {eq: $id}}) {
+                        items {
+                            id,
+                            name,
+                            level,
+                            details {
+                                text
+                            }
+                        }
+                    }
+                }",
+                "extend schema @key(fields: \"id\")",
+                FileResource.Open("Schema_Bug_1.graphql"));
+        }
+
+        [Fact]
         public void Create_DataType_Query()
         {
             AssertResult(
@@ -219,6 +240,100 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }",
                 "extend schema @key(fields: \"id\")",
                 FileResource.Open("Schema_Bug_2.graphql"));
+        }
+
+        [Fact]
+        public void QueryInterference()
+        {
+            AssertResult(
+                @"query GetFeatsPage(
+                  $skip: Int!
+                  $take: Int!
+                  $searchTerm: String! = """"
+                  $order: [FeatSortInput!] = [{ name: ASC }]
+                ) {
+                  feats(
+                    skip: $skip
+                    take: $take
+                    order: $order
+                    where: {
+                      or: [
+                        { name: { contains: $searchTerm } }
+                        { traits: { some: { name: { contains: $searchTerm } } } }
+                      ]
+                    }
+                  ) {
+                    totalCount
+                    items {
+                      ...FeatsPage
+                    }
+                  }
+                }
+
+                fragment FeatsPage on Feat {
+                  id
+                  name
+                  level
+                  canBeLearnedMoreThanOnce
+                  details {
+                    text
+                  }
+                }",
+                @"query GetFeatById($id: Uuid!) {
+                  feats(where: { id: { eq: $id } }) {
+                    items {
+                      ...FeatById
+                    }
+                  }
+                }
+
+                fragment FeatById on Feat {
+                  id
+                  name
+                  level
+                  special
+                  trigger
+                  details {
+                    text
+                  }
+                  actionType {
+                    name
+                  }
+                }",
+                "extend schema @key(fields: \"id\")",
+                FileResource.Open("Schema_Bug_1.graphql"));
+        }
+
+        [Fact]
+        public void NodeTypenameCollision()
+        {
+            AssertResult(
+                @"
+                type Query {
+                    node(id: ID!): Node
+                    workspaces: [Workspace!]!
+                }
+
+                interface Node {
+                    id: ID!
+                }
+
+                type Workspace implements Node {
+                    id: ID!
+                    name: String!
+                    url: String!
+                    workspaceId: String!
+                    description: String
+                }
+                ",
+                @"
+                query Nodes($id: ID!) {
+                    node(id: $id) {
+                        __typename
+                        id
+                    }
+                }",
+                "extend schema @key(fields: \"id\")");
         }
     }
 }

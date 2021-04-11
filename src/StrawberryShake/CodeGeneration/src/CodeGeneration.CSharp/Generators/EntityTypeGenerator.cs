@@ -4,6 +4,7 @@ using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
@@ -24,6 +25,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .SetComment(descriptor.Documentation)
                 .SetName(fileName);
 
+            ConstructorBuilder constructorBuilder = classBuilder
+                .AddConstructor()
+                .SetPublic()
+                .SetTypeName(fileName);
+
             // Add Properties to class
             foreach (KeyValuePair<string, PropertyDescriptor> item in descriptor.Properties)
             {
@@ -31,9 +37,24 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .AddProperty(item.Value.Name)
                     .SetComment(item.Value.Description)
                     .SetType(item.Value.Type.ToStateTypeReference())
-                    .MakeSettable()
-                    .SetPublic()
-                    .SetValue(item.Value.Type.IsNullableType() ? null : "default!");
+                    .SetPublic();
+
+                var paramName = item.Value.Name == WellKnownNames.TypeName 
+                    ? WellKnownNames.TypeName
+                    : GetParameterName(item.Value.Name);
+                    
+                constructorBuilder
+                    .AddParameter(
+                        paramName,
+                        x => x.SetType(item.Value.Type.ToStateTypeReference()))
+                    .AddCode(AssignmentBuilder
+                        .New()
+                        .SetLefthandSide(
+                            (item.Value.Name == WellKnownNames.TypeName
+                                ? "this."
+                                : string.Empty) +
+                            item.Value.Name)
+                        .SetRighthandSide(paramName));
             }
 
             CodeFileBuilder

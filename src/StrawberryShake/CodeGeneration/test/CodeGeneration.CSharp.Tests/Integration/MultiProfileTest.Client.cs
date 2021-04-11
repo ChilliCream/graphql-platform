@@ -20,9 +20,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class DroidEntity
     {
-        public global::System.String Name { get; set; } = default!;
+        public DroidEntity(
+            global::System.String name,
+            global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.CharacterConnectionData? friends)
+        {
+            Name = name;
+            Friends = friends;
+        }
 
-        public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.CharacterConnectionData? Friends { get; set; }
+        public global::System.String Name { get; }
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.CharacterConnectionData? Friends { get; }
     }
 }
 
@@ -38,9 +46,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class HumanEntity
     {
-        public global::System.String Name { get; set; } = default!;
+        public HumanEntity(
+            global::System.String name,
+            global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.CharacterConnectionData? friends)
+        {
+            Name = name;
+            Friends = friends;
+        }
 
-        public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.CharacterConnectionData? Friends { get; set; }
+        public global::System.String Name { get; }
+
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.CharacterConnectionData? Friends { get; }
     }
 }
 
@@ -55,7 +71,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroResultFactory
-        : global::StrawberryShake.IOperationResultDataFactory<GetHeroResult>
+        : global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHeroResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity, GetHero_Hero_Droid> _getHero_Hero_DroidFromDroidEntityMapper;
@@ -74,17 +90,30 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                  ?? throw new global::System.ArgumentNullException(nameof(getHero_Hero_HumanFromHumanEntityMapper));
         }
 
-        public GetHeroResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
+        global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult);
+
+        public GetHeroResult Create(
+            global::StrawberryShake.IOperationResultDataInfo dataInfo,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             if (dataInfo is GetHeroResultInfo info)
             {
-                return new GetHeroResult(MapIGetHero_Hero(info.Hero));
+                return new GetHeroResult(MapIGetHero_Hero(
+                    info.Hero,
+                    snapshot));
             }
 
             throw new global::System.ArgumentException("GetHeroResultInfo expected.");
         }
 
-        private global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero? MapIGetHero_Hero(global::StrawberryShake.EntityId? entityId)
+        private global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero? MapIGetHero_Hero(
+            global::StrawberryShake.EntityId? entityId,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             if (entityId is null)
             {
@@ -97,7 +126,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                     global::System.StringComparison.Ordinal))
             {
                 return _getHero_Hero_DroidFromDroidEntityMapper.Map(
-                    _entityStore.GetEntity<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity>(entityId.Value)
+                    snapshot.GetEntity<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity>(entityId.Value)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
 
@@ -106,10 +135,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                     global::System.StringComparison.Ordinal))
             {
                 return _getHero_Hero_HumanFromHumanEntityMapper.Map(
-                    _entityStore.GetEntity<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity>(entityId.Value)
+                    snapshot.GetEntity<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity>(entityId.Value)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
+        }
+
+        global::System.Object global::StrawberryShake.IOperationResultDataFactory.Create(
+            global::StrawberryShake.IOperationResultDataInfo dataInfo,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot)
+        {
+            return Create(
+                dataInfo,
+                snapshot);
         }
     }
 }
@@ -191,7 +229,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                     this,
                     obj))
             {
-                return false;
+                return true;
             }
 
             if (obj.GetType() != GetType())
@@ -215,7 +253,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                     this,
                     other))
             {
-                return false;
+                return true;
             }
 
             if (other.GetType() != GetType())
@@ -273,14 +311,25 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                  ?? throw new global::System.ArgumentNullException(nameof(getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper));
         }
 
-        public GetHero_Hero_Droid Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity entity)
+        public GetHero_Hero_Droid Map(
+            global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity entity,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new GetHero_Hero_Droid(
                 entity.Name,
-                MapIGetHero_Hero_Friends(entity.Friends));
+                MapIGetHero_Hero_Friends(
+                    entity.Friends,
+                    snapshot));
         }
 
-        private global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends? MapIGetHero_Hero_Friends(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.CharacterConnectionData? data)
+        private global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends? MapIGetHero_Hero_Friends(
+            global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.CharacterConnectionData? data,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             if (data is null)
             {
@@ -293,7 +342,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                     "CharacterConnection",
                     global::System.StringComparison.Ordinal) ?? false)
             {
-                returnValue = new GetHero_Hero_Friends_CharacterConnection(MapIGetHero_Hero_Friends_NodesArray(data.Nodes));
+                returnValue = new GetHero_Hero_Friends_CharacterConnection(MapIGetHero_Hero_Friends_NodesArray(
+                    data.Nodes,
+                    snapshot));
             }
             else
             {
@@ -302,7 +353,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
             return returnValue;
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends_Nodes?>? MapIGetHero_Hero_Friends_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends_Nodes?>? MapIGetHero_Hero_Friends_NodesArray(
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             if (list is null)
             {
@@ -313,13 +366,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 
             foreach (global::StrawberryShake.EntityId? child in list)
             {
-                characters.Add(MapIGetHero_Hero_Friends_Nodes(child));
+                characters.Add(MapIGetHero_Hero_Friends_Nodes(
+                    child,
+                    snapshot));
             }
 
             return characters;
         }
 
-        private global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends_Nodes? MapIGetHero_Hero_Friends_Nodes(global::StrawberryShake.EntityId? entityId)
+        private global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends_Nodes? MapIGetHero_Hero_Friends_Nodes(
+            global::StrawberryShake.EntityId? entityId,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             if (entityId is null)
             {
@@ -332,7 +389,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                     global::System.StringComparison.Ordinal))
             {
                 return _getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper.Map(
-                    _entityStore.GetEntity<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity>(entityId.Value)
+                    snapshot.GetEntity<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity>(entityId.Value)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
 
@@ -341,7 +398,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                     global::System.StringComparison.Ordinal))
             {
                 return _getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper.Map(
-                    _entityStore.GetEntity<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity>(entityId.Value)
+                    snapshot.GetEntity<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity>(entityId.Value)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -388,7 +445,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                     this,
                     obj))
             {
-                return false;
+                return true;
             }
 
             if (obj.GetType() != GetType())
@@ -412,7 +469,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                     this,
                     other))
             {
-                return false;
+                return true;
             }
 
             if (other.GetType() != GetType())
@@ -473,14 +530,25 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                  ?? throw new global::System.ArgumentNullException(nameof(getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper));
         }
 
-        public GetHero_Hero_Human Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity entity)
+        public GetHero_Hero_Human Map(
+            global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity entity,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new GetHero_Hero_Human(
                 entity.Name,
-                MapIGetHero_Hero_Friends(entity.Friends));
+                MapIGetHero_Hero_Friends(
+                    entity.Friends,
+                    snapshot));
         }
 
-        private global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends? MapIGetHero_Hero_Friends(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.CharacterConnectionData? data)
+        private global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends? MapIGetHero_Hero_Friends(
+            global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.CharacterConnectionData? data,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             if (data is null)
             {
@@ -493,7 +561,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                     "CharacterConnection",
                     global::System.StringComparison.Ordinal) ?? false)
             {
-                returnValue = new GetHero_Hero_Friends_CharacterConnection(MapIGetHero_Hero_Friends_NodesArray(data.Nodes));
+                returnValue = new GetHero_Hero_Friends_CharacterConnection(MapIGetHero_Hero_Friends_NodesArray(
+                    data.Nodes,
+                    snapshot));
             }
             else
             {
@@ -502,7 +572,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
             return returnValue;
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends_Nodes?>? MapIGetHero_Hero_Friends_NodesArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list)
+        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends_Nodes?>? MapIGetHero_Hero_Friends_NodesArray(
+            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             if (list is null)
             {
@@ -513,13 +585,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 
             foreach (global::StrawberryShake.EntityId? child in list)
             {
-                characters.Add(MapIGetHero_Hero_Friends_Nodes(child));
+                characters.Add(MapIGetHero_Hero_Friends_Nodes(
+                    child,
+                    snapshot));
             }
 
             return characters;
         }
 
-        private global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends_Nodes? MapIGetHero_Hero_Friends_Nodes(global::StrawberryShake.EntityId? entityId)
+        private global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHero_Hero_Friends_Nodes? MapIGetHero_Hero_Friends_Nodes(
+            global::StrawberryShake.EntityId? entityId,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             if (entityId is null)
             {
@@ -532,7 +608,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                     global::System.StringComparison.Ordinal))
             {
                 return _getHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper.Map(
-                    _entityStore.GetEntity<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity>(entityId.Value)
+                    snapshot.GetEntity<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity>(entityId.Value)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
 
@@ -541,7 +617,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                     global::System.StringComparison.Ordinal))
             {
                 return _getHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper.Map(
-                    _entityStore.GetEntity<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity>(entityId.Value)
+                    snapshot.GetEntity<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity>(entityId.Value)
                         ?? throw new global::StrawberryShake.GraphQLClientException());
             }
             throw new global::System.NotSupportedException();
@@ -588,7 +664,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                     this,
                     obj))
             {
-                return false;
+                return true;
             }
 
             if (obj.GetType() != GetType())
@@ -612,7 +688,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                     this,
                     other))
             {
-                return false;
+                return true;
             }
 
             if (other.GetType() != GetType())
@@ -683,7 +759,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                     this,
                     obj))
             {
-                return false;
+                return true;
             }
 
             if (obj.GetType() != GetType())
@@ -707,7 +783,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                     this,
                     other))
             {
-                return false;
+                return true;
             }
 
             if (other.GetType() != GetType())
@@ -756,8 +832,23 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
     public partial class GetHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper
         : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity, GetHero_Hero_Friends_Nodes_Droid>
     {
-        public GetHero_Hero_Friends_Nodes_Droid Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity entity)
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public GetHero_Hero_Friends_Nodes_DroidFromDroidEntityMapper(global::StrawberryShake.IEntityStore entityStore)
         {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public GetHero_Hero_Friends_Nodes_Droid Map(
+            global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity entity,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new GetHero_Hero_Friends_Nodes_Droid(entity.Name);
         }
     }
@@ -797,7 +888,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                     this,
                     obj))
             {
-                return false;
+                return true;
             }
 
             if (obj.GetType() != GetType())
@@ -821,7 +912,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                     this,
                     other))
             {
-                return false;
+                return true;
             }
 
             if (other.GetType() != GetType())
@@ -859,8 +950,23 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
     public partial class GetHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper
         : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity, GetHero_Hero_Friends_Nodes_Human>
     {
-        public GetHero_Hero_Friends_Nodes_Human Map(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity entity)
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+
+        public GetHero_Hero_Friends_Nodes_HumanFromHumanEntityMapper(global::StrawberryShake.IEntityStore entityStore)
         {
+            _entityStore = entityStore
+                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public GetHero_Hero_Friends_Nodes_Human Map(
+            global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity entity,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             return new GetHero_Hero_Friends_Nodes_Human(entity.Name);
         }
     }
@@ -900,7 +1006,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                     this,
                     obj))
             {
-                return false;
+                return true;
             }
 
             if (obj.GetType() != GetType())
@@ -924,7 +1030,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                     this,
                     other))
             {
-                return false;
+                return true;
             }
 
             if (other.GetType() != GetType())
@@ -1115,7 +1221,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReviewSubResultFactory
-        : global::StrawberryShake.IOperationResultDataFactory<OnReviewSubResult>
+        : global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.OnReviewSubResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
 
@@ -1125,17 +1231,30 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
         }
 
-        public OnReviewSubResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
+        global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult);
+
+        public OnReviewSubResult Create(
+            global::StrawberryShake.IOperationResultDataInfo dataInfo,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             if (dataInfo is OnReviewSubResultInfo info)
             {
-                return new OnReviewSubResult(MapNonNullableIOnReviewSub_OnReview(info.OnReview));
+                return new OnReviewSubResult(MapNonNullableIOnReviewSub_OnReview(
+                    info.OnReview,
+                    snapshot));
             }
 
             throw new global::System.ArgumentException("OnReviewSubResultInfo expected.");
         }
 
-        private global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSub_OnReview MapNonNullableIOnReviewSub_OnReview(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.ReviewData data)
+        private global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSub_OnReview MapNonNullableIOnReviewSub_OnReview(
+            global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.ReviewData data,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             IOnReviewSub_OnReview returnValue = default!;
 
@@ -1146,13 +1265,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                 returnValue = new OnReviewSub_OnReview_Review(
                     data.__typename ?? throw new global::System.ArgumentNullException(),
                     data.Stars ?? throw new global::System.ArgumentNullException(),
-                    data.Commentary ?? throw new global::System.ArgumentNullException());
+                    data.Commentary);
             }
             else
             {
                 throw new global::System.NotSupportedException();
             }
             return returnValue;
+        }
+
+        global::System.Object global::StrawberryShake.IOperationResultDataFactory.Create(
+            global::StrawberryShake.IOperationResultDataInfo dataInfo,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot)
+        {
+            return Create(
+                dataInfo,
+                snapshot);
         }
     }
 }
@@ -1234,7 +1362,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                     this,
                     obj))
             {
-                return false;
+                return true;
             }
 
             if (obj.GetType() != GetType())
@@ -1258,7 +1386,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                     this,
                     other))
             {
-                return false;
+                return true;
             }
 
             if (other.GetType() != GetType())
@@ -1329,7 +1457,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                     this,
                     obj))
             {
-                return false;
+                return true;
             }
 
             if (obj.GetType() != GetType())
@@ -1353,7 +1481,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                     this,
                     other))
             {
-                return false;
+                return true;
             }
 
             if (other.GetType() != GetType())
@@ -1453,7 +1581,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMutResultFactory
-        : global::StrawberryShake.IOperationResultDataFactory<CreateReviewMutResult>
+        : global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.CreateReviewMutResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
 
@@ -1463,17 +1591,30 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
         }
 
-        public CreateReviewMutResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo)
+        global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult);
+
+        public CreateReviewMutResult Create(
+            global::StrawberryShake.IOperationResultDataInfo dataInfo,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
         {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
             if (dataInfo is CreateReviewMutResultInfo info)
             {
-                return new CreateReviewMutResult(MapNonNullableICreateReviewMut_CreateReview(info.CreateReview));
+                return new CreateReviewMutResult(MapNonNullableICreateReviewMut_CreateReview(
+                    info.CreateReview,
+                    snapshot));
             }
 
             throw new global::System.ArgumentException("CreateReviewMutResultInfo expected.");
         }
 
-        private global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMut_CreateReview MapNonNullableICreateReviewMut_CreateReview(global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.ReviewData data)
+        private global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMut_CreateReview MapNonNullableICreateReviewMut_CreateReview(
+            global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.ReviewData data,
+            global::StrawberryShake.IEntityStoreSnapshot snapshot)
         {
             ICreateReviewMut_CreateReview returnValue = default!;
 
@@ -1483,13 +1624,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
             {
                 returnValue = new CreateReviewMut_CreateReview_Review(
                     data.Stars ?? throw new global::System.ArgumentNullException(),
-                    data.Commentary ?? throw new global::System.ArgumentNullException());
+                    data.Commentary);
             }
             else
             {
                 throw new global::System.NotSupportedException();
             }
             return returnValue;
+        }
+
+        global::System.Object global::StrawberryShake.IOperationResultDataFactory.Create(
+            global::StrawberryShake.IOperationResultDataInfo dataInfo,
+            global::StrawberryShake.IEntityStoreSnapshot? snapshot)
+        {
+            return Create(
+                dataInfo,
+                snapshot);
         }
     }
 }
@@ -1571,7 +1721,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                     this,
                     obj))
             {
-                return false;
+                return true;
             }
 
             if (obj.GetType() != GetType())
@@ -1595,7 +1745,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                     this,
                     other))
             {
-                return false;
+                return true;
             }
 
             if (other.GetType() != GetType())
@@ -1659,7 +1809,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                     this,
                     obj))
             {
-                return false;
+                return true;
             }
 
             if (obj.GetType() != GetType())
@@ -1683,7 +1833,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                     this,
                     other))
             {
-                return false;
+                return true;
             }
 
             if (other.GetType() != GetType())
@@ -1817,7 +1967,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
         private global::System.Object? FormatCommentary(global::System.String? value)
         {
-            return _stringFormatter.Format(value);
+            if (!(value is null))
+            {
+                return _stringFormatter.Format(value);
+            }
+            else
+            {
+                return value;
+            }
         }
     }
 }
@@ -1955,7 +2112,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
         public override global::System.String ToString()
         {
+            #if NETSTANDARD2_0
+            return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
+            #else
             return global::System.Text.Encoding.UTF8.GetString(Body);
+            #endif
         }
     }
 }
@@ -2001,6 +2162,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroQuery
+        : global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetHeroResult> _operationExecutor;
 
@@ -2009,6 +2171,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             _operationExecutor = operationExecutor
                  ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
+
+        global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetHeroResult);
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
@@ -2032,12 +2196,72 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         private global::StrawberryShake.OperationRequest CreateRequest()
         {
 
+            return CreateRequest(null);
+        }
+
+        private global::StrawberryShake.OperationRequest CreateRequest(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
+        {
+
             return new global::StrawberryShake.OperationRequest(
                 id: GetHeroQueryDocument.Instance.Hash.Value,
                 name: "GetHero",
                 document: GetHeroQueryDocument.Instance,
                 strategy: global::StrawberryShake.RequestStrategy.Default);
         }
+
+        global::StrawberryShake.OperationRequest global::StrawberryShake.IOperationRequestFactory.Create(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
+        {
+            return CreateRequest();
+        }
+    }
+}
+
+
+// IGetHeroQuery
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+
+#nullable enable
+
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
+{
+    /// <summary>
+    /// Represents the operation service of the GetHero GraphQL operation
+    /// <code>
+    /// query GetHero {
+    ///   hero(episode: NEW_HOPE) {
+    ///     __typename
+    ///     name
+    ///     friends {
+    ///       __typename
+    ///       nodes {
+    ///         __typename
+    ///         name
+    ///         ... on Droid {
+    ///           id
+    ///         }
+    ///         ... on Human {
+    ///           id
+    ///         }
+    ///       }
+    ///     }
+    ///     ... on Droid {
+    ///       id
+    ///     }
+    ///     ... on Human {
+    ///       id
+    ///     }
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IGetHeroQuery
+        : global::StrawberryShake.IOperationRequestFactory
+    {
+        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetHeroResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
+
+        global::System.IObservable<global::StrawberryShake.IOperationResult<IGetHeroResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 }
 
@@ -2080,7 +2304,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
         public override global::System.String ToString()
         {
+            #if NETSTANDARD2_0
+            return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
+            #else
             return global::System.Text.Encoding.UTF8.GetString(Body);
+            #endif
         }
     }
 }
@@ -2108,6 +2336,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReviewSubSubscription
+        : global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubSubscription
     {
         private readonly global::StrawberryShake.IOperationExecutor<IOnReviewSubResult> _operationExecutor;
 
@@ -2116,6 +2345,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             _operationExecutor = operationExecutor
                  ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
         }
+
+        global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IOnReviewSubResult);
 
         public global::System.IObservable<global::StrawberryShake.IOperationResult<IOnReviewSubResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
@@ -2128,12 +2359,52 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
         private global::StrawberryShake.OperationRequest CreateRequest()
         {
 
+            return CreateRequest(null);
+        }
+
+        private global::StrawberryShake.OperationRequest CreateRequest(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
+        {
+
             return new global::StrawberryShake.OperationRequest(
                 id: OnReviewSubSubscriptionDocument.Instance.Hash.Value,
                 name: "OnReviewSub",
                 document: OnReviewSubSubscriptionDocument.Instance,
                 strategy: global::StrawberryShake.RequestStrategy.Default);
         }
+
+        global::StrawberryShake.OperationRequest global::StrawberryShake.IOperationRequestFactory.Create(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
+        {
+            return CreateRequest();
+        }
+    }
+}
+
+
+// IOnReviewSubSubscription
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+
+#nullable enable
+
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
+{
+    /// <summary>
+    /// Represents the operation service of the OnReviewSub GraphQL operation
+    /// <code>
+    /// subscription OnReviewSub {
+    ///   onReview(episode: NEW_HOPE) {
+    ///     __typename
+    ///     stars
+    ///     commentary
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IOnReviewSubSubscription
+        : global::StrawberryShake.IOperationRequestFactory
+    {
+        global::System.IObservable<global::StrawberryShake.IOperationResult<IOnReviewSubResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 }
 
@@ -2176,7 +2447,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
         public override global::System.String ToString()
         {
+            #if NETSTANDARD2_0
+            return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
+            #else
             return global::System.Text.Encoding.UTF8.GetString(Body);
+            #endif
         }
     }
 }
@@ -2204,6 +2479,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMutMutation
+        : global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutMutation
     {
         private readonly global::StrawberryShake.IOperationExecutor<ICreateReviewMutResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _episodeFormatter;
@@ -2218,6 +2494,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             _episodeFormatter = serializerResolver.GetInputValueFormatter("Episode");
             _reviewInputFormatter = serializerResolver.GetInputValueFormatter("ReviewInput");
         }
+
+        global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ICreateReviewMutResult);
 
         public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ICreateReviewMutResult>> ExecuteAsync(
             global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.Episode episode,
@@ -2261,6 +2539,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                 "review",
                 FormatReview(review));
 
+            return CreateRequest(variables);
+        }
+
+        private global::StrawberryShake.OperationRequest CreateRequest(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
+        {
+
             return new global::StrawberryShake.OperationRequest(
                 id: CreateReviewMutMutationDocument.Instance.Hash.Value,
                 name: "CreateReviewMut",
@@ -2283,6 +2567,48 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
             return _reviewInputFormatter.Format(value);
         }
+
+        global::StrawberryShake.OperationRequest global::StrawberryShake.IOperationRequestFactory.Create(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
+        {
+            return CreateRequest(variables!);
+        }
+    }
+}
+
+
+// ICreateReviewMutMutation
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+
+#nullable enable
+
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
+{
+    /// <summary>
+    /// Represents the operation service of the CreateReviewMut GraphQL operation
+    /// <code>
+    /// mutation CreateReviewMut($episode: Episode!, $review: ReviewInput!) {
+    ///   createReview(episode: $episode, review: $review) {
+    ///     __typename
+    ///     stars
+    ///     commentary
+    ///   }
+    /// }
+    /// </code>
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface ICreateReviewMutMutation
+        : global::StrawberryShake.IOperationRequestFactory
+    {
+        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ICreateReviewMutResult>> ExecuteAsync(
+            global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.Episode episode,
+            global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ReviewInput review,
+            global::System.Threading.CancellationToken cancellationToken = default);
+
+        global::System.IObservable<global::StrawberryShake.IOperationResult<ICreateReviewMutResult>> Watch(
+            global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.Episode episode,
+            global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ReviewInput review,
+            global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 }
 
@@ -2297,23 +2623,23 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetHeroBuilder
-        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IGetHeroResult>
+        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
-        private readonly global::StrawberryShake.IOperationResultDataFactory<IGetHeroResult> _resultDataFactory;
+        private readonly global::StrawberryShake.IEntityIdSerializer _idSerializer;
+        private readonly global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult> _resultDataFactory;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
 
         public GetHeroBuilder(
             global::StrawberryShake.IEntityStore entityStore,
-            global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> extractId,
-            global::StrawberryShake.IOperationResultDataFactory<IGetHeroResult> resultDataFactory,
+            global::StrawberryShake.IEntityIdSerializer idSerializer,
+            global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult> resultDataFactory,
             global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _extractId = extractId
-                 ?? throw new global::System.ArgumentNullException(nameof(extractId));
+            _idSerializer = idSerializer
+                 ?? throw new global::System.ArgumentNullException(nameof(idSerializer));
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
@@ -2325,16 +2651,27 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
             (IGetHeroResult Result, GetHeroResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
-            if (response.Body != null)
+            try
             {
-                if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
+                if (response.Body != null)
                 {
-                    data = BuildData(dataElement);
+                    if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                    {
+                        data = BuildData(dataElement);
+                    }
+                    if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                    {
+                        errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                    }
                 }
-                if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
-                {
-                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
-                }
+            }
+            catch(global::System.Exception ex)
+            {
+                errors = new global::StrawberryShake.IClientError[] {
+                    new global::StrawberryShake.ClientError(
+                        ex.Message,
+                        exception: ex)
+                };
             }
 
             return new global::StrawberryShake.OperationResult<IGetHeroResult>(
@@ -2346,19 +2683,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 
         private (IGetHeroResult, GetHeroResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
-            using global::StrawberryShake.IEntityUpdateSession session = _entityStore.BeginUpdate();
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
+            global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
 
-            global::StrawberryShake.EntityId? heroId = UpdateIGetHero_HeroEntity(
-                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                    obj,
-                    "hero"),
-                entityIds);
+            global::StrawberryShake.EntityId? heroId = default!;
+            _entityStore.Update(session => 
+            {
+                heroId = UpdateIGetHero_HeroEntity(
+                    session,
+                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                        obj,
+                        "hero"),
+                    entityIds);
+
+                snapshot = session.CurrentSnapshot;
+            });
 
             var resultInfo = new GetHeroResultInfo(
                 heroId,
                 entityIds,
-                session.Version);
+                snapshot.Version);
 
             return (
                 _resultDataFactory.Create(resultInfo),
@@ -2367,6 +2711,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
 
         private global::StrawberryShake.EntityId? UpdateIGetHero_HeroEntity(
+            global::StrawberryShake.IEntityStoreUpdateSession session,
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
@@ -2375,7 +2720,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                 return null;
             }
 
-            global::StrawberryShake.EntityId entityId = _extractId(obj.Value);
+            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
             entityIds.Add(entityId);
 
 
@@ -2383,16 +2728,40 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                     "Droid",
                     global::System.StringComparison.Ordinal))
             {
-                global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity entity = _entityStore.GetOrCreate<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity>(entityId);
-                entity.Name = DeserializeNonNullableString(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "name"));
-                entity.Friends = DeserializeIGetHero_Hero_Friends(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "friends"),
-                    entityIds);
+                if (session.CurrentSnapshot.TryGetEntity(
+                        entityId,
+                        out global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity? entity))
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity(
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "name")),
+                            DeserializeIGetHero_Hero_Friends(
+                                session,
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "friends"),
+                                entityIds)));
+                }
+                else
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity(
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "name")),
+                            DeserializeIGetHero_Hero_Friends(
+                                session,
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "friends"),
+                                entityIds)));
+                }
 
                 return entityId;
             }
@@ -2401,16 +2770,40 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                     "Human",
                     global::System.StringComparison.Ordinal))
             {
-                global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity entity = _entityStore.GetOrCreate<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity>(entityId);
-                entity.Name = DeserializeNonNullableString(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "name"));
-                entity.Friends = DeserializeIGetHero_Hero_Friends(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "friends"),
-                    entityIds);
+                if (session.CurrentSnapshot.TryGetEntity(
+                        entityId,
+                        out global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity? entity))
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity(
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "name")),
+                            DeserializeIGetHero_Hero_Friends(
+                                session,
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "friends"),
+                                entityIds)));
+                }
+                else
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity(
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "name")),
+                            DeserializeIGetHero_Hero_Friends(
+                                session,
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "friends"),
+                                entityIds)));
+                }
 
                 return entityId;
             }
@@ -2429,6 +2822,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
 
         private global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.CharacterConnectionData? DeserializeIGetHero_Hero_Friends(
+            global::StrawberryShake.IEntityStoreUpdateSession session,
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
@@ -2446,6 +2840,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                 return new global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.CharacterConnectionData(
                     typename,
                     nodes: UpdateIGetHero_Hero_Friends_NodesEntityArray(
+                        session,
                         global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
                             obj,
                             "nodes"),
@@ -2456,6 +2851,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
 
         private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? UpdateIGetHero_Hero_Friends_NodesEntityArray(
+            global::StrawberryShake.IEntityStoreUpdateSession session,
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
@@ -2469,6 +2865,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
                 characters.Add(UpdateIGetHero_Hero_Friends_NodesEntity(
+                    session,
                     child,
                     entityIds));
             }
@@ -2477,6 +2874,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         }
 
         private global::StrawberryShake.EntityId? UpdateIGetHero_Hero_Friends_NodesEntity(
+            global::StrawberryShake.IEntityStoreUpdateSession session,
             global::System.Text.Json.JsonElement? obj,
             global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
@@ -2485,7 +2883,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                 return null;
             }
 
-            global::StrawberryShake.EntityId entityId = _extractId(obj.Value);
+            global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
             entityIds.Add(entityId);
 
 
@@ -2493,11 +2891,30 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                     "Droid",
                     global::System.StringComparison.Ordinal))
             {
-                global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity entity = _entityStore.GetOrCreate<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity>(entityId);
-                entity.Name = DeserializeNonNullableString(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "name"));
+                if (session.CurrentSnapshot.TryGetEntity(
+                        entityId,
+                        out global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity? entity))
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity(
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "name")),
+                            entity.Friends));
+                }
+                else
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.DroidEntity(
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "name")),
+                            default!));
+                }
 
                 return entityId;
             }
@@ -2506,11 +2923,30 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                     "Human",
                     global::System.StringComparison.Ordinal))
             {
-                global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity entity = _entityStore.GetOrCreate<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity>(entityId);
-                entity.Name = DeserializeNonNullableString(
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "name"));
+                if (session.CurrentSnapshot.TryGetEntity(
+                        entityId,
+                        out global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity? entity))
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity(
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "name")),
+                            entity.Friends));
+                }
+                else
+                {
+                    session.SetEntity(
+                        entityId,
+                        new global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.HumanEntity(
+                            DeserializeNonNullableString(
+                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
+                                    obj,
+                                    "name")),
+                            default!));
+                }
 
                 return entityId;
             }
@@ -2531,24 +2967,24 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class OnReviewSubBuilder
-        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, IOnReviewSubResult>
+        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
-        private readonly global::StrawberryShake.IOperationResultDataFactory<IOnReviewSubResult> _resultDataFactory;
+        private readonly global::StrawberryShake.IEntityIdSerializer _idSerializer;
+        private readonly global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult> _resultDataFactory;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
 
         public OnReviewSubBuilder(
             global::StrawberryShake.IEntityStore entityStore,
-            global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> extractId,
-            global::StrawberryShake.IOperationResultDataFactory<IOnReviewSubResult> resultDataFactory,
+            global::StrawberryShake.IEntityIdSerializer idSerializer,
+            global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult> resultDataFactory,
             global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _extractId = extractId
-                 ?? throw new global::System.ArgumentNullException(nameof(extractId));
+            _idSerializer = idSerializer
+                 ?? throw new global::System.ArgumentNullException(nameof(idSerializer));
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
@@ -2562,16 +2998,27 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
             (IOnReviewSubResult Result, OnReviewSubResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
-            if (response.Body != null)
+            try
             {
-                if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
+                if (response.Body != null)
                 {
-                    data = BuildData(dataElement);
+                    if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                    {
+                        data = BuildData(dataElement);
+                    }
+                    if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                    {
+                        errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                    }
                 }
-                if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
-                {
-                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
-                }
+            }
+            catch(global::System.Exception ex)
+            {
+                errors = new global::StrawberryShake.IClientError[] {
+                    new global::StrawberryShake.ClientError(
+                        ex.Message,
+                        exception: ex)
+                };
             }
 
             return new global::StrawberryShake.OperationResult<IOnReviewSubResult>(
@@ -2583,9 +3030,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 
         private (IOnReviewSubResult, OnReviewSubResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
-            using global::StrawberryShake.IEntityUpdateSession session = _entityStore.BeginUpdate();
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
+            global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
 
+            _entityStore.Update(session => 
+            {
+
+                snapshot = session.CurrentSnapshot;
+            });
 
             var resultInfo = new OnReviewSubResultInfo(
                 DeserializeNonNullableIOnReviewSub_OnReview(
@@ -2593,7 +3045,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                         obj,
                         "onReview")),
                 entityIds,
-                session.Version);
+                snapshot.Version);
 
             return (
                 _resultDataFactory.Create(resultInfo),
@@ -2672,25 +3124,25 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class CreateReviewMutBuilder
-        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, ICreateReviewMutResult>
+        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> _extractId;
-        private readonly global::StrawberryShake.IOperationResultDataFactory<ICreateReviewMutResult> _resultDataFactory;
+        private readonly global::StrawberryShake.IEntityIdSerializer _idSerializer;
+        private readonly global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult> _resultDataFactory;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.Episode> _episodeParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
 
         public CreateReviewMutBuilder(
             global::StrawberryShake.IEntityStore entityStore,
-            global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId> extractId,
-            global::StrawberryShake.IOperationResultDataFactory<ICreateReviewMutResult> resultDataFactory,
+            global::StrawberryShake.IEntityIdSerializer idSerializer,
+            global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult> resultDataFactory,
             global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _entityStore = entityStore
                  ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _extractId = extractId
-                 ?? throw new global::System.ArgumentNullException(nameof(extractId));
+            _idSerializer = idSerializer
+                 ?? throw new global::System.ArgumentNullException(nameof(idSerializer));
             _resultDataFactory = resultDataFactory
                  ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
             _episodeParser = serializerResolver.GetLeafValueParser<global::System.String, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.Episode>("Episode")
@@ -2706,16 +3158,27 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
             (ICreateReviewMutResult Result, CreateReviewMutResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
 
-            if (response.Body != null)
+            try
             {
-                if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement))
+                if (response.Body != null)
                 {
-                    data = BuildData(dataElement);
+                    if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                    {
+                        data = BuildData(dataElement);
+                    }
+                    if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                    {
+                        errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                    }
                 }
-                if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
-                {
-                    errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
-                }
+            }
+            catch(global::System.Exception ex)
+            {
+                errors = new global::StrawberryShake.IClientError[] {
+                    new global::StrawberryShake.ClientError(
+                        ex.Message,
+                        exception: ex)
+                };
             }
 
             return new global::StrawberryShake.OperationResult<ICreateReviewMutResult>(
@@ -2727,9 +3190,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 
         private (ICreateReviewMutResult, CreateReviewMutResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
-            using global::StrawberryShake.IEntityUpdateSession session = _entityStore.BeginUpdate();
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
+            global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
 
+            _entityStore.Update(session => 
+            {
+
+                snapshot = session.CurrentSnapshot;
+            });
 
             var resultInfo = new CreateReviewMutResultInfo(
                 DeserializeNonNullableICreateReviewMut_CreateReview(
@@ -2737,7 +3205,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                         obj,
                         "createReview")),
                 entityIds,
-                session.Version);
+                snapshot.Version);
 
             return (
                 _resultDataFactory.Create(resultInfo),
@@ -2811,11 +3279,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
     public partial class CharacterConnectionData
     {
         public CharacterConnectionData(
-            global::System.String typename,
+            global::System.String __typename,
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes = null)
         {
-            __typename = typename
-                 ?? throw new global::System.ArgumentNullException(nameof(typename));
+            this.__typename = __typename
+                 ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Nodes = nodes;
         }
 
@@ -2841,12 +3309,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
     public partial class ReviewData
     {
         public ReviewData(
-            global::System.String typename,
+            global::System.String __typename,
             global::System.Int32? stars = null,
             global::System.String? commentary = null)
         {
-            __typename = typename
-                 ?? throw new global::System.ArgumentNullException(nameof(typename));
+            this.__typename = __typename
+                 ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Stars = stars;
             Commentary = commentary;
         }
@@ -2873,15 +3341,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class MultiProfileClient
+        : global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IMultiProfileClient
     {
-        private readonly global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHeroQuery _getHero;
-        private readonly global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.OnReviewSubSubscription _onReviewSub;
-        private readonly global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.CreateReviewMutMutation _createReviewMut;
+        private readonly global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery _getHero;
+        private readonly global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubSubscription _onReviewSub;
+        private readonly global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutMutation _createReviewMut;
 
         public MultiProfileClient(
-            global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHeroQuery getHero,
-            global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.OnReviewSubSubscription onReviewSub,
-            global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.CreateReviewMutMutation createReviewMut)
+            global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery getHero,
+            global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubSubscription onReviewSub,
+            global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutMutation createReviewMut)
         {
             _getHero = getHero
                  ?? throw new global::System.ArgumentNullException(nameof(getHero));
@@ -2893,16 +3362,39 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
         public static global::System.String ClientName => "MultiProfileClient";
 
-        public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHeroQuery GetHero => _getHero;
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery GetHero => _getHero;
 
-        public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.OnReviewSubSubscription OnReviewSub => _onReviewSub;
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubSubscription OnReviewSub => _onReviewSub;
 
-        public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.CreateReviewMutMutation CreateReviewMut => _createReviewMut;
+        public global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutMutation CreateReviewMut => _createReviewMut;
     }
 }
 
 
-// EntityIdFactory
+// IMultiProfileClient
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
+
+#nullable enable
+
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
+{
+    /// <summary>
+    /// Represents the MultiProfileClient GraphQL client
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IMultiProfileClient
+    {
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery GetHero { get; }
+
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubSubscription OnReviewSub { get; }
+
+        global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutMutation CreateReviewMut { get; }
+    }
+}
+
+
+// MultiProfileClientEntityIdFactory
 
 // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
 
@@ -2911,27 +3403,40 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
 {
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public static partial class EntityIdFactory
+    public partial class MultiProfileClientEntityIdFactory
+        : global::StrawberryShake.IEntityIdSerializer
     {
-        public static global::StrawberryShake.EntityId CreateEntityId(global::System.Text.Json.JsonElement obj)
+        private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions(){ Indented = false };
+
+        public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
-            global::System.String typeName = obj
+            global::System.String __typename = obj
                 .GetProperty("__typename")
                 .GetString()!;
 
-            return typeName switch
+            return __typename switch
             {
-                "Droid" => CreateDroidEntityId(
+                "Droid" => ParseDroidEntityId(
                     obj,
-                    typeName),
-                "Human" => CreateHumanEntityId(
+                    __typename),
+                "Human" => ParseHumanEntityId(
                     obj,
-                    typeName),
+                    __typename),
                 _ => throw new global::System.NotSupportedException()
             };
         }
 
-        private static global::StrawberryShake.EntityId CreateDroidEntityId(
+        public global::System.String Format(global::StrawberryShake.EntityId entityId)
+        {
+            return entityId.Name switch
+            {
+                "Droid" => FormatDroidEntityId(entityId),
+                "Human" => FormatHumanEntityId(entityId),
+                _ => throw new global::System.NotSupportedException()
+            };
+        }
+
+        private global::StrawberryShake.EntityId ParseDroidEntityId(
             global::System.Text.Json.JsonElement obj,
             global::System.String type)
         {
@@ -2942,7 +3447,31 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                     .GetString()!);
         }
 
-        private static global::StrawberryShake.EntityId CreateHumanEntityId(
+        private global::System.String FormatDroidEntityId(global::StrawberryShake.EntityId entityId)
+        {
+            using var writer = new global::StrawberryShake.Internal.ArrayWriter();
+            using var jsonWriter = new global::System.Text.Json.Utf8JsonWriter(
+                writer,
+                _options);
+            jsonWriter.WriteStartObject();
+
+            jsonWriter.WriteString(
+                "__typename",
+                entityId.Name);
+
+            jsonWriter.WriteString(
+                "id",
+                (global::System.String)entityId.Value);
+            jsonWriter.WriteEndObject();
+            jsonWriter.Flush();
+
+            return global::System.Text.Encoding.UTF8.GetString(
+                writer.GetInternalBuffer(),
+                0,
+                writer.Length);
+        }
+
+        private global::StrawberryShake.EntityId ParseHumanEntityId(
             global::System.Text.Json.JsonElement obj,
             global::System.String type)
         {
@@ -2951,6 +3480,30 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
                 obj
                     .GetProperty("id")
                     .GetString()!);
+        }
+
+        private global::System.String FormatHumanEntityId(global::StrawberryShake.EntityId entityId)
+        {
+            using var writer = new global::StrawberryShake.Internal.ArrayWriter();
+            using var jsonWriter = new global::System.Text.Json.Utf8JsonWriter(
+                writer,
+                _options);
+            jsonWriter.WriteStartObject();
+
+            jsonWriter.WriteString(
+                "__typename",
+                entityId.Name);
+
+            jsonWriter.WriteString(
+                "id",
+                (global::System.String)entityId.Value);
+            jsonWriter.WriteEndObject();
+            jsonWriter.Flush();
+
+            return global::System.Text.Encoding.UTF8.GetString(
+                writer.GetInternalBuffer(),
+                0,
+                writer.Length);
         }
     }
 }
@@ -2967,7 +3520,7 @@ namespace Microsoft.Extensions.DependencyInjection
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class MultiProfileClientServiceCollectionExtensions
     {
-        public static global::StrawberryShake.IClientBuilder AddMultiProfileClient(
+        public static global::StrawberryShake.IClientBuilder<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.MultiProfileClientStoreAccessor> AddMultiProfileClient(
             this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly,
             global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.MultiProfileClientProfileKind profile = global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.MultiProfileClientProfileKind.InMemory)
@@ -2983,12 +3536,27 @@ namespace Microsoft.Extensions.DependencyInjection
                             strategy),
                         global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.MultiProfileClientProfileKind.Default => ConfigureClientDefault(
                             sp,
-                            strategy)
+                            strategy),
+                        _ => throw new global::System.ArgumentOutOfRangeException()
                     };
 
                     return new ClientServiceProvider(
                         global::Microsoft.Extensions.DependencyInjection.ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(serviceCollection));
                 });
+
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp => new global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.MultiProfileClientStoreAccessor(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)),
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)),
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityIdSerializer>(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)),
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory>>(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)),
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory>>(
+                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp))));
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
@@ -3007,8 +3575,12 @@ namespace Microsoft.Extensions.DependencyInjection
                 services,
                 sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.MultiProfileClient>(
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IMultiProfileClient>(
+                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
 
-            return new global::StrawberryShake.ClientBuilder(
+            return new global::StrawberryShake.ClientBuilder<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.MultiProfileClientStoreAccessor>(
                 "MultiProfileClient",
                 services);
         }
@@ -3018,15 +3590,10 @@ namespace Microsoft.Extensions.DependencyInjection
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
             var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(
-                services,
-                global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.EntityIdFactory.CreateEntityId);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(
                 services,
-                sp => new global::StrawberryShake.OperationStore(
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)
-                    .Watch()));
+                sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
                 sp => 
@@ -3069,6 +3636,12 @@ namespace Microsoft.Extensions.DependencyInjection
                             sp))));
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.GetHeroResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult>>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.GetHeroBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult>>(
                 services,
@@ -3078,7 +3651,16 @@ namespace Microsoft.Extensions.DependencyInjection
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                     strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHeroQuery>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHeroQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.OnReviewSubResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult>>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubSubscription>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.OnReviewSubBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult>>(
                 services,
@@ -3088,7 +3670,16 @@ namespace Microsoft.Extensions.DependencyInjection
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                     strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.OnReviewSubSubscription>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubSubscription>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.OnReviewSubSubscription>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.CreateReviewMutResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult>>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutMutation>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.CreateReviewMutBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult>>(
                 services,
@@ -3098,7 +3689,14 @@ namespace Microsoft.Extensions.DependencyInjection
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                     strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.CreateReviewMutMutation>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutMutation>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.CreateReviewMutMutation>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityIdSerializer, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.MultiProfileClientEntityIdFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.MultiProfileClient>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IMultiProfileClient>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.MultiProfileClient>(sp));
             return services;
         }
 
@@ -3107,23 +3705,18 @@ namespace Microsoft.Extensions.DependencyInjection
             global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
             var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::System.Func<global::System.Text.Json.JsonElement, global::StrawberryShake.EntityId>>(
-                services,
-                global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.EntityIdFactory.CreateEntityId);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(
                 services,
-                sp => new global::StrawberryShake.OperationStore(
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)
-                    .Watch()));
+                sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
                 sp => 
                 {
                     var sessionPool = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.WebSockets.ISessionPool>(parentServices);
-                    return new global::StrawberryShake.Transport.WebSockets.WebSocketConnection(() => sessionPool.CreateAsync(
+                    return new global::StrawberryShake.Transport.WebSockets.WebSocketConnection(async ct => await sessionPool.CreateAsync(
                         "MultiProfileClient",
-                        default));
+                        ct));
                 });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
                 services,
@@ -3165,6 +3758,12 @@ namespace Microsoft.Extensions.DependencyInjection
                             sp))));
 
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.GetHeroResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult>>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.GetHeroBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroResult>>(
                 services,
@@ -3174,7 +3773,16 @@ namespace Microsoft.Extensions.DependencyInjection
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                     strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHeroQuery>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IGetHeroQuery>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.GetHeroQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.OnReviewSubResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult>>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubSubscription>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.OnReviewSubBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubResult>>(
                 services,
@@ -3184,7 +3792,16 @@ namespace Microsoft.Extensions.DependencyInjection
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                     strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.OnReviewSubSubscription>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IOnReviewSubSubscription>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.OnReviewSubSubscription>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.CreateReviewMutResultFactory>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult>>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutMutation>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult>, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.CreateReviewMutBuilder>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutResult>>(
                 services,
@@ -3194,7 +3811,14 @@ namespace Microsoft.Extensions.DependencyInjection
                     global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
                     strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.CreateReviewMutMutation>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ICreateReviewMutMutation>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.CreateReviewMutMutation>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityIdSerializer, global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.MultiProfileClientEntityIdFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.MultiProfileClient>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.IMultiProfileClient>(
+                services,
+                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.MultiProfileClient>(sp));
             return services;
         }
 
@@ -3239,6 +3863,36 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     {
         InMemory,
         Default
+    }
+}
+
+
+// MultiProfileClientStoreAccessor
+
+// StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
+
+#nullable enable
+
+namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class MultiProfileClientStoreAccessor
+        : global::StrawberryShake.StoreAccessor
+    {
+        public MultiProfileClientStoreAccessor(
+            global::StrawberryShake.IOperationStore operationStore,
+            global::StrawberryShake.IEntityStore entityStore,
+            global::StrawberryShake.IEntityIdSerializer entityIdSerializer,
+            global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories,
+            global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories)
+            : base(
+                operationStore,
+                entityStore,
+                entityIdSerializer,
+                requestFactories,
+                resultDataFactories)
+        {
+        }
     }
 }
 

@@ -99,6 +99,11 @@ namespace StrawberryShake.CodeGeneration.Utilities
 
         public static string GetParameterName(string parameterName)
         {
+            if (parameterName == WellKnownNames.TypeName)
+            {
+                return parameterName;
+            }
+
             var value = new StringBuilder();
             var first = true;
 
@@ -113,7 +118,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
                 {
                     value.Append(char.ToLower(parameterName[i], CultureInfo.InvariantCulture));
 
-                    if (i + 1 < parameterName.Length && 
+                    if (i + 1 < parameterName.Length &&
                         char.IsLetter(parameterName[i + 1]))
                     {
                         value.Append(first

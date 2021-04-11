@@ -36,7 +36,7 @@ namespace HotChocolate.Language.Visitors
                 leave is { }
                     ? new VisitSyntaxNode((n, c) => leave(n))
                     : null,
-                default,
+                defaultAction,
                 options);
         }
 
@@ -46,7 +46,7 @@ namespace HotChocolate.Language.Visitors
             ISyntaxVisitorAction? defaultAction = null,
             SyntaxVisitorOptions options = default)
         {
-            return new DelegateSyntaxVisitor(enter, leave, default, options);
+            return new DelegateSyntaxVisitor(enter, leave, defaultAction, options);
         }
     }
 }

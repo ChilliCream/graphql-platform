@@ -3,7 +3,7 @@ using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     public class NonPositiveFloatTypeTests : ScalarTypeTestBase
     {
@@ -117,6 +117,18 @@ namespace HotChocolate.Types.Scalars
         }
 
         [Theory]
+        [InlineData(typeof(FloatValueNode), 0d)]
+        [InlineData(typeof(FloatValueNode), -12d)]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToMatchType<NonPositiveFloatType>(value, type);
+        }
+
+        [Theory]
         [InlineData(-1d, -1d)]
         [InlineData(double.MinValue, double.MinValue)]
         [InlineData(null, null)]
@@ -169,13 +181,38 @@ namespace HotChocolate.Types.Scalars
         [InlineData("foo")]
         [InlineData(int.MaxValue)]
         [InlineData(double.MaxValue)]
-
         public void Serialize_GivenObject_ThrowSerializationException(object value)
         {
             // arrange
             // act
             // assert
             ExpectSerializeToThrowSerializationException<NonPositiveFloatType>(value);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1)]
+        [InlineData(1d)]
+        [InlineData(true)]
+        [InlineData("")]
+        public void ParseResult_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToThrowSerializationException<NonPositiveFloatType>(value);
+        }
+
+        [Theory]
+        [InlineData(typeof(FloatValueNode), 0d)]
+        [InlineData(typeof(FloatValueNode), -12d)]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToMatchType<NonPositiveFloatType>(value, type);
         }
     }
 }

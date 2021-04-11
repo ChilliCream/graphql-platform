@@ -2,7 +2,7 @@ using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The Regular Expression scalar type represents textual data, represented as UTF‐8 character
@@ -44,7 +44,6 @@ namespace HotChocolate.Types.Scalars
             BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, description, bind)
         {
-            Description = description;
             _validationRegex = regex;
         }
 
@@ -58,28 +57,6 @@ namespace HotChocolate.Types.Scalars
         protected override bool IsInstanceOfType(StringValueNode valueSyntax)
         {
             return _validationRegex.IsMatch(valueSyntax.Value);
-        }
-
-        /// <inheritdoc />
-        protected override string ParseLiteral(StringValueNode valueSyntax)
-        {
-            if (!_validationRegex.IsMatch(valueSyntax.Value))
-            {
-                throw CreateParseLiteralError(valueSyntax);
-            }
-
-            return base.ParseLiteral(valueSyntax);
-        }
-
-        /// <inheritdoc />
-        protected override StringValueNode ParseValue(string runtimeValue)
-        {
-            if (!_validationRegex.IsMatch(runtimeValue))
-            {
-                throw CreateParseValueError(runtimeValue);
-            }
-
-            return base.ParseValue(runtimeValue);
         }
 
         /// <inheritdoc />
@@ -122,32 +99,14 @@ namespace HotChocolate.Types.Scalars
             return false;
         }
 
-        /// <summary>
-        /// Creates the exception that will be thrown when <see cref="ParseLiteral"/> encountered an
-        /// invalid pattern
-        /// </summary>
-        /// <param name="valueSyntax">
-        /// The value syntax that should be parsed
-        /// </param>
-        /// <returns>
-        /// The created exception that should be thrown
-        /// </returns>
-        protected virtual Exception CreateParseLiteralError(StringValueNode valueSyntax)
+        /// <inheritdoc />
+        protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
         {
             return ThrowHelper.RegexType_ParseLiteral_IsInvalid(this, Name);
         }
 
-        /// <summary>
-        /// Creates the exception that will be thrown when <see cref="ParseValue"/> encountered an
-        /// invalid pattern
-        /// </summary>
-        /// <param name="runtimeValue">
-        /// The runtimeValue that should be parsed
-        /// </param>
-        /// <returns>
-        /// The created exception that should be thrown
-        /// </returns>
-        protected virtual Exception CreateParseValueError(string runtimeValue)
+        /// <inheritdoc />
+        protected override SerializationException CreateParseValueError(object runtimeValue)
         {
             return ThrowHelper.RegexType_ParseValue_IsInvalid(this, Name);
         }

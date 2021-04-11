@@ -30,11 +30,12 @@ namespace HotChocolate.Execution
             ITypeConverter converter,
             IActivator activator,
             IDiagnosticEvents diagnosticEvents,
-            RequestDelegate requestDelegate)
+            RequestDelegate requestDelegate,
+            ulong version)
         {
             Schema = schema ??
                 throw new ArgumentNullException(nameof(schema));
-            _requestContextAccessor = requestContextAccessor ?? 
+            _requestContextAccessor = requestContextAccessor ??
                 throw new ArgumentNullException(nameof(requestContextAccessor));
             _applicationServices = applicationServices ??
                 throw new ArgumentNullException(nameof(applicationServices));
@@ -50,12 +51,15 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(diagnosticEvents));
             _requestDelegate = requestDelegate ??
                 throw new ArgumentNullException(nameof(requestDelegate));
+            Version = version;
             _batchExecutor = new BatchExecutor(this, errorHandler, converter);
         }
 
         public ISchema Schema { get; }
 
         public IServiceProvider Services { get; }
+
+        public ulong Version { get; }
 
         public async Task<IExecutionResult> ExecuteAsync(
             IQueryRequest request,
@@ -73,6 +77,7 @@ namespace HotChocolate.Execution
             {
                 var context = new RequestContext(
                     Schema,
+                    Version,
                     services,
                     _errorHandler,
                     _converter,

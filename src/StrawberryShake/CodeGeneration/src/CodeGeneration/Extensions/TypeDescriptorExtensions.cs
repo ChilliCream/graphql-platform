@@ -24,10 +24,33 @@ namespace StrawberryShake.CodeGeneration.Extensions
                 ListTypeDescriptor listTypeDescriptor =>
                     listTypeDescriptor.InnerType.ContainsEntity(),
                 ComplexTypeDescriptor namedTypeDescriptor =>
-                    namedTypeDescriptor.Properties.Any(
-                        prop => prop.Type.IsEntityType() || prop.Type.ContainsEntity()),
+                    namedTypeDescriptor.Properties
+                        .Any(prop => prop.Type.IsEntityType() || prop.Type.ContainsEntity()),
                 NonNullTypeDescriptor nonNullTypeDescriptor =>
                     nonNullTypeDescriptor.InnerType.ContainsEntity(),
+                _ => false
+            };
+        }
+
+        public static bool IsOrContainsEntityType(this ITypeDescriptor typeDescriptor)
+        {
+            return typeDescriptor switch
+            {
+                ListTypeDescriptor d => d.InnerType.IsOrContainsEntityType(),
+
+                InterfaceTypeDescriptor d =>
+                    d.IsEntityType() ||
+                    d.Properties.Any(p =>
+                        p.Type.IsEntityType() || p.Type.IsOrContainsEntityType()) ||
+                    d.ImplementedBy.Any(x => x.IsOrContainsEntityType()),
+
+                ComplexTypeDescriptor d =>
+                    d.IsEntityType() ||
+                    d.Properties.Any(p => p.Type.IsEntityType() || p.Type.IsOrContainsEntityType()),
+
+
+                NonNullTypeDescriptor d => d.InnerType.IsOrContainsEntityType(),
+
                 _ => false
             };
         }

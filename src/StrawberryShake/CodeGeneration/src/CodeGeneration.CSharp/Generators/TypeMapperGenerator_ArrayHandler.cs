@@ -22,13 +22,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             methodBuilder
                 .AddParameter(_list)
                 .SetType(listTypeDescriptor.ToStateTypeReference());
+            methodBuilder
+                .AddParameter(_snapshot)
+                .SetType(TypeNames.IEntityStoreSnapshot);
 
             var listVarName = GetParameterName(listTypeDescriptor.Name) + "s";
 
-            if (!isNonNullable)
-            {
-                methodBuilder.AddCode(EnsureProperNullability(_list, isNonNullable));
-            }
+            methodBuilder.AddCode(EnsureProperNullability(_list, isNonNullable));
 
             methodBuilder.AddCode(
                 AssignmentBuilder
@@ -40,7 +40,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                             .AddCode("new ")
                             .AddCode(TypeNames.List)
                             .AddCode("<")
-                            .AddCode(listTypeDescriptor.InnerType.ToTypeReference().SkipTrailingSpace())
+                            .AddCode(
+                                listTypeDescriptor.InnerType.ToTypeReference().SkipTrailingSpace())
                             .AddCode(">")
                             .AddCode("()")));
             methodBuilder.AddEmptyLine();
@@ -59,7 +60,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         .AddArgument(MethodCallBuilder
                             .Inline()
                             .SetMethodName(MapMethodNameFromTypeName(listTypeDescriptor.InnerType))
-                            .AddArgument(_child)));
+                            .AddArgument(_child)
+                            .AddArgument(_snapshot)));
 
             methodBuilder
                 .AddCode(forEachBuilder)

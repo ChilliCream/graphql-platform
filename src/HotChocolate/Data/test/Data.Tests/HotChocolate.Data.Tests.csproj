@@ -3,6 +3,7 @@
   <PropertyGroup>
     <RootNamespace>HotChocolate.Data.Test</RootNamespace>
     <TargetFrameworks>net5.0; netcoreapp3.1</TargetFrameworks>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

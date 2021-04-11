@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace HotChocolate.Types.Scalars {
+namespace HotChocolate.Types {
     using System;
     
     
@@ -28,7 +28,7 @@ namespace HotChocolate.Types.Scalars {
         internal static System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.Equals(null, resourceMan)) {
-                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Types.Scalars.ScalarResources", typeof(ScalarResources).Assembly);
+                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Types.ScalarResources", typeof(ScalarResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -117,6 +117,24 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
+        internal static string MacAddressType_Description {
+            get {
+                return ResourceManager.GetString("MacAddressType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string MacAddressType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("MacAddressType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string MacAddressType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("MacAddressType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+        
         internal static string IPv4Type_Description {
             get {
                 return ResourceManager.GetString("IPv4Type_Description", resourceCulture);
@@ -135,9 +153,81 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
+        internal static string IPv6Type_Description {
+            get {
+                return ResourceManager.GetString("IPv6Type_Description", resourceCulture);
+            }
+        }
+        
+        internal static string IPv6Type_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("IPv6Type_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string IPv6Type_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("IPv6Type_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+        
+        internal static string IsbnType_Description {
+            get {
+                return ResourceManager.GetString("IsbnType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string IsbnType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("IsbnType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string IsbnType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("IsbnType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+        
+        internal static string LocalTimeType_Description {
+            get {
+                return ResourceManager.GetString("LocalTimeType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string LocalTimeType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("LocalTimeType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string LocalTimeType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("LocalTimeType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+        
         internal static string NegativeFloatType_Description {
             get {
                 return ResourceManager.GetString("NegativeFloatType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string LocalDateType_Description {
+            get {
+                return ResourceManager.GetString("LocalDateType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string LocalDateType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("LocalDateType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string LocalDateType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("LocalDateType_IsInvalid_ParseValue", resourceCulture);
             }
         }
         
@@ -279,6 +369,24 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
+        internal static string PortType_Description {
+            get {
+                return ResourceManager.GetString("PortType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string PortType_OutOfRange_ParseLiteral {
+            get {
+                return ResourceManager.GetString("PortType_OutOfRange_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string PortType_OutOfRange_ParseValue {
+            get {
+                return ResourceManager.GetString("PortType_OutOfRange_ParseValue", resourceCulture);
+            }
+        }
+        
         internal static string PositiveIntType_Description {
             get {
                 return ResourceManager.GetString("PositiveIntType_Description", resourceCulture);
@@ -327,6 +435,42 @@ namespace HotChocolate.Types.Scalars {
             }
         }
         
+        internal static string RgbType_Description {
+            get {
+                return ResourceManager.GetString("RgbType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string RgbType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("RgbType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string RgbType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("RgbType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+        
+        internal static string RgbaType_Description {
+            get {
+                return ResourceManager.GetString("RgbaType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string RgbaType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("RgbaType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string RgbaType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("RgbaType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+        
         internal static string UnsignedIntType_Description {
             get {
                 return ResourceManager.GetString("UnsignedIntType_Description", resourceCulture);
@@ -342,6 +486,42 @@ namespace HotChocolate.Types.Scalars {
         internal static string UnsignedIntType_IsNotUnsigned_ParseValue {
             get {
                 return ResourceManager.GetString("UnsignedIntType_IsNotUnsigned_ParseValue", resourceCulture);
+            }
+        }
+        
+        internal static string UnsignedLongType_Description {
+            get {
+                return ResourceManager.GetString("UnsignedLongType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string UnsignedLongType_IsNotUnsigned_ParseLiteral {
+            get {
+                return ResourceManager.GetString("UnsignedLongType_IsNotUnsigned_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string UnsignedLongType_IsNotUnsigned_ParseValue {
+            get {
+                return ResourceManager.GetString("UnsignedLongType_IsNotUnsigned_ParseValue", resourceCulture);
+            }
+        }
+        
+        internal static string UtcOffsetType_Description {
+            get {
+                return ResourceManager.GetString("UtcOffsetType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string UtcOffsetType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("UtcOffsetType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string UtcOffsetType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("UtcOffsetType_IsInvalid_ParseValue", resourceCulture);
             }
         }
     }

@@ -2,6 +2,8 @@
 title: "Get started with Hot Chocolate"
 ---
 
+> We are still working on the documentation for Hot Chocolate 11.1 so help us by finding typos, missing things or write some additional docs with us.
+
 In this tutorial, we will walk you through the basics of creating a GraphQL server with Hot Chocolate. If you want to dig deeper into Hot Chocolate, we have our GraphQL workshop, which touches on topics like schema design, DataLoader, and many more things.
 
 In this tutorial, we will teach you:
@@ -121,7 +123,7 @@ dotnet run --project ./Demo
 
 ![GraphQL IDE](../../images/get-started-bcp.png)
 
-3. Next, click on the `Book` icon on the left-hand navigation bar to explore the server GraphQL schema. If this is the first time you are running the demo, you will need to enter `http://localhost:5000/graphql` as the schema endpoint URI.  In the schema explorer, we can see that we have one query root field exposed. By clicking on the field, we can drill into the schema structure.
+3. Next, click on the `Book` icon on the left-hand navigation bar to explore the server GraphQL schema. If this is the first time you are running the demo, you will need to enter `http://localhost:5000/graphql` as the schema endpoint URI. In the schema explorer, we can see that we have one query root field exposed. By clicking on the field, we can drill into the schema structure.
 
 ![GraphQL IDE Schema Explorer](../../images/get-started-bcp-schema-explorer.png)
 

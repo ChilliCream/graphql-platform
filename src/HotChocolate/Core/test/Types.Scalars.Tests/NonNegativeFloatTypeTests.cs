@@ -3,7 +3,7 @@ using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     public class NonNegativeFloatTypeTests : ScalarTypeTestBase
     {
@@ -125,7 +125,7 @@ namespace HotChocolate.Types.Scalars
         [InlineData(int.MinValue)]
         [InlineData(-1)]
         [InlineData(0)]
-        public void ParseLiteral_GivenObject_ThrowSerializationException(object value)
+        public void ParseValue_GivenObject_ThrowSerializationException(object value)
         {
             // arrange
             // act
@@ -192,6 +192,34 @@ namespace HotChocolate.Types.Scalars
             // act
             // assert
             ExpectSerializeToThrowSerializationException<NonNegativeFloatType>(value);
+        }
+
+        [Theory]
+        [InlineData(typeof(FloatValueNode), 1d)]
+        [InlineData(typeof(FloatValueNode), double.MaxValue)]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToMatchType<NonNegativeFloatType>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(-1d)]
+        [InlineData(double.MinValue)]
+        [InlineData(true)]
+        [InlineData("foo")]
+        [InlineData(int.MinValue)]
+        [InlineData(-1)]
+        public void ParseResult_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToThrowSerializationException<NonNegativeFloatType>(value);
         }
     }
 }

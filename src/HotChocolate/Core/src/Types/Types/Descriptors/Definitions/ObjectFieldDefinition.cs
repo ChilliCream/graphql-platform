@@ -14,6 +14,8 @@ namespace HotChocolate.Types.Descriptors.Definitions
     /// </summary>
     public class ObjectFieldDefinition : OutputFieldDefinitionBase
     {
+        private List<FieldMiddleware>? _middlewareComponents;
+
         /// <summary>
         /// The object runtime type.
         /// </summary>
@@ -28,6 +30,11 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// The member on the <see cref="SourceType" />.
         /// </summary>
         public MemberInfo? Member { get; set; }
+
+        /// <summary>
+        /// Defines a binding to another object field.
+        /// </summary>
+        public ObjectFieldBinding? BindTo { get; set; }
 
         /// <summary>
         /// The member that represents the resolver.
@@ -58,12 +65,92 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// <summary>
         /// A list of middleware components which will be used to form the field pipeline.
         /// </summary>
-        public IList<FieldMiddleware> MiddlewareComponents { get; } =
-            new List<FieldMiddleware>();
+        public IList<FieldMiddleware> MiddlewareComponents =>
+            _middlewareComponents ??= new List<FieldMiddleware>();
 
         /// <summary>
         /// Defines if this field configuration represents an introspection field.
         /// </summary>
         public bool IsIntrospectionField { get; internal set; }
+
+        /// <summary>
+        /// A list of middleware components which will be used to form the field pipeline.
+        /// </summary>
+        internal IReadOnlyList<FieldMiddleware> GetMiddlewareComponents()
+        {
+            if (_middlewareComponents is null)
+            {
+                return Array.Empty<FieldMiddleware>();
+            }
+
+            return _middlewareComponents;
+        }
+
+        internal void CopyTo(ObjectFieldDefinition target)
+        {
+            base.CopyTo(target);
+
+            if (_middlewareComponents is { Count: > 0 })
+            {
+                target._middlewareComponents = new List<FieldMiddleware>(_middlewareComponents);
+            }
+
+            target.SourceType = SourceType;
+            target.ResolverType = ResolverType;
+            target.Member = Member;
+            target.BindTo = BindTo;
+            target.ResolverMember = ResolverMember;
+            target.Expression = Expression;
+            target.ResultType = ResultType;
+            target.Resolver = Resolver;
+            target.SubscribeResolver = SubscribeResolver;
+            target.IsIntrospectionField = IsIntrospectionField;
+        }
+
+        internal void MergeInto(ObjectFieldDefinition target)
+        {
+            base.MergeInto(target);
+
+            if (_middlewareComponents is { Count: > 0 })
+            {
+                target._middlewareComponents ??= new List<FieldMiddleware>();
+                target._middlewareComponents.AddRange(_middlewareComponents);
+            }
+
+            if (ResolverType is not null)
+            {
+                target.ResolverType = ResolverType;
+            }
+
+            if (Member is not null)
+            {
+                target.Member = Member;
+            }
+
+            if (ResolverMember is not null)
+            {
+                target.ResolverMember = ResolverMember;
+            }
+
+            if (Expression is not null)
+            {
+                target.Expression = Expression;
+            }
+
+            if (ResultType is not null)
+            {
+                target.ResultType = ResultType;
+            }
+
+            if (Resolver is not null)
+            {
+                target.Resolver = Resolver;
+            }
+
+            if (SubscribeResolver is not null)
+            {
+                target.SubscribeResolver = SubscribeResolver;
+            }
+        }
     }
 }

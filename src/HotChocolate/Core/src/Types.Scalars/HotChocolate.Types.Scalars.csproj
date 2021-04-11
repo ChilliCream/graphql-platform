@@ -8,7 +8,7 @@
   <PropertyGroup>
     <PackageId>HotChocolate.Types.Scalars</PackageId>
     <AssemblyName>HotChocolate.Types.Scalars</AssemblyName>
-    <RootNamespace>HotChocolate.Types.Scalars</RootNamespace>
+    <RootNamespace>HotChocolate.Types</RootNamespace>
     <Description>Adds additional scalars for better data integrity and validation</Description>
   </PropertyGroup>
 
