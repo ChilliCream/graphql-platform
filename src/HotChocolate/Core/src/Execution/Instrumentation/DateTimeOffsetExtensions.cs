@@ -7,10 +7,7 @@ namespace HotChocolate.Execution.Instrumentation
         private const string _rfc3339DateTimeFormat =
             "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffZ";
 
-        public static string ToRfc3339DateTimeString(
-            this DateTimeOffset dateTimeOffset)
-        {
-            return dateTimeOffset.ToString(_rfc3339DateTimeFormat);
-        }
+        public static string ToRfc3339DateTimeString(this DateTimeOffset dateTimeOffset) =>
+            dateTimeOffset.ToString(_rfc3339DateTimeFormat);
     }
 }

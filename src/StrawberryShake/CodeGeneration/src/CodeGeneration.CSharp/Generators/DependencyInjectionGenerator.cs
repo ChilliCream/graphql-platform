@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using HotChocolate;
+using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors;
@@ -44,7 +45,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             TypeNames.TimeSpanSerializer
         };
 
-        protected override void Generate(DependencyInjectionDescriptor descriptor,
+        protected override void Generate(
+            DependencyInjectionDescriptor descriptor,
             CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
             out string fileName,
@@ -107,6 +109,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .SetStatic()
                 .SetReturnType(TypeNames.IServiceCollection)
                 .AddParameter(_parentServices, x => x.SetType(TypeNames.IServiceProvider))
+                .AddParameter(_services, x => x.SetType(TypeNames.ServiceCollection))
                 .AddParameter(
                     _strategy,
                     x => x.SetType(TypeNames.ExecutionStrategy)
@@ -117,22 +120,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private static ICode GenerateClientServiceProviderFactory(
             DependencyInjectionDescriptor descriptor)
         {
+            CodeBlockBuilder codeBuilder = CodeBlockBuilder.New();
+
             if (descriptor.TransportProfiles.Count == 1)
             {
-                return CodeBlockBuilder
-                    .New()
+                return codeBuilder
                     .AddCode(
-                        AssignmentBuilder
+                        MethodCallBuilder
                             .New()
-                            .SetLefthandSide($"var {_serviceCollection}")
-                            .SetRighthandSide(
-                                MethodCallBuilder
-                                    .Inline()
-                                    .SetMethodName(
-                                        "ConfigureClient" +
-                                        descriptor.TransportProfiles[0].Name)
-                                    .AddArgument(_sp)
-                                    .AddArgument(_strategy)))
+                            .SetMethodName("ConfigureClient" + descriptor.TransportProfiles[0].Name)
+                            .AddArgument(_sp)
+                            .AddArgument(_serviceCollection)
+                            .AddArgument(_strategy))
                     .AddEmptyLine()
                     .AddCode(MethodCallBuilder
                         .New()
@@ -146,32 +145,32 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                             .AddArgument(_serviceCollection)));
             }
 
-            SwitchExpressionBuilder switchBuilder = SwitchExpressionBuilder
-                .New()
-                .SetExpression(_profile)
-                .SetDetermineStatement(false)
-                .SetDefaultCase(ExceptionBuilder.Inline(TypeNames.ArgumentOutOfRangeException));
+            IfBuilder ifProfile = IfBuilder.New();
 
             var enumName = CreateProfileEnumReference(descriptor);
-            foreach (var profile in descriptor.TransportProfiles)
+            for (var index = 0; index < descriptor.TransportProfiles.Count; index++)
             {
-                switchBuilder
-                    .AddCase(
-                        $"{enumName}.{profile.Name}",
+                TransportProfile profile = descriptor.TransportProfiles[index];
+                IfBuilder currentIf = ifProfile;
+                if (index != 0)
+                {
+                    currentIf = IfBuilder.New();
+                    ifProfile.AddIfElse(currentIf);
+                }
+
+                currentIf
+                    .SetCondition($"{_profile} == {enumName}.{profile.Name}")
+                    .AddCode(
                         MethodCallBuilder
-                            .Inline()
+                            .New()
                             .SetMethodName("ConfigureClient" + profile.Name)
                             .AddArgument(_sp)
+                            .AddArgument(_serviceCollection)
                             .AddArgument(_strategy));
             }
 
-            return CodeBlockBuilder
-                .New()
-                .AddCode(
-                    AssignmentBuilder
-                        .New()
-                        .SetLefthandSide($"var {_serviceCollection}")
-                        .SetRighthandSide(switchBuilder))
+            return codeBuilder
+                .AddCode(ifProfile)
                 .AddEmptyLine()
                 .AddCode(MethodCallBuilder
                     .New()
@@ -196,6 +195,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             DependencyInjectionDescriptor descriptor) =>
             CodeBlockBuilder
                 .New()
+                .AddCode(
+                    AssignmentBuilder
+                        .New()
+                        .SetLefthandSide($"var {_serviceCollection}")
+                        .SetRighthandSide(MethodCallBuilder
+                            .Inline()
+                            .SetNew()
+                            .SetMethodName(TypeNames.ServiceCollection)))
                 .AddMethodCall(x => x
                     .SetMethodName(TypeNames.AddSingleton)
                     .AddArgument(_services)
@@ -224,7 +231,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .SetMethodName(
                         TypeNames.ClientBuilder.WithGeneric(descriptor.StoreAccessor.RuntimeType))
                     .AddArgument(descriptor.Name.AsStringToken())
-                    .AddArgument(_services));
+                    .AddArgument(_services)
+                    .AddArgument(_serviceCollection));
 
         private static ICode RegisterSerializerResolver() =>
             MethodCallBuilder
@@ -382,12 +390,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             CodeBlockBuilder body = CodeBlockBuilder
                 .New()
-                .AddCode(AssignmentBuilder.New()
-                    .SetLefthandSide($"var {_services}")
-                    .SetRighthandSide(MethodCallBuilder
-                        .Inline()
-                        .SetNew()
-                        .SetMethodName(TypeNames.ServiceCollection)))
                 .AddCode(CreateBaseCode(settings));
 
             var generatedConnections = new HashSet<TransportType>();
@@ -508,9 +510,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
                 string connectionKind = operationKind switch
                 {
-                    TransportType.Http => TypeNames.HttpConnection,
-                    TransportType.WebSocket => TypeNames.WebSocketConnection,
-                    TransportType.InMemory => TypeNames.InMemoryConnection,
+                    TransportType.Http => TypeNames.IHttpConnection,
+                    TransportType.WebSocket => TypeNames.IWebSocketConnection,
+                    TransportType.InMemory => TypeNames.IInMemoryConnection,
                     { } v => throw ThrowHelper.DependencyInjection_InvalidTransportType(v)
                 };
 
@@ -703,6 +705,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .New()
                 .SetMethodName(TypeNames.AddSingleton)
                 .AddArgument(_services)
+                .AddGeneric(TypeNames.IHttpConnection)
                 .AddArgument(LambdaBuilder
                     .New()
                     .AddArgument(_sp)
@@ -747,6 +750,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             return MethodCallBuilder
                 .New()
                 .SetMethodName(TypeNames.AddSingleton)
+                .AddGeneric(TypeNames.IInMemoryConnection)
                 .AddArgument(_services)
                 .AddArgument(LambdaBuilder
                     .New()
@@ -783,6 +787,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             MethodCallBuilder
                 .New()
                 .SetMethodName(TypeNames.AddSingleton)
+                .AddGeneric(TypeNames.IWebSocketConnection)
                 .AddArgument(_services)
                 .AddArgument(LambdaBuilder
                     .New()

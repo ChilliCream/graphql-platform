@@ -12,6 +12,7 @@ using HotChocolate.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Primitives;
+using Microsoft.Extensions.Options;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 
@@ -21,15 +22,18 @@ namespace HotChocolate.AspNetCore
     {
         private const string _operations = "operations";
         private const string _map = "map";
+        private readonly FormOptions _formOptions;
 
         public HttpMultipartMiddleware(
             HttpRequestDelegate next,
             IRequestExecutorResolver executorResolver,
             IHttpResultSerializer resultSerializer,
             IHttpRequestParser requestParser,
-            NameString schemaName)
+            NameString schemaName,
+            IOptions<FormOptions> formOptions)
             : base(next, executorResolver, resultSerializer, requestParser, schemaName)
         {
+            _formOptions = formOptions.Value;
         }
 
         public override async Task InvokeAsync(HttpContext context)
@@ -56,7 +60,7 @@ namespace HotChocolate.AspNetCore
 
             try
             {
-                var formFeature = new FormFeature(httpRequest);
+                var formFeature = new FormFeature(httpRequest, _formOptions);
                 form = await formFeature.ReadFormAsync(cancellationToken);
             }
             catch
