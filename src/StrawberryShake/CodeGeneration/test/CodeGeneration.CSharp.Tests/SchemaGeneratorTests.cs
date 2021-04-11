@@ -337,6 +337,37 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         [Fact]
+        public void Full_Extension_File()
+        {
+            AssertResult(
+                strictValidation: false,
+                @"
+                    query getListingsCount {
+                        listings {
+                        ... ListingsPayload
+                        }
+                    }
+                    fragment ListingsPayload on ListingsPayload{
+                        count
+                    }
+                ",
+                FileResource.Open("BridgeClientDemo.graphql"),
+                @"scalar _KeyFieldSet
+
+                directive @key(fields: _KeyFieldSet!) on SCHEMA | OBJECT
+
+                directive @serializationType(name: String!) on SCALAR
+
+                directive @runtimeType(name: String!) on SCALAR
+
+                directive @enumValue(value: String!) on ENUM_VALUE
+
+                directive @rename(name: String!) on INPUT_FIELD_DEFINITION | INPUT_OBJECT | ENUM | ENUM_VALUE
+
+                extend schema @key(fields: ""id"")");
+        }
+
+        [Fact]
         public void NonNullLists()
         {
             AssertResult(
