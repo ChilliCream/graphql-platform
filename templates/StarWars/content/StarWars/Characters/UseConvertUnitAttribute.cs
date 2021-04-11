@@ -8,8 +8,7 @@ namespace StarWars.Characters
     [AttributeUsage(
         AttributeTargets.Property | AttributeTargets.Method,
         AllowMultiple = false)]
-    public sealed class UseConvertUnitAttribute
-        : DescriptorAttribute
+    public sealed class UseConvertUnitAttribute : DescriptorAttribute
     {
         protected override void TryConfigure(
             IDescriptorContext context,
