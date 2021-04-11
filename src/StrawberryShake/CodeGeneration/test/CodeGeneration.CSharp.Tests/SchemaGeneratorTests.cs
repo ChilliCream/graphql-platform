@@ -378,7 +378,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
                   }
                 }
                 fragment Offer on Offer {
-                   amenities
+                   amenities1
+                   amenities2
+                   amenities3
+                   amenities4
+                   amenities5
+                   amenities6
+                   amenities7
                 }
                 ",
                 @"
@@ -395,7 +401,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }
                 type Offer implements Listing{
                   listingId: ID!
-                  amenities: [Amenity!]!
+                  amenities1: [Amenity!]!
+                  amenities2: [Amenity!]
+                  amenities3: [Amenity]!
+                  amenities4: [Amenity]
+                  amenities5: [[Amenity!]!]!
+                  amenities6: [[Amenity!]!]
+                  amenities7: [[Amenity!]]!
                 }
                 enum Amenity {
                   ITEM1

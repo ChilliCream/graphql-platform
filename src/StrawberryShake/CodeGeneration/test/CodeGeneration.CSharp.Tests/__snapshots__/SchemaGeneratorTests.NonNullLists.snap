@@ -89,12 +89,48 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class GetAll_Listings_Offer : global::System.IEquatable<GetAll_Listings_Offer>, IGetAll_Listings_Offer
     {
-        public GetAll_Listings_Offer(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity> amenities)
+        public GetAll_Listings_Offer(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity> amenities1, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>? amenities2, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity?> amenities3, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity?>? amenities4, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>> amenities5, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>>? amenities6, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>?> amenities7)
         {
-            Amenities = amenities;
+            Amenities1 = amenities1;
+            Amenities2 = amenities2;
+            Amenities3 = amenities3;
+            Amenities4 = amenities4;
+            Amenities5 = amenities5;
+            Amenities6 = amenities6;
+            Amenities7 = amenities7;
         }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity> Amenities
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity> Amenities1
+        {
+            get;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>? Amenities2
+        {
+            get;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity?> Amenities3
+        {
+            get;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity?>? Amenities4
+        {
+            get;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>> Amenities5
+        {
+            get;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>>? Amenities6
+        {
+            get;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>?> Amenities7
         {
             get;
         }
@@ -136,7 +172,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Amenities, other.Amenities));
+            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Amenities1, other.Amenities1)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Amenities2, other.Amenities2) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Amenities3, other.Amenities3) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Amenities4, other.Amenities4) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Amenities5, other.Amenities5) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Amenities6, other.Amenities6) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Amenities7, other.Amenities7);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -144,9 +180,66 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                foreach (var Amenities_elm in Amenities)
+                foreach (var Amenities1_elm in Amenities1)
                 {
-                    hash ^= 397 * Amenities_elm.GetHashCode();
+                    hash ^= 397 * Amenities1_elm.GetHashCode();
+                }
+
+                if (!(Amenities2 is null))
+                {
+                    foreach (var Amenities2_elm in Amenities2)
+                    {
+                        hash ^= 397 * Amenities2_elm.GetHashCode();
+                    }
+                }
+
+                foreach (var Amenities3_elm in Amenities3)
+                {
+                    if (!(Amenities3_elm is null))
+                    {
+                        hash ^= 397 * Amenities3_elm.GetHashCode();
+                    }
+                }
+
+                if (!(Amenities4 is null))
+                {
+                    foreach (var Amenities4_elm in Amenities4)
+                    {
+                        if (!(Amenities4_elm is null))
+                        {
+                            hash ^= 397 * Amenities4_elm.GetHashCode();
+                        }
+                    }
+                }
+
+                foreach (var Amenities5_elm in Amenities5)
+                {
+                    foreach (var Amenities5_elm_elm in Amenities5_elm)
+                    {
+                        hash ^= 397 * Amenities5_elm_elm.GetHashCode();
+                    }
+                }
+
+                if (!(Amenities6 is null))
+                {
+                    foreach (var Amenities6_elm in Amenities6)
+                    {
+                        foreach (var Amenities6_elm_elm in Amenities6_elm)
+                        {
+                            hash ^= 397 * Amenities6_elm_elm.GetHashCode();
+                        }
+                    }
+                }
+
+                foreach (var Amenities7_elm in Amenities7)
+                {
+                    if (!(Amenities7_elm is null))
+                    {
+                        foreach (var Amenities7_elm_elm in Amenities7_elm)
+                        {
+                            hash ^= 397 * Amenities7_elm_elm.GetHashCode();
+                        }
+                    }
                 }
 
                 return hash;
@@ -174,7 +267,37 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IOffer
     {
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity> Amenities
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity> Amenities1
+        {
+            get;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>? Amenities2
+        {
+            get;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity?> Amenities3
+        {
+            get;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity?>? Amenities4
+        {
+            get;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>> Amenities5
+        {
+            get;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>>? Amenities6
+        {
+            get;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>?> Amenities7
         {
             get;
         }
@@ -230,7 +353,13 @@ namespace Foo.Bar
     /// }
     /// 
     /// fragment Offer on Offer {
-    ///   amenities
+    ///   amenities1
+    ///   amenities2
+    ///   amenities3
+    ///   amenities4
+    ///   amenities5
+    ///   amenities6
+    ///   amenities7
     /// }
     /// </code>
     /// </summary>
@@ -248,13 +377,13 @@ namespace Foo.Bar
 
         = new GetAllQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x20, 0x7b, 0x20, 0x6c, 0x69, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x4f, 0x66, 0x66, 0x65, 0x72, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x4f, 0x66, 0x66, 0x65, 0x72, 0x20, 0x6f, 0x6e, 0x20, 0x4f, 0x66, 0x66, 0x65, 0x72, 0x20, 0x7b, 0x20, 0x61, 0x6d, 0x65, 0x6e, 0x69, 0x74, 0x69, 0x65, 0x73, 0x20, 0x7d};
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x41, 0x6c, 0x6c, 0x20, 0x7b, 0x20, 0x6c, 0x69, 0x73, 0x74, 0x69, 0x6e, 0x67, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x4f, 0x66, 0x66, 0x65, 0x72, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x66, 0x72, 0x61, 0x67, 0x6d, 0x65, 0x6e, 0x74, 0x20, 0x4f, 0x66, 0x66, 0x65, 0x72, 0x20, 0x6f, 0x6e, 0x20, 0x4f, 0x66, 0x66, 0x65, 0x72, 0x20, 0x7b, 0x20, 0x61, 0x6d, 0x65, 0x6e, 0x69, 0x74, 0x69, 0x65, 0x73, 0x31, 0x20, 0x61, 0x6d, 0x65, 0x6e, 0x69, 0x74, 0x69, 0x65, 0x73, 0x32, 0x20, 0x61, 0x6d, 0x65, 0x6e, 0x69, 0x74, 0x69, 0x65, 0x73, 0x33, 0x20, 0x61, 0x6d, 0x65, 0x6e, 0x69, 0x74, 0x69, 0x65, 0x73, 0x34, 0x20, 0x61, 0x6d, 0x65, 0x6e, 0x69, 0x74, 0x69, 0x65, 0x73, 0x35, 0x20, 0x61, 0x6d, 0x65, 0x6e, 0x69, 0x74, 0x69, 0x65, 0x73, 0x36, 0x20, 0x61, 0x6d, 0x65, 0x6e, 0x69, 0x74, 0x69, 0x65, 0x73, 0x37, 0x20, 0x7d};
         public global::StrawberryShake.DocumentHash Hash
         {
             get;
         }
 
-        = new global::StrawberryShake.DocumentHash("sha1Hash", "3ef2ae42cc56022db38f4f3a6e06b397f528ef85");
+        = new global::StrawberryShake.DocumentHash("sha1Hash", "2cb871ada5a49964bc9fe651d0d97bd18903b601");
         public override global::System.String ToString()
         {
 #if NETSTANDARD2_0
@@ -277,7 +406,13 @@ namespace Foo.Bar
     /// }
     /// 
     /// fragment Offer on Offer {
-    ///   amenities
+    ///   amenities1
+    ///   amenities2
+    ///   amenities3
+    ///   amenities4
+    ///   amenities5
+    ///   amenities6
+    ///   amenities7
     /// }
     /// </code>
     /// </summary>
@@ -331,7 +466,13 @@ namespace Foo.Bar
     /// }
     /// 
     /// fragment Offer on Offer {
-    ///   amenities
+    ///   amenities1
+    ///   amenities2
+    ///   amenities3
+    ///   amenities4
+    ///   amenities5
+    ///   amenities6
+    ///   amenities7
     /// }
     /// </code>
     /// </summary>
@@ -422,12 +563,7 @@ namespace Foo.Bar.State
             IGetAll_Listings? returnValue;
             if (data is global::Foo.Bar.State.OfferData offer)
             {
-                if (offer.Amenities.HasValue)
-                {
-                    throw new global::System.ArgumentNullException();
-                }
-
-                returnValue = new global::Foo.Bar.GetAll_Listings_Offer(offer.Amenities!.Value);
+                returnValue = new global::Foo.Bar.GetAll_Listings_Offer(offer.Amenities1 ?? throw new global::System.ArgumentNullException(), offer.Amenities2, offer.Amenities3 ?? throw new global::System.ArgumentNullException(), offer.Amenities4, offer.Amenities5 ?? throw new global::System.ArgumentNullException(), offer.Amenities6, offer.Amenities7 ?? throw new global::System.ArgumentNullException());
             }
             else
             {
@@ -550,7 +686,7 @@ namespace Foo.Bar.State
             var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("Offer", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::Foo.Bar.State.OfferData(typename, amenities: DeserializeNonNullableAmenityNonNullableArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "amenities")));
+                return new global::Foo.Bar.State.OfferData(typename, amenities1: DeserializeNonNullableAmenityNonNullableArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "amenities1")), amenities2: DeserializeAmenityNonNullableArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "amenities2")), amenities3: DeserializeNonNullableAmenityArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "amenities3")), amenities4: DeserializeAmenityArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "amenities4")), amenities5: DeserializeNonNullableAmenityNonNullableArrayNonNullableArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "amenities5")), amenities6: DeserializeAmenityNonNullableArrayNonNullableArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "amenities6")), amenities7: DeserializeNonNullableAmenityNonNullableArrayArray(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "amenities7")));
             }
 
             throw new global::System.NotSupportedException();
@@ -581,6 +717,112 @@ namespace Foo.Bar.State
 
             return _amenityParser.Parse(obj.Value.GetString()!);
         }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>? DeserializeAmenityNonNullableArray(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            var amenitys = new global::System.Collections.Generic.List<global::Foo.Bar.Amenity>();
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
+            {
+                amenitys.Add(DeserializeNonNullableAmenity(child));
+            }
+
+            return amenitys;
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity?> DeserializeNonNullableAmenityArray(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            var amenitys = new global::System.Collections.Generic.List<global::Foo.Bar.Amenity?>();
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
+            {
+                amenitys.Add(DeserializeAmenity(child));
+            }
+
+            return amenitys;
+        }
+
+        private global::Foo.Bar.Amenity? DeserializeAmenity(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            return _amenityParser.Parse(obj.Value.GetString()!);
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity?>? DeserializeAmenityArray(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            var amenitys = new global::System.Collections.Generic.List<global::Foo.Bar.Amenity?>();
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
+            {
+                amenitys.Add(DeserializeAmenity(child));
+            }
+
+            return amenitys;
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>> DeserializeNonNullableAmenityNonNullableArrayNonNullableArray(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            var amenitys = new global::System.Collections.Generic.List<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>>();
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
+            {
+                amenitys.Add(DeserializeNonNullableAmenityNonNullableArray(child));
+            }
+
+            return amenitys;
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>>? DeserializeAmenityNonNullableArrayNonNullableArray(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                return null;
+            }
+
+            var amenitys = new global::System.Collections.Generic.List<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>>();
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
+            {
+                amenitys.Add(DeserializeNonNullableAmenityNonNullableArray(child));
+            }
+
+            return amenitys;
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>?> DeserializeNonNullableAmenityNonNullableArrayArray(global::System.Text.Json.JsonElement? obj)
+        {
+            if (!obj.HasValue)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            var amenitys = new global::System.Collections.Generic.List<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>?>();
+            foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
+            {
+                amenitys.Add(DeserializeAmenityNonNullableArray(child));
+            }
+
+            return amenitys;
+        }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
@@ -597,10 +839,16 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class OfferData : IListingData
     {
-        public OfferData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>? amenities = default !)
+        public OfferData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>? amenities1 = default !, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>? amenities2 = default !, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity?>? amenities3 = default !, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity?>? amenities4 = default !, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>>? amenities5 = default !, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>>? amenities6 = default !, global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>?>? amenities7 = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
-            Amenities = amenities;
+            Amenities1 = amenities1;
+            Amenities2 = amenities2;
+            Amenities3 = amenities3;
+            Amenities4 = amenities4;
+            Amenities5 = amenities5;
+            Amenities6 = amenities6;
+            Amenities7 = amenities7;
         }
 
         public global::System.String __typename
@@ -608,7 +856,37 @@ namespace Foo.Bar.State
             get;
         }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>? Amenities
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>? Amenities1
+        {
+            get;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>? Amenities2
+        {
+            get;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity?>? Amenities3
+        {
+            get;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity?>? Amenities4
+        {
+            get;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>>? Amenities5
+        {
+            get;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>>? Amenities6
+        {
+            get;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Amenity>?>? Amenities7
         {
             get;
         }
