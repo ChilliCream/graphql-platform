@@ -7,8 +7,8 @@
     public class Where : Visitable
     {
         public override ClauseKind Kind => ClauseKind.Where;
-        private readonly Condition _condition;
         private readonly Exists _exists;
+        private readonly Condition _condition;
 
         public Where(Condition condition)
         {
