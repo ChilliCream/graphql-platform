@@ -13,6 +13,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public static MapExpression Create(params object[] input)
         {
+            Ensure.IsTrue(input.Length % 2 == 0, "Need an even number of input parameters");
             var newContent = new List<Expression>();
             var knownKeys = new HashSet<string>();
 

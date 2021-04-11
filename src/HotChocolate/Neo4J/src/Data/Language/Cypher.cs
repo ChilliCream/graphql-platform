@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using ServiceStack;
 
@@ -84,7 +83,7 @@ namespace HotChocolate.Data.Neo4J.Language
         public static SortItem Sort(Expression expression) =>
             SortItem.Create(expression, null);
 
-        public static ListComprehension ListWith(SymbolicName variable) =>
+        public static ListComprehension.IOngoingDefinitionWithVariable ListWith(SymbolicName variable) =>
             ListComprehension.With(variable);
 
         public static ListExpression ListOf(params Expression[] expressions) =>

@@ -14,6 +14,6 @@ namespace HotChocolate.Data.Neo4J.Language
         /// Visits a visitor
         /// </summary>
         /// <param name="cypherVisitor">The visitor to notify, must not be null.</param>
-        public abstract void Visit(CypherVisitor cypherVisitor);
+        public void Visit(CypherVisitor cypherVisitor);
     }
 }

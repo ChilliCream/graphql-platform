@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace HotChocolate.Data.Neo4J.Language
@@ -13,14 +14,14 @@ namespace HotChocolate.Data.Neo4J.Language
         private readonly Operator _op;
         private readonly Visitable _right;
 
-        private static readonly List<Operator> LabelOperators
-            = new() { Operator.SetLabel, Operator.RemoveLabel };
+        private static readonly ImmutableList<Operator> _labelOperators
+            = ImmutableList.Create(Operator.SetLabel, Operator.RemoveLabel);
 
-        private static readonly List<Operator> DontGroup
-            = new()  { Operator.Exponent, Operator.Pipe };
+        private static readonly ImmutableList<Operator> _dontGroup
+            = ImmutableList.Create( Operator.Exponent, Operator.Pipe);
 
-        private static readonly List<Operator.Type> NeedsGroupingByType
-            = new() { Operator.Type.Property, Operator.Type.Label };
+        private static readonly ImmutableList<Operator.Type> _needsGroupingByType
+            = ImmutableList.Create(Operator.Type.Property, Operator.Type.Label);
 
         public Operation(Expression left, Operator op, Expression right)
         {
@@ -48,6 +49,8 @@ namespace HotChocolate.Data.Neo4J.Language
         public static Operation Create(Expression op1, Operator op, params string[] nodeLabels)
         {
             Ensure.IsNotNull(op1, "The first operand must not be null.");
+            Ensure.IsTrue(_labelOperators.Contains(op), "Only operators can be used to modify labels.");
+            Ensure.IsNotEmpty(nodeLabels, "The labels cannot be empty.");
 
             return new Operation(
                 op1,
@@ -55,9 +58,8 @@ namespace HotChocolate.Data.Neo4J.Language
                 new NodeLabels(nodeLabels.Select(x => new NodeLabel(x)).ToList()));
         }
 
-        public bool NeedsGrouping() {
-            return NeedsGroupingByType.Contains(_op.GetType()) && !DontGroup.Contains(_op);
-        }
+        public bool NeedsGrouping() =>
+            _needsGroupingByType.Contains(_op.GetType()) && !_dontGroup.Contains(_op);
 
         public override void Visit(CypherVisitor cypherVisitor)
         {

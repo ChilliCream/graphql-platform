@@ -89,7 +89,7 @@ namespace HotChocolate.Data.Neo4J.Language
         public Property Property(string name) => Property(new[] { name });
 
         public Property Property(params string[] names) =>
-            Language.Property.Create(this, names);
+            Language.Property.Create((INamed)this, names);
 
         public Property Property(Expression lookup) =>
             Language.Property.Create(this,lookup);
@@ -129,10 +129,10 @@ namespace HotChocolate.Data.Neo4J.Language
             Relationship.Create(this, RelationshipDirection.None, other, types);
 
         public Condition? IsEqualTo(Node otherNode) =>
-            GetRequiredSymbolicName()?.IsEqualTo(otherNode.GetRequiredSymbolicName());
+            GetRequiredSymbolicName().IsEqualTo(otherNode.GetRequiredSymbolicName());
 
         public Condition? IsNotEqualTo(Node otherNode) =>
-            GetRequiredSymbolicName()?.IsNotEqualTo(otherNode.GetRequiredSymbolicName());
+            GetRequiredSymbolicName().IsNotEqualTo(otherNode.GetRequiredSymbolicName());
 
         public Condition? IsNull()  => GetRequiredSymbolicName()?.IsNull();
 

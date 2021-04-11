@@ -8,7 +8,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class HasLabelCondition : Condition
     {
-        public override ClauseKind Kind { get; } = ClauseKind.HasLabelCondition;
+        public override ClauseKind Kind => ClauseKind.HasLabelCondition;
         private readonly SymbolicName _nodeName;
         private readonly List<NodeLabel> _nodeLabels;
 

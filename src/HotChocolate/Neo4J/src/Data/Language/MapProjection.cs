@@ -37,6 +37,9 @@ namespace HotChocolate.Data.Neo4J.Language
             };
         }
 
+        public MapProjection And(params object[] content) =>
+            new(_name, _expression.AddEntries(CreateNewContent(content)));
+
         private static List<Expression> CreateNewContent(params object[] content)
         {
             List<Expression> newContent = new();

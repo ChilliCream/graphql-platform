@@ -1,8 +1,17 @@
 namespace HotChocolate.Data.Neo4J.Language
 {
+    /// <summary>
+    /// Represents a list expression as in [expression1, expression2, ..., expressionN]
+    /// </summary>
     public class ListExpression : Expression
     {
-        public override ClauseKind Kind { get; } = ClauseKind.ListExpression;
+        public override ClauseKind Kind => ClauseKind.ListExpression;
+        private readonly ExpressionList _content;
+
+        public ListExpression(ExpressionList content)
+        {
+            _content = content;
+        }
 
         public static Expression ListOrSingleExpression(params Expression[] expressions) {
 
@@ -15,13 +24,6 @@ namespace HotChocolate.Data.Neo4J.Language
         public static ListExpression Create(params Expression[] expressions) {
 
             return new (new ExpressionList(expressions));
-        }
-
-        private readonly ExpressionList _content;
-
-        public ListExpression(ExpressionList content)
-        {
-            _content = content;
         }
 
         public override void Visit(CypherVisitor cypherVisitor)

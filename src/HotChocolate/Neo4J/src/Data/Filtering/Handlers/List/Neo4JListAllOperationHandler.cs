@@ -44,12 +44,12 @@ namespace HotChocolate.Data.Neo4J.Filtering
             Neo4JFilterScope scope,
             string path)
         {
-            var negatedChilds = new List<Condition>();
-            Queue<Condition> level = scope.Level.Peek();
-            while (level.Count > 0)
-            {
-                return new CompoundCondition(Operator.And);
-            }
+            // var negatedChilds = new List<Condition>();
+            // Queue<Condition> level = scope.Level.Peek();
+            // while (level.Count > 0)
+            // {
+            //     return new CompoundCondition(Operator.And);
+            // }
 
             return new CompoundCondition(Operator.And);
         }

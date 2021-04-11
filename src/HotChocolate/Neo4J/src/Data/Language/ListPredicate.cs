@@ -5,7 +5,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class ListPredicate : Expression
     {
-        public override ClauseKind Kind { get; } = ClauseKind.ListPredicate;
+        public override ClauseKind Kind => ClauseKind.ListPredicate;
 
         private readonly SymbolicName _variable;
         private readonly Expression _listExpression;

@@ -11,9 +11,6 @@
     /// </summary>
     public interface IAliased
     {
-        /// <summary>
-        ///
-        /// </summary>
         /// <returns>The alias.</returns>
         string GetAlias();
 

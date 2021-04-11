@@ -1,8 +1,12 @@
 namespace HotChocolate.Data.Neo4J.Language
 {
+    /// <summary>
+    /// List comprehension is a syntactic construct available in Cypher for creating a list based on existing lists.
+    /// https://s3.amazonaws.com/artifacts.opencypher.org/M15/railroad/Atom.html#ListComprehension
+    /// </summary>
     public class ListComprehension : Expression
     {
-        public override ClauseKind Kind { get; } = ClauseKind.ListComprehension;
+        public override ClauseKind Kind => ClauseKind.ListComprehension;
 
         /// <summary>
         /// The variable for the where part
@@ -36,9 +40,9 @@ namespace HotChocolate.Data.Neo4J.Language
             _listDefinition = listDefinition;
         }
 
-        public static ListComprehension With(SymbolicName variable)
+        public static IOngoingDefinitionWithVariable With(SymbolicName variable)
         {
-            return new ListComprehension(variable, null, null, null);
+            return new Builder(variable);
         }
 
         public override void Visit(CypherVisitor cypherVisitor)
@@ -54,6 +58,55 @@ namespace HotChocolate.Data.Neo4J.Language
                 _listDefinition.Visit(cypherVisitor);
             }
             cypherVisitor.Leave(this);
+        }
+
+        public interface IOngoingDefinitionWithVariable
+        {
+            IOngoingDefinitionWithList In(Expression list);
+        }
+
+        public interface IOngoingDefinitionWithList : IOngoingDefinitionWithoutReturn
+        {
+            IOngoingDefinitionWithoutReturn Where(Condition condition);
+        }
+
+        public interface IOngoingDefinitionWithoutReturn
+        {
+            ListComprehension Returning(params INamed[] variables);
+            ListComprehension Returning(params Expression[] listDefinition);
+            ListComprehension Returning();
+        }
+
+        private class Builder : IOngoingDefinitionWithVariable, IOngoingDefinitionWithList
+        {
+            private readonly SymbolicName _variable;
+            private Expression _listExpression;
+            private Where _where;
+
+            public Builder(SymbolicName variable)
+            {
+                _variable = variable;
+            }
+
+            public IOngoingDefinitionWithList In(Expression list)
+            {
+                _listExpression = list;
+                return this;
+            }
+
+            public IOngoingDefinitionWithoutReturn Where(Condition condition)
+            {
+                _where = new Where(condition);
+                return this;
+            }
+            public ListComprehension Returning() => new (_variable, _listExpression, _where, null);
+
+            public ListComprehension Returning(params INamed[] variables) =>
+                Returning(Expressions.CreateSymbolicNames(variables));
+
+            public ListComprehension Returning(params Expression[] expressions) =>
+                new (_variable, _listExpression, _where,
+                    ListExpression.ListOrSingleExpression(expressions));
         }
     }
 }

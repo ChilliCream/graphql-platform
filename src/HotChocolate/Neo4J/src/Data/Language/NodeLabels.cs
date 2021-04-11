@@ -1,10 +1,9 @@
-using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
-    /// Makes a list of NodeLabel.
+    /// Makes a list of <see cref="NodeLabel"/>.
     /// </summary>
     public class NodeLabels : Visitable
     {

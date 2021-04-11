@@ -1,19 +1,17 @@
 ﻿namespace HotChocolate.Data.Neo4J.Language
 {
-    public class Parameter
+    public class Parameter<T> : Expression
     {
-        public string Name { get; set; }
-        public string Value { get; set; }
+        public override ClauseKind Kind => ClauseKind.Parameter;
+        private readonly string _name;
+        private readonly T _value;
 
-        public Parameter(string name, string value)
+        public Parameter(string name, T value)
         {
-            Name = name;
-            Value = value;
+            _name = name;
+            _value = value;
         }
 
-        public override string ToString()
-        {
-            return $"${Name}";
-        }
+        public T GetValue() => _value;
     }
 }

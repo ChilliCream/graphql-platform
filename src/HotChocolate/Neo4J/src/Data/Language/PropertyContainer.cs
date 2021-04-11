@@ -38,15 +38,5 @@ namespace HotChocolate.Data.Neo4J.Language
         {
             return GetRequiredSymbolicName().Project(entries);
         }
-
-        public Operation Mutate(Parameter parameter)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Operation Mutate(MapExpression properties)
-        {
-            throw new System.NotImplementedException();
-        }
     }
 }
