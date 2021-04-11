@@ -8,7 +8,7 @@ namespace HotChocolate.Data.Neo4J.Language
         {
             if (Equals(_currentVisitedElements.First?.Value, visitable))
             {
-                PostLeave(visitable);
+                PostLeave(visitable ?? throw new ArgumentNullException(nameof(visitable)));
                 _currentVisitedElements.RemoveFirst();
             }
 
@@ -115,9 +115,10 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.BooleanFunctionCondition:
                 case ClauseKind.NotCondition:
                 case ClauseKind.ProjectionBody:
+                case ClauseKind.ListPredicate:
+                case ClauseKind.UnionPart:
+                case ClauseKind.UnionQuery:
                     break;
-                default:
-                    throw new ArgumentOutOfRangeException();
             }
         }
     }
