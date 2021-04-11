@@ -15,11 +15,19 @@ namespace HotChocolate.Data.Neo4J.Language
         /// </summary>
         protected readonly List<T> Children;
 
+        /// <summary>
+        /// Creates a new typed subtree with the given content.
+        /// </summary>
+        /// <param name="children">The content of this subtree.</param>
         protected TypedSubtree(params T[] children)
         {
             Children = children.ToList();
         }
 
+        /// <summary>
+        /// Creates a new typed subtree with the given content.
+        /// </summary>
+        /// <param name="children">The content of this subtree.</param>
         protected TypedSubtree(List<T> children)
         {
             Children = children;
@@ -35,8 +43,8 @@ namespace HotChocolate.Data.Neo4J.Language
         /// <summary>
         /// A hook to inject item in visitation of child elements.
         /// </summary>
-        /// <param name="child"></param>
-        /// <returns></returns>
+        /// <param name="child">The current child element.</param>
+        /// <returns>The visitable that has been prepared</returns>
         protected virtual IVisitable PrepareVisit(T child) => child;
     }
 }
