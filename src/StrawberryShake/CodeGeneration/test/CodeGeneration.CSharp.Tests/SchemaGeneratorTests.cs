@@ -335,5 +335,42 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }",
                 "extend schema @key(fields: \"id\")");
         }
+
+        [Fact]
+        public void NonNullLists()
+        {
+            AssertResult(
+                @"
+                query getAll {
+                  listings {
+                    ...Offer
+                  }
+                }
+                fragment Offer on Offer {
+                   amenities
+                }
+                ",
+                @"
+                schema {
+                  query: Query
+                  mutation: null
+                  subscription: null
+                }
+                type Query {
+                  listings: [Listing!]!
+                }
+                interface Listing{
+                  listingId: ID!
+                }
+                type Offer implements Listing{
+                  listingId: ID!
+                  amenities: [Amenity!]!
+                }
+                enum Amenity {
+                  ITEM1
+                  ITEM2
+                }",
+                "extend schema @key(fields: \"id\")");
+        }
     }
 }
