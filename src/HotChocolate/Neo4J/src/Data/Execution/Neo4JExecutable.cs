@@ -15,7 +15,6 @@ namespace HotChocolate.Data.Neo4J.Execution
 {
     public class Neo4JExecutable<T> : INeo4JExecutable, IExecutable<T>
     {
-        //private readonly CypherQuery _cypher;
         private readonly IAsyncSession _session;
 
         private Node _node => Cypher.NamedNode(typeof(T).Name);
