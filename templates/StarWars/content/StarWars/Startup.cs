@@ -47,6 +47,10 @@ namespace StarWars
                     .AddType<Droid>()
                     .AddType<Starship>()
 
+                    // Add filtering and sorting capabilities.
+                    .AddFiltering()
+                    .AddSorting()
+
                     // if you wanted to controll the pagination settings globally you could
                     // do so by setting the paging options.
                     // .SetPagingOptions()
@@ -67,7 +71,7 @@ namespace StarWars
             {
                 app.UseDeveloperExceptionPage();
             }
-            
+
             // in order to expose our GraphQL schema we need to map the GraphQL server 
             // to a specific route. By default it is mapped onto /graphql.
             app
