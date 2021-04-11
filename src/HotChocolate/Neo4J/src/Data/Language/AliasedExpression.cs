@@ -19,13 +19,6 @@ namespace HotChocolate.Data.Neo4J.Language
         public string GetAlias() => _alias;
 
         public SymbolicName AsName() => SymbolicName.Of(GetAlias());
-        public Expression GetExpression() => _expression;
-
-        public new AliasedExpression As(string newAlias)
-        {
-            Ensure.HasText(newAlias, "The alias may not be null or empty.");
-            return new AliasedExpression(_expression, newAlias);
-        }
 
         public override void Visit(CypherVisitor cypherVisitor)
         {
