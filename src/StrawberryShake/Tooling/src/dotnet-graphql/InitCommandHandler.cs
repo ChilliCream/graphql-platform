@@ -106,7 +106,7 @@ directive @runtimeType(name: String!) on SCALAR
 
 directive @enumValue(value: Int!) on ENUM_VALUE
 
-directive @rename(value: Int!) on INPUT_FIELD_DEFINITION
+directive @rename(value: Int!) on INPUT_FIELD_DEFINITION | INPUT_OBJECT | ENUM | ENUM_VALUE
 
 extend schema @key(fields: ""id"")")
                     .ConfigureAwait(false);
