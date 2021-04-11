@@ -40,6 +40,11 @@ namespace HotChocolate.Data.MongoDb
 
             if (_value is MongoDbFilterDefinition mongoDbOperation)
             {
+                if (_path is "")
+                {
+                    return mongoDbOperation.Render(resolvedFieldSerializer, serializerRegistry);
+                }
+
                 return new BsonDocument(
                     resolvedFieldName,
                     mongoDbOperation.Render(resolvedFieldSerializer, serializerRegistry));
