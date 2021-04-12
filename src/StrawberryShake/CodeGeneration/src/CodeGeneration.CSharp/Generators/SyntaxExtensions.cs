@@ -47,6 +47,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                                 Token(SyntaxKind.DefaultKeyword)))))
                 .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
 
+        public static VariableDeclaratorSyntax WithSuppressNullableWarningExpression(
+            this VariableDeclaratorSyntax variable) =>
+            variable
+                .WithInitializer(
+                    EqualsValueClause(
+                        PostfixUnaryExpression(
+                            SyntaxKind.SuppressNullableWarningExpression,
+                            LiteralExpression(
+                                SyntaxKind.DefaultLiteralExpression,
+                                Token(SyntaxKind.DefaultKeyword)))));
+
         private static TMember AddSimple<TMember>(
             this TMember member,
             XmlElementSyntax xmlElement)
@@ -181,9 +192,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             this ConstructorDeclarationSyntax constructor,
             PropertyDescriptor property) =>
             AddParameter(
-                constructor, 
-                property.Name, 
-                property.Type.ToStateTypeSyntax(), 
+                constructor,
+                property.Name,
+                property.Type.ToStateTypeSyntax(),
                 withNullDefault: true);
 
         public static ConstructorDeclarationSyntax AddTypeParameter(

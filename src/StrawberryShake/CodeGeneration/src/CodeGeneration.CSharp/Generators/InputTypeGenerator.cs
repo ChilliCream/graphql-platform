@@ -4,6 +4,7 @@ using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
@@ -13,21 +14,25 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             InputObjectTypeDescriptor descriptor,
             CSharpSyntaxGeneratorSettings settings)
         {
+            string stateNamespace = $"{descriptor.RuntimeType.Namespace}.{State}";
+            string infoInterfaceType = $"{stateNamespace}.{CreateInputValueInfo(descriptor.Name)}";
+
             return new(
                 descriptor.Name,
                 null,
                 descriptor.RuntimeType.NamespaceWithoutGlobal,
                 settings.InputRecords
-                    ? GenerateRecord(descriptor, settings)
-                    : GenerateClass(descriptor, settings));
+                    ? GenerateRecord(descriptor, infoInterfaceType)
+                    : GenerateClass(descriptor, infoInterfaceType));
         }
 
         private BaseTypeDeclarationSyntax GenerateRecord(
             InputObjectTypeDescriptor descriptor,
-            CSharpSyntaxGeneratorSettings settings)
+            string infoInterfaceType)
         {
-            RecordDeclarationSyntax recordDeclarationSyntax =
+            RecordDeclarationSyntax recordDeclaration =
                 RecordDeclaration(Token(SyntaxKind.RecordKeyword), descriptor.Name.Value)
+                    .AddImplements(new [] { infoInterfaceType })
                     .AddModifiers(
                         Token(SyntaxKind.PublicKeyword),
                         Token(SyntaxKind.PartialKeyword))
@@ -35,96 +40,121 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .AddSummary(descriptor.Documentation)
                     .WithOpenBraceToken(Token(SyntaxKind.OpenBraceToken));
 
-            foreach (var prop in descriptor.Properties)
-            {
-                FieldDeclaration(prop.Type.ToTypeSyntax(), prop.Name)
-            }
+            recordDeclaration = GenerateProperties(
+                recordDeclaration,
+                SyntaxKind.InitAccessorDeclaration,
+                infoInterfaceType,
+                descriptor);
 
-            foreach (var prop in descriptor.Properties)
-            {
-                PropertyDeclarationSyntax property =
-                    PropertyDeclaration(prop.Type.ToTypeSyntax(), prop.Name)
-                        .AddModifiers(Token(SyntaxKind.PublicKeyword))
-                        .AddSummary(prop.Description)
-                        .WithGetterAndInit();
-
-                if (prop.Type.IsNonNullableType() && !prop.Type.GetRuntimeType().IsValueType)
-                {
-                    property = property.WithSuppressNullableWarningExpression();
-                }
-
-                recordDeclarationSyntax = recordDeclarationSyntax.AddMembers(property);
-            }
-
-            recordDeclarationSyntax = recordDeclarationSyntax.WithCloseBraceToken(
+            recordDeclaration = recordDeclaration.WithCloseBraceToken(
                 Token(SyntaxKind.CloseBraceToken));
 
-            return recordDeclarationSyntax;
+            return recordDeclaration;
         }
 
         private BaseTypeDeclarationSyntax GenerateClass(
             InputObjectTypeDescriptor descriptor,
-            CSharpSyntaxGeneratorSettings settings)
+            string infoInterfaceType)
         {
             ClassDeclarationSyntax classDeclaration =
                 ClassDeclaration(descriptor.Name.Value)
+                    .AddImplements(new [] { infoInterfaceType })
                     .AddModifiers(
                         Token(SyntaxKind.PublicKeyword),
                         Token(SyntaxKind.PartialKeyword))
                     .AddGeneratedAttribute()
                     .AddSummary(descriptor.Documentation);
 
+            classDeclaration = GenerateProperties(
+                classDeclaration,
+                SyntaxKind.SetAccessorDeclaration,
+                infoInterfaceType,
+                descriptor);
+
+            return classDeclaration;
+        }
+
+        private T GenerateProperties<T>(
+            T typeDeclarationSyntax,
+            SyntaxKind setAccessorKind,
+            string infoInterfaceType,
+            InputObjectTypeDescriptor descriptor)
+            where T : TypeDeclarationSyntax
+        {
+            TypeDeclarationSyntax current = typeDeclarationSyntax;
+
             foreach (var prop in descriptor.Properties)
             {
+                VariableDeclaratorSyntax variable =
+                    VariableDeclarator(
+                        Identifier(CreateInputValueField(prop.Name)));
 
+                if (prop.Type.IsNonNullableType() && !prop.Type.GetRuntimeType().IsValueType)
+                {
+                    variable = variable.WithSuppressNullableWarningExpression();
+                }
+
+                current = current.AddMembers(
+                    FieldDeclaration(
+                        VariableDeclaration(
+                            prop.Type.ToTypeSyntax(),
+                            SingletonSeparatedList(variable)))
+                        .AddModifiers(Token(SyntaxKind.PrivateKeyword)));
+
+                current = current.AddMembers(
+                    FieldDeclaration(
+                        VariableDeclaration(
+                            ParseTypeName(TypeNames.Boolean),
+                            SingletonSeparatedList(
+                                VariableDeclarator(
+                                    Identifier(CreateIsSetField(prop.Name))))))
+                        .AddModifiers(Token(SyntaxKind.PrivateKeyword)));
+            }
+
+            foreach (var prop in descriptor.Properties)
+            {
                 PropertyDeclarationSyntax property =
                     PropertyDeclaration(prop.Type.ToTypeSyntax(), prop.Name)
                         .AddModifiers(Token(SyntaxKind.PublicKeyword))
                         .AddSummary(prop.Description)
-                        .WithGetterAndSetter();
+                        .AddAccessorListAccessors(
+                            AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                                .WithExpressionBody(
+                                    ArrowExpressionClause(
+                                        IdentifierName(CreateInputValueField(prop.Name))))
+                                .WithSemicolonToken(Token(SyntaxKind.SemicolonToken)),
+                            AccessorDeclaration(setAccessorKind)
+                                .WithBody(
+                                    Block(
+                                        ExpressionStatement(
+                                            AssignmentExpression(
+                                                SyntaxKind.SimpleAssignmentExpression,
+                                                IdentifierName(CreateIsSetField(prop.Name)),
+                                                LiteralExpression(
+                                                    SyntaxKind.TrueLiteralExpression))),
+                                        ExpressionStatement(
+                                            AssignmentExpression(
+                                                SyntaxKind.SimpleAssignmentExpression,
+                                                IdentifierName(CreateInputValueField(prop.Name)),
+                                                IdentifierName("value"))))));
 
-                if (prop.Type.IsNonNullableType() && !prop.Type.GetRuntimeType().IsValueType)
-                {
-                    property = property.WithSuppressNullableWarningExpression();
-                }
+                current = current.AddMembers(property);
 
-                classDeclaration = classDeclaration.AddMembers(property);
+                current = current.AddMembers(
+                    PropertyDeclaration(
+                        ParseTypeName(TypeNames.Boolean),
+                        CreateIsSetProperty(prop.Name))
+                        .WithExplicitInterfaceSpecifier(
+                            ExplicitInterfaceSpecifier(
+                                IdentifierName(infoInterfaceType)))
+                        .WithExpressionBody(
+                            ArrowExpressionClause(
+                                IdentifierName(CreateIsSetField(prop.Name))))
+                        .WithSemicolonToken(
+                            Token(SyntaxKind.SemicolonToken)));
             }
 
-            return classDeclaration;
-        }
-    }
-
-    public class InputTypeStateInterfaceGenerator : CSharpSyntaxGenerator<InputObjectTypeDescriptor>
-    {
-        protected override CSharpSyntaxGeneratorResult Generate(
-            InputObjectTypeDescriptor descriptor,
-            CSharpSyntaxGeneratorSettings settings)
-        {
-            InterfaceDeclarationSyntax interfaceDeclaration =
-                InterfaceDeclaration(descriptor.Name.Value)
-                    .AddModifiers(Token(SyntaxKind.InternalKeyword))
-                    .AddGeneratedAttribute();
-
-            foreach (var prop in descriptor.Properties)
-            {
-                PropertyDeclarationSyntax property =
-                    PropertyDeclaration(ParseTypeName(TypeNames.Boolean), prop.Name + "HasValue")
-                        .WithGetterAndSetter();
-
-                if (prop.Type.IsNonNullableType() && !prop.Type.GetRuntimeType().IsValueType)
-                {
-                    property = property.WithSuppressNullableWarningExpression();
-                }
-
-                interfaceDeclaration = interfaceDeclaration.AddMembers(property);
-            }
-
-            return new(
-                descriptor.Name,
-                null,
-                descriptor.RuntimeType.NamespaceWithoutGlobal,
-                interfaceDeclaration);
+            return (T)current;
         }
     }
 }

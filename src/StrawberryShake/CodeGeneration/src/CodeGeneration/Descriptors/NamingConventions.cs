@@ -70,16 +70,16 @@ namespace StrawberryShake.CodeGeneration.Descriptors
         public static string CreateInputValueFormatter(InputObjectTypeDescriptor type) =>
             type.Name + "InputValueFormatter";
 
-        public static string CreateInputValueFormatter(ScalarTypeDescriptor type) =>
-            type.Name + "Serializer";
+        public static string CreateInputValueInfo(string name) =>
+            $"{NameUtils.GetInterfaceName(name)}Info";
 
-        public static string CreateHasValueProperty(string name) =>
-            name + "HasValue";
+        public static string CreateIsSetProperty(string name) =>
+            $"Is{NameUtils.GetPropertyName(name)}Set";
 
-        public static string CreateInputStateField(string name) => 
-            "_state_" + NameUtils.GetParameterName(name);
+        public static string CreateIsSetField(string name) =>
+            "_set_" + NameUtils.GetParameterName(name);
 
-        public static string CreateInputValueField(string name) => 
+        public static string CreateInputValueField(string name) =>
             "_value_" + NameUtils.GetParameterName(name);
     }
 }

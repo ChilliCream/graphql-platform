@@ -47,6 +47,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             new StoreAccessorGenerator(),
             new NoStoreAccessorGenerator(),
             new InputTypeGenerator(),
+            new InputTypeStateInterfaceGenerator(),
             new ResultInterfaceGenerator(),
             new DataTypeGenerator()
         };
