@@ -41,13 +41,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.AspNetCore", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.AspNetCore.Authorization", "..\AspNetCore\src\AspNetCore.Authorization\HotChocolate.AspNetCore.Authorization.csproj", "{68ADFD79-A37C-429A-90A7-584B7E27F613}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Execution", "..\Core\src\Execution\HotChocolate.Execution.csproj", "{C1CF3B06-4A02-46A6-98B2-448B5DD4E7D3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Execution", "..\Core\src\Execution\HotChocolate.Execution.csproj", "{C1CF3B06-4A02-46A6-98B2-448B5DD4E7D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.AspNetCore.Tests", "..\AspNetCore\test\AspNetCore.Tests\HotChocolate.AspNetCore.Tests.csproj", "{709EE9F8-BA48-4C5A-8BDA-96B96689A1FC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.AspNetCore.Tests", "..\AspNetCore\test\AspNetCore.Tests\HotChocolate.AspNetCore.Tests.csproj", "{709EE9F8-BA48-4C5A-8BDA-96B96689A1FC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Stitching.Abstractions", "src\Stitching.Abstractions\HotChocolate.Stitching.Abstractions.csproj", "{E25716BB-CAD4-4FAA-BFFB-9D1F56E3B6AB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Stitching.Abstractions", "src\Stitching.Abstractions\HotChocolate.Stitching.Abstractions.csproj", "{E25716BB-CAD4-4FAA-BFFB-9D1F56E3B6AB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Stitching.Redis", "src\Stitching.Redis\HotChocolate.Stitching.Redis.csproj", "{46B6437B-5AC2-41E6-89C6-CC0FE42190A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Stitching.Redis", "src\Stitching.Redis\HotChocolate.Stitching.Redis.csproj", "{46B6437B-5AC2-41E6-89C6-CC0FE42190A1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
