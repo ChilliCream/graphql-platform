@@ -13,43 +13,59 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             InputObjectTypeDescriptor descriptor,
             CSharpSyntaxGeneratorSettings settings)
         {
-            if (settings.InputRecords)
+            return new(
+                descriptor.Name,
+                null,
+                descriptor.RuntimeType.NamespaceWithoutGlobal,
+                settings.InputRecords
+                    ? GenerateRecord(descriptor, settings)
+                    : GenerateClass(descriptor, settings));
+        }
+
+        private BaseTypeDeclarationSyntax GenerateRecord(
+            InputObjectTypeDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings)
+        {
+            RecordDeclarationSyntax recordDeclarationSyntax =
+                RecordDeclaration(Token(SyntaxKind.RecordKeyword), descriptor.Name.Value)
+                    .AddModifiers(
+                        Token(SyntaxKind.PublicKeyword),
+                        Token(SyntaxKind.PartialKeyword))
+                    .AddGeneratedAttribute()
+                    .AddSummary(descriptor.Documentation)
+                    .WithOpenBraceToken(Token(SyntaxKind.OpenBraceToken));
+
+            foreach (var prop in descriptor.Properties)
             {
-                RecordDeclarationSyntax recordDeclarationSyntax =
-                    RecordDeclaration(Token(SyntaxKind.RecordKeyword), descriptor.Name.Value)
-                        .AddModifiers(
-                            Token(SyntaxKind.PublicKeyword),
-                            Token(SyntaxKind.PartialKeyword))
-                        .AddGeneratedAttribute()
-                        .AddSummary(descriptor.Documentation)
-                        .WithOpenBraceToken(Token(SyntaxKind.OpenBraceToken));
-
-                foreach (var prop in descriptor.Properties)
-                {
-                    PropertyDeclarationSyntax property =
-                        PropertyDeclaration(prop.Type.ToTypeSyntax(), prop.Name)
-                            .AddModifiers(Token(SyntaxKind.PublicKeyword))
-                            .AddSummary(prop.Description)
-                            .WithGetterAndInit();
-
-                    if (prop.Type.IsNonNullableType() && !prop.Type.GetRuntimeType().IsValueType)
-                    {
-                        property = property.WithSuppressNullableWarningExpression();
-                    }
-
-                    recordDeclarationSyntax = recordDeclarationSyntax.AddMembers(property);
-                }
-
-                recordDeclarationSyntax = recordDeclarationSyntax.WithCloseBraceToken(
-                    Token(SyntaxKind.CloseBraceToken));
-
-                return new(
-                    descriptor.Name,
-                    null,
-                    descriptor.RuntimeType.NamespaceWithoutGlobal,
-                    recordDeclarationSyntax);
+                FieldDeclaration(prop.Type.ToTypeSyntax(), prop.Name)
             }
 
+            foreach (var prop in descriptor.Properties)
+            {
+                PropertyDeclarationSyntax property =
+                    PropertyDeclaration(prop.Type.ToTypeSyntax(), prop.Name)
+                        .AddModifiers(Token(SyntaxKind.PublicKeyword))
+                        .AddSummary(prop.Description)
+                        .WithGetterAndInit();
+
+                if (prop.Type.IsNonNullableType() && !prop.Type.GetRuntimeType().IsValueType)
+                {
+                    property = property.WithSuppressNullableWarningExpression();
+                }
+
+                recordDeclarationSyntax = recordDeclarationSyntax.AddMembers(property);
+            }
+
+            recordDeclarationSyntax = recordDeclarationSyntax.WithCloseBraceToken(
+                Token(SyntaxKind.CloseBraceToken));
+
+            return recordDeclarationSyntax;
+        }
+
+        private BaseTypeDeclarationSyntax GenerateClass(
+            InputObjectTypeDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings)
+        {
             ClassDeclarationSyntax classDeclaration =
                 ClassDeclaration(descriptor.Name.Value)
                     .AddModifiers(
@@ -75,11 +91,40 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 classDeclaration = classDeclaration.AddMembers(property);
             }
 
+            return classDeclaration;
+        }
+    }
+
+    public class InputTypeStateInterfaceGenerator : CSharpSyntaxGenerator<InputObjectTypeDescriptor>
+    {
+        protected override CSharpSyntaxGeneratorResult Generate(
+            InputObjectTypeDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings)
+        {
+            InterfaceDeclarationSyntax interfaceDeclaration =
+                InterfaceDeclaration(descriptor.Name.Value)
+                    .AddModifiers(Token(SyntaxKind.InternalKeyword))
+                    .AddGeneratedAttribute();
+
+            foreach (var prop in descriptor.Properties)
+            {
+                PropertyDeclarationSyntax property =
+                    PropertyDeclaration(ParseTypeName(TypeNames.Boolean), prop.Name + "HasValue")
+                        .WithGetterAndSetter();
+
+                if (prop.Type.IsNonNullableType() && !prop.Type.GetRuntimeType().IsValueType)
+                {
+                    property = property.WithSuppressNullableWarningExpression();
+                }
+
+                interfaceDeclaration = interfaceDeclaration.AddMembers(property);
+            }
+
             return new(
                 descriptor.Name,
                 null,
                 descriptor.RuntimeType.NamespaceWithoutGlobal,
-                classDeclaration);
+                interfaceDeclaration);
         }
     }
 }

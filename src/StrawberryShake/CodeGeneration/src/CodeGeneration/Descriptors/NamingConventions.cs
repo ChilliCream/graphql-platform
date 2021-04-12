@@ -1,6 +1,7 @@
 using HotChocolate;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using StrawberryShake.CodeGeneration.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Descriptors
 {
@@ -71,5 +72,14 @@ namespace StrawberryShake.CodeGeneration.Descriptors
 
         public static string CreateInputValueFormatter(ScalarTypeDescriptor type) =>
             type.Name + "Serializer";
+
+        public static string CreateHasValueProperty(string name) =>
+            name + "HasValue";
+
+        public static string CreateInputStateField(string name) => 
+            "_state_" + NameUtils.GetParameterName(name);
+
+        public static string CreateInputValueField(string name) => 
+            "_value_" + NameUtils.GetParameterName(name);
     }
 }
