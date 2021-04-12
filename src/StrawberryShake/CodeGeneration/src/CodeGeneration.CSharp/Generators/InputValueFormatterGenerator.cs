@@ -139,7 +139,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             return GenerateSerializerLocal(typeDescriptor, variableName, @return, true);
 
-
             ICode GenerateSerializerLocal(
                 ITypeDescriptor currentType,
                 string variable,
@@ -220,13 +219,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 {
                     return IfBuilder
                         .New()
-                        .SetCondition($"!({variable} is null)")
-                        .AddCode(format)
-                        .AddElse(CodeLineBuilder
-                            .From(
-                                assignment == @return
-                                    ? $"return {variable};"
-                                    : $"{assignment}.Add({variable});"));
+                        .SetCondition($"{variable} is null")
+                        .AddCode(CodeLineBuilder
+                            .From(assignment == @return
+                                ? $"return {variable};"
+                                : $"{assignment}.Add({variable});"))
+                        .AddElse(format);
                 }
 
                 return format;

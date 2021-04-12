@@ -283,13 +283,13 @@ namespace Foo.Bar
 
         private global::System.Object? FormatStr(global::System.String? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _stringFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _stringFormatter.Format(value);
             }
         }
 
@@ -305,13 +305,13 @@ namespace Foo.Bar
 
         private global::System.Object? FormatNested(global::Foo.Bar.Bar? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _barFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _barFormatter.Format(value);
             }
         }
 
@@ -338,39 +338,39 @@ namespace Foo.Bar
 
         private global::System.Object? FormatNestedMatrix(global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar?>?>? value)
         {
-            if (!(value is null))
+            if (value is null)
+            {
+                return value;
+            }
+            else
             {
                 var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
                 foreach (var value_elm in value)
                 {
-                    if (!(value_elm is null))
+                    if (value_elm is null)
+                    {
+                        value_list.Add(value_elm);
+                    }
+                    else
                     {
                         var value_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
                         foreach (var value_elm_elm in value_elm)
                         {
-                            if (!(value_elm_elm is null))
+                            if (value_elm_elm is null)
                             {
-                                value_elm_list.Add(_barFormatter.Format(value_elm_elm));
+                                value_elm_list.Add(value_elm_elm);
                             }
                             else
                             {
-                                value_elm_list.Add(value_elm_elm);
+                                value_elm_list.Add(_barFormatter.Format(value_elm_elm));
                             }
                         }
 
                         value_list.Add(value_elm_list);
                     }
-                    else
-                    {
-                        value_list.Add(value_elm);
-                    }
                 }
 
                 return value_list;
-            }
-            else
-            {
-                return value;
             }
         }
     }
@@ -385,7 +385,6 @@ namespace Foo.Bar
             set;
         }
 
-        = default !;
         public global::System.String StrNonNullable
         {
             get;
@@ -399,7 +398,6 @@ namespace Foo.Bar
             set;
         }
 
-        = default !;
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> NestedList
         {
             get;
@@ -412,8 +410,6 @@ namespace Foo.Bar
             get;
             set;
         }
-
-        = default !;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
@@ -536,12 +532,20 @@ namespace Foo.Bar
 
         private global::System.Object? FormatNestedList(global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? value)
         {
-            if (!(value is null))
+            if (value is null)
+            {
+                return value;
+            }
+            else
             {
                 var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
                 foreach (var value_elm in value)
                 {
-                    if (!(value_elm is null))
+                    if (value_elm is null)
+                    {
+                        value_list.Add(value_elm);
+                    }
+                    else
                     {
                         var value_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
                         foreach (var value_elm_elm in value_elm)
@@ -556,17 +560,9 @@ namespace Foo.Bar
 
                         value_list.Add(value_elm_list);
                     }
-                    else
-                    {
-                        value_list.Add(value_elm);
-                    }
                 }
 
                 return value_list;
-            }
-            else
-            {
-                return value;
             }
         }
 
@@ -712,12 +708,20 @@ namespace Foo.Bar
 
         private global::System.Object? FormatNestedList(global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? value)
         {
-            if (!(value is null))
+            if (value is null)
+            {
+                return value;
+            }
+            else
             {
                 var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
                 foreach (var value_elm in value)
                 {
-                    if (!(value_elm is null))
+                    if (value_elm is null)
+                    {
+                        value_list.Add(value_elm);
+                    }
+                    else
                     {
                         var value_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
                         foreach (var value_elm_elm in value_elm)
@@ -732,17 +736,9 @@ namespace Foo.Bar
 
                         value_list.Add(value_elm_list);
                     }
-                    else
-                    {
-                        value_list.Add(value_elm);
-                    }
                 }
 
                 return value_list;
-            }
-            else
-            {
-                return value;
             }
         }
 
@@ -888,12 +884,20 @@ namespace Foo.Bar
 
         private global::System.Object? FormatNestedList(global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? value)
         {
-            if (!(value is null))
+            if (value is null)
+            {
+                return value;
+            }
+            else
             {
                 var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
                 foreach (var value_elm in value)
                 {
-                    if (!(value_elm is null))
+                    if (value_elm is null)
+                    {
+                        value_list.Add(value_elm);
+                    }
+                    else
                     {
                         var value_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
                         foreach (var value_elm_elm in value_elm)
@@ -908,17 +912,9 @@ namespace Foo.Bar
 
                         value_list.Add(value_elm_list);
                     }
-                    else
-                    {
-                        value_list.Add(value_elm);
-                    }
                 }
 
                 return value_list;
-            }
-            else
-            {
-                return value;
             }
         }
 

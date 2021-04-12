@@ -414,25 +414,25 @@ namespace Foo.Bar
 
         private global::System.Object? FormatSkip(global::System.Int32? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _intFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _intFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatTake(global::System.Int32? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _intFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _intFormatter.Format(value);
             }
         }
 

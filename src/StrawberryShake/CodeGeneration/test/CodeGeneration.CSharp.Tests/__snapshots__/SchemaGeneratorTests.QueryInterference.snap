@@ -957,169 +957,169 @@ namespace Foo.Bar
 
         private global::System.Object? FormatName(global::Foo.Bar.SortEnumType? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatCanBeLearnedMoreThanOnce(global::Foo.Bar.SortEnumType? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatSpecial(global::Foo.Bar.SortEnumType? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatTrigger(global::Foo.Bar.SortEnumType? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatLevel(global::Foo.Bar.SortEnumType? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatActionTypeId(global::Foo.Bar.SortEnumType? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatActionType(global::Foo.Bar.ActionTypeSortInput? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _actionTypeSortInputFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _actionTypeSortInputFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatFeatTypeId(global::Foo.Bar.SortEnumType? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatFeatType(global::Foo.Bar.FeatTypeSortInput? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _featTypeSortInputFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _featTypeSortInputFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatFrequencyId(global::Foo.Bar.SortEnumType? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatFrequency(global::Foo.Bar.FrequencySortInput? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _frequencySortInputFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _frequencySortInputFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatRollableEffect(global::Foo.Bar.RollableEffectSortInput? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _rollableEffectSortInputFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _rollableEffectSortInputFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatRollableEffectId(global::Foo.Bar.SortEnumType? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatId(global::Foo.Bar.SortEnumType? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(value);
             }
         }
     }
@@ -1134,98 +1134,83 @@ namespace Foo.Bar
             set;
         }
 
-        = default !;
         public global::Foo.Bar.SortEnumType? CanBeLearnedMoreThanOnce
         {
             get;
             set;
         }
 
-        = default !;
         public global::Foo.Bar.SortEnumType? Special
         {
             get;
             set;
         }
 
-        = default !;
         public global::Foo.Bar.SortEnumType? Trigger
         {
             get;
             set;
         }
 
-        = default !;
         public global::Foo.Bar.SortEnumType? Level
         {
             get;
             set;
         }
 
-        = default !;
         public global::Foo.Bar.SortEnumType? ActionTypeId
         {
             get;
             set;
         }
 
-        = default !;
         public global::Foo.Bar.ActionTypeSortInput? ActionType
         {
             get;
             set;
         }
 
-        = default !;
         public global::Foo.Bar.SortEnumType? FeatTypeId
         {
             get;
             set;
         }
 
-        = default !;
         public global::Foo.Bar.FeatTypeSortInput? FeatType
         {
             get;
             set;
         }
 
-        = default !;
         public global::Foo.Bar.SortEnumType? FrequencyId
         {
             get;
             set;
         }
 
-        = default !;
         public global::Foo.Bar.FrequencySortInput? Frequency
         {
             get;
             set;
         }
 
-        = default !;
         public global::Foo.Bar.RollableEffectSortInput? RollableEffect
         {
             get;
             set;
         }
 
-        = default !;
         public global::Foo.Bar.SortEnumType? RollableEffectId
         {
             get;
             set;
         }
 
-        = default !;
         public global::Foo.Bar.SortEnumType? Id
         {
             get;
             set;
         }
-
-        = default !;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
@@ -1256,25 +1241,25 @@ namespace Foo.Bar
 
         private global::System.Object? FormatName(global::Foo.Bar.SortEnumType? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatId(global::Foo.Bar.SortEnumType? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(value);
             }
         }
     }
@@ -1289,14 +1274,11 @@ namespace Foo.Bar
             set;
         }
 
-        = default !;
         public global::Foo.Bar.SortEnumType? Id
         {
             get;
             set;
         }
-
-        = default !;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
@@ -1327,25 +1309,25 @@ namespace Foo.Bar
 
         private global::System.Object? FormatName(global::Foo.Bar.SortEnumType? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatId(global::Foo.Bar.SortEnumType? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(value);
             }
         }
     }
@@ -1360,14 +1342,11 @@ namespace Foo.Bar
             set;
         }
 
-        = default !;
         public global::Foo.Bar.SortEnumType? Id
         {
             get;
             set;
         }
-
-        = default !;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
@@ -1398,49 +1377,49 @@ namespace Foo.Bar
 
         private global::System.Object? FormatName(global::Foo.Bar.SortEnumType? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatAmount(global::Foo.Bar.SortEnumType? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatTimeSpan(global::Foo.Bar.SortEnumType? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatId(global::Foo.Bar.SortEnumType? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(value);
             }
         }
     }
@@ -1455,28 +1434,23 @@ namespace Foo.Bar
             set;
         }
 
-        = default !;
         public global::Foo.Bar.SortEnumType? Amount
         {
             get;
             set;
         }
 
-        = default !;
         public global::Foo.Bar.SortEnumType? TimeSpan
         {
             get;
             set;
         }
 
-        = default !;
         public global::Foo.Bar.SortEnumType? Id
         {
             get;
             set;
         }
-
-        = default !;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
@@ -1507,61 +1481,61 @@ namespace Foo.Bar
 
         private global::System.Object? FormatCriticalSuccess(global::Foo.Bar.SortEnumType? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatSuccess(global::Foo.Bar.SortEnumType? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatFailure(global::Foo.Bar.SortEnumType? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatCriticalFailure(global::Foo.Bar.SortEnumType? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatId(global::Foo.Bar.SortEnumType? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(value);
             }
         }
     }
@@ -1576,35 +1550,29 @@ namespace Foo.Bar
             set;
         }
 
-        = default !;
         public global::Foo.Bar.SortEnumType? Success
         {
             get;
             set;
         }
 
-        = default !;
         public global::Foo.Bar.SortEnumType? Failure
         {
             get;
             set;
         }
 
-        = default !;
         public global::Foo.Bar.SortEnumType? CriticalFailure
         {
             get;
             set;
         }
 
-        = default !;
         public global::Foo.Bar.SortEnumType? Id
         {
             get;
             set;
         }
-
-        = default !;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
@@ -1801,7 +1769,11 @@ namespace Foo.Bar
 
         private global::System.Object? FormatOrder(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.FeatSortInput>? value)
         {
-            if (!(value is null))
+            if (value is null)
+            {
+                return value;
+            }
+            else
             {
                 var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
                 foreach (var value_elm in value)
@@ -1815,10 +1787,6 @@ namespace Foo.Bar
                 }
 
                 return value_list;
-            }
-            else
-            {
-                return value;
             }
         }
 

@@ -426,13 +426,13 @@ namespace Foo.Bar
 
         private global::System.Object? FormatEpisode(global::Foo.Bar.Episode? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _episodeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _episodeFormatter.Format(value);
             }
         }
 

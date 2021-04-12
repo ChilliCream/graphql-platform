@@ -306,13 +306,13 @@ namespace Foo.Bar
             var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
             foreach (var value_elm in value)
             {
-                if (!(value_elm is null))
+                if (value_elm is null)
                 {
-                    value_list.Add(_updateProjectMemberInputFormatter.Format(value_elm));
+                    value_list.Add(value_elm);
                 }
                 else
                 {
-                    value_list.Add(value_elm);
+                    value_list.Add(_updateProjectMemberInputFormatter.Format(value_elm));
                 }
             }
 
@@ -332,7 +332,6 @@ namespace Foo.Bar
             set;
         }
 
-        = default !;
         ///<summary>A member of the project</summary>
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.UpdateProjectMemberInput?> Members
         {
@@ -400,7 +399,6 @@ namespace Foo.Bar
             set;
         }
 
-        = default !;
         ///<summary>The type of role the user has on the project, only used when Remove is false</summary>
         public global::Foo.Bar.ProjectUserRoleType Type
         {
@@ -408,15 +406,12 @@ namespace Foo.Bar
             set;
         }
 
-        = default !;
         ///<summary>True will remove the member from the project</summary>
         public global::System.Boolean Remove
         {
             get;
             set;
         }
-
-        = default !;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator

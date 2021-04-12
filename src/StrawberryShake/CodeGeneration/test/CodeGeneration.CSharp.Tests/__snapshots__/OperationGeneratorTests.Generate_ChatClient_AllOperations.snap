@@ -2660,13 +2660,13 @@ namespace Foo.Bar
 
         private global::System.Object? FormatClientMutationId(global::System.String? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _stringFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _stringFormatter.Format(value);
             }
         }
 
@@ -2701,7 +2701,6 @@ namespace Foo.Bar
             set;
         }
 
-        = default !;
         ///<summary>The email of the person to which a message shall be send.</summary>
         public global::System.String RecipientEmail
         {

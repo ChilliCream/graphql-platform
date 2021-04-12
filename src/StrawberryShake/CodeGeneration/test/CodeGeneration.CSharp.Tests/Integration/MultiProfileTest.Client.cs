@@ -1105,13 +1105,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
 
         private global::System.Object? FormatCommentary(global::System.String? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _stringFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _stringFormatter.Format(value);
             }
         }
     }
@@ -1126,14 +1126,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             set;
         }
 
-        = default !;
         public global::System.String? Commentary
         {
             get;
             set;
         }
-
-        = default !;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator

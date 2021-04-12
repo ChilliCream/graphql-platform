@@ -2,6 +2,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using StrawberryShake.CodeGeneration.Extensions;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Generators
@@ -25,12 +26,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
                 foreach (var prop in descriptor.Properties)
                 {
-                    recordDeclarationSyntax = recordDeclarationSyntax.AddMembers(
+                    PropertyDeclarationSyntax property =
                         PropertyDeclaration(prop.Type.ToTypeSyntax(), prop.Name)
                             .AddModifiers(Token(SyntaxKind.PublicKeyword))
                             .AddSummary(prop.Description)
-                            .WithGetterAndInit()
-                            .WithSuppressNullableWarningExpression());
+                            .WithGetterAndInit();
+
+                    if (prop.Type.IsNonNullableType() && !prop.Type.GetRuntimeType().IsValueType)
+                    {
+                        property = property.WithSuppressNullableWarningExpression();
+                    }
+
+                    recordDeclarationSyntax = recordDeclarationSyntax.AddMembers(property);
                 }
 
                 recordDeclarationSyntax = recordDeclarationSyntax.WithCloseBraceToken(
@@ -53,12 +60,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             foreach (var prop in descriptor.Properties)
             {
-                classDeclaration = classDeclaration.AddMembers(
+
+                PropertyDeclarationSyntax property =
                     PropertyDeclaration(prop.Type.ToTypeSyntax(), prop.Name)
                         .AddModifiers(Token(SyntaxKind.PublicKeyword))
                         .AddSummary(prop.Description)
-                        .WithGetterAndSetter()
-                        .WithSuppressNullableWarningExpression());
+                        .WithGetterAndSetter();
+
+                if (prop.Type.IsNonNullableType() && !prop.Type.GetRuntimeType().IsValueType)
+                {
+                    property = property.WithSuppressNullableWarningExpression();
+                }
+
+                classDeclaration = classDeclaration.AddMembers(property);
             }
 
             return new(

@@ -123,26 +123,26 @@ namespace Foo.Bar
 
         private global::System.Object? FormatBaz(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Baz?>? value)
         {
-            if (!(value is null))
+            if (value is null)
+            {
+                return value;
+            }
+            else
             {
                 var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
                 foreach (var value_elm in value)
                 {
-                    if (!(value_elm is null))
+                    if (value_elm is null)
                     {
-                        value_list.Add(_bazFormatter.Format(value_elm));
+                        value_list.Add(value_elm);
                     }
                     else
                     {
-                        value_list.Add(value_elm);
+                        value_list.Add(_bazFormatter.Format(value_elm));
                     }
                 }
 
                 return value_list;
-            }
-            else
-            {
-                return value;
             }
         }
     }
@@ -156,8 +156,6 @@ namespace Foo.Bar
             get;
             set;
         }
-
-        = default !;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
@@ -188,13 +186,13 @@ namespace Foo.Bar
 
         private global::System.Object? FormatQux(global::System.String? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _stringFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _stringFormatter.Format(value);
             }
         }
     }
@@ -208,8 +206,6 @@ namespace Foo.Bar
             get;
             set;
         }
-
-        = default !;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
@@ -299,13 +295,13 @@ namespace Foo.Bar
 
         private global::System.Object? FormatBar(global::Foo.Bar.Bar? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _barFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _barFormatter.Format(value);
             }
         }
 

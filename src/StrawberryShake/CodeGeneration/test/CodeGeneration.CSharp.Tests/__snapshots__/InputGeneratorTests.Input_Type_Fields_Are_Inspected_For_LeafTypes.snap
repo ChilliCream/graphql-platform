@@ -326,7 +326,6 @@ namespace Foo.Bar
             set;
         }
 
-        = default !;
         public global::System.String HomePlanet
         {
             get;
