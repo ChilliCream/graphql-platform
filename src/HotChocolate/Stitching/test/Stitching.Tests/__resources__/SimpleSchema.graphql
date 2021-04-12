@@ -1,0 +1,7 @@
+type Query {
+  hello: CustomScalar!
+}
+
+directive @customDirective on SCALAR
+
+scalar CustomScalar @customDirective

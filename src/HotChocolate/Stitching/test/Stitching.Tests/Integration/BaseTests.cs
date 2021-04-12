@@ -11,6 +11,9 @@ using HotChocolate.Tests;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
+using ChilliCream.Testing;
+using System;
+using HotChocolate.Execution.Configuration;
 
 namespace HotChocolate.Stitching.Integration
 {
@@ -22,6 +25,8 @@ namespace HotChocolate.Stitching.Integration
         }
 
         protected StitchingTestContext Context { get; }
+
+       
 
         [Fact]
         public async Task AutoMerge_Schema()
@@ -73,6 +78,28 @@ namespace HotChocolate.Stitching.Integration
         }
 
         [Fact]
+        public async Task AutoMerge_Schema_Preserves_Scalar_Directives()
+        {
+            // arrange
+            IHttpClientFactory httpClientFactory =
+                Context.CreateDefaultRemoteSchemas();
+
+            // act
+            ISchema schema =
+                await new ServiceCollection()
+                   .AddSingleton(httpClientFactory)
+                   .AddGraphQL()
+                   .AddRemoteSchemaFromString("Simple", FileResource.Open("SimpleSchema.graphql"))
+                   .AddType(new AnyType("CustomScalar"))
+                   .AddGraphQL("Simple")
+                   .AddType(new AnyType("CustomScalar"))
+                   .BuildSchemaAsync();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+       [Fact]
         public async Task AutoMerge_Execute_Inline_Fragment()
         {
             // arrange
