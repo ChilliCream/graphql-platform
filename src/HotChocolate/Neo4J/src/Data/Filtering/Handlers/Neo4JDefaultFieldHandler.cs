@@ -28,7 +28,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
             ITypeCompletionContext context,
             IFilterInputTypeDefinition typeDefinition,
             IFilterFieldDefinition fieldDefinition) =>
-            !(fieldDefinition is FilterOperationFieldDefinition);
+            fieldDefinition is not FilterOperationFieldDefinition;
 
         /// <inheritdoc />
         public override bool TryHandleEnter(

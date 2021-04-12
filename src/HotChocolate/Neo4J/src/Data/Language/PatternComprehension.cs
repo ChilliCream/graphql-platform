@@ -8,8 +8,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class PatternComprehension : Expression
     {
-        public override ClauseKind Kind { get; } = ClauseKind.PatternComprehension;
-
+        public override ClauseKind Kind => ClauseKind.PatternComprehension;
         private readonly IPatternElement _patternElement;
         private readonly Where? _where;
         private readonly Expression? _expression;

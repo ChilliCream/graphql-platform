@@ -2,8 +2,6 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     public class BuiltInFunctions
     {
-        private BuiltInFunctions() { }
-
         public class Predicates : FunctionDefinition
         {
             public static readonly Predicates All = new("all");

@@ -5,8 +5,7 @@ using HotChocolate.Data.Neo4J.Language;
 namespace HotChocolate.Data.Neo4J.Filtering
 {
     /// <summary>
-    /// This filter operation handler maps a All operation field to a
-    /// <see cref="FilterDefinition{TDocument}"/>
+    /// This filter operation handler maps a All operation field.
     /// </summary>
     public class Neo4JListAllOperationHandler : Neo4JListOperationHandlerBase
     {

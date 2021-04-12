@@ -2,7 +2,7 @@
 {
     public class Remove : Visitable, IUpdatingClause
     {
-        public override ClauseKind Kind { get; } = ClauseKind.Remove;
+        public override ClauseKind Kind => ClauseKind.Remove;
         private readonly ExpressionList _setItems;
 
         public Remove(ExpressionList setItems)

@@ -7,7 +7,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class RelationshipTypes : Visitable
     {
-        public override ClauseKind Kind { get; } = ClauseKind.RelationshipTypes;
+        public override ClauseKind Kind => ClauseKind.RelationshipTypes;
         private readonly List<string> _values;
 
         public RelationshipTypes(List<string> values)
