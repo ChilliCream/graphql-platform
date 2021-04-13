@@ -11,13 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="Shouldly" Version="4.0.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     <PackageReference Include="Squadron.Neo4j" Version="0.9.0-preview.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="LanguageTests\__snapshots__" />
-    <Folder Include="VisitorTests\__snapshots__" />
   </ItemGroup>
 
 </Project>

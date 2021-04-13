@@ -25,7 +25,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Utilities", ".
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Abstractions", "..\Core\src\Abstractions\HotChocolate.Abstractions.csproj", "{384C2579-EBEF-44DC-8F54-2B9558E07ADB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Neo4J.Language.Tests", "test\Data.Neo4J.Tests\HotChocolate.Data.Neo4J.Language.Tests.csproj", "{8325D43F-3F12-4C4F-8887-5FA714AA8EC7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Neo4J.Language.Tests", "test\HotChocolate.Data.Neo4J.Language.Tests\HotChocolate.Data.Neo4J.Language.Tests.csproj", "{8325D43F-3F12-4C4F-8887-5FA714AA8EC7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Neo4J.Filtering.Tests", "test\HotChocolate.Data.Neo4J.Filtering.Tests\HotChocolate.Data.Neo4J.Filtering.Tests.csproj", "{81EC7457-71A6-4E87-943A-DBA5059599F7}"
 EndProject

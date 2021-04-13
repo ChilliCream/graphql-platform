@@ -146,7 +146,6 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.ExpressionCondition:
                 case ClauseKind.HasLabelCondition:
                 case ClauseKind.BooleanFunctionCondition:
-
                 case ClauseKind.NotCondition:
                 case ClauseKind.ProjectionBody:
                     break;
