@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <Extern href="stdidcmd.h"/>
+  <Extern href="vsshlids.h"/>
+
+  <Commands package="guidStrawberryShakePackage">
+    <Groups>
+      <Group guid="guidStrawberryShakePackageCmdSet" id="MyMenuGroup" priority="0x0100">
+        <Parent guid="guidSHLMainMenu" id="cmdidShellWindowNavigate7"/>
+      </Group>
+    </Groups>
+
+    <Buttons>
+      <Button guid="guidStrawberryShakePackageCmdSet" id="AddGraphQLClient" priority="0x0100" type="Button">
+        <Parent guid="guidStrawberryShakePackageCmdSet" id="MyMenuGroup" />
+        <Icon guid="guidImages" id="bmpLogo" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <ButtonText>GraphQL Client</ButtonText>
+        </Strings>
+      </Button>
+    </Buttons>
+
+    <Bitmaps>
+      <Bitmap guid="guidImages" href="Resources\graphql.png" usedList="bmpLogo"/>
+    </Bitmaps>
+  </Commands>
+
+  <VisibilityConstraints>
+    <VisibilityItem guid="guidStrawberryShakePackageCmdSet" id="AddGraphQLClient" context="uiContextSupportedFiles" />
+  </VisibilityConstraints>
+
+  <Symbols>
+    <GuidSymbol name="guidStrawberryShakePackage" value="{369dd335-f812-4174-8d94-a3ec7437a0c3}" />
+    <GuidSymbol name="uiContextSupportedFiles" value="{24551deb-f034-43e9-a279-0e541241687e}" />
+
+    <GuidSymbol name="guidStrawberryShakePackageCmdSet" value="{2170a3df-e63b-4e90-a8e9-54bf12d8a112}">
+      <IDSymbol name="MyMenuGroup" value="0x1020" />
+      <IDSymbol name="AddGraphQLClient" value="0x0100" />
+    </GuidSymbol>
+
+    <GuidSymbol name="guidImages" value="{75d3551d-240f-4f84-bb43-4d5b921420e5}" >
+      <IDSymbol name="bmpLogo" value="1" />
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>
