@@ -101,12 +101,12 @@ namespace HotChocolate.Types
                 MatchCollection coords = _rx.Matches(serialized);
                 if (coords.Count > 0)
                 {
-                    var minute = double.TryParse(coords[2].Value, out var min) ? min / 60 : 0;
-                    var second =   double.TryParse(coords[4].Value, out var sec) ? sec / 60 : 0;
-                    var result = double.TryParse(coords[1].Value, out var deg) ? deg + minute + second : 0;
+                    var minute = double.TryParse(coords[0].Groups[2].Value, out var min) ? min / 60 : 0;
+                    var second =   double.TryParse(coords[0].Groups[3].Value, out var sec) ? (sec / 60) : 0;
+                    var result = double.TryParse(coords[0].Groups[1].Value, out var deg) ? deg + minute + second : 0;
 
                     // Southern and western coordinates must be negative decimals
-                    value = coords[7].Value.Contains("W") || coords[7].Value.Contains("S") ? -result : result;
+                    value = coords[0].Groups[7].Value is "W" or "S" ? -result : result;
                     return true;
                 }
 
