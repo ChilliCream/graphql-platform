@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Batching;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Fetching;
 using HotChocolate.Types;
@@ -99,7 +100,7 @@ namespace HotChocolate.Execution.Processing
                 using IServiceScope serviceScope = _requestContext.Services.CreateScope();
 
                 IServiceProvider eventServices = serviceScope.ServiceProvider;
-                IBatchDispatcher dispatcher = eventServices.GetRequiredService<IBatchDispatcher>();
+                IContextBatchDispatcher dispatcher = eventServices.GetRequiredService<IContextBatchDispatcher>();
 
                 OperationContext operationContext = _operationContextPool.Get();
 
@@ -157,7 +158,7 @@ namespace HotChocolate.Execution.Processing
                     operationContext.Initialize(
                         _requestContext,
                         _requestContext.Services,
-                        NoopBatchDispatcher.Default,
+                        NoopContextBatchDispatcher.Default,
                         _requestContext.Operation!,
                         _requestContext.Variables!,
                         rootValue,

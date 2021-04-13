@@ -30,8 +30,8 @@ namespace HotChocolate.Execution.Batching
             private DocumentNode? _previous;
             private Dictionary<string, FragmentDefinitionNode>? _fragments;
             private bool _allowParallelExecution;
-            private readonly List<IBatchDispatcher> _batchDispatchers;
-            private static readonly List<IBatchDispatcher> EmptyBatchDispatchers = new();
+            private readonly List<IContextBatchDispatcher> _batchDispatchers;
+            private static readonly List<IContextBatchDispatcher> EmptyBatchDispatchers = new();
 
             public BatchExecutorEnumerable(
                 IEnumerable<IQueryRequest> requestBatch,
@@ -57,7 +57,7 @@ namespace HotChocolate.Execution.Batching
                     //       never have effect so we can ignore it here as well
                     _batchDispatchers = requestBatch
                         .Where(x => x.Services is not null)
-                        .Select(x => x.Services.GetRequiredService<IBatchDispatcher>())
+                        .Select(x => x.Services.GetRequiredService<IContextBatchDispatcher>())
                         .Distinct()
                         .ToList();
                 }

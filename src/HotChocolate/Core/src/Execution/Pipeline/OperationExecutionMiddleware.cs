@@ -48,7 +48,7 @@ namespace HotChocolate.Execution.Pipeline
 
         public async ValueTask InvokeAsync(
             IRequestContext context,
-            IBatchDispatcher? batchDispatcher)
+            IContextBatchDispatcher? batchDispatcher)
         {
             if (batchDispatcher is null)
             {
@@ -76,7 +76,7 @@ namespace HotChocolate.Execution.Pipeline
 
         private async Task ExecuteOperationAsync(
             IRequestContext context,
-            IBatchDispatcher batchDispatcher,
+            IContextBatchDispatcher batchDispatcher,
             IPreparedOperation operation)
         {
             if (operation.Definition.Operation == OperationType.Subscription)
@@ -129,7 +129,7 @@ namespace HotChocolate.Execution.Pipeline
 
         private async Task ExecuteQueryOrMutationAsync(
             IRequestContext context,
-            IBatchDispatcher batchDispatcher,
+            IContextBatchDispatcher batchDispatcher,
             IPreparedOperation operation,
             OperationContext operationContext)
         {

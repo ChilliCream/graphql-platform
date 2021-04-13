@@ -121,6 +121,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddScoped<BatchScheduler>();
             services.TryAddScoped<IBatchScheduler>(sp => sp.GetRequiredService<BatchScheduler>());
             services.TryAddScoped<IBatchDispatcher>(sp => sp.GetRequiredService<BatchScheduler>());
+            services.TryAddScoped<IContextBatchDispatcher, ContextBatchDispatcher>();
             return services;
         }
 

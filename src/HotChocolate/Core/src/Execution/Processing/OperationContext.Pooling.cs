@@ -32,7 +32,7 @@ namespace HotChocolate.Execution.Processing
         public void Initialize(
             IRequestContext requestContext,
             IServiceProvider scopedServices,
-            IBatchDispatcher batchDispatcher,
+            IContextBatchDispatcher batchDispatcher,
             IPreparedOperation operation,
             IVariableValueCollection variables,
             object? rootValue,

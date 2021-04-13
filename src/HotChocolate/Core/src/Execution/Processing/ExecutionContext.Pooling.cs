@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
 
@@ -13,7 +14,7 @@ namespace HotChocolate.Execution.Processing
         private readonly IDeferredTaskBacklog _deferredTaskBacklog;
         private readonly ObjectPool<ResolverTask> _taskPool;
         private CancellationTokenSource _completed = default!;
-        private IBatchDispatcher _batchDispatcher = default!;
+        private IContextBatchDispatcher _batchDispatcher = default!;
 
         private bool _isPooled = true;
 
@@ -30,7 +31,7 @@ namespace HotChocolate.Execution.Processing
         }
 
         public void Initialize(
-            IBatchDispatcher batchDispatcher,
+            IContextBatchDispatcher batchDispatcher,
             CancellationToken requestAborted)
         {
             _taskStatistics.Clear();

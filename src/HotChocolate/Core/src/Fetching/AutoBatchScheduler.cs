@@ -6,6 +6,7 @@ namespace HotChocolate.Fetching
 {
     public class AutoBatchScheduler
         : IBatchScheduler
+        , IAutoBatchDispatcher
     {
         public void Schedule(Func<ValueTask> dispatch) => dispatch();
 
