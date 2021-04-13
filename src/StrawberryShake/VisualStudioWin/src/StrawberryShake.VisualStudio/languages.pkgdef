@@ -1,0 +1,7 @@
+; Registering the TextMate grammar
+[$RootKey$\TextMate\Repositories]
+"graphql"="$PackageFolder$\Syntaxes"
+
+; Match file extensions with icons. See full icon list at https://glyphlist.azurewebsites.net/knownmonikers/
+[$RootKey$\ShellFileAssociations\.graphql]
+"DefaultIconMoniker"="KnownMonikers.ConfigurationEditor"

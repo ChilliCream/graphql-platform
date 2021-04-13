@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>name</key>
+    <string>Visual Studio Global TextMate Theme</string>
+    <key>settings</key>
+    <array>
+
+      <!-- Begin HTML/XML/PHP specific colorization -->
+      <dict>
+        <key>scope</key>
+        <string>entity.name.tag, meta.tag, punctuation.section.embedded.begin.metatag, punctuation.section.embedded.end.metatag</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>markup node</string>
+        </dict>
+      </dict>
+      <dict>
+        <key>scope</key>
+        <string>invalid.illegal.attribute, entity.other.attribute-name</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>markup attribute</string>
+        </dict>
+      </dict>
+      <dict>
+        <key>scope</key>
+        <!-- String scopes for these languages are fully qualified to override default string color for markup languages only -->
+        <string>string.quoted.double.xml, string.quoted.single.xml, string.quoted.double.html, string.quoted.single.html</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>markup attribute value</string>
+        </dict>
+      </dict>
+      <!-- End HTML/XML specific colorization -->
+
+      <!-- Begin CSS specific colorization -->
+      <dict>
+        <key>scope</key>
+        <string> entity.name.tag.wildcard.css, entity.other.attribute-name.class.css, entity.other.attribute-name.id.css, entity.other.attribute-name.pseudo-element.css, entity.other.attribute-name.pseudo-class.css, entity.other.attribute-name.pseudo-class.ui-state.css, entity.other.attribute-name.attribute.css</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>symbol reference</string>
+        </dict>
+      </dict>
+      <!-- End CSS specific colorization -->
+
+      <dict>
+        <key>scope</key>
+        <string>storage.modifier, keyword, new.storage, entity.name.tag.doctype.html, storage.control, storage.type, support.function</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>keyword</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>support.type, constant.keyword, entity.global, entity.name, entity.name.tag.yaml, support.class, entity.other.inherited-class</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>type</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>meta.preprocessor keyword</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>preprocessor keyword</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>constant.language, variable.language</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>keyword</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>string, punctuation.definition.string, punctuation.definition.template-expression, constant.character.escape, constant.regexp, markup.heading</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>string</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>keyword.control.anchor.regexp, keyword.other.back-reference.regexp, keyword.operator.quantifier.regexp, keyword.operator.or.regexp, keyword.operator.negation.regexp</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>string</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>constant.numeric, meta.delimiter.decimal.period, constant.language.nan, constant.language.infinity</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>number</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>keyword.operator, storage.type.function.arrow</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>operator</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>meta.brace.angle, meta.brace.round, meta.brace.square, punctuation.definition</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>operator</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>comment, punctuation.definition.comment</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>comment</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>punctuation.definition.heading</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>comment</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>comment.block.documentation, other.meta.jsdoc, other.description.jsdoc</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>comment</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>variable, entity - entity.name.type</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>identifier</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>storage.type.class.jsdoc</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>comment</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>meta.tag.open string.quoted, meta.tag.open string.quoted punctuation.definition.string, meta.tag.open string.quoted constant.character.entity, meta.tag.open string.quoted constant.character.entity punctuation.definition.entity</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>string</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>constant.character.entity, punctuation.definition.entity, invalid.illegal.bad-ampersand</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>Literal</string>
+        </dict>
+      </dict>
+
+      <dict>
+        <key>scope</key>
+        <string>constant.language.undefined</string>
+        <key>settings</key>
+        <dict>
+          <key>vsclassificationtype</key>
+          <string>identifier</string>
+        </dict>
+      </dict>
+
+    </array>
+    <key>uuid</key>
+    <string>77F1FF99-AB66-4332-9ABD-27F5F1030583</string>
+  </dict>
+</plist>
