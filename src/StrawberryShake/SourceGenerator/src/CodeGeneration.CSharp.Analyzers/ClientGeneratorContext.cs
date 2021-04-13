@@ -81,8 +81,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             {
                 try
                 {
-                    return JsonConvert.DeserializeObject<List<SourceDocument>>(
-                        File.ReadAllText(fileName));
+                    string json = File.ReadAllText(fileName);
+                    return JsonConvert
+                        .DeserializeObject<IEnumerable<SourceDocumentDto>>(json)
+                        .Select(dto => new SourceDocument(
+                            dto.Name, 
+                            dto.SourceText, 
+                            dto.Kind, 
+                            dto.Hash, 
+                            dto.Path))
+                        .ToArray();
                 }
                 catch
                 {
@@ -104,7 +112,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
             File.WriteAllText(
                 fileName,
-                JsonConvert.SerializeObject(sourceDocuments));
+                JsonConvert.SerializeObject(
+                    sourceDocuments.Select(doc => new SourceDocumentDto 
+                    { 
+                        Name = doc.Name,
+                        Path = doc.Path,
+                        Hash = doc.Hash,
+                        Kind = doc.Kind,
+                        SourceText = doc.SourceText
+                    })));
         }
 
         public void ReportError(Exception exception) =>
@@ -200,6 +216,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             }
 
             return _stateDirectory;
+        }
+
+        private class SourceDocumentDto
+        {
+            public string Name { get; set; } = default!;
+            public string SourceText { get; set; } = default!;
+            public SourceDocumentKind Kind { get; set; }
+            public string? Hash { get; set; }
+            public string? Path { get; set; }
         }
     }
 }
