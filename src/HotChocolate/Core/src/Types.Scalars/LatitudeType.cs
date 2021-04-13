@@ -74,7 +74,7 @@ namespace HotChocolate.Types
 
                 var minute = double.TryParse(coords[2].Value, out var min) ? min / 60 : 0;
                 var second =   double.TryParse(coords[4].Value, out var sec) ? sec / 60 : 0;
-                var value = double.TryParse(coords[1].Value, out var dec) ? dec + minute + second : 0;
+                var value = double.TryParse(coords[1].Value, out var deg) ? deg + minute + second : 0;
 
                 // Southern and western coordinates must be negative decimals
                 return coords[7].Value.Contains("W") || coords[7].Value.Contains("S") ? -value : value;
