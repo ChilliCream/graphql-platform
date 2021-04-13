@@ -1,6 +1,4 @@
-using System;
 using System.Globalization;
-using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
@@ -54,7 +52,13 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override double ParseLiteral(StringValueNode valueSyntax)
         {
-            throw new NotImplementedException();
+            if (Latitude.TryDeserializeFromString(valueSyntax.Value, out var value) &&
+                value != null)
+            {
+                return value.Value;
+            }
+
+            throw ThrowHelper.LatitudeType_ParseLiteral_IsInvalid(this);
         }
 
         /// <inheritdoc />
