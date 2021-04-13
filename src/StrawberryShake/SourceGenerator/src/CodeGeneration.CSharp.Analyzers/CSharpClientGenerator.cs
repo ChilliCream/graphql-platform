@@ -54,12 +54,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         {
             var receiver = context.SyntaxReceiver;
 
-            // if preconditions are not met we just stop and do not process any further.
-            if (!EnsurePreconditionsAreMet(context))
-            {
-                return;
-            }
-
             _location = GetPackageLocation(context);
 
             using ILogger log = CreateLogger(context);
@@ -94,17 +88,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         {
             try
             {
-                if (!TryGenerateClient(context, out CSharpGeneratorResult? result))
+                var hasErrors = !TryGenerateClient(context, out CSharpGeneratorResult? result);
+
+                // Ensure that all needed packages are installed.
+                if (!EnsurePreconditionsAreMet(context.Execution, context.Settings))
                 {
-                    // there were unexpected errors and we will stop generating this client.
                     return;
                 }
 
-                if (result.HasErrors())
+                if (result?.HasErrors() ?? false)
                 {
                     // if we have generator errors like invalid GraphQL syntax we will also stop.
                     context.ReportError(result.Errors);
-                    return;
+                    hasErrors = true;
                 }
 
                 // If the generator has no errors we will write the documents.
@@ -112,8 +108,21 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     ? new SingleFileDocumentWriter()
                     : new FileDocumentWriter();
 
-                foreach (SourceDocument document in
-                    result.Documents.Where(t => t.Kind == SourceDocumentKind.CSharp))
+                IReadOnlyList<SourceDocument> documents = hasErrors || result is null
+                    ? context.GetLastSuccessfulGeneratedSourceDocuments()
+                    : result.Documents;
+
+                if (documents.Count == 0)
+                {
+                    return;
+                }
+
+                if (!hasErrors && result is not null && result.Documents.Count > 0)
+                {
+                    context.PreserveSourceDocuments(result.Documents);
+                }
+
+                foreach (SourceDocument document in documents.SelectCSharp())
                 {
                     writer.WriteDocument(context, document);
                 }
@@ -130,8 +139,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                         Directory.CreateDirectory(persistedQueryDirectory);
                     }
 
-                    foreach (SourceDocument document in
-                        result.Documents.Where(t => t.Kind == SourceDocumentKind.GraphQL))
+                    foreach (SourceDocument document in documents.SelectGraphQL())
                     {
                         WriteGraphQLQuery(context, persistedQueryDirectory, document);
                     }
@@ -282,41 +290,37 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         private static bool EnsurePreconditionsAreMet(
             GeneratorExecutionContext context,
-            ClientGeneratorContext generatorContext,
-            CSharpGeneratorResult generatorResult)
+            StrawberryShakeSettings settings)
         {
-            const string core = "StrawberryShake.Core";
             const string http = "StrawberryShake.Transport.Http";
             const string websockets = "StrawberryShake.Transport.WebSockets";
             const string inmemory = "StrawberryShake.Transport.InMemory";
-            
 
-            if(settings.)
+            var usedTransports = settings.TransportProfiles
+                .SelectMany(t => t.GetUsedTransports()).Distinct().ToList();
 
-
-
-            if (!EnsureDependencyExists(
-                context,
-                "StrawberryShake.Core",
-                "StrawberryShake.Core"))
+            if (usedTransports.Contains(TransportType.Http))
             {
-                return false;
+                if (!EnsureDependencyExists(context, http))
+                {
+                    return false;
+                }
             }
 
-            if (!EnsureDependencyExists(
-                context,
-                "StrawberryShake.Transport.Http",
-                "StrawberryShake.Transport.Http"))
+            if (usedTransports.Contains(TransportType.WebSocket))
             {
-                return false;
+                if (!EnsureDependencyExists(context, websockets))
+                {
+                    return false;
+                }
             }
 
-            if (!EnsureDependencyExists(
-                context,
-                "Microsoft.Extensions.Http",
-                "Microsoft.Extensions.Http"))
+            if (usedTransports.Contains(TransportType.InMemory))
             {
-                return false;
+                if (!EnsureDependencyExists(context, inmemory))
+                {
+                    return false;
+                }
             }
 
             return true;

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using DotNet.Globbing;
 using HotChocolate;
 using HotChocolate.Language;
+using Newtonsoft.Json;
 using StrawberryShake.Tools.Configuration;
 using IOPath = System.IO.Path;
 using static StrawberryShake.CodeGeneration.ErrorHelper;
@@ -35,8 +36,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             ClientDirectory = clientDirectory;
             OutputDirectory = IOPath.Combine(
                 clientDirectory,
-                settings.OutputDirectoryName ?? ".generated");
-            OutputFiles = settings.OutputDirectoryName is not null;
+                settings.OutputDirectoryName);
             _allDocuments = allDocuments;
             Execution = execution;
             Log = log;
@@ -51,8 +51,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         public string ClientDirectory { get; }
 
         public string OutputDirectory { get; }
-
-        public bool OutputFiles { get; }
 
         public GeneratorExecutionContext Execution { get; }
 
@@ -73,6 +71,40 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             }
 
             return _documents;
+        }
+
+        public IReadOnlyList<SourceDocument> GetLastSuccessfulGeneratedSourceDocuments()
+        {
+            string fileName = IOPath.Combine(GetStateDirectory(), Settings.Name + ".code");
+
+            if (File.Exists(fileName))
+            {
+                try
+                {
+                    return JsonConvert.DeserializeObject<List<SourceDocument>>(
+                        File.ReadAllText(fileName));
+                }
+                catch
+                {
+                    // we ignore any error here.
+                }
+            }
+
+            return Array.Empty<SourceDocument>();
+        }
+
+        public void PreserveSourceDocuments(IReadOnlyList<SourceDocument> sourceDocuments)
+        {
+            string fileName = IOPath.Combine(GetStateDirectory(), Settings.Name + ".code");
+
+            if (File.Exists(fileName))
+            {
+                File.Delete(fileName);
+            }
+
+            File.WriteAllText(
+                fileName,
+                JsonConvert.SerializeObject(sourceDocuments));
         }
 
         public void ReportError(Exception exception) =>
@@ -118,7 +150,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
             if (Execution.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
                 "build_property.StrawberryShake_DefaultNamespace",
-                out string? value) &&
+                out var value) &&
                 !string.IsNullOrEmpty(value))
             {
                 return value;
@@ -132,7 +164,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         {
             if (Execution.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
                 "build_property.StrawberryShake_PersistedQueryDirectory",
-                out string? value) &&
+                out var value) &&
                 !string.IsNullOrEmpty(value))
             {
                 return value;
@@ -141,7 +173,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             return null;
         }
 
-        public string? GetStateDirectory()
+        public string GetStateDirectory()
         {
             if (_stateDirectory is not null)
             {
@@ -150,7 +182,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
             if (Execution.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
                 "build_property.StrawberryShake_State",
-                out string? value) &&
+                out var value) &&
                 !string.IsNullOrEmpty(value))
             {
                 _stateDirectory = value;
