@@ -150,12 +150,12 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(NumberFloat is null))
+                if (NumberFloat != null)
                 {
                     hash ^= 397 * NumberFloat.GetHashCode();
                 }
 
-                if (!(NumberInt is null))
+                if (NumberInt != null)
                 {
                     hash ^= 397 * NumberInt.GetHashCode();
                 }

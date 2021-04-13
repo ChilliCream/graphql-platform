@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 {

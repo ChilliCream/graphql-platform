@@ -153,12 +153,12 @@ namespace Foo.Bar
             {
                 int hash = 5;
                 hash ^= 397 * IsValid.GetHashCode();
-                if (!(VehicleMake is null))
+                if (VehicleMake != null)
                 {
                     hash ^= 397 * VehicleMake.GetHashCode();
                 }
 
-                if (!(VehicleModel is null))
+                if (VehicleModel != null)
                 {
                     hash ^= 397 * VehicleModel.GetHashCode();
                 }
@@ -246,12 +246,12 @@ namespace Foo.Bar
             {
                 int hash = 5;
                 hash ^= 397 * Id.GetHashCode();
-                if (!(Make is null))
+                if (Make != null)
                 {
                     hash ^= 397 * Make.GetHashCode();
                 }
 
-                if (!(MakeCode is null))
+                if (MakeCode != null)
                 {
                     hash ^= 397 * MakeCode.GetHashCode();
                 }
@@ -352,19 +352,19 @@ namespace Foo.Bar
             {
                 int hash = 5;
                 hash ^= 397 * Id.GetHashCode();
-                if (!(Model is null))
+                if (Model != null)
                 {
                     hash ^= 397 * Model.GetHashCode();
                 }
 
-                if (!(ModelCode is null))
+                if (ModelCode != null)
                 {
                     hash ^= 397 * ModelCode.GetHashCode();
                 }
 
                 hash ^= 397 * VehicleMakeId.GetHashCode();
                 hash ^= 397 * IsDisabled.GetHashCode();
-                if (!(ModelType is null))
+                if (ModelType != null)
                 {
                     hash ^= 397 * ModelType.GetHashCode();
                 }

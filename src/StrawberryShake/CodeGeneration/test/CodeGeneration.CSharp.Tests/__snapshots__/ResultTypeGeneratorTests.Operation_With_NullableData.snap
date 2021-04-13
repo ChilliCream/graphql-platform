@@ -257,19 +257,19 @@ namespace Foo.Bar
                 hash ^= 397 * BarGUID.GetHashCode();
                 hash ^= 397 * ThingGUID.GetHashCode();
                 hash ^= 397 * ThingDATE.GetHashCode();
-                if (!(ThingSTATUS is null))
+                if (ThingSTATUS != null)
                 {
                     hash ^= 397 * ThingSTATUS.GetHashCode();
                 }
 
                 hash ^= 397 * FooGUID.GetHashCode();
-                if (!(FooAUTHOR is null))
+                if (FooAUTHOR != null)
                 {
                     hash ^= 397 * FooAUTHOR.GetHashCode();
                 }
 
                 hash ^= 397 * FooDATE.GetHashCode();
-                if (!(FooTEXT is null))
+                if (FooTEXT != null)
                 {
                     hash ^= 397 * FooTEXT.GetHashCode();
                 }

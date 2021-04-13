@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using StrawberryShake.Tools.Config;
+using StrawberryShake.Tools.Configuration;
 using StrawberryShake.Tools.OAuth;
 
 namespace StrawberryShake.Tools
@@ -128,10 +128,9 @@ extend schema @key(fields: ""id"")")
             var configuration = new GraphQLConfig
             {
                 Schema = context.SchemaFileName,
-                Documents = "**/*.graphql",
-                Extensions = new()
+                Extensions =
                 {
-                    StrawberryShake = new()
+                    StrawberryShake =
                     {
                         Name = context.ClientName,
                         Namespace = context.CustomNamespace,
@@ -143,14 +142,7 @@ extend schema @key(fields: ""id"")")
 
             await FileSystem.WriteTextAsync(
                 configFilePath,
-                JsonSerializer.Serialize(
-                    configuration,
-                    new()
-                    {
-                        WriteIndented = true,
-                        IgnoreNullValues = true,
-                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                    }))
+                configuration.ToString())
                 .ConfigureAwait(false);
         }
     }

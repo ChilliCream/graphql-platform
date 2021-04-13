@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using StrawberryShake.CodeGeneration.Descriptors;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {

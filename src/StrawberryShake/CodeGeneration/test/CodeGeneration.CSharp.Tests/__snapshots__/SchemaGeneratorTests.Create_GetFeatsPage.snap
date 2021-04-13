@@ -75,7 +75,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Feats is null))
+                if (Feats != null)
                 {
                     hash ^= 397 * Feats.GetHashCode();
                 }
@@ -144,11 +144,11 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Items is null))
+                if (Items != null)
                 {
                     foreach (var Items_elm in Items)
                     {
-                        if (!(Items_elm is null))
+                        if (Items_elm != null)
                         {
                             hash ^= 397 * Items_elm.GetHashCode();
                         }
@@ -508,25 +508,25 @@ namespace Foo.Bar
 
         private global::System.Object? FormatSkip(global::System.Int32? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _intFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _intFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatTake(global::System.Int32? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _intFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _intFormatter.Format(value);
             }
         }
 
