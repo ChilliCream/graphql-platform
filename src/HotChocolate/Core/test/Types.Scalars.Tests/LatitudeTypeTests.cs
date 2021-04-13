@@ -1,5 +1,3 @@
-using HotChocolate;
-using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -16,6 +14,17 @@ namespace HotChocolate.Types
             // act
             // assert
             schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Latitude_EnsureLatitudeTypeKindIsCorrect()
+        {
+            // arrange
+            // act
+            var type = new LatitudeType();
+
+            // assert
+            Assert.Equal(TypeKind.Scalar, type.Kind);
         }
     }
 }
