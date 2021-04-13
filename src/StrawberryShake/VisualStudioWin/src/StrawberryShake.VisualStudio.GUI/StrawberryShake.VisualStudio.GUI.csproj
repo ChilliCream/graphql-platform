@@ -53,12 +53,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Compile Include="Configuration\GraphQLConfig.cs" />
-    <Compile Include="Configuration\GraphQLConfigExtensions.cs" />
-    <Compile Include="Configuration\StrawberryShakeSettings.cs" />
-    <Compile Include="Configuration\StrawberryShakeSettingsRecords.cs" />
-    <Compile Include="Configuration\StrawberryShakeTransportSettings.cs" />
-    <Compile Include="Configuration\TransportType.cs" />
     <Compile Include="CreateClientViewModel.cs" />
     <Compile Include="CreateClient.xaml.cs">
       <DependentUpon>CreateClient.xaml</DependentUpon>
@@ -104,6 +98,9 @@
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>9.0.1</Version>
+    </PackageReference>
+    <PackageReference Include="StrawberryShake.Tools.Configuration">
+      <Version>11.2.0-preview.17</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

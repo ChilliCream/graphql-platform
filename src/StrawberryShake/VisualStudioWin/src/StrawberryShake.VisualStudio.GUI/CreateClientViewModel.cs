@@ -242,13 +242,13 @@ namespace StrawberryShake.VisualStudio.GUI
                     return;
                 }
 
-                Project.SaveFile(CreateFileName(Defaults.GraphQLConfigFile), configuration);
+                Project.SaveFile(CreateFileName(FileNames.GraphQLConfigFile), configuration);
                 Progress++;
 
-                Project.SaveFile(CreateFileName(Defaults.SchemaExtensionFile), Defaults.SchemaExtensionFileContent);
+                Project.SaveFile(CreateFileName(FileNames.SchemaExtensionFile), FileContents.SchemaExtensionFileContent);
                 Progress++;
 
-                Project.SaveFile(CreateFileName(Defaults.SchemaFile), schema);
+                Project.SaveFile(CreateFileName(FileNames.SchemaFile), schema);
                 Progress = ProgressMax;
 
                 ClientCreated(this, EventArgs.Empty);
@@ -394,19 +394,5 @@ namespace StrawberryShake.VisualStudio.GUI
                 _action();
             }
         }
-    }
-
-    public static class Defaults
-    {
-        public const string SchemaFile = "schema.graphql";
-
-        public const string SchemaExtensionFile = "schema.extensions.graphql";
-
-        public const string SchemaExtensionFileContent = @"scalar _KeyFieldSet
-
-directive @key(fields: _KeyFieldSet!) on SCHEMA | OBJECT
-
-extend schema @key(fields: ""id"")";
-        public const string GraphQLConfigFile = ".graphqlrc.json";
     }
 }

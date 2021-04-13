@@ -57,6 +57,7 @@
     <Compile Include="VisualStudioProject.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Grammar\GraphQL.tmlanguage" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
@@ -105,6 +106,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="GraphQL.pkgdef" />
     <Content Include="Resources\Command1.png" />
     <Content Include="Resources\graphql.png" />
   </ItemGroup>
