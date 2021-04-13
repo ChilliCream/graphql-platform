@@ -1,15 +1,14 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using HotChocolate;
-using Microsoft.Extensions.DependencyInjection;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
+using StrawberryShake.Tools.Configuration;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Generators

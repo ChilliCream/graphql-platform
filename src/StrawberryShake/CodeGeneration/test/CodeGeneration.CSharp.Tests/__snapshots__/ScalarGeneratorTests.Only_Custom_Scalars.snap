@@ -75,7 +75,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Person is null))
+                if (Person != null)
                 {
                     hash ^= 397 * Person.GetHashCode();
                 }
@@ -144,7 +144,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Email is null))
+                if (Email != null)
                 {
                     hash ^= 397 * Email.GetHashCode();
                 }

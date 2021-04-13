@@ -75,7 +75,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Search is null))
+                if (Search != null)
                 {
                     hash ^= 397 * Search.GetHashCode();
                 }

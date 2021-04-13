@@ -160,7 +160,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
             unchecked
             {
                 int hash = 5;
-                if (!(Hero is null))
+                if (Hero != null)
                 {
                     hash ^= 397 * Hero.GetHashCode();
                 }

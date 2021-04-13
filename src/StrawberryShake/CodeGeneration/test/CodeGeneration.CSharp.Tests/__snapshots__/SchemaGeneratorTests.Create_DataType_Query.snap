@@ -209,7 +209,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Name is null))
+                if (Name != null)
                 {
                     hash ^= 397 * Name.GetHashCode();
                 }

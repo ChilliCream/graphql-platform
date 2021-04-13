@@ -163,11 +163,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
             unchecked
             {
                 int hash = 5;
-                if (!(Search is null))
+                if (Search != null)
                 {
                     foreach (var Search_elm in Search)
                     {
-                        if (!(Search_elm is null))
+                        if (Search_elm != null)
                         {
                             hash ^= 397 * Search_elm.GetHashCode();
                         }
@@ -303,7 +303,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
             {
                 int hash = 5;
                 hash ^= 397 * Name.GetHashCode();
-                if (!(Friends is null))
+                if (Friends != null)
                 {
                     hash ^= 397 * Friends.GetHashCode();
                 }
@@ -443,11 +443,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
             unchecked
             {
                 int hash = 5;
-                if (!(Nodes is null))
+                if (Nodes != null)
                 {
                     foreach (var Nodes_elm in Nodes)
                     {
-                        if (!(Nodes_elm is null))
+                        if (Nodes_elm != null)
                         {
                             hash ^= 397 * Nodes_elm.GetHashCode();
                         }

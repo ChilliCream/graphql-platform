@@ -75,7 +75,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Hero is null))
+                if (Hero != null)
                 {
                     hash ^= 397 * Hero.GetHashCode();
                 }
@@ -151,11 +151,11 @@ namespace Foo.Bar
             {
                 int hash = 5;
                 hash ^= 397 * Name.GetHashCode();
-                if (!(AppearsIn is null))
+                if (AppearsIn != null)
                 {
                     foreach (var AppearsIn_elm in AppearsIn)
                     {
-                        if (!(AppearsIn_elm is null))
+                        if (AppearsIn_elm != null)
                         {
                             hash ^= 397 * AppearsIn_elm.GetHashCode();
                         }
@@ -233,11 +233,11 @@ namespace Foo.Bar
             {
                 int hash = 5;
                 hash ^= 397 * Name.GetHashCode();
-                if (!(AppearsIn is null))
+                if (AppearsIn != null)
                 {
                     foreach (var AppearsIn_elm in AppearsIn)
                     {
-                        if (!(AppearsIn_elm is null))
+                        if (AppearsIn_elm != null)
                         {
                             hash ^= 397 * AppearsIn_elm.GetHashCode();
                         }
@@ -414,13 +414,13 @@ namespace Foo.Bar
 
         private global::System.Object? FormatEpisode(global::Foo.Bar.Episode? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _episodeFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _episodeFormatter.Format(value);
             }
         }
 
