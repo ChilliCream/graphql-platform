@@ -182,7 +182,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 This will set up all the necessary endpoints to query the GraphQL schema via HTTP GET or HTTP POST.
 
-By default, the middleware will be configured to listen on `/graphql` for GraphQL requests. If you want to use a different endpoint route you can pass the desired route into the UseGraphQL instruction.
+By default, the middleware will be configured to listen on `/graphql` for GraphQL requests. If you want to use a different endpoint route you can pass the desired route into the `MapGraphQL` instruction.
 
 ```csharp
 public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -201,7 +201,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 }
 ```
 
-After setting up the endpoint and starting the web host, you can explore your schema using our GraphQL IDE [Banana Cake Pop](https://chillicream.com/docs/bananacakepop/). Just open your configured GraphQL endpoint in your browser and start querying!
+After setting up the endpoint and starting the web host, you can explore your schema using our GraphQL IDE [Banana Cake Pop](https://chillicream.com/docs/bananacakepop/). Just open the configured GraphQL endpoint in your browser and start querying!
 
 ### Templates
 
