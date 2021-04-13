@@ -440,8 +440,8 @@ namespace Foo.Bar
         private global::System.Boolean _set_id;
         private global::Foo.Bar.ProjectUserRoleType _value_type;
         private global::System.Boolean _set_type;
-        private global::System.Boolean _value_@remove;
-        private global::System.Boolean _set_@remove;
+        private global::System.Boolean _value_remove;
+        private global::System.Boolean _set_remove;
         ///<summary>The member id</summary>
         public global::System.Guid Id
         {
@@ -469,15 +469,15 @@ namespace Foo.Bar
         ///<summary>True will remove the member from the project</summary>
         public global::System.Boolean Remove
         {
-            get => _value_@remove;
+            get => _value_remove;
             set
             {
-                _set_@remove = true;
-                _value_@remove = value;
+                _set_remove = true;
+                _value_remove = value;
             }
         }
 
-        global::System.Boolean global::Foo.Bar.State.IUpdateProjectMemberInputInfo.IsRemoveSet => _set_@remove;
+        global::System.Boolean global::Foo.Bar.State.IUpdateProjectMemberInputInfo.IsRemoveSet => _set_remove;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
