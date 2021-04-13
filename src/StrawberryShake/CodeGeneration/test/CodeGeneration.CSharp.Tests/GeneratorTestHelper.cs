@@ -15,6 +15,7 @@ using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
 using Xunit;
 using Snapshot = Snapshooter.Xunit.Snapshot;
+using RequestStrategyGen = StrawberryShake.Tools.Configuration.RequestStrategy;
 using static StrawberryShake.CodeGeneration.CSharp.CSharpGenerator;
 
 namespace StrawberryShake.CodeGeneration.CSharp
@@ -194,8 +195,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         public static AssertSettings CreateIntegrationTest(
-            Descriptors.Operations.RequestStrategy requestStrategy =
-                Descriptors.Operations.RequestStrategy.Default,
+            RequestStrategyGen requestStrategy = RequestStrategyGen.Default,
             TransportProfile[]? profiles = null,
             bool noStore = false,
             [CallerMemberName] string? testName = null)
@@ -274,8 +274,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             public List<TransportProfile> Profiles { get; set; } = new();
 
-            public Descriptors.Operations.RequestStrategy RequestStrategy { get; set; } =
-                Descriptors.Operations.RequestStrategy.Default;
+            public RequestStrategyGen RequestStrategy { get; set; } =
+                RequestStrategyGen.Default;
         }
     }
 }

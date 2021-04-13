@@ -699,4 +699,7 @@ Type: `{0}`</value>
   <data name="BindingCompiler_AddBinding_BindingCannotBeHandled" xml:space="preserve">
     <value>The specified binding cannot be handled.</value>
   </data>
+  <data name="Type_SpecifiedByUrl_Description" xml:space="preserve">
+    <value>`specifiedByURL` may return a String (in the form of a URL) for custom scalars, otherwise it will return `null`.</value>
+  </data>
 </root>

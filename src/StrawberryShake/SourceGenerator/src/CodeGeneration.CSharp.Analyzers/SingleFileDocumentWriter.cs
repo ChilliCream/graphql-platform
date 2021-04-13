@@ -26,7 +26,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             _content.AppendLine(document.SourceText);
             _content.AppendLine();
 
-            if (context.OutputFiles && _fileName is null)
+            if (context.Settings.EmitGeneratedCode && _fileName is null)
             {
                 _fileName = IOPath.Combine(
                     context.OutputDirectory,
@@ -57,20 +57,20 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
             if (_emitCode && _fileName is not null)
             {
-                string? hash = _hashFile is not null && File.Exists(_hashFile)
+                var hash = _hashFile is not null && File.Exists(_hashFile)
                     ? File.ReadAllText(_hashFile)
                     : null;
 
                 string currentHash = _hashProvider.ComputeHash(
                     Encoding.UTF8.GetBytes(_content.ToString()));
 
-                bool fileExists = File.Exists(_fileName);
+                var fileExists = File.Exists(_fileName);
 
                 // we only write the file if it has changed so we do not trigger a loop on
                 // dotnet watch.
                 if (!fileExists || !currentHash.Equals(hash, StringComparison.Ordinal))
                 {
-                    string directory = IOPath.GetDirectoryName(_fileName);
+                    string directory = IOPath.GetDirectoryName(_fileName)!;
 
                     if (!Directory.Exists(directory))
                     {
@@ -83,7 +83,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     }
 
                     File.WriteAllText(_fileName, _content.ToString(), Encoding.UTF8);
-                    File.WriteAllText(_hashFile, currentHash, Encoding.UTF8);
+                    File.WriteAllText(_hashFile!, currentHash, Encoding.UTF8);
                 }
             }
         }

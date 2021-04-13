@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.CodeGeneration.Descriptors.Operations
 {

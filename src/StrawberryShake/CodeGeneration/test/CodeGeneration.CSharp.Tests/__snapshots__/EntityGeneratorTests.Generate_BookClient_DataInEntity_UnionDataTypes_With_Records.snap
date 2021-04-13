@@ -153,18 +153,18 @@ namespace Foo.Bar
             {
                 int hash = 5;
                 hash ^= 397 * Id.GetHashCode();
-                if (!(Books is null))
+                if (Books != null)
                 {
                     foreach (var Books_elm in Books)
                     {
-                        if (!(Books_elm is null))
+                        if (Books_elm != null)
                         {
                             hash ^= 397 * Books_elm.GetHashCode();
                         }
                     }
                 }
 
-                if (!(Search is null))
+                if (Search != null)
                 {
                     hash ^= 397 * Search.GetHashCode();
                 }
