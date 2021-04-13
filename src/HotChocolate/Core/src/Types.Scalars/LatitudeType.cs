@@ -65,7 +65,7 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override StringValueNode ParseValue(double runtimeValue)
         {
-            if (runtimeValue < Latitude._minValue && runtimeValue > Latitude._maxValue)
+            if (runtimeValue is < Latitude._minValue or > Latitude._maxValue)
             {
                 return new StringValueNode(Math
                     .Round(runtimeValue,
