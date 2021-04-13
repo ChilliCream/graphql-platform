@@ -33,16 +33,29 @@ namespace HotChocolate.Types
             Description = description;
         }
 
+        /// <inheritdoc />
         public override IValueNode ParseResult(object? resultValue)
         {
-            throw new System.NotImplementedException();
+            return resultValue switch
+            {
+                null => NullValueNode.Default,
+
+                string s when Latitude.IsSexagesimal(s) =>
+                    ParseValue(Latitude.TryDeserializeFromString(s)),
+
+                double d => ParseValue(d),
+
+                _ => throw ThrowHelper.LatitudeType_ParseValue_IsInvalid(this)
+            };
         }
 
+        /// <inheritdoc />
         protected override double ParseLiteral(StringValueNode valueSyntax)
         {
             throw new System.NotImplementedException();
         }
 
+        /// <inheritdoc />
         protected override StringValueNode ParseValue(double runtimeValue)
         {
             throw new System.NotImplementedException();
@@ -63,21 +76,21 @@ namespace HotChocolate.Types
                 SexagesimalRegex,
                 RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-            private static bool IsSexagesimal(string s)
+            internal static bool IsSexagesimal(string s)
             {
                 return _rx.IsMatch(s);
             }
 
-            private static double TryDeserializeFromString(string serialized)
+            internal static double TryDeserializeFromString(string serialized)
             {
                 MatchCollection coords = _rx.Matches(serialized);
 
                 var minute = double.TryParse(coords[2].Value, out var min) ? min / 60 : 0;
                 var second =   double.TryParse(coords[4].Value, out var sec) ? sec / 60 : 0;
-                var value = double.TryParse(coords[1].Value, out var deg) ? deg + minute + second : 0;
+                var result = double.TryParse(coords[1].Value, out var deg) ? deg + minute + second : 0;
 
                 // Southern and western coordinates must be negative decimals
-                return coords[7].Value.Contains("W") || coords[7].Value.Contains("S") ? -value : value;
+                return coords[7].Value.Contains("W") || coords[7].Value.Contains("S") ? -result : result;
             }
         }
     }
