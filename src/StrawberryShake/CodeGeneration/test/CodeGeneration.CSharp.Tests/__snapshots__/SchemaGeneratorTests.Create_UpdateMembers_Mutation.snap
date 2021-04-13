@@ -143,7 +143,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(UpdateMembers is null))
+                if (UpdateMembers != null)
                 {
                     hash ^= 397 * UpdateMembers.GetHashCode();
                 }
@@ -283,63 +283,89 @@ namespace Foo.Bar
                 return null;
             }
 
-            if (!(runtimeValue is UpdateProjectMembersInput d))
+            var input = runtimeValue as global::Foo.Bar.UpdateProjectMembersInput;
+            var inputInfo = runtimeValue as global::Foo.Bar.State.IUpdateProjectMembersInputInfo;
+            if (input is null || inputInfo is null)
             {
                 throw new global::System.ArgumentException(nameof(runtimeValue));
             }
 
-            return new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>[]{new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("id", FormatId(d.Id)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("members", FormatMembers(d.Members))};
-        }
-
-        private global::System.Object? FormatId(global::System.Guid value)
-        {
-            return _guidFormatter.Format(value);
-        }
-
-        private global::System.Object? FormatMembers(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.UpdateProjectMemberInput?> value)
-        {
-            if (value is null)
+            var fields = new global::System.Collections.Generic.List<global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>>();
+            if (inputInfo.IsIdSet)
             {
-                throw new global::System.ArgumentNullException(nameof(value));
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("id", FormatId(input.Id)));
             }
 
-            var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
-            foreach (var value_elm in value)
+            if (inputInfo.IsMembersSet)
             {
-                if (value_elm is null)
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("members", FormatMembers(input.Members)));
+            }
+
+            return fields;
+        }
+
+        private global::System.Object? FormatId(global::System.Guid input)
+        {
+            return _guidFormatter.Format(input);
+        }
+
+        private global::System.Object? FormatMembers(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.UpdateProjectMemberInput?> input)
+        {
+            if (input is null)
+            {
+                throw new global::System.ArgumentNullException(nameof(input));
+            }
+
+            var input_list = new global::System.Collections.Generic.List<global::System.Object?>();
+            foreach (var input_elm in input)
+            {
+                if (input_elm is null)
                 {
-                    value_list.Add(value_elm);
+                    input_list.Add(input_elm);
                 }
                 else
                 {
-                    value_list.Add(_updateProjectMemberInputFormatter.Format(value_elm));
+                    input_list.Add(_updateProjectMemberInputFormatter.Format(input_elm));
                 }
             }
 
-            return value_list;
+            return input_list;
         }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>Update the project members</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class UpdateProjectMembersInput
+    public partial class UpdateProjectMembersInput : global::Foo.Bar.State.IUpdateProjectMembersInputInfo
     {
+        private global::System.Guid _value_id;
+        private global::System.Boolean _set_id;
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.UpdateProjectMemberInput?> _value_members = default !;
+        private global::System.Boolean _set_members;
         ///<summary>The id of the project</summary>
         public global::System.Guid Id
         {
-            get;
-            set;
+            get => _value_id;
+            set
+            {
+                _set_id = true;
+                _value_id = value;
+            }
         }
 
+        global::System.Boolean global::Foo.Bar.State.IUpdateProjectMembersInputInfo.IsIdSet => _set_id;
         ///<summary>A member of the project</summary>
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.UpdateProjectMemberInput?> Members
         {
-            get;
-            set;
+            get => _value_members;
+            set
+            {
+                _set_members = true;
+                _value_members = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IUpdateProjectMembersInputInfo.IsMembersSet => _set_members;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
@@ -364,54 +390,94 @@ namespace Foo.Bar
                 return null;
             }
 
-            if (!(runtimeValue is UpdateProjectMemberInput d))
+            var input = runtimeValue as global::Foo.Bar.UpdateProjectMemberInput;
+            var inputInfo = runtimeValue as global::Foo.Bar.State.IUpdateProjectMemberInputInfo;
+            if (input is null || inputInfo is null)
             {
                 throw new global::System.ArgumentException(nameof(runtimeValue));
             }
 
-            return new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>[]{new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("id", FormatId(d.Id)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("type", FormatType(d.Type)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("remove", FormatRemove(d.Remove))};
+            var fields = new global::System.Collections.Generic.List<global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>>();
+            if (inputInfo.IsIdSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("id", FormatId(input.Id)));
+            }
+
+            if (inputInfo.IsTypeSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("type", FormatType(input.Type)));
+            }
+
+            if (inputInfo.IsRemoveSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("remove", FormatRemove(input.Remove)));
+            }
+
+            return fields;
         }
 
-        private global::System.Object? FormatId(global::System.Guid value)
+        private global::System.Object? FormatId(global::System.Guid input)
         {
-            return _guidFormatter.Format(value);
+            return _guidFormatter.Format(input);
         }
 
-        private global::System.Object? FormatType(global::Foo.Bar.ProjectUserRoleType value)
+        private global::System.Object? FormatType(global::Foo.Bar.ProjectUserRoleType input)
         {
-            return _projectUserRoleTypeFormatter.Format(value);
+            return _projectUserRoleTypeFormatter.Format(input);
         }
 
-        private global::System.Object? FormatRemove(global::System.Boolean value)
+        private global::System.Object? FormatRemove(global::System.Boolean input)
         {
-            return _booleanFormatter.Format(value);
+            return _booleanFormatter.Format(input);
         }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class UpdateProjectMemberInput
+    public partial class UpdateProjectMemberInput : global::Foo.Bar.State.IUpdateProjectMemberInputInfo
     {
+        private global::System.Guid _value_id;
+        private global::System.Boolean _set_id;
+        private global::Foo.Bar.ProjectUserRoleType _value_type;
+        private global::System.Boolean _set_type;
+        private global::System.Boolean _value_@remove;
+        private global::System.Boolean _set_@remove;
         ///<summary>The member id</summary>
         public global::System.Guid Id
         {
-            get;
-            set;
+            get => _value_id;
+            set
+            {
+                _set_id = true;
+                _value_id = value;
+            }
         }
 
+        global::System.Boolean global::Foo.Bar.State.IUpdateProjectMemberInputInfo.IsIdSet => _set_id;
         ///<summary>The type of role the user has on the project, only used when Remove is false</summary>
         public global::Foo.Bar.ProjectUserRoleType Type
         {
-            get;
-            set;
+            get => _value_type;
+            set
+            {
+                _set_type = true;
+                _value_type = value;
+            }
         }
 
+        global::System.Boolean global::Foo.Bar.State.IUpdateProjectMemberInputInfo.IsTypeSet => _set_type;
         ///<summary>True will remove the member from the project</summary>
         public global::System.Boolean Remove
         {
-            get;
-            set;
+            get => _value_@remove;
+            set
+            {
+                _set_@remove = true;
+                _value_@remove = value;
+            }
         }
+
+        global::System.Boolean global::Foo.Bar.State.IUpdateProjectMemberInputInfo.IsRemoveSet => _set_@remove;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
@@ -705,6 +771,41 @@ namespace Foo.Bar.State
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new UpdateMembersResultInfo(Project, _entityIds, version);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal interface IUpdateProjectMembersInputInfo
+    {
+        global::System.Boolean IsIdSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsMembersSet
+        {
+            get;
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal interface IUpdateProjectMemberInputInfo
+    {
+        global::System.Boolean IsIdSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsTypeSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsRemoveSet
+        {
+            get;
         }
     }
 

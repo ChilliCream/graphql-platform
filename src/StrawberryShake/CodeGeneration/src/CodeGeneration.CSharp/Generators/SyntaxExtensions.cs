@@ -139,7 +139,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             return (T)type.AddBaseListTypes(
                 implements
-                    .Select(CreateDataTypeName)
                     .Select(t => SimpleBaseType(IdentifierName(t)))
                     .ToArray());
         }

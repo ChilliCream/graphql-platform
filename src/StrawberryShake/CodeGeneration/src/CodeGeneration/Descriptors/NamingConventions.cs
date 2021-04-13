@@ -77,9 +77,9 @@ namespace StrawberryShake.CodeGeneration.Descriptors
             $"Is{NameUtils.GetPropertyName(name)}Set";
 
         public static string CreateIsSetField(string name) =>
-            "_set_" + NameUtils.GetParameterName(name);
+            "_set_" + NameUtils.GetParamNameUnsafe(name);
 
         public static string CreateInputValueField(string name) =>
-            "_value_" + NameUtils.GetParameterName(name);
+            "_value_" + NameUtils.GetParamNameUnsafe(name);
     }
 }

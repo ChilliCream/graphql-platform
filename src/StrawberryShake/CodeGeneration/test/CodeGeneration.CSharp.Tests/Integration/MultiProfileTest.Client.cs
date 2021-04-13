@@ -251,7 +251,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             unchecked
             {
                 int hash = 5;
-                if (!(Hero is null))
+                if (Hero != null)
                 {
                     hash ^= 397 * Hero.GetHashCode();
                 }
@@ -327,7 +327,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             {
                 int hash = 5;
                 hash ^= 397 * Name.GetHashCode();
-                if (!(Friends is null))
+                if (Friends != null)
                 {
                     hash ^= 397 * Friends.GetHashCode();
                 }
@@ -403,7 +403,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             {
                 int hash = 5;
                 hash ^= 397 * Name.GetHashCode();
-                if (!(Friends is null))
+                if (Friends != null)
                 {
                     hash ^= 397 * Friends.GetHashCode();
                 }
@@ -478,11 +478,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             unchecked
             {
                 int hash = 5;
-                if (!(Nodes is null))
+                if (Nodes != null)
                 {
                     foreach (var Nodes_elm in Nodes)
                     {
-                        if (!(Nodes_elm is null))
+                        if (Nodes_elm != null)
                         {
                             hash ^= 397 * Nodes_elm.GetHashCode();
                         }
@@ -849,7 +849,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                 int hash = 5;
                 hash ^= 397 * __typename.GetHashCode();
                 hash ^= 397 * Stars.GetHashCode();
-                if (!(Commentary is null))
+                if (Commentary != null)
                 {
                     hash ^= 397 * Commentary.GetHashCode();
                 }
@@ -1029,7 +1029,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             {
                 int hash = 5;
                 hash ^= 397 * Stars.GetHashCode();
-                if (!(Commentary is null))
+                if (Commentary != null)
                 {
                     hash ^= 397 * Commentary.GetHashCode();
                 }
@@ -1090,47 +1090,75 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
                 return null;
             }
 
-            if (!(runtimeValue is ReviewInput d))
+            var input = runtimeValue as global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.ReviewInput;
+            var inputInfo = runtimeValue as global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.IReviewInputInfo;
+            if (input is null || inputInfo is null)
             {
                 throw new global::System.ArgumentException(nameof(runtimeValue));
             }
 
-            return new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>[]{new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("stars", FormatStars(d.Stars)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("commentary", FormatCommentary(d.Commentary))};
-        }
-
-        private global::System.Object? FormatStars(global::System.Int32 value)
-        {
-            return _intFormatter.Format(value);
-        }
-
-        private global::System.Object? FormatCommentary(global::System.String? value)
-        {
-            if (value is null)
+            var fields = new global::System.Collections.Generic.List<global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>>();
+            if (inputInfo.IsStarsSet)
             {
-                return value;
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("stars", FormatStars(input.Stars)));
+            }
+
+            if (inputInfo.IsCommentarySet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("commentary", FormatCommentary(input.Commentary)));
+            }
+
+            return fields;
+        }
+
+        private global::System.Object? FormatStars(global::System.Int32 input)
+        {
+            return _intFormatter.Format(input);
+        }
+
+        private global::System.Object? FormatCommentary(global::System.String? input)
+        {
+            if (input is null)
+            {
+                return input;
             }
             else
             {
-                return _stringFormatter.Format(value);
+                return _stringFormatter.Format(input);
             }
         }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class ReviewInput
+    public partial class ReviewInput : global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.IReviewInputInfo
     {
+        private global::System.Int32 _value_stars;
+        private global::System.Boolean _set_stars;
+        private global::System.String? _value_commentary;
+        private global::System.Boolean _set_commentary;
         public global::System.Int32 Stars
         {
-            get;
-            set;
+            get => _value_stars;
+            set
+            {
+                _set_stars = true;
+                _value_stars = value;
+            }
         }
 
+        global::System.Boolean global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.IReviewInputInfo.IsStarsSet => _set_stars;
         public global::System.String? Commentary
         {
-            get;
-            set;
+            get => _value_commentary;
+            set
+            {
+                _set_commentary = true;
+                _value_commentary = value;
+            }
         }
+
+        global::System.Boolean global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.IReviewInputInfo.IsCommentarySet => _set_commentary;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
@@ -2108,6 +2136,21 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new CreateReviewMutResultInfo(CreateReview, _entityIds, version);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal interface IReviewInputInfo
+    {
+        global::System.Boolean IsStarsSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsCommentarySet
+        {
+            get;
         }
     }
 

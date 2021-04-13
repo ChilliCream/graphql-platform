@@ -75,7 +75,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(NewsItems is null))
+                if (NewsItems != null)
                 {
                     hash ^= 397 * NewsItems.GetHashCode();
                 }
@@ -144,11 +144,11 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Items is null))
+                if (Items != null)
                 {
                     foreach (var Items_elm in Items)
                     {
-                        if (!(Items_elm is null))
+                        if (Items_elm != null)
                         {
                             hash ^= 397 * Items_elm.GetHashCode();
                         }

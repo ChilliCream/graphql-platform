@@ -11,8 +11,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             InputObjectTypeDescriptor descriptor,
             CSharpSyntaxGeneratorSettings settings)
         {
+            string name = NamingConventions.CreateInputValueInfo(descriptor.Name);
+
             InterfaceDeclarationSyntax interfaceDeclaration =
-                SyntaxFactory.InterfaceDeclaration(descriptor.Name.Value)
+                SyntaxFactory.InterfaceDeclaration(name)
                     .AddModifiers(SyntaxFactory.Token(SyntaxKind.InternalKeyword))
                     .AddGeneratedAttribute();
 
@@ -26,9 +28,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             }
 
             return new(
-                descriptor.Name,
-                null,
-                descriptor.RuntimeType.NamespaceWithoutGlobal,
+                name,
+                State,
+                $"{descriptor.RuntimeType.NamespaceWithoutGlobal}.{State}",
                 interfaceDeclaration);
         }
     }

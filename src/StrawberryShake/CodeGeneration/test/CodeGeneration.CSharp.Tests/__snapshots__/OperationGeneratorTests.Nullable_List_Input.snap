@@ -75,7 +75,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Foo is null))
+                if (Foo != null)
                 {
                     hash ^= 397 * Foo.GetHashCode();
                 }
@@ -113,49 +113,65 @@ namespace Foo.Bar
                 return null;
             }
 
-            if (!(runtimeValue is Bar d))
+            var input = runtimeValue as global::Foo.Bar.Bar;
+            var inputInfo = runtimeValue as global::Foo.Bar.State.IBarInfo;
+            if (input is null || inputInfo is null)
             {
                 throw new global::System.ArgumentException(nameof(runtimeValue));
             }
 
-            return new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>[]{new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("baz", FormatBaz(d.Baz))};
+            var fields = new global::System.Collections.Generic.List<global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>>();
+            if (inputInfo.IsBazSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("baz", FormatBaz(input.Baz)));
+            }
+
+            return fields;
         }
 
-        private global::System.Object? FormatBaz(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Baz?>? value)
+        private global::System.Object? FormatBaz(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Baz?>? input)
         {
-            if (value is null)
+            if (input is null)
             {
-                return value;
+                return input;
             }
             else
             {
-                var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
-                foreach (var value_elm in value)
+                var input_list = new global::System.Collections.Generic.List<global::System.Object?>();
+                foreach (var input_elm in input)
                 {
-                    if (value_elm is null)
+                    if (input_elm is null)
                     {
-                        value_list.Add(value_elm);
+                        input_list.Add(input_elm);
                     }
                     else
                     {
-                        value_list.Add(_bazFormatter.Format(value_elm));
+                        input_list.Add(_bazFormatter.Format(input_elm));
                     }
                 }
 
-                return value_list;
+                return input_list;
             }
         }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class Bar
+    public partial class Bar : global::Foo.Bar.State.IBarInfo
     {
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Baz?>? _value_baz;
+        private global::System.Boolean _set_baz;
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Baz?>? Baz
         {
-            get;
-            set;
+            get => _value_baz;
+            set
+            {
+                _set_baz = true;
+                _value_baz = value;
+            }
         }
+
+        global::System.Boolean global::Foo.Bar.State.IBarInfo.IsBazSet => _set_baz;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
@@ -176,36 +192,52 @@ namespace Foo.Bar
                 return null;
             }
 
-            if (!(runtimeValue is Baz d))
+            var input = runtimeValue as global::Foo.Bar.Baz;
+            var inputInfo = runtimeValue as global::Foo.Bar.State.IBazInfo;
+            if (input is null || inputInfo is null)
             {
                 throw new global::System.ArgumentException(nameof(runtimeValue));
             }
 
-            return new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>[]{new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("qux", FormatQux(d.Qux))};
+            var fields = new global::System.Collections.Generic.List<global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>>();
+            if (inputInfo.IsQuxSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("qux", FormatQux(input.Qux)));
+            }
+
+            return fields;
         }
 
-        private global::System.Object? FormatQux(global::System.String? value)
+        private global::System.Object? FormatQux(global::System.String? input)
         {
-            if (value is null)
+            if (input is null)
             {
-                return value;
+                return input;
             }
             else
             {
-                return _stringFormatter.Format(value);
+                return _stringFormatter.Format(input);
             }
         }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class Baz
+    public partial class Baz : global::Foo.Bar.State.IBazInfo
     {
+        private global::System.String? _value_qux;
+        private global::System.Boolean _set_qux;
         public global::System.String? Qux
         {
-            get;
-            set;
+            get => _value_qux;
+            set
+            {
+                _set_qux = true;
+                _value_qux = value;
+            }
         }
+
+        global::System.Boolean global::Foo.Bar.State.IBazInfo.IsQuxSet => _set_qux;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
@@ -415,6 +447,26 @@ namespace Foo.Bar.State
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new GetSomethingResultInfo(Foo, _entityIds, version);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal interface IBarInfo
+    {
+        global::System.Boolean IsBazSet
+        {
+            get;
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal interface IBazInfo
+    {
+        global::System.Boolean IsQuxSet
+        {
+            get;
         }
     }
 

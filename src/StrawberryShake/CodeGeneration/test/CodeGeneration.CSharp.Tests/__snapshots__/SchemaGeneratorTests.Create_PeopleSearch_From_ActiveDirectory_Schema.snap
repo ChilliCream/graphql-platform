@@ -78,7 +78,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(People is null))
+                if (People != null)
                 {
                     hash ^= 397 * People.GetHashCode();
                 }
@@ -164,7 +164,7 @@ namespace Foo.Bar
                 int hash = 5;
                 hash ^= 397 * TotalCount.GetHashCode();
                 hash ^= 397 * PageInfo.GetHashCode();
-                if (!(Items is null))
+                if (Items != null)
                 {
                     foreach (var Items_elm in Items)
                     {
@@ -382,24 +382,24 @@ namespace Foo.Bar
                 int hash = 5;
                 hash ^= 397 * Id.GetHashCode();
                 hash ^= 397 * Key.GetHashCode();
-                if (!(DisplayName is null))
+                if (DisplayName != null)
                 {
                     hash ^= 397 * DisplayName.GetHashCode();
                 }
 
                 hash ^= 397 * IsActive.GetHashCode();
-                if (!(Department is null))
+                if (Department != null)
                 {
                     hash ^= 397 * Department.GetHashCode();
                 }
 
-                if (!(Image is null))
+                if (Image != null)
                 {
                     hash ^= 397 * Image.GetHashCode();
                 }
 
                 hash ^= 397 * Title.GetHashCode();
-                if (!(Manager is null))
+                if (Manager != null)
                 {
                     hash ^= 397 * Manager.GetHashCode();
                 }
@@ -563,7 +563,7 @@ namespace Foo.Bar
                 int hash = 5;
                 hash ^= 397 * Id.GetHashCode();
                 hash ^= 397 * Key.GetHashCode();
-                if (!(DisplayName is null))
+                if (DisplayName != null)
                 {
                     hash ^= 397 * DisplayName.GetHashCode();
                 }

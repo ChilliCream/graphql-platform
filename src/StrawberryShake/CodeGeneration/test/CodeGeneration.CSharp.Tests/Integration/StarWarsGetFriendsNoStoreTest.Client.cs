@@ -155,7 +155,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
             unchecked
             {
                 int hash = 5;
-                if (!(Hero is null))
+                if (Hero != null)
                 {
                     hash ^= 397 * Hero.GetHashCode();
                 }
@@ -231,7 +231,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
             {
                 int hash = 5;
                 hash ^= 397 * Name.GetHashCode();
-                if (!(Friends is null))
+                if (Friends != null)
                 {
                     hash ^= 397 * Friends.GetHashCode();
                 }
@@ -307,7 +307,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
             {
                 int hash = 5;
                 hash ^= 397 * Name.GetHashCode();
-                if (!(Friends is null))
+                if (Friends != null)
                 {
                     hash ^= 397 * Friends.GetHashCode();
                 }
@@ -382,11 +382,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
             unchecked
             {
                 int hash = 5;
-                if (!(Nodes is null))
+                if (Nodes != null)
                 {
                     foreach (var Nodes_elm in Nodes)
                     {
-                        if (!(Nodes_elm is null))
+                        if (Nodes_elm != null)
                         {
                             hash ^= 397 * Nodes_elm.GetHashCode();
                         }
