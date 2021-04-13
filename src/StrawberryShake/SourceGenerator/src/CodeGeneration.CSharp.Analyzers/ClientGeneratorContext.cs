@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using DotNet.Globbing;
 using HotChocolate;
 using HotChocolate.Language;
+using StrawberryShake.Tools.Configuration;
 using IOPath = System.IO.Path;
 using static StrawberryShake.CodeGeneration.ErrorHelper;
 using static StrawberryShake.CodeGeneration.CSharp.Analyzers.SourceGeneratorErrorCodes;
@@ -55,7 +55,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         public bool OutputFiles { get; }
 
         public GeneratorExecutionContext Execution { get; }
-        
+
         public ILogger Log { get; }
 
         public IReadOnlyList<string> GetDocuments()

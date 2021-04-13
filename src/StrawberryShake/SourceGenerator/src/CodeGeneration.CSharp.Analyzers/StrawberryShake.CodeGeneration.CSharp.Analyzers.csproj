@@ -34,4 +34,8 @@
     <None Include="$(MSBuildThisFileDirectory)..\MSBuild\VSCode.targets" Pack="true" PackagePath="build/VSCode.targets" Visible="false" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Tooling\src\Configuration\StrawberryShake.Tools.Configuration.csproj" />
+  </ItemGroup>
+
 </Project>

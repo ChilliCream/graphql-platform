@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using HotChocolate.Language;
-using RequestStrategyGen = StrawberryShake.CodeGeneration.Descriptors.Operations.RequestStrategy;
+using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -47,8 +47,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
         /// <summary>
         /// The default request strategy.
         /// </summary>
-        public RequestStrategyGen RequestStrategy { get; set; } =
-            RequestStrategyGen.Default;
+        public RequestStrategy RequestStrategy { get; set; } =
+            RequestStrategy.Default;
 
         /// <summary>
         /// The <see cref="IDocumentHashProvider"/> that shall be used for persisted queries.

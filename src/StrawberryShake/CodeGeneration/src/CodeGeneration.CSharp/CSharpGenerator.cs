@@ -17,6 +17,7 @@ using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using StrawberryShake.CodeGeneration.Mappers;
 using StrawberryShake.CodeGeneration.Utilities;
 using StrawberryShake.Properties;
+using StrawberryShake.Tools.Configuration;
 using static HotChocolate.Language.Utf8GraphQLParser;
 using static StrawberryShake.CodeGeneration.Utilities.DocumentHelper;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;

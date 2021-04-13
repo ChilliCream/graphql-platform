@@ -10,7 +10,7 @@ using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Newtonsoft.Json;
-using StrawberryShake.CodeGeneration.Descriptors.Operations;
+using StrawberryShake.Tools.Configuration;
 using IOPath = System.IO.Path;
 using static StrawberryShake.CodeGeneration.CSharp.Analyzers.DiagnosticErrorHelper;
 
@@ -77,7 +77,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     context,
                     log,
                     config.Extensions.StrawberryShake,
-                    config.Documents ?? IOPath.Combine("**", "*.graphql"),
+                    config.Documents,
                     IOPath.GetDirectoryName(config.Location)!,
                     allDocuments);
 
@@ -121,7 +121,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 writer.Flush();
 
                 // if we have persisted query support enabled we need to write the query files.
-                string? persistedQueryDirectory = context.GetPersistedQueryDirectory();
+                var persistedQueryDirectory = context.GetPersistedQueryDirectory();
                 if (context.Settings.RequestStrategy == RequestStrategy.PersistedQuery &&
                     persistedQueryDirectory is not null)
                 {
