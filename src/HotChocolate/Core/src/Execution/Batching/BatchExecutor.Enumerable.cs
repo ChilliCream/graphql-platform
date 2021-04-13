@@ -80,7 +80,7 @@ namespace HotChocolate.Execution.Batching
                     while (hasRemaining)
                     {
                         var request = (IReadOnlyQueryRequest)requestIterator.Current;
-                        NextResult next = ExecuteNextAsync(request, cancellationToken);
+                        NextResult next = ExecuteNextAsync(request, pendingTasks, cancellationToken);
                         pendingTasks.Add(next._task);
                         hasRemaining = requestIterator.MoveNext();
                         if (next._isBlocking || !_allowParallelExecution || !hasRemaining)
@@ -119,6 +119,7 @@ namespace HotChocolate.Execution.Batching
 
             private NextResult ExecuteNextAsync(
                 IReadOnlyQueryRequest request,
+                List<Task<IQueryResult>> pendingTasks,
                 CancellationToken cancellationToken)
             {
                 try
@@ -141,9 +142,10 @@ namespace HotChocolate.Execution.Batching
                         _visitor,
                         _visitationMap,
                         n => VisitorAction.Continue);
-                    // if there are exports in the operation, the next operation cannot start
-                    // untill the current one is completed
-                    bool operationIsBlocking = _visitor.ExportCount != oldExportCount;
+                    // if there are exports in the operation, or the current operation is not a query
+                    // the next operation cannot start until the current one is completed
+                    bool operationIsBlocking = operation.Operation != OperationType.Query ||
+                                               _visitor.ExportCount != oldExportCount;
 
                     _previous = document;
                     document = RewriteDocument(operation);
@@ -159,7 +161,17 @@ namespace HotChocolate.Execution.Batching
                         .SetQueryHash(null)
                         .Create();
 
-                    return new NextResult(_requestExecutor.ExecuteAsync(request, cancellationToken), operationIsBlocking);
+                    Func<Task<IExecutionResult>> queryResult = async () =>
+                    {
+                        // mutations should not start before all preceding queries have completed
+                        if (operation.Operation != OperationType.Query)
+                        {
+                            // take shallow copy so we ignore any tasks added after this
+                            await Task.WhenAll(pendingTasks.ToList()).ConfigureAwait(false);
+                        }
+                        return await _requestExecutor.ExecuteAsync(request, cancellationToken);
+                    };
+                    return new NextResult(queryResult(), operationIsBlocking);
                 }
                 catch (GraphQLException ex)
                 {

@@ -366,9 +366,7 @@ namespace HotChocolate.Execution.Batching
             Snapshot.FullName();
 
             int batchCount = 0;
-            var services = new ServiceCollection();
-            services.AddGraphQL()
-                .AddQueryType(d => d.Name("Query")
+            Action<IObjectTypeDescriptor> addFooField = d => d
                     .Field("foo")
                     .Argument("bar", a => a.Type<StringType>())
                     .Type<StringType>()
@@ -380,7 +378,11 @@ namespace HotChocolate.Execution.Batching
                             Interlocked.Increment(ref batchCount);
                             return Task.FromResult(keys.ToDictionary(x => x, x => $"{x}-{batchCount}") as IReadOnlyDictionary<string, string>);
                         }, "foo").LoadAsync(bar, CancellationToken.None);
-                    }))
+                    });
+            var services = new ServiceCollection();
+            services.AddGraphQL()
+                .AddQueryType(d => addFooField(d.Name("Query")))
+                .AddMutationType(d => addFooField(d.Name("Mutation")))
                 .AddExportDirectiveType();
 
             IServiceProvider serviceProvider = services.BuildServiceProvider();
@@ -412,6 +414,21 @@ namespace HotChocolate.Execution.Batching
                     QueryRequestBuilder.New()
                         .SetQuery(
                             @"{ f4: foo(bar:$var) }")
+                        .TrySetServices(requestServices)
+                        .Create(),
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"mutation { f5: foo(bar:""D"") }")
+                        .TrySetServices(requestServices)
+                        .Create(),
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"query { f6: foo(bar:""E"") }")
+                        .TrySetServices(requestServices)
+                        .Create(),
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"query { f7: foo(bar:""F"") }")
                         .TrySetServices(requestServices)
                         .Create()
                 };
