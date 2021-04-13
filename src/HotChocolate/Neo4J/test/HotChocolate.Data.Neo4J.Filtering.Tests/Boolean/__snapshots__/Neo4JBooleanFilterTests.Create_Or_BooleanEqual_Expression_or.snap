@@ -1,0 +1,24 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "bar": true
+      },
+      {
+        "bar": false
+      },
+      {
+        "bar": true
+      },
+      {
+        "bar": false
+      },
+      {
+        "bar": true
+      },
+      {
+        "bar": false
+      }
+    ]
+  }
+}
