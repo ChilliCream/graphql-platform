@@ -65,19 +65,23 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override StringValueNode ParseValue(double runtimeValue)
         {
-            if (runtimeValue < Latitude.MinValue && runtimeValue > Latitude.MaxValue)
+            if (runtimeValue < Latitude._minValue && runtimeValue > Latitude._maxValue)
             {
-                return new StringValueNode(Math.Round(runtimeValue, Latitude.MaxPrecision, MidpointRounding.AwayFromZero).ToString())
+                return new StringValueNode(Math
+                    .Round(runtimeValue,
+                        Latitude._maxPrecision,
+                        MidpointRounding.AwayFromZero)
+                    .ToString(CultureInfo.InvariantCulture));
             }
             throw ThrowHelper.LatitudeType_ParseValue_IsInvalid(this);
         }
 
         private static class Latitude
         {
-            internal const double MinValue = -90.0;
-            internal const double MaxValue = 90.0;
+            internal const double _minValue = -90.0;
+            internal const double _maxValue = 90.0;
             // https://en.wikipedia.org/wiki/Decimal_degrees#Precision
-            internal const int MaxPrecision = 8;
+            internal const int _maxPrecision = 8;
 
             private const string SexagesimalRegex =
                 "^([0-9]{1,3})°\\s*([0-9]{1,3}(?:\\.(?:[0-9]{1,}))?)['′]\\s*(([0-9]{1,3}(\\.([0-9]{1,}))" +
