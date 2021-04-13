@@ -217,10 +217,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     RequestStrategy = context.Settings.RequestStrategy,
                     StrictSchemaValidation = context.Settings.StrictSchemaValidation,
                     NoStore = context.Settings.NoStore,
-                    InputRecords = context.Settings.Records?.Inputs ?? false,
-                    EntityRecords = context.Settings.Records?.Entities ?? false,
+                    InputRecords = context.Settings.Records.Inputs,
+                    EntityRecords = context.Settings.Records.Entities,
                     SingleCodeFile = context.Settings.UseSingleFile,
-                    HashProvider = context.Settings.HashAlgorithm?.ToLowerInvariant() switch
+                    HashProvider = context.Settings.HashAlgorithm.ToLowerInvariant() switch
                     {
                         "sha1" => new Sha1DocumentHashProvider(HashFormat.Hex),
                         "sha256" => new Sha256DocumentHashProvider(HashFormat.Hex),
@@ -233,7 +233,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     .Where(t => !string.IsNullOrEmpty(t.Name))
                     .ToList() is { Count: > 0 } profiles)
                 {
-                    var names = new HashSet<string>();
                     settings.TransportProfiles.Clear();
 
                     foreach (var profile in profiles)
@@ -248,7 +247,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     }
                 }
 
-                string? persistedQueryDirectory = context.GetPersistedQueryDirectory();
+                var persistedQueryDirectory = context.GetPersistedQueryDirectory();
 
                 context.Log.SetGeneratorSettings(settings);
                 context.Log.SetPersistedQueryLocation(persistedQueryDirectory);
@@ -282,8 +281,20 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         }
 
         private static bool EnsurePreconditionsAreMet(
-            GeneratorExecutionContext context)
+            GeneratorExecutionContext context,
+            ClientGeneratorContext generatorContext,
+            CSharpGeneratorResult generatorResult)
         {
+            const string core = "StrawberryShake.Core";
+            const string http = "StrawberryShake.Transport.Http";
+            const string websockets = "StrawberryShake.Transport.WebSockets";
+            const string inmemory = "StrawberryShake.Transport.InMemory";
+            
+
+            if(settings.)
+
+
+
             if (!EnsureDependencyExists(
                 context,
                 "StrawberryShake.Core",
@@ -313,13 +324,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         private static bool EnsureDependencyExists(
             GeneratorExecutionContext context,
-            string assemblyName,
-            string packageName)
+            string assemblyName)
         {
             if (!context.Compilation.ReferencedAssemblyNames.Any(
                 ai => ai.Name.Equals(assemblyName, StringComparison.OrdinalIgnoreCase)))
             {
-                ReportMissingDependency(context, packageName);
+                ReportMissingDependency(context, assemblyName);
                 return false;
             }
             return true;
@@ -372,7 +382,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         {
             if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
                 "build_property.StrawberryShake_LogFile",
-                out string? value) &&
+                out var value) &&
                 !string.IsNullOrEmpty(value))
             {
                 return new FileLogger(value);
@@ -385,7 +395,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         {
             if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
                 "build_property.StrawberryShake_BuildDirectory",
-                out string? value) &&
+                out var value) &&
                 !string.IsNullOrEmpty(value))
             {
                 return value;

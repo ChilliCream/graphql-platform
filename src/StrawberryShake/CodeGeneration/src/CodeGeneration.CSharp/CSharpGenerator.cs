@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using StrawberryShake.CodeGeneration.Analyzers;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.CSharp.Generators;
-using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using StrawberryShake.CodeGeneration.Mappers;
 using StrawberryShake.CodeGeneration.Utilities;
 using StrawberryShake.Properties;
@@ -225,7 +224,12 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }
             }
 
-            return new(documents);
+            return new(
+                documents,
+                clientModel.Operations
+                    .Select(t => t.OperationType)
+                    .Distinct()
+                    .ToArray());
         }
 
         private static void GenerateSingleCSharpDocument(
