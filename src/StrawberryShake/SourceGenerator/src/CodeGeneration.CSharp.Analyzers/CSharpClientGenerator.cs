@@ -10,7 +10,7 @@ using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Newtonsoft.Json;
-using StrawberryShake.CodeGeneration.Descriptors.Operations;
+using StrawberryShake.Tools.Configuration;
 using IOPath = System.IO.Path;
 using static StrawberryShake.CodeGeneration.CSharp.Analyzers.DiagnosticErrorHelper;
 
@@ -54,12 +54,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         {
             var receiver = context.SyntaxReceiver;
 
-            // if preconditions are not met we just stop and do not process any further.
-            if (!EnsurePreconditionsAreMet(context))
-            {
-                return;
-            }
-
             _location = GetPackageLocation(context);
 
             using ILogger log = CreateLogger(context);
@@ -77,7 +71,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     context,
                     log,
                     config.Extensions.StrawberryShake,
-                    config.Documents ?? IOPath.Combine("**", "*.graphql"),
+                    config.Documents,
                     IOPath.GetDirectoryName(config.Location)!,
                     allDocuments);
 
@@ -94,17 +88,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         {
             try
             {
-                if (!TryGenerateClient(context, out CSharpGeneratorResult? result))
+                var hasErrors = !TryGenerateClient(context, out CSharpGeneratorResult? result);
+
+                // Ensure that all needed packages are installed.
+                if (!EnsurePreconditionsAreMet(context.Execution, context.Settings))
                 {
-                    // there were unexpected errors and we will stop generating this client.
                     return;
                 }
 
-                if (result.HasErrors())
+                if (result?.HasErrors() ?? false)
                 {
                     // if we have generator errors like invalid GraphQL syntax we will also stop.
                     context.ReportError(result.Errors);
-                    return;
+                    hasErrors = true;
                 }
 
                 // If the generator has no errors we will write the documents.
@@ -112,8 +108,21 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     ? new SingleFileDocumentWriter()
                     : new FileDocumentWriter();
 
-                foreach (SourceDocument document in
-                    result.Documents.Where(t => t.Kind == SourceDocumentKind.CSharp))
+                IReadOnlyList<SourceDocument> documents = hasErrors || result is null
+                    ? context.GetLastSuccessfulGeneratedSourceDocuments()
+                    : result.Documents;
+
+                if (documents.Count == 0)
+                {
+                    return;
+                }
+
+                if (!hasErrors && result is not null && result.Documents.Count > 0)
+                {
+                    context.PreserveSourceDocuments(result.Documents);
+                }
+
+                foreach (SourceDocument document in documents.SelectCSharp())
                 {
                     writer.WriteDocument(context, document);
                 }
@@ -121,7 +130,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 writer.Flush();
 
                 // if we have persisted query support enabled we need to write the query files.
-                string? persistedQueryDirectory = context.GetPersistedQueryDirectory();
+                var persistedQueryDirectory = context.GetPersistedQueryDirectory();
                 if (context.Settings.RequestStrategy == RequestStrategy.PersistedQuery &&
                     persistedQueryDirectory is not null)
                 {
@@ -130,8 +139,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                         Directory.CreateDirectory(persistedQueryDirectory);
                     }
 
-                    foreach (SourceDocument document in
-                        result.Documents.Where(t => t.Kind == SourceDocumentKind.GraphQL))
+                    foreach (SourceDocument document in documents.SelectGraphQL())
                     {
                         WriteGraphQLQuery(context, persistedQueryDirectory, document);
                     }
@@ -170,15 +178,21 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
             try
             {
-                foreach (string fileName in Directory.GetFiles(
-                    context.OutputDirectory,
-                    "*.cs",
-                    SearchOption.AllDirectories))
+                if (Directory.Exists(context.OutputDirectory))
                 {
-                    if (!context.FileNames.Contains(fileName))
+                    foreach (string fileName in GetGeneratedFiles(context.OutputDirectory))
                     {
-                        context.Log.RemoveFile(fileName);
-                        File.Delete(fileName);
+                        if (!context.Settings.EmitGeneratedCode ||
+                            !context.FileNames.Contains(fileName))
+                        {
+                            context.Log.RemoveFile(fileName);
+                            File.Delete(fileName);
+                        }
+                    }
+
+                    if (!GetGeneratedFiles(context.OutputDirectory).Any())
+                    {
+                        Directory.Delete(context.OutputDirectory, true);
                     }
                 }
             }
@@ -192,6 +206,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 context.Log.EndClean();
             }
         }
+
+        private IEnumerable<string> GetGeneratedFiles(string outputDirectory) =>
+            Directory.EnumerateFiles(outputDirectory, "*.cs", SearchOption.AllDirectories);
 
         private bool TryGenerateClient(
             ClientGeneratorContext context,
@@ -208,10 +225,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     RequestStrategy = context.Settings.RequestStrategy,
                     StrictSchemaValidation = context.Settings.StrictSchemaValidation,
                     NoStore = context.Settings.NoStore,
-                    InputRecords = context.Settings.Records?.Inputs ?? false,
-                    EntityRecords = context.Settings.Records?.Entities ?? false,
+                    InputRecords = context.Settings.Records.Inputs,
+                    EntityRecords = context.Settings.Records.Entities,
                     SingleCodeFile = context.Settings.UseSingleFile,
-                    HashProvider = context.Settings.HashAlgorithm?.ToLowerInvariant() switch
+                    HashProvider = context.Settings.HashAlgorithm.ToLowerInvariant() switch
                     {
                         "sha1" => new Sha1DocumentHashProvider(HashFormat.Hex),
                         "sha256" => new Sha256DocumentHashProvider(HashFormat.Hex),
@@ -224,7 +241,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     .Where(t => !string.IsNullOrEmpty(t.Name))
                     .ToList() is { Count: > 0 } profiles)
                 {
-                    var names = new HashSet<string>();
                     settings.TransportProfiles.Clear();
 
                     foreach (var profile in profiles)
@@ -239,7 +255,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     }
                 }
 
-                string? persistedQueryDirectory = context.GetPersistedQueryDirectory();
+                var persistedQueryDirectory = context.GetPersistedQueryDirectory();
 
                 context.Log.SetGeneratorSettings(settings);
                 context.Log.SetPersistedQueryLocation(persistedQueryDirectory);
@@ -273,30 +289,38 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         }
 
         private static bool EnsurePreconditionsAreMet(
-            GeneratorExecutionContext context)
+            GeneratorExecutionContext context,
+            StrawberryShakeSettings settings)
         {
-            if (!EnsureDependencyExists(
-                context,
-                "StrawberryShake.Core",
-                "StrawberryShake.Core"))
+            const string http = "StrawberryShake.Transport.Http";
+            const string websockets = "StrawberryShake.Transport.WebSockets";
+            const string inmemory = "StrawberryShake.Transport.InMemory";
+
+            var usedTransports = settings.TransportProfiles
+                .SelectMany(t => t.GetUsedTransports()).Distinct().ToList();
+
+            if (usedTransports.Contains(TransportType.Http))
             {
-                return false;
+                if (!EnsureDependencyExists(context, http))
+                {
+                    return false;
+                }
             }
 
-            if (!EnsureDependencyExists(
-                context,
-                "StrawberryShake.Transport.Http",
-                "StrawberryShake.Transport.Http"))
+            if (usedTransports.Contains(TransportType.WebSocket))
             {
-                return false;
+                if (!EnsureDependencyExists(context, websockets))
+                {
+                    return false;
+                }
             }
 
-            if (!EnsureDependencyExists(
-                context,
-                "Microsoft.Extensions.Http",
-                "Microsoft.Extensions.Http"))
+            if (usedTransports.Contains(TransportType.InMemory))
             {
-                return false;
+                if (!EnsureDependencyExists(context, inmemory))
+                {
+                    return false;
+                }
             }
 
             return true;
@@ -304,13 +328,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         private static bool EnsureDependencyExists(
             GeneratorExecutionContext context,
-            string assemblyName,
-            string packageName)
+            string assemblyName)
         {
             if (!context.Compilation.ReferencedAssemblyNames.Any(
                 ai => ai.Name.Equals(assemblyName, StringComparison.OrdinalIgnoreCase)))
             {
-                ReportMissingDependency(context, packageName);
+                ReportMissingDependency(context, assemblyName);
                 return false;
             }
             return true;
@@ -363,7 +386,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         {
             if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
                 "build_property.StrawberryShake_LogFile",
-                out string? value) &&
+                out var value) &&
                 !string.IsNullOrEmpty(value))
             {
                 return new FileLogger(value);
@@ -376,7 +399,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         {
             if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
                 "build_property.StrawberryShake_BuildDirectory",
-                out string? value) &&
+                out var value) &&
                 !string.IsNullOrEmpty(value))
             {
                 return value;

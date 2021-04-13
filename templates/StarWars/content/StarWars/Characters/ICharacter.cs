@@ -6,7 +6,7 @@ namespace StarWars.Characters
     /// <summary>
     /// A character in the Star Wars universe.
     /// </summary>
-    [InterfaceType(Name = "Character")]
+    [InterfaceType("Character")]
     public interface ICharacter : ISearchResult
     {
         /// <summary>

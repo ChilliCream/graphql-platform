@@ -78,7 +78,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(People is null))
+                if (People != null)
                 {
                     hash ^= 397 * People.GetHashCode();
                 }
@@ -164,7 +164,7 @@ namespace Foo.Bar
                 int hash = 5;
                 hash ^= 397 * TotalCount.GetHashCode();
                 hash ^= 397 * PageInfo.GetHashCode();
-                if (!(Items is null))
+                if (Items != null)
                 {
                     foreach (var Items_elm in Items)
                     {
@@ -382,24 +382,24 @@ namespace Foo.Bar
                 int hash = 5;
                 hash ^= 397 * Id.GetHashCode();
                 hash ^= 397 * Key.GetHashCode();
-                if (!(DisplayName is null))
+                if (DisplayName != null)
                 {
                     hash ^= 397 * DisplayName.GetHashCode();
                 }
 
                 hash ^= 397 * IsActive.GetHashCode();
-                if (!(Department is null))
+                if (Department != null)
                 {
                     hash ^= 397 * Department.GetHashCode();
                 }
 
-                if (!(Image is null))
+                if (Image != null)
                 {
                     hash ^= 397 * Image.GetHashCode();
                 }
 
                 hash ^= 397 * Title.GetHashCode();
-                if (!(Manager is null))
+                if (Manager != null)
                 {
                     hash ^= 397 * Manager.GetHashCode();
                 }
@@ -563,7 +563,7 @@ namespace Foo.Bar
                 int hash = 5;
                 hash ^= 397 * Id.GetHashCode();
                 hash ^= 397 * Key.GetHashCode();
-                if (!(DisplayName is null))
+                if (DisplayName != null)
                 {
                     hash ^= 397 * DisplayName.GetHashCode();
                 }
@@ -968,37 +968,37 @@ namespace Foo.Bar
 
         private global::System.Object? FormatSkip(global::System.Int32? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _intFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _intFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatTake(global::System.Int32? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _intFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _intFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatInactive(global::System.Boolean? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _booleanFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _booleanFormatter.Format(value);
             }
         }
 
@@ -1102,7 +1102,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class PersonEntity
     {
-        public PersonEntity(global::System.String id, global::System.Int64 key, global::System.String? displayName, global::System.Boolean isActive, global::StrawberryShake.EntityId? department, global::System.Uri? image, global::System.String title, global::StrawberryShake.EntityId? manager)
+        public PersonEntity(global::System.String id = default !, global::System.Int64 key = default !, global::System.String? displayName = default !, global::System.Boolean isActive = default !, global::StrawberryShake.EntityId? department = default !, global::System.Uri? image = default !, global::System.String title = default !, global::StrawberryShake.EntityId? manager = default !)
         {
             Id = id;
             Key = key;
@@ -1166,7 +1166,7 @@ namespace Foo.Bar.State
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class DepartmentEntity
     {
-        public DepartmentEntity(global::System.String id, global::System.String name)
+        public DepartmentEntity(global::System.String id = default !, global::System.String name = default !)
         {
             Id = id;
             Name = name;
@@ -1694,10 +1694,10 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class PersonCollectionSegmentData
     {
-        public PersonCollectionSegmentData(global::System.String __typename, global::System.Int32? totalCount = null, global::Foo.Bar.State.CollectionSegmentInfoData? pageInfo = null, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? items = null)
+        public PersonCollectionSegmentData(global::System.String __typename, global::System.Int32? totalCount = default !, global::Foo.Bar.State.CollectionSegmentInfoData? pageInfo = default !, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? items = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             TotalCount = totalCount;
@@ -1715,9 +1715,7 @@ namespace Foo.Bar.State
             get;
         }
 
-        /// <summary>
-        /// Information to aid in pagination.
-        /// </summary>
+        ///<summary>Information to aid in pagination.</summary>
         public global::Foo.Bar.State.CollectionSegmentInfoData? PageInfo
         {
             get;
@@ -1730,13 +1728,11 @@ namespace Foo.Bar.State
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-    /// <summary>
-    /// Information about the offset pagination.
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    ///<summary>Information about the offset pagination.</summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class CollectionSegmentInfoData
     {
-        public CollectionSegmentInfoData(global::System.String __typename, global::System.Boolean? hasNextPage = null, global::System.Boolean? hasPreviousPage = null)
+        public CollectionSegmentInfoData(global::System.String __typename, global::System.Boolean? hasNextPage = default !, global::System.Boolean? hasPreviousPage = default !)
         {
             this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             HasNextPage = hasNextPage;
@@ -1748,17 +1744,13 @@ namespace Foo.Bar.State
             get;
         }
 
-        /// <summary>
-        /// Indicates whether more items exist following the set defined by the clients arguments.
-        /// </summary>
+        ///<summary>Indicates whether more items exist following the set defined by the clients arguments.</summary>
         public global::System.Boolean? HasNextPage
         {
             get;
         }
 
-        /// <summary>
-        /// Indicates whether more items exist prior the set defined by the clients arguments.
-        /// </summary>
+        ///<summary>Indicates whether more items exist prior the set defined by the clients arguments.</summary>
         public global::System.Boolean? HasPreviousPage
         {
             get;
@@ -1843,24 +1835,24 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
+            var serviceCollection = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp =>
             {
-                var serviceCollection = ConfigureClientDefault(sp, strategy);
+                ConfigureClientDefault(sp, serviceCollection, strategy);
                 return new ClientServiceProvider(global::Microsoft.Extensions.DependencyInjection.ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(serviceCollection));
             });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => new global::Foo.Bar.State.FooClientStoreAccessor(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityIdSerializer>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.PeopleSearchQuery>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IFooClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
-            return new global::StrawberryShake.ClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor>("FooClient", services);
+            return new global::StrawberryShake.ClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor>("FooClient", services, serviceCollection);
         }
 
-        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClientDefault(global::System.IServiceProvider parentServices, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
+        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClientDefault(global::System.IServiceProvider parentServices, global::Microsoft.Extensions.DependencyInjection.ServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-            var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(services, sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp =>
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Transport.Http.IHttpConnection>(services, sp =>
             {
                 var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
                 return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
@@ -1888,7 +1880,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IPeopleSearchQueryResult>>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IPeopleSearchQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IPeopleSearchQueryResult>, global::Foo.Bar.State.PeopleSearchBuilder>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.IPeopleSearchQueryResult>>(services, sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.IPeopleSearchQueryResult>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IPeopleSearchQueryResult>>(sp), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp), strategy));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.IPeopleSearchQueryResult>>(services, sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.IPeopleSearchQueryResult>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.IHttpConnection>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IPeopleSearchQueryResult>>(sp), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp), strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.PeopleSearchQuery>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.IPeopleSearchQuery>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.PeopleSearchQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityIdSerializer, global::Foo.Bar.State.FooClientEntityIdFactory>(services);

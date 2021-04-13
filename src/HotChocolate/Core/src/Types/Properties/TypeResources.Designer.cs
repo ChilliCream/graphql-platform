@@ -1196,5 +1196,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("BindingCompiler_AddBinding_BindingCannotBeHandled", resourceCulture);
             }
         }
+        
+        internal static string Type_SpecifiedByUrl_Description {
+            get {
+                return ResourceManager.GetString("Type_SpecifiedByUrl_Description", resourceCulture);
+            }
+        }
     }
 }

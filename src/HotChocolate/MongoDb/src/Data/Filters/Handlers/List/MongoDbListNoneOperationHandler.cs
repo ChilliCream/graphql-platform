@@ -1,4 +1,5 @@
 using HotChocolate.Data.Filters;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Filters
@@ -19,10 +20,19 @@ namespace HotChocolate.Data.MongoDb.Filters
             MongoDbFilterScope scope,
             string path)
         {
-            return new MongoDbFilterOperation(
-                path,
-                new NotMongoDbFilterDefinition(
-                    new MongoDbFilterOperation("$elemMatch", CombineOperationsOfScope(scope))));
+            return new AndFilterDefinition(
+                new MongoDbFilterOperation(
+                    path,
+                    new BsonDocument
+                    {
+                        { "$exists", true },
+                        { "$nin", new BsonArray { new BsonArray(), BsonNull.Value } }
+                    }),
+                new MongoDbFilterOperation(
+                    path,
+                    new NotMongoDbFilterDefinition(
+                        new MongoDbFilterOperation("$elemMatch", CombineOperationsOfScope(scope)))
+                ));
         }
     }
 }

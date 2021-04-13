@@ -1,11 +1,9 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
-using StrawberryShake.CodeGeneration.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using StrawberryShake.CodeGeneration.Descriptors;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
@@ -40,7 +38,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     foreach (PropertyDescriptor property in descriptor.Properties.Select(t =>
                         t.Value))
                     {
-                        constructor = AddParameter(constructor, property);
+                        constructor = constructor.AddStateParameter(property);
                     }
 
                     recordDeclarationSyntax = recordDeclarationSyntax.AddMembers(constructor);
@@ -48,8 +46,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     foreach (PropertyDescriptor property in descriptor.Properties.Select(t =>
                         t.Value))
                     {
-                        recordDeclarationSyntax =
-                            AddProperty(recordDeclarationSyntax, property, true);
+                        recordDeclarationSyntax = recordDeclarationSyntax.AddStateProperty(property);
                     }
                 }
 
@@ -80,15 +77,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 foreach (PropertyDescriptor property in descriptor.Properties.Select(t =>
                     t.Value))
                 {
-                    constructor = AddParameter(constructor, property);
+                    constructor = constructor.AddStateParameter(property);
                 }
 
                 classDeclaration = classDeclaration.AddMembers(constructor);
 
-                foreach (PropertyDescriptor property in descriptor.Properties.Select(t =>
-                    t.Value))
+                foreach (PropertyDescriptor property in descriptor.Properties.Select(t => t.Value))
                 {
-                    classDeclaration = AddProperty(classDeclaration, property, false);
+                    classDeclaration = classDeclaration.AddStateProperty(property);
                 }
             }
 
@@ -97,54 +93,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 State,
                 descriptor.RuntimeType.NamespaceWithoutGlobal,
                 classDeclaration);
-        }
-
-        private T AddProperty<T>(
-            T type,
-            PropertyDescriptor property,
-            bool init)
-            where T : TypeDeclarationSyntax
-        {
-            PropertyDeclarationSyntax propertyDeclaration =
-                PropertyDeclaration(property.Type.ToStateTypeSyntax(), property.Name)
-                    .AddModifiers(Token(SyntaxKind.PublicKeyword))
-                    .AddSummary(property.Description);
-
-            propertyDeclaration = init
-                ? propertyDeclaration.WithGetterAndInit()
-                : propertyDeclaration.WithGetter();
-
-            return (T)type.AddMembers(propertyDeclaration);
-        }
-
-        private ConstructorDeclarationSyntax AddParameter(
-            ConstructorDeclarationSyntax constructor,
-            PropertyDescriptor property)
-        {
-            string paramName;
-            string propertyName;
-
-            if (property.Name == WellKnownNames.TypeName)
-            {
-                paramName = WellKnownNames.TypeName;
-                propertyName = $"this.{WellKnownNames.TypeName}";
-            }
-            else
-            {
-                paramName = GetParameterName(property.Name);
-                propertyName = property.Name;
-            }
-
-            return constructor
-                .AddParameterListParameters(
-                    Parameter(Identifier(paramName))
-                        .WithType(property.Type.ToStateTypeSyntax()))
-                .AddBodyStatements(
-                    ExpressionStatement(
-                        AssignmentExpression(
-                            SyntaxKind.SimpleAssignmentExpression,
-                            IdentifierName(propertyName),
-                            IdentifierName(paramName))));
         }
     }
 }

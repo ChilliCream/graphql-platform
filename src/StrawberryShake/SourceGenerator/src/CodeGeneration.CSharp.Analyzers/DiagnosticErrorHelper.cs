@@ -17,7 +17,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     new DiagnosticDescriptor(
                         id: "SS0004",
                         title: "Dependency Missing",
-                        messageFormat: $"The package reference `{packageName}` is missing.\r\n`dotnet add package {packageName}`",
+                        messageFormat:
+                            $"The package reference `{packageName}` is missing.\r\n" +
+                            $"`dotnet add package {packageName}`",
                         category: _category,
                         DiagnosticSeverity.Error,
                         isEnabledByDefault: true),
@@ -60,7 +62,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             IError error,
             string title,
             string code)
-        { 
+        {
             context.ReportDiagnostic(
                 Diagnostic.Create(
                     new DiagnosticDescriptor(

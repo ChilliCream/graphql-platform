@@ -12,6 +12,11 @@ namespace HotChocolate.Data.MongoDb
     {
         private readonly List<MongoDbFilterDefinition> _filters;
 
+        public OrMongoDbFilterDefinition(params MongoDbFilterDefinition[] filters)
+            : this(filters.AsEnumerable())
+        {
+        }
+
         public OrMongoDbFilterDefinition(IEnumerable<MongoDbFilterDefinition> filters)
         {
             _filters = filters.ToList();
