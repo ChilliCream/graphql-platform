@@ -147,7 +147,7 @@ namespace Foo.Bar
             {
                 int hash = 5;
                 hash ^= 397 * Stars.GetHashCode();
-                if (!(Commentary is null))
+                if (Commentary != null)
                 {
                     hash ^= 397 * Commentary.GetHashCode();
                 }

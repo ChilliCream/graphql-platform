@@ -98,15 +98,15 @@ namespace StrawberryShake.CodeGeneration.Utilities
 
         public static string GetFieldName(string fieldName)
         {
-            return "_" + GetUnsafeParamName(fieldName);
+            return "_" + GetParamNameUnsafe(fieldName);
         }
 
         public static string GetParameterName(string parameterName)
         {
-            return Keywords.ToSafeName(GetUnsafeParamName(parameterName));
+            return Keywords.ToSafeName(GetParamNameUnsafe(parameterName));
         }
 
-        private static string GetUnsafeParamName(string parameterName)
+        public static string GetParamNameUnsafe(string parameterName)
         {
             if (parameterName == WellKnownNames.TypeName)
             {

@@ -75,7 +75,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Sessions is null))
+                if (Sessions != null)
                 {
                     hash ^= 397 * Sessions.GetHashCode();
                 }
@@ -150,7 +150,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Nodes is null))
+                if (Nodes != null)
                 {
                     foreach (var Nodes_elm in Nodes)
                     {

@@ -75,11 +75,11 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Search is null))
+                if (Search != null)
                 {
                     foreach (var Search_elm in Search)
                     {
-                        if (!(Search_elm is null))
+                        if (Search_elm != null)
                         {
                             hash ^= 397 * Search_elm.GetHashCode();
                         }

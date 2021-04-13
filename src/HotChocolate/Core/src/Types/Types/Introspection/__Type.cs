@@ -68,7 +68,8 @@ namespace HotChocolate.Types.Introspection
                 .ResolveWith<Resolvers>(t => t.GetOfType(default!));
 
             descriptor
-                .Field(Names.SpecifiedBy)
+                .Field(Names.SpecifiedByUrl)
+                .Description(TypeResources.Type_SpecifiedByUrl_Description)
                 .Type<StringType>()
                 .ResolveWith<Resolvers>(t => t.GetSpecifiedBy(default!));
 
@@ -155,7 +156,7 @@ namespace HotChocolate.Types.Introspection
             public const string EnumValues = "enumValues";
             public const string InputFields = "inputFields";
             public const string OfType = "ofType";
-            public const string SpecifiedBy = "specifiedBy";
+            public const string SpecifiedByUrl = "specifiedByURL";
             public const string IncludeDeprecated = "includeDeprecated";
             public const string AppliedDirectives = "appliedDirectives";
         }

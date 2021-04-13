@@ -75,7 +75,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(OnPerson is null))
+                if (OnPerson != null)
                 {
                     hash ^= 397 * OnPerson.GetHashCode();
                 }

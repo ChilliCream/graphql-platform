@@ -75,7 +75,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Foo is null))
+                if (Foo != null)
                 {
                     hash ^= 397 * Foo.GetHashCode();
                 }
@@ -115,104 +115,132 @@ namespace Foo.Bar
                 return null;
             }
 
-            if (!(runtimeValue is Bar d))
+            var input = runtimeValue as global::Foo.Bar.Bar;
+            var inputInfo = runtimeValue as global::Foo.Bar.State.IBarInfo;
+            if (input is null || inputInfo is null)
             {
                 throw new global::System.ArgumentException(nameof(runtimeValue));
             }
 
-            return new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>[]{new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("str", FormatStr(d.Str)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("strNonNullable", FormatStrNonNullable(d.StrNonNullable)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("nested", FormatNested(d.Nested)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("nestedList", FormatNestedList(d.NestedList)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("nestedMatrix", FormatNestedMatrix(d.NestedMatrix))};
+            var fields = new global::System.Collections.Generic.List<global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>>();
+            if (inputInfo.IsStrSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("str", FormatStr(input.Str)));
+            }
+
+            if (inputInfo.IsStrNonNullableSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("strNonNullable", FormatStrNonNullable(input.StrNonNullable)));
+            }
+
+            if (inputInfo.IsNestedSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("nested", FormatNested(input.Nested)));
+            }
+
+            if (inputInfo.IsNestedListSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("nestedList", FormatNestedList(input.NestedList)));
+            }
+
+            if (inputInfo.IsNestedMatrixSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("nestedMatrix", FormatNestedMatrix(input.NestedMatrix)));
+            }
+
+            return fields;
         }
 
-        private global::System.Object? FormatStr(global::System.String? value)
+        private global::System.Object? FormatStr(global::System.String? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _stringFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _stringFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatStrNonNullable(global::System.String value)
+        private global::System.Object? FormatStrNonNullable(global::System.String input)
         {
-            if (value is null)
+            if (input is null)
             {
-                throw new global::System.ArgumentNullException(nameof(value));
+                throw new global::System.ArgumentNullException(nameof(input));
             }
 
-            return _stringFormatter.Format(value);
+            return _stringFormatter.Format(input);
         }
 
-        private global::System.Object? FormatNested(global::Foo.Bar.Bar? value)
+        private global::System.Object? FormatNested(global::Foo.Bar.Bar? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _barFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _barFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatNestedList(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> value)
+        private global::System.Object? FormatNestedList(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> input)
         {
-            if (value is null)
+            if (input is null)
             {
-                throw new global::System.ArgumentNullException(nameof(value));
+                throw new global::System.ArgumentNullException(nameof(input));
             }
 
-            var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
-            foreach (var value_elm in value)
+            var input_list = new global::System.Collections.Generic.List<global::System.Object?>();
+            foreach (var input_elm in input)
             {
-                if (value_elm is null)
+                if (input_elm is null)
                 {
-                    throw new global::System.ArgumentNullException(nameof(value_elm));
+                    throw new global::System.ArgumentNullException(nameof(input_elm));
                 }
 
-                value_list.Add(_barFormatter.Format(value_elm));
+                input_list.Add(_barFormatter.Format(input_elm));
             }
 
-            return value_list;
+            return input_list;
         }
 
-        private global::System.Object? FormatNestedMatrix(global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar?>?>? value)
+        private global::System.Object? FormatNestedMatrix(global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar?>?>? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
-                foreach (var value_elm in value)
+                return input;
+            }
+            else
+            {
+                var input_list = new global::System.Collections.Generic.List<global::System.Object?>();
+                foreach (var input_elm in input)
                 {
-                    if (!(value_elm is null))
+                    if (input_elm is null)
                     {
-                        var value_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
-                        foreach (var value_elm_elm in value_elm)
-                        {
-                            if (!(value_elm_elm is null))
-                            {
-                                value_elm_list.Add(_barFormatter.Format(value_elm_elm));
-                            }
-                            else
-                            {
-                                value_elm_list.Add(value_elm_elm);
-                            }
-                        }
-
-                        value_list.Add(value_elm_list);
+                        input_list.Add(input_elm);
                     }
                     else
                     {
-                        value_list.Add(value_elm);
+                        var input_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
+                        foreach (var input_elm_elm in input_elm)
+                        {
+                            if (input_elm_elm is null)
+                            {
+                                input_elm_list.Add(input_elm_elm);
+                            }
+                            else
+                            {
+                                input_elm_list.Add(_barFormatter.Format(input_elm_elm));
+                            }
+                        }
+
+                        input_list.Add(input_elm_list);
                     }
                 }
 
-                return value_list;
-            }
-            else
-            {
-                return value;
+                return input_list;
             }
         }
     }
@@ -220,48 +248,78 @@ namespace Foo.Bar
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>Bar InputType</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial record Bar
+    public partial record Bar : global::Foo.Bar.State.IBarInfo
     {
+        private global::System.String? _value_str;
+        private global::System.Boolean _set_str;
+        private global::System.String _value_strNonNullable = default !;
+        private global::System.Boolean _set_strNonNullable;
+        private global::Foo.Bar.Bar? _value_nested;
+        private global::System.Boolean _set_nested;
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> _value_nestedList = default !;
+        private global::System.Boolean _set_nestedList;
+        private global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar?>?>? _value_nestedMatrix;
+        private global::System.Boolean _set_nestedMatrix;
         ///<summary>Field str</summary>
         public global::System.String? Str
         {
-            get;
-            init;
+            get => _value_str;
+            init
+            {
+                _set_str = true;
+                _value_str = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IBarInfo.IsStrSet => _set_str;
         ///<summary>Field strNonNullable</summary>
         public global::System.String StrNonNullable
         {
-            get;
-            init;
+            get => _value_strNonNullable;
+            init
+            {
+                _set_strNonNullable = true;
+                _value_strNonNullable = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IBarInfo.IsStrNonNullableSet => _set_strNonNullable;
         ///<summary>Field nested</summary>
         public global::Foo.Bar.Bar? Nested
         {
-            get;
-            init;
+            get => _value_nested;
+            init
+            {
+                _set_nested = true;
+                _value_nested = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IBarInfo.IsNestedSet => _set_nested;
         ///<summary>Field nestedList</summary>
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> NestedList
         {
-            get;
-            init;
+            get => _value_nestedList;
+            init
+            {
+                _set_nestedList = true;
+                _value_nestedList = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IBarInfo.IsNestedListSet => _set_nestedList;
         ///<summary>Field nestedMatrix</summary>
         public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar?>?>? NestedMatrix
         {
-            get;
-            init;
+            get => _value_nestedMatrix;
+            init
+            {
+                _set_nestedMatrix = true;
+                _value_nestedMatrix = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IBarInfo.IsNestedMatrixSet => _set_nestedMatrix;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
@@ -384,12 +442,20 @@ namespace Foo.Bar
 
         private global::System.Object? FormatNestedList(global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? value)
         {
-            if (!(value is null))
+            if (value is null)
+            {
+                return value;
+            }
+            else
             {
                 var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
                 foreach (var value_elm in value)
                 {
-                    if (!(value_elm is null))
+                    if (value_elm is null)
+                    {
+                        value_list.Add(value_elm);
+                    }
+                    else
                     {
                         var value_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
                         foreach (var value_elm_elm in value_elm)
@@ -404,17 +470,9 @@ namespace Foo.Bar
 
                         value_list.Add(value_elm_list);
                     }
-                    else
-                    {
-                        value_list.Add(value_elm);
-                    }
                 }
 
                 return value_list;
-            }
-            else
-            {
-                return value;
             }
         }
 
@@ -528,6 +586,36 @@ namespace Foo.Bar.State
         public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
         {
             return new TestResultInfo(Foo, _entityIds, version);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal interface IBarInfo
+    {
+        global::System.Boolean IsStrSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsStrNonNullableSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsNestedSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsNestedListSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsNestedMatrixSet
+        {
+            get;
         }
     }
 

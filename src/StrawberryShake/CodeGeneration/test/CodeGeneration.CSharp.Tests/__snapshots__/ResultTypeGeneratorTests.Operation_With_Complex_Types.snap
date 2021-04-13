@@ -75,7 +75,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Foo is null))
+                if (Foo != null)
                 {
                     hash ^= 397 * Foo.GetHashCode();
                 }
@@ -168,13 +168,13 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Str is null))
+                if (Str != null)
                 {
                     hash ^= 397 * Str.GetHashCode();
                 }
 
                 hash ^= 397 * StrNonNullable.GetHashCode();
-                if (!(Nested is null))
+                if (Nested != null)
                 {
                     hash ^= 397 * Nested.GetHashCode();
                 }
@@ -184,15 +184,15 @@ namespace Foo.Bar
                     hash ^= 397 * NestedList_elm.GetHashCode();
                 }
 
-                if (!(NestedMatrix is null))
+                if (NestedMatrix != null)
                 {
                     foreach (var NestedMatrix_elm in NestedMatrix)
                     {
-                        if (!(NestedMatrix_elm is null))
+                        if (NestedMatrix_elm != null)
                         {
                             foreach (var NestedMatrix_elm_elm in NestedMatrix_elm)
                             {
-                                if (!(NestedMatrix_elm_elm is null))
+                                if (NestedMatrix_elm_elm != null)
                                 {
                                     hash ^= 397 * NestedMatrix_elm_elm.GetHashCode();
                                 }
@@ -265,7 +265,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Str is null))
+                if (Str != null)
                 {
                     hash ^= 397 * Str.GetHashCode();
                 }
@@ -334,7 +334,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Str is null))
+                if (Str != null)
                 {
                     hash ^= 397 * Str.GetHashCode();
                 }
@@ -403,7 +403,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Str is null))
+                if (Str != null)
                 {
                     hash ^= 397 * Str.GetHashCode();
                 }
