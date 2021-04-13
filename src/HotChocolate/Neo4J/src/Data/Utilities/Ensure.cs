@@ -18,11 +18,9 @@ namespace HotChocolate.Data.Neo4J
         /// <param name="value">The value of the parameter.</param>
         /// <param name="paramName">The name of the parameter.</param>
         /// <returns>The value of the parameter.</returns>
-        public static T IsNotNull<T>(T value, string paramName)
+        public static void IsNotNull<T>(T value, string paramName)
         {
             _ = value ?? throw new ArgumentNullException(paramName, @"Value cannot be null.");
-
-            return value;
         }
 
         /// <summary>
@@ -61,10 +59,6 @@ namespace HotChocolate.Data.Neo4J
             {
                 throw new ArgumentException(message);
             }
-        }
-
-        private static bool IsEmpty(IReadOnlyCollection<object> array) {
-            return array == null || array.Count == 0;
         }
     }
 }

@@ -25,11 +25,5 @@ public static class ResultCursorExtensions
             }
             return list;
         }
-
-        public static async Task<TReturn> MapSingleAsync<TReturn>(
-            this IResultCursor resultCursor)
-        {
-            return (await resultCursor.SingleAsync().ConfigureAwait(false)).Map<TReturn>();
-        }
     }
 }

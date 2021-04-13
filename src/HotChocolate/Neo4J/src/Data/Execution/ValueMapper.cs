@@ -15,7 +15,7 @@ namespace HotChocolate.Data.Neo4J
 
             if (typeof(IEnumerable).IsAssignableFrom(targetType))
             {
-                if (!(cypherValue is IEnumerable enumerable))
+                if (cypherValue is not IEnumerable enumerable)
                     throw new InvalidOperationException($"The cypher value is not a list and cannot be mapped to target type: {targetType.UnderlyingSystemType}");
 
                 if (targetType == typeof(string))
@@ -23,7 +23,7 @@ namespace HotChocolate.Data.Neo4J
                     return enumerable.As<T>();
                 }
 
-                Type? elementType = targetType.GetGenericArguments()[0];
+                Type elementType = targetType.GetGenericArguments()[0];
                 Type genericType = typeof(CollectionMapper<>).MakeGenericType(elementType);
                 var collectionMapper = (ICollectionMapper)genericType.CreateInstance();
 
@@ -35,14 +35,11 @@ namespace HotChocolate.Data.Neo4J
                 case INode node:
                 {
                     T entity = node.Properties.FromObjectDictionary<T>();
-                    EntityPropertyAccessor.SetNodeId(entity, node.Id);
-
                     return entity;
                 }
                 case IRelationship relationship:
                 {
                     T entity = relationship.Properties.FromObjectDictionary<T>();
-
                     return entity;
                 }
                 case IReadOnlyDictionary<string, object> map:

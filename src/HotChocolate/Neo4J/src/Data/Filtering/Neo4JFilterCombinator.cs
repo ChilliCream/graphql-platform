@@ -23,17 +23,15 @@ namespace HotChocolate.Data.Neo4J.Filtering
 
             combined = combinator switch
             {
-                FilterCombinator.And => CombineWithAnd(context, operations),
-                FilterCombinator.Or => CombineWithOr(context, operations),
+                FilterCombinator.And => CombineWithAnd(operations),
+                FilterCombinator.Or => CombineWithOr(operations),
                 _ => throw new InvalidOperationException()
             };
 
             return true;
         }
 
-        private static CompoundCondition CombineWithAnd(
-            Neo4JFilterVisitorContext context,
-            IReadOnlyCollection<Condition> operations)
+        private static CompoundCondition CombineWithAnd(IReadOnlyCollection<Condition> operations)
         {
             if (operations.Count < 0)
             {
@@ -49,9 +47,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
             return conditions;
         }
 
-        private static Condition CombineWithOr(
-            Neo4JFilterVisitorContext context,
-            Queue<Condition> operations)
+        private static Condition CombineWithOr(IReadOnlyCollection<Condition> operations)
         {
             if (operations.Count < 0)
             {

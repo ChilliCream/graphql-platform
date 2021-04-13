@@ -24,13 +24,5 @@ namespace HotChocolate.Data.Neo4J.Filtering
         /// <inheritdoc />
         public override FilterScope<Condition> CreateScope() =>
             new Neo4JFilterScope();
-
-        public int CurrentLevel { get; set; } = 0;
-        public Stack<Node> StartNodes { get; } = new();
-        public Stack<Node> EndNodes { get; } = new();
-        public Stack<Relationship> Relationships { get; } = new();
-        public Stack<Neo4JRelationshipAttribute> RelationshipTypes { get; } = new();
-        public Dictionary<int, Queue<object>> RelationshipProjections { get; } = new();
     }
-
 }
