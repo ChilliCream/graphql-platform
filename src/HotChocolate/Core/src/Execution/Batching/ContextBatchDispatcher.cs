@@ -45,7 +45,6 @@ namespace HotChocolate.Execution.Batching
             {
                 throw new ArgumentException("context is already registered", nameof(context));
             }
-            context.BatchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
             context.TaskStats.StateChanged += TaskStatisticsEventHandler;
         }
 
@@ -56,7 +55,6 @@ namespace HotChocolate.Execution.Batching
                 throw new ArgumentException("context is not registered", nameof(context));
             }
             context.TaskStats.StateChanged -= TaskStatisticsEventHandler;
-            context.BatchDispatcher.TaskEnqueued -= BatchDispatcherEventHandler;
         }
 
         private void BatchDispatcherEventHandler(
