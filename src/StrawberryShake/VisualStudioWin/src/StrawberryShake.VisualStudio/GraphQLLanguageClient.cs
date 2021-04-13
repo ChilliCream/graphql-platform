@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.IO;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -12,7 +10,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace StrawberryShake.VisualStudio
 {
-    [ContentType("GraphQL")]
+    [ContentType("graphql")]
     [Export(typeof(ILanguageClient))]
     public class GraphQLLanguageClient : ILanguageClient
     {
@@ -32,12 +30,13 @@ namespace StrawberryShake.VisualStudio
             await Task.Yield();
 
             ProcessStartInfo info = new ProcessStartInfo();
-            info.FileName = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Server", @"MockLanguageServer.exe");
-            info.Arguments = "bar";
+            //info.FileName = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Server", @"MockLanguageServer.exe");
+            info.FileName = "C:\\Users\\michael\\source\\repos\\hotchocolate\\src\\StrawberryShake\\VisualStudioWin\\src\\StrawberryShake.VisualStudio\\language-server-win.exe";
+            // info.Arguments = "bar";
             info.RedirectStandardInput = true;
             info.RedirectStandardOutput = true;
             info.UseShellExecute = false;
-            info.CreateNoWindow = true;
+            //info.CreateNoWindow = true;
 
             Process process = new Process
             {
@@ -45,7 +44,7 @@ namespace StrawberryShake.VisualStudio
             };
 
             if (process.Start())
-            {
+            {                
                 return new Connection(process.StandardOutput.BaseStream, process.StandardInput.BaseStream);
             }
 

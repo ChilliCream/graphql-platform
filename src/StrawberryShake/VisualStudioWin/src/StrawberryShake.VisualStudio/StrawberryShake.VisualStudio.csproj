@@ -51,7 +51,10 @@
     <Content Include="Syntaxes\GraphQL.tmLanguage">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <None Include="GraphQLLanguageClient.text" />
+    <Content Include="FileIcons.imagemanifest">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Compile Include="GraphQLLanguageClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>

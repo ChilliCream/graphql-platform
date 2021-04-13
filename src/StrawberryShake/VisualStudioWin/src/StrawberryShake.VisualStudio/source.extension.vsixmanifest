@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="StrawberryShake.bc2591e8-32c8-4880-a9da-ae4b5512e171" Version="11.1.1.2" Language="en-US" Publisher="ChilliCream" />
+        <Identity Id="StrawberryShake.bc2591e8-32c8-4880-a9da-ae4b5512e171" Version="11.1.1.3" Language="en-US" Publisher="ChilliCream" />
         <DisplayName>Strawberry Shake</DisplayName>
         <Description xml:space="preserve">Strawberry Shake is a GraphQL client framework developed by ChilliCream. This Visual Studio extension will help you to create new GraphQL clients with ease.</Description>
         <MoreInfo>https://chillicream.com/docs/strawberryshake/</MoreInfo>
