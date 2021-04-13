@@ -117,7 +117,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 }
                 else if (prop.Type.IsNonNullableType())
                 {
-                    if (prop.Type.NamedType() is ILeafTypeDescriptor
+                    if (prop.Type.InnerType() is ILeafTypeDescriptor
                         { RuntimeType: { IsValueType: true } })
                     {
                         block

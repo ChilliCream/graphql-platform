@@ -75,7 +75,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Foo is null))
+                if (Foo != null)
                 {
                     hash ^= 397 * Foo.GetHashCode();
                 }
@@ -154,7 +154,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Foo is null))
+                if (Foo != null)
                 {
                     hash ^= 397 * Foo.GetHashCode();
                 }
@@ -233,7 +233,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Foo is null))
+                if (Foo != null)
                 {
                     hash ^= 397 * Foo.GetHashCode();
                 }
@@ -273,147 +273,205 @@ namespace Foo.Bar
                 return null;
             }
 
-            if (!(runtimeValue is Bar d))
+            var input = runtimeValue as global::Foo.Bar.Bar;
+            var inputInfo = runtimeValue as global::Foo.Bar.State.IBarInfo;
+            if (input is null || inputInfo is null)
             {
                 throw new global::System.ArgumentException(nameof(runtimeValue));
             }
 
-            return new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>[]{new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("str", FormatStr(d.Str)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("strNonNullable", FormatStrNonNullable(d.StrNonNullable)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("nested", FormatNested(d.Nested)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("nestedList", FormatNestedList(d.NestedList)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("nestedMatrix", FormatNestedMatrix(d.NestedMatrix))};
+            var fields = new global::System.Collections.Generic.List<global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>>();
+            if (inputInfo.IsStrSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("str", FormatStr(input.Str)));
+            }
+
+            if (inputInfo.IsStrNonNullableSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("strNonNullable", FormatStrNonNullable(input.StrNonNullable)));
+            }
+
+            if (inputInfo.IsNestedSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("nested", FormatNested(input.Nested)));
+            }
+
+            if (inputInfo.IsNestedListSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("nestedList", FormatNestedList(input.NestedList)));
+            }
+
+            if (inputInfo.IsNestedMatrixSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("nestedMatrix", FormatNestedMatrix(input.NestedMatrix)));
+            }
+
+            return fields;
         }
 
-        private global::System.Object? FormatStr(global::System.String? value)
+        private global::System.Object? FormatStr(global::System.String? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _stringFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _stringFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatStrNonNullable(global::System.String value)
+        private global::System.Object? FormatStrNonNullable(global::System.String input)
         {
-            if (value is null)
+            if (input is null)
             {
-                throw new global::System.ArgumentNullException(nameof(value));
+                throw new global::System.ArgumentNullException(nameof(input));
             }
 
-            return _stringFormatter.Format(value);
+            return _stringFormatter.Format(input);
         }
 
-        private global::System.Object? FormatNested(global::Foo.Bar.Bar? value)
+        private global::System.Object? FormatNested(global::Foo.Bar.Bar? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _barFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _barFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatNestedList(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> value)
+        private global::System.Object? FormatNestedList(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> input)
         {
-            if (value is null)
+            if (input is null)
             {
-                throw new global::System.ArgumentNullException(nameof(value));
+                throw new global::System.ArgumentNullException(nameof(input));
             }
 
-            var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
-            foreach (var value_elm in value)
+            var input_list = new global::System.Collections.Generic.List<global::System.Object?>();
+            foreach (var input_elm in input)
             {
-                if (value_elm is null)
+                if (input_elm is null)
                 {
-                    throw new global::System.ArgumentNullException(nameof(value_elm));
+                    throw new global::System.ArgumentNullException(nameof(input_elm));
                 }
 
-                value_list.Add(_barFormatter.Format(value_elm));
+                input_list.Add(_barFormatter.Format(input_elm));
             }
 
-            return value_list;
+            return input_list;
         }
 
-        private global::System.Object? FormatNestedMatrix(global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar?>?>? value)
+        private global::System.Object? FormatNestedMatrix(global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar?>?>? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
-                foreach (var value_elm in value)
+                return input;
+            }
+            else
+            {
+                var input_list = new global::System.Collections.Generic.List<global::System.Object?>();
+                foreach (var input_elm in input)
                 {
-                    if (!(value_elm is null))
+                    if (input_elm is null)
                     {
-                        var value_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
-                        foreach (var value_elm_elm in value_elm)
-                        {
-                            if (!(value_elm_elm is null))
-                            {
-                                value_elm_list.Add(_barFormatter.Format(value_elm_elm));
-                            }
-                            else
-                            {
-                                value_elm_list.Add(value_elm_elm);
-                            }
-                        }
-
-                        value_list.Add(value_elm_list);
+                        input_list.Add(input_elm);
                     }
                     else
                     {
-                        value_list.Add(value_elm);
+                        var input_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
+                        foreach (var input_elm_elm in input_elm)
+                        {
+                            if (input_elm_elm is null)
+                            {
+                                input_elm_list.Add(input_elm_elm);
+                            }
+                            else
+                            {
+                                input_elm_list.Add(_barFormatter.Format(input_elm_elm));
+                            }
+                        }
+
+                        input_list.Add(input_elm_list);
                     }
                 }
 
-                return value_list;
-            }
-            else
-            {
-                return value;
+                return input_list;
             }
         }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class Bar
+    public partial class Bar : global::Foo.Bar.State.IBarInfo
     {
+        private global::System.String? _value_str;
+        private global::System.Boolean _set_str;
+        private global::System.String _value_strNonNullable = default !;
+        private global::System.Boolean _set_strNonNullable;
+        private global::Foo.Bar.Bar? _value_nested;
+        private global::System.Boolean _set_nested;
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> _value_nestedList = default !;
+        private global::System.Boolean _set_nestedList;
+        private global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar?>?>? _value_nestedMatrix;
+        private global::System.Boolean _set_nestedMatrix;
         public global::System.String? Str
         {
-            get;
-            set;
+            get => _value_str;
+            set
+            {
+                _set_str = true;
+                _value_str = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IBarInfo.IsStrSet => _set_str;
         public global::System.String StrNonNullable
         {
-            get;
-            set;
+            get => _value_strNonNullable;
+            set
+            {
+                _set_strNonNullable = true;
+                _value_strNonNullable = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IBarInfo.IsStrNonNullableSet => _set_strNonNullable;
         public global::Foo.Bar.Bar? Nested
         {
-            get;
-            set;
+            get => _value_nested;
+            set
+            {
+                _set_nested = true;
+                _value_nested = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IBarInfo.IsNestedSet => _set_nested;
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar> NestedList
         {
-            get;
-            set;
+            get => _value_nestedList;
+            set
+            {
+                _set_nestedList = true;
+                _value_nestedList = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IBarInfo.IsNestedListSet => _set_nestedList;
         public global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar?>?>? NestedMatrix
         {
-            get;
-            set;
+            get => _value_nestedMatrix;
+            set
+            {
+                _set_nestedMatrix = true;
+                _value_nestedMatrix = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IBarInfo.IsNestedMatrixSet => _set_nestedMatrix;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
@@ -536,12 +594,20 @@ namespace Foo.Bar
 
         private global::System.Object? FormatNestedList(global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? value)
         {
-            if (!(value is null))
+            if (value is null)
+            {
+                return value;
+            }
+            else
             {
                 var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
                 foreach (var value_elm in value)
                 {
-                    if (!(value_elm is null))
+                    if (value_elm is null)
+                    {
+                        value_list.Add(value_elm);
+                    }
+                    else
                     {
                         var value_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
                         foreach (var value_elm_elm in value_elm)
@@ -556,17 +622,9 @@ namespace Foo.Bar
 
                         value_list.Add(value_elm_list);
                     }
-                    else
-                    {
-                        value_list.Add(value_elm);
-                    }
                 }
 
                 return value_list;
-            }
-            else
-            {
-                return value;
             }
         }
 
@@ -712,12 +770,20 @@ namespace Foo.Bar
 
         private global::System.Object? FormatNestedList(global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? value)
         {
-            if (!(value is null))
+            if (value is null)
+            {
+                return value;
+            }
+            else
             {
                 var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
                 foreach (var value_elm in value)
                 {
-                    if (!(value_elm is null))
+                    if (value_elm is null)
+                    {
+                        value_list.Add(value_elm);
+                    }
+                    else
                     {
                         var value_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
                         foreach (var value_elm_elm in value_elm)
@@ -732,17 +798,9 @@ namespace Foo.Bar
 
                         value_list.Add(value_elm_list);
                     }
-                    else
-                    {
-                        value_list.Add(value_elm);
-                    }
                 }
 
                 return value_list;
-            }
-            else
-            {
-                return value;
             }
         }
 
@@ -888,12 +946,20 @@ namespace Foo.Bar
 
         private global::System.Object? FormatNestedList(global::System.Collections.Generic.IReadOnlyList<global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Bar>?>? value)
         {
-            if (!(value is null))
+            if (value is null)
+            {
+                return value;
+            }
+            else
             {
                 var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
                 foreach (var value_elm in value)
                 {
-                    if (!(value_elm is null))
+                    if (value_elm is null)
+                    {
+                        value_list.Add(value_elm);
+                    }
+                    else
                     {
                         var value_elm_list = new global::System.Collections.Generic.List<global::System.Object?>();
                         foreach (var value_elm_elm in value_elm)
@@ -908,17 +974,9 @@ namespace Foo.Bar
 
                         value_list.Add(value_elm_list);
                     }
-                    else
-                    {
-                        value_list.Add(value_elm);
-                    }
                 }
 
                 return value_list;
-            }
-            else
-            {
-                return value;
             }
         }
 
@@ -1167,6 +1225,36 @@ namespace Foo.Bar.State
         }
     }
 
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal interface IBarInfo
+    {
+        global::System.Boolean IsStrSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsStrNonNullableSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsNestedSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsNestedListSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsNestedMatrixSet
+        {
+            get;
+        }
+    }
+
     // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial class TestOperationBuilder : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ITestOperationResult>
@@ -1409,9 +1497,10 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
+            var serviceCollection = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp =>
             {
-                var serviceCollection = ConfigureClientDefault(sp, strategy);
+                ConfigureClientDefault(sp, serviceCollection, strategy);
                 return new ClientServiceProvider(global::Microsoft.Extensions.DependencyInjection.ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(serviceCollection));
             });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => new global::Foo.Bar.State.FooClientStoreAccessor(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityIdSerializer>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp))));
@@ -1420,15 +1509,14 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.TestOperation3Query>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IFooClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
-            return new global::StrawberryShake.ClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor>("FooClient", services);
+            return new global::StrawberryShake.ClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor>("FooClient", services, serviceCollection);
         }
 
-        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClientDefault(global::System.IServiceProvider parentServices, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
+        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClientDefault(global::System.IServiceProvider parentServices, global::Microsoft.Extensions.DependencyInjection.ServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-            var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(services, sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp =>
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Transport.Http.IHttpConnection>(services, sp =>
             {
                 var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
                 return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
@@ -1454,21 +1542,21 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ITestOperationResult>>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.ITestOperationQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ITestOperationResult>, global::Foo.Bar.State.TestOperationBuilder>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.ITestOperationResult>>(services, sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.ITestOperationResult>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ITestOperationResult>>(sp), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp), strategy));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.ITestOperationResult>>(services, sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.ITestOperationResult>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.IHttpConnection>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ITestOperationResult>>(sp), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp), strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.TestOperationQuery>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.ITestOperationQuery>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.TestOperationQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ITestOperation2Result>, global::Foo.Bar.State.TestOperation2ResultFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ITestOperation2Result>>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.ITestOperation2Query>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ITestOperation2Result>, global::Foo.Bar.State.TestOperation2Builder>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.ITestOperation2Result>>(services, sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.ITestOperation2Result>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ITestOperation2Result>>(sp), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp), strategy));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.ITestOperation2Result>>(services, sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.ITestOperation2Result>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.IHttpConnection>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ITestOperation2Result>>(sp), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp), strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.TestOperation2Query>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.ITestOperation2Query>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.TestOperation2Query>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ITestOperation3Result>, global::Foo.Bar.State.TestOperation3ResultFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ITestOperation3Result>>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.ITestOperation3Query>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ITestOperation3Result>, global::Foo.Bar.State.TestOperation3Builder>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.ITestOperation3Result>>(services, sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.ITestOperation3Result>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ITestOperation3Result>>(sp), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp), strategy));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.ITestOperation3Result>>(services, sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.ITestOperation3Result>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.IHttpConnection>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ITestOperation3Result>>(sp), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp), strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.TestOperation3Query>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.ITestOperation3Query>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.TestOperation3Query>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityIdSerializer, global::Foo.Bar.State.FooClientEntityIdFactory>(services);

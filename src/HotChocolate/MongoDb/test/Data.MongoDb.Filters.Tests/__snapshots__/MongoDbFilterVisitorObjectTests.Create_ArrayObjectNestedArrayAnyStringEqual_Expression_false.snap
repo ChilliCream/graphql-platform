@@ -1,5 +1,11 @@
 ﻿{
   "data": {
-    "root": []
+    "root": [
+      {
+        "foo": {
+          "objectArray": null
+        }
+      }
+    ]
   }
 }

@@ -1,6 +1,7 @@
 using System;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
+using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
