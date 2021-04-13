@@ -59,7 +59,7 @@ namespace HotChocolate.Types
                 "^([0-9]{1,3})°\\s*([0-9]{1,3}(?:\\.(?:[0-9]{1,}))?)['′]\\s*(([0-9]{1,3}(\\.([0-9]{1,}))" +
                 "?)[\"″]\\s*)?([NEOSW]?)$";
 
-            private static readonly Regex _rx = new Regex(
+            private static readonly Regex _rx = new(
                 SexagesimalRegex,
                 RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
@@ -68,14 +68,16 @@ namespace HotChocolate.Types
                 return _rx.IsMatch(s);
             }
 
-            private static double TryDeserializeFromString(string s)
+            private static double TryDeserializeFromString(string serialized)
             {
-                MatchCollection m = _rx.Matches(s);
+                MatchCollection coords = _rx.Matches(serialized);
 
-                var min = double.TryParse(m[2].Value, out var m2) ? m2 / 60 : 0;
-                var sec =   double.TryParse(m[4].Value, out var m1) ? m1 / 60 : 0;
-                var dec = double.TryParse(m[1].Value, out var m3) ? m3 + min + sec : 0;
-                return m[7].Value.Contains("W") || m[7].Value.Contains("S") ? -dec : dec;
+                var minute = double.TryParse(coords[2].Value, out var min) ? min / 60 : 0;
+                var second =   double.TryParse(coords[4].Value, out var sec) ? sec / 60 : 0;
+                var value = double.TryParse(coords[1].Value, out var dec) ? dec + minute + second : 0;
+
+                // Southern and western coordinates must be negative decimals
+                return coords[7].Value.Contains("W") || coords[7].Value.Contains("S") ? -value : value;
             }
         }
     }
