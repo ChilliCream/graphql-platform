@@ -1,0 +1,1 @@
+﻿MATCH (u:User) WHERE exists((u:User)-[:OWNS]->(b:Bike)) RETURN u

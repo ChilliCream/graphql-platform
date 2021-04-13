@@ -16,4 +16,8 @@
     <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Scalar\__snapshots__" />
+  </ItemGroup>
+
 </Project>
