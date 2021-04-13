@@ -4,7 +4,7 @@
   "Data": null,
   "Errors": [
     {
-      "message": "At least an 'operations' field and a 'map' field need to be present.",
+      "message": "The multipart form could not be read.",
       "extensions": {
         "code": "HC0033"
       }
