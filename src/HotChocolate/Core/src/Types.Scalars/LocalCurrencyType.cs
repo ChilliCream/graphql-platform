@@ -58,7 +58,7 @@ namespace HotChocolate.Types
                 return value.Value;
             }
 
-            throw ThrowHelper.LocalTimeType_ParseLiteral_IsInvalid(this);
+            throw ThrowHelper.LocalCurrencyType_ParseLiteral_IsInvalid(this);
         }
 
         protected override StringValueNode ParseValue(decimal runtimeValue)
