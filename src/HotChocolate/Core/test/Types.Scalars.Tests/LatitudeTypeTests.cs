@@ -1,5 +1,8 @@
 using System;
+using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -255,6 +258,35 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Equal(typeof(NullValueNode), result.GetType());
+        }
+
+        [Fact]
+        public async Task Integration_DefaultUtcOffset()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<DefaultLatitudeType>()
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult res = await executor.ExecuteAsync("{ test }");
+
+            // assert
+            res.ToJson().MatchSnapshot();
+        }
+
+        public class DefaultLatitude
+        {
+            public double Test => new();
+        }
+
+        public class DefaultLatitudeType : ObjectType<DefaultLatitude>
+        {
+            protected override void Configure(IObjectTypeDescriptor<DefaultLatitude> descriptor)
+            {
+                descriptor.Field(x => x.Test).Type<LatitudeType>();
+            }
         }
     }
 }
