@@ -79,6 +79,15 @@ extend type Query {
 </ExampleTabs.Schema>
 </ExampleTabs>
 
+In Startup.cs you need to register your extension classes using AddTypeExtension.
+
+```csharp
+services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddTypeExtension<QueryExtensions>();
+```
+
 # Extending types with the annotation-based approach
 
 Extending types can be beneficial even with non-root types. Let's say we are building a schema with the annotation-based approach where we use pure C# to describe our types.
