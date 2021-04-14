@@ -33,7 +33,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void UtcOffset_ExpectIsStringValueToMatch()
+        protected void Latitude_ExpectIsStringValueToMatch()
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
@@ -47,7 +47,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void UtcOffset_ExpectNegativeIsStringValueToMatch()
+        protected void Latitude_ExpectNegativeIsStringValueToMatch()
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
@@ -179,7 +179,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void UtcOffset_ExpectParseValueToMatchDouble()
+        protected void Latitude_ExpectParseValueToMatchDouble()
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
@@ -207,7 +207,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void UtcOffset_ExpectDeserializeNullToMatch()
+        protected void Latitude_ExpectDeserializeNullToMatch()
         {
             // arrange
             ScalarType scalar = new LatitudeType();
@@ -248,7 +248,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void UtcOffset_ExpectParseResultToMatchNull()
+        protected void Latitude_ExpectParseResultToMatchNull()
         {
             // arrange
             ScalarType scalar = new LatitudeType();
