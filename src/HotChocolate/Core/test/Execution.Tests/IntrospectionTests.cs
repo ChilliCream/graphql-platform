@@ -47,7 +47,7 @@ namespace HotChocolate.Execution
         public async Task Query_Specified_By()
         {
             // arrange
-            var query = "{ __type (name: \"DateTime\") { specifiedBy } }";
+            var query = "{ __type (name: \"DateTime\") { specifiedByURL } }";
 
             IRequestExecutor executor =
                 SchemaBuilder.New()

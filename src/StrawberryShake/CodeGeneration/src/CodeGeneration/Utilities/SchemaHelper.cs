@@ -14,7 +14,8 @@ namespace StrawberryShake.CodeGeneration.Utilities
     {
         public static ISchema Load(
             IEnumerable<GraphQLFile> files,
-            bool strictValidation = true)
+            bool strictValidation = true,
+            bool noStore = false)
         {
             if (files is null)
             {
@@ -44,13 +45,16 @@ namespace StrawberryShake.CodeGeneration.Utilities
                         document.Definitions.OfType<EnumTypeExtensionNode>(),
                         leafTypes);
 
-                    CollectGlobalEntityPatterns(
-                        document.Definitions.OfType<SchemaExtensionNode>(),
-                        globalEntityPatterns);
+                    if (!noStore)
+                    {
+                        CollectGlobalEntityPatterns(
+                            document.Definitions.OfType<SchemaExtensionNode>(),
+                            globalEntityPatterns);
 
-                    CollectTypeEntityPatterns(
-                        document.Definitions.OfType<ObjectTypeExtensionNode>(),
-                        typeEntityPatterns);
+                        CollectTypeEntityPatterns(
+                            document.Definitions.OfType<ObjectTypeExtensionNode>(),
+                            typeEntityPatterns);
+                    }
 
                     AddDefaultScalarInfos(leafTypes);
                 }

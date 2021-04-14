@@ -7,19 +7,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class ResultInterfaceGenerator : CodeGenerator<InterfaceTypeDescriptor>
     {
-        protected override bool CanHandle(InterfaceTypeDescriptor descriptor)
-        {
-            return true;
-        }
-
-        protected override void Generate(
+        protected override void Generate(InterfaceTypeDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
-            InterfaceTypeDescriptor descriptor,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             fileName = descriptor.RuntimeType.Name;
             path = null;
+            ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
             InterfaceBuilder interfaceBuilder = InterfaceBuilder
                 .New()
@@ -36,12 +33,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             }
 
             interfaceBuilder.AddImplementsRange(descriptor.Implements.Select(x => x.Value));
-
-            CodeFileBuilder
-                .New()
-                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
-                .AddType(interfaceBuilder)
-                .Build(writer);
+            interfaceBuilder.Build(writer);
         }
     }
 }

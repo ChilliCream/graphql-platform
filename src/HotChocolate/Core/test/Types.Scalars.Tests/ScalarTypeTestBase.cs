@@ -27,9 +27,13 @@ namespace HotChocolate.Types
         {
             switch (type.Name)
             {
+                case nameof(BooleanValueNode) when value is bool b:
+                    return new BooleanValueNode(b);
                 case nameof(EnumValueNode):
                     return new EnumValueNode(value);
                 case nameof(FloatValueNode) when value is double d:
+                    return new FloatValueNode(d);
+                case nameof(FloatValueNode) when value is decimal d:
                     return new FloatValueNode(d);
                 case nameof(IntValueNode) when value is int i:
                     return new IntValueNode(i);
@@ -37,12 +41,10 @@ namespace HotChocolate.Types
                     return new IntValueNode(i);
                 case nameof(IntValueNode) when value is ulong i:
                     return new IntValueNode(i);
-                case nameof(BooleanValueNode) when value is bool b:
-                    return new BooleanValueNode(b);
-                case nameof(StringValueNode) when value is string s:
-                    return new StringValueNode(s);
                 case nameof(NullValueNode):
                     return NullValueNode.Default;
+                case nameof(StringValueNode) when value is string s:
+                    return new StringValueNode(s);
                 default:
                     throw new InvalidOperationException();
             }

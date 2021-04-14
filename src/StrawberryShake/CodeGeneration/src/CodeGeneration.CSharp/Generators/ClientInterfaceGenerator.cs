@@ -7,14 +7,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class ClientInterfaceGenerator : ClassBaseGenerator<ClientDescriptor>
     {
-        protected override void Generate(
+        protected override void Generate(ClientDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
-            ClientDescriptor descriptor,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             fileName = descriptor.InterfaceType.Name;
             path = null;
+            ns = descriptor.InterfaceType.NamespaceWithoutGlobal;
 
             InterfaceBuilder interfaceBuilder = InterfaceBuilder
                 .New()
@@ -29,11 +31,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .SetType(operation.InterfaceType.ToString());
             }
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(descriptor.InterfaceType.NamespaceWithoutGlobal)
-                .AddType(interfaceBuilder)
-                .Build(writer);
+            interfaceBuilder.Build(writer);
         }
     }
 }

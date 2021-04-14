@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using HotChocolate.Language;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
@@ -58,6 +60,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         {
             List,
             Nullable
+        }
+
+        public override string ToString()
+        {
+            var text = new StringBuilder();
+            using var stringWriter = new StringWriter(text);
+            using var codeWriter = new CodeWriter(stringWriter);
+            Build(codeWriter);
+            codeWriter.Flush();
+            stringWriter.Flush();
+            return text.ToString();
         }
 
         public void Build(CodeWriter writer)

@@ -12,18 +12,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     public class ResultInfoGenerator : ClassBaseGenerator<ITypeDescriptor>
     {
         private const string _entityIds = nameof(_entityIds);
+        private const string entityIds = nameof(entityIds);
         private const string _version = nameof(_version);
+        private const string version = nameof(version);
 
-        protected override bool CanHandle(ITypeDescriptor descriptor)
+        protected override bool CanHandle(ITypeDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings)
         {
             return descriptor.Kind == TypeKind.ResultType && !descriptor.IsInterface();
         }
 
-        protected override void Generate(
+        protected override void Generate(ITypeDescriptor typeDescriptor,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
-            ITypeDescriptor typeDescriptor,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             ComplexTypeDescriptor complexTypeDescriptor =
                 typeDescriptor as ComplexTypeDescriptor ??
@@ -33,6 +37,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             var className = CreateResultInfoName(complexTypeDescriptor.RuntimeType.Name);
             fileName = className;
             path = State;
+            ns = CreateStateNamespace(complexTypeDescriptor.RuntimeType.NamespaceWithoutGlobal);
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -67,30 +72,36 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             classBuilder
                 .AddProperty("EntityIds")
                 .SetType(TypeNames.IReadOnlyCollection.WithGeneric(TypeNames.EntityId))
-                .AsLambda(_entityIds);
+                .AsLambda(settings.IsStoreEnabled()
+                    ? CodeInlineBuilder.From(_entityIds)
+                    : MethodCallBuilder.Inline()
+                        .SetMethodName(TypeNames.Array, "Empty")
+                        .AddGeneric(TypeNames.EntityId));
 
             classBuilder
                 .AddProperty("Version")
                 .SetType(TypeNames.UInt64)
-                .AsLambda(_version);
+                .AsLambda(settings.IsStoreEnabled() ? _version : "0");
 
-            AddConstructorAssignedField(
-                TypeNames.IReadOnlyCollection.WithGeneric(TypeNames.EntityId),
-                _entityIds,
-                classBuilder,
-                constructorBuilder);
+            if (settings.IsStoreEnabled())
+            {
+                AddConstructorAssignedField(
+                    TypeNames.IReadOnlyCollection.WithGeneric(TypeNames.EntityId),
+                    _entityIds,
+                    entityIds,
+                    classBuilder,
+                    constructorBuilder);
 
-            AddConstructorAssignedField(
-                TypeNames.UInt64,
-                _version,
-                classBuilder,
-                constructorBuilder,
-                true);
-
+                AddConstructorAssignedField(
+                    TypeNames.UInt64,
+                    _version,
+                    version,
+                    classBuilder,
+                    constructorBuilder,
+                    true);
+            }
 
             // WithVersion
-            const string version = nameof(version);
-
             classBuilder
                 .AddMethod("WithVersion")
                 .SetAccessModifier(AccessModifier.Public)
@@ -103,15 +114,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .SetMethodName(className)
                     .AddArgumentRange(
                         complexTypeDescriptor.Properties.Select(x => x.Name.Value))
-                    .AddArgument(_entityIds)
-                    .AddArgument(version));
+                    .If(settings.IsStoreEnabled(),
+                        x => x.AddArgument(_entityIds).AddArgument(version)));
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(CreateStateNamespace(
-                    complexTypeDescriptor.RuntimeType.NamespaceWithoutGlobal))
-                .AddType(classBuilder)
-                .Build(writer);
+            classBuilder.Build(writer);
         }
     }
 }

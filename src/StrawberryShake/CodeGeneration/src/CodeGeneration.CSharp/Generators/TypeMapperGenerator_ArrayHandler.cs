@@ -12,6 +12,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _child = "child";
 
         private void AddArrayHandler(
+            CSharpSyntaxGeneratorSettings settings,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             MethodBuilder methodBuilder,
@@ -22,9 +23,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             methodBuilder
                 .AddParameter(_list)
                 .SetType(listTypeDescriptor.ToStateTypeReference());
-            methodBuilder
-                .AddParameter(_snapshot)
-                .SetType(TypeNames.IEntityStoreSnapshot);
+
+            if (settings.IsStoreEnabled())
+            {
+                methodBuilder
+                    .AddParameter(_snapshot)
+                    .SetType(TypeNames.IEntityStoreSnapshot);
+            }
 
             var listVarName = GetParameterName(listTypeDescriptor.Name) + "s";
 
@@ -61,7 +66,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                             .Inline()
                             .SetMethodName(MapMethodNameFromTypeName(listTypeDescriptor.InnerType))
                             .AddArgument(_child)
-                            .AddArgument(_snapshot)));
+                            .If(settings.IsStoreEnabled(), x => x.AddArgument(_snapshot))));
 
             methodBuilder
                 .AddCode(forEachBuilder)
@@ -69,6 +74,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .AddCode($"return {listVarName};");
 
             AddMapMethod(
+                settings,
                 listVarName,
                 listTypeDescriptor.InnerType,
                 classBuilder,

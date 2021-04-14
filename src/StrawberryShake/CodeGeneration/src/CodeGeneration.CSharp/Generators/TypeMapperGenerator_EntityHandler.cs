@@ -52,6 +52,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         AddConstructorAssignedField(
                             dataMapperType,
                             GetFieldName(dataMapperName),
+                            GetParameterName(dataMapperName),
                             classBuilder,
                             constructorBuilder);
                     }

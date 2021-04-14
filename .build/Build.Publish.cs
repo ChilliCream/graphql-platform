@@ -30,7 +30,7 @@ partial class Build : NukeBuild
         .Executes(() =>
         {
             var projFile = File.ReadAllText(StarWarsProj);
-            File.WriteAllText(StarWarsProj, projFile.Replace("11.0.0-rc.1", GitVersion.SemVer));
+            File.WriteAllText(StarWarsProj, projFile.Replace("11.2.0-preview.14", GitVersion.SemVer));
 
             projFile = File.ReadAllText(EmptyServerProj);
             File.WriteAllText(EmptyServerProj, projFile.Replace("11.0.0-rc.1", GitVersion.SemVer));

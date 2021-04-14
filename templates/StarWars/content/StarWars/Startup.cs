@@ -31,12 +31,12 @@ namespace StarWars
                     // by splitting the types into several class we can organize 
                     // our query fields by topics and also am able to test
                     // them separately.
-                    .AddQueryType(d => d.Name("Query"))
+                    .AddQueryType()
                         .AddTypeExtension<CharacterQueries>()
                         .AddTypeExtension<ReviewQueries>()
-                    .AddMutationType(d => d.Name("Mutation"))
+                    .AddMutationType()
                         .AddTypeExtension<ReviewMutations>()
-                    .AddSubscriptionType(d => d.Name("Subscription"))
+                    .AddSubscriptionType()
                         .AddTypeExtension<ReviewSubscriptions>()
 
                     // The type discover is very good in exploring the types that we are using 
@@ -46,6 +46,11 @@ namespace StarWars
                     .AddType<Human>()
                     .AddType<Droid>()
                     .AddType<Starship>()
+                    .AddTypeExtension<CharacterResolvers>()
+
+                    // Add filtering and sorting capabilities.
+                    .AddFiltering()
+                    .AddSorting()
 
                     // if you wanted to controll the pagination settings globally you could
                     // do so by setting the paging options.
@@ -67,7 +72,7 @@ namespace StarWars
             {
                 app.UseDeveloperExceptionPage();
             }
-            
+
             // in order to expose our GraphQL schema we need to map the GraphQL server 
             // to a specific route. By default it is mapped onto /graphql.
             app

@@ -1,0 +1,33 @@
+﻿{
+  "Schema": "schema.graphql",
+  "Documents": "**/*.graphql",
+  "Location": null,
+  "Extensions": {
+    "StrawberryShake": {
+      "Name": "Client",
+      "Namespace": null,
+      "Url": null,
+      "DependencyInjection": true,
+      "StrictSchemaValidation": true,
+      "HashAlgorithm": "md5",
+      "UseSingleFile": true,
+      "RequestStrategy": "Default",
+      "OutputDirectoryName": "Generated",
+      "NoStore": false,
+      "EmitGeneratedCode": true,
+      "Records": {
+        "Inputs": false,
+        "Entities": false
+      },
+      "TransportProfiles": [
+        {
+          "Name": null,
+          "Default": "Http",
+          "Query": null,
+          "Mutation": null,
+          "Subscription": "WebSocket"
+        }
+      ]
+    }
+  }
+}

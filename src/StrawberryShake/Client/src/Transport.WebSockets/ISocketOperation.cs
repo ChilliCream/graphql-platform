@@ -9,8 +9,7 @@ namespace StrawberryShake.Transport.WebSockets
     /// <summary>
     /// Represents a operation on a socket
     /// </summary>
-    public interface ISocketOperation
-        : IAsyncDisposable
+    public interface ISocketOperation : IAsyncDisposable
     {
         /// <summary>
         /// The id of the operation

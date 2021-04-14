@@ -1,6 +1,8 @@
+using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Validation.Properties;
+using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Validation
 {
@@ -614,6 +616,33 @@ namespace HotChocolate.Validation
                 .AddLocation(operation)
                 .SetExtension("allowedExecutionDepth", allowedExecutionDepth)
                 .SetExtension("detectedExecutionDepth", detectedExecutionDepth)
+                .Build();
+        }
+
+        public static IError IntrospectionNotAllowed(
+            this IDocumentValidatorContext context,
+            FieldNode field)
+        {
+            string message = Resources.ErrorHelper_IntrospectionNotAllowed;
+
+            if (context.ContextData.TryGetValue(IntrospectionMessage, out object? value))
+            {
+                if (value is Func<string> messageFactory)
+                {
+                    message = messageFactory();
+                }
+
+                if (value is string messageString)
+                {
+                    message = messageString;
+                }
+            }
+
+            return ErrorBuilder.New()
+                .SetMessage(message)
+                .AddLocation(field)
+                .SetExtension(nameof(field), field.Name)
+                .SetCode(ErrorCodes.Validation.IntrospectionNotAllowed)
                 .Build();
         }
     }

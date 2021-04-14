@@ -388,7 +388,7 @@ public class CustomFilteringConvention : FilterConvention
     protected override void Configure(IFilterConventionDescriptor descriptor)
     {
         descriptor.AddDefaults();
-        descriptor.AddProvider(
+        descriptor.Provider(
             new QueryableFilterProvider(
                 x => x
                     .AddDefaultHandlers()

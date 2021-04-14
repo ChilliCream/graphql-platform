@@ -1,7 +1,7 @@
-using System;
 using System.Globalization;
 using System.Text;
 using HotChocolate;
+using StrawberryShake.CodeGeneration.CSharp;
 
 namespace StrawberryShake.CodeGeneration.Utilities
 {
@@ -18,6 +18,11 @@ namespace StrawberryShake.CodeGeneration.Utilities
         }
 
         public static string GetClassName(string typeName)
+        {
+            return GetPropertyName(typeName);
+        }
+
+        public static string GetClassName(NameString typeName)
         {
             return GetPropertyName(typeName);
         }
@@ -50,7 +55,6 @@ namespace StrawberryShake.CodeGeneration.Utilities
             {
                 if (i == 0 && char.IsLetter(fieldName[i]))
                 {
-
                     value.Append(char.ToUpper(fieldName[i], CultureInfo.InvariantCulture));
                 }
                 else
@@ -94,10 +98,15 @@ namespace StrawberryShake.CodeGeneration.Utilities
 
         public static string GetFieldName(string fieldName)
         {
-            return "_" + GetParameterName(fieldName);
+            return "_" + GetParamNameUnsafe(fieldName);
         }
 
         public static string GetParameterName(string parameterName)
+        {
+            return Keywords.ToSafeName(GetParamNameUnsafe(parameterName));
+        }
+
+        public static string GetParamNameUnsafe(string parameterName)
         {
             if (parameterName == WellKnownNames.TypeName)
             {
