@@ -75,51 +75,43 @@ namespace HotChocolate.Execution.Batching
 
         private void Dispatch()
         {
-            Suspend();
-            try
+            IExecutionContext safeContext = default!;
+            Exception safeContextException = default!;
+            foreach (var context in _contexts.Keys)
             {
-                IExecutionContext safeContext = default!;
-                Exception safeContextException = default!;
-                foreach (var context in _contexts.Keys)
-                {
-                    try
-                    {
-                        var taskStats = context.TaskStats;
-                        taskStats.SuspendCompletionEvent();
-                        if (!taskStats.IsCompleted)
-                        {
-                            safeContext = context;
-                            break;
-                        }
-                        else
-                        {
-                            taskStats.ResumeCompletionEvent();
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        safeContextException = e;
-                    }
-                }
-                if (safeContext is null)
-                {
-                    throw new InvalidOperationException("Batch is scheduled but there are no remaining pending contexts", safeContextException);
-                }
                 try
                 {
-                    _dispatcher.Dispatch(taskDefinition =>
+                    var taskStats = context.TaskStats;
+                    taskStats.SuspendCompletionEvent();
+                    if (!taskStats.IsCompleted)
                     {
-                        safeContext.TaskBacklog.Register(taskDefinition.Create(safeContext.TaskContext));
-                    });
+                        safeContext = context;
+                        break;
+                    }
+                    else
+                    {
+                        taskStats.ResumeCompletionEvent();
+                    }
                 }
-                finally
+                catch (Exception e)
                 {
-                    safeContext.TaskStats.ResumeCompletionEvent();
+                    safeContextException = e;
                 }
+            }
+            if (safeContext is null)
+            {
+                throw new InvalidOperationException("Batch is scheduled but there are no remaining pending contexts", safeContextException);
+            }
+            try
+            {
+                _dispatcher.Dispatch(taskDefinition =>
+                {
+                    safeContext.TaskBacklog.Register(taskDefinition.Create(safeContext.TaskContext));
+                });
             }
             finally
             {
-                Resume();
+                safeContext.TaskStats.ResumeCompletionEvent();
             }
         }
     }
