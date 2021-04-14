@@ -67,7 +67,12 @@ namespace HotChocolate.Types
         {
             if (runtimeValue is < Latitude._minValue or > Latitude._maxValue)
             {
-                return new StringValueNode(runtimeValue.ToString(CultureInfo.InvariantCulture));
+                return new StringValueNode(
+                    Math.Round(
+                        runtimeValue,
+                        Latitude._maxPrecision,
+                        MidpointRounding.AwayFromZero)
+                        .ToString(CultureInfo.InvariantCulture));
             }
             throw ThrowHelper.LatitudeType_ParseValue_IsInvalid(this);
         }
