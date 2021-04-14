@@ -74,40 +74,33 @@ namespace HotChocolate.Execution.Batching
                 _batchDispatchers.ForEach(x => x.Suspend());
                 try
                 {
-                    var pendingTasks = new List<Task<IQueryResult>>();
-                    IEnumerator<IQueryRequest> requestIterator = _requestBatch.GetEnumerator();
-                    bool hasRemaining = requestIterator.MoveNext();
-                    while (hasRemaining)
+                    foreach(var groupedItems in GroupedItems())
                     {
-                        var request = (IReadOnlyQueryRequest)requestIterator.Current;
-                        NextResult next = ExecuteNextAsync(request, pendingTasks, cancellationToken);
-                        pendingTasks.Add(next._task);
-                        hasRemaining = requestIterator.MoveNext();
-                        if (next._isBlocking || !_allowParallelExecution || !hasRemaining)
+                        var tasks = groupedItems.Select(x => x.Execute(cancellationToken)).ToList();
+                        _batchDispatchers.ForEach(x => x.Resume());
+                        bool keepRunning = true;
+                        try
                         {
-                            _batchDispatchers.ForEach(x => x.Resume());
-                            try
+                            foreach (var task in tasks)
                             {
-                                bool keepRunning = true;
-                                foreach (Task<IQueryResult> task in pendingTasks)
+                                IQueryResult result = await task.ConfigureAwait(false);
+                                if (keepRunning)
                                 {
-                                    IQueryResult result = await task.ConfigureAwait(false);
-                                    if (keepRunning)
-                                    {
-                                        yield return result;
-                                    }
-                                    if (result.Data is null)
-                                    {
-                                        keepRunning = false;
-                                    }
+                                    yield return result;
                                 }
-                                hasRemaining &= keepRunning;
-                                pendingTasks.Clear();
+                                if (result.Data is null)
+                                {
+                                    keepRunning = false;
+                                }
                             }
-                            finally
-                            {
-                                _batchDispatchers.ForEach(x => x.Suspend());
-                            }
+                        }
+                        finally
+                        {
+                            _batchDispatchers.ForEach(x => x.Suspend());
+                        }
+                        if (!keepRunning)
+                        {
+                            break;
                         }
                     }
                 }
@@ -117,96 +110,126 @@ namespace HotChocolate.Execution.Batching
                 }
             }
 
-            private NextResult ExecuteNextAsync(
-                IReadOnlyQueryRequest request,
-                List<Task<IQueryResult>> pendingTasks,
-                CancellationToken cancellationToken)
+            /// <summary>
+            /// Convert the queries from _requestBatch into groups of tasks that can be executed in parallel.
+            /// </summary>
+            private IEnumerable<List<WorkItem>> GroupedItems()
             {
-                try
+                var grouped = new List<WorkItem>();
+                foreach(var request in _requestBatch)
                 {
-                    DocumentNode document = request.Query is QueryDocument d
-                        ? d.Document
-                        : Utf8GraphQLParser.Parse(request.Query!.AsSpan());
-
-                    OperationDefinitionNode operation =
-                        document.GetOperation(request.OperationName);
-
-                    if (document != _previous)
+                    var item = new WorkItem((IReadOnlyQueryRequest)request, this);
+                    if (!_allowParallelExecution)
                     {
-                        _fragments = document.GetFragments();
-                        _visitationMap.Initialize(_fragments);
+                        yield return new List<WorkItem> { item };
                     }
-
-                    int oldExportCount = _visitor.ExportCount;
-                    operation.Accept(
-                        _visitor,
-                        _visitationMap,
-                        n => VisitorAction.Continue);
-                    // if there are exports in the operation, or the current operation is not a query
-                    // the next operation cannot start until the current one is completed
-                    bool operationIsBlocking = operation.Operation != OperationType.Query ||
-                                               _visitor.ExportCount != oldExportCount;
-
-                    _previous = document;
-                    document = RewriteDocument(operation);
-                    operation = (OperationDefinitionNode)document.Definitions[0];
-                    IReadOnlyDictionary<string, object?>? variableValues =
-                        MergeVariables(request.VariableValues, operation);
-
-                    request = QueryRequestBuilder.From(request)
-                        .SetQuery(document)
-                        .SetVariableValues(variableValues)
-                        .AddExportedVariables(_exportedVariables)
-                        .SetQueryId(null) // TODO ... should we create a name here?
-                        .SetQueryHash(null)
-                        .Create();
-
-                    Func<Task<IExecutionResult>> queryResult = async () =>
+                    else
                     {
-                        // mutations should not start before all preceding queries have completed
-                        if (operation.Operation != OperationType.Query)
+                        if (grouped.Count > 0 && item.OperationType != OperationType.Query)
                         {
-                            // take shallow copy so we ignore any tasks added after this
-                            await Task.WhenAll(pendingTasks.ToList()).ConfigureAwait(false);
+                            yield return grouped;
+                            grouped = new List<WorkItem>();
                         }
-                        return await _requestExecutor.ExecuteAsync(request, cancellationToken);
-                    };
-                    return new NextResult(queryResult(), operationIsBlocking);
+                        grouped.Add(item);
+                        if (item.OperationType != OperationType.Query || item.ExportCount > 0)
+                        {
+                            yield return grouped;
+                            grouped = new List<WorkItem>();
+                        }
+                    }
                 }
-                catch (GraphQLException ex)
+                if (grouped.Count > 0)
                 {
-                    return new NextResult(QueryResultBuilder.CreateError(ex.Errors));
-                }
-                catch (Exception ex)
-                {
-                    return new NextResult(QueryResultBuilder.CreateError(
-                        _errorHandler.Handle(
-                            _errorHandler.CreateUnexpectedError(ex).Build())));
+                    yield return grouped;
                 }
             }
 
-            private class NextResult
+            private class WorkItem
             {
-                public readonly Task<IQueryResult> _task;
-                /// <summary>
-                /// if \c true, no other calls to ExecuteNextAsync should be made before _task is completed.
-                /// if \c false, it is safe to schedule other ExecuteNextAsync calls before completing.
-                /// </summary>
-                public readonly bool _isBlocking;
+                private BatchExecutorEnumerable _parent;
+                private IReadOnlyQueryRequest _request = default!;
+                private OperationDefinitionNode _operation = default!;
+                private int _exportCount;
+                private IQueryResult _error = default!;
 
-                public NextResult(IQueryResult result)
+                public WorkItem(IReadOnlyQueryRequest request, BatchExecutorEnumerable parent)
                 {
-                    _task = Task.FromResult(result);
-                    _isBlocking = result.Data is null;
+                    _parent = parent;
+                    try
+                    {
+                        DocumentNode document = request.Query is QueryDocument d
+                            ? d.Document
+                            : Utf8GraphQLParser.Parse(request.Query!.AsSpan());
+
+                        _operation = document.GetOperation(request.OperationName);
+
+                        if (document != _parent._previous)
+                        {
+                            _parent._fragments = document.GetFragments();
+                            _parent._visitationMap.Initialize(_parent._fragments);
+                        }
+
+                        int oldExportCount = _parent._visitor.ExportCount;
+                        _operation.Accept(
+                            _parent._visitor,
+                            _parent._visitationMap,
+                            n => VisitorAction.Continue);
+                        _exportCount = _parent._visitor.ExportCount - oldExportCount;
+
+
+                        _parent._previous = document;
+                        document = _parent.RewriteDocument(_operation);
+                        _operation = (OperationDefinitionNode)document.Definitions[0];
+                        IReadOnlyDictionary<string, object?>? variableValues =
+                            _parent.MergeVariables(request.VariableValues, _operation);
+
+                        _request = QueryRequestBuilder.From(request)
+                            .SetQuery(document)
+                            .SetVariableValues(variableValues)
+                            .AddExportedVariables(_parent._exportedVariables)
+                            .SetQueryId(null) // TODO ... should we create a name here?
+                            .SetQueryHash(null)
+                            .Create();
+                    }
+                    catch (GraphQLException ex)
+                    {
+                        _error = QueryResultBuilder.CreateError(ex.Errors);
+                    }
+                    catch (Exception ex)
+                    {
+                        _error = QueryResultBuilder.CreateError(
+                            _parent._errorHandler.Handle(
+                                _parent._errorHandler.CreateUnexpectedError(ex).Build()));
+                    }
                 }
 
-                public NextResult(Task<IExecutionResult> result, bool isBlocking)
+                public int ExportCount => _exportCount;
+
+                public OperationType OperationType => _operation.Operation;
+
+                public async Task<IQueryResult> Execute(CancellationToken cancellationToken)
                 {
-                    Func<Task<IQueryResult>> cast = async () => {
-                        return (IQueryResult) await result.ConfigureAwait(false);
-                    };
-                    _task = cast();
-                    _isBlocking = isBlocking;
+                    if (_error is null)
+                    {
+                        try
+                        {
+                            return (IQueryResult) (await _parent._requestExecutor.ExecuteAsync(_request, cancellationToken));
+                        }
+                        catch (GraphQLException ex)
+                        {
+                            return QueryResultBuilder.CreateError(ex.Errors);
+                        }
+                        catch (Exception ex)
+                        {
+                            return QueryResultBuilder.CreateError(
+                                _parent._errorHandler.Handle(
+                                    _parent._errorHandler.CreateUnexpectedError(ex).Build()));
+                        }
+                    }
+                    else
+                    {
+                        return _error;
+                    }
                 }
             }
 
