@@ -48,11 +48,12 @@ namespace HotChocolate.AspNetCore
 
         public static GraphQLException HttpMultipartMiddleware_Invalid_Form(
             Exception ex) =>
-            new(ErrorBuilder.New()
-                .SetMessage(ThrowHelper_HttpMultipartMiddleware_Invalid_Form)
-                .SetException(ex)
-                .SetCode(ErrorCodes.Server.MultiPartInvalidForm)
-                .Build());
+             new GraphQLRequestException(
+                 ErrorBuilder.New()
+                    .SetMessage(ThrowHelper_HttpMultipartMiddleware_Invalid_Form)
+                    .SetException(ex)
+                    .SetCode(ErrorCodes.Server.MultiPartInvalidForm)
+                    .Build());
 
         public static GraphQLException HttpMultipartMiddleware_No_Operations_Specified() =>
             new GraphQLRequestException(
