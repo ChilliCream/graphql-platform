@@ -145,5 +145,34 @@ namespace HotChocolate.Types
             // assert
             Assert.Equal(expectedResult, result);
         }
+
+        [Fact]
+        protected void Latitude_ExpectParseLiteralToMatchNegativePrecision2()
+        {
+            // arrange
+            ScalarType scalar = CreateType<LatitudeType>();
+            var valueSyntax = new StringValueNode("6° 10' 50.160\" S");
+            var expectedResult = -6.1806;
+
+            // act
+            object result = (double)scalar.ParseLiteral(valueSyntax)!;
+
+            // assert
+            Assert.Equal(expectedResult, result);
+        }
+
+        [Fact]
+        protected void Latitude_ExpectParseLiteralToThrowSerializationException()
+        {
+            // arrange
+            ScalarType scalar = CreateType<LatitudeType>();
+            var valueSyntax = new StringValueNode("foo");
+
+            // act
+            Exception? result = Record.Exception(() => scalar.ParseLiteral(valueSyntax));
+
+            // assert
+            Assert.IsType<SerializationException>(result);
+        }
     }
 }
