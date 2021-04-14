@@ -174,5 +174,87 @@ namespace HotChocolate.Types
             // assert
             Assert.IsType<SerializationException>(result);
         }
+
+        [Fact]
+        protected void UtcOffset_ExpectParseValueToMatchDouble()
+        {
+            // arrange
+            ScalarType scalar = CreateType<LatitudeType>();
+            var valueSyntax = 90.1;
+
+            // act
+            IValueNode result = scalar.ParseValue(valueSyntax);
+
+            // assert
+            Assert.Equal(typeof(StringValueNode), result.GetType());
+        }
+
+        [Fact]
+        protected void Latitude_ExpectParseValueToThrowSerializationException()
+        {
+            // arrange
+            ScalarType scalar = CreateType<LatitudeType>();
+            var runtimeValue = new StringValueNode("foo");
+
+            // act
+            Exception? result = Record.Exception(() => scalar.ParseValue(runtimeValue));
+
+            // assert
+            Assert.IsType<SerializationException>(result);
+        }
+
+        [Fact]
+        protected void UtcOffset_ExpectDeserializeNullToMatch()
+        {
+            // arrange
+            ScalarType scalar = new LatitudeType();
+
+            // act
+            var success = scalar.TryDeserialize(null, out var deserialized);
+
+            // assert
+            Assert.True(success);
+            Assert.Null(deserialized);
+        }
+
+        [Fact]
+        public void Latitude_ExpectDeserializeInvalidStringToDouble()
+        {
+            // arrange
+            ScalarType scalar = new LatitudeType();
+
+            // act
+            var success = scalar.TryDeserialize("abc", out _);
+
+            // assert
+            Assert.False(success);
+        }
+
+        [Fact]
+        public void Latitude_ExpectDeserializeNullToNull()
+        {
+            // arrange
+            ScalarType scalar = new LatitudeType();
+
+            // act
+            var success = scalar.TryDeserialize(null, out var deserialized);
+
+            // assert
+            Assert.True(success);
+            Assert.Null(deserialized);
+        }
+
+        [Fact]
+        protected void UtcOffset_ExpectParseResultToMatchNull()
+        {
+            // arrange
+            ScalarType scalar = new LatitudeType();
+
+            // act
+            IValueNode result = scalar.ParseResult(null);
+
+            // assert
+            Assert.Equal(typeof(NullValueNode), result.GetType());
+        }
     }
 }
