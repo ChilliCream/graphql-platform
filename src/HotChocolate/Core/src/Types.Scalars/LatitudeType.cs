@@ -67,11 +67,7 @@ namespace HotChocolate.Types
         {
             if (runtimeValue is < Latitude._minValue or > Latitude._maxValue)
             {
-                return new StringValueNode(Math
-                    .Round(runtimeValue,
-                        Latitude._maxPrecision,
-                        MidpointRounding.AwayFromZero)
-                    .ToString(CultureInfo.InvariantCulture));
+                return new StringValueNode(runtimeValue.ToString(CultureInfo.InvariantCulture));
             }
             throw ThrowHelper.LatitudeType_ParseValue_IsInvalid(this);
         }
@@ -102,8 +98,9 @@ namespace HotChocolate.Types
                 if (coords.Count > 0)
                 {
                     var minute = double.TryParse(coords[0].Groups[2].Value, out var min) ? min / 60 : 0;
-                    var second =   double.TryParse(coords[0].Groups[4].Value, out var sec) ? (sec / 60) : 0;
-                    var result = double.TryParse(coords[0].Groups[1].Value, out var deg) ? deg + minute + second : 0;
+                    var second =   double.TryParse(coords[0].Groups[4].Value, out var sec) ? sec / 3600 : 0;
+                    var degree = double.Parse(coords[0].Groups[1].Value);
+                    var result = Math.Round(degree + minute + second, _maxPrecision, MidpointRounding.AwayFromZero);
 
                     // Southern and western coordinates must be negative decimals
                     value = coords[0].Groups[7].Value is "W" or "S" ? -result : result;
