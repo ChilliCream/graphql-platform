@@ -104,7 +104,7 @@ namespace HotChocolate.Types
                 {
                     var degree = double.Parse(coords[0].Groups[1].Value);
                     var minute = double.TryParse(coords[0].Groups[2].Value, out var min) ? min / 60 : 0;
-                    var second =   double.TryParse(coords[0].Groups[4].Value, out var sec) ? sec / 3600 : 0;
+                    var second = double.TryParse(coords[0].Groups[4].Value, out var sec) ? sec / 3600 : 0;
                     var result = Math.Round(degree + minute + second, _maxPrecision, MidpointRounding.AwayFromZero);
 
                     // Southern and western coordinates must be negative decimals
