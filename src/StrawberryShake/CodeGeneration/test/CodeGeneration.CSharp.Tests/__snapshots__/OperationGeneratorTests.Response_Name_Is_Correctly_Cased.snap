@@ -75,7 +75,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Bar_baz_foo is null))
+                if (Bar_baz_foo != null)
                 {
                     hash ^= 397 * Bar_baz_foo.GetHashCode();
                 }

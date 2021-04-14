@@ -185,7 +185,7 @@ namespace Foo.Bar
                     hash ^= 397 * Amenities1_elm.GetHashCode();
                 }
 
-                if (!(Amenities2 is null))
+                if (Amenities2 != null)
                 {
                     foreach (var Amenities2_elm in Amenities2)
                     {
@@ -195,17 +195,17 @@ namespace Foo.Bar
 
                 foreach (var Amenities3_elm in Amenities3)
                 {
-                    if (!(Amenities3_elm is null))
+                    if (Amenities3_elm != null)
                     {
                         hash ^= 397 * Amenities3_elm.GetHashCode();
                     }
                 }
 
-                if (!(Amenities4 is null))
+                if (Amenities4 != null)
                 {
                     foreach (var Amenities4_elm in Amenities4)
                     {
-                        if (!(Amenities4_elm is null))
+                        if (Amenities4_elm != null)
                         {
                             hash ^= 397 * Amenities4_elm.GetHashCode();
                         }
@@ -220,7 +220,7 @@ namespace Foo.Bar
                     }
                 }
 
-                if (!(Amenities6 is null))
+                if (Amenities6 != null)
                 {
                     foreach (var Amenities6_elm in Amenities6)
                     {
@@ -233,7 +233,7 @@ namespace Foo.Bar
 
                 foreach (var Amenities7_elm in Amenities7)
                 {
-                    if (!(Amenities7_elm is null))
+                    if (Amenities7_elm != null)
                     {
                         foreach (var Amenities7_elm_elm in Amenities7_elm)
                         {

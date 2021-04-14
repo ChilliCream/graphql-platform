@@ -20,7 +20,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 : IOPath.Combine(context.OutputDirectory, document.Path);
 
             if (_directories.Add(directory) &&
-                context.OutputFiles &&
+                context.Settings.EmitGeneratedCode &&
                 !Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
@@ -32,7 +32,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 documentName,
                 SourceText.From(document.SourceText, Encoding.UTF8));
 
-            if (context.OutputFiles && context.Settings.EmitGeneratedCode)
+            if (context.Settings.EmitGeneratedCode)
             {
                 context.FileNames.Add(fileName);
                 WriteFile(fileName, document.SourceText);

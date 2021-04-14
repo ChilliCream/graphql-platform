@@ -1,4 +1,4 @@
-namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
+namespace StrawberryShake.Tools.Configuration
 {
     /// <summary>
     /// This settings class defines which parts shall be generated as records.

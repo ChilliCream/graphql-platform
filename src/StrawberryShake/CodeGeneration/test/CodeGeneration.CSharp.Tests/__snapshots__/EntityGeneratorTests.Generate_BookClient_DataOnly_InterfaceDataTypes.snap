@@ -75,11 +75,11 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Prints is null))
+                if (Prints != null)
                 {
                     foreach (var Prints_elm in Prints)
                     {
-                        if (!(Prints_elm is null))
+                        if (Prints_elm != null)
                         {
                             hash ^= 397 * Prints_elm.GetHashCode();
                         }
@@ -229,7 +229,7 @@ namespace Foo.Bar
             {
                 int hash = 5;
                 hash ^= 397 * Isbn.GetHashCode();
-                if (!(CoverImageUrl is null))
+                if (CoverImageUrl != null)
                 {
                     hash ^= 397 * CoverImageUrl.GetHashCode();
                 }

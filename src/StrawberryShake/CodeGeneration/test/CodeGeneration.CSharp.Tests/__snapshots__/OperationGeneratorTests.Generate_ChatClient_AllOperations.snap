@@ -81,7 +81,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(People is null))
+                if (People != null)
                 {
                     hash ^= 397 * People.GetHashCode();
                 }
@@ -156,11 +156,11 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Nodes is null))
+                if (Nodes != null)
                 {
                     foreach (var Nodes_elm in Nodes)
                     {
-                        if (!(Nodes_elm is null))
+                        if (Nodes_elm != null)
                         {
                             hash ^= 397 * Nodes_elm.GetHashCode();
                         }
@@ -276,7 +276,7 @@ namespace Foo.Bar
                 hash ^= 397 * Name.GetHashCode();
                 hash ^= 397 * Email.GetHashCode();
                 hash ^= 397 * IsOnline.GetHashCode();
-                if (!(ImageUri is null))
+                if (ImageUri != null)
                 {
                     hash ^= 397 * ImageUri.GetHashCode();
                 }
@@ -538,7 +538,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Messages is null))
+                if (Messages != null)
                 {
                     hash ^= 397 * Messages.GetHashCode();
                 }
@@ -613,11 +613,11 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Nodes is null))
+                if (Nodes != null)
                 {
                     foreach (var Nodes_elm in Nodes)
                     {
-                        if (!(Nodes_elm is null))
+                        if (Nodes_elm != null)
                         {
                             hash ^= 397 * Nodes_elm.GetHashCode();
                         }
@@ -2650,74 +2650,110 @@ namespace Foo.Bar
                 return null;
             }
 
-            if (!(runtimeValue is SendMessageInput d))
+            var input = runtimeValue as global::Foo.Bar.SendMessageInput;
+            var inputInfo = runtimeValue as global::Foo.Bar.State.ISendMessageInputInfo;
+            if (input is null || inputInfo is null)
             {
                 throw new global::System.ArgumentException(nameof(runtimeValue));
             }
 
-            return new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>[]{new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("clientMutationId", FormatClientMutationId(d.ClientMutationId)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("recipientEmail", FormatRecipientEmail(d.RecipientEmail)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("text", FormatText(d.Text))};
+            var fields = new global::System.Collections.Generic.List<global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>>();
+            if (inputInfo.IsClientMutationIdSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("clientMutationId", FormatClientMutationId(input.ClientMutationId)));
+            }
+
+            if (inputInfo.IsRecipientEmailSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("recipientEmail", FormatRecipientEmail(input.RecipientEmail)));
+            }
+
+            if (inputInfo.IsTextSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("text", FormatText(input.Text)));
+            }
+
+            return fields;
         }
 
-        private global::System.Object? FormatClientMutationId(global::System.String? value)
+        private global::System.Object? FormatClientMutationId(global::System.String? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _stringFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _stringFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatRecipientEmail(global::System.String value)
+        private global::System.Object? FormatRecipientEmail(global::System.String input)
         {
-            if (value is null)
+            if (input is null)
             {
-                throw new global::System.ArgumentNullException(nameof(value));
+                throw new global::System.ArgumentNullException(nameof(input));
             }
 
-            return _stringFormatter.Format(value);
+            return _stringFormatter.Format(input);
         }
 
-        private global::System.Object? FormatText(global::System.String value)
+        private global::System.Object? FormatText(global::System.String input)
         {
-            if (value is null)
+            if (input is null)
             {
-                throw new global::System.ArgumentNullException(nameof(value));
+                throw new global::System.ArgumentNullException(nameof(input));
             }
 
-            return _stringFormatter.Format(value);
+            return _stringFormatter.Format(input);
         }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class SendMessageInput
+    public partial class SendMessageInput : global::Foo.Bar.State.ISendMessageInputInfo
     {
+        private global::System.String? _value_clientMutationId;
+        private global::System.Boolean _set_clientMutationId;
+        private global::System.String _value_recipientEmail = default !;
+        private global::System.Boolean _set_recipientEmail;
+        private global::System.String _value_text = default !;
+        private global::System.Boolean _set_text;
         public global::System.String? ClientMutationId
         {
-            get;
-            set;
+            get => _value_clientMutationId;
+            set
+            {
+                _set_clientMutationId = true;
+                _value_clientMutationId = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.ISendMessageInputInfo.IsClientMutationIdSet => _set_clientMutationId;
         ///<summary>The email of the person to which a message shall be send.</summary>
         public global::System.String RecipientEmail
         {
-            get;
-            set;
+            get => _value_recipientEmail;
+            set
+            {
+                _set_recipientEmail = true;
+                _value_recipientEmail = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.ISendMessageInputInfo.IsRecipientEmailSet => _set_recipientEmail;
         ///<summary>The message text.</summary>
         public global::System.String Text
         {
-            get;
-            set;
+            get => _value_text;
+            set
+            {
+                _set_text = true;
+                _value_text = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.ISendMessageInputInfo.IsTextSet => _set_text;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
@@ -4940,6 +4976,26 @@ namespace Foo.Bar.State
             }
 
             return new ReadMessages_Message_Sender_Person(entity.Name, entity.Email, entity.IsOnline);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal interface ISendMessageInputInfo
+    {
+        global::System.Boolean IsClientMutationIdSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsRecipientEmailSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsTextSet
+        {
+            get;
         }
     }
 

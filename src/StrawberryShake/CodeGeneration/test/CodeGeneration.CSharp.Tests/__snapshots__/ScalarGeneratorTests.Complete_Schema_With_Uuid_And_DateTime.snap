@@ -75,11 +75,11 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Expense is null))
+                if (Expense != null)
                 {
                     foreach (var Expense_elm in Expense)
                     {
-                        if (!(Expense_elm is null))
+                        if (Expense_elm != null)
                         {
                             hash ^= 397 * Expense_elm.GetHashCode();
                         }
@@ -189,18 +189,18 @@ namespace Foo.Bar
                 hash ^= 397 * Id.GetHashCode();
                 hash ^= 397 * Amount.GetHashCode();
                 hash ^= 397 * Date.GetHashCode();
-                if (!(Description is null))
+                if (Description != null)
                 {
                     hash ^= 397 * Description.GetHashCode();
                 }
 
                 hash ^= 397 * Category.GetHashCode();
                 hash ^= 397 * PaymentMethod.GetHashCode();
-                if (!(Tags is null))
+                if (Tags != null)
                 {
                     foreach (var Tags_elm in Tags)
                     {
-                        if (!(Tags_elm is null))
+                        if (Tags_elm != null)
                         {
                             hash ^= 397 * Tags_elm.GetHashCode();
                         }
@@ -271,7 +271,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Name is null))
+                if (Name != null)
                 {
                     hash ^= 397 * Name.GetHashCode();
                 }

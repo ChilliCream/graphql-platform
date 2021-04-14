@@ -75,7 +75,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Feats is null))
+                if (Feats != null)
                 {
                     hash ^= 397 * Feats.GetHashCode();
                 }
@@ -151,11 +151,11 @@ namespace Foo.Bar
             {
                 int hash = 5;
                 hash ^= 397 * TotalCount.GetHashCode();
-                if (!(Items is null))
+                if (Items != null)
                 {
                     foreach (var Items_elm in Items)
                     {
-                        if (!(Items_elm is null))
+                        if (Items_elm != null)
                         {
                             hash ^= 397 * Items_elm.GetHashCode();
                         }
@@ -477,7 +477,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Feats is null))
+                if (Feats != null)
                 {
                     hash ^= 397 * Feats.GetHashCode();
                 }
@@ -546,11 +546,11 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-                if (!(Items is null))
+                if (Items != null)
                 {
                     foreach (var Items_elm in Items)
                     {
-                        if (!(Items_elm is null))
+                        if (Items_elm != null)
                         {
                             hash ^= 397 * Items_elm.GetHashCode();
                         }
@@ -660,12 +660,12 @@ namespace Foo.Bar
                 hash ^= 397 * Id.GetHashCode();
                 hash ^= 397 * Name.GetHashCode();
                 hash ^= 397 * Level.GetHashCode();
-                if (!(Special is null))
+                if (Special != null)
                 {
                     hash ^= 397 * Special.GetHashCode();
                 }
 
-                if (!(Trigger is null))
+                if (Trigger != null)
                 {
                     hash ^= 397 * Trigger.GetHashCode();
                 }
@@ -947,285 +947,442 @@ namespace Foo.Bar
                 return null;
             }
 
-            if (!(runtimeValue is FeatSortInput d))
+            var input = runtimeValue as global::Foo.Bar.FeatSortInput;
+            var inputInfo = runtimeValue as global::Foo.Bar.State.IFeatSortInputInfo;
+            if (input is null || inputInfo is null)
             {
                 throw new global::System.ArgumentException(nameof(runtimeValue));
             }
 
-            return new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>[]{new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("name", FormatName(d.Name)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("canBeLearnedMoreThanOnce", FormatCanBeLearnedMoreThanOnce(d.CanBeLearnedMoreThanOnce)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("special", FormatSpecial(d.Special)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("trigger", FormatTrigger(d.Trigger)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("level", FormatLevel(d.Level)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("actionTypeId", FormatActionTypeId(d.ActionTypeId)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("actionType", FormatActionType(d.ActionType)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("featTypeId", FormatFeatTypeId(d.FeatTypeId)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("featType", FormatFeatType(d.FeatType)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("frequencyId", FormatFrequencyId(d.FrequencyId)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("frequency", FormatFrequency(d.Frequency)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("rollableEffect", FormatRollableEffect(d.RollableEffect)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("rollableEffectId", FormatRollableEffectId(d.RollableEffectId)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("id", FormatId(d.Id))};
+            var fields = new global::System.Collections.Generic.List<global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>>();
+            if (inputInfo.IsNameSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("name", FormatName(input.Name)));
+            }
+
+            if (inputInfo.IsCanBeLearnedMoreThanOnceSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("canBeLearnedMoreThanOnce", FormatCanBeLearnedMoreThanOnce(input.CanBeLearnedMoreThanOnce)));
+            }
+
+            if (inputInfo.IsSpecialSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("special", FormatSpecial(input.Special)));
+            }
+
+            if (inputInfo.IsTriggerSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("trigger", FormatTrigger(input.Trigger)));
+            }
+
+            if (inputInfo.IsLevelSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("level", FormatLevel(input.Level)));
+            }
+
+            if (inputInfo.IsActionTypeIdSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("actionTypeId", FormatActionTypeId(input.ActionTypeId)));
+            }
+
+            if (inputInfo.IsActionTypeSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("actionType", FormatActionType(input.ActionType)));
+            }
+
+            if (inputInfo.IsFeatTypeIdSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("featTypeId", FormatFeatTypeId(input.FeatTypeId)));
+            }
+
+            if (inputInfo.IsFeatTypeSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("featType", FormatFeatType(input.FeatType)));
+            }
+
+            if (inputInfo.IsFrequencyIdSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("frequencyId", FormatFrequencyId(input.FrequencyId)));
+            }
+
+            if (inputInfo.IsFrequencySet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("frequency", FormatFrequency(input.Frequency)));
+            }
+
+            if (inputInfo.IsRollableEffectSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("rollableEffect", FormatRollableEffect(input.RollableEffect)));
+            }
+
+            if (inputInfo.IsRollableEffectIdSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("rollableEffectId", FormatRollableEffectId(input.RollableEffectId)));
+            }
+
+            if (inputInfo.IsIdSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("id", FormatId(input.Id)));
+            }
+
+            return fields;
         }
 
-        private global::System.Object? FormatName(global::Foo.Bar.SortEnumType? value)
+        private global::System.Object? FormatName(global::Foo.Bar.SortEnumType? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatCanBeLearnedMoreThanOnce(global::Foo.Bar.SortEnumType? value)
+        private global::System.Object? FormatCanBeLearnedMoreThanOnce(global::Foo.Bar.SortEnumType? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatSpecial(global::Foo.Bar.SortEnumType? value)
+        private global::System.Object? FormatSpecial(global::Foo.Bar.SortEnumType? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatTrigger(global::Foo.Bar.SortEnumType? value)
+        private global::System.Object? FormatTrigger(global::Foo.Bar.SortEnumType? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatLevel(global::Foo.Bar.SortEnumType? value)
+        private global::System.Object? FormatLevel(global::Foo.Bar.SortEnumType? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatActionTypeId(global::Foo.Bar.SortEnumType? value)
+        private global::System.Object? FormatActionTypeId(global::Foo.Bar.SortEnumType? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatActionType(global::Foo.Bar.ActionTypeSortInput? value)
+        private global::System.Object? FormatActionType(global::Foo.Bar.ActionTypeSortInput? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _actionTypeSortInputFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _actionTypeSortInputFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatFeatTypeId(global::Foo.Bar.SortEnumType? value)
+        private global::System.Object? FormatFeatTypeId(global::Foo.Bar.SortEnumType? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatFeatType(global::Foo.Bar.FeatTypeSortInput? value)
+        private global::System.Object? FormatFeatType(global::Foo.Bar.FeatTypeSortInput? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _featTypeSortInputFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _featTypeSortInputFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatFrequencyId(global::Foo.Bar.SortEnumType? value)
+        private global::System.Object? FormatFrequencyId(global::Foo.Bar.SortEnumType? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatFrequency(global::Foo.Bar.FrequencySortInput? value)
+        private global::System.Object? FormatFrequency(global::Foo.Bar.FrequencySortInput? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _frequencySortInputFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _frequencySortInputFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatRollableEffect(global::Foo.Bar.RollableEffectSortInput? value)
+        private global::System.Object? FormatRollableEffect(global::Foo.Bar.RollableEffectSortInput? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _rollableEffectSortInputFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _rollableEffectSortInputFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatRollableEffectId(global::Foo.Bar.SortEnumType? value)
+        private global::System.Object? FormatRollableEffectId(global::Foo.Bar.SortEnumType? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatId(global::Foo.Bar.SortEnumType? value)
+        private global::System.Object? FormatId(global::Foo.Bar.SortEnumType? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(input);
             }
         }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class FeatSortInput
+    public partial class FeatSortInput : global::Foo.Bar.State.IFeatSortInputInfo
     {
+        private global::Foo.Bar.SortEnumType? _value_name;
+        private global::System.Boolean _set_name;
+        private global::Foo.Bar.SortEnumType? _value_canBeLearnedMoreThanOnce;
+        private global::System.Boolean _set_canBeLearnedMoreThanOnce;
+        private global::Foo.Bar.SortEnumType? _value_special;
+        private global::System.Boolean _set_special;
+        private global::Foo.Bar.SortEnumType? _value_trigger;
+        private global::System.Boolean _set_trigger;
+        private global::Foo.Bar.SortEnumType? _value_level;
+        private global::System.Boolean _set_level;
+        private global::Foo.Bar.SortEnumType? _value_actionTypeId;
+        private global::System.Boolean _set_actionTypeId;
+        private global::Foo.Bar.ActionTypeSortInput? _value_actionType;
+        private global::System.Boolean _set_actionType;
+        private global::Foo.Bar.SortEnumType? _value_featTypeId;
+        private global::System.Boolean _set_featTypeId;
+        private global::Foo.Bar.FeatTypeSortInput? _value_featType;
+        private global::System.Boolean _set_featType;
+        private global::Foo.Bar.SortEnumType? _value_frequencyId;
+        private global::System.Boolean _set_frequencyId;
+        private global::Foo.Bar.FrequencySortInput? _value_frequency;
+        private global::System.Boolean _set_frequency;
+        private global::Foo.Bar.RollableEffectSortInput? _value_rollableEffect;
+        private global::System.Boolean _set_rollableEffect;
+        private global::Foo.Bar.SortEnumType? _value_rollableEffectId;
+        private global::System.Boolean _set_rollableEffectId;
+        private global::Foo.Bar.SortEnumType? _value_id;
+        private global::System.Boolean _set_id;
         public global::Foo.Bar.SortEnumType? Name
         {
-            get;
-            set;
+            get => _value_name;
+            set
+            {
+                _set_name = true;
+                _value_name = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsNameSet => _set_name;
         public global::Foo.Bar.SortEnumType? CanBeLearnedMoreThanOnce
         {
-            get;
-            set;
+            get => _value_canBeLearnedMoreThanOnce;
+            set
+            {
+                _set_canBeLearnedMoreThanOnce = true;
+                _value_canBeLearnedMoreThanOnce = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsCanBeLearnedMoreThanOnceSet => _set_canBeLearnedMoreThanOnce;
         public global::Foo.Bar.SortEnumType? Special
         {
-            get;
-            set;
+            get => _value_special;
+            set
+            {
+                _set_special = true;
+                _value_special = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsSpecialSet => _set_special;
         public global::Foo.Bar.SortEnumType? Trigger
         {
-            get;
-            set;
+            get => _value_trigger;
+            set
+            {
+                _set_trigger = true;
+                _value_trigger = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsTriggerSet => _set_trigger;
         public global::Foo.Bar.SortEnumType? Level
         {
-            get;
-            set;
+            get => _value_level;
+            set
+            {
+                _set_level = true;
+                _value_level = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsLevelSet => _set_level;
         public global::Foo.Bar.SortEnumType? ActionTypeId
         {
-            get;
-            set;
+            get => _value_actionTypeId;
+            set
+            {
+                _set_actionTypeId = true;
+                _value_actionTypeId = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsActionTypeIdSet => _set_actionTypeId;
         public global::Foo.Bar.ActionTypeSortInput? ActionType
         {
-            get;
-            set;
+            get => _value_actionType;
+            set
+            {
+                _set_actionType = true;
+                _value_actionType = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsActionTypeSet => _set_actionType;
         public global::Foo.Bar.SortEnumType? FeatTypeId
         {
-            get;
-            set;
+            get => _value_featTypeId;
+            set
+            {
+                _set_featTypeId = true;
+                _value_featTypeId = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsFeatTypeIdSet => _set_featTypeId;
         public global::Foo.Bar.FeatTypeSortInput? FeatType
         {
-            get;
-            set;
+            get => _value_featType;
+            set
+            {
+                _set_featType = true;
+                _value_featType = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsFeatTypeSet => _set_featType;
         public global::Foo.Bar.SortEnumType? FrequencyId
         {
-            get;
-            set;
+            get => _value_frequencyId;
+            set
+            {
+                _set_frequencyId = true;
+                _value_frequencyId = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsFrequencyIdSet => _set_frequencyId;
         public global::Foo.Bar.FrequencySortInput? Frequency
         {
-            get;
-            set;
+            get => _value_frequency;
+            set
+            {
+                _set_frequency = true;
+                _value_frequency = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsFrequencySet => _set_frequency;
         public global::Foo.Bar.RollableEffectSortInput? RollableEffect
         {
-            get;
-            set;
+            get => _value_rollableEffect;
+            set
+            {
+                _set_rollableEffect = true;
+                _value_rollableEffect = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsRollableEffectSet => _set_rollableEffect;
         public global::Foo.Bar.SortEnumType? RollableEffectId
         {
-            get;
-            set;
+            get => _value_rollableEffectId;
+            set
+            {
+                _set_rollableEffectId = true;
+                _value_rollableEffectId = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsRollableEffectIdSet => _set_rollableEffectId;
         public global::Foo.Bar.SortEnumType? Id
         {
-            get;
-            set;
+            get => _value_id;
+            set
+            {
+                _set_id = true;
+                _value_id = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IFeatSortInputInfo.IsIdSet => _set_id;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
@@ -1246,57 +1403,82 @@ namespace Foo.Bar
                 return null;
             }
 
-            if (!(runtimeValue is ActionTypeSortInput d))
+            var input = runtimeValue as global::Foo.Bar.ActionTypeSortInput;
+            var inputInfo = runtimeValue as global::Foo.Bar.State.IActionTypeSortInputInfo;
+            if (input is null || inputInfo is null)
             {
                 throw new global::System.ArgumentException(nameof(runtimeValue));
             }
 
-            return new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>[]{new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("name", FormatName(d.Name)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("id", FormatId(d.Id))};
+            var fields = new global::System.Collections.Generic.List<global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>>();
+            if (inputInfo.IsNameSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("name", FormatName(input.Name)));
+            }
+
+            if (inputInfo.IsIdSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("id", FormatId(input.Id)));
+            }
+
+            return fields;
         }
 
-        private global::System.Object? FormatName(global::Foo.Bar.SortEnumType? value)
+        private global::System.Object? FormatName(global::Foo.Bar.SortEnumType? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatId(global::Foo.Bar.SortEnumType? value)
+        private global::System.Object? FormatId(global::Foo.Bar.SortEnumType? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(input);
             }
         }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class ActionTypeSortInput
+    public partial class ActionTypeSortInput : global::Foo.Bar.State.IActionTypeSortInputInfo
     {
+        private global::Foo.Bar.SortEnumType? _value_name;
+        private global::System.Boolean _set_name;
+        private global::Foo.Bar.SortEnumType? _value_id;
+        private global::System.Boolean _set_id;
         public global::Foo.Bar.SortEnumType? Name
         {
-            get;
-            set;
+            get => _value_name;
+            set
+            {
+                _set_name = true;
+                _value_name = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IActionTypeSortInputInfo.IsNameSet => _set_name;
         public global::Foo.Bar.SortEnumType? Id
         {
-            get;
-            set;
+            get => _value_id;
+            set
+            {
+                _set_id = true;
+                _value_id = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IActionTypeSortInputInfo.IsIdSet => _set_id;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
@@ -1317,57 +1499,82 @@ namespace Foo.Bar
                 return null;
             }
 
-            if (!(runtimeValue is FeatTypeSortInput d))
+            var input = runtimeValue as global::Foo.Bar.FeatTypeSortInput;
+            var inputInfo = runtimeValue as global::Foo.Bar.State.IFeatTypeSortInputInfo;
+            if (input is null || inputInfo is null)
             {
                 throw new global::System.ArgumentException(nameof(runtimeValue));
             }
 
-            return new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>[]{new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("name", FormatName(d.Name)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("id", FormatId(d.Id))};
+            var fields = new global::System.Collections.Generic.List<global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>>();
+            if (inputInfo.IsNameSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("name", FormatName(input.Name)));
+            }
+
+            if (inputInfo.IsIdSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("id", FormatId(input.Id)));
+            }
+
+            return fields;
         }
 
-        private global::System.Object? FormatName(global::Foo.Bar.SortEnumType? value)
+        private global::System.Object? FormatName(global::Foo.Bar.SortEnumType? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatId(global::Foo.Bar.SortEnumType? value)
+        private global::System.Object? FormatId(global::Foo.Bar.SortEnumType? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(input);
             }
         }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class FeatTypeSortInput
+    public partial class FeatTypeSortInput : global::Foo.Bar.State.IFeatTypeSortInputInfo
     {
+        private global::Foo.Bar.SortEnumType? _value_name;
+        private global::System.Boolean _set_name;
+        private global::Foo.Bar.SortEnumType? _value_id;
+        private global::System.Boolean _set_id;
         public global::Foo.Bar.SortEnumType? Name
         {
-            get;
-            set;
+            get => _value_name;
+            set
+            {
+                _set_name = true;
+                _value_name = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IFeatTypeSortInputInfo.IsNameSet => _set_name;
         public global::Foo.Bar.SortEnumType? Id
         {
-            get;
-            set;
+            get => _value_id;
+            set
+            {
+                _set_id = true;
+                _value_id = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IFeatTypeSortInputInfo.IsIdSet => _set_id;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
@@ -1388,95 +1595,142 @@ namespace Foo.Bar
                 return null;
             }
 
-            if (!(runtimeValue is FrequencySortInput d))
+            var input = runtimeValue as global::Foo.Bar.FrequencySortInput;
+            var inputInfo = runtimeValue as global::Foo.Bar.State.IFrequencySortInputInfo;
+            if (input is null || inputInfo is null)
             {
                 throw new global::System.ArgumentException(nameof(runtimeValue));
             }
 
-            return new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>[]{new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("name", FormatName(d.Name)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("amount", FormatAmount(d.Amount)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("timeSpan", FormatTimeSpan(d.TimeSpan)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("id", FormatId(d.Id))};
+            var fields = new global::System.Collections.Generic.List<global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>>();
+            if (inputInfo.IsNameSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("name", FormatName(input.Name)));
+            }
+
+            if (inputInfo.IsAmountSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("amount", FormatAmount(input.Amount)));
+            }
+
+            if (inputInfo.IsTimeSpanSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("timeSpan", FormatTimeSpan(input.TimeSpan)));
+            }
+
+            if (inputInfo.IsIdSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("id", FormatId(input.Id)));
+            }
+
+            return fields;
         }
 
-        private global::System.Object? FormatName(global::Foo.Bar.SortEnumType? value)
+        private global::System.Object? FormatName(global::Foo.Bar.SortEnumType? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatAmount(global::Foo.Bar.SortEnumType? value)
+        private global::System.Object? FormatAmount(global::Foo.Bar.SortEnumType? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatTimeSpan(global::Foo.Bar.SortEnumType? value)
+        private global::System.Object? FormatTimeSpan(global::Foo.Bar.SortEnumType? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatId(global::Foo.Bar.SortEnumType? value)
+        private global::System.Object? FormatId(global::Foo.Bar.SortEnumType? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(input);
             }
         }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class FrequencySortInput
+    public partial class FrequencySortInput : global::Foo.Bar.State.IFrequencySortInputInfo
     {
+        private global::Foo.Bar.SortEnumType? _value_name;
+        private global::System.Boolean _set_name;
+        private global::Foo.Bar.SortEnumType? _value_amount;
+        private global::System.Boolean _set_amount;
+        private global::Foo.Bar.SortEnumType? _value_timeSpan;
+        private global::System.Boolean _set_timeSpan;
+        private global::Foo.Bar.SortEnumType? _value_id;
+        private global::System.Boolean _set_id;
         public global::Foo.Bar.SortEnumType? Name
         {
-            get;
-            set;
+            get => _value_name;
+            set
+            {
+                _set_name = true;
+                _value_name = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IFrequencySortInputInfo.IsNameSet => _set_name;
         public global::Foo.Bar.SortEnumType? Amount
         {
-            get;
-            set;
+            get => _value_amount;
+            set
+            {
+                _set_amount = true;
+                _value_amount = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IFrequencySortInputInfo.IsAmountSet => _set_amount;
         public global::Foo.Bar.SortEnumType? TimeSpan
         {
-            get;
-            set;
+            get => _value_timeSpan;
+            set
+            {
+                _set_timeSpan = true;
+                _value_timeSpan = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IFrequencySortInputInfo.IsTimeSpanSet => _set_timeSpan;
         public global::Foo.Bar.SortEnumType? Id
         {
-            get;
-            set;
+            get => _value_id;
+            set
+            {
+                _set_id = true;
+                _value_id = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IFrequencySortInputInfo.IsIdSet => _set_id;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
@@ -1497,114 +1751,172 @@ namespace Foo.Bar
                 return null;
             }
 
-            if (!(runtimeValue is RollableEffectSortInput d))
+            var input = runtimeValue as global::Foo.Bar.RollableEffectSortInput;
+            var inputInfo = runtimeValue as global::Foo.Bar.State.IRollableEffectSortInputInfo;
+            if (input is null || inputInfo is null)
             {
                 throw new global::System.ArgumentException(nameof(runtimeValue));
             }
 
-            return new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>[]{new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("criticalSuccess", FormatCriticalSuccess(d.CriticalSuccess)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("success", FormatSuccess(d.Success)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("failure", FormatFailure(d.Failure)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("criticalFailure", FormatCriticalFailure(d.CriticalFailure)), new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("id", FormatId(d.Id))};
+            var fields = new global::System.Collections.Generic.List<global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>>();
+            if (inputInfo.IsCriticalSuccessSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("criticalSuccess", FormatCriticalSuccess(input.CriticalSuccess)));
+            }
+
+            if (inputInfo.IsSuccessSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("success", FormatSuccess(input.Success)));
+            }
+
+            if (inputInfo.IsFailureSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("failure", FormatFailure(input.Failure)));
+            }
+
+            if (inputInfo.IsCriticalFailureSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("criticalFailure", FormatCriticalFailure(input.CriticalFailure)));
+            }
+
+            if (inputInfo.IsIdSet)
+            {
+                fields.Add(new global::System.Collections.Generic.KeyValuePair<global::System.String, global::System.Object?>("id", FormatId(input.Id)));
+            }
+
+            return fields;
         }
 
-        private global::System.Object? FormatCriticalSuccess(global::Foo.Bar.SortEnumType? value)
+        private global::System.Object? FormatCriticalSuccess(global::Foo.Bar.SortEnumType? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatSuccess(global::Foo.Bar.SortEnumType? value)
+        private global::System.Object? FormatSuccess(global::Foo.Bar.SortEnumType? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatFailure(global::Foo.Bar.SortEnumType? value)
+        private global::System.Object? FormatFailure(global::Foo.Bar.SortEnumType? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatCriticalFailure(global::Foo.Bar.SortEnumType? value)
+        private global::System.Object? FormatCriticalFailure(global::Foo.Bar.SortEnumType? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(input);
             }
         }
 
-        private global::System.Object? FormatId(global::Foo.Bar.SortEnumType? value)
+        private global::System.Object? FormatId(global::Foo.Bar.SortEnumType? input)
         {
-            if (!(value is null))
+            if (input is null)
             {
-                return _sortEnumTypeFormatter.Format(value);
+                return input;
             }
             else
             {
-                return value;
+                return _sortEnumTypeFormatter.Format(input);
             }
         }
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class RollableEffectSortInput
+    public partial class RollableEffectSortInput : global::Foo.Bar.State.IRollableEffectSortInputInfo
     {
+        private global::Foo.Bar.SortEnumType? _value_criticalSuccess;
+        private global::System.Boolean _set_criticalSuccess;
+        private global::Foo.Bar.SortEnumType? _value_success;
+        private global::System.Boolean _set_success;
+        private global::Foo.Bar.SortEnumType? _value_failure;
+        private global::System.Boolean _set_failure;
+        private global::Foo.Bar.SortEnumType? _value_criticalFailure;
+        private global::System.Boolean _set_criticalFailure;
+        private global::Foo.Bar.SortEnumType? _value_id;
+        private global::System.Boolean _set_id;
         public global::Foo.Bar.SortEnumType? CriticalSuccess
         {
-            get;
-            set;
+            get => _value_criticalSuccess;
+            set
+            {
+                _set_criticalSuccess = true;
+                _value_criticalSuccess = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IRollableEffectSortInputInfo.IsCriticalSuccessSet => _set_criticalSuccess;
         public global::Foo.Bar.SortEnumType? Success
         {
-            get;
-            set;
+            get => _value_success;
+            set
+            {
+                _set_success = true;
+                _value_success = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IRollableEffectSortInputInfo.IsSuccessSet => _set_success;
         public global::Foo.Bar.SortEnumType? Failure
         {
-            get;
-            set;
+            get => _value_failure;
+            set
+            {
+                _set_failure = true;
+                _value_failure = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IRollableEffectSortInputInfo.IsFailureSet => _set_failure;
         public global::Foo.Bar.SortEnumType? CriticalFailure
         {
-            get;
-            set;
+            get => _value_criticalFailure;
+            set
+            {
+                _set_criticalFailure = true;
+                _value_criticalFailure = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IRollableEffectSortInputInfo.IsCriticalFailureSet => _set_criticalFailure;
         public global::Foo.Bar.SortEnumType? Id
         {
-            get;
-            set;
+            get => _value_id;
+            set
+            {
+                _set_id = true;
+                _value_id = value;
+            }
         }
 
-        = default !;
+        global::System.Boolean global::Foo.Bar.State.IRollableEffectSortInputInfo.IsIdSet => _set_id;
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
@@ -1801,7 +2113,11 @@ namespace Foo.Bar
 
         private global::System.Object? FormatOrder(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.FeatSortInput>? value)
         {
-            if (!(value is null))
+            if (value is null)
+            {
+                return value;
+            }
+            else
             {
                 var value_list = new global::System.Collections.Generic.List<global::System.Object?>();
                 foreach (var value_elm in value)
@@ -1815,10 +2131,6 @@ namespace Foo.Bar
                 }
 
                 return value_list;
-            }
-            else
-            {
-                return value;
             }
         }
 
@@ -2661,6 +2973,166 @@ namespace Foo.Bar.State
             }
 
             return new GetFeatById_Feats_Items_ActionType_ActionType(entity.Name);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal interface IFeatSortInputInfo
+    {
+        global::System.Boolean IsNameSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsCanBeLearnedMoreThanOnceSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsSpecialSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsTriggerSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsLevelSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsActionTypeIdSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsActionTypeSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsFeatTypeIdSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsFeatTypeSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsFrequencyIdSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsFrequencySet
+        {
+            get;
+        }
+
+        global::System.Boolean IsRollableEffectSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsRollableEffectIdSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsIdSet
+        {
+            get;
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal interface IActionTypeSortInputInfo
+    {
+        global::System.Boolean IsNameSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsIdSet
+        {
+            get;
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal interface IFeatTypeSortInputInfo
+    {
+        global::System.Boolean IsNameSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsIdSet
+        {
+            get;
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal interface IFrequencySortInputInfo
+    {
+        global::System.Boolean IsNameSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsAmountSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsTimeSpanSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsIdSet
+        {
+            get;
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    internal interface IRollableEffectSortInputInfo
+    {
+        global::System.Boolean IsCriticalSuccessSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsSuccessSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsFailureSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsCriticalFailureSet
+        {
+            get;
+        }
+
+        global::System.Boolean IsIdSet
+        {
+            get;
         }
     }
 
