@@ -11,6 +11,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{8F0BFA5F-E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests", "test\CodeGeneration.CSharp.Analyzers.Tests\StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.csproj", "{C16A7FE1-E460-4B83-B093-012E9D27D5F2}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".referenced", ".referenced", "{9E66ECE3-81EF-4BCC-BE28-5AD884DB8572}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StrawberryShake.Tools.Configuration", "..\Tooling\src\Configuration\StrawberryShake.Tools.Configuration.csproj", "{B5BA7FA0-6BC2-48FC-8714-6C19A219C9A4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,9 +52,22 @@ Global
 		{C16A7FE1-E460-4B83-B093-012E9D27D5F2}.Release|x64.Build.0 = Release|Any CPU
 		{C16A7FE1-E460-4B83-B093-012E9D27D5F2}.Release|x86.ActiveCfg = Release|Any CPU
 		{C16A7FE1-E460-4B83-B093-012E9D27D5F2}.Release|x86.Build.0 = Release|Any CPU
+		{B5BA7FA0-6BC2-48FC-8714-6C19A219C9A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5BA7FA0-6BC2-48FC-8714-6C19A219C9A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5BA7FA0-6BC2-48FC-8714-6C19A219C9A4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B5BA7FA0-6BC2-48FC-8714-6C19A219C9A4}.Debug|x64.Build.0 = Debug|Any CPU
+		{B5BA7FA0-6BC2-48FC-8714-6C19A219C9A4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B5BA7FA0-6BC2-48FC-8714-6C19A219C9A4}.Debug|x86.Build.0 = Debug|Any CPU
+		{B5BA7FA0-6BC2-48FC-8714-6C19A219C9A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5BA7FA0-6BC2-48FC-8714-6C19A219C9A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5BA7FA0-6BC2-48FC-8714-6C19A219C9A4}.Release|x64.ActiveCfg = Release|Any CPU
+		{B5BA7FA0-6BC2-48FC-8714-6C19A219C9A4}.Release|x64.Build.0 = Release|Any CPU
+		{B5BA7FA0-6BC2-48FC-8714-6C19A219C9A4}.Release|x86.ActiveCfg = Release|Any CPU
+		{B5BA7FA0-6BC2-48FC-8714-6C19A219C9A4}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{587B6DC4-BF55-4138-BB8A-F2F2503FDF00} = {CAECD940-C3AE-4589-AD83-B3F9EA9CB80A}
 		{C16A7FE1-E460-4B83-B093-012E9D27D5F2} = {8F0BFA5F-E5A0-4586-9ED4-6189286F4D3B}
+		{B5BA7FA0-6BC2-48FC-8714-6C19A219C9A4} = {9E66ECE3-81EF-4BCC-BE28-5AD884DB8572}
 	EndGlobalSection
 EndGlobal

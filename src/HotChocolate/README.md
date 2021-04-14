@@ -30,7 +30,7 @@ If you want to get in touch with us you can do so by joining our [slack group](h
 
 ### Using Hot Chocolate
 
-The easiest way to get a feel for the API is to walk through our README example. If you need additional information, you can also have a look at our [documentation](http://hotchocolate.io).
+The easiest way to get a feel for the API is to walk through our README example. If you need additional information, you can also have a look at our [documentation](https://chillicream.com/docs/hotchocolate/).
 
 _Hot Chocolate_ can build a GraphQL schema, serve queries against that schema and host that schema for web requests.
 
@@ -152,42 +152,56 @@ dotnet add package HotChocolate.AspNetCore
 Open the Startup.cs and add the following code.
 
 ```csharp
-protected override void ConfigureServices(IServiceCollection services)
+public void ConfigureServices(IServiceCollection services)
 {
-    services.AddGraphQL(sp => SchemaBuilder.New()
-      .AddQueryType<Query>()
-      .AddServices(sp)
-      .Create());
+    services
+        .AddRouting()
+        .AddGraphQLServer()
+        .AddQueryType<Query>();
 }
 ```
 
 The above example adds the GraphQL schema and the execution engine to the dependency injection.
 
 ```csharp
-protected override void Configure(IApplicationBuilder app, IHostingEnvironment env)
+public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 {
     if (env.IsDevelopment())
     {
         app.UseDeveloperExceptionPage();
     }
-    app.UseGraphQL();
+
+    app.UseRouting();
+
+    app.UseEndpoints(endpoints =>
+    {
+        endpoints.MapGraphQL();
+    });
 }
 ```
 
-This will set up all the necessary endpoints to query the GraphQL schema via HTTP GET or HTTP POST. In order to run a query against your schema, start your web host and get [Banana Cake Pop](https://hotchocolate.io/docs/banana-cakepop).
+This will set up all the necessary endpoints to query the GraphQL schema via HTTP GET or HTTP POST.
 
-By default, the middleware will be configured to listen on the service root for GraphQL requests. If you want to use a different endpoint route you can pass the desired route into the UseGraphQL instruction.
+By default, the middleware will be configured to listen on `/graphql` for GraphQL requests. If you want to use a different endpoint route you can pass the desired route into the `MapGraphQL` instruction.
 
 ```csharp
-protected override void Configure(IApplicationBuilder app, IHostingEnvironment env)
+public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 {
     if (env.IsDevelopment())
     {
         app.UseDeveloperExceptionPage();
     }
-    app.UseGraphQL("Foo/Bar");
+
+    app.UseRouting();
+
+    app.UseEndpoints(endpoints =>
+    {
+        endpoints.MapGraphQL("Foo/Bar");
+    });
 }
 ```
+
+After setting up the endpoint and starting the web host, you can explore your schema using our GraphQL IDE [Banana Cake Pop](https://chillicream.com/docs/bananacakepop/). Just open the configured GraphQL endpoint in your browser and start querying!
 
 ### Templates
 
@@ -209,7 +223,7 @@ dotnet new graphql
 
 ## Documentation
 
-For more examples and detailed documentation, click [here](http://hotchocolate.io).
+For more examples and detailed documentation, click [here](https://chillicream.com/docs/hotchocolate/).
 
 ## Components
 

@@ -11,8 +11,7 @@ namespace HotChocolate.Configuration
     /// The type discovery context is available during the discovery phase of the type system.
     /// In this phase types are inspected and registered.
     /// </summary>
-    public interface ITypeDiscoveryContext
-        : ITypeSystemObjectContext
+    public interface ITypeDiscoveryContext : ITypeSystemObjectContext
     {
         /// <summary>
         /// The collected type dependencies.
@@ -20,15 +19,15 @@ namespace HotChocolate.Configuration
         IReadOnlyList<TypeDependency> TypeDependencies { get; }
 
         /// <summary>
-        /// Register a reference to a type on which <see cref="Type" /> depends. 
-        /// Such a reference could for instance represent a type of a field that 
+        /// Register a reference to a type on which <see cref="Type" /> depends.
+        /// Such a reference could for instance represent a type of a field that
         /// <see cref="Type" /> exposes.
         /// </summary>
         /// <param name="reference">
         /// A reference representing a type on which <see cref="Type" /> depends.
         /// </param>
         /// <param name="kind">
-        /// The type dependency context defines if this type for instance is 
+        /// The type dependency context defines if this type for instance is
         /// discovered in an input context.
         /// </param>
         void RegisterDependency(
@@ -36,27 +35,27 @@ namespace HotChocolate.Configuration
             TypeDependencyKind kind);
 
         /// <summary>
-        /// Register a reference to a type on which <see cref="Type" /> depends. 
-        /// Such a reference could for instance represent a type of a field that 
+        /// Register a reference to a type on which <see cref="Type" /> depends.
+        /// Such a reference could for instance represent a type of a field that
         /// <see cref="Type" /> exposes.
         /// </summary>
         /// <param name="dependency">
-        /// A type dependency containing the type reference and context representing 
+        /// A type dependency containing the type reference and context representing
         /// a type on which <see cref="Type" /> depends.
         /// </param>
         void RegisterDependency(
             TypeDependency dependency);
 
         /// <summary>
-        /// Register multiple references to types on which <see cref="Type" /> depends. 
-        /// Such a reference could for instance represent a type of a field that 
+        /// Register multiple references to types on which <see cref="Type" /> depends.
+        /// Such a reference could for instance represent a type of a field that
         /// <see cref="Type" /> exposes.
         /// </summary>
         /// <param name="references">
         /// Type references representing types on which <see cref="Type" /> depends.
         /// </param>
         /// <param name="kind">
-        /// The type dependency context defines if this type for instance is 
+        /// The type dependency context defines if this type for instance is
         /// discovered in an input context.
         /// </param>
         void RegisterDependencyRange(
@@ -65,11 +64,11 @@ namespace HotChocolate.Configuration
 
         /// <summary>
         /// Register multiple references to types on which <see cref="Type" /> depends.
-        /// Such a reference could for instance represent a type of a field that 
+        /// Such a reference could for instance represent a type of a field that
         /// <see cref="Type" /> exposes.
         /// </summary>
         /// <param name="dependencies">
-        /// Type dependencies containing the type reference and context representing 
+        /// Type dependencies containing the type reference and context representing
         /// a types on which <see cref="Type" /> depends.
         /// </param>
         void RegisterDependencyRange(
@@ -92,31 +91,5 @@ namespace HotChocolate.Configuration
         /// </param>
         void RegisterDependencyRange(
             IEnumerable<IDirectiveReference> references);
-
-        /// <summary>
-        /// Registers a resolver for compilation.
-        /// </summary>
-        /// <param name="fieldName">The field name to which the resolver belongs to.</param>
-        /// <param name="member">The member that represents the resolver.</param>
-        /// <param name="sourceType">The source type.</param>
-        /// <param name="resolverType">The type that declares the resolver.</param>
-        void RegisterResolver(
-            NameString fieldName,
-            MemberInfo member,
-            Type sourceType,
-            Type resolverType);
-
-        /// <summary>
-        /// Registers a resolver for compilation.
-        /// </summary>
-        /// <param name="fieldName">The field name to which the resolver belongs to.</param>
-        /// <param name="expression">The expression representing the resolver.</param>
-        /// <param name="sourceType">The source type.</param>
-        /// <param name="resolverType">The type that declares the resolver.</param>
-        void RegisterResolver(
-            NameString fieldName,
-            Expression expression,
-            Type sourceType,
-            Type resolverType);
     }
 }

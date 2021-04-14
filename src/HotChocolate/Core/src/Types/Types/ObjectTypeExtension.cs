@@ -16,7 +16,8 @@ namespace HotChocolate.Types
     /// Any type extension instance is will not survive the initialization and instead is
     /// merged into the target type.
     /// </summary>
-    public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeDefinition>
+    public class ObjectTypeExtension
+        : NamedTypeExtensionBase<ObjectTypeDefinition>
     {
         private Action<IObjectTypeDescriptor>? _configure;
 

@@ -12,6 +12,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     public partial class TypeMapperGenerator
     {
         private void AddComplexDataHandler(
+            CSharpSyntaxGeneratorSettings settings,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             MethodBuilder method,
@@ -31,9 +32,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .MakeNullable(!isNonNullable))
                 .SetName(_dataParameterName);
 
-            method
-                .AddParameter(_snapshot)
-                .SetType(TypeNames.IEntityStoreSnapshot);
+            if (settings.IsStoreEnabled())
+            {
+                method
+                    .AddParameter(_snapshot)
+                    .SetType(TypeNames.IEntityStoreSnapshot);
+            }
 
             if (!isNonNullable)
             {
@@ -47,11 +51,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             GenerateIfForEachImplementedBy(
                 method,
                 complexTypeDescriptor,
-                o => GenerateComplexDataInterfaceIfClause(o, returnValue));
+                o => GenerateComplexDataInterfaceIfClause(settings, o, returnValue));
 
             method.AddCode($"return {returnValue};");
 
             AddRequiredMapMethods(
+                settings,
                 _dataParameterName,
                 complexTypeDescriptor,
                 classBuilder,
@@ -84,6 +89,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         }
 
         private IfBuilder GenerateComplexDataInterfaceIfClause(
+            CSharpSyntaxGeneratorSettings settings,
             ObjectTypeDescriptor objectTypeDescriptor,
             string variableName)
         {
@@ -104,13 +110,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             foreach (PropertyDescriptor prop in objectTypeDescriptor.Properties)
             {
-                if (prop.Type.IsEntityType())
+                if (prop.Type.IsEntityType() || prop.Type.IsDataType())
                 {
-                    constructorCall.AddArgument(BuildMapMethodCall(matchedTypeName, prop));
+                    constructorCall.AddArgument(
+                        BuildMapMethodCall(settings, matchedTypeName, prop));
                 }
                 else if (prop.Type.IsNonNullableType())
                 {
-                    if (prop.Type.NamedType() is ILeafTypeDescriptor
+                    if (prop.Type.InnerType() is ILeafTypeDescriptor
                         { RuntimeType: { IsValueType: true } })
                     {
                         block

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 {
@@ -11,7 +12,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         private readonly JsonSerializerOptions _settings = new() { WriteIndented = true };
         private readonly StringBuilder _log = new();
         private readonly string _logFile;
-        private ClientGeneratorContext? _context;
         private DateTime _allStart;
         private DateTime _generateStart;
         private DateTime _cleanStart;
@@ -21,7 +21,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             if (string.IsNullOrEmpty(logFile))
             {
                 throw new ArgumentException(
-                    $"'{nameof(logFile)}' cannot be null or empty.", nameof(logFile));
+                    $"'{nameof(logFile)}' cannot be null or empty.",
+                    nameof(logFile));
             }
 
             _logFile = logFile;
@@ -35,9 +36,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         public void Begin(GraphQLConfig config, ClientGeneratorContext context)
         {
             _allStart = DateTime.UtcNow;
-            _context = context;
             _log.AppendLine($"Begin {context.Settings.Name}.");
-            _log.AppendLine(JsonSerializer.Serialize(config, _settings));
+            _log.AppendLine(config.ToString());
         }
 
         public void ClientDocuments(IReadOnlyList<string> documents)
@@ -102,9 +102,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             _log.AppendLine($"End {DateTime.UtcNow - _allStart}.");
         }
 
-        public void Dispose()
+        public void Flush()
         {
             File.AppendAllText(_logFile, _log.ToString(), Encoding.UTF8);
+        }
+
+        public void Dispose()
+        {
+            Flush();
         }
     }
 }

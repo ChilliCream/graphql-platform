@@ -9,237 +9,35 @@
 // ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
 
-// NewsItemEntity
+// FooClient
 
-// StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-
-#nullable enable
-
-namespace Foo.Bar.State
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class NewsItemEntity
-    {
-        public NewsItemEntity(
-            global::System.String id,
-            global::System.String title,
-            global::System.String summary)
-        {
-            Id = id;
-            Title = title;
-            Summary = summary;
-        }
-
-        public global::System.String Id { get; }
-
-        public global::System.String Title { get; }
-
-        public global::System.String Summary { get; }
-    }
-}
-
-
-// SearchNewsItemsResultFactory
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
-
-#nullable enable
-
-namespace Foo.Bar.State
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SearchNewsItemsResultFactory
-        : global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.SearchNewsItemsResult>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.NewsItemEntity, SearchNewsItems_NewsItems_Items_NewsItem> _searchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper;
-
-        public SearchNewsItemsResultFactory(
-            global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.NewsItemEntity, SearchNewsItems_NewsItems_Items_NewsItem> searchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper)
-        {
-            _entityStore = entityStore
-                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _searchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper = searchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper
-                 ?? throw new global::System.ArgumentNullException(nameof(searchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper));
-        }
-
-        global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.ISearchNewsItemsResult);
-
-        public SearchNewsItemsResult Create(
-            global::StrawberryShake.IOperationResultDataInfo dataInfo,
-            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            if (dataInfo is SearchNewsItemsResultInfo info)
-            {
-                return new SearchNewsItemsResult(MapISearchNewsItems_NewsItems(
-                    info.NewsItems,
-                    snapshot));
-            }
-
-            throw new global::System.ArgumentException("SearchNewsItemsResultInfo expected.");
-        }
-
-        private global::Foo.Bar.ISearchNewsItems_NewsItems? MapISearchNewsItems_NewsItems(
-            global::Foo.Bar.State.NewsItemCollectionSegmentData? data,
-            global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (data is null)
-            {
-                return null;
-            }
-
-            ISearchNewsItems_NewsItems returnValue = default!;
-
-            if (data?.__typename.Equals(
-                    "NewsItemCollectionSegment",
-                    global::System.StringComparison.Ordinal) ?? false)
-            {
-                returnValue = new SearchNewsItems_NewsItems_NewsItemCollectionSegment(MapISearchNewsItems_NewsItems_ItemsArray(
-                    data.Items,
-                    snapshot));
-            }
-            else
-            {
-                throw new global::System.NotSupportedException();
-            }
-            return returnValue;
-        }
-
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.ISearchNewsItems_NewsItems_Items?>? MapISearchNewsItems_NewsItems_ItemsArray(
-            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list,
-            global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (list is null)
-            {
-                return null;
-            }
-
-            var newsItems = new global::System.Collections.Generic.List<global::Foo.Bar.ISearchNewsItems_NewsItems_Items?>();
-
-            foreach (global::StrawberryShake.EntityId? child in list)
-            {
-                newsItems.Add(MapISearchNewsItems_NewsItems_Items(
-                    child,
-                    snapshot));
-            }
-
-            return newsItems;
-        }
-
-        private global::Foo.Bar.ISearchNewsItems_NewsItems_Items? MapISearchNewsItems_NewsItems_Items(
-            global::StrawberryShake.EntityId? entityId,
-            global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (entityId is null)
-            {
-                return null;
-            }
-
-
-            if (entityId.Value.Name.Equals(
-                    "NewsItem",
-                    global::System.StringComparison.Ordinal))
-            {
-                return _searchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper.Map(
-                    snapshot.GetEntity<global::Foo.Bar.State.NewsItemEntity>(entityId.Value)
-                        ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-            throw new global::System.NotSupportedException();
-        }
-
-        global::System.Object global::StrawberryShake.IOperationResultDataFactory.Create(
-            global::StrawberryShake.IOperationResultDataInfo dataInfo,
-            global::StrawberryShake.IEntityStoreSnapshot? snapshot)
-        {
-            return Create(
-                dataInfo,
-                snapshot);
-        }
-    }
-}
-
-
-// SearchNewsItemsResultInfo
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
-
-#nullable enable
-
-namespace Foo.Bar.State
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SearchNewsItemsResultInfo
-        : global::StrawberryShake.IOperationResultDataInfo
-    {
-        private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
-        private readonly global::System.UInt64 _version;
-
-        public SearchNewsItemsResultInfo(
-            global::Foo.Bar.State.NewsItemCollectionSegmentData? newsItems,
-            global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
-            global::System.UInt64 version)
-        {
-            NewsItems = newsItems;
-            _entityIds = entityIds
-                 ?? throw new global::System.ArgumentNullException(nameof(entityIds));
-            _version = version;
-        }
-
-        public global::Foo.Bar.State.NewsItemCollectionSegmentData? NewsItems { get; }
-
-        public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
-
-        public global::System.UInt64 Version => _version;
-
-        public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
-        {
-            return new SearchNewsItemsResultInfo(
-                NewsItems,
-                _entityIds,
-                version);
-        }
-    }
-}
-
-
-// SearchNewsItemsResult
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-
+// <auto-generated/>
 #nullable enable
 
 namespace Foo.Bar
 {
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SearchNewsItemsResult
-        : global::System.IEquatable<SearchNewsItemsResult>
-        , ISearchNewsItemsResult
+    public partial class SearchNewsItemsResult : global::System.IEquatable<SearchNewsItemsResult>, ISearchNewsItemsResult
     {
         public SearchNewsItemsResult(global::Foo.Bar.ISearchNewsItems_NewsItems? newsItems)
         {
             NewsItems = newsItems;
         }
 
-        public global::Foo.Bar.ISearchNewsItems_NewsItems? NewsItems { get; }
+        public global::Foo.Bar.ISearchNewsItems_NewsItems? NewsItems
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
-            if (ReferenceEquals(
-                    null,
-                    obj))
+            if (ReferenceEquals(null, obj))
             {
                 return false;
             }
 
-            if (ReferenceEquals(
-                    this,
-                    obj))
+            if (ReferenceEquals(this, obj))
             {
                 return true;
             }
@@ -254,16 +52,12 @@ namespace Foo.Bar
 
         public global::System.Boolean Equals(SearchNewsItemsResult? other)
         {
-            if (ReferenceEquals(
-                    null,
-                    other))
+            if (ReferenceEquals(null, other))
             {
                 return false;
             }
 
-            if (ReferenceEquals(
-                    this,
-                    other))
+            if (ReferenceEquals(this, other))
             {
                 return true;
             }
@@ -273,7 +67,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (((NewsItems is null && other.NewsItems is null) ||NewsItems != null && NewsItems.Equals(other.NewsItems)));
+            return (((NewsItems is null && other.NewsItems is null) || NewsItems != null && NewsItems.Equals(other.NewsItems)));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -281,8 +75,7 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-
-                if (!(NewsItems is null))
+                if (NewsItems != null)
                 {
                     hash ^= 397 * NewsItems.GetHashCode();
                 }
@@ -291,41 +84,29 @@ namespace Foo.Bar
             }
         }
     }
-}
 
-
-// SearchNewsItems_NewsItems_NewsItemCollectionSegment
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SearchNewsItems_NewsItems_NewsItemCollectionSegment
-        : global::System.IEquatable<SearchNewsItems_NewsItems_NewsItemCollectionSegment>
-        , ISearchNewsItems_NewsItems_NewsItemCollectionSegment
+    public partial class SearchNewsItems_NewsItems_NewsItemCollectionSegment : global::System.IEquatable<SearchNewsItems_NewsItems_NewsItemCollectionSegment>, ISearchNewsItems_NewsItems_NewsItemCollectionSegment
     {
         public SearchNewsItems_NewsItems_NewsItemCollectionSegment(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.ISearchNewsItems_NewsItems_Items?>? items)
         {
             Items = items;
         }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.ISearchNewsItems_NewsItems_Items?>? Items { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.ISearchNewsItems_NewsItems_Items?>? Items
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
-            if (ReferenceEquals(
-                    null,
-                    obj))
+            if (ReferenceEquals(null, obj))
             {
                 return false;
             }
 
-            if (ReferenceEquals(
-                    this,
-                    obj))
+            if (ReferenceEquals(this, obj))
             {
                 return true;
             }
@@ -340,16 +121,12 @@ namespace Foo.Bar
 
         public global::System.Boolean Equals(SearchNewsItems_NewsItems_NewsItemCollectionSegment? other)
         {
-            if (ReferenceEquals(
-                    null,
-                    other))
+            if (ReferenceEquals(null, other))
             {
                 return false;
             }
 
-            if (ReferenceEquals(
-                    this,
-                    other))
+            if (ReferenceEquals(this, other))
             {
                 return true;
             }
@@ -359,9 +136,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(
-                        Items,
-                        other.Items));
+            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Items, other.Items));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -369,12 +144,11 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-
-                if (!(Items is null))
+                if (Items != null)
                 {
                     foreach (var Items_elm in Items)
                     {
-                        if (!(Items_elm is null))
+                        if (Items_elm != null)
                         {
                             hash ^= 397 * Items_elm.GetHashCode();
                         }
@@ -385,88 +159,41 @@ namespace Foo.Bar
             }
         }
     }
-}
 
-
-// SearchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-
-#nullable enable
-
-namespace Foo.Bar.State
-{
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SearchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper
-        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.NewsItemEntity, SearchNewsItems_NewsItems_Items_NewsItem>
+    public partial class SearchNewsItems_NewsItems_Items_NewsItem : global::System.IEquatable<SearchNewsItems_NewsItems_Items_NewsItem>, ISearchNewsItems_NewsItems_Items_NewsItem
     {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-
-        public SearchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore
-                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public SearchNewsItems_NewsItems_Items_NewsItem Map(
-            global::Foo.Bar.State.NewsItemEntity entity,
-            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new SearchNewsItems_NewsItems_Items_NewsItem(
-                entity.Id,
-                entity.Title,
-                entity.Summary);
-        }
-    }
-}
-
-
-// SearchNewsItems_NewsItems_Items_NewsItem
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SearchNewsItems_NewsItems_Items_NewsItem
-        : global::System.IEquatable<SearchNewsItems_NewsItems_Items_NewsItem>
-        , ISearchNewsItems_NewsItems_Items_NewsItem
-    {
-        public SearchNewsItems_NewsItems_Items_NewsItem(
-            global::System.String id,
-            global::System.String title,
-            global::System.String summary)
+        public SearchNewsItems_NewsItems_Items_NewsItem(global::System.String id, global::System.String title, global::System.String summary)
         {
             Id = id;
             Title = title;
             Summary = summary;
         }
 
-        public global::System.String Id { get; }
+        public global::System.String Id
+        {
+            get;
+        }
 
-        public global::System.String Title { get; }
+        public global::System.String Title
+        {
+            get;
+        }
 
-        public global::System.String Summary { get; }
+        public global::System.String Summary
+        {
+            get;
+        }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
-            if (ReferenceEquals(
-                    null,
-                    obj))
+            if (ReferenceEquals(null, obj))
             {
                 return false;
             }
 
-            if (ReferenceEquals(
-                    this,
-                    obj))
+            if (ReferenceEquals(this, obj))
             {
                 return true;
             }
@@ -481,16 +208,12 @@ namespace Foo.Bar
 
         public global::System.Boolean Equals(SearchNewsItems_NewsItems_Items_NewsItem? other)
         {
-            if (ReferenceEquals(
-                    null,
-                    other))
+            if (ReferenceEquals(null, other))
             {
                 return false;
             }
 
-            if (ReferenceEquals(
-                    this,
-                    other))
+            if (ReferenceEquals(this, other))
             {
                 return true;
             }
@@ -500,9 +223,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id.Equals(other.Id))
-                && Title.Equals(other.Title)
-                && Summary.Equals(other.Summary);
+            return (Id.Equals(other.Id)) && Title.Equals(other.Title) && Summary.Equals(other.Summary);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -510,112 +231,67 @@ namespace Foo.Bar
             unchecked
             {
                 int hash = 5;
-
                 hash ^= 397 * Id.GetHashCode();
-
                 hash ^= 397 * Title.GetHashCode();
-
                 hash ^= 397 * Summary.GetHashCode();
-
                 return hash;
             }
         }
     }
-}
 
-
-// ISearchNewsItemsResult
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISearchNewsItemsResult
     {
-        public global::Foo.Bar.ISearchNewsItems_NewsItems? NewsItems { get; }
+        public global::Foo.Bar.ISearchNewsItems_NewsItems? NewsItems
+        {
+            get;
+        }
     }
-}
 
-
-// ISearchNewsItems_NewsItems
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISearchNewsItems_NewsItems
     {
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.ISearchNewsItems_NewsItems_Items?>? Items { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.ISearchNewsItems_NewsItems_Items?>? Items
+        {
+            get;
+        }
     }
-}
 
-
-// ISearchNewsItems_NewsItems_NewsItemCollectionSegment
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchNewsItems_NewsItems_NewsItemCollectionSegment
-        : ISearchNewsItems_NewsItems
+    public interface ISearchNewsItems_NewsItems_NewsItemCollectionSegment : ISearchNewsItems_NewsItems
     {
     }
-}
 
-
-// ISearchNewsItems_NewsItems_Items
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface ISearchNewsItems_NewsItems_Items
     {
-        public global::System.String Id { get; }
+        public global::System.String Id
+        {
+            get;
+        }
 
-        public global::System.String Title { get; }
+        public global::System.String Title
+        {
+            get;
+        }
 
-        public global::System.String Summary { get; }
+        public global::System.String Summary
+        {
+            get;
+        }
     }
-}
 
-
-// ISearchNewsItems_NewsItems_Items_NewsItem
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchNewsItems_NewsItems_Items_NewsItem
-        : ISearchNewsItems_NewsItems_Items
+    public interface ISearchNewsItems_NewsItems_Items_NewsItem : ISearchNewsItems_NewsItems_Items
     {
     }
-}
 
-
-// SearchNewsItemsQueryDocument
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
     /// Represents the operation service of the SearchNewsItems GraphQL operation
     /// <code>
@@ -636,41 +312,37 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SearchNewsItemsQueryDocument
-        : global::StrawberryShake.IDocument
+    public partial class SearchNewsItemsQueryDocument : global::StrawberryShake.IDocument
     {
         private SearchNewsItemsQueryDocument()
         {
         }
 
-        public static SearchNewsItemsQueryDocument Instance { get; } = new SearchNewsItemsQueryDocument();
+        public static SearchNewsItemsQueryDocument Instance
+        {
+            get;
+        }
 
+        = new SearchNewsItemsQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x4e, 0x65, 0x77, 0x73, 0x49, 0x74, 0x65, 0x6d, 0x73, 0x28, 0x24, 0x71, 0x75, 0x65, 0x72, 0x79, 0x3a, 0x20, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x21, 0x2c, 0x20, 0x24, 0x73, 0x6b, 0x69, 0x70, 0x3a, 0x20, 0x49, 0x6e, 0x74, 0x2c, 0x20, 0x24, 0x74, 0x61, 0x6b, 0x65, 0x3a, 0x20, 0x49, 0x6e, 0x74, 0x29, 0x20, 0x7b, 0x20, 0x6e, 0x65, 0x77, 0x73, 0x49, 0x74, 0x65, 0x6d, 0x73, 0x28, 0x73, 0x6b, 0x69, 0x70, 0x3a, 0x20, 0x24, 0x73, 0x6b, 0x69, 0x70, 0x2c, 0x20, 0x74, 0x61, 0x6b, 0x65, 0x3a, 0x20, 0x24, 0x74, 0x61, 0x6b, 0x65, 0x2c, 0x20, 0x71, 0x75, 0x65, 0x72, 0x79, 0x3a, 0x20, 0x24, 0x71, 0x75, 0x65, 0x72, 0x79, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x64, 0x20, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x20, 0x73, 0x75, 0x6d, 0x6d, 0x61, 0x72, 0x79, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x4e, 0x65, 0x77, 0x73, 0x49, 0x74, 0x65, 0x6d, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d};
+        public global::StrawberryShake.DocumentHash Hash
+        {
+            get;
+        }
 
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{ 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x4e, 0x65, 0x77, 0x73, 0x49, 0x74, 0x65, 0x6d, 0x73, 0x28, 0x24, 0x71, 0x75, 0x65, 0x72, 0x79, 0x3a, 0x20, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x21, 0x2c, 0x20, 0x24, 0x73, 0x6b, 0x69, 0x70, 0x3a, 0x20, 0x49, 0x6e, 0x74, 0x2c, 0x20, 0x24, 0x74, 0x61, 0x6b, 0x65, 0x3a, 0x20, 0x49, 0x6e, 0x74, 0x29, 0x20, 0x7b, 0x20, 0x6e, 0x65, 0x77, 0x73, 0x49, 0x74, 0x65, 0x6d, 0x73, 0x28, 0x73, 0x6b, 0x69, 0x70, 0x3a, 0x20, 0x24, 0x73, 0x6b, 0x69, 0x70, 0x2c, 0x20, 0x74, 0x61, 0x6b, 0x65, 0x3a, 0x20, 0x24, 0x74, 0x61, 0x6b, 0x65, 0x2c, 0x20, 0x71, 0x75, 0x65, 0x72, 0x79, 0x3a, 0x20, 0x24, 0x71, 0x75, 0x65, 0x72, 0x79, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x64, 0x20, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x20, 0x73, 0x75, 0x6d, 0x6d, 0x61, 0x72, 0x79, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x4e, 0x65, 0x77, 0x73, 0x49, 0x74, 0x65, 0x6d, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d };
-
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "81d29110879bdfdff3d9b0cc85211da657cf052b");
-
+        = new global::StrawberryShake.DocumentHash("sha1Hash", "81d29110879bdfdff3d9b0cc85211da657cf052b");
         public override global::System.String ToString()
         {
-            #if NETSTANDARD2_0
-            return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
-            #else
+#if NETSTANDARD2_0
+        return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
+#else
             return global::System.Text.Encoding.UTF8.GetString(Body);
-            #endif
+#endif
         }
     }
-}
 
-
-// SearchNewsItemsQuery
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
     /// Represents the operation service of the SearchNewsItems GraphQL operation
     /// <code>
@@ -691,87 +363,43 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SearchNewsItemsQuery
-        : global::Foo.Bar.ISearchNewsItemsQuery
+    public partial class SearchNewsItemsQuery : global::Foo.Bar.ISearchNewsItemsQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<ISearchNewsItemsResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _intFormatter;
-
-        public SearchNewsItemsQuery(
-            global::StrawberryShake.IOperationExecutor<ISearchNewsItemsResult> operationExecutor,
-            global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        public SearchNewsItemsQuery(global::StrawberryShake.IOperationExecutor<ISearchNewsItemsResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
-            _operationExecutor = operationExecutor
-                 ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
+            _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _stringFormatter = serializerResolver.GetInputValueFormatter("String");
             _intFormatter = serializerResolver.GetInputValueFormatter("Int");
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(ISearchNewsItemsResult);
-
-        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISearchNewsItemsResult>> ExecuteAsync(
-            global::System.String query,
-            global::System.Int32? skip,
-            global::System.Int32? take,
-            global::System.Threading.CancellationToken cancellationToken = default)
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISearchNewsItemsResult>> ExecuteAsync(global::System.String query, global::System.Int32? skip, global::System.Int32? take, global::System.Threading.CancellationToken cancellationToken = default)
         {
-            var request = CreateRequest(
-                query,
-                skip,
-                take);
-
-            return await _operationExecutor
-                .ExecuteAsync(
-                    request,
-                    cancellationToken)
-                .ConfigureAwait(false);
+            var request = CreateRequest(query, skip, take);
+            return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
-        public global::System.IObservable<global::StrawberryShake.IOperationResult<ISearchNewsItemsResult>> Watch(
-            global::System.String query,
-            global::System.Int32? skip,
-            global::System.Int32? take,
-            global::StrawberryShake.ExecutionStrategy? strategy = null)
+        public global::System.IObservable<global::StrawberryShake.IOperationResult<ISearchNewsItemsResult>> Watch(global::System.String query, global::System.Int32? skip, global::System.Int32? take, global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
-            var request = CreateRequest(
-                query,
-                skip,
-                take);
-            return _operationExecutor.Watch(
-                request,
-                strategy);
+            var request = CreateRequest(query, skip, take);
+            return _operationExecutor.Watch(request, strategy);
         }
 
-        private global::StrawberryShake.OperationRequest CreateRequest(
-            global::System.String query,
-            global::System.Int32? skip,
-            global::System.Int32? take)
+        private global::StrawberryShake.OperationRequest CreateRequest(global::System.String query, global::System.Int32? skip, global::System.Int32? take)
         {
             var variables = new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>();
-
-            variables.Add(
-                "query",
-                FormatQuery(query));
-            variables.Add(
-                "skip",
-                FormatSkip(skip));
-            variables.Add(
-                "take",
-                FormatTake(take));
-
+            variables.Add("query", FormatQuery(query));
+            variables.Add("skip", FormatSkip(skip));
+            variables.Add("take", FormatTake(take));
             return CreateRequest(variables);
         }
 
         private global::StrawberryShake.OperationRequest CreateRequest(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
         {
-
-            return new global::StrawberryShake.OperationRequest(
-                id: SearchNewsItemsQueryDocument.Instance.Hash.Value,
-                name: "SearchNewsItems",
-                document: SearchNewsItemsQueryDocument.Instance,
-                strategy: global::StrawberryShake.RequestStrategy.Default,
-                variables:variables);
+            return new global::StrawberryShake.OperationRequest(id: SearchNewsItemsQueryDocument.Instance.Hash.Value, name: "SearchNewsItems", document: SearchNewsItemsQueryDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.Default, variables: variables);
         }
 
         private global::System.Object? FormatQuery(global::System.String value)
@@ -786,25 +414,25 @@ namespace Foo.Bar
 
         private global::System.Object? FormatSkip(global::System.Int32? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _intFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _intFormatter.Format(value);
             }
         }
 
         private global::System.Object? FormatTake(global::System.Int32? value)
         {
-            if (!(value is null))
+            if (value is null)
             {
-                return _intFormatter.Format(value);
+                return value;
             }
             else
             {
-                return value;
+                return _intFormatter.Format(value);
             }
         }
 
@@ -813,17 +441,8 @@ namespace Foo.Bar
             return CreateRequest(variables!);
         }
     }
-}
 
-
-// ISearchNewsItemsQuery
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
     /// Represents the operation service of the SearchNewsItems GraphQL operation
     /// <code>
@@ -844,35 +463,207 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchNewsItemsQuery
-        : global::StrawberryShake.IOperationRequestFactory
+    public interface ISearchNewsItemsQuery : global::StrawberryShake.IOperationRequestFactory
     {
-        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISearchNewsItemsResult>> ExecuteAsync(
-            global::System.String query,
-            global::System.Int32? skip,
-            global::System.Int32? take,
-            global::System.Threading.CancellationToken cancellationToken = default);
+        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISearchNewsItemsResult>> ExecuteAsync(global::System.String query, global::System.Int32? skip, global::System.Int32? take, global::System.Threading.CancellationToken cancellationToken = default);
+        global::System.IObservable<global::StrawberryShake.IOperationResult<ISearchNewsItemsResult>> Watch(global::System.String query, global::System.Int32? skip, global::System.Int32? take, global::StrawberryShake.ExecutionStrategy? strategy = null);
+    }
 
-        global::System.IObservable<global::StrawberryShake.IOperationResult<ISearchNewsItemsResult>> Watch(
-            global::System.String query,
-            global::System.Int32? skip,
-            global::System.Int32? take,
-            global::StrawberryShake.ExecutionStrategy? strategy = null);
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
+    /// <summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FooClient : global::Foo.Bar.IFooClient
+    {
+        private readonly global::Foo.Bar.ISearchNewsItemsQuery _searchNewsItems;
+        public FooClient(global::Foo.Bar.ISearchNewsItemsQuery searchNewsItems)
+        {
+            _searchNewsItems = searchNewsItems ?? throw new global::System.ArgumentNullException(nameof(searchNewsItems));
+        }
+
+        public static global::System.String ClientName => "FooClient";
+        public global::Foo.Bar.ISearchNewsItemsQuery SearchNewsItems => _searchNewsItems;
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
+    /// <summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IFooClient
+    {
+        global::Foo.Bar.ISearchNewsItemsQuery SearchNewsItems
+        {
+            get;
+        }
     }
 }
 
-
-// SearchNewsItemsBuilder
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
-
-#nullable enable
-
 namespace Foo.Bar.State
 {
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    public partial class NewsItemEntity
+    {
+        public NewsItemEntity(global::System.String id = default !, global::System.String title = default !, global::System.String summary = default !)
+        {
+            Id = id;
+            Title = title;
+            Summary = summary;
+        }
+
+        public global::System.String Id
+        {
+            get;
+        }
+
+        public global::System.String Title
+        {
+            get;
+        }
+
+        public global::System.String Summary
+        {
+            get;
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class SearchNewsItemsBuilder
-        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ISearchNewsItemsResult>
+    public partial class SearchNewsItemsResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.SearchNewsItemsResult>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.NewsItemEntity, SearchNewsItems_NewsItems_Items_NewsItem> _searchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper;
+        public SearchNewsItemsResultFactory(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.NewsItemEntity, SearchNewsItems_NewsItems_Items_NewsItem> searchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _searchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper = searchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper ?? throw new global::System.ArgumentNullException(nameof(searchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper));
+        }
+
+        global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.ISearchNewsItemsResult);
+        public SearchNewsItemsResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            if (dataInfo is SearchNewsItemsResultInfo info)
+            {
+                return new SearchNewsItemsResult(MapISearchNewsItems_NewsItems(info.NewsItems, snapshot));
+            }
+
+            throw new global::System.ArgumentException("SearchNewsItemsResultInfo expected.");
+        }
+
+        private global::Foo.Bar.ISearchNewsItems_NewsItems? MapISearchNewsItems_NewsItems(global::Foo.Bar.State.NewsItemCollectionSegmentData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (data is null)
+            {
+                return null;
+            }
+
+            ISearchNewsItems_NewsItems returnValue = default !;
+            if (data?.__typename.Equals("NewsItemCollectionSegment", global::System.StringComparison.Ordinal) ?? false)
+            {
+                returnValue = new SearchNewsItems_NewsItems_NewsItemCollectionSegment(MapISearchNewsItems_NewsItems_ItemsArray(data.Items, snapshot));
+            }
+            else
+            {
+                throw new global::System.NotSupportedException();
+            }
+
+            return returnValue;
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.ISearchNewsItems_NewsItems_Items?>? MapISearchNewsItems_NewsItems_ItemsArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (list is null)
+            {
+                return null;
+            }
+
+            var newsItems = new global::System.Collections.Generic.List<global::Foo.Bar.ISearchNewsItems_NewsItems_Items?>();
+            foreach (global::StrawberryShake.EntityId? child in list)
+            {
+                newsItems.Add(MapISearchNewsItems_NewsItems_Items(child, snapshot));
+            }
+
+            return newsItems;
+        }
+
+        private global::Foo.Bar.ISearchNewsItems_NewsItems_Items? MapISearchNewsItems_NewsItems_Items(global::StrawberryShake.EntityId? entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId is null)
+            {
+                return null;
+            }
+
+            if (entityId.Value.Name.Equals("NewsItem", global::System.StringComparison.Ordinal))
+            {
+                return _searchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.NewsItemEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        global::System.Object global::StrawberryShake.IOperationResultDataFactory.Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot)
+        {
+            return Create(dataInfo, snapshot);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SearchNewsItemsResultInfo : global::StrawberryShake.IOperationResultDataInfo
+    {
+        private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
+        private readonly global::System.UInt64 _version;
+        public SearchNewsItemsResultInfo(global::Foo.Bar.State.NewsItemCollectionSegmentData? newsItems, global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds, global::System.UInt64 version)
+        {
+            NewsItems = newsItems;
+            _entityIds = entityIds ?? throw new global::System.ArgumentNullException(nameof(entityIds));
+            _version = version;
+        }
+
+        public global::Foo.Bar.State.NewsItemCollectionSegmentData? NewsItems
+        {
+            get;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
+        public global::System.UInt64 Version => _version;
+        public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
+        {
+            return new SearchNewsItemsResultInfo(NewsItems, _entityIds, version);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SearchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.NewsItemEntity, SearchNewsItems_NewsItems_Items_NewsItem>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public SearchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public SearchNewsItems_NewsItems_Items_NewsItem Map(global::Foo.Bar.State.NewsItemEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new SearchNewsItems_NewsItems_Items_NewsItem(entity.Id, entity.Title, entity.Summary);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class SearchNewsItemsBuilder : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ISearchNewsItemsResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityIdSerializer _idSerializer;
@@ -880,32 +671,20 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _iDParser;
-
-        public SearchNewsItemsBuilder(
-            global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityIdSerializer idSerializer,
-            global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ISearchNewsItemsResult> resultDataFactory,
-            global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        public SearchNewsItemsBuilder(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer idSerializer, global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ISearchNewsItemsResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
-            _entityStore = entityStore
-                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _idSerializer = idSerializer
-                 ?? throw new global::System.ArgumentNullException(nameof(idSerializer));
-            _resultDataFactory = resultDataFactory
-                 ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
-                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
-            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int")
-                 ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
-            _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID")
-                 ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _idSerializer = idSerializer ?? throw new global::System.ArgumentNullException(nameof(idSerializer));
+            _resultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
+            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
+            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int") ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
+            _iDParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("ID") ?? throw new global::System.ArgumentException("No serializer for type `ID` found.");
         }
 
         public global::StrawberryShake.IOperationResult<ISearchNewsItemsResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
         {
             (ISearchNewsItemsResult Result, SearchNewsItemsResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
-
             try
             {
                 if (response.Body != null)
@@ -914,90 +693,52 @@ namespace Foo.Bar.State
                     {
                         data = BuildData(dataElement);
                     }
+
                     if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
                     {
                         errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
                     }
                 }
             }
-            catch(global::System.Exception ex)
+            catch (global::System.Exception ex)
             {
-                errors = new global::StrawberryShake.IClientError[] {
-                    new global::StrawberryShake.ClientError(
-                        ex.Message,
-                        exception: ex)
-                };
+                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex)};
             }
 
-            return new global::StrawberryShake.OperationResult<ISearchNewsItemsResult>(
-                data?.Result,
-                data?.Info,
-                _resultDataFactory,
-                errors);
+            return new global::StrawberryShake.OperationResult<ISearchNewsItemsResult>(data?.Result, data?.Info, _resultDataFactory, errors);
         }
 
         private (ISearchNewsItemsResult, SearchNewsItemsResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
-            global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
-
-            global::Foo.Bar.State.NewsItemCollectionSegmentData? newsItemsId = default!;
-            _entityStore.Update(session => 
+            global::StrawberryShake.IEntityStoreSnapshot snapshot = default !;
+            global::Foo.Bar.State.NewsItemCollectionSegmentData? newsItemsId = default !;
+            _entityStore.Update(session =>
             {
-                newsItemsId = DeserializeISearchNewsItems_NewsItems(
-                    session,
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "newsItems"),
-                    entityIds);
-
+                newsItemsId = DeserializeISearchNewsItems_NewsItems(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "newsItems"), entityIds);
                 snapshot = session.CurrentSnapshot;
             });
-
-            var resultInfo = new SearchNewsItemsResultInfo(
-                newsItemsId,
-                entityIds,
-                snapshot.Version);
-
-            return (
-                _resultDataFactory.Create(resultInfo),
-                resultInfo
-            );
+            var resultInfo = new SearchNewsItemsResultInfo(newsItemsId, entityIds, snapshot.Version);
+            return (_resultDataFactory.Create(resultInfo), resultInfo);
         }
 
-        private global::Foo.Bar.State.NewsItemCollectionSegmentData? DeserializeISearchNewsItems_NewsItems(
-            global::StrawberryShake.IEntityStoreUpdateSession session,
-            global::System.Text.Json.JsonElement? obj,
-            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        private global::Foo.Bar.State.NewsItemCollectionSegmentData? DeserializeISearchNewsItems_NewsItems(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
             {
                 return null;
             }
 
-            var typename = obj.Value
-                .GetProperty("__typename")
-                .GetString();
-
+            var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("NewsItemCollectionSegment", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::Foo.Bar.State.NewsItemCollectionSegmentData(
-                    typename,
-                    items: UpdateISearchNewsItems_NewsItems_ItemsEntityArray(
-                        session,
-                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                            obj,
-                            "items"),
-                        entityIds));
+                return new global::Foo.Bar.State.NewsItemCollectionSegmentData(typename, items: UpdateISearchNewsItems_NewsItems_ItemsEntityArray(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "items"), entityIds));
             }
 
             throw new global::System.NotSupportedException();
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? UpdateISearchNewsItems_NewsItems_ItemsEntityArray(
-            global::StrawberryShake.IEntityStoreUpdateSession session,
-            global::System.Text.Json.JsonElement? obj,
-            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? UpdateISearchNewsItems_NewsItems_ItemsEntityArray(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
             {
@@ -1005,22 +746,15 @@ namespace Foo.Bar.State
             }
 
             var newsItems = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
-
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                newsItems.Add(UpdateISearchNewsItems_NewsItems_ItemsEntity(
-                    session,
-                    child,
-                    entityIds));
+                newsItems.Add(UpdateISearchNewsItems_NewsItems_ItemsEntity(session, child, entityIds));
             }
 
             return newsItems;
         }
 
-        private global::StrawberryShake.EntityId? UpdateISearchNewsItems_NewsItems_ItemsEntity(
-            global::StrawberryShake.IEntityStoreUpdateSession session,
-            global::System.Text.Json.JsonElement? obj,
-            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        private global::StrawberryShake.EntityId? UpdateISearchNewsItems_NewsItems_ItemsEntity(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
             {
@@ -1029,49 +763,15 @@ namespace Foo.Bar.State
 
             global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
             entityIds.Add(entityId);
-
-
-            if (entityId.Name.Equals(
-                    "NewsItem",
-                    global::System.StringComparison.Ordinal))
+            if (entityId.Name.Equals("NewsItem", global::System.StringComparison.Ordinal))
             {
-                if (session.CurrentSnapshot.TryGetEntity(
-                        entityId,
-                        out global::Foo.Bar.State.NewsItemEntity? entity))
+                if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.NewsItemEntity? entity))
                 {
-                    session.SetEntity(
-                        entityId,
-                        new global::Foo.Bar.State.NewsItemEntity(
-                            DeserializeNonNullableString(
-                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                                    obj,
-                                    "id")),
-                            DeserializeNonNullableString(
-                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                                    obj,
-                                    "title")),
-                            DeserializeNonNullableString(
-                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                                    obj,
-                                    "summary"))));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.NewsItemEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "title")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "summary"))));
                 }
                 else
                 {
-                    session.SetEntity(
-                        entityId,
-                        new global::Foo.Bar.State.NewsItemEntity(
-                            DeserializeNonNullableString(
-                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                                    obj,
-                                    "id")),
-                            DeserializeNonNullableString(
-                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                                    obj,
-                                    "title")),
-                            DeserializeNonNullableString(
-                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                                    obj,
-                                    "summary"))));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.NewsItemEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "title")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "summary"))));
                 }
 
                 return entityId;
@@ -1090,240 +790,112 @@ namespace Foo.Bar.State
             return _iDParser.Parse(obj.Value.GetString()!);
         }
     }
-}
 
-
-// NewsItemCollectionSegmentData
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-
-#nullable enable
-
-namespace Foo.Bar.State
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class NewsItemCollectionSegmentData
     {
-        public NewsItemCollectionSegmentData(
-            global::System.String __typename,
-            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? items = null)
+        public NewsItemCollectionSegmentData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? items = default !)
         {
-            this.__typename = __typename
-                 ?? throw new global::System.ArgumentNullException(nameof(__typename));
+            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Items = items;
         }
 
-        public global::System.String __typename { get; }
-
-        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Items { get; }
-    }
-}
-
-
-// FooClient
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
-    /// <summary>
-    /// Represents the FooClient GraphQL client
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class FooClient
-        : global::Foo.Bar.IFooClient
-    {
-        private readonly global::Foo.Bar.ISearchNewsItemsQuery _searchNewsItems;
-
-        public FooClient(global::Foo.Bar.ISearchNewsItemsQuery searchNewsItems)
+        public global::System.String __typename
         {
-            _searchNewsItems = searchNewsItems
-                 ?? throw new global::System.ArgumentNullException(nameof(searchNewsItems));
+            get;
         }
 
-        public static global::System.String ClientName => "FooClient";
-
-        public global::Foo.Bar.ISearchNewsItemsQuery SearchNewsItems => _searchNewsItems;
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Items
+        {
+            get;
+        }
     }
-}
 
-
-// IFooClient
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
-    /// <summary>
-    /// Represents the FooClient GraphQL client
-    /// </summary>
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFooClient
+    public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
-        global::Foo.Bar.ISearchNewsItemsQuery SearchNewsItems { get; }
-    }
-}
-
-
-// FooClientEntityIdFactory
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
-
-#nullable enable
-
-namespace Foo.Bar.State
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class FooClientEntityIdFactory
-        : global::StrawberryShake.IEntityIdSerializer
-    {
-        private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions(){ Indented = false };
-
+        private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
+        {Indented = false};
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
-            global::System.String __typename = obj
-                .GetProperty("__typename")
-                .GetString()!;
-
+            global::System.String __typename = obj.GetProperty("__typename").GetString()!;
             return __typename switch
             {
-                "NewsItem" => ParseNewsItemEntityId(
-                    obj,
-                    __typename),
-                _ => throw new global::System.NotSupportedException()
-            };
+            "NewsItem" => ParseNewsItemEntityId(obj, __typename), _ => throw new global::System.NotSupportedException()}
+
+            ;
         }
 
         public global::System.String Format(global::StrawberryShake.EntityId entityId)
         {
             return entityId.Name switch
             {
-                "NewsItem" => FormatNewsItemEntityId(entityId),
-                _ => throw new global::System.NotSupportedException()
-            };
+            "NewsItem" => FormatNewsItemEntityId(entityId), _ => throw new global::System.NotSupportedException()}
+
+            ;
         }
 
-        private global::StrawberryShake.EntityId ParseNewsItemEntityId(
-            global::System.Text.Json.JsonElement obj,
-            global::System.String type)
+        private global::StrawberryShake.EntityId ParseNewsItemEntityId(global::System.Text.Json.JsonElement obj, global::System.String type)
         {
-            return new global::StrawberryShake.EntityId(
-                type,
-                obj
-                    .GetProperty("id")
-                    .GetString()!);
+            return new global::StrawberryShake.EntityId(type, obj.GetProperty("id").GetString()!);
         }
 
         private global::System.String FormatNewsItemEntityId(global::StrawberryShake.EntityId entityId)
         {
             using var writer = new global::StrawberryShake.Internal.ArrayWriter();
-            using var jsonWriter = new global::System.Text.Json.Utf8JsonWriter(
-                writer,
-                _options);
+            using var jsonWriter = new global::System.Text.Json.Utf8JsonWriter(writer, _options);
             jsonWriter.WriteStartObject();
-
-            jsonWriter.WriteString(
-                "__typename",
-                entityId.Name);
-
-            jsonWriter.WriteString(
-                "id",
-                (global::System.String)entityId.Value);
+            jsonWriter.WriteString("__typename", entityId.Name);
+            jsonWriter.WriteString("id", (global::System.String)entityId.Value);
             jsonWriter.WriteEndObject();
             jsonWriter.Flush();
+            return global::System.Text.Encoding.UTF8.GetString(writer.GetInternalBuffer(), 0, writer.Length);
+        }
+    }
 
-            return global::System.Text.Encoding.UTF8.GetString(
-                writer.GetInternalBuffer(),
-                0,
-                writer.Length);
+    // StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FooClientStoreAccessor : global::StrawberryShake.StoreAccessor
+    {
+        public FooClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories): base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
+        {
         }
     }
 }
 
-
-// FooClientServiceCollectionExtensions
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
-
-#nullable enable
-
 namespace Microsoft.Extensions.DependencyInjection
 {
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class FooClientServiceCollectionExtensions
     {
-        public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(
-            this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
-            global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
+        public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
-                services,
-                sp => 
-                {
-                    var serviceCollection = ConfigureClientDefault(
-                        sp,
-                        strategy);
-
-                    return new ClientServiceProvider(
-                        global::Microsoft.Extensions.DependencyInjection.ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(serviceCollection));
-                });
-
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
-                services,
-                sp => new global::Foo.Bar.State.FooClientStoreAccessor(
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(
-                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)),
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(
-                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)),
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityIdSerializer>(
-                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)),
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory>>(
-                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)),
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory>>(
-                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp))));
-
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
-                services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.SearchNewsItemsQuery>(
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
-
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
-                services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
-                services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IFooClient>(
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
-
-            return new global::StrawberryShake.ClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor>(
-                "FooClient",
-                services);
+            var serviceCollection = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp =>
+            {
+                ConfigureClientDefault(sp, serviceCollection, strategy);
+                return new ClientServiceProvider(global::Microsoft.Extensions.DependencyInjection.ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(serviceCollection));
+            });
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => new global::Foo.Bar.State.FooClientStoreAccessor(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityIdSerializer>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp))));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.SearchNewsItemsQuery>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IFooClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            return new global::StrawberryShake.ClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor>("FooClient", services, serviceCollection);
         }
 
-        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClientDefault(
-            global::System.IServiceProvider parentServices,
-            global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
+        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClientDefault(global::System.IServiceProvider parentServices, global::Microsoft.Extensions.DependencyInjection.ServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-            var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
-            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(
-                services,
-                sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
-                services,
-                sp => 
-                {
-                    var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
-                    return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
-                });
-
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(services, sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Transport.Http.IHttpConnection>(services, sp =>
+            {
+                var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
+                return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
+            });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.NewsItemEntity, global::Foo.Bar.SearchNewsItems_NewsItems_Items_NewsItem>, global::Foo.Bar.State.SearchNewsItems_NewsItems_Items_NewsItemFromNewsItemEntityMapper>(services);
-
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteSerializer>(services);
@@ -1339,48 +911,23 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(
-                services,
-                sp => new global::StrawberryShake.Serialization.SerializerResolver(
-                    global::System.Linq.Enumerable.Concat(
-                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
-                            parentServices),
-                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
-                            sp))));
-
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(services, sp => new global::StrawberryShake.Serialization.SerializerResolver(global::System.Linq.Enumerable.Concat(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(parentServices), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ISearchNewsItemsResult>, global::Foo.Bar.State.SearchNewsItemsResultFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(
-                services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ISearchNewsItemsResult>>(sp));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(
-                services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.ISearchNewsItemsQuery>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.ISearchNewsItemsResult>>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.ISearchNewsItemsQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ISearchNewsItemsResult>, global::Foo.Bar.State.SearchNewsItemsBuilder>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.ISearchNewsItemsResult>>(
-                services,
-                sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.ISearchNewsItemsResult>(
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp),
-                    () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ISearchNewsItemsResult>>(sp),
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
-                    strategy));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.ISearchNewsItemsResult>>(services, sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.ISearchNewsItemsResult>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.IHttpConnection>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.ISearchNewsItemsResult>>(sp), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp), strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.SearchNewsItemsQuery>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.ISearchNewsItemsQuery>(
-                services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.SearchNewsItemsQuery>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.ISearchNewsItemsQuery>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.SearchNewsItemsQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityIdSerializer, global::Foo.Bar.State.FooClientEntityIdFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.FooClient>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.IFooClient>(
-                services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.IFooClient>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(sp));
             return services;
         }
 
-        private class ClientServiceProvider
-            : System.IServiceProvider
-            , System.IDisposable
+        private class ClientServiceProvider : System.IServiceProvider, System.IDisposable
         {
             private readonly System.IServiceProvider _provider;
-
             public ClientServiceProvider(System.IServiceProvider provider)
             {
                 _provider = provider;
@@ -1398,36 +945,6 @@ namespace Microsoft.Extensions.DependencyInjection
                     d.Dispose();
                 }
             }
-        }
-    }
-}
-
-
-// FooClientStoreAccessor
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
-
-#nullable enable
-
-namespace Foo.Bar.State
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class FooClientStoreAccessor
-        : global::StrawberryShake.StoreAccessor
-    {
-        public FooClientStoreAccessor(
-            global::StrawberryShake.IOperationStore operationStore,
-            global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityIdSerializer entityIdSerializer,
-            global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories,
-            global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories)
-            : base(
-                operationStore,
-                entityStore,
-                entityIdSerializer,
-                requestFactories,
-                resultDataFactories)
-        {
         }
     }
 }

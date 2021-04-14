@@ -625,7 +625,7 @@ namespace HotChocolate.Data.MongoDb.Filters
 
             public bool BarBool { get; set; }
 
-            public List<Bar> ObjectArray { get; set; } = null!;
+            public List<Bar>? ObjectArray { get; set; } = null!;
         }
 
         public class FooNullable

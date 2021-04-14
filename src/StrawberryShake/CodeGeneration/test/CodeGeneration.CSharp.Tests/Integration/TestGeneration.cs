@@ -1,3 +1,4 @@
+using StrawberryShake.Tools.Configuration;
 using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
@@ -12,6 +13,21 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration
                 @"query GetHero {
                     hero(episode: NEW_HOPE) {
                         name
+                    }
+                }");
+
+        [Fact]
+        public void StarWarsGetFriendsNoStore() =>
+            AssertStarWarsResult(
+                CreateIntegrationTest(noStore: true),
+                @"query GetHero {
+                    hero(episode: NEW_HOPE) {
+                        name
+                        friends {
+                            nodes {
+                                name
+                            }
+                        }
                     }
                 }");
 

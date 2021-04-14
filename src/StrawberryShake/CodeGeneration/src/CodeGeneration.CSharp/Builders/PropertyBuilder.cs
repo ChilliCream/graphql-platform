@@ -6,7 +6,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
     {
         private AccessModifier _accessModifier;
         private bool _isReadOnly = true;
-        private string? _lambdaResolver;
+        private ICode? _lambdaResolver;
         private bool _isOnlyDeclaration;
         private TypeReferenceBuilder? _type;
         private string? _name;
@@ -30,6 +30,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         }
 
         public PropertyBuilder AsLambda(string resolveCode)
+        {
+            _lambdaResolver = CodeInlineBuilder.From(resolveCode);
+            return this;
+        }
+
+        public PropertyBuilder AsLambda(ICode resolveCode)
         {
             _lambdaResolver = resolveCode;
             return this;
@@ -128,7 +134,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             if (_lambdaResolver is not null)
             {
                 writer.Write(" => ");
-                writer.Write(_lambdaResolver);
+                _lambdaResolver.Build(writer);
                 writer.Write(";");
                 writer.WriteLine();
                 return;

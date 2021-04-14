@@ -15,6 +15,7 @@ using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Utilities;
 using Xunit;
 using Snapshot = Snapshooter.Xunit.Snapshot;
+using RequestStrategyGen = StrawberryShake.Tools.Configuration.RequestStrategy;
 using static StrawberryShake.CodeGeneration.CSharp.CSharpGenerator;
 
 namespace StrawberryShake.CodeGeneration.CSharp
@@ -56,7 +57,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             bool skipWarnings,
             params string[] sourceTexts)
         {
-            ClientModel clientModel = CreateClientModel(sourceTexts, settings.StrictValidation);
+            ClientModel clientModel =
+                CreateClientModel(sourceTexts, settings.StrictValidation, settings.NoStore);
 
             var documents = new StringBuilder();
             var documentNames = new HashSet<string>();
@@ -86,7 +88,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     ClientName = settings.ClientName ?? "FooClient",
                     StrictSchemaValidation = settings.StrictValidation,
                     RequestStrategy = settings.RequestStrategy,
-                    TransportProfiles = settings.Profiles
+                    TransportProfiles = settings.Profiles,
+                    NoStore = settings.NoStore,
+                    InputRecords = settings.InputRecords,
+                    EntityRecords = settings.EntityRecords
                 });
 
             Assert.False(
@@ -190,9 +195,9 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         public static AssertSettings CreateIntegrationTest(
-            Descriptors.Operations.RequestStrategy requestStrategy =
-                Descriptors.Operations.RequestStrategy.Default,
+            RequestStrategyGen requestStrategy = RequestStrategyGen.Default,
             TransportProfile[]? profiles = null,
+            bool noStore = false,
             [CallerMemberName] string? testName = null)
         {
             SnapshotFullName snapshotFullName = Snapshot.FullName();
@@ -219,11 +224,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     snapshotFullName.FolderPath,
                     testName + "Test.Client.cs"),
                 RequestStrategy = requestStrategy,
-                Profiles = (profiles ?? new []{TransportProfile.Default }).ToList()
+                NoStore = noStore,
+                Profiles = (profiles ?? new[]
+                {
+                    TransportProfile.Default
+                }).ToList()
             };
         }
 
-        private static ClientModel CreateClientModel(string[] sourceText, bool strictValidation)
+        private static ClientModel CreateClientModel(
+            string[] sourceText,
+            bool strictValidation,
+            bool noStore)
         {
             var files = sourceText
                 .Select(s => new GraphQLFile(Utf8GraphQLParser.Parse(s)))
@@ -234,7 +246,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             var analyzer = new DocumentAnalyzer();
 
-            analyzer.SetSchema(SchemaHelper.Load(typeSystemDocs, strictValidation));
+            analyzer.SetSchema(SchemaHelper.Load(typeSystemDocs, strictValidation, noStore));
 
             foreach (DocumentNode executable in executableDocs.Select(file => file.Document))
             {
@@ -254,10 +266,16 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             public string? SnapshotFile { get; set; }
 
+            public bool NoStore { get; set; }
+
+            public bool InputRecords { get; set; }
+
+            public bool EntityRecords { get; set; }
+
             public List<TransportProfile> Profiles { get; set; } = new();
 
-            public Descriptors.Operations.RequestStrategy RequestStrategy { get; set; } =
-                Descriptors.Operations.RequestStrategy.Default;
+            public RequestStrategyGen RequestStrategy { get; set; } =
+                RequestStrategyGen.Default;
         }
     }
 }
