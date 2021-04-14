@@ -102,7 +102,7 @@ namespace HotChocolate.Types
                 if (coords.Count > 0)
                 {
                     var minute = double.TryParse(coords[0].Groups[2].Value, out var min) ? min / 60 : 0;
-                    var second =   double.TryParse(coords[0].Groups[3].Value, out var sec) ? (sec / 60) : 0;
+                    var second =   double.TryParse(coords[0].Groups[4].Value, out var sec) ? (sec / 60) : 0;
                     var result = double.TryParse(coords[0].Groups[1].Value, out var deg) ? deg + minute + second : 0;
 
                     // Southern and western coordinates must be negative decimals
