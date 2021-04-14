@@ -72,7 +72,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void Latitude_ExpectParseLiteralToMatchNegativePrecision()
+        protected void Latitude_ExpectParseLiteralToMatchNegative()
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
@@ -80,10 +80,22 @@ namespace HotChocolate.Types
             var expectedResult = -90.0;
 
             // act
-            object result = Math.Round(
-                (double) scalar.ParseLiteral(valueSyntax)!,
-                0,
-                MidpointRounding.AwayFromZero);
+            object result = (double)scalar.ParseLiteral(valueSyntax)!;
+
+                // assert
+            Assert.Equal(expectedResult, result);
+        }
+
+        [Fact]
+        protected void Latitude_ExpectParseLiteralToMatchPositive()
+        {
+            // arrange
+            ScalarType scalar = CreateType<LatitudeType>();
+            var valueSyntax = new StringValueNode("90° 0' 0.000\" N");
+            var expectedResult = 90.0;
+
+            // act
+            object result = (double)scalar.ParseLiteral(valueSyntax)!;
 
             // assert
             Assert.Equal(expectedResult, result);
@@ -94,32 +106,41 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = new StringValueNode("90° 0' 0.000\" N");
-            var expectedResult = 90.0;
+            var valueSyntax = new StringValueNode("39° 51' 21.600\" N");
+            var expectedResult = 39.856;
 
             // act
-            object result = Math.Round(
-                (double) scalar.ParseLiteral(valueSyntax)!,
-                0,
-                MidpointRounding.AwayFromZero);
+            object result = (double)scalar.ParseLiteral(valueSyntax)!;
 
             // assert
             Assert.Equal(expectedResult, result);
         }
 
         [Fact]
-        protected void Latitude_ExpectParseLiteralToMatchNegativePrecision_OneDecimal()
+        protected void Latitude_ExpectParseLiteralToMatchPositivePrecision1()
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = new StringValueNode("38° 36' 0.000\" S");
-            var expectedResult = -38.6;
+            var valueSyntax = new StringValueNode("66° 0' 21.983\" N");
+            var expectedResult = 66.00610639;
 
             // act
-            object result = Math.Round(
-                (double) scalar.ParseLiteral(valueSyntax)!,
-                1,
-                MidpointRounding.AwayFromZero);
+            object result = (double)scalar.ParseLiteral(valueSyntax)!;
+
+                // assert
+            Assert.Equal(expectedResult, result);
+        }
+
+        [Fact]
+        protected void Latitude_ExpectParseLiteralToMatchNegativePrecision1()
+        {
+            // arrange
+            ScalarType scalar = CreateType<LatitudeType>();
+            var valueSyntax = new StringValueNode("23° 6' 23.997\" S");
+            var expectedResult = -23.10666583;
+
+            // act
+            object result = (double)scalar.ParseLiteral(valueSyntax)!;
 
             // assert
             Assert.Equal(expectedResult, result);
