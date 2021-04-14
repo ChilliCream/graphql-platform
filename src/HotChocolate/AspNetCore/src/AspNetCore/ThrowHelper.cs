@@ -53,6 +53,7 @@ namespace HotChocolate.AspNetCore
                     .SetMessage(ThrowHelper_HttpMultipartMiddleware_Invalid_Form)
                     .SetException(ex)
                     .SetCode(ErrorCodes.Server.MultiPartInvalidForm)
+                    .SetExtension("underlyingError", ex.Message)
                     .Build());
 
         public static GraphQLException HttpMultipartMiddleware_No_Operations_Specified() =>
