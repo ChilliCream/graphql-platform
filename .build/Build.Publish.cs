@@ -22,11 +22,22 @@ partial class Build : NukeBuild
 {
     HashSet<string> ProtectedVersions = new HashSet<string>
     {
-        "11.1.0-preview.58",
-        "11.1.0-preview.59",
-        "11.1.0-preview.60",
-        "11.1.0-preview.61",
-        "11.1.0-preview.62",
+        "11.2.0-preview.17",
+        "11.2.0-preview.18",
+        "11.2.0-preview.19",
+        "11.2.0-preview.20",
+        "11.2.0-preview.21",
+        "11.2.0-preview.22",
+
+        "12.0.0-preview.1",
+        "12.0.0-preview.2",
+        "12.0.0-preview.3",
+        "12.0.0-preview.4",
+        "12.0.0-preview.5",
+        "12.0.0-preview.6",
+        "12.0.0-preview.7",
+        "12.0.0-preview.8",
+        "12.0.0-preview.9"
     };
 
     List<string> Keys = new List<string>
@@ -120,6 +131,8 @@ partial class Build : NukeBuild
             var stopwatch = Stopwatch.StartNew();
             var complete = true;
             var key = 0;
+
+            File.Delete(RootDirectory / "completed.txt");
 
             ISet<string> completed = File.Exists(RootDirectory / "completed.txt")
                 ? File.ReadLines(RootDirectory / "completed.txt").Select(t => t.Trim())
