@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
@@ -71,15 +72,54 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void Latitude_ExpectParseLiteralToMatch()
+        protected void Latitude_ExpectParseLiteralToMatchNegativePrecision()
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = new StringValueNode("39° 51\' 21.600\" N");
-            var expectedResult = 39.85;
+            var valueSyntax = new StringValueNode("90° 0' 0.000\" S");
+            var expectedResult = -90.0;
 
             // act
-            object result = (double)scalar.ParseLiteral(valueSyntax)!;
+            object result = Math.Round(
+                (double) scalar.ParseLiteral(valueSyntax)!,
+                0,
+                MidpointRounding.AwayFromZero);
+
+            // assert
+            Assert.Equal(expectedResult, result);
+        }
+
+        [Fact]
+        protected void Latitude_ExpectParseLiteralToMatchPositivePrecision()
+        {
+            // arrange
+            ScalarType scalar = CreateType<LatitudeType>();
+            var valueSyntax = new StringValueNode("90° 0' 0.000\" N");
+            var expectedResult = 90.0;
+
+            // act
+            object result = Math.Round(
+                (double) scalar.ParseLiteral(valueSyntax)!,
+                0,
+                MidpointRounding.AwayFromZero);
+
+            // assert
+            Assert.Equal(expectedResult, result);
+        }
+
+        [Fact]
+        protected void Latitude_ExpectParseLiteralToMatchNegativePrecision_OneDecimal()
+        {
+            // arrange
+            ScalarType scalar = CreateType<LatitudeType>();
+            var valueSyntax = new StringValueNode("38° 36' 0.000\" S");
+            var expectedResult = -38.6;
+
+            // act
+            object result = Math.Round(
+                (double) scalar.ParseLiteral(valueSyntax)!,
+                1,
+                MidpointRounding.AwayFromZero);
 
             // assert
             Assert.Equal(expectedResult, result);
