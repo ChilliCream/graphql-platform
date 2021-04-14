@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using HotChocolate.Types;
-using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore
 {

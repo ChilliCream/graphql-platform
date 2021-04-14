@@ -6,6 +6,7 @@ using HotChocolate.AspNetCore.Utilities;
 using Newtonsoft.Json;
 using Snapshooter.Xunit;
 using Xunit;
+using System.IO;
 
 namespace HotChocolate.AspNetCore
 {
@@ -287,15 +288,15 @@ namespace HotChocolate.AspNetCore
                     Query = query,
                     Variables = new Dictionary<string, object>
                     {
-                        { 
-                            "input", 
+                        {
+                            "input",
                             new List<object>
                             {
-                                new List<object> 
-                                { 
+                                new List<object>
+                                {
                                     new Dictionary<string, object> { { "file", null } }
                                 }
-                            }  
+                            }
                         }
                     }
                 });
@@ -314,5 +315,47 @@ namespace HotChocolate.AspNetCore
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Upload_Too_Large_File_Test()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            var query = @"
+                query ($upload: Upload!) {
+                    singleUpload(file: $upload)
+                }";
+
+            var request = JsonConvert.SerializeObject(
+                new ClientQueryRequest
+                {
+                    Query = query,
+                    Variables = new Dictionary<string, object>
+                    {
+                        { "upload", null }
+                    }
+                });
+
+            var count = 1024 * 1024 * 129;
+            var buffer = new byte[count];
+
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                buffer[i] = 0xFF;
+            }
+
+            // act
+            var form = new MultipartFormDataContent
+            {
+                { new StringContent(request), "operations" },
+                { new StringContent("{ \"1\": [\"variables.upload\"] }"), "map" },
+                { new ByteArrayContent(buffer), "1", "foo.bar" },
+            };
+
+            ClientQueryResult result = await server.PostMultipartAsync(form, path: "/upload");
+
+            // assert
+            result.MatchSnapshot();
+        }
     }
 }
