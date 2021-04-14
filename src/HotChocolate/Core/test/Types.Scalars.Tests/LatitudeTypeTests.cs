@@ -65,7 +65,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = 89.9;
+            var valueSyntax = 90.1;
 
             // act
             var result = scalar.IsInstanceOfType(valueSyntax);
@@ -261,7 +261,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public async Task Integration_DefaultUtcOffset()
+        public async Task Integration_Latitude()
         {
             // arrange
             IRequestExecutor executor = await new ServiceCollection()
