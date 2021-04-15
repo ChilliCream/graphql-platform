@@ -79,6 +79,15 @@ extend type Query {
 </ExampleTabs.Schema>
 </ExampleTabs>
 
+> Note: Type extensions need to be registered with the GraphQL configuration. If you are using ASP.NET core head over to your `Startup.cs` and add the type extension with `AddTypeExtension` to your schema.
+>
+> ```csharp
+> services
+>    .AddGraphQLServer()
+>    .AddQueryType<Query>()
+>    .AddTypeExtension<QueryExtensions>();
+> ```
+
 # Extending types with the annotation-based approach
 
 Extending types can be beneficial even with non-root types. Let's say we are building a schema with the annotation-based approach where we use pure C# to describe our types.

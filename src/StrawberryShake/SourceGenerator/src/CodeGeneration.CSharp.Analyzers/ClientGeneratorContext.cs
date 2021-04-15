@@ -10,9 +10,6 @@ using HotChocolate.Language;
 using Newtonsoft.Json;
 using StrawberryShake.Tools.Configuration;
 using IOPath = System.IO.Path;
-using static StrawberryShake.CodeGeneration.ErrorHelper;
-using static StrawberryShake.CodeGeneration.CSharp.Analyzers.SourceGeneratorErrorCodes;
-using static StrawberryShake.CodeGeneration.CSharp.Analyzers.DiagnosticErrorHelper;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 {
@@ -85,10 +82,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     return JsonConvert
                         .DeserializeObject<IEnumerable<SourceDocumentDto>>(json)
                         .Select(dto => new SourceDocument(
-                            dto.Name, 
-                            dto.SourceText, 
-                            dto.Kind, 
-                            dto.Hash, 
+                            dto.Name,
+                            dto.SourceText,
+                            dto.Kind,
+                            dto.Hash,
                             dto.Path))
                         .ToArray();
                 }
@@ -113,8 +110,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             File.WriteAllText(
                 fileName,
                 JsonConvert.SerializeObject(
-                    sourceDocuments.Select(doc => new SourceDocumentDto 
-                    { 
+                    sourceDocuments.Select(doc => new SourceDocumentDto
+                    {
                         Name = doc.Name,
                         Path = doc.Path,
                         Hash = doc.Hash,
@@ -130,30 +127,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     .SetException(exception)
                     .Build());
 
-        public void ReportError(IError error) => ReportError(new[] { error });
+        public void ReportError(IError error) => Execution.ReportError(error);
 
         public void ReportError(IEnumerable<IError> errors)
         {
             foreach (IError error in errors)
             {
-                string title =
-                    error.Extensions is not null &&
-                    error.Extensions.TryGetValue(TitleExtensionKey, out var value) &&
-                    value is string s ? s : Unexpected;
-
-                string code = error.Code ?? Unexpected;
-
-                if (error is { Locations: { Count: > 0 } locations } &&
-                    error.Extensions is not null &&
-                    error.Extensions.TryGetValue(FileExtensionKey, out value) &&
-                    value is string filePath)
-                {
-                    ReportFileError(Execution, error, locations.First(), title, code, filePath);
-                }
-                else
-                {
-                    ReportGeneralError(Execution, error, title, code);
-                }
+                Execution.ReportError(error);
             }
         }
 
