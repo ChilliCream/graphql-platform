@@ -63,9 +63,9 @@ namespace HotChocolate.AspNetCore
                 var formFeature = new FormFeature(httpRequest, _formOptions);
                 form = await formFeature.ReadFormAsync(cancellationToken);
             }
-            catch
+            catch (Exception exception)
             {
-                throw ThrowHelper.HttpMultipartMiddleware_Form_Incomplete();
+                throw ThrowHelper.HttpMultipartMiddleware_Invalid_Form(exception);
             }
 
             // Parse the string values of interest from the IFormCollection

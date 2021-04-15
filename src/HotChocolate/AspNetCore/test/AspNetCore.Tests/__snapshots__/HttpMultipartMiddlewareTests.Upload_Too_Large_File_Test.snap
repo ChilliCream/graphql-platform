@@ -7,7 +7,7 @@
       "message": "The multipart form could not be read.",
       "extensions": {
         "code": "HC0033",
-        "underlyingError": "Form section has invalid Content-Disposition value: "
+        "underlyingError": "Multipart body length limit 134217728 exceeded."
       }
     }
   ],
