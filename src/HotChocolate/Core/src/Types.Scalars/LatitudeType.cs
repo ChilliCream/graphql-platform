@@ -9,7 +9,7 @@ namespace HotChocolate.Types
     /// The `LatitudeType` scalar represents a valid decimal degrees latitude number.
     /// <a>https://en.wikipedia.org/wiki/Latitude</a>
     /// </summary>
-    public class LatitudeType : ScalarType<double, StringValueNode>
+    public class LatitudeType : ScalarType<decimal, StringValueNode>
     {
         /// <summary>
         /// Initializes a new instance of <see cref="LatitudeType"/>
@@ -44,26 +44,26 @@ namespace HotChocolate.Types
                               Latitude.TryDeserializeFromString(s, out var value) =>
                     ParseValue(value),
 
-                double d => ParseValue(d),
+                decimal d => ParseValue(d),
 
                 _ => throw ThrowHelper.LatitudeType_ParseValue_IsInvalid(this)
             };
         }
 
         /// <inheritdoc />
-        protected override double ParseLiteral(StringValueNode valueSyntax)
+        protected override decimal ParseLiteral(StringValueNode valueSyntax)
         {
             if (Latitude.TryDeserializeFromString(valueSyntax.Value, out var value) &&
                 value != null)
             {
-                return Math.Round(value.Value, Latitude._maxPrecision, MidpointRounding.AwayFromZero);
+                return value.Value;
             }
 
             throw ThrowHelper.LatitudeType_ParseLiteral_IsInvalid(this);
         }
 
         /// <inheritdoc />
-        protected override StringValueNode ParseValue(double runtimeValue)
+        protected override StringValueNode ParseValue(decimal runtimeValue)
         {
             if (runtimeValue is < Latitude._minValue or > Latitude._maxValue)
             {
@@ -79,8 +79,8 @@ namespace HotChocolate.Types
 
         private static class Latitude
         {
-            internal const double _minValue = -90.0;
-            internal const double _maxValue = 90.0;
+            internal const decimal _minValue = -90.0m;
+            internal const decimal _maxValue = 90.0m;
             // https://en.wikipedia.org/wiki/Decimal_degrees#Precision
             internal const int _maxPrecision = 8;
 
@@ -97,14 +97,14 @@ namespace HotChocolate.Types
                 return _rx.IsMatch(s);
             }
 
-            internal static bool TryDeserializeFromString(string serialized, out double? value)
+            internal static bool TryDeserializeFromString(string serialized, out decimal? value)
             {
                 MatchCollection coords = _rx.Matches(serialized);
                 if (coords.Count > 0)
                 {
-                    var minute = double.TryParse(coords[0].Groups[2].Value, out var min) ? min / 60 : 0;
-                    var second = double.TryParse(coords[0].Groups[4].Value, out var sec) ? sec / 3600 : 0;
-                    var degree = double.Parse(coords[0].Groups[1].Value);
+                    var minute = decimal.TryParse(coords[0].Groups[2].Value, out var min) ? min / 60 : 0;
+                    var second = decimal.TryParse(coords[0].Groups[4].Value, out var sec) ? sec / 3600 : 0;
+                    var degree = decimal.Parse(coords[0].Groups[1].Value);
                     var result = degree + minute + second;
 
                     // Southern and western coordinates must be negative decimals
