@@ -18,7 +18,7 @@ namespace StrawberryShake.Tools.Configuration
 
         public bool UseSingleFile { get; set; } = true;
 
-        public RequestStrategy RequestStrategy { get; set; } = 
+        public RequestStrategy RequestStrategy { get; set; } =
             RequestStrategy.Default;
 
         public string OutputDirectoryName { get; set; } = "Generated";
@@ -28,13 +28,12 @@ namespace StrawberryShake.Tools.Configuration
         public bool EmitGeneratedCode { get; set; } = true;
 
         public StrawberryShakeSettingsRecords Records { get; } =
-            new StrawberryShakeSettingsRecords
+            new()
             {
                 Inputs = false,
                 Entities = false
             };
 
-        public List<StrawberryShakeTransportSettings> TransportProfiles { get; } =
-            new List<StrawberryShakeTransportSettings>();
+        public List<StrawberryShakeTransportSettings> TransportProfiles { get; } = new();
     }
 }
