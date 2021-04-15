@@ -29,7 +29,7 @@ namespace HotChocolate.Execution.Batching
                 new CollectVariablesVisitationMap();
             private DocumentNode? _previous;
             private Dictionary<string, FragmentDefinitionNode>? _fragments;
-            private bool _allowParallelExecution;
+            private readonly bool _allowParallelExecution;
             private readonly List<IContextBatchDispatcher> _batchDispatchers;
             private static readonly List<IContextBatchDispatcher> EmptyBatchDispatchers = new();
 
@@ -146,11 +146,11 @@ namespace HotChocolate.Execution.Batching
 
             private class WorkItem
             {
-                private BatchExecutorEnumerable _parent;
-                private IReadOnlyQueryRequest _request = default!;
-                private OperationDefinitionNode _operation = default!;
-                private int _exportCount;
-                private IQueryResult _error = default!;
+                private readonly BatchExecutorEnumerable _parent;
+                private readonly IReadOnlyQueryRequest _request = default!;
+                private readonly OperationDefinitionNode _operation = default!;
+                private readonly int _exportCount;
+                private readonly IQueryResult _error = default!;
 
                 public WorkItem(IReadOnlyQueryRequest request, BatchExecutorEnumerable parent)
                 {

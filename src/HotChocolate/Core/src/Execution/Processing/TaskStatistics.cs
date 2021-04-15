@@ -44,13 +44,10 @@ namespace HotChocolate.Execution.Processing
             var allTasks = _allTasks;
             var completedTasks = Interlocked.Increment(ref _completedTasks);
 
-            if (allTasks == completedTasks)
+            if (allTasks == completedTasks && _suspendCompletionEvent == 0)
             {
-                if (_suspendCompletionEvent == 0)
-                {
-                    IsCompleted = true;
-                    AllTasksCompleted?.Invoke(this, _empty);
-                }
+                IsCompleted = true;
+                AllTasksCompleted?.Invoke(this, _empty);
             }
         }
 
@@ -61,13 +58,10 @@ namespace HotChocolate.Execution.Processing
 
         public void ResumeCompletionEvent()
         {
-            if (0 == Interlocked.Decrement(ref _suspendCompletionEvent))
+            if (0 == Interlocked.Decrement(ref _suspendCompletionEvent) && !IsCompleted && _allTasks == _completedTasks)
             {
-                if (!IsCompleted && _allTasks == _completedTasks)
-                {
-                    IsCompleted = true;
-                    AllTasksCompleted?.Invoke(this, _empty);
-                }
+                IsCompleted = true;
+                AllTasksCompleted?.Invoke(this, _empty);
             }
         }
 
