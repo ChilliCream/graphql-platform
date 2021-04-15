@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="StrawberryShake.CodeGeneration.CSharp" Version="11.2.0-local.605" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="StrawberryShake.CodeGeneration.CSharp" Version="11.2.0-local.700" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="DotNet.Glob" Version="3.1.2" PrivateAssets="all" GeneratePathProperty="true" />
   </ItemGroup>
 
@@ -36,6 +36,21 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Tooling\src\Configuration\StrawberryShake.Tools.Configuration.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\AnalyzerResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>AnalyzerResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\AnalyzerResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AnalyzerResources.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>
