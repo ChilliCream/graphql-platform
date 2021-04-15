@@ -105,9 +105,9 @@ namespace HotChocolate.Types
                 MatchCollection coords = _rx.Matches(serialized);
                 if (coords.Count > 0)
                 {
-                    var degree = double.Parse(coords[0].Groups[1].Value);
                     var minute = double.TryParse(coords[0].Groups[2].Value, out var min) ? min / 60 : 0;
                     var second = double.TryParse(coords[0].Groups[4].Value, out var sec) ? sec / 3600 : 0;
+                    var degree = double.Parse(coords[0].Groups[1].Value);
                     var result = degree + minute + second;
 
                     // Southern and western coordinates must be negative decimals

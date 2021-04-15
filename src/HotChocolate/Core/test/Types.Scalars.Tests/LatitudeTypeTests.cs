@@ -125,7 +125,7 @@ namespace HotChocolate.Types
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
             var valueSyntax = new StringValueNode("66° 0' 21.983\" N");
-            var expectedResult = 76.82079028;
+            var expectedResult = 66.00610639;
 
             // act
             object result = (double)scalar.ParseLiteral(valueSyntax)!;
@@ -139,8 +139,8 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = new StringValueNode("23° 19' 19.453\" S");
-            var expectedResult = -23.3220703;
+            var valueSyntax = new StringValueNode("66° 54' 0.000\" S");
+            var expectedResult = -66.9;
 
             // act
             object result = scalar.ParseLiteral(valueSyntax)!;
