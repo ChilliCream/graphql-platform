@@ -27,7 +27,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
         /// <summary>
         /// Gets the type kind.
         /// </summary>
-        public TypeKind Kind => TypeKind.LeafType;
+        public TypeKind Kind => TypeKind.Leaf;
 
         /// <summary>
         /// Gets the .NET runtime type of the GraphQL type.

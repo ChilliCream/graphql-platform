@@ -48,7 +48,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         processed);
 
                     if (property.Type.NamedType() is ComplexTypeDescriptor ct &&
-                        !ct.IsLeafType() && !stopAtEntityMappers)
+                        !ct.IsLeaf() && !stopAtEntityMappers)
                     {
                         AddRequiredMapMethods(
                             settings,
@@ -82,7 +82,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 InterfaceTypeDescriptor
                 {
                     ImplementedBy: { Count: > 1 },
-                    Kind: TypeKind.EntityType,
+                    Kind: TypeKind.Entity,
                     ParentRuntimeType: { } parentRuntimeType
                 } => parentRuntimeType!.Name,
 
@@ -107,7 +107,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         {
             string methodName = MapMethodNameFromTypeName(typeReference);
 
-            if (!typeReference.IsLeafType() && processed.Add(methodName))
+            if (!typeReference.IsLeaf() && processed.Add(methodName))
             {
                 MethodBuilder methodBuilder = MethodBuilder
                     .New()
@@ -153,19 +153,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         {
             switch (property.Type.Kind)
             {
-                case TypeKind.LeafType:
+                case TypeKind.Leaf:
                     return CodeInlineBuilder.From($"{objectName}.{property.Name}");
 
-                case TypeKind.ComplexDataType:
-                case TypeKind.DataType:
-                case TypeKind.EntityType:
+                case TypeKind.AbstractData:
+                case TypeKind.Data:
+                case TypeKind.Entity:
                     MethodCallBuilder mapperMethodCall =
                         MethodCallBuilder
                             .Inline()
                             .SetMethodName(MapMethodNameFromTypeName(property.Type));
 
                     ICode argString = CodeInlineBuilder.From($"{objectName}.{property.Name}");
-                    if (addNullCheck && property.Type.IsNonNullableType())
+                    if (addNullCheck && property.Type.IsNonNullable())
                     {
                         argString = NullCheckBuilder
                             .Inline()
@@ -204,10 +204,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         isNonNullable);
                     break;
 
-                case ComplexTypeDescriptor { Kind: TypeKind.LeafType }:
+                case ComplexTypeDescriptor { Kind: TypeKind.Leaf }:
                     break;
 
-                case ComplexTypeDescriptor { Kind: TypeKind.ComplexDataType } d:
+                case ComplexTypeDescriptor { Kind: TypeKind.AbstractData } d:
                     AddComplexDataHandler(
                         settings,
                         classBuilder,
@@ -218,7 +218,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         isNonNullable);
                     break;
 
-                case ComplexTypeDescriptor { Kind: TypeKind.DataType } d:
+                case ComplexTypeDescriptor { Kind: TypeKind.Data } d:
                     AddDataHandler(
                         settings,
                         classBuilder,
@@ -229,7 +229,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         isNonNullable);
                     break;
 
-                case ComplexTypeDescriptor { Kind: TypeKind.EntityType } d:
+                case ComplexTypeDescriptor { Kind: TypeKind.Entity } d:
                     AddEntityHandler(
                         classBuilder,
                         constructorBuilder,

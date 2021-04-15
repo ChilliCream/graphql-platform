@@ -110,12 +110,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             foreach (PropertyDescriptor prop in objectTypeDescriptor.Properties)
             {
-                if (prop.Type.IsEntityType() || prop.Type.IsDataType())
+                if (prop.Type.IsEntity() || prop.Type.IsData())
                 {
                     constructorCall.AddArgument(
                         BuildMapMethodCall(settings, matchedTypeName, prop));
                 }
-                else if (prop.Type.IsNonNullableType())
+                else if (prop.Type.IsNonNullable())
                 {
                     if (prop.Type.InnerType() is ILeafTypeDescriptor
                         { RuntimeType: { IsValueType: true } })
