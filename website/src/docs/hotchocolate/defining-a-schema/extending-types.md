@@ -79,14 +79,14 @@ extend type Query {
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-In Startup.cs you need to register your extension classes using AddTypeExtension.
-
-```csharp
-services
-    .AddGraphQLServer()
-    .AddQueryType<Query>()
-    .AddTypeExtension<QueryExtensions>();
-```
+> Note: Type extensions need to be registered with the GraphQL configuration. If you are using ASP.NET core head over to your `Startup.cs` and add the type extension with `AddTypeExtension` to your schema.
+>
+> ```csharp
+> services
+>    .AddGraphQLServer()
+>    .AddQueryType<Query>()
+>    .AddTypeExtension<QueryExtensions>();
+> ```
 
 # Extending types with the annotation-based approach
 
