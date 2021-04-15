@@ -19,8 +19,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
     [Generator]
     public class CSharpClientGenerator : ISourceGenerator
     {
-        private const string _category = "StrawberryShakeGenerator";
-
         private static string _location = System.IO.Path.GetDirectoryName(
             typeof(CSharpClientGenerator).Assembly.Location)!;
 
@@ -357,8 +355,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 {
                     string json = File.ReadAllText(configLocation);
                     var config = JsonConvert.DeserializeObject<GraphQLConfig>(json);
-                    config.Location = configLocation;
-                    list.Add(config);
+
+                    if (NameUtils.IsValidGraphQLName(config.Extensions.StrawberryShake.Name))
+                    {
+                        config.Location = configLocation;
+                        list.Add(config);
+                    }
+                    else
+                    {
+                        ReportInvalidClientName(
+                            context,
+                            config.Extensions.StrawberryShake.Name,
+                            configLocation);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -406,13 +415,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             }
 
             return _location;
-        }
-    }
-
-    public class SyntaxReceiver : ISyntaxReceiver
-    {
-        public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
-        {
         }
     }
 }

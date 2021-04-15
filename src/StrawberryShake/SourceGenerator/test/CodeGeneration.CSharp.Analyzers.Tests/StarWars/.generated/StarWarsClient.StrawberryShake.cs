@@ -575,7 +575,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State
 {
     // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.2.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class PersonEntity
     {
         public PersonEntity(global::System.String name = default !, global::System.String email = default !, global::System.Boolean isOnline = default !, global::System.DateTimeOffset lastSeen = default !)
@@ -879,7 +879,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     ///<summary>A connection to a list of items.</summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.2.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class PersonConnectionData
     {
         public PersonConnectionData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? nodes = default !)
