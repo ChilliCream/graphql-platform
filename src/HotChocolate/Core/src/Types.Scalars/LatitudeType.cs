@@ -56,7 +56,10 @@ namespace HotChocolate.Types
             if (Latitude.TryDeserializeFromString(valueSyntax.Value, out var value) &&
                 value != null)
             {
-                return value.Value;
+                return Math.Round(
+                    value.Value,
+                    Latitude._maxPrecision,
+                    MidpointRounding.AwayFromZero);
             }
 
             throw ThrowHelper.LatitudeType_ParseLiteral_IsInvalid(this);
@@ -105,7 +108,7 @@ namespace HotChocolate.Types
                     var degree = double.Parse(coords[0].Groups[1].Value);
                     var minute = double.TryParse(coords[0].Groups[2].Value, out var min) ? min / 60 : 0;
                     var second = double.TryParse(coords[0].Groups[4].Value, out var sec) ? sec / 3600 : 0;
-                    var result = Math.Round(degree + minute + second, _maxPrecision, MidpointRounding.AwayFromZero);
+                    var result = degree + minute + second;
 
                     // Southern and western coordinates must be negative decimals
                     value = coords[0].Groups[7].Value is "W" or "S" ? -result : result;
