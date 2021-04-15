@@ -3,7 +3,7 @@
   "documents": "**/*.graphql",
   "extensions": {
     "strawberryShake": {
-      "name": "StarWars.Client",
+      "name": "StarWarsClient",
       "url": "http://localhost:5000",
       "dependencyInjection": true,
       "requestStrategy": "PersistedQuery",
