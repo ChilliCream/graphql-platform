@@ -56,10 +56,7 @@ namespace HotChocolate.Types
             if (Latitude.TryDeserializeFromString(valueSyntax.Value, out var value) &&
                 value != null)
             {
-                return Math.Round(
-                    value.Value,
-                    Latitude._maxPrecision,
-                    MidpointRounding.AwayFromZero);
+                return Math.Round(value.Value, Latitude._maxPrecision, MidpointRounding.AwayFromZero);
             }
 
             throw ThrowHelper.LatitudeType_ParseLiteral_IsInvalid(this);
