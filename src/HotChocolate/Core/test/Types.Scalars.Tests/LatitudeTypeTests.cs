@@ -113,7 +113,7 @@ namespace HotChocolate.Types
             var expectedResult = 39.856;
 
             // act
-            object result = (double)scalar.ParseLiteral(valueSyntax)!;
+            object result = scalar.ParseLiteral(valueSyntax)!;
 
             // assert
             Assert.Equal(expectedResult, result);
@@ -125,7 +125,7 @@ namespace HotChocolate.Types
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
             var valueSyntax = new StringValueNode("66° 0' 21.983\" N");
-            var expectedResult = 66.00610639;
+            var expectedResult = 76.82079028;
 
             // act
             object result = (double)scalar.ParseLiteral(valueSyntax)!;
@@ -139,11 +139,11 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = new StringValueNode("23° 6' 23.997\" S");
-            var expectedResult = -23.10666583;
+            var valueSyntax = new StringValueNode("23° 19' 19.453\" S");
+            var expectedResult = -23.3220703;
 
             // act
-            object result = (double)scalar.ParseLiteral(valueSyntax)!;
+            object result = scalar.ParseLiteral(valueSyntax)!;
 
             // assert
             Assert.Equal(expectedResult, result);
@@ -158,7 +158,7 @@ namespace HotChocolate.Types
             var expectedResult = -6.1806;
 
             // act
-            object result = (double)scalar.ParseLiteral(valueSyntax)!;
+            object result = scalar.ParseLiteral(valueSyntax)!;
 
             // assert
             Assert.Equal(expectedResult, result);
