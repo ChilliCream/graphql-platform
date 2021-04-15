@@ -30,8 +30,8 @@
   <data name="ThrowHelper_DataStartMessageHandler_RequestTypeNotSupported" xml:space="preserve">
     <value>The response type is not supported.</value>
   </data>
-  <data name="ThrowHelper_HttpMultipartMiddleware_Form_Incomplete" xml:space="preserve">
-    <value>At least an 'operations' field and a 'map' field need to be present.</value>
+  <data name="ThrowHelper_HttpMultipartMiddleware_Invalid_Form" xml:space="preserve">
+    <value>The multipart form could not be read.</value>
   </data>
   <data name="ThrowHelper_HttpMultipartMiddleware_No_Operations_Specified" xml:space="preserve">
     <value>No 'operations' specified.</value>
