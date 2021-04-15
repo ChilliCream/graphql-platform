@@ -26,6 +26,6 @@
  `dotnet add package {0}`</value>
   </data>
   <data name="DiagnosticErrorHelper_ReportInvalidClientName_Message" xml:space="preserve">
-    <value>The client name `{0}` is invalid. A valid client name must start with an ASCII letter or an underscore and can contain digits.</value>
+    <value>The client name `{0}` is invalid. A valid client name must start with an ASCII letter or an underscore and can contain ASCII letters, digits and underscores.</value>
   </data>
 </root>
