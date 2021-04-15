@@ -63,10 +63,18 @@ namespace HotChocolate.Execution.Processing
             {
                 try
                 {
-                    while (!cancellationToken.IsCancellationRequested &&
-                        executionContext.TaskBacklog.TryTake(out IExecutionTask? task))
+                    executionContext.ContextBatchDispatcher.Suspend();
+                    try
                     {
-                        task.BeginExecute(cancellationToken);
+                        while (!cancellationToken.IsCancellationRequested &&
+                               executionContext.TaskBacklog.TryTake(out IExecutionTask? task))
+                        {
+                            task.BeginExecute(cancellationToken);
+                        }
+                    }
+                    finally
+                    {
+                        executionContext.ContextBatchDispatcher.Resume();
                     }
 
                     await executionContext.TaskBacklog
