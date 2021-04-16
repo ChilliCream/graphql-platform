@@ -11,6 +11,7 @@ using StrawberryShake.CodeGeneration.Extensions;
 using TypeKind = StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.TypeKind;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
+using StrawberryShake.CodeGeneration.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
@@ -445,7 +446,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         new(enumTypeModel.Name, context.Namespace, isValueType: true),
                         enumTypeModel.UnderlyingType is null
                             ? null
-                            : TypeInfos.From(enumTypeModel.UnderlyingType),
+                            : model.Schema.GetOrCreateTypeInfo(enumTypeModel.UnderlyingType),
                         enumTypeModel.Values
                             .Select(
                                 t => new EnumValueDescriptor(t.Name, t.Value.Name, t.Description))
@@ -458,8 +459,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 {
                     descriptor = new ScalarTypeDescriptor(
                         leafType.Name,
-                        TypeInfos.From(leafType.RuntimeType),
-                        TypeInfos.From(leafType.SerializationType));
+                        model.Schema.GetOrCreateTypeInfo(leafType.RuntimeType),
+                        model.Schema.GetOrCreateTypeInfo(leafType.SerializationType));
 
                     leafTypeDescriptors.Add(leafType.Name, descriptor);
                 }

@@ -455,7 +455,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .AddArgument(_services);
             }
 
-            RuntimeTypeInfo stringTypeInfo = TypeInfos.From(TypeNames.String);
+            RuntimeTypeInfo stringTypeInfo = new RuntimeTypeInfo(TypeNames.String);
             foreach (var scalar in descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
             {
                 if (scalar.RuntimeType.Equals(stringTypeInfo) &&
