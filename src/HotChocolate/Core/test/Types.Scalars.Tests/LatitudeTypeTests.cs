@@ -128,7 +128,10 @@ namespace HotChocolate.Types
             var expectedResult = 66.00610639m;
 
             // act
-            object result = (decimal)scalar.ParseLiteral(valueSyntax)!;
+            object result = Math.Round((decimal)scalar.ParseLiteral(
+                valueSyntax)!,
+                8,
+                MidpointRounding.AwayFromZero);
 
                 // assert
             Assert.Equal(expectedResult, result);

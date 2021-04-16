@@ -65,7 +65,7 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override StringValueNode ParseValue(decimal runtimeValue)
         {
-            if (runtimeValue is < Latitude._minValue or > Latitude._maxValue)
+            if (runtimeValue is < Latitude._minLat or > Latitude._maxLat)
             {
                 return new StringValueNode(
                     Math.Round(
@@ -79,8 +79,8 @@ namespace HotChocolate.Types
 
         private static class Latitude
         {
-            internal const decimal _minValue = -90.0m;
-            internal const decimal _maxValue = 90.0m;
+            internal const decimal _minLat = -90.0m;
+            internal const decimal _maxLat = 90.0m;
             // https://en.wikipedia.org/wiki/Decimal_degrees#Precision
             internal const int _maxPrecision = 8;
 
