@@ -13,8 +13,7 @@ namespace StrawberryShake.Tools.Configuration
 
         public string? Location { get; set; }
 
-        public GraphQLConfigExtensions Extensions { get; } =
-            new GraphQLConfigExtensions();
+        public GraphQLConfigExtensions Extensions { get; } = new();
 
         public override string ToString()
         {

@@ -1,0 +1,4 @@
+extend scalar CustomScalar 
+    @runtimeType(name: "global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.Custom")
+
+extend schema @key(fields: "id")
