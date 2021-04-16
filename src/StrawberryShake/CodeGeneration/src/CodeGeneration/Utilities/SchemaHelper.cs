@@ -76,9 +76,9 @@ namespace StrawberryShake.CodeGeneration.Utilities
 
                     builder.AddDocument(document);
                 }
-
-                AddDefaultScalarInfos(leafTypes);
             }
+
+            AddDefaultScalarInfos(leafTypes);
 
             return builder
                 .SetSchema(d => d.Extend().OnBeforeCreate(
