@@ -545,7 +545,7 @@ namespace HotChocolate.Execution.Batching
                 //       is ever made more deterministic (3 is the optimal amount of data loads
                 //       however the feature is still a valid improvement even it makes a few more)
                 await batchResult.ToJsonAsync();
-                Assert.InRange(batchCount, 3, 5);
+                Assert.InRange(batchCount, 3, 6);
                 
                 // await batchResult.ToJsonAsync().MatchSnapshotAsync();
             }
