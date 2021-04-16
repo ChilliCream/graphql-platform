@@ -14,7 +14,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
         {
             Name = name;
             RuntimeType = runtimeType;
-            SerializationType = TypeInfos.From(TypeNames.String);
+            SerializationType = new RuntimeTypeInfo(TypeNames.String);
             UnderlyingType = underlyingType;
             Values = values;
         }

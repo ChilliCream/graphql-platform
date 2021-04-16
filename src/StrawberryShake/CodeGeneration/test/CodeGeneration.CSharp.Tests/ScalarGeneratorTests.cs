@@ -52,6 +52,17 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "extend schema @key(fields: \"id\")");
 
         [Fact]
+        public void Custom_Scalar_With_Unknown_RuntimeType() =>
+            AssertResult(
+                "query GetPerson { person { name email } }",
+                "type Query { person: Person }",
+                "type Person { name: String! email: Email }",
+                "scalar Email",
+                @"extend scalar Email @runtimeType(
+                    name: ""global::StrawberryShake.CodeGeneration.CSharp.Custom"")",
+                "extend schema @key(fields: \"id\")");
+
+        [Fact]
         public void Custom_Scalar_With_SerializationType() =>
             AssertResult(
                 "query GetPerson { person { name email } }",
@@ -131,4 +142,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "extend schema @key(fields: \"id\")");
         }
     }
+
+    public class Custom { }
 }
