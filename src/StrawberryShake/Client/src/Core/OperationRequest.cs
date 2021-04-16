@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Security.Cryptography;
 using StrawberryShake.Internal;
 using StrawberryShake.Json;
@@ -201,7 +203,15 @@ namespace StrawberryShake
                     return false;
                 }
 
-                if (!Equals(a, b))
+                if (a is IEnumerable aEnumerable && b is IEnumerable bEnumerable)
+                {
+                    // Check the contents of the collection, assuming order is important
+                    if (!aEnumerable.Cast<object>().SequenceEqual(bEnumerable.Cast<object>()))
+                    {
+                        return false;
+                    }
+                }
+                else if (!Equals(a, b))
                 {
                     return false;
                 }
