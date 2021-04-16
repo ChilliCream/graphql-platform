@@ -60,15 +60,6 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        public IContextBatchDispatcher ContextBatchDispatcher
-        {
-            get
-            {
-                AssertNotPooled();
-                return _batchDispatcher;
-            }
-        }
-
         public IExecutionTaskContext TaskContext
         {
             get

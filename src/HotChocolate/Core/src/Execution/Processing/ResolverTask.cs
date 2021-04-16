@@ -12,18 +12,16 @@ namespace HotChocolate.Execution.Processing
         private readonly MiddlewareContext _context = new MiddlewareContext();
         private IOperationContext _operationContext = default!;
         private ISelection _selection = default!;
-        private Task _task = default!;
+        private ValueTask _task;
 
-        public bool IsCompleted => _task?.IsCompleted ?? false;
+        public bool IsCompleted => _task.IsCompleted;
 
         public bool IsCanceled { get; private set; }
 
         public void BeginExecute(CancellationToken cancellationToken)
         {
             _operationContext.Execution.TaskStats.TaskStarted();
-            _task = Task.Factory.StartNew(
-                async () => await TryExecuteAndCompleteAsync(cancellationToken),
-                TaskCreationOptions.PreferFairness);
+            _task = TryExecuteAndCompleteAsync(cancellationToken);
         }
 
         private async ValueTask TryExecuteAndCompleteAsync(CancellationToken cancellationToken)

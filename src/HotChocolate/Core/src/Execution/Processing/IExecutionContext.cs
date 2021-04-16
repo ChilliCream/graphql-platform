@@ -31,11 +31,6 @@ namespace HotChocolate.Execution.Processing
         /// </summary>
         IBatchDispatcher BatchDispatcher { get; }
 
-        /// <summary>
-        /// Gets the context batch dispatcher.
-        /// </summary>
-        IContextBatchDispatcher ContextBatchDispatcher { get; }
-
         bool IsCompleted { get; }
 
         void Reset();

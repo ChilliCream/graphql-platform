@@ -63,7 +63,7 @@ namespace HotChocolate.Fetching
         {
             private readonly IExecutionTaskContext _context;
             private readonly IReadOnlyList<Func<ValueTask>> _tasks;
-            private Task _task = default!;
+            private ValueTask _task;
 
             public BatchExecutionTask(
                 IExecutionTaskContext context,
@@ -73,16 +73,14 @@ namespace HotChocolate.Fetching
                 _tasks = tasks;
             }
 
-            public bool IsCompleted => _task?.IsCompleted ?? false;
+            public bool IsCompleted => _task.IsCompleted;
 
             public bool IsCanceled { get; private set; }
 
             public void BeginExecute(CancellationToken cancellationToken)
             {
                 _context.Started();
-                _task = Task.Factory.StartNew(
-                    async () => await ExecuteAsync(cancellationToken),
-                    TaskCreationOptions.PreferFairness);
+                _task = ExecuteAsync(cancellationToken);
             }
 
             private async ValueTask ExecuteAsync(CancellationToken cancellationToken)

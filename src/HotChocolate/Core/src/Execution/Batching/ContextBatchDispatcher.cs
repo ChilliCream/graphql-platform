@@ -16,7 +16,6 @@ namespace HotChocolate.Execution.Batching
         private readonly IBatchDispatcher _dispatcher;
         private readonly ConcurrentDictionary<IExecutionContext, bool> _contexts = new();
         private int _suspended = 0;
-        private Task _task = default!;
 
         public ContextBatchDispatcher(IBatchDispatcher dispatcher)
         {
@@ -68,11 +67,9 @@ namespace HotChocolate.Execution.Batching
 
         private void TryDispatch()
         {
-            if (_suspended == 0 && _contexts.All(x => x.Key.TaskBacklog.IsEmpty ) && _dispatcher.HasTasks && _task is null)
+            if (_suspended == 0 && _contexts.All(x => x.Key.TaskBacklog.IsEmpty ) && _dispatcher.HasTasks)
             {
-                _task = Task.Factory.StartNew(
-                    () => { try { Dispatch(); } finally { _task = default!; } },
-                    TaskCreationOptions.PreferFairness);
+                Dispatch();
             }
         }
 
@@ -109,7 +106,7 @@ namespace HotChocolate.Execution.Batching
             {
                 _dispatcher.Dispatch(taskDefinition =>
                 {
-                    safeContext.TaskBacklog.Register(taskDefinition.Create(new ContextDispatchBlocker(safeContext.TaskContext, this)));
+                    safeContext.TaskBacklog.Register(taskDefinition.Create(safeContext.TaskContext));
                 });
             }
             finally
