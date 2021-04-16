@@ -106,7 +106,7 @@ namespace HotChocolate.Execution.Batching
             {
                 _dispatcher.Dispatch(taskDefinition =>
                 {
-                    safeContext.TaskBacklog.Register(taskDefinition.Create(safeContext.TaskContext));
+                    safeContext.TaskBacklog.Register(taskDefinition.Create(new ContextDispatchBlocker(safeContext.TaskContext, this)));
                 });
             }
             finally
