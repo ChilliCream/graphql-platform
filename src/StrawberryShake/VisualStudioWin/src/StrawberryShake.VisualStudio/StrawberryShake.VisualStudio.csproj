@@ -47,13 +47,23 @@
   <ItemGroup>
     <Compile Include="AddGraphQLClient.cs" />
     <Compile Include="AsyncPackageExtensions.cs" />
+    <Compile Include="Messages\ConfigurationItem.cs" />
+    <Compile Include="Messages\GraphQLConfiguration.cs" />
     <Compile Include="GraphQLContentDefinition.cs" />
+    <Compile Include="Utilities\ConnectionFactory.cs" />
+    <Compile Include="Utilities\TeeStream.cs" />
+    <Compile Include="Messages\WorkspaceConfigurationRequest.cs" />
+    <Resource Include="Resources\graphql-file-16.png" />
+    <Content Include="Resources\language-server-win.exe">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="Syntaxes\GraphQL.tmLanguage">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="FileIcons.imagemanifest">
+    <Content Include="StrawberryShakePackage.imagemanifest">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Compile Include="GraphQLLanguageClient.MessageHandler.cs" />
     <Compile Include="GraphQLLanguageClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -125,7 +135,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Resources\Command1.png" />
-    <Content Include="Resources\graphql.png" />
+    <Content Include="Resources\graphql.png">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">

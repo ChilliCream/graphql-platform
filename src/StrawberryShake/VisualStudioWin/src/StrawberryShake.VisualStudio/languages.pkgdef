@@ -4,10 +4,10 @@
 
 ; Match file extensions with icons. See full icon list at https://glyphlist.azurewebsites.net/knownmonikers/
 [$RootKey$\ShellFileAssociations\.graphql]
-"DefaultIconMoniker"="d9bd2728-008e-4865-9387-67da8074c9fc:1"
+"DefaultIconMoniker"="d9bd2728-008e-4865-9387-67da8074c9fc:0"
 
 [$RootKey$\ShellFileAssociations\.gql]
-"DefaultIconMoniker"="d9bd2728-008e-4865-9387-67da8074c9fc:1"
+"DefaultIconMoniker"="d9bd2728-008e-4865-9387-67da8074c9fc:0"
 
 [$RootKey$\ShellFileAssociations\.graphcool]
-"DefaultIconMoniker"="d9bd2728-008e-4865-9387-67da8074c9fc:1"
+"DefaultIconMoniker"="d9bd2728-008e-4865-9387-67da8074c9fc:0"

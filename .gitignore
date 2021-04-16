@@ -311,3 +311,4 @@ src/All.sln
 
 # asp .net core
 appsettings.user.json
+language-server-win.exe
