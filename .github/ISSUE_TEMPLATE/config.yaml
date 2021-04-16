@@ -1,0 +1,9 @@
+
+blank_issues_enabled: false
+contact_links:
+  - name: Community Support on Slack
+    url: https://bit.ly/jointhechilli
+    about: Join us on slack! We have a vibrant community that is helping each other.
+  - name: Enterprise Support
+    url: https://chillicream.com/support
+    about: Get immediate access to a pool of ChilliCream experts which will support you along your journey.
