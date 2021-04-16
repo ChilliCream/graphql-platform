@@ -430,6 +430,16 @@ namespace HotChocolate.Execution.Batching
                         .SetQuery(
                             @"query { f7: foo(bar:""F"") }")
                         .TrySetServices(requestServices)
+                        .Create(),
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"query { corrupt: foo(wrongParamName:""F"") }")
+                        .TrySetServices(requestServices)
+                        .Create(),
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"query { f8: foo(bar:""G"") }")
+                        .TrySetServices(requestServices)
                         .Create()
                 };
 
@@ -462,33 +472,45 @@ namespace HotChocolate.Execution.Batching
             return AllowParallel_Basic(true, false);
         }
 
+        /// <summary>data class for AllowParallel_Scheduling</summary>
+        class Foo
+        {
+            public string Val { get; private set; }
+
+            public Foo(string val)
+            {
+                Val = val;
+            }
+        }
+
+        /// <returns></returns>
         [Fact]
-        public async Task AllowParallel_Regression_BatchScheduler()
+        public async Task AllowParallel_Scheduling()
         {
             // arrange
             Snapshot.FullName();
 
             int batchCount = 0;
+            Func<IResolverContext, Task<Foo>> fooResolver = async c =>
+            {
+                var bar = c.ArgumentValue<string>("bar");
+                var val = await c.BatchDataLoader<string, string>((keys, ctxToken) =>
+                {
+                    Interlocked.Increment(ref batchCount);
+                    return Task.FromResult(keys.ToDictionary(x => x, x => $"{x}-{batchCount}") as IReadOnlyDictionary<string, string>);
+                }, "foo").LoadAsync(bar, CancellationToken.None);
+                return new Foo(val);
+            };
             var services = new ServiceCollection();
             services.AddGraphQL()
+                .AddObjectType<Foo>(d => d
+                    .Field("foo")
+                    .Argument("bar", a => a.Type<StringType>())
+                    .Resolve(fooResolver))
                 .AddQueryType(d => d.Name("Query")
                     .Field("foo")
                     .Argument("bar", a => a.Type<StringType>())
-                    .Type<StringType>()
-                    .Resolve(async c =>
-                    {
-                        var bar = c.ArgumentValue<string>("bar");
-                        var phase1 = await c.BatchDataLoader<string, string>((keys, ctxToken) =>
-                        {
-                            Interlocked.Increment(ref batchCount);
-                            return Task.FromResult(keys.ToDictionary(x => x, x => $"{x}-{batchCount}") as IReadOnlyDictionary<string, string>);
-                        }, "foo_phase1").LoadAsync(bar, CancellationToken.None);
-                        return await c.BatchDataLoader<string, string>((keys, ctxToken) =>
-                        {
-                            Interlocked.Increment(ref batchCount);
-                            return Task.FromResult(keys.ToDictionary(x => x, x => $"{x}-{batchCount}") as IReadOnlyDictionary<string, string>);
-                        }, "foo_phase2").LoadAsync(phase1, CancellationToken.None);
-                    }))
+                    .Resolve(fooResolver))
                 .AddExportDirectiveType();
 
             IServiceProvider serviceProvider = services.BuildServiceProvider();
@@ -502,12 +524,17 @@ namespace HotChocolate.Execution.Batching
                 {
                     QueryRequestBuilder.New()
                         .SetQuery(
-                            @"{ f1: foo(bar:""A""), f2: foo(bar:""B"") }")
+                            @"{ foo(bar:""A1"") { A1: val, foo(bar:""B1"") {  B1: val, foo(bar:""C1"") { C1: val } } } }")
                         .TrySetServices(scope.ServiceProvider)
                         .Create(),
                     QueryRequestBuilder.New()
                         .SetQuery(
-                            @"{ f3: foo(bar:""A""), f4: foo(bar:""B""), f5: foo(bar:""C"") }")
+                            @"{ foo(bar:""D2"") { D2: val, foo(bar:""E2"") {  E2: val, foo(bar:""A1"") { A1B: val } } } }")
+                        .TrySetServices(scope.ServiceProvider)
+                        .Create(),
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{ foo(bar:""A3"") { A3: val, foo(bar:""B3"") {  B3: val, foo(bar:""C3"") { C3: val } } } }")
                         .TrySetServices(scope.ServiceProvider)
                         .Create()
                 };

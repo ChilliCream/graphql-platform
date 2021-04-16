@@ -1,1 +1,1 @@
-﻿[{"data":{"f1":"A-1","f2":"B-1"}},{"data":{"f3":"C-1"}},{"data":{"f4":"C-1-2"}},{"data":{"f5":"D-3"}},{"data":{"f6":"E-4"}},{"data":{"f7":"F-4"}}]
+﻿[{"data":{"f1":"A-1","f2":"B-1"}},{"data":{"f3":"C-1"}},{"data":{"f4":"C-1-2"}},{"data":{"f5":"D-3"}},{"data":{"f6":"E-4"}},{"data":{"f7":"F-4"}},{"errors":[{"message":"The argument \u0060wrongParamName\u0060 does not exist.","locations":[{"line":1,"column":22}],"extensions":{"type":"Query","field":"foo","argument":"wrongParamName","specifiedBy":"http://spec.graphql.org/June2018/#sec-Required-Arguments"}}]}]

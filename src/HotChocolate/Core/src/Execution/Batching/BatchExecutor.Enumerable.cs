@@ -125,13 +125,13 @@ namespace HotChocolate.Execution.Batching
                     }
                     else
                     {
-                        if (grouped.Count > 0 && item.OperationType != OperationType.Query)
+                        if (grouped.Count > 0 && item.IsBlockedByPending)
                         {
                             yield return grouped;
                             grouped = new List<WorkItem>();
                         }
                         grouped.Add(item);
-                        if (item.OperationType != OperationType.Query || item.ExportCount > 0)
+                        if (item.IsBlocking)
                         {
                             yield return grouped;
                             grouped = new List<WorkItem>();
@@ -203,9 +203,11 @@ namespace HotChocolate.Execution.Batching
                     }
                 }
 
-                public int ExportCount => _exportCount;
+                /// <summary>If true, all pending work items should be handled before this one should start</summary>
+                public bool IsBlockedByPending => _operation?.Operation != OperationType.Query;
 
-                public OperationType OperationType => _operation.Operation;
+                /// <summary>If true, no new work items should start before this one completes</summary>
+                public bool IsBlocking => _error is not null || _operation.Operation != OperationType.Query || _exportCount > 0;
 
                 public async Task<IQueryResult> Execute(CancellationToken cancellationToken)
                 {
