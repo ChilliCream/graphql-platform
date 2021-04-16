@@ -5,4 +5,9 @@
     <RootNamespace>HotChocolate.Data</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Shouldly" Version="4.0.3" />
+    <PackageReference Include="Squadron.Neo4j" Version="0.9.1-preview.3" />
+  </ItemGroup>
+
 </Project>
