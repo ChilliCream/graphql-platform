@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using HotChocolate.Language;
 
 #nullable enable
 
@@ -29,12 +28,6 @@ namespace HotChocolate
         /// This property is optional and can be null.
         /// </summary>
         Path? Path { get; }
-
-        /// <summary>
-        /// Gets the syntax node to the object that caused the error.
-        /// This property is optional and can be null.
-        /// </summary>
-        ISyntaxNode? SyntaxNode { get; }
 
         /// <summary>
         /// Gets the source text positions to which this error refers to.
@@ -226,28 +219,5 @@ namespace HotChocolate
         /// but without any exception details.
         /// </returns>
         IError RemoveException();
-
-        /// <summary>
-        /// Creates a new error that contains all properties of this error
-        /// but removed the syntax node from it.
-        /// </summary>
-        /// <returns>
-        /// Returns a new error that contains all properties of this error
-        /// but without any syntax node details.
-        /// </returns>
-        IError RemoveSyntaxNode();
-
-        /// <summary>
-        /// Creates a new error that contains all properties of this error
-        /// but with the specified <paramref name="syntaxNode" />.
-        /// </summary>
-        /// <param name="syntaxNode">
-        /// The .net syntaxNode that caused this error.
-        /// </param>
-        /// <returns>
-        /// Returns a new error that contains all properties of this error
-        /// but with the specified <paramref name="syntaxNode" />.
-        /// </returns>
-        IError WithSyntaxNode(ISyntaxNode? syntaxNode);
     }
 }

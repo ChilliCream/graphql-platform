@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate
@@ -218,7 +219,7 @@ namespace HotChocolate
             error = error.WithSyntaxNode(new StringValueNode("Foo"));
 
             // assert
-            Assert.Equal("\"Foo\"", error.SyntaxNode!.ToString());
+            error.MatchSnapshot();
         }
 
         [Fact]
@@ -229,7 +230,7 @@ namespace HotChocolate
             IError error = new Error("123", syntaxNode:new StringValueNode("Foo"));
 
             // assert
-            Assert.Equal("\"Foo\"", error.SyntaxNode!.ToString());
+            error.MatchSnapshot();
         }
 
         [Fact]
@@ -242,7 +243,7 @@ namespace HotChocolate
             error = error.RemoveSyntaxNode();
 
             // assert
-            Assert.Null(error.SyntaxNode);
+            error.MatchSnapshot();
         }
     }
 }

@@ -214,18 +214,5 @@ namespace HotChocolate
         {
             return new Error(Message, Code, Path, Locations, Extensions, syntaxNode: SyntaxNode);
         }
-
-
-        /// <inheritdoc />
-        public IError RemoveSyntaxNode()
-        {
-            return new Error(Message, Code, Path, Locations, Extensions, Exception);
-        }
-
-        /// <inheritdoc />
-        public IError WithSyntaxNode(ISyntaxNode? syntaxNode)
-        {
-            return new Error(Message, Code, Path, Locations, Extensions, Exception, syntaxNode);
-        }
     }
 }
