@@ -415,39 +415,5 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }",
                 "extend schema @key(fields: \"id\")");
         }
-
-        [Fact]
-        public void EntityOrData()
-        {
-            AssertResult(
-                @"
-                query GetFoo {
-                    foo {
-                        ... on Baz {
-                            id
-                        }
-                        ... on Quox {
-                            foo
-                        }
-                    }
-                }
-                ",
-                @"
-                type Query {
-                    foo: [Bar]
-                }
-
-                type Baz {
-                    id: String
-                }
-
-                type Quox {
-                    foo: String
-                }
-
-                union Bar = Baz | Quox
-                ",
-                "extend schema @key(fields: \"id\")");
-        }
     }
 }

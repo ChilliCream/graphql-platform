@@ -99,6 +99,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
                 ILeafTypeDescriptor leaf =>
                     actualBuilder.SetName(leaf.RuntimeType.ToString()),
 
+                INamedTypeDescriptor { Kind: TypeKind.EntityOrData } =>
+                    actualBuilder.SetName(TypeNames.EntityIdOrData),
+
                 ComplexTypeDescriptor { ParentRuntimeType: { } parentRuntimeType }  =>
                     actualBuilder.SetName(parentRuntimeType.ToString()),
 

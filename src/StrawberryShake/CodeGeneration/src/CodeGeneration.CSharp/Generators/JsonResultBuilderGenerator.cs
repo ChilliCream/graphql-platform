@@ -24,7 +24,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _obj = "obj";
         private const string _response = "response";
 
-        protected override void Generate(ResultBuilderDescriptor resultBuilderDescriptor,
+        protected override void Generate(
+            ResultBuilderDescriptor resultBuilderDescriptor,
             CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
             out string fileName,
@@ -224,6 +225,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
                 case ILeafTypeDescriptor { Kind: TypeKind.Leaf } d:
                     AddScalarTypeDeserializerMethod(methodBuilder, d);
+                    break;
+
+                case ComplexTypeDescriptor { Kind: TypeKind.EntityOrData } d:
+                    AddEntityOrDataTypeDeserializerMethod(
+                        classBuilder,
+                        methodBuilder,
+                        d,
+                        processed);
                     break;
 
                 case ComplexTypeDescriptor { Kind: TypeKind.AbstractData } d:

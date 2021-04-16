@@ -149,7 +149,6 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     unionTypes,
                     descriptorModel,
                     kind);
-
             }
 
             typeDescriptors.Add(outputType.Name, descriptorModel);
@@ -158,6 +157,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
         private static void ExtractTypeKindAndParentRuntimeType(
             IMapperContext context,
             OutputTypeModel outputType,
+            IEnumerable<ObjectTypeDescriptor>? implementedBy,
             out TypeKind fallbackKind,
             out RuntimeTypeInfo? parentRuntimeType)
         {
@@ -181,7 +181,14 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             break;
 
                         case UnionType typeB when typeB.Types.Values.Any(t => t.IsEntity()):
-                            throw ThrowHelper.UnionTypeDataEntityMixed(outputType.SelectionSet);
+                            fallbackKind = TypeKind.EntityOrData;
+                            parentRuntimeTypeName = GetInterfaceName(outputType.Type.Name);
+                            break;
+                        case InterfaceType when implementedBy is not null &&
+                            implementedBy.Any(t => t.IsEntity()):
+                            fallbackKind = TypeKind.EntityOrData;
+                            parentRuntimeTypeName = GetInterfaceName(outputType.Type.Name);
+                            break;
 
                         default:
                             fallbackKind = TypeKind.AbstractData;
@@ -233,7 +240,10 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         outputType.Implements.Single(),
                         kind);
 
-                return new NameString[] { runtimeType.Name };
+                return new NameString[]
+                {
+                    runtimeType.Name
+                };
             }
 
             return outputType.Implements
@@ -297,10 +307,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
             ExtractTypeKindAndParentRuntimeType(
                 context,
                 outputType,
-                out var extractedKind,
-                out var parentRuntimeType);
+                implementedBy,
+                out TypeKind extractedKind,
+                out RuntimeTypeInfo? parentRuntimeType);
 
-            var typeKind = kind ?? extractedKind;
+            TypeKind typeKind = kind ?? extractedKind;
 
             IReadOnlyList<NameString> implements =
                 ExtractImplementsBy(model, context, outputType, typeKind);
@@ -330,10 +341,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
             ExtractTypeKindAndParentRuntimeType(
                 context,
                 outputType,
-                out var extractedKind,
-                out var parentRuntimeType);
+                Array.Empty<ObjectTypeDescriptor>(),
+                out TypeKind extractedKind,
+                out RuntimeTypeInfo? parentRuntimeType);
 
-            var typeKind = kind ?? extractedKind;
+            TypeKind typeKind = kind ?? extractedKind;
 
             IReadOnlyList<NameString> implements =
                 ExtractImplementsBy(model, context, outputType, typeKind);

@@ -157,6 +157,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     return CodeInlineBuilder.From($"{objectName}.{property.Name}");
 
                 case TypeKind.AbstractData:
+                case TypeKind.EntityOrData:
                 case TypeKind.Data:
                 case TypeKind.Entity:
                     MethodCallBuilder mapperMethodCall =
@@ -205,6 +206,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     break;
 
                 case ComplexTypeDescriptor { Kind: TypeKind.Leaf }:
+                    break;
+
+                case ComplexTypeDescriptor { Kind: TypeKind.EntityOrData } d:
+                    AddEntityOrUnionDataHandler(
+                        settings,
+                        classBuilder,
+                        constructorBuilder,
+                        methodBuilder,
+                        d,
+                        processed,
+                        isNonNullable);
                     break;
 
                 case ComplexTypeDescriptor { Kind: TypeKind.AbstractData } d:

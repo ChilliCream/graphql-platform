@@ -26,6 +26,11 @@ namespace StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors
         Entity,
 
         /// <summary>
+        /// An abstract type that can be a entity or a data type.
+        /// </summary>
+        EntityOrData,
+
+        /// <summary>
         /// A result interface or class.
         /// </summary>
         Result,

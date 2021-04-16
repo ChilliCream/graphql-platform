@@ -37,6 +37,7 @@ namespace StrawberryShake.CodeGeneration
 
         public const string OperationKind = StrawberryshakeNamespace + "OperationKind";
         public const string EntityId = StrawberryshakeNamespace + "EntityId";
+        public const string EntityIdOrData = StrawberryshakeNamespace + "EntityIdOrData";
         public const string IEntityUpdateSession = StrawberryshakeNamespace + "IEntityUpdateSession";
         public const string IEntityUpdateSession_Version = "Version";
 
