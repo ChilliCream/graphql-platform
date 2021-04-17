@@ -85,7 +85,7 @@ namespace HotChocolate.Execution.Batching
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            _exportCount += node?.Directives?.Count(x => x?.Name?.Value?.Equals(ExportDirectiveHelper.Name) ?? false) ?? 0;
+            _exportCount += node.Directives.Count(x => string.Equals(x.Name.Value, ExportDirectiveHelper.Name));
 
             if (_type.Peek().NamedType() is IComplexOutputType complexType
                 && complexType.Fields.TryGetField(

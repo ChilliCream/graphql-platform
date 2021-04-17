@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
@@ -190,6 +191,12 @@ namespace HotChocolate.Execution.Batching
                 _ => VisitorAction.Continue);
 
             Assert.Equal(3, visitor.ExportCount);
+        }
+
+        [Fact]
+        public void ConstructorExceptions()
+        {
+            Assert.Throws<ArgumentNullException>(() => new CollectVariablesVisitor(null));
         }
     }
 }
