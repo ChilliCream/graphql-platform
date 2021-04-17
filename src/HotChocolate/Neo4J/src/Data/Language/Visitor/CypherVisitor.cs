@@ -1,18 +1,12 @@
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
 #nullable enable
 
 namespace HotChocolate.Data.Neo4J.Language
 {
-    /// <summary>
-    ///
-    /// </summary>
-    public partial class CypherVisitor : IVisitor
+    public partial class CypherVisitor
     {
-        private readonly Regex LABEL_AND_TYPE_QUOTATION = new (@"`", RegexOptions.Compiled);
-
         private readonly LinkedList<IVisitable> _currentVisitedElements = new ();
 
         /// <summary>
@@ -61,7 +55,7 @@ namespace HotChocolate.Data.Neo4J.Language
         /// to a map project. In that case, the alias is already defined by the key to use in the projected map and we
         /// cannot define him in `AS xxx` fragment.
         /// </summary>
-        private bool _skipAliasing = false;
+        private bool _skipAliasing;
 
         public string Print() => _writer.Print();
 

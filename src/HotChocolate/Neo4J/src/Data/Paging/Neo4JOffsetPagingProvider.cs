@@ -1,12 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.Data.Neo4J.Execution;
 using HotChocolate.Internal;
-using HotChocolate.Resolvers;
-using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 
 namespace HotChocolate.Data.Neo4J.Paging

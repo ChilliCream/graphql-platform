@@ -8,7 +8,8 @@ namespace HotChocolate.Data.Neo4J.Language
     /// the left node of the next element.
     /// </summary>
     public class RelationshipChain
-        : Visitable, IRelationshipPattern
+        : Visitable
+            , IRelationshipPattern
     {
         public override ClauseKind Kind { get; } = ClauseKind.RelationshipChain;
         private readonly List<Relationship> _relationships = new();

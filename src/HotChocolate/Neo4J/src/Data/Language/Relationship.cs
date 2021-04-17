@@ -16,7 +16,7 @@ namespace HotChocolate.Data.Neo4J.Language
         IPropertyContainer,
         IExposesProperties<Relationship>
     {
-        public override ClauseKind Kind { get; } = ClauseKind.Relationship;
+        public override ClauseKind Kind => ClauseKind.Relationship;
         private readonly Node _left;
         private readonly Node _right;
         private readonly RelationshipDetails _details;

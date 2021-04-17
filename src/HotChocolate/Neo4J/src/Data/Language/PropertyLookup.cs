@@ -25,7 +25,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public static PropertyLookup ForName(string name)
         {
-            return new PropertyLookup(SymbolicName.Unsafe(name), false);
+            return new (SymbolicName.Unsafe(name), false);
         }
 
         public static PropertyLookup ForExpression(Expression expression) {

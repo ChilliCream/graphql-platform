@@ -15,7 +15,6 @@ namespace HotChocolate.Data.Neo4J.Projections
         protected async Task<IRequestExecutor> CreateSchema<TEntity>(
             Neo4jResource neo4JResource,
             string query,
-            bool usePaging = false,
             bool useOffsetPaging = false,
             ObjectType<TEntity>? objectType = null)
             where TEntity : class
@@ -42,7 +41,6 @@ namespace HotChocolate.Data.Neo4J.Projections
                             c.Name("Query");
                             ApplyConfigurationToFieldDescriptor<TEntity>(
                                 c.Field(x => x.Root).Resolver(new Neo4JExecutable<TEntity>(neo4JResource.GetAsyncSession())),
-                                usePaging,
                                 useOffsetPaging);
                         }))
                 .UseRequest(
@@ -70,14 +68,8 @@ namespace HotChocolate.Data.Neo4J.Projections
 
         private static void ApplyConfigurationToFieldDescriptor<TEntity>(
             IObjectFieldDescriptor descriptor,
-            bool usePaging = false,
             bool useOffsetPaging = false)
         {
-            if (usePaging)
-            {
-                descriptor.UseNeo4JPaging<ObjectType<TEntity>>();
-            }
-
             if (useOffsetPaging)
             {
                 descriptor.UseNeo4JOffsetPaging<ObjectType<TEntity>>();

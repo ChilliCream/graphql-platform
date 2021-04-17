@@ -104,9 +104,9 @@ namespace HotChocolate.Data.Neo4J.Language
             public ListComprehension Returning(params INamed[] variables) =>
                 Returning(Expressions.CreateSymbolicNames(variables));
 
-            public ListComprehension Returning(params Expression[] expressions) =>
+            public ListComprehension Returning(params Expression[] listDefinition) =>
                 new (_variable, _listExpression, _where,
-                    ListExpression.ListOrSingleExpression(expressions));
+                    ListExpression.ListOrSingleExpression(listDefinition));
         }
     }
 }

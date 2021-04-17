@@ -138,7 +138,6 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.LoadCsv:
                 case ClauseKind.Condition:
                 case ClauseKind.Default:
-                case ClauseKind.Arguments:
                 case ClauseKind.DistinctExpression:
                 case ClauseKind.RelationshipChain:
                 case ClauseKind.RelationshipPatternCondition:

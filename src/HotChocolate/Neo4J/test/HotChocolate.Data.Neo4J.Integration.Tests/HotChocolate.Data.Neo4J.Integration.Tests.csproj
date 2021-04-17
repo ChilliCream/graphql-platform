@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <AssemblyName>HotChocolate.Data.Neo4J.Filtering.Tests</AssemblyName>
+    <AssemblyName>HotChocolate.Data.Neo4J.Integration.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>
   </PropertyGroup>
 
@@ -15,9 +16,4 @@
     <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Comparable\__snapshots__" />
-    <Folder Include="Lists\__snapshots__" />
-    <Folder Include="Strings\__snapshots__" />
-  </ItemGroup>
 </Project>

@@ -13,7 +13,5 @@ namespace HotChocolate.Data.Neo4J.Language
         public Property Property(Expression lookup);
         public MapProjection Project(List<object> entries);
         public MapProjection Project(params object[] entries);
-        //public Operation Mutate(Parameter parameter);
-        //public Operation Mutate(MapExpression properties);
     }
 }

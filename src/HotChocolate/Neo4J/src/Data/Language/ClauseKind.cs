@@ -4,7 +4,6 @@ namespace HotChocolate.Data.Neo4J.Language
     {
         Default,
         AliasedExpression,
-        Arguments,
         BooleanFunctionCondition,
         BooleanLiteral,
         Comparison,

@@ -7,7 +7,7 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class RelationshipLength : Visitable
     {
-        public override ClauseKind Kind { get; } = ClauseKind.RelationshipLength;
+        public override ClauseKind Kind => ClauseKind.RelationshipLength;
         private readonly int? _minimum;
         private readonly int? _maximum;
         private readonly bool _unbounded;

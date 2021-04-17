@@ -34,8 +34,6 @@ namespace HotChocolate.Data.Neo4J.Execution
         /// </summary>
         private object[]? Projection { get; set; }
 
-        private object Paging { get; set; }
-
         public object? Source { get; }
 
         public Neo4JExecutable(IAsyncSession session)
