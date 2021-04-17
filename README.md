@@ -47,7 +47,7 @@ Our schema registry for any GraphQL client and server.
 
 ## Roadmap
 
-If you are interested in upcoming releases, checkout our [Roadmap](https://github.com/ChilliCream/hotchocolate/milestones).
+If you are interested in upcoming releases, check out our [Roadmap](https://github.com/ChilliCream/hotchocolate/milestones).
 
 ## Official Examples
 
