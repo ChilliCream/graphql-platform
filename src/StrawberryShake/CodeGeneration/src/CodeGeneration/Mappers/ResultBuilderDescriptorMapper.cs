@@ -14,7 +14,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
             {
                 RuntimeTypeInfo resultType = context.GetRuntimeType(
                     modelOperation.ResultType.Name,
-                    Descriptors.TypeDescriptors.TypeKind.ResultType);
+                    Descriptors.TypeDescriptors.TypeKind.Result);
 
                 context.Register(
                     modelOperation.Name,

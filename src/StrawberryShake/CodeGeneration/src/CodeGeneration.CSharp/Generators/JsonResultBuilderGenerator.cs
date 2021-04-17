@@ -24,7 +24,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _obj = "obj";
         private const string _response = "response";
 
-        protected override void Generate(ResultBuilderDescriptor resultBuilderDescriptor,
+        protected override void Generate(
+            ResultBuilderDescriptor resultBuilderDescriptor,
             CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
             out string fileName,
@@ -154,7 +155,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         processed);
 
                     if (property.Type.NamedType() is INamedTypeDescriptor nt &&
-                        !nt.IsLeafType())
+                        !nt.IsLeaf())
                     {
                         AddRequiredDeserializeMethods(nt, classBuilder, processed);
                     }
@@ -178,7 +179,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .SetName(methodName);
 
 
-                if (typeReference.IsOrContainsEntityType())
+                if (typeReference.IsOrContainsEntity())
                 {
                     methodBuilder
                         .AddParameter(_session, x => x.SetType(TypeNames.IEntityStoreUpdateSession))
@@ -198,7 +199,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .New()
                     .SetCondition($"!{_obj}.HasValue")
                     .AddCode(
-                        typeReference.IsNonNullableType()
+                        typeReference.IsNonNullable()
                             ? ExceptionBuilder.New(TypeNames.ArgumentNullException)
                             : CodeLineBuilder.From("return null;"));
 
@@ -222,19 +223,27 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     AddArrayHandler(classBuilder, methodBuilder, listTypeDescriptor, processed);
                     break;
 
-                case ILeafTypeDescriptor { Kind: TypeKind.LeafType } d:
+                case ILeafTypeDescriptor { Kind: TypeKind.Leaf } d:
                     AddScalarTypeDeserializerMethod(methodBuilder, d);
                     break;
 
-                case ComplexTypeDescriptor { Kind: TypeKind.ComplexDataType } d:
+                case ComplexTypeDescriptor { Kind: TypeKind.EntityOrData } d:
+                    AddEntityOrDataTypeDeserializerMethod(
+                        classBuilder,
+                        methodBuilder,
+                        d,
+                        processed);
+                    break;
+
+                case ComplexTypeDescriptor { Kind: TypeKind.AbstractData } d:
                     AddDataTypeDeserializerMethod(classBuilder, methodBuilder, d, processed);
                     break;
 
-                case ComplexTypeDescriptor { Kind: TypeKind.DataType } d:
+                case ComplexTypeDescriptor { Kind: TypeKind.Data } d:
                     AddDataTypeDeserializerMethod(classBuilder, methodBuilder, d, processed);
                     break;
 
-                case INamedTypeDescriptor { Kind: TypeKind.EntityType } d:
+                case INamedTypeDescriptor { Kind: TypeKind.Entity } d:
                     AddUpdateEntityMethod(classBuilder, methodBuilder, d, processed);
                     break;
 
@@ -369,7 +378,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .Inline()
                 .SetMethodName(DeserializerMethodNameFromTypeName(property));
 
-            if (property.IsOrContainsEntityType())
+            if (property.IsOrContainsEntity())
             {
                 deserializeMethodCaller
                     .AddArgument(_session)
@@ -386,7 +395,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
         private static string DeserializerMethodNameFromTypeName(ITypeDescriptor typeDescriptor)
         {
-            var ret = typeDescriptor.IsEntityType() ? "Update" : "Deserialize";
+            var ret = typeDescriptor.IsEntity() ? "Update" : "Deserialize";
             ret += BuildDeserializeMethodName(typeDescriptor);
             return ret;
         }
@@ -406,7 +415,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     ParentRuntimeType: { } parentRuntimeType
                 } => parentRuntimeType.Name,
 
-                INamedTypeDescriptor { Kind: TypeKind.EntityType } d =>
+                INamedTypeDescriptor { Kind: TypeKind.Entity } d =>
                     CreateEntityType(
                             d.RuntimeType.Name,
                             d.RuntimeType.NamespaceWithoutGlobal)
