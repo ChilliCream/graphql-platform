@@ -47,6 +47,10 @@ Our GraphQL client to fetch data from any GraphQL endpoint.
 
 [Readme](src/StrawberryShake)
 
+## Roadmap
+
+If you are interested in upcoming releases, checkout our [Roadmap](https://github.com/ChilliCream/hotchocolate/milestones).
+
 ## Official Examples
 
 Examples of things built on top of the ChilliCream GraphQL Platform that are open source and can be explored by others.
