@@ -32,8 +32,6 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public static Node NamedNode(string node) => Node(node).Named(node.ToCamelCase());
 
-        public static Node AnyNode() => Language.Node.Create();
-
         public static Expression LiteralOf<T>(T literal)
         {
             return literal switch

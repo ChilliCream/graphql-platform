@@ -3,10 +3,6 @@ using HotChocolate.Data.Neo4J.Language;
 
 namespace HotChocolate.Data.Neo4J.Filtering
 {
-    /// <summary>
-    /// This filter operation handler maps a All operation field to a
-    /// <see cref="FilterDefinition{TDocument}"/>
-    /// </summary>
     public class Neo4JListNoneOperationHandler : Neo4JListOperationHandlerBase
     {
         /// <inheritdoc />

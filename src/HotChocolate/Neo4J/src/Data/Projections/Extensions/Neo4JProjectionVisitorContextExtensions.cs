@@ -6,7 +6,8 @@ using HotChocolate.Data.Neo4J.Language;
 namespace HotChocolate.Data.Neo4J.Projections
 {
     internal static class Neo4JProjectionVisitorContextExtensions
-    { public static bool TryCreateQuery(
+    {
+        public static bool TryCreateQuery(
             this Neo4JProjectionVisitorContext context,
             [NotNullWhen(true)] out object[]? query)
         {

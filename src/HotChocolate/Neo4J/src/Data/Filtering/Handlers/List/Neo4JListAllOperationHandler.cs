@@ -26,16 +26,8 @@ namespace HotChocolate.Data.Neo4J.Filtering
             Neo4JFilterScope scope,
             string path)
         {
-            var negatedChilds = new List<Condition>();
+
             var compound = new CompoundCondition(Operator.And);
-
-            Queue<Condition> level = scope.Level.Peek();
-            while (level.Count > 0)
-            {
-                compound.And(level.Dequeue());
-                //negatedChilds.Add(level.Dequeue());
-            }
-
             return compound;
         }
 
@@ -43,12 +35,6 @@ namespace HotChocolate.Data.Neo4J.Filtering
             Neo4JFilterScope scope,
             string path)
         {
-            // var negatedChilds = new List<Condition>();
-            // Queue<Condition> level = scope.Level.Peek();
-            // while (level.Count > 0)
-            // {
-            //     return new CompoundCondition(Operator.And);
-            // }
 
             return new CompoundCondition(Operator.And);
         }
