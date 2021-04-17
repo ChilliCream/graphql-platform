@@ -372,33 +372,5 @@ namespace HotChocolate.Data.Neo4J.Language
                 statement.Build().MatchSnapshot();
             }
         }
-
-        public class Create
-        {
-            [Fact]
-            public void CreateNode()
-            {
-                StatementBuilder statement = Cypher
-                    .Create(_userNode);
-                statement.Build().MatchSnapshot();
-            }
-
-            [Fact]
-            public void CreateNodeWithProperty()
-            {
-                StatementBuilder statement = Cypher
-                    .Create(_userNode.WithProperties("email", Cypher.Null()));
-                statement.Build().MatchSnapshot();
-            }
-
-            [Fact]
-            public void CreateNodeWithProperties()
-            {
-                StatementBuilder statement = Cypher
-                    .Create(
-                        _userNode.WithProperties("email", Cypher.Null(), "name", Cypher.LiteralOf("Peter Jackson")));
-                statement.Build().MatchSnapshot();
-            }
-        }
     }
 }

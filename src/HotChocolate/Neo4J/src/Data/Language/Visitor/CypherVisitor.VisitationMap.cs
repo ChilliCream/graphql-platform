@@ -19,14 +19,6 @@ namespace HotChocolate.Data.Neo4J.Language
 
         private void EnterVisitable(Exists _) => _writer.Write(" EXISTS ");
 
-        private void EnterVisitable(Create _) => _writer.Write("CREATE ");
-
-        private void LeaveVisitable(Create _) => _writer.Write(" ");
-
-        private void EnterVisitable(Remove _) => _writer.Write("REMOVE ");
-
-        private void LeaveVisitable(Remove _) => _writer.Write(" ");
-
         private void EnterVisitable(Node node)
         {
             _writer.Write("(");
@@ -201,16 +193,6 @@ namespace HotChocolate.Data.Neo4J.Language
         private void EnterVisitable(With _) => _writer.Write("WITH ");
 
         private void LeaveVisitable(With _) => _writer.Write(" ");
-
-        private void EnterVisitable(Delete delete)
-        {
-            if (delete.IsDetach())
-                _writer.Write("DETACH ");
-
-            _writer.Write("DELETE ");
-        }
-
-        private void LeaveVisitable(Delete _) => _writer.Write(" ");
 
         void EnterVisitable(FunctionInvocation functionInvocation)
         {

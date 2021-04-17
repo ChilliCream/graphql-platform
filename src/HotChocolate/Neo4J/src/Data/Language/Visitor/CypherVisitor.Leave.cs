@@ -17,9 +17,6 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.Match:
                     LeaveVisitable((Match)visitable);
                     break;
-                case ClauseKind.Create:
-                    LeaveVisitable((Create)visitable);
-                    break;
                 case ClauseKind.Node:
                     LeaveVisitable((Node)visitable);
                     break;
@@ -47,17 +44,11 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.With:
                     LeaveVisitable((With)visitable);
                     break;
-                case ClauseKind.Delete:
-                    LeaveVisitable((Delete)visitable);
-                    break;
                 case ClauseKind.FunctionInvocation:
                     LeaveVisitable((FunctionInvocation)visitable);
                     break;
                 case ClauseKind.Operation:
                     LeaveVisitable((Operation)visitable);
-                    break;
-                case ClauseKind.Remove:
-                    LeaveVisitable((Remove)visitable);
                     break;
                 case ClauseKind.ListComprehension:
                     LeaveVisitable((ListComprehension)visitable);

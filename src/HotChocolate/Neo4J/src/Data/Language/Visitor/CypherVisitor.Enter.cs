@@ -19,9 +19,6 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.Where:
                     EnterVisitable((Where)visitable);
                     break;
-                case ClauseKind.Create:
-                    EnterVisitable((Create)visitable);
-                    break;
                 case ClauseKind.Node:
                     EnterVisitable((Node)visitable);
                     break;
@@ -97,17 +94,11 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.With:
                     EnterVisitable((With)visitable);
                     break;
-                case ClauseKind.Delete:
-                    EnterVisitable((Delete)visitable);
-                    break;
                 case ClauseKind.FunctionInvocation:
                     EnterVisitable((FunctionInvocation)visitable);
                     break;
                 case ClauseKind.Operation:
                     EnterVisitable((Operation)visitable);
-                    break;
-                case ClauseKind.Remove:
-                    EnterVisitable((Remove)visitable);
                     break;
                 case ClauseKind.ListComprehension:
                     EnterVisitable((ListComprehension)visitable);

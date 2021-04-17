@@ -31,11 +31,5 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public static Operation Set(Expression target, Expression value) =>
             Operation.Create(target, Operator.Set, value);
-
-        // public static Operation Set(Node target, params string[] label) =>
-        //     Operation.Create((Expression)target, Operator.SetLabel, label);
-        //
-        // static Operation Remove(Node target, string[] label) =>
-        //     Operation.Create(target, Operator.RemoveLabel, label);
     }
 }

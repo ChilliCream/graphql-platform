@@ -121,7 +121,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public Relationship WithProperties(params object[] keysAndValues)
         {
-            MapExpression newProperties = null;
+            MapExpression? newProperties = null;
             if (keysAndValues != null && keysAndValues.Length != 0)
             {
                 newProperties = MapExpression.Create(keysAndValues);

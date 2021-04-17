@@ -10,7 +10,5 @@ namespace HotChocolate.Data.Neo4J.Language
         public abstract Dictionary<string, object> GetParameters();
 
         public abstract List<string> GetParameterNames();
-
-        public abstract string GetCypher();
     }
 }

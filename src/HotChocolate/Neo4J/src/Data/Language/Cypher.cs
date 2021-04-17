@@ -62,16 +62,6 @@ namespace HotChocolate.Data.Neo4J.Language
             return Statement.Builder().Match(optionalWhere, pattern);
         }
 
-        public static StatementBuilder Create(params IPatternElement[] patternElements)
-        {
-            return Statement.Builder().Create(patternElements);
-        }
-
-        public static StatementBuilder Create(List<IPatternElement> patternElements)
-        {
-            return Statement.Builder().Create(patternElements);
-        }
-
         public static SymbolicName Name(string value) => SymbolicName.Of(value);
         public static Property Property(Expression expression, string name) => Language.Property.Create(expression, name);
         public static Property Property(string containerName, string name) => Property(Name(containerName), name);
