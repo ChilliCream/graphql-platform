@@ -9,7 +9,7 @@ namespace HotChocolate.Types
     /// The `LatitudeType` scalar represents a valid decimal degrees latitude number.
     /// <a>https://en.wikipedia.org/wiki/Latitude</a>
     /// </summary>
-    public class LatitudeType : ScalarType<decimal, StringValueNode>
+    public class LatitudeType : ScalarType<double, StringValueNode>
     {
         /// <summary>
         /// Initializes a new instance of <see cref="LatitudeType"/>
@@ -51,7 +51,7 @@ namespace HotChocolate.Types
         }
 
         /// <inheritdoc />
-        protected override decimal ParseLiteral(StringValueNode valueSyntax)
+        protected override double ParseLiteral(StringValueNode valueSyntax)
         {
             if (Latitude.TryDeserializeFromString(valueSyntax.Value, out var value) &&
                 value != null)
@@ -63,7 +63,7 @@ namespace HotChocolate.Types
         }
 
         /// <inheritdoc />
-        protected override StringValueNode ParseValue(decimal runtimeValue)
+        protected override StringValueNode ParseValue(double runtimeValue)
         {
             if (runtimeValue is < Latitude._minLat or > Latitude._maxLat)
             {
@@ -79,8 +79,8 @@ namespace HotChocolate.Types
 
         private static class Latitude
         {
-            internal const decimal _minLat = -90.0m;
-            internal const decimal _maxLat = 90.0m;
+            internal const double _minLat = -90.0;
+            internal const double _maxLat = 90.0;
             // https://en.wikipedia.org/wiki/Decimal_degrees#Precision
             internal const int _maxPrecision = 8;
 
@@ -97,14 +97,14 @@ namespace HotChocolate.Types
                 return _rx.IsMatch(s);
             }
 
-            internal static bool TryDeserializeFromString(string serialized, out decimal? value)
+            internal static bool TryDeserializeFromString(string serialized, out double? value)
             {
                 MatchCollection coords = _rx.Matches(serialized);
                 if (coords.Count > 0)
                 {
-                    var minute = decimal.TryParse(coords[0].Groups[2].Value, out var min) ? min / 60 : 0;
-                    var second = decimal.TryParse(coords[0].Groups[4].Value, out var sec) ? sec / 3600 : 0;
-                    var degree = decimal.Parse(coords[0].Groups[1].Value);
+                    var minute = double.TryParse(coords[0].Groups[2].Value, out var min) ? min / 60 : 0;
+                    var second = double.TryParse(coords[0].Groups[4].Value, out var sec) ? sec / 3600 : 0;
+                    var degree = double.Parse(coords[0].Groups[1].Value);
                     var result = degree + minute + second;
 
                     // Southern and western coordinates must be negative decimals

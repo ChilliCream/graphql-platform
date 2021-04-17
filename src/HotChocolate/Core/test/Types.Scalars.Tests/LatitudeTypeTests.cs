@@ -65,7 +65,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = 90.1m;
+            var valueSyntax = 90.1;
 
             // act
             var result = scalar.IsInstanceOfType(valueSyntax);
@@ -80,10 +80,10 @@ namespace HotChocolate.Types
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
             var valueSyntax = new StringValueNode("90° 0' 0.000\" S");
-            var expectedResult = -90.0m;
+            var expectedResult = -90.0;
 
             // act
-            object result = (decimal)scalar.ParseLiteral(valueSyntax)!;
+            object result = (double)scalar.ParseLiteral(valueSyntax)!;
 
                 // assert
             Assert.Equal(expectedResult, result);
@@ -95,10 +95,10 @@ namespace HotChocolate.Types
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
             var valueSyntax = new StringValueNode("90° 0' 0.000\" N");
-            var expectedResult = 90.0m;
+            var expectedResult = 90.0;
 
             // act
-            object result = (decimal)scalar.ParseLiteral(valueSyntax)!;
+            object result = (double)scalar.ParseLiteral(valueSyntax)!;
 
             // assert
             Assert.Equal(expectedResult, result);
@@ -110,7 +110,7 @@ namespace HotChocolate.Types
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
             var valueSyntax = new StringValueNode("39° 51' 21.600\" N");
-            var expectedResult = 39.856m;
+            var expectedResult = 39.856;
 
             // act
             object result = scalar.ParseLiteral(valueSyntax)!;
@@ -125,10 +125,10 @@ namespace HotChocolate.Types
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
             var valueSyntax = new StringValueNode("66° 0' 21.983\" N");
-            var expectedResult = 66.00610639m;
+            var expectedResult = 66.00610639;
 
             // act
-            object result = Math.Round((decimal)scalar.ParseLiteral(
+            object result = Math.Round((double)scalar.ParseLiteral(
                 valueSyntax)!,
                 8,
                 MidpointRounding.AwayFromZero);
@@ -143,7 +143,7 @@ namespace HotChocolate.Types
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
             var valueSyntax = new StringValueNode("66° 54' 0.000\" S");
-            var expectedResult = -66.9m;
+            var expectedResult = -66.9;
 
             // act
             object result = scalar.ParseLiteral(valueSyntax)!;
@@ -158,7 +158,7 @@ namespace HotChocolate.Types
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
             var valueSyntax = new StringValueNode("6° 10' 50.160\" S");
-            var expectedResult = -6.1806m;
+            var expectedResult = -6.1806;
 
             // act
             object result = scalar.ParseLiteral(valueSyntax)!;
@@ -186,7 +186,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = 90.1m;
+            var valueSyntax = 90.1;
 
             // act
             IValueNode result = scalar.ParseValue(valueSyntax);
