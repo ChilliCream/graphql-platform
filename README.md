@@ -56,6 +56,7 @@ If you are interested in upcoming releases, checkout our [Roadmap](https://githu
 Examples of things built on top of the ChilliCream GraphQL Platform that are open source and can be explored by others.
 
 - [GraphQL workshop](https://github.com/ChilliCream/graphql-workshop)
+- [HotChocolate examples](https://github.com/ChilliCream/hotchocolate-examples)
 
 ## From our community
 
