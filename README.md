@@ -21,31 +21,29 @@ The ChilliCream GraphQL Platform, at its core, is a new way to create powerful B
 
 Our GraphQL IDE to explore, request and analyze any GraphQL endpoint.
 
-[Readme](src/BananaCakePop)
+[Learn more](https://chillicream.com/docs/bananacakepop/)
 
 ### Green Donut
 
 Our DataLoader to solve the N+1 problem.
 
-[Readme](src/GreenDonut)
+[Documentation](https://chillicream.com/docs/greendonut/)
 
 ### Hot Chocolate
 
 Our GraphQL server to create GraphQL endpoints and merge schemas.
 
-[Readme](src/HotChocolate)
+[Documentation](https://chillicream.com/docs/hotchocolate/)
 
 ### Marshmellow Pie
 
 Our schema registry for any GraphQL client and server.
 
-[Readme](src/MarshmallowPie)
-
 ### Strawberry Shake
 
 Our GraphQL client to fetch data from any GraphQL endpoint.
 
-[Readme](src/StrawberryShake)
+[Documentation](https://chillicream.com/docs/strawberryshake/)
 
 ## Roadmap
 
