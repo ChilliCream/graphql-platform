@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Security.Cryptography;
+using StrawberryShake.Helper;
 using StrawberryShake.Internal;
 using StrawberryShake.Json;
 
@@ -157,9 +158,9 @@ namespace StrawberryShake
             }
 
             return Id == other.Id &&
-                   Name == other.Name &&
-                   Document.Equals(other.Document) &&
-                   EqualsVariables(other._variables);
+                Name == other.Name &&
+                Document.Equals(other.Document) &&
+                EqualsVariables(other._variables);
         }
 
         public override bool Equals(object? obj)
@@ -203,10 +204,10 @@ namespace StrawberryShake
                     return false;
                 }
 
-                if (a is IEnumerable aEnumerable && b is IEnumerable bEnumerable)
+                if (a is IEnumerable e1 && b is IEnumerable e2)
                 {
                     // Check the contents of the collection, assuming order is important
-                    if (!aEnumerable.Cast<object>().SequenceEqual(bEnumerable.Cast<object>()))
+                    if (ComparisonHelper.SequenceEqual(e1, e2))
                     {
                         return false;
                     }
@@ -247,11 +248,36 @@ namespace StrawberryShake
 
                 foreach (KeyValuePair<string, object?> variable in _variables)
                 {
-                    hash ^= variable.GetHashCode();
+                    if (variable.Value is IEnumerable inner)
+                    {
+                        hash ^= GetHashCodeFromList(inner) * 397;
+                    }
+                    else
+                    {
+                        hash ^= variable.GetHashCode();
+                    }
                 }
 
                 return hash;
             }
+        }
+
+        private int GetHashCodeFromList(IEnumerable enumerable)
+        {
+            int hash = 17;
+            foreach (var element in enumerable)
+            {
+                if (element is IEnumerable inner)
+                {
+                    hash ^= GetHashCodeFromList(inner) * 397;
+                }
+                else
+                {
+                    hash ^= element.GetHashCode() * 397;
+                }
+            }
+
+            return hash;
         }
     }
 }
