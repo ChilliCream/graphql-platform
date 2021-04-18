@@ -53,7 +53,7 @@ namespace HotChocolate.Execution.Processing
                     // TODO : this error needs to be reported!
                     operationContext.Result.AddError(error);
                 }
-            }, operationContext.RequestAborted, TaskCreationOptions.None, operationContext.Execution.TaskScheduler).Unwrap();
+            }, operationContext.RequestAborted/*, TaskCreationOptions.None, operationContext.Execution.TaskScheduler TODO: reenable after testing */).Unwrap();
         }
 
         private static async Task ExecuteResolversAsync(
