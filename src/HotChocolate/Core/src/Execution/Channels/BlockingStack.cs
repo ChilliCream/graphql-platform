@@ -73,21 +73,21 @@ namespace HotChocolate.Execution.Channels
                 return;
             }
 
-            TaskCompletionSource completion = default!;
+            TaskCompletionSource<bool> completion = default!;
 
             bool lockTaken = false;
             try
             {
                 _lock.Enter(ref lockTaken);
 
-                completion = new TaskCompletionSource();
+                completion = new TaskCompletionSource<bool>();
                 EventHandler completionHandler = default!;
                 completionHandler = (source, args) => {
                     if (IsEmpty)
                     {
                         try
                         {
-                            completion.SetResult();
+                            completion.SetResult(true);
                         }
                         finally
                         {

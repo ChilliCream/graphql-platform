@@ -49,7 +49,7 @@ namespace HotChocolate.Execution.Processing
 
         public async ValueTask WaitTillEmpty()
         {
-            TaskCompletionSource completion = default!;
+            TaskCompletionSource<bool> completion = default!;
             lock (_lock)
             {
                 if (_processingTaskCount == 0 && _queue.IsEmpty)
@@ -57,12 +57,12 @@ namespace HotChocolate.Execution.Processing
                     return;
                 }
 
-                completion = new TaskCompletionSource();
+                completion = new TaskCompletionSource<bool>();
                 EventHandler completionHandler = default!;
                 completionHandler = (source, args) => {
                     try
                     {
-                        completion.SetResult();
+                        completion.SetResult(true);
                     }
                     finally
                     {
