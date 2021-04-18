@@ -19,7 +19,7 @@ namespace HotChocolate.Types
         public LocalTimeType()
             : this(
                 WellKnownScalarTypes.LocalTime,
-                ScalarResources.LongitudeType_Description)
+                ScalarResources.LocalTimeType_Description)
         {
         }
 
