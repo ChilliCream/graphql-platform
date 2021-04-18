@@ -1,0 +1,14 @@
+﻿{
+  "Message": "123",
+  "Code": null,
+  "Path": null,
+  "Locations": null,
+  "Extensions": null,
+  "Exception": null,
+  "SyntaxNode": {
+    "Kind": "StringValue",
+    "Location": null,
+    "Value": "Foo",
+    "Block": false
+  }
+}

@@ -3,15 +3,40 @@
   <PropertyGroup>
     <IsOmniSharp Condition="$(RoslynTargetsPath.Contains('omnisharp'))">true</IsOmniSharp>
     <IsOmniSharp Condition="$(IsOmniSharp) != 'true'">false</IsOmniSharp>
-    <StrawberryShake_DesignTimeBuild Condition="$(DesignTimeBuild) == 'true'">true</StrawberryShake_DesignTimeBuild>
-    <StrawberryShake_DesignTimeBuild Condition="$(DesignTimeBuild) != 'true'">false</StrawberryShake_DesignTimeBuild>
-    <StrawberryShake_DesignTimeBuild Condition="$(IsOmniSharp)">false</StrawberryShake_DesignTimeBuild>
+    <StrawberryShake_DesignTimeBuild Condition="'$(StrawberryShake_DesignTimeBuild)' == '' AND '$(IsOmniSharp)' == 'true'">false</StrawberryShake_DesignTimeBuild>
+    <StrawberryShake_DesignTimeBuild Condition="'$(StrawberryShake_DesignTimeBuild)' == '' AND '$(DesignTimeBuild)' == 'true'">true</StrawberryShake_DesignTimeBuild>
+    <StrawberryShake_DesignTimeBuild Condition="'$(StrawberryShake_DesignTimeBuild)' == '' AND '$(DesignTimeBuild)' != 'true'">false</StrawberryShake_DesignTimeBuild>
     <StrawberryShake_DefaultNamespace Condition="'$(StrawberryShake_DefaultNamespace)' == ''">$(RootNamespace)</StrawberryShake_DefaultNamespace>
     <StrawberryShake_DefaultNamespace Condition="'$(StrawberryShake_DefaultNamespace)' == ''">$(AssemblyName)</StrawberryShake_DefaultNamespace>
+    <StrawberryShake_RemoveGeneratedCode Condition="'$(StrawberryShake_RemoveGeneratedCode)' == ''">$(IsOmniSharp)</StrawberryShake_RemoveGeneratedCode>
     <StrawberryShake_State Condition="'$(StrawberryShake_State)' == '' AND '$(BaseIntermediateOutputPath)' != ''">$(BaseIntermediateOutputPath)\berry</StrawberryShake_State>
   </PropertyGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)VSCode.targets" Condition="'$(IsOmniSharp)' == 'true'" />
+  <ItemGroup>
+    <!-- GraphQL Files -->
+    <None Remove="@(GraphQL)" />
+    <Content Remove="@(GraphQL)" />
+    <Watch Include="@(GraphQL)" />
+    <AdditionalFiles Include="@(GraphQL)" GraphQL="true" />
+    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="GraphQL" />
+
+    <!-- GraphQL Config Files -->
+    <None Remove="@(GraphQLConfig)" />
+    <Content Remove="@(GraphQLConfig)" />
+    <Watch Include="@(GraphQLConfig)" />
+    <AdditionalFiles Include="@(GraphQLConfig)" GraphQLConfig="true" />
+    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="GraphQLConfig" />
+
+    <!-- Build Options -->
+    <CompilerVisibleProperty Include="StrawberryShake_DefaultNamespace" />
+    <CompilerVisibleProperty Include="StrawberryShake_LogFile" />
+    <CompilerVisibleProperty Include="StrawberryShake_BuildDirectory" />
+    <CompilerVisibleProperty Include="StrawberryShake_PersistedQueryDirectory" />
+    <CompilerVisibleProperty Include="StrawberryShake_State" />
+    <CompilerVisibleProperty Include="StrawberryShake_EmitGeneratedCode" />
+  </ItemGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)VSCode.targets" Condition="'$(StrawberryShake_RemoveGeneratedCode)' == 'true'" />
 
   <!--Design Time Code Generation Hook.-->
   <Target Name="GraphQLCompile" />
@@ -26,6 +51,7 @@
     </ItemGroup>
   </Target>
 
+  <!--Logging / Debug-->
   <Target
     Name="StrawberryShakeLogEnvironment"
     BeforeTargets="BeforeCompile"

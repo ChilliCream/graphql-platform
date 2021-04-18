@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using HotChocolate.Utilities;
@@ -12,6 +11,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     public partial class JsonResultBuilderGenerator
     {
         private const string _typename = "typename";
+
         private void AddDataTypeDeserializerMethod(
             ClassBuilder classBuilder,
             MethodBuilder methodBuilder,
@@ -61,28 +61,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             // If the type is an interface
             foreach (ObjectTypeDescriptor concreteType in interfaceTypeDescriptor.ImplementedBy)
             {
-                MethodCallBuilder returnStatement = MethodCallBuilder
-                    .New()
-                    .SetReturn()
-                    .SetNew()
-                    .SetMethodName(
-                        $"{concreteType.RuntimeType.Namespace}.State." +
-                        CreateDataTypeName(concreteType.Name))
-                    .AddArgument("typename");
-
-                foreach (PropertyDescriptor property in concreteType.Properties)
-                {
-                    if (property.Name.Value.EqualsOrdinal(WellKnownNames.TypeName))
-                    {
-                        continue;
-                    }
-
-                    returnStatement.AddArgument(
-                        CodeBlockBuilder
-                            .New()
-                            .AddCode($"{GetParameterName(property.Name)}: ")
-                            .AddCode(BuildUpdateMethodCall(property)));
-                }
+                MethodCallBuilder returnStatement = CreateBuildDataStatement(concreteType)
+                    .SetReturn();
 
                 IfBuilder ifStatement = IfBuilder
                     .New()
@@ -99,6 +79,33 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             methodBuilder
                 .AddEmptyLine()
                 .AddCode(ExceptionBuilder.New(TypeNames.NotSupportedException));
+        }
+
+        private MethodCallBuilder CreateBuildDataStatement(ObjectTypeDescriptor concreteType)
+        {
+            MethodCallBuilder returnStatement = MethodCallBuilder
+                .New()
+                .SetNew()
+                .SetMethodName(
+                    $"{concreteType.RuntimeType.Namespace}.State." +
+                    CreateDataTypeName(concreteType.Name))
+                .AddArgument("typename");
+
+            foreach (PropertyDescriptor property in concreteType.Properties)
+            {
+                if (property.Name.Value.EqualsOrdinal(WellKnownNames.TypeName))
+                {
+                    continue;
+                }
+
+                returnStatement.AddArgument(
+                    CodeBlockBuilder
+                        .New()
+                        .AddCode($"{GetParameterName(property.Name)}: ")
+                        .AddCode(BuildUpdateMethodCall(property)));
+            }
+
+            return returnStatement;
         }
     }
 }

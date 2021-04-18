@@ -20,16 +20,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             HashSet<string> processed,
             bool isNonNullable)
         {
-            if (complexTypeDescriptor.ParentRuntimeType is null)
-            {
-                throw new InvalidOperationException();
-            }
+            RuntimeTypeInfo typeInfo = complexTypeDescriptor.ParentRuntimeType
+                ?? throw new InvalidOperationException();
 
             method
                 .AddParameter(_dataParameterName)
-                .SetType(complexTypeDescriptor.ParentRuntimeType
-                    .ToString()
-                    .MakeNullable(!isNonNullable))
+                .SetType(typeInfo.ToString().MakeNullable(!isNonNullable))
                 .SetName(_dataParameterName);
 
             if (settings.IsStoreEnabled())
@@ -75,10 +71,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 return;
             }
 
-            IfBuilder ifChain = generator(interfaceTypeDescriptor.ImplementedBy.First());
+            IEnumerable<ObjectTypeDescriptor> dataTypes =
+                interfaceTypeDescriptor.ImplementedBy.Where(x => x.IsData());
 
-            foreach (ObjectTypeDescriptor objectTypeDescriptor in
-                interfaceTypeDescriptor.ImplementedBy.Skip(1))
+            IfBuilder ifChain = generator(dataTypes.First());
+
+            foreach (ObjectTypeDescriptor objectTypeDescriptor in dataTypes.Skip(1))
             {
                 ifChain.AddIfElse(generator(objectTypeDescriptor).SkipIndents());
             }
@@ -110,12 +108,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             foreach (PropertyDescriptor prop in objectTypeDescriptor.Properties)
             {
-                if (prop.Type.IsEntityType() || prop.Type.IsDataType())
+                if (prop.Type.IsEntity() || prop.Type.IsData())
                 {
                     constructorCall.AddArgument(
                         BuildMapMethodCall(settings, matchedTypeName, prop));
                 }
-                else if (prop.Type.IsNonNullableType())
+                else if (prop.Type.IsNonNullable())
                 {
                     if (prop.Type.InnerType() is ILeafTypeDescriptor
                         { RuntimeType: { IsValueType: true } })

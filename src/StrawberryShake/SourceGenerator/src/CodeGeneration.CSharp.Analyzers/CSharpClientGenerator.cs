@@ -19,8 +19,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
     [Generator]
     public class CSharpClientGenerator : ISourceGenerator
     {
-        private const string _category = "StrawberryShakeGenerator";
-
         private static string _location = System.IO.Path.GetDirectoryName(
             typeof(CSharpClientGenerator).Assembly.Location)!;
 
@@ -91,7 +89,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 var hasErrors = !TryGenerateClient(context, out CSharpGeneratorResult? result);
 
                 // Ensure that all needed packages are installed.
-                if (!EnsurePreconditionsAreMet(context.Execution, context.Settings))
+                if (!EnsurePreconditionsAreMet(context.Execution, context.Settings, result))
                 {
                     return;
                 }
@@ -182,8 +180,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 {
                     foreach (string fileName in GetGeneratedFiles(context.OutputDirectory))
                     {
-                        if (!context.Settings.EmitGeneratedCode ||
-                            !context.FileNames.Contains(fileName))
+                        if (!context.FileNames.Contains(fileName))
                         {
                             context.Log.RemoveFile(fileName);
                             File.Delete(fileName);
@@ -290,11 +287,37 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         private static bool EnsurePreconditionsAreMet(
             GeneratorExecutionContext context,
-            StrawberryShakeSettings settings)
+            StrawberryShakeSettings settings,
+            CSharpGeneratorResult? result)
         {
             const string http = "StrawberryShake.Transport.Http";
             const string websockets = "StrawberryShake.Transport.WebSockets";
             const string inmemory = "StrawberryShake.Transport.InMemory";
+
+            if (settings.TransportProfiles.Count == 1)
+            {
+                StrawberryShakeTransportProfile transportProfile = settings.TransportProfiles[0];
+
+                if (transportProfile.Default == TransportType.Http &&
+                    transportProfile.Subscription == TransportType.WebSocket &&
+                    transportProfile.Query == null &&
+                    transportProfile.Mutation == null)
+                {
+                    if (!EnsureDependencyExists(context, http))
+                    {
+                        return false;
+                    }
+
+                    if (result is not null &&
+                        result.OperationTypes.Contains(OperationType.Subscription) &&
+                        !EnsureDependencyExists(context, http))
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
 
             var usedTransports = settings.TransportProfiles
                 .SelectMany(t => t.GetUsedTransports()).Distinct().ToList();
@@ -357,8 +380,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 {
                     string json = File.ReadAllText(configLocation);
                     var config = JsonConvert.DeserializeObject<GraphQLConfig>(json);
-                    config.Location = configLocation;
-                    list.Add(config);
+
+                    if (NameUtils.IsValidGraphQLName(config.Extensions.StrawberryShake.Name))
+                    {
+                        config.Location = configLocation;
+                        list.Add(config);
+                    }
+                    else
+                    {
+                        ReportInvalidClientName(
+                            context,
+                            config.Extensions.StrawberryShake.Name,
+                            configLocation);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -406,13 +440,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             }
 
             return _location;
-        }
-    }
-
-    public class SyntaxReceiver : ISyntaxReceiver
-    {
-        public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
-        {
         }
     }
 }

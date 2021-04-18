@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+using StrawberryShake.Tools.Configuration.Properties;
 
 namespace StrawberryShake.Tools.Configuration
 {
@@ -13,15 +14,14 @@ namespace StrawberryShake.Tools.Configuration
 
         public string? Location { get; set; }
 
-        public GraphQLConfigExtensions Extensions { get; } =
-            new GraphQLConfigExtensions();
+        public GraphQLConfigExtensions Extensions { get; } = new();
 
         public override string ToString()
         {
             if (Extensions.StrawberryShake.TransportProfiles.Count == 0)
             {
                 Extensions.StrawberryShake.TransportProfiles.Add(
-                    new StrawberryShakeTransportSettings
+                    new StrawberryShakeTransportProfile
                     {
                         Default = TransportType.Http,
                         Subscription = TransportType.WebSocket
@@ -36,7 +36,9 @@ namespace StrawberryShake.Tools.Configuration
             if (string.IsNullOrEmpty(json))
             {
                 throw new ArgumentException(
-                    $"'{nameof(json)}' cannot be null or empty.",
+                    string.Format(
+                        ToolsConfigResources.GraphQLConfig_FromJson_JsonCannotBeNull,
+                        nameof(json)),
                     nameof(json));
             }
 
@@ -45,7 +47,7 @@ namespace StrawberryShake.Tools.Configuration
             if (config.Extensions.StrawberryShake.TransportProfiles.Count == 0)
             {
                 config.Extensions.StrawberryShake.TransportProfiles.Add(
-                    new StrawberryShakeTransportSettings
+                    new StrawberryShakeTransportProfile
                     {
                         Default = TransportType.Http,
                         Subscription = TransportType.WebSocket

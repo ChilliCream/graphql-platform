@@ -3,6 +3,7 @@ using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Descriptors;
 using StrawberryShake.CodeGeneration.Extensions;
+using StrawberryShake.CodeGeneration.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
@@ -24,7 +25,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             new ScalarEntityIdDescriptor(
                                 field.Name,
                                 leafType.Name,
-                                TypeInfos.From(leafType.GetSerializationType())));
+                                model.Schema.GetOrCreateTypeInfo(leafType.GetSerializationType())));
                     }
                 }
 
