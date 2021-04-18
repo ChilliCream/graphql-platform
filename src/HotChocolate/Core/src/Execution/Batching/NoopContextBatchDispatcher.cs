@@ -12,6 +12,8 @@ namespace HotChocolate.Execution.Batching
     {
         public IBatchDispatcher BatchDispatcher => NoopBatchDispatcher.Default;
 
+        public TaskScheduler TaskScheduler => TaskScheduler.Current;
+
         public void Register(IExecutionContext context)
         {
             // empty

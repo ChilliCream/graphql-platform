@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
 
@@ -33,12 +34,12 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        public TrackableTaskScheduler TaskScheduler
+        public TaskScheduler TaskScheduler
         {
             get
             {
                 AssertNotPooled();
-                return _taskScheduler;
+                return _batchDispatcher.TaskScheduler;
             }
         }
 

@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
 
@@ -26,7 +27,7 @@ namespace HotChocolate.Execution.Processing
 
         IExecutionTaskContext TaskContext { get; }
 
-        TrackableTaskScheduler TaskScheduler { get; }
+        TaskScheduler TaskScheduler { get; set; }
 
         bool IsCompleted { get; }
 

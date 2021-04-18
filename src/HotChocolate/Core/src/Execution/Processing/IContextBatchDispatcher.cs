@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using HotChocolate.Fetching;
 
 namespace HotChocolate.Execution.Processing
@@ -6,6 +7,9 @@ namespace HotChocolate.Execution.Processing
     internal interface IContextBatchDispatcher
     {
         IBatchDispatcher BatchDispatcher { get; }
+
+        /// <summary>Scheduler for all non-batch tasks</summary>
+        TaskScheduler TaskScheduler { get; }
 
         /// <summary>Marks a context as having started</summary>
         void Register(IExecutionContext context);

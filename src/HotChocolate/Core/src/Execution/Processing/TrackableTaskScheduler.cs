@@ -25,9 +25,9 @@ namespace HotChocolate.Execution.Processing
         private bool _running = true;
 
         /// <summary>Create a new instance that uses the current scheduler to perform the actual work</summary>
-        public TrackableTaskScheduler()
+        public TrackableTaskScheduler(TaskScheduler underlyingScheduler)
         {
-            _underlyingScheduler = TaskScheduler.Current;
+            _underlyingScheduler = underlyingScheduler;
         }
 
         /// <returns>true if the scheduler has no remaining work (either on queue or in progress)</returns>

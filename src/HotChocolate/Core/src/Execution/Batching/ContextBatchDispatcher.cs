@@ -15,20 +15,24 @@ namespace HotChocolate.Execution.Batching
     : IContextBatchDispatcher
     {
         private object _dispatchLock = new();
-        private readonly TaskScheduler _scheduler;
+        private readonly TrackableTaskScheduler _taskScheduler;
+        private readonly TaskScheduler _batchScheduler;
         private readonly IBatchDispatcher _dispatcher;
         private readonly ConcurrentDictionary<IExecutionContext, bool> _contexts = new();
         private int _suspended = 0;
 
         public ContextBatchDispatcher(IBatchDispatcher dispatcher)
         {
-            _scheduler = TaskScheduler.Current;
-            Contract.Assert(!(_scheduler is TrackableTaskScheduler));
+            _batchScheduler = TaskScheduler.Current;
+            Contract.Assert(!(_batchScheduler is TrackableTaskScheduler));
+            _taskScheduler = new TrackableTaskScheduler(_batchScheduler);
             _dispatcher = dispatcher;
             _dispatcher.TaskEnqueued += BatchDispatcherEventHandler;
         }
 
         public IBatchDispatcher BatchDispatcher => _dispatcher;
+
+        public TaskScheduler TaskScheduler => _taskScheduler;
 
         public void Suspend()
         {
@@ -78,7 +82,7 @@ namespace HotChocolate.Execution.Batching
                 Suspend();
                 try
                 {
-                    Task.Factory.StartNew(Dispatch, default, TaskCreationOptions.None, _scheduler);
+                    Task.Factory.StartNew(Dispatch, default, TaskCreationOptions.None, _batchScheduler);
                 }
                 catch
                 {
@@ -92,7 +96,7 @@ namespace HotChocolate.Execution.Batching
         {
             try
             {
-                while(_contexts.Any(x => !(x.Key.TaskBacklog.IsEmpty && x.Key.TaskScheduler.IsEmpty)))
+                while (!_taskScheduler.IsEmpty || _contexts.Any(x => !(x.Key.TaskBacklog.IsEmpty)))
                 {
                     // TODO: more performant way to wait (postponed till after testing proof of concept code)
                     await Task.Yield();
