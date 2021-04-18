@@ -17,7 +17,7 @@ namespace HotChocolate.Types
         public LongitudeType()
             : this(
                 WellKnownScalarTypes.Longitude,
-                ScalarResources.LatitudeType_Description)
+                ScalarResources.LongitudeType_Description)
         {
         }
 
@@ -46,7 +46,7 @@ namespace HotChocolate.Types
 
                 decimal d => ParseValue(d),
 
-                _ => throw ThrowHelper.LatitudeType_ParseValue_IsInvalid(this)
+                _ => throw ThrowHelper.LongitudeType_ParseValue_IsInvalid(this)
             };
         }
 
@@ -59,7 +59,7 @@ namespace HotChocolate.Types
                 return value.Value;
             }
 
-            throw ThrowHelper.LatitudeType_ParseLiteral_IsInvalid(this);
+            throw ThrowHelper.LongitudeType_ParseLiteral_IsInvalid(this);
         }
 
         /// <inheritdoc />
@@ -69,7 +69,7 @@ namespace HotChocolate.Types
             {
                 return new StringValueNode(Latitude.ToPrecision(runtimeValue));
             }
-            throw ThrowHelper.LatitudeType_ParseValue_IsInvalid(this);
+            throw ThrowHelper.LongitudeType_ParseValue_IsInvalid(this);
         }
 
         private static class Latitude

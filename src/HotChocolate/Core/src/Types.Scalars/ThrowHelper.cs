@@ -222,6 +222,28 @@ namespace HotChocolate.Types
                 type);
         }
 
+        public static SerializationException LongitudeType_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.LongitudeType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.Longitude)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException LongitudeType_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.LongitudeType_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.Longitude)
+                    .Build(),
+                type);
+        }
+
         public static SerializationException MacAddressType_ParseValue_IsInvalid(IType type)
         {
             return new SerializationException(
