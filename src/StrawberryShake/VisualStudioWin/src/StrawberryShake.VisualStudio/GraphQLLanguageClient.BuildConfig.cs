@@ -40,7 +40,7 @@ namespace StrawberryShake.VisualStudio
 
         private static string Normalize(string rootDirectory, string configDirectory)
         {
-            return configDirectory.Substring(rootDirectory.Length).Replace("\\", "/");
+            return configDirectory.Substring(rootDirectory.Length + 1).Replace("\\", "/");
         }
 
         private static JsonSerializerSettings CreateJsonSettings()

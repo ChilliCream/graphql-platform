@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Windows;
 using System.Windows.Input;
 using HotChocolate.Language;
@@ -298,6 +299,17 @@ namespace StrawberryShake.VisualStudio.GUI
                 if (UseServerUrl)
                 {
                     using var client = new HttpClient { BaseAddress = new Uri(ServerUrl) };
+                    client.DefaultRequestHeaders.UserAgent.Add(
+                        new ProductInfoHeaderValue(
+                            new ProductHeaderValue(
+                                "StrawberryShake.VisualStudio",
+                                GetType().Assembly.GetName().Version.ToString())));
+
+                    if(AccessTokenValue is { Length: > 0 } && AccessTokenScheme is { Length: > 0 })
+                    {
+                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AccessTokenScheme, AccessTokenValue);
+                    }
+
                     schema = IntrospectionClient.Default.DownloadSchemaAsync(client).Result.ToString(true);
                     return true;
                 }
