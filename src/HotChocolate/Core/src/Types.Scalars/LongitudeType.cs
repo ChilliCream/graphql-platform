@@ -40,8 +40,8 @@ namespace HotChocolate.Types
             {
                 null => NullValueNode.Default,
 
-                string s when Latitude.IsSexagesimal(s) &&
-                              Latitude.TryDeserializeFromString(s, out var value) =>
+                string s when Longitude.IsSexagesimal(s) &&
+                              Longitude.TryDeserializeFromString(s, out var value) =>
                     ParseValue(value),
 
                 decimal d => ParseValue(d),
@@ -53,7 +53,7 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override double ParseLiteral(StringValueNode valueSyntax)
         {
-            if (Latitude.TryDeserializeFromString(valueSyntax.Value, out var value) &&
+            if (Longitude.TryDeserializeFromString(valueSyntax.Value, out var value) &&
                 value != null)
             {
                 return value.Value;
@@ -65,14 +65,14 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override StringValueNode ParseValue(double runtimeValue)
         {
-            if (runtimeValue is < Latitude._minLon or > Latitude._maxLon)
+            if (runtimeValue is < Longitude._minLon or > Longitude._maxLon)
             {
-                return new StringValueNode(Latitude.ToPrecision(runtimeValue));
+                return new StringValueNode(Longitude.ToPrecision(runtimeValue));
             }
             throw ThrowHelper.LongitudeType_ParseValue_IsInvalid(this);
         }
 
-        private static class Latitude
+        private static class Longitude
         {
             internal const double _minLon = -180.0;
             internal const double _maxLon = 180.0;
