@@ -14,6 +14,13 @@ namespace StrawberryShake.VisualStudio
         {
             await Task.Yield();
 
+            string serverConfigFileName = Path.Combine(rootDirectory, ".graphqlrc.json");
+
+            if (File.Exists(serverConfigFileName))
+            {
+                File.Delete(serverConfigFileName);
+            }
+
             var serverConfig = new ServerConfig();
 
             foreach(string fileName in Directory.GetFiles(rootDirectory, ".graphqlrc.json", SearchOption.AllDirectories))
@@ -27,12 +34,6 @@ namespace StrawberryShake.VisualStudio
                 serverConfig.Projects.Add(project);
             }
 
-            string serverConfigFileName = Path.Combine(rootDirectory, ".graphqlrc.json");
-            if (File.Exists(serverConfigFileName))
-            {
-                File.Delete(serverConfigFileName);
-            }
-
             File.WriteAllText(
                 serverConfigFileName,
                 JsonConvert.SerializeObject(serverConfig, CreateJsonSettings()));
@@ -40,7 +41,7 @@ namespace StrawberryShake.VisualStudio
 
         private static string Normalize(string rootDirectory, string configDirectory)
         {
-            return configDirectory.Substring(rootDirectory.Length + 1).Replace("\\", "/");
+            return configDirectory.Substring(rootDirectory.Length).Replace("\\", "/").Trim('/');
         }
 
         private static JsonSerializerSettings CreateJsonSettings()
