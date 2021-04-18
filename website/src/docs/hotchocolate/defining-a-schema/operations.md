@@ -6,7 +6,7 @@ title: "GraphQL Operations"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-In GraphQL, we have three root types from which only the Query type has to be defined. Root types provide the entry points that lets us fetch data, mutate data, or subscribe to events. Root types themselves are object types and are commonly referred to as operations.
+In GraphQL, there are three root types from which only the Query type has to be defined. Root types provide the entry points that lets us fetch data, mutate data, or subscribe to events. Root types themselves are object types and are commonly referred to as operations.
 
 # Query
 
@@ -130,7 +130,7 @@ public class Startup
 
 # Mutation
 
-The mutation type in GraphQL is used to mutate/change data. This means that when you are doing mutations you are causing side-effects to the system.
+The mutation type in GraphQL is used to mutate/change data. This means that when we are doing mutations, we are causing side-effects to the system.
 
 GraphQL defines mutations as top-level fields on the mutation type. Meaning only the fields on the mutation root type itself are mutations. Everything that is returned from a mutation field represents the changed state of the server.
 
@@ -151,7 +151,7 @@ GraphQL defines mutations as top-level fields on the mutation type. Meaning only
 }
 ```
 
-In one GraphQL request you can execute multiple mutations. Each of these mutations are executed serially one by one whereas their child selection sets are executed possibly in parallel since only the top-level mutations fields are allowed to have side-effects in GraphQL.
+In one GraphQL request we can execute multiple mutations. Each of these mutations are executed serially one by one whereas their child selection sets are executed possibly in parallel since only the top-level mutations fields are allowed to have side-effects in GraphQL.
 
 ```graphql
 {
@@ -326,7 +326,7 @@ public class DefaultTransactionScopeHandler : ITransactionScopeHandler
 }
 ```
 
-If you implement a custom transaction scope handler or if you choose to extend upon the default transaction scope handler you can add it like the following.
+If we implement a custom transaction scope handler or if we choose to extend upon the default transaction scope handler, we can add it like the following.
 
 ```csharp
 services
@@ -337,7 +337,7 @@ services
 
 # Subscription
 
-The subscription type in GraphQL is used to add real-time capabilities to your applications. Clients can subscribe to events and receive the event data in real-time, as soon as the server publishes it.
+The subscription type in GraphQL is used to add real-time capabilities to our applications. Clients can subscribe to events and receive the event data in real-time, as soon as the server publishes it.
 
 Subscribing to an event is like writing a standard query. The only difference is the operation keyword and that we are only allowed to have one root field.
 
@@ -372,7 +372,7 @@ public class Startup
         services
             .AddGraphQLServer()
             // ...
-            .AddSubscriptionType<Query>();
+            .AddSubscriptionType<Subscription>();
     }
 
     // Omitted code for brevity
@@ -450,9 +450,9 @@ Our Redis subscription provider uses the [StackExchange.Redis](https://github.co
 
 ## Publishing Events
 
-To publish events and trigger subscriptions, we can use the `ITopicEventSender`. The `ITopicEventSender` is an abstraction for the registered event publishing provider. Using this abstraction allows you to seamlessly switch between subscription providers, when necessary.
+To publish events and trigger subscriptions, we can use the `ITopicEventSender`. The `ITopicEventSender` is an abstraction for the registered event publishing provider. Using this abstraction allows us to seamlessly switch between subscription providers, when necessary.
 
-Most of the time you'll be publishing events for successful mutations. Therefor you can simply inject the `ITopicEventSender` into your mutations like you would with every other `Service`.
+Most of the time we'll be publishing events for successful mutations. Therefor we can simply inject the `ITopicEventSender` into our mutations like we would with every other `Service`. Of course we can not only publish events from mutations, but everywhere we have access to the `ITopicEventSender` through the DI Container.
 
 ```csharp
 public class Mutation
@@ -465,8 +465,6 @@ public class Mutation
     }
 }
 ```
-
-Of course you can not only publish events from mutations, but everywhere you have access to the `ITopicEventSender` through the DI Container.
 
 In the example the `"OnBookAdded"` is the topic we want to publish to, and `book` is our payload.
 
