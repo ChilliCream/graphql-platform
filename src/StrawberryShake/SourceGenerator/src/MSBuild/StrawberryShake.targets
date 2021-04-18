@@ -3,9 +3,9 @@
   <PropertyGroup>
     <IsOmniSharp Condition="$(RoslynTargetsPath.Contains('omnisharp'))">true</IsOmniSharp>
     <IsOmniSharp Condition="$(IsOmniSharp) != 'true'">false</IsOmniSharp>
-    <StrawberryShake_DesignTimeBuild Condition="$(DesignTimeBuild) == 'true'">true</StrawberryShake_DesignTimeBuild>
-    <StrawberryShake_DesignTimeBuild Condition="$(DesignTimeBuild) != 'true'">false</StrawberryShake_DesignTimeBuild>
-    <StrawberryShake_DesignTimeBuild Condition="$(IsOmniSharp)">false</StrawberryShake_DesignTimeBuild>
+    <StrawberryShake_DesignTimeBuild Condition="'$(StrawberryShake_DesignTimeBuild)' == '' AND '$(IsOmniSharp)' == 'true'">false</StrawberryShake_DesignTimeBuild>
+    <StrawberryShake_DesignTimeBuild Condition="'$(StrawberryShake_DesignTimeBuild)' == '' AND '$(DesignTimeBuild)' == 'true'">true</StrawberryShake_DesignTimeBuild>
+    <StrawberryShake_DesignTimeBuild Condition="'$(StrawberryShake_DesignTimeBuild)' == '' AND '$(DesignTimeBuild)' != 'true'">false</StrawberryShake_DesignTimeBuild>
     <StrawberryShake_DefaultNamespace Condition="'$(StrawberryShake_DefaultNamespace)' == ''">$(RootNamespace)</StrawberryShake_DefaultNamespace>
     <StrawberryShake_DefaultNamespace Condition="'$(StrawberryShake_DefaultNamespace)' == ''">$(AssemblyName)</StrawberryShake_DefaultNamespace>
     <StrawberryShake_State Condition="'$(StrawberryShake_State)' == '' AND '$(BaseIntermediateOutputPath)' != ''">$(BaseIntermediateOutputPath)\berry</StrawberryShake_State>

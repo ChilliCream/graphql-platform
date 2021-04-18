@@ -180,8 +180,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 {
                     foreach (string fileName in GetGeneratedFiles(context.OutputDirectory))
                     {
-                        if (!context.Settings.EmitGeneratedCode ||
-                            !context.FileNames.Contains(fileName))
+                        if (!context.FileNames.Contains(fileName))
                         {
                             context.Log.RemoveFile(fileName);
                             File.Delete(fileName);
