@@ -118,7 +118,8 @@ public class Startup
                   author: String
                 }
             ")
-            .BindComplexType<Query>();
+            .BindComplexType<Query>()
+            .BindComplexType<Book>();
     }
 
     // Omitted code for brevity
@@ -240,7 +241,7 @@ public class Startup
 ```csharp
 public class Mutation
 {
-    public async Task<Book> AddNewBook(Book book)
+    public async Task<Book> AddBook(Book book)
     {
         // Omitted code for brevity
     }
@@ -253,12 +254,15 @@ public class Startup
         services
             .AddGraphQLServer()
             .AddDocumentFromString(@"
-                type Query {
-                  book: Book
-                }
+                # ...
 
                 type Mutation {
-                  addNewBook(input: AddNewBookInput): AddNewBookPayload
+                  addBook(input: BookInput): Book
+                }
+
+                type BookInput {
+                  title: String
+                  author: String
                 }
 
                 type Book {
@@ -382,19 +386,75 @@ public class Startup
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
-TODO
-
 ```csharp
+public class SubscriptionType : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor
+            .Field("onBookAdded")
+            .Type<PersonType>()
+            .Resolve(context => context.GetEventMessage<Person>())
+            .Subscribe(async context =>
+            {
+                var receiver = context.Service<ITopicEventReceiver>();
 
+                ISourceStream stream = await receiver.SubscribeAsync<string, Person>("OnBookAdded");
+
+                return stream;
+            });
+    }
+}
+
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            // ...
+            .AddSubscriptionType<SubscriptionType>();
+    }
+
+    // Omitted code for brevity
+}
 ```
 
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-TODO
-
 ```csharp
+public class Subscription
+{
+    [Subscribe]
+    public Book OnBookAdded([EventMessage] Book book) => book;
+}
 
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddDocumentFromString(@"
+                # ...
+
+                type Subscription {
+                  onBookAdded: Book
+                }
+
+                type Book {
+                  title: String
+                  author: String
+                }
+            ")
+            // ...
+            .BindComplexType<Subscription>();
+    }
+
+    // Omitted code for brevity
+}
 ```
 
 </ExampleTabs.Schema>
