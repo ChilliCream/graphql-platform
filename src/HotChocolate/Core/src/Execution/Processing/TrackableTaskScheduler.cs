@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.Contracts;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace HotChocolate.Execution.Processing
@@ -18,7 +17,10 @@ namespace HotChocolate.Execution.Processing
         /// <summary>The underlying task scheduler to which all work should be scheduled.</summary>
         private readonly TaskScheduler _underlyingScheduler;
         /// <summary>The maximum number of tasks processors that can be active at the same time.</summary>
-        private readonly int _processingTaskMax = Environment.ProcessorCount + 1;
+        private readonly int _processingTaskMax = Environment.ProcessorCount;
+        /// <summary>The amount of time in milliseconds a single processing task can keep the underlying scheduler occupied</summary>
+        /// <remarks>If a task takes longer it will not quit, it will just result in a new processing task after it completes</remarks>
+        private readonly long _processingTaskTimeout = 50;
         /// <summary>The actual number of tasks processors that are currently active.</summary>
         private int _processingTaskCount = 0;
         /// <summary>If false, no more work will be accepted and the active processing tasks will stop as soon as possible</summary>
@@ -35,7 +37,7 @@ namespace HotChocolate.Execution.Processing
         {
             get
             {
-                lock (_lock)
+                lock(_lock)
                 {
                     return _processingTaskCount == 0 && _queue.IsEmpty;
                 }
@@ -71,7 +73,8 @@ namespace HotChocolate.Execution.Processing
             return TryExecuteTask(task);
         }
 
-        private void ProcessAsyncIfNecessary(bool isReplacementReplica = false)
+        /// <remarks>This method assumes that the caller takes a lock on _lock</remarks>
+        private void ProcessAsyncIfNecessary()
         {
             if (_running && _processingTaskCount < _processingTaskMax && _queue.Count > 0)
             {
@@ -81,11 +84,7 @@ namespace HotChocolate.Execution.Processing
                     ++_processingTaskCount;
                     try
                     {
-                        var options = TaskCreationOptions.DenyChildAttach;
-                        if (isReplacementReplica)
-                        {
-                            options |= TaskCreationOptions.PreferFairness;
-                        }
+                        var options = TaskCreationOptions.DenyChildAttach | TaskCreationOptions.PreferFairness;
                         var processingTask = new Task(ProcessTasks, default, options);
                         processingTask.Start(_underlyingScheduler);
                     }
@@ -102,8 +101,11 @@ namespace HotChocolate.Execution.Processing
         {
             try
             {
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
+
                 Task task;
-                while (_running && _queue.TryDequeue(out task))
+                while (_running && stopwatch.ElapsedMilliseconds < _processingTaskTimeout && _queue.TryDequeue(out task))
                 {
                     // Execute the task. If the scheduler was previously faulted,
                     // this task could have been faulted when it was queued; ignore such tasks.
@@ -119,7 +121,7 @@ namespace HotChocolate.Execution.Processing
                 lock(_lock)
                 {
                     if (_processingTaskCount > 0)  --_processingTaskCount;
-                    ProcessAsyncIfNecessary(true);
+                    ProcessAsyncIfNecessary();
                 }
             }
         }
