@@ -30,6 +30,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(NodesResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Node is null && other.Node is null) || Node != null && Node.Equals(other.Node)));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -48,26 +68,6 @@ namespace Foo.Bar
             }
 
             return Equals((NodesResult)obj);
-        }
-
-        public global::System.Boolean Equals(NodesResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((Node is null && other.Node is null) || Node != null && Node.Equals(other.Node)));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -108,6 +108,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(Nodes_Node_Workspace? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (__typename.Equals(other.__typename)) && Id.Equals(other.Id);
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -126,26 +146,6 @@ namespace Foo.Bar
             }
 
             return Equals((Nodes_Node_Workspace)obj);
-        }
-
-        public global::System.Boolean Equals(Nodes_Node_Workspace? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (__typename.Equals(other.__typename)) && Id.Equals(other.Id);
         }
 
         public override global::System.Int32 GetHashCode()

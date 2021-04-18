@@ -34,6 +34,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(FooResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Abc is null && other.Abc is null) || Abc != null && Abc.Equals(other.Abc)));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -52,26 +72,6 @@ namespace Foo.Bar
             }
 
             return Equals((FooResult)obj);
-        }
-
-        public global::System.Boolean Equals(FooResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((Abc is null && other.Abc is null) || Abc != null && Abc.Equals(other.Abc)));
         }
 
         public override global::System.Int32 GetHashCode()

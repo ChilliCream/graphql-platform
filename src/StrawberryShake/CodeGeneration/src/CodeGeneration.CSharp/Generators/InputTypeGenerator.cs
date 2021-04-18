@@ -32,11 +32,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         {
             RecordDeclarationSyntax recordDeclaration =
                 RecordDeclaration(Token(SyntaxKind.RecordKeyword), descriptor.Name.Value)
-                    .AddImplements(new [] { infoInterfaceType })
+                    .AddImplements(infoInterfaceType)
                     .AddModifiers(
                         Token(SyntaxKind.PublicKeyword),
                         Token(SyntaxKind.PartialKeyword))
                     .AddGeneratedAttribute()
+                    .AddEquality(descriptor.Name, descriptor.Properties, true)
                     .AddSummary(descriptor.Documentation)
                     .WithOpenBraceToken(Token(SyntaxKind.OpenBraceToken));
 
@@ -58,11 +59,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         {
             ClassDeclarationSyntax classDeclaration =
                 ClassDeclaration(descriptor.Name.Value)
-                    .AddImplements(new [] { infoInterfaceType })
+                    .AddImplements(infoInterfaceType)
                     .AddModifiers(
                         Token(SyntaxKind.PublicKeyword),
                         Token(SyntaxKind.PartialKeyword))
                     .AddGeneratedAttribute()
+                    .AddEquality(descriptor.Name, descriptor.Properties)
                     .AddSummary(descriptor.Documentation);
 
             classDeclaration = GenerateProperties(
@@ -96,18 +98,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
                 current = current.AddMembers(
                     FieldDeclaration(
-                        VariableDeclaration(
-                            prop.Type.ToTypeSyntax(),
-                            SingletonSeparatedList(variable)))
+                            VariableDeclaration(
+                                prop.Type.ToTypeSyntax(),
+                                SingletonSeparatedList(variable)))
                         .AddModifiers(Token(SyntaxKind.PrivateKeyword)));
 
                 current = current.AddMembers(
                     FieldDeclaration(
-                        VariableDeclaration(
-                            ParseTypeName(TypeNames.Boolean),
-                            SingletonSeparatedList(
-                                VariableDeclarator(
-                                    Identifier(CreateIsSetField(prop.Name))))))
+                            VariableDeclaration(
+                                ParseTypeName(TypeNames.Boolean),
+                                SingletonSeparatedList(
+                                    VariableDeclarator(
+                                        Identifier(CreateIsSetField(prop.Name))))))
                         .AddModifiers(Token(SyntaxKind.PrivateKeyword)));
             }
 
@@ -142,8 +144,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
                 current = current.AddMembers(
                     PropertyDeclaration(
-                        ParseTypeName(TypeNames.Boolean),
-                        CreateIsSetProperty(prop.Name))
+                            ParseTypeName(TypeNames.Boolean),
+                            CreateIsSetProperty(prop.Name))
                         .WithExplicitInterfaceSpecifier(
                             ExplicitInterfaceSpecifier(
                                 IdentifierName(infoInterfaceType)))

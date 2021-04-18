@@ -1,5 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Generators;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
@@ -77,18 +82,77 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return constructorBuilder;
         }
 
-        public static ClassBuilder AddEquality(
-            this ClassBuilder builder,
+        public static T AddEquality<T>(
+            this T syntax,
             string typeName,
-            IReadOnlyList<PropertyDescriptor> properties)
+            IReadOnlyList<PropertyDescriptor> properties,
+            bool generateRecordEquality = false)
+            where T : TypeDeclarationSyntax
+        {
+            TypeDeclarationSyntax modified = syntax;
+
+            var builder = new StringBuilder();
+            var codeWriter = new CodeWriter(builder);
+
+            if (!generateRecordEquality)
+            {
+                modified = modified.AddImplements(TypeNames.IEquatable.WithGeneric(typeName));
+
+                BuildObjectEqualsMethod(typeName).Build(codeWriter);
+                codeWriter.Flush();
+                var overrideMethod = builder.ToString();
+                builder.Clear();
+
+                modified = modified.AddMembers(
+                    CSharpSyntaxTree
+                        .ParseText(overrideMethod,
+                            new CSharpParseOptions(kind: SourceCodeKind.Script))
+                        .GetCompilationUnitRoot()
+                        .Members
+                        .ToArray());
+            }
+
+            BuildEqualsMethod(typeName, properties).Build(codeWriter);
+            codeWriter.Flush();
+            var equalsMethod = builder.ToString();
+            builder.Clear();
+
+            modified = modified.AddMembers(
+                CSharpSyntaxTree
+                    .ParseText(
+                        equalsMethod,
+                        new CSharpParseOptions(kind: SourceCodeKind.Script))
+                    .GetCompilationUnitRoot()
+                    .Members
+                    .ToArray());
+
+
+            BuildGetHashCodeMethod(properties).Build(codeWriter);
+            codeWriter.Flush();
+            var hashCodeMethod = builder.ToString();
+            builder.Clear();
+            modified = modified.AddMembers(
+                CSharpSyntaxTree
+                    .ParseText(hashCodeMethod, new CSharpParseOptions(kind: SourceCodeKind.Script))
+                    .GetCompilationUnitRoot()
+                    .Members
+                    .ToArray());
+
+            if (modified is T target)
+            {
+                return target;
+            }
+
+            throw new InvalidOperationException();
+        }
+
+        private static MethodBuilder BuildObjectEqualsMethod(string typeName)
         {
             const string obj = nameof(obj);
-            const string other = nameof(other);
 
-            builder.AddImplements(TypeNames.IEquatable.WithGeneric(typeName));
-
-            builder
-                .AddMethod(nameof(IEquatable<object>.Equals))
+            return MethodBuilder
+                .New()
+                .SetName(nameof(IEquatable<object>.Equals))
                 .SetPublic()
                 .SetOverride()
                 .SetReturnType(TypeNames.Boolean)
@@ -119,6 +183,29 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .AddCode("return false;"))
                     .AddEmptyLine()
                     .AddLine($"return Equals(({typeName}){obj});"));
+        }
+
+        private static MethodBuilder BuildGetHashCodeMethod(
+            IReadOnlyList<PropertyDescriptor> properties)
+        {
+            const string obj = nameof(obj);
+
+            return MethodBuilder
+                .New()
+                .SetName(nameof(GetHashCode))
+                .SetPublic()
+                .SetOverride()
+                .SetReturnType(TypeNames.Int32)
+                .AddCode(HashCodeBuilder
+                    .New()
+                    .AddProperties(properties));
+        }
+
+        private static MethodBuilder BuildEqualsMethod(
+            string typeName,
+            IReadOnlyList<PropertyDescriptor> properties)
+        {
+            const string other = nameof(other);
 
             ConditionBuilder equalCondition =
                 ConditionBuilder
@@ -140,9 +227,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }
             }
 
-            builder
-                .AddMethod(nameof(IEquatable<object>.Equals))
+            return MethodBuilder
+                .New()
+                .SetName(nameof(IEquatable<object>.Equals))
                 .SetPublic()
+                .SetInheritance(Inheritance.Virtual)
                 .SetReturnType(TypeNames.Boolean)
                 .AddParameter(other, x => x.SetType(typeName.MakeNullable()))
                 .AddCode(CodeBlockBuilder
@@ -171,15 +260,17 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         .AddCode("return false;"))
                     .AddEmptyLine()
                     .AddCode(equalCondition));
+        }
 
-            builder
-                .AddMethod(nameof(GetHashCode))
-                .SetPublic()
-                .SetOverride()
-                .SetReturnType(TypeNames.Int32)
-                .AddCode(HashCodeBuilder
-                    .New()
-                    .AddProperties(properties));
+        public static ClassBuilder AddEquality(
+            this ClassBuilder builder,
+            string typeName,
+            IReadOnlyList<PropertyDescriptor> properties)
+        {
+            builder.AddImplements(TypeNames.IEquatable.WithGeneric(typeName));
+            builder.AddMethod(BuildEqualsMethod(typeName, properties));
+            builder.AddMethod(BuildObjectEqualsMethod(typeName));
+            builder.AddMethod(BuildGetHashCodeMethod(properties));
 
             return builder;
         }

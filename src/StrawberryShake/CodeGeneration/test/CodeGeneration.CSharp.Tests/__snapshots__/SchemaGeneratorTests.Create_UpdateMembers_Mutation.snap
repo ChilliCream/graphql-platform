@@ -30,6 +30,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(UpdateMembersResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Project.Equals(other.Project));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -48,26 +68,6 @@ namespace Foo.Bar
             }
 
             return Equals((UpdateMembersResult)obj);
-        }
-
-        public global::System.Boolean Equals(UpdateMembersResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Project.Equals(other.Project));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -98,6 +98,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(UpdateMembers_Project_ProjectMutations? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((UpdateMembers is null && other.UpdateMembers is null) || UpdateMembers != null && UpdateMembers.Equals(other.UpdateMembers)));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -116,26 +136,6 @@ namespace Foo.Bar
             }
 
             return Equals((UpdateMembers_Project_ProjectMutations)obj);
-        }
-
-        public global::System.Boolean Equals(UpdateMembers_Project_ProjectMutations? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((UpdateMembers is null && other.UpdateMembers is null) || UpdateMembers != null && UpdateMembers.Equals(other.UpdateMembers)));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -167,6 +167,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(UpdateMembers_Project_UpdateMembers_MutationResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (CorrelationId == other.CorrelationId);
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -185,26 +205,6 @@ namespace Foo.Bar
             }
 
             return Equals((UpdateMembers_Project_UpdateMembers_MutationResult)obj);
-        }
-
-        public global::System.Boolean Equals(UpdateMembers_Project_UpdateMembers_MutationResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (CorrelationId == other.CorrelationId);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -336,8 +336,66 @@ namespace Foo.Bar
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>Update the project members</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class UpdateProjectMembersInput : global::Foo.Bar.State.IUpdateProjectMembersInputInfo
+    public partial class UpdateProjectMembersInput : global::Foo.Bar.State.IUpdateProjectMembersInputInfo, global::System.IEquatable<UpdateProjectMembersInput>
     {
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((UpdateProjectMembersInput)obj);
+        }
+
+        public virtual global::System.Boolean Equals(UpdateProjectMembersInput? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id == other.Id) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Members, other.Members);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * Id.GetHashCode();
+                foreach (var Members_elm in Members)
+                {
+                    if (Members_elm != null)
+                    {
+                        hash ^= 397 * Members_elm.GetHashCode();
+                    }
+                }
+
+                return hash;
+            }
+        }
+
         private global::System.Guid _value_id;
         private global::System.Boolean _set_id;
         private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.UpdateProjectMemberInput?> _value_members = default !;
@@ -434,8 +492,60 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class UpdateProjectMemberInput : global::Foo.Bar.State.IUpdateProjectMemberInputInfo
+    public partial class UpdateProjectMemberInput : global::Foo.Bar.State.IUpdateProjectMemberInputInfo, global::System.IEquatable<UpdateProjectMemberInput>
     {
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((UpdateProjectMemberInput)obj);
+        }
+
+        public virtual global::System.Boolean Equals(UpdateProjectMemberInput? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id == other.Id) && Type.Equals(other.Type) && Remove == other.Remove;
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * Id.GetHashCode();
+                hash ^= 397 * Type.GetHashCode();
+                hash ^= 397 * Remove.GetHashCode();
+                return hash;
+            }
+        }
+
         private global::System.Guid _value_id;
         private global::System.Boolean _set_id;
         private global::Foo.Bar.ProjectUserRoleType _value_type;
