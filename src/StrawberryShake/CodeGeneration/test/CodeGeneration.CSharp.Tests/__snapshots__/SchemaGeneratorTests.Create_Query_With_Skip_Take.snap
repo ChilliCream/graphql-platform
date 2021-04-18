@@ -30,26 +30,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((SearchNewsItemsResult)obj);
-        }
-
         public global::System.Boolean Equals(SearchNewsItemsResult? other)
         {
             if (ReferenceEquals(null, other))
@@ -68,6 +48,26 @@ namespace Foo.Bar
             }
 
             return (((NewsItems is null && other.NewsItems is null) || NewsItems != null && NewsItems.Equals(other.NewsItems)));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((SearchNewsItemsResult)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -99,26 +99,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((SearchNewsItems_NewsItems_NewsItemCollectionSegment)obj);
-        }
-
         public global::System.Boolean Equals(SearchNewsItems_NewsItems_NewsItemCollectionSegment? other)
         {
             if (ReferenceEquals(null, other))
@@ -137,6 +117,26 @@ namespace Foo.Bar
             }
 
             return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Items, other.Items));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((SearchNewsItems_NewsItems_NewsItemCollectionSegment)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -186,26 +186,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((SearchNewsItems_NewsItems_Items_NewsItem)obj);
-        }
-
         public global::System.Boolean Equals(SearchNewsItems_NewsItems_Items_NewsItem? other)
         {
             if (ReferenceEquals(null, other))
@@ -224,6 +204,26 @@ namespace Foo.Bar
             }
 
             return (Id.Equals(other.Id)) && Title.Equals(other.Title) && Summary.Equals(other.Summary);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((SearchNewsItems_NewsItems_Items_NewsItem)obj);
         }
 
         public override global::System.Int32 GetHashCode()

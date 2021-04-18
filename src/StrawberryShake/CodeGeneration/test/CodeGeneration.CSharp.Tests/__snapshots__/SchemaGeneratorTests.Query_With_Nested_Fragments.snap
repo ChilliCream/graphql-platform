@@ -30,26 +30,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetAllResult)obj);
-        }
-
         public global::System.Boolean Equals(GetAllResult? other)
         {
             if (ReferenceEquals(null, other))
@@ -68,6 +48,26 @@ namespace Foo.Bar
             }
 
             return (Listings.Equals(other.Listings));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetAllResult)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -95,26 +95,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetAll_Listings_ListingsPayload)obj);
-        }
-
         public global::System.Boolean Equals(GetAll_Listings_ListingsPayload? other)
         {
             if (ReferenceEquals(null, other))
@@ -133,6 +113,26 @@ namespace Foo.Bar
             }
 
             return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Items, other.Items));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetAll_Listings_ListingsPayload)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -170,26 +170,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetAll_Listings_Items_Auction)obj);
-        }
-
         public global::System.Boolean Equals(GetAll_Listings_Items_Auction? other)
         {
             if (ReferenceEquals(null, other))
@@ -208,6 +188,26 @@ namespace Foo.Bar
             }
 
             return (ListingId.Equals(other.ListingId)) && StartingPrice == other.StartingPrice;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetAll_Listings_Items_Auction)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -242,26 +242,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetAll_Listings_Items_Offer)obj);
-        }
-
         public global::System.Boolean Equals(GetAll_Listings_Items_Offer? other)
         {
             if (ReferenceEquals(null, other))
@@ -280,6 +260,26 @@ namespace Foo.Bar
             }
 
             return (ListingId.Equals(other.ListingId)) && Price == other.Price;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetAll_Listings_Items_Offer)obj);
         }
 
         public override global::System.Int32 GetHashCode()

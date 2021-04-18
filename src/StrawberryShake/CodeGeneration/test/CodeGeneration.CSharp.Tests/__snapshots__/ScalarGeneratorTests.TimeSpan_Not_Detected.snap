@@ -30,26 +30,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetSessionsResult)obj);
-        }
-
         public global::System.Boolean Equals(GetSessionsResult? other)
         {
             if (ReferenceEquals(null, other))
@@ -68,6 +48,26 @@ namespace Foo.Bar
             }
 
             return (((Sessions is null && other.Sessions is null) || Sessions != null && Sessions.Equals(other.Sessions)));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetSessionsResult)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -105,26 +105,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetSessions_Sessions_SessionConnection)obj);
-        }
-
         public global::System.Boolean Equals(GetSessions_Sessions_SessionConnection? other)
         {
             if (ReferenceEquals(null, other))
@@ -143,6 +123,26 @@ namespace Foo.Bar
             }
 
             return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Nodes, other.Nodes));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetSessions_Sessions_SessionConnection)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -177,26 +177,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetSessions_Sessions_Nodes_Session)obj);
-        }
-
         public global::System.Boolean Equals(GetSessions_Sessions_Nodes_Session? other)
         {
             if (ReferenceEquals(null, other))
@@ -215,6 +195,26 @@ namespace Foo.Bar
             }
 
             return (Title.Equals(other.Title));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetSessions_Sessions_Nodes_Session)obj);
         }
 
         public override global::System.Int32 GetHashCode()

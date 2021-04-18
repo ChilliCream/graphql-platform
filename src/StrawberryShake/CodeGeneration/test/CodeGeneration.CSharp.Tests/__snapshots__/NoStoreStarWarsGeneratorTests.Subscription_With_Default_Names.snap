@@ -30,26 +30,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((OnReviewSubResult)obj);
-        }
-
         public global::System.Boolean Equals(OnReviewSubResult? other)
         {
             if (ReferenceEquals(null, other))
@@ -68,6 +48,26 @@ namespace Foo.Bar
             }
 
             return (OnReview.Equals(other.OnReview));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((OnReviewSubResult)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -101,26 +101,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((OnReviewSub_OnReview_Review)obj);
-        }
-
         public global::System.Boolean Equals(OnReviewSub_OnReview_Review? other)
         {
             if (ReferenceEquals(null, other))
@@ -139,6 +119,26 @@ namespace Foo.Bar
             }
 
             return (Stars == other.Stars) && ((Commentary is null && other.Commentary is null) || Commentary != null && Commentary.Equals(other.Commentary));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((OnReviewSub_OnReview_Review)obj);
         }
 
         public override global::System.Int32 GetHashCode()

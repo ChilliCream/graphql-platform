@@ -30,26 +30,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetStore2Result)obj);
-        }
-
         public global::System.Boolean Equals(GetStore2Result? other)
         {
             if (ReferenceEquals(null, other))
@@ -68,6 +48,26 @@ namespace Foo.Bar
             }
 
             return (SearchableStore.Equals(other.SearchableStore));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetStore2Result)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -107,26 +107,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetStore2_SearchableStore_SearchableStore)obj);
-        }
-
         public global::System.Boolean Equals(GetStore2_SearchableStore_SearchableStore? other)
         {
             if (ReferenceEquals(null, other))
@@ -145,6 +125,26 @@ namespace Foo.Bar
             }
 
             return (Id.Equals(other.Id)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Books, other.Books) && ((Search is null && other.Search is null) || Search != null && Search.Equals(other.Search));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetStore2_SearchableStore_SearchableStore)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -194,26 +194,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetStore2_SearchableStore_Books_Book)obj);
-        }
-
         public global::System.Boolean Equals(GetStore2_SearchableStore_Books_Book? other)
         {
             if (ReferenceEquals(null, other))
@@ -232,6 +212,26 @@ namespace Foo.Bar
             }
 
             return (Isbn.Equals(other.Isbn)) && Title.Equals(other.Title);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetStore2_SearchableStore_Books_Book)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -254,26 +254,6 @@ namespace Foo.Bar
         {
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetStore2_SearchableStore_Search_Author)obj);
-        }
-
         public global::System.Boolean Equals(GetStore2_SearchableStore_Search_Author? other)
         {
             if (ReferenceEquals(null, other))
@@ -292,6 +272,26 @@ namespace Foo.Bar
             }
 
             return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetStore2_SearchableStore_Search_Author)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -324,26 +324,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetStore2_SearchableStore_Search_Book)obj);
-        }
-
         public global::System.Boolean Equals(GetStore2_SearchableStore_Search_Book? other)
         {
             if (ReferenceEquals(null, other))
@@ -362,6 +342,26 @@ namespace Foo.Bar
             }
 
             return (Title.Equals(other.Title)) && Isbn.Equals(other.Isbn);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetStore2_SearchableStore_Search_Book)obj);
         }
 
         public override global::System.Int32 GetHashCode()

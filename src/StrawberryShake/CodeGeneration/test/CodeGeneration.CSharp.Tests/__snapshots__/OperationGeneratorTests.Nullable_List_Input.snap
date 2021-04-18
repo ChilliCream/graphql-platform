@@ -30,26 +30,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetSomethingResult)obj);
-        }
-
         public global::System.Boolean Equals(GetSomethingResult? other)
         {
             if (ReferenceEquals(null, other))
@@ -68,6 +48,26 @@ namespace Foo.Bar
             }
 
             return (((Foo is null && other.Foo is null) || Foo != null && Foo.Equals(other.Foo)));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetSomethingResult)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -157,8 +157,68 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class Bar : global::Foo.Bar.State.IBarInfo
+    public partial class Bar : global::Foo.Bar.State.IBarInfo, global::System.IEquatable<Bar>
     {
+        public global::System.Boolean Equals(Bar? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Baz, other.Baz));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((Bar)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                if (Baz != null)
+                {
+                    foreach (var Baz_elm in Baz)
+                    {
+                        if (Baz_elm != null)
+                        {
+                            hash ^= 397 * Baz_elm.GetHashCode();
+                        }
+                    }
+                }
+
+                return hash;
+            }
+        }
+
         private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Baz?>? _value_baz;
         private global::System.Boolean _set_baz;
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Baz?>? Baz
@@ -223,8 +283,62 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class Baz : global::Foo.Bar.State.IBazInfo
+    public partial class Baz : global::Foo.Bar.State.IBazInfo, global::System.IEquatable<Baz>
     {
+        public global::System.Boolean Equals(Baz? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Qux is null && other.Qux is null) || Qux != null && Qux.Equals(other.Qux)));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((Baz)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                if (Qux != null)
+                {
+                    hash ^= 397 * Qux.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+
         private global::System.String? _value_qux;
         private global::System.Boolean _set_qux;
         public global::System.String? Qux

@@ -30,26 +30,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((ChangeHomePlanetResult)obj);
-        }
-
         public global::System.Boolean Equals(ChangeHomePlanetResult? other)
         {
             if (ReferenceEquals(null, other))
@@ -68,6 +48,26 @@ namespace Foo.Bar
             }
 
             return (ChangeHomePlanet.Equals(other.ChangeHomePlanet));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((ChangeHomePlanetResult)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -95,26 +95,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((ChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload)obj);
-        }
-
         public global::System.Boolean Equals(ChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload? other)
         {
             if (ReferenceEquals(null, other))
@@ -133,6 +113,26 @@ namespace Foo.Bar
             }
 
             return (Human.Equals(other.Human));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((ChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -166,26 +166,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((ChangeHomePlanet_ChangeHomePlanet_Human_Human)obj);
-        }
-
         public global::System.Boolean Equals(ChangeHomePlanet_ChangeHomePlanet_Human_Human? other)
         {
             if (ReferenceEquals(null, other))
@@ -204,6 +184,26 @@ namespace Foo.Bar
             }
 
             return (((HomePlanet is null && other.HomePlanet is null) || HomePlanet != null && HomePlanet.Equals(other.HomePlanet)));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((ChangeHomePlanet_ChangeHomePlanet_Human_Human)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -331,8 +331,59 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class ChangeHomePlanetInput : global::Foo.Bar.State.IChangeHomePlanetInputInfo
+    public partial class ChangeHomePlanetInput : global::Foo.Bar.State.IChangeHomePlanetInputInfo, global::System.IEquatable<ChangeHomePlanetInput>
     {
+        public global::System.Boolean Equals(ChangeHomePlanetInput? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id == other.Id) && HomePlanet.Equals(other.HomePlanet);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((ChangeHomePlanetInput)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * Id.GetHashCode();
+                hash ^= 397 * HomePlanet.GetHashCode();
+                return hash;
+            }
+        }
+
         private global::System.Int32 _value_id;
         private global::System.Boolean _set_id;
         private global::System.String _value_homePlanet = default !;

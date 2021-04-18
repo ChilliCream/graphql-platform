@@ -36,26 +36,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetPeopleResult)obj);
-        }
-
         public global::System.Boolean Equals(GetPeopleResult? other)
         {
             if (ReferenceEquals(null, other))
@@ -74,6 +54,26 @@ namespace Foo.Bar
             }
 
             return (((People is null && other.People is null) || People != null && People.Equals(other.People)));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetPeopleResult)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -111,26 +111,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetPeople_People_PersonConnection)obj);
-        }
-
         public global::System.Boolean Equals(GetPeople_People_PersonConnection? other)
         {
             if (ReferenceEquals(null, other))
@@ -149,6 +129,26 @@ namespace Foo.Bar
             }
 
             return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Nodes, other.Nodes));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetPeople_People_PersonConnection)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -210,26 +210,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetPeople_People_Nodes_Person)obj);
-        }
-
         public global::System.Boolean Equals(GetPeople_People_Nodes_Person? other)
         {
             if (ReferenceEquals(null, other))
@@ -248,6 +228,26 @@ namespace Foo.Bar
             }
 
             return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetPeople_People_Nodes_Person)obj);
         }
 
         public override global::System.Int32 GetHashCode()

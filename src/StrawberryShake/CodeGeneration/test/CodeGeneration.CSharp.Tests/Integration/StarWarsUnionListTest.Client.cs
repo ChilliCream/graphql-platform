@@ -118,26 +118,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((SearchHeroResult)obj);
-        }
-
         public global::System.Boolean Equals(SearchHeroResult? other)
         {
             if (ReferenceEquals(null, other))
@@ -156,6 +136,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
             }
 
             return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Search, other.Search));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((SearchHeroResult)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -187,26 +187,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
         {
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((SearchHero_Search_Starship)obj);
-        }
-
         public global::System.Boolean Equals(SearchHero_Search_Starship? other)
         {
             if (ReferenceEquals(null, other))
@@ -225,6 +205,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
             }
 
             return true;
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((SearchHero_Search_Starship)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -257,26 +257,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((SearchHero_Search_Human)obj);
-        }
-
         public global::System.Boolean Equals(SearchHero_Search_Human? other)
         {
             if (ReferenceEquals(null, other))
@@ -295,6 +275,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
             }
 
             return (Name.Equals(other.Name)) && ((Friends is null && other.Friends is null) || Friends != null && Friends.Equals(other.Friends));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((SearchHero_Search_Human)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -327,26 +327,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((SearchHero_Search_Droid)obj);
-        }
-
         public global::System.Boolean Equals(SearchHero_Search_Droid? other)
         {
             if (ReferenceEquals(null, other))
@@ -365,6 +345,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
             }
 
             return (Name.Equals(other.Name));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((SearchHero_Search_Droid)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -398,26 +398,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((SearchHero_Search_Friends_CharacterConnection)obj);
-        }
-
         public global::System.Boolean Equals(SearchHero_Search_Friends_CharacterConnection? other)
         {
             if (ReferenceEquals(null, other))
@@ -436,6 +416,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
             }
 
             return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Nodes, other.Nodes));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((SearchHero_Search_Friends_CharacterConnection)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -473,26 +473,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((SearchHero_Search_Friends_Nodes_Droid)obj);
-        }
-
         public global::System.Boolean Equals(SearchHero_Search_Friends_Nodes_Droid? other)
         {
             if (ReferenceEquals(null, other))
@@ -511,6 +491,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
             }
 
             return (Name.Equals(other.Name));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((SearchHero_Search_Friends_Nodes_Droid)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -538,26 +538,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((SearchHero_Search_Friends_Nodes_Human)obj);
-        }
-
         public global::System.Boolean Equals(SearchHero_Search_Friends_Nodes_Human? other)
         {
             if (ReferenceEquals(null, other))
@@ -576,6 +556,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsUnionList
             }
 
             return (Name.Equals(other.Name));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((SearchHero_Search_Friends_Nodes_Human)obj);
         }
 
         public override global::System.Int32 GetHashCode()

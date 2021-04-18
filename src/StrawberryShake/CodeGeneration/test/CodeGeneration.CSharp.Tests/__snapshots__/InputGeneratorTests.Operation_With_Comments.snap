@@ -30,26 +30,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((TestResult)obj);
-        }
-
         public global::System.Boolean Equals(TestResult? other)
         {
             if (ReferenceEquals(null, other))
@@ -68,6 +48,26 @@ namespace Foo.Bar
             }
 
             return (((Foo is null && other.Foo is null) || Foo != null && Foo.Equals(other.Foo)));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((TestResult)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -248,8 +248,90 @@ namespace Foo.Bar
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>Bar InputType</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class Bar : global::Foo.Bar.State.IBarInfo
+    public partial class Bar : global::Foo.Bar.State.IBarInfo, global::System.IEquatable<Bar>
     {
+        public global::System.Boolean Equals(Bar? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Str is null && other.Str is null) || Str != null && Str.Equals(other.Str))) && StrNonNullable.Equals(other.StrNonNullable) && ((Nested is null && other.Nested is null) || Nested != null && Nested.Equals(other.Nested)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(NestedList, other.NestedList) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(NestedMatrix, other.NestedMatrix);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((Bar)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                if (Str != null)
+                {
+                    hash ^= 397 * Str.GetHashCode();
+                }
+
+                hash ^= 397 * StrNonNullable.GetHashCode();
+                if (Nested != null)
+                {
+                    hash ^= 397 * Nested.GetHashCode();
+                }
+
+                foreach (var NestedList_elm in NestedList)
+                {
+                    hash ^= 397 * NestedList_elm.GetHashCode();
+                }
+
+                if (NestedMatrix != null)
+                {
+                    foreach (var NestedMatrix_elm in NestedMatrix)
+                    {
+                        if (NestedMatrix_elm != null)
+                        {
+                            foreach (var NestedMatrix_elm_elm in NestedMatrix_elm)
+                            {
+                                if (NestedMatrix_elm_elm != null)
+                                {
+                                    hash ^= 397 * NestedMatrix_elm_elm.GetHashCode();
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return hash;
+            }
+        }
+
         private global::System.String? _value_str;
         private global::System.Boolean _set_str;
         private global::System.String _value_strNonNullable = default !;

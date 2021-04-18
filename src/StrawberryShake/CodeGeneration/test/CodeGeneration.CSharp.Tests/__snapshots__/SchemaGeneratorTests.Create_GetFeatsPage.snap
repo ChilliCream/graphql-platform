@@ -30,26 +30,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetFeatsPageResult)obj);
-        }
-
         public global::System.Boolean Equals(GetFeatsPageResult? other)
         {
             if (ReferenceEquals(null, other))
@@ -68,6 +48,26 @@ namespace Foo.Bar
             }
 
             return (((Feats is null && other.Feats is null) || Feats != null && Feats.Equals(other.Feats)));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetFeatsPageResult)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -99,26 +99,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetFeatsPage_Feats_FeatCollectionSegment)obj);
-        }
-
         public global::System.Boolean Equals(GetFeatsPage_Feats_FeatCollectionSegment? other)
         {
             if (ReferenceEquals(null, other))
@@ -137,6 +117,26 @@ namespace Foo.Bar
             }
 
             return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Items, other.Items));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetFeatsPage_Feats_FeatCollectionSegment)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -192,26 +192,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetFeatsPage_Feats_Items_Feat)obj);
-        }
-
         public global::System.Boolean Equals(GetFeatsPage_Feats_Items_Feat? other)
         {
             if (ReferenceEquals(null, other))
@@ -230,6 +210,26 @@ namespace Foo.Bar
             }
 
             return (Name.Equals(other.Name)) && Level == other.Level && CanBeLearnedMoreThanOnce == other.CanBeLearnedMoreThanOnce && ActionType.Equals(other.ActionType);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetFeatsPage_Feats_Items_Feat)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -260,26 +260,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetFeatsPage_Feats_Items_ActionType_ActionType)obj);
-        }
-
         public global::System.Boolean Equals(GetFeatsPage_Feats_Items_ActionType_ActionType? other)
         {
             if (ReferenceEquals(null, other))
@@ -298,6 +278,26 @@ namespace Foo.Bar
             }
 
             return (Name.Equals(other.Name));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetFeatsPage_Feats_Items_ActionType_ActionType)obj);
         }
 
         public override global::System.Int32 GetHashCode()

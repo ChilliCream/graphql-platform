@@ -36,26 +36,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((ReadonlyResult)obj);
-        }
-
         public global::System.Boolean Equals(ReadonlyResult? other)
         {
             if (ReferenceEquals(null, other))
@@ -74,6 +54,26 @@ namespace Foo.Bar
             }
 
             return (((Readonly is null && other.Readonly is null) || Readonly != null && Readonly.Equals(other.Readonly))) && ((ReadonlyEntity is null && other.ReadonlyEntity is null) || ReadonlyEntity != null && ReadonlyEntity.Equals(other.ReadonlyEntity));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((ReadonlyResult)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -110,26 +110,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((Readonly_Readonly_readonly)obj);
-        }
-
         public global::System.Boolean Equals(Readonly_Readonly_readonly? other)
         {
             if (ReferenceEquals(null, other))
@@ -148,6 +128,26 @@ namespace Foo.Bar
             }
 
             return (((Abstract is null && other.Abstract is null) || Abstract != null && Abstract.Equals(other.Abstract)));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((Readonly_Readonly_readonly)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -185,26 +185,6 @@ namespace Foo.Bar
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((Readonly_ReadonlyEntity_readonlyEntity)obj);
-        }
-
         public global::System.Boolean Equals(Readonly_ReadonlyEntity_readonlyEntity? other)
         {
             if (ReferenceEquals(null, other))
@@ -223,6 +203,26 @@ namespace Foo.Bar
             }
 
             return (((Id is null && other.Id is null) || Id != null && Id.Equals(other.Id))) && ((Abstract is null && other.Abstract is null) || Abstract != null && Abstract.Equals(other.Abstract));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((Readonly_ReadonlyEntity_readonlyEntity)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -346,8 +346,62 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class Abstract : global::Foo.Bar.State.IAbstractInfo
+    public partial class Abstract : global::Foo.Bar.State.IAbstractInfo, global::System.IEquatable<Abstract>
     {
+        public global::System.Boolean Equals(Abstract? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Class is null && other.Class is null) || Class != null && Class.Equals(other.Class)));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((Abstract)obj);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                if (Class != null)
+                {
+                    hash ^= 397 * Class.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+
         private global::System.String? _value_class;
         private global::System.Boolean _set_class;
         public global::System.String? Class

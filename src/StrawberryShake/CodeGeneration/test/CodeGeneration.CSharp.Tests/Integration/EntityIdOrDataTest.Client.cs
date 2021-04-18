@@ -115,26 +115,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetFooResult)obj);
-        }
-
         public global::System.Boolean Equals(GetFooResult? other)
         {
             if (ReferenceEquals(null, other))
@@ -153,6 +133,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
             }
 
             return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Foo, other.Foo));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetFooResult)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -190,26 +190,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetFoo_Foo_Baz)obj);
-        }
-
         public global::System.Boolean Equals(GetFoo_Foo_Baz? other)
         {
             if (ReferenceEquals(null, other))
@@ -228,6 +208,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
             }
 
             return (((Id is null && other.Id is null) || Id != null && Id.Equals(other.Id)));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetFoo_Foo_Baz)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -259,26 +259,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetFoo_Foo_Quox)obj);
-        }
-
         public global::System.Boolean Equals(GetFoo_Foo_Quox? other)
         {
             if (ReferenceEquals(null, other))
@@ -297,6 +277,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
             }
 
             return (((Foo is null && other.Foo is null) || Foo != null && Foo.Equals(other.Foo)));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetFoo_Foo_Quox)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -328,26 +328,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetFoo_Foo_Baz2)obj);
-        }
-
         public global::System.Boolean Equals(GetFoo_Foo_Baz2? other)
         {
             if (ReferenceEquals(null, other))
@@ -366,6 +346,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
             }
 
             return (((Id is null && other.Id is null) || Id != null && Id.Equals(other.Id)));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetFoo_Foo_Baz2)obj);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -397,26 +397,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
             get;
         }
 
-        public override global::System.Boolean Equals(global::System.Object? obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetFoo_Foo_Quox2)obj);
-        }
-
         public global::System.Boolean Equals(GetFoo_Foo_Quox2? other)
         {
             if (ReferenceEquals(null, other))
@@ -435,6 +415,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
             }
 
             return (((Foo is null && other.Foo is null) || Foo != null && Foo.Equals(other.Foo)));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetFoo_Foo_Quox2)obj);
         }
 
         public override global::System.Int32 GetHashCode()
