@@ -702,4 +702,19 @@ Type: `{0}`</value>
   <data name="Type_SpecifiedByUrl_Description" xml:space="preserve">
     <value>`specifiedByURL` may return a String (in the form of a URL) for custom scalars, otherwise it will return `null`.</value>
   </data>
+  <data name="SchemaBuilderExtensions_AddObjectType_TIsSchemaType" xml:space="preserve">
+    <value>The specified type `{0}` is a GraphQL schema type. AddObjectType&lt;T&gt; is a helper method to register a runtime type as GraphQL object type. Use AddType&lt;T&gt; to register GraphQL schema types.</value>
+  </data>
+  <data name="SchemaBuilderExtensions_AddUnionType_TIsSchemaType" xml:space="preserve">
+    <value>The specified type `{0}` is a GraphQL schema type. AddUnionType&lt;T&gt; is a helper method to register a runtime type as GraphQL union type. Use AddType&lt;T&gt; to register GraphQL schema types.</value>
+  </data>
+  <data name="SchemaBuilderExtensions_AddEnumType_TIsSchemaType" xml:space="preserve">
+    <value>The specified type `{0}` is a GraphQL schema type. AddEnumType&lt;T&gt; is a helper method to register a runtime type as GraphQL enum type. Use AddType&lt;T&gt; to register GraphQL schema types.</value>
+  </data>
+  <data name="SchemaBuilderExtensions_AddInterfaceType_TIsSchemaType" xml:space="preserve">
+    <value>The specified type `{0}` is a GraphQL schema type. AddInterfaceType&lt;T&gt; is a helper method to register a runtime type as GraphQL interface type. Use AddType&lt;T&gt; to register GraphQL schema types.</value>
+  </data>
+  <data name="SchemaBuilderExtensions_AddInputObjectType_TIsSchemaType" xml:space="preserve">
+    <value>The specified type `{0}` is a GraphQL schema type. AddInputObjectType&lt;T&gt; is a helper method to register a runtime type as GraphQL input object type. Use AddType&lt;T&gt; to register GraphQL schema types.</value>
+  </data>
 </root>
