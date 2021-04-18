@@ -87,9 +87,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             string title =
                 error.Extensions is not null &&
                 error.Extensions.TryGetValue(ErrorHelper.TitleExtensionKey, out var value) &&
-                value is string s
-                    ? s
-                    : SourceGeneratorErrorCodes.Unexpected;
+                value is string s ? s : nameof(SourceGeneratorErrorCodes.Unexpected);
 
             string code = error.Code ?? SourceGeneratorErrorCodes.Unexpected;
 
@@ -98,11 +96,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 error.Extensions.TryGetValue(ErrorHelper.FileExtensionKey, out value) &&
                 value is string filePath)
             {
-                context.ReportDiagnostic(code, title, error.Message, filePath, locations.First());
+                context.ReportDiagnostic(code, title, error.Message + error.Exception?.StackTrace, filePath, locations.First());
             }
             else
             {
-                context.ReportDiagnostic(code, title, error.Message);
+                context.ReportDiagnostic(code, title, error.Message + error.Exception?.StackTrace);
             }
         }
     }
