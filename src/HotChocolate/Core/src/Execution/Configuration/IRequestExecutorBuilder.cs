@@ -2,6 +2,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Configuration
 {
+    /// <summary>
+    /// The GraphQL configuration builder.
+    /// </summary>
     public interface IRequestExecutorBuilder
     {
         /// <summary>
