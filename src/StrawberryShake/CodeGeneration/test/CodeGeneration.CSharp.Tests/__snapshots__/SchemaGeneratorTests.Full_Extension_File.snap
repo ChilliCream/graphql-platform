@@ -36,7 +36,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetListingsCountResult? other)
+        public virtual global::System.Boolean Equals(GetListingsCountResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -101,7 +101,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetListingsCount_Listings_ListingsPayload? other)
+        public virtual global::System.Boolean Equals(GetListingsCount_Listings_ListingsPayload? other)
         {
             if (ReferenceEquals(null, other))
             {

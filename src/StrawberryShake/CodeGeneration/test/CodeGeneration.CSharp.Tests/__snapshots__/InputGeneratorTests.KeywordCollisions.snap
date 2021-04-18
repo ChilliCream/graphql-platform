@@ -36,7 +36,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(ReadonlyResult? other)
+        public virtual global::System.Boolean Equals(ReadonlyResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -110,7 +110,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(Readonly_Readonly_readonly? other)
+        public virtual global::System.Boolean Equals(Readonly_Readonly_readonly? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -185,7 +185,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(Readonly_ReadonlyEntity_readonlyEntity? other)
+        public virtual global::System.Boolean Equals(Readonly_ReadonlyEntity_readonlyEntity? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -348,26 +348,6 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class Abstract : global::Foo.Bar.State.IAbstractInfo, global::System.IEquatable<Abstract>
     {
-        public global::System.Boolean Equals(Abstract? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((Class is null && other.Class is null) || Class != null && Class.Equals(other.Class)));
-        }
-
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -386,6 +366,26 @@ namespace Foo.Bar
             }
 
             return Equals((Abstract)obj);
+        }
+
+        public virtual global::System.Boolean Equals(Abstract? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Class is null && other.Class is null) || Class != null && Class.Equals(other.Class)));
         }
 
         public override global::System.Int32 GetHashCode()

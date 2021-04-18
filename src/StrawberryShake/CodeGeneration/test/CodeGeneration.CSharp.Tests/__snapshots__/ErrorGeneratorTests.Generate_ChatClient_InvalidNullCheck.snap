@@ -36,7 +36,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetPeopleResult? other)
+        public virtual global::System.Boolean Equals(GetPeopleResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -107,7 +107,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetPeople_Me_Person? other)
+        public virtual global::System.Boolean Equals(GetPeople_Me_Person? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -182,7 +182,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetPeople_Me_Friends_PersonConnection? other)
+        public virtual global::System.Boolean Equals(GetPeople_Me_Friends_PersonConnection? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -281,7 +281,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetPeople_Me_Friends_Nodes_Person? other)
+        public virtual global::System.Boolean Equals(GetPeople_Me_Friends_Nodes_Person? other)
         {
             if (ReferenceEquals(null, other))
             {

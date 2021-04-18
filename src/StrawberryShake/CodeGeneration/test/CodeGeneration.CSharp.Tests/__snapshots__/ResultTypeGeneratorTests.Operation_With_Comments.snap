@@ -30,7 +30,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetFooResult? other)
+        public virtual global::System.Boolean Equals(GetFooResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -141,7 +141,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetFoo_Foo_Baz? other)
+        public virtual global::System.Boolean Equals(GetFoo_Foo_Baz? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -244,7 +244,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetFoo_Foo_Nested_Baz? other)
+        public virtual global::System.Boolean Equals(GetFoo_Foo_Nested_Baz? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -319,7 +319,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetFoo_Foo_NestedList_Baz? other)
+        public virtual global::System.Boolean Equals(GetFoo_Foo_NestedList_Baz? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -394,7 +394,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetFoo_Foo_NestedMatrix_Baz? other)
+        public virtual global::System.Boolean Equals(GetFoo_Foo_NestedMatrix_Baz? other)
         {
             if (ReferenceEquals(null, other))
             {

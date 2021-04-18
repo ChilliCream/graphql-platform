@@ -30,7 +30,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(TestOperationResult? other)
+        public virtual global::System.Boolean Equals(TestOperationResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -109,7 +109,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(TestOperation2Result? other)
+        public virtual global::System.Boolean Equals(TestOperation2Result? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -188,7 +188,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(TestOperation3Result? other)
+        public virtual global::System.Boolean Equals(TestOperation3Result? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -407,26 +407,6 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class Bar : global::Foo.Bar.State.IBarInfo, global::System.IEquatable<Bar>
     {
-        public global::System.Boolean Equals(Bar? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((Str is null && other.Str is null) || Str != null && Str.Equals(other.Str))) && StrNonNullable.Equals(other.StrNonNullable) && ((Nested is null && other.Nested is null) || Nested != null && Nested.Equals(other.Nested)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(NestedList, other.NestedList) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(NestedMatrix, other.NestedMatrix);
-        }
-
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -445,6 +425,26 @@ namespace Foo.Bar
             }
 
             return Equals((Bar)obj);
+        }
+
+        public virtual global::System.Boolean Equals(Bar? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Str is null && other.Str is null) || Str != null && Str.Equals(other.Str))) && StrNonNullable.Equals(other.StrNonNullable) && ((Nested is null && other.Nested is null) || Nested != null && Nested.Equals(other.Nested)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(NestedList, other.NestedList) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(NestedMatrix, other.NestedMatrix);
         }
 
         public override global::System.Int32 GetHashCode()

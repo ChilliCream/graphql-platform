@@ -85,14 +85,32 @@ namespace StrawberryShake.CodeGeneration.CSharp
         public static T AddEquality<T>(
             this T syntax,
             string typeName,
-            IReadOnlyList<PropertyDescriptor> properties)
+            IReadOnlyList<PropertyDescriptor> properties,
+            bool generateRecordEquality = false)
             where T : TypeDeclarationSyntax
         {
-            TypeDeclarationSyntax modified =
-                syntax.AddImplements(TypeNames.IEquatable.WithGeneric(typeName));
+            TypeDeclarationSyntax modified = syntax;
 
             var builder = new StringBuilder();
             var codeWriter = new CodeWriter(builder);
+
+            if (!generateRecordEquality)
+            {
+                modified = modified.AddImplements(TypeNames.IEquatable.WithGeneric(typeName));
+
+                BuildObjectEqualsMethod(typeName).Build(codeWriter);
+                codeWriter.Flush();
+                var overrideMethod = builder.ToString();
+                builder.Clear();
+
+                modified = modified.AddMembers(
+                    CSharpSyntaxTree
+                        .ParseText(overrideMethod,
+                            new CSharpParseOptions(kind: SourceCodeKind.Script))
+                        .GetCompilationUnitRoot()
+                        .Members
+                        .ToArray());
+            }
 
             BuildEqualsMethod(typeName, properties).Build(codeWriter);
             codeWriter.Flush();
@@ -101,22 +119,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             modified = modified.AddMembers(
                 CSharpSyntaxTree
-                    .ParseText(equalsMethod, new CSharpParseOptions(kind: SourceCodeKind.Script))
+                    .ParseText(
+                        equalsMethod,
+                        new CSharpParseOptions(kind: SourceCodeKind.Script))
                     .GetCompilationUnitRoot()
                     .Members
                     .ToArray());
 
-            BuildEqualsOverrideMethod(typeName).Build(codeWriter);
-            codeWriter.Flush();
-            var overrideMethod = builder.ToString();
-            builder.Clear();
-
-            modified = modified.AddMembers(
-                CSharpSyntaxTree
-                    .ParseText(overrideMethod, new CSharpParseOptions(kind: SourceCodeKind.Script))
-                    .GetCompilationUnitRoot()
-                    .Members
-                    .ToArray());
 
             BuildGetHashCodeMethod(properties).Build(codeWriter);
             codeWriter.Flush();
@@ -137,7 +146,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             throw new InvalidOperationException();
         }
 
-        private static MethodBuilder BuildEqualsOverrideMethod(string typeName)
+        private static MethodBuilder BuildObjectEqualsMethod(string typeName)
         {
             const string obj = nameof(obj);
 
@@ -222,6 +231,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 .New()
                 .SetName(nameof(IEquatable<object>.Equals))
                 .SetPublic()
+                .SetInheritance(Inheritance.Virtual)
                 .SetReturnType(TypeNames.Boolean)
                 .AddParameter(other, x => x.SetType(typeName.MakeNullable()))
                 .AddCode(CodeBlockBuilder
@@ -259,7 +269,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         {
             builder.AddImplements(TypeNames.IEquatable.WithGeneric(typeName));
             builder.AddMethod(BuildEqualsMethod(typeName, properties));
-            builder.AddMethod(BuildEqualsOverrideMethod(typeName));
+            builder.AddMethod(BuildObjectEqualsMethod(typeName));
             builder.AddMethod(BuildGetHashCodeMethod(properties));
 
             return builder;

@@ -30,7 +30,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(CreateReviewResult? other)
+        public virtual global::System.Boolean Equals(CreateReviewResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -95,7 +95,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(CreateReview_CreateReview_Review? other)
+        public virtual global::System.Boolean Equals(CreateReview_CreateReview_Review? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -186,7 +186,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(OnReviewResult? other)
+        public virtual global::System.Boolean Equals(OnReviewResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -251,7 +251,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(OnReview_OnReview_Review? other)
+        public virtual global::System.Boolean Equals(OnReview_OnReview_Review? other)
         {
             if (ReferenceEquals(null, other))
             {

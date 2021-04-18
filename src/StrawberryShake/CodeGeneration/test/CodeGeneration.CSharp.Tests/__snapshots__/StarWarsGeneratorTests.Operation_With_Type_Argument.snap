@@ -30,7 +30,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(CreateReviewMutResult? other)
+        public virtual global::System.Boolean Equals(CreateReviewMutResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -101,7 +101,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(CreateReviewMut_CreateReview_Review? other)
+        public virtual global::System.Boolean Equals(CreateReviewMut_CreateReview_Review? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -251,26 +251,6 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ReviewInput : global::Foo.Bar.State.IReviewInputInfo, global::System.IEquatable<ReviewInput>
     {
-        public global::System.Boolean Equals(ReviewInput? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Stars == other.Stars) && ((Commentary is null && other.Commentary is null) || Commentary != null && Commentary.Equals(other.Commentary));
-        }
-
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -289,6 +269,26 @@ namespace Foo.Bar
             }
 
             return Equals((ReviewInput)obj);
+        }
+
+        public virtual global::System.Boolean Equals(ReviewInput? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Stars == other.Stars) && ((Commentary is null && other.Commentary is null) || Commentary != null && Commentary.Equals(other.Commentary));
         }
 
         public override global::System.Int32 GetHashCode()

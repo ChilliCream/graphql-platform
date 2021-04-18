@@ -36,7 +36,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetPeopleResult? other)
+        public virtual global::System.Boolean Equals(GetPeopleResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -111,7 +111,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetPeople_People_PersonConnection? other)
+        public virtual global::System.Boolean Equals(GetPeople_People_PersonConnection? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -228,7 +228,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetPeople_People_Nodes_Person? other)
+        public virtual global::System.Boolean Equals(GetPeople_People_Nodes_Person? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -422,7 +422,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetMessagesResult? other)
+        public virtual global::System.Boolean Equals(GetMessagesResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -493,7 +493,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetMessages_PersonByEmail_Person? other)
+        public virtual global::System.Boolean Equals(GetMessages_PersonByEmail_Person? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -568,7 +568,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetMessages_PersonByEmail_Messages_MessageConnection? other)
+        public virtual global::System.Boolean Equals(GetMessages_PersonByEmail_Messages_MessageConnection? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -694,7 +694,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetMessages_PersonByEmail_Messages_Nodes_Message? other)
+        public virtual global::System.Boolean Equals(GetMessages_PersonByEmail_Messages_Nodes_Message? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -788,7 +788,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person? other)
+        public virtual global::System.Boolean Equals(GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -879,7 +879,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetMessages_PersonByEmail_Messages_Nodes_Sender_Person? other)
+        public virtual global::System.Boolean Equals(GetMessages_PersonByEmail_Messages_Nodes_Sender_Person? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -1128,7 +1128,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(SendMessageInput_1Result? other)
+        public virtual global::System.Boolean Equals(SendMessageInput_1Result? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -1199,7 +1199,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(SendMessageInput_SendMessage_SendMessagePayload? other)
+        public virtual global::System.Boolean Equals(SendMessageInput_SendMessage_SendMessagePayload? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -1315,7 +1315,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(SendMessageInput_SendMessage_Message_Message? other)
+        public virtual global::System.Boolean Equals(SendMessageInput_SendMessage_Message_Message? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -1409,7 +1409,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(SendMessageInput_SendMessage_Message_Recipient_Person? other)
+        public virtual global::System.Boolean Equals(SendMessageInput_SendMessage_Message_Recipient_Person? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -1500,7 +1500,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(SendMessageInput_SendMessage_Message_Sender_Person? other)
+        public virtual global::System.Boolean Equals(SendMessageInput_SendMessage_Message_Sender_Person? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -1668,7 +1668,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(SendMessageMutResult? other)
+        public virtual global::System.Boolean Equals(SendMessageMutResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -1739,7 +1739,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(SendMessageMut_SendMessage_SendMessagePayload? other)
+        public virtual global::System.Boolean Equals(SendMessageMut_SendMessage_SendMessagePayload? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -1855,7 +1855,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(SendMessageMut_SendMessage_Message_Message? other)
+        public virtual global::System.Boolean Equals(SendMessageMut_SendMessage_Message_Message? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -1949,7 +1949,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(SendMessageMut_SendMessage_Message_Recipient_Person? other)
+        public virtual global::System.Boolean Equals(SendMessageMut_SendMessage_Message_Recipient_Person? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -2040,7 +2040,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(SendMessageMut_SendMessage_Message_Sender_Person? other)
+        public virtual global::System.Boolean Equals(SendMessageMut_SendMessage_Message_Sender_Person? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -2208,7 +2208,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(ReadMessagesResult? other)
+        public virtual global::System.Boolean Equals(ReadMessagesResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -2324,7 +2324,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(ReadMessages_Message_Message? other)
+        public virtual global::System.Boolean Equals(ReadMessages_Message_Message? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -2418,7 +2418,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(ReadMessages_Message_Recipient_Person? other)
+        public virtual global::System.Boolean Equals(ReadMessages_Message_Recipient_Person? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -2509,7 +2509,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(ReadMessages_Message_Sender_Person? other)
+        public virtual global::System.Boolean Equals(ReadMessages_Message_Sender_Person? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -2713,26 +2713,6 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class SendMessageInput : global::Foo.Bar.State.ISendMessageInputInfo, global::System.IEquatable<SendMessageInput>
     {
-        public global::System.Boolean Equals(SendMessageInput? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((ClientMutationId is null && other.ClientMutationId is null) || ClientMutationId != null && ClientMutationId.Equals(other.ClientMutationId))) && RecipientEmail.Equals(other.RecipientEmail) && Text.Equals(other.Text);
-        }
-
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -2751,6 +2731,26 @@ namespace Foo.Bar
             }
 
             return Equals((SendMessageInput)obj);
+        }
+
+        public virtual global::System.Boolean Equals(SendMessageInput? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((ClientMutationId is null && other.ClientMutationId is null) || ClientMutationId != null && ClientMutationId.Equals(other.ClientMutationId))) && RecipientEmail.Equals(other.RecipientEmail) && Text.Equals(other.Text);
         }
 
         public override global::System.Int32 GetHashCode()

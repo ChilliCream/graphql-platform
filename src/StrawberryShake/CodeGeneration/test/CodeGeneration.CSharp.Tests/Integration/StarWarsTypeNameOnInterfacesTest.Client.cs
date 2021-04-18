@@ -115,7 +115,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnIn
             get;
         }
 
-        public global::System.Boolean Equals(GetHeroResult? other)
+        public virtual global::System.Boolean Equals(GetHeroResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -187,7 +187,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnIn
             get;
         }
 
-        public global::System.Boolean Equals(GetHero_Hero_Droid? other)
+        public virtual global::System.Boolean Equals(GetHero_Hero_Droid? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -255,7 +255,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsTypeNameOnIn
             get;
         }
 
-        public global::System.Boolean Equals(GetHero_Hero_Human? other)
+        public virtual global::System.Boolean Equals(GetHero_Hero_Human? other)
         {
             if (ReferenceEquals(null, other))
             {

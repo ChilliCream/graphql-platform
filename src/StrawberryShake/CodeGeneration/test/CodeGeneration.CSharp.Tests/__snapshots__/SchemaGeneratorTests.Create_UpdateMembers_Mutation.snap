@@ -30,7 +30,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(UpdateMembersResult? other)
+        public virtual global::System.Boolean Equals(UpdateMembersResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -98,7 +98,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(UpdateMembers_Project_ProjectMutations? other)
+        public virtual global::System.Boolean Equals(UpdateMembers_Project_ProjectMutations? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -167,7 +167,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(UpdateMembers_Project_UpdateMembers_MutationResult? other)
+        public virtual global::System.Boolean Equals(UpdateMembers_Project_UpdateMembers_MutationResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -338,26 +338,6 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class UpdateProjectMembersInput : global::Foo.Bar.State.IUpdateProjectMembersInputInfo, global::System.IEquatable<UpdateProjectMembersInput>
     {
-        public global::System.Boolean Equals(UpdateProjectMembersInput? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Id == other.Id) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Members, other.Members);
-        }
-
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -376,6 +356,26 @@ namespace Foo.Bar
             }
 
             return Equals((UpdateProjectMembersInput)obj);
+        }
+
+        public virtual global::System.Boolean Equals(UpdateProjectMembersInput? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id == other.Id) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Members, other.Members);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -494,26 +494,6 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class UpdateProjectMemberInput : global::Foo.Bar.State.IUpdateProjectMemberInputInfo, global::System.IEquatable<UpdateProjectMemberInput>
     {
-        public global::System.Boolean Equals(UpdateProjectMemberInput? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Id == other.Id) && Type.Equals(other.Type) && Remove == other.Remove;
-        }
-
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -532,6 +512,26 @@ namespace Foo.Bar
             }
 
             return Equals((UpdateProjectMemberInput)obj);
+        }
+
+        public virtual global::System.Boolean Equals(UpdateProjectMemberInput? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id == other.Id) && Type.Equals(other.Type) && Remove == other.Remove;
         }
 
         public override global::System.Int32 GetHashCode()

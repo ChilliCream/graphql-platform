@@ -115,7 +115,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
             get;
         }
 
-        public global::System.Boolean Equals(GetFooResult? other)
+        public virtual global::System.Boolean Equals(GetFooResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -190,7 +190,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
             get;
         }
 
-        public global::System.Boolean Equals(GetFoo_Foo_Baz? other)
+        public virtual global::System.Boolean Equals(GetFoo_Foo_Baz? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -259,7 +259,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
             get;
         }
 
-        public global::System.Boolean Equals(GetFoo_Foo_Quox? other)
+        public virtual global::System.Boolean Equals(GetFoo_Foo_Quox? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -328,7 +328,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
             get;
         }
 
-        public global::System.Boolean Equals(GetFoo_Foo_Baz2? other)
+        public virtual global::System.Boolean Equals(GetFoo_Foo_Baz2? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -397,7 +397,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
             get;
         }
 
-        public global::System.Boolean Equals(GetFoo_Foo_Quox2? other)
+        public virtual global::System.Boolean Equals(GetFoo_Foo_Quox2? other)
         {
             if (ReferenceEquals(null, other))
             {

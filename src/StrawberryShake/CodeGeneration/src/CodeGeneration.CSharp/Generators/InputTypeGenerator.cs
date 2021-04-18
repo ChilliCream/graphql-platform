@@ -37,7 +37,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         Token(SyntaxKind.PublicKeyword),
                         Token(SyntaxKind.PartialKeyword))
                     .AddGeneratedAttribute()
-                    .AddEquality(descriptor.Name, descriptor.Properties)
+                    .AddEquality(descriptor.Name, descriptor.Properties, true)
                     .AddSummary(descriptor.Documentation)
                     .WithOpenBraceToken(Token(SyntaxKind.OpenBraceToken));
 

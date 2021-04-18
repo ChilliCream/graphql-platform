@@ -30,7 +30,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(OnPersonResult? other)
+        public virtual global::System.Boolean Equals(OnPersonResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -99,7 +99,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(OnPerson_OnPerson_Person? other)
+        public virtual global::System.Boolean Equals(OnPerson_OnPerson_Person? other)
         {
             if (ReferenceEquals(null, other))
             {

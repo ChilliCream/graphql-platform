@@ -30,7 +30,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetSessionsResult? other)
+        public virtual global::System.Boolean Equals(GetSessionsResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -105,7 +105,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetSessions_Sessions_SessionConnection? other)
+        public virtual global::System.Boolean Equals(GetSessions_Sessions_SessionConnection? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -177,7 +177,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetSessions_Sessions_Nodes_Session? other)
+        public virtual global::System.Boolean Equals(GetSessions_Sessions_Nodes_Session? other)
         {
             if (ReferenceEquals(null, other))
             {

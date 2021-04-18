@@ -206,7 +206,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             get;
         }
 
-        public global::System.Boolean Equals(GetHeroResult? other)
+        public virtual global::System.Boolean Equals(GetHeroResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -281,7 +281,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             get;
         }
 
-        public global::System.Boolean Equals(GetHero_Hero_Droid? other)
+        public virtual global::System.Boolean Equals(GetHero_Hero_Droid? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -357,7 +357,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             get;
         }
 
-        public global::System.Boolean Equals(GetHero_Hero_Human? other)
+        public virtual global::System.Boolean Equals(GetHero_Hero_Human? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -433,7 +433,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             get;
         }
 
-        public global::System.Boolean Equals(GetHero_Hero_Friends_CharacterConnection? other)
+        public virtual global::System.Boolean Equals(GetHero_Hero_Friends_CharacterConnection? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -508,7 +508,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             get;
         }
 
-        public global::System.Boolean Equals(GetHero_Hero_Friends_Nodes_Droid? other)
+        public virtual global::System.Boolean Equals(GetHero_Hero_Friends_Nodes_Droid? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -573,7 +573,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             get;
         }
 
-        public global::System.Boolean Equals(GetHero_Hero_Friends_Nodes_Human? other)
+        public virtual global::System.Boolean Equals(GetHero_Hero_Friends_Nodes_Human? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -722,7 +722,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             get;
         }
 
-        public global::System.Boolean Equals(OnReviewSubResult? other)
+        public virtual global::System.Boolean Equals(OnReviewSubResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -802,7 +802,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             get;
         }
 
-        public global::System.Boolean Equals(OnReviewSub_OnReview_Review? other)
+        public virtual global::System.Boolean Equals(OnReviewSub_OnReview_Review? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -912,7 +912,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             get;
         }
 
-        public global::System.Boolean Equals(CreateReviewMutResult? other)
+        public virtual global::System.Boolean Equals(CreateReviewMutResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -983,7 +983,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             get;
         }
 
-        public global::System.Boolean Equals(CreateReviewMut_CreateReview_Review? other)
+        public virtual global::System.Boolean Equals(CreateReviewMut_CreateReview_Review? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -1133,26 +1133,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ReviewInput : global::StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile.State.IReviewInputInfo, global::System.IEquatable<ReviewInput>
     {
-        public global::System.Boolean Equals(ReviewInput? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Stars == other.Stars) && ((Commentary is null && other.Commentary is null) || Commentary != null && Commentary.Equals(other.Commentary));
-        }
-
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -1171,6 +1151,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.MultiProfile
             }
 
             return Equals((ReviewInput)obj);
+        }
+
+        public virtual global::System.Boolean Equals(ReviewInput? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Stars == other.Stars) && ((Commentary is null && other.Commentary is null) || Commentary != null && Commentary.Equals(other.Commentary));
         }
 
         public override global::System.Int32 GetHashCode()

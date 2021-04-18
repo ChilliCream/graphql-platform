@@ -33,7 +33,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(PeopleSearchResult? other)
+        public virtual global::System.Boolean Equals(PeopleSearchResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -117,7 +117,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(PeopleSearch_People_PersonCollectionSegment? other)
+        public virtual global::System.Boolean Equals(PeopleSearch_People_PersonCollectionSegment? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -206,7 +206,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(PeopleSearch_People_PageInfo_CollectionSegmentInfo? other)
+        public virtual global::System.Boolean Equals(PeopleSearch_People_PageInfo_CollectionSegmentInfo? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -335,7 +335,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(PeopleSearch_People_Items_Person? other)
+        public virtual global::System.Boolean Equals(PeopleSearch_People_Items_Person? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -432,7 +432,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(PeopleSearch_People_Items_Department_Department? other)
+        public virtual global::System.Boolean Equals(PeopleSearch_People_Items_Department_Department? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -516,7 +516,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(PeopleSearch_People_Items_Manager_Person? other)
+        public virtual global::System.Boolean Equals(PeopleSearch_People_Items_Manager_Person? other)
         {
             if (ReferenceEquals(null, other))
             {

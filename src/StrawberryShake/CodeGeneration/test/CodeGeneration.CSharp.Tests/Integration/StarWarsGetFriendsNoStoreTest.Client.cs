@@ -110,7 +110,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
             get;
         }
 
-        public global::System.Boolean Equals(GetHeroResult? other)
+        public virtual global::System.Boolean Equals(GetHeroResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -185,7 +185,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
             get;
         }
 
-        public global::System.Boolean Equals(GetHero_Hero_Droid? other)
+        public virtual global::System.Boolean Equals(GetHero_Hero_Droid? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -261,7 +261,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
             get;
         }
 
-        public global::System.Boolean Equals(GetHero_Hero_Human? other)
+        public virtual global::System.Boolean Equals(GetHero_Hero_Human? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -337,7 +337,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
             get;
         }
 
-        public global::System.Boolean Equals(GetHero_Hero_Friends_CharacterConnection? other)
+        public virtual global::System.Boolean Equals(GetHero_Hero_Friends_CharacterConnection? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -412,7 +412,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
             get;
         }
 
-        public global::System.Boolean Equals(GetHero_Hero_Friends_Nodes_Droid? other)
+        public virtual global::System.Boolean Equals(GetHero_Hero_Friends_Nodes_Droid? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -477,7 +477,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetFriendsNo
             get;
         }
 
-        public global::System.Boolean Equals(GetHero_Hero_Friends_Nodes_Human? other)
+        public virtual global::System.Boolean Equals(GetHero_Hero_Friends_Nodes_Human? other)
         {
             if (ReferenceEquals(null, other))
             {

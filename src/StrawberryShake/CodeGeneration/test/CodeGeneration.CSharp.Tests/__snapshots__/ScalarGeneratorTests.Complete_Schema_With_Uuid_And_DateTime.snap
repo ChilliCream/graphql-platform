@@ -30,7 +30,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(AllExpensesResult? other)
+        public virtual global::System.Boolean Equals(AllExpensesResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -141,7 +141,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(AllExpenses_Expense_Expense? other)
+        public virtual global::System.Boolean Equals(AllExpenses_Expense_Expense? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -226,7 +226,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(AllExpenses_Expense_Tags_Tag? other)
+        public virtual global::System.Boolean Equals(AllExpenses_Expense_Tags_Tag? other)
         {
             if (ReferenceEquals(null, other))
             {

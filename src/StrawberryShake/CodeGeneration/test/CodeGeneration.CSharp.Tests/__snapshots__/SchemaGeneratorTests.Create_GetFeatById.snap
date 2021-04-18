@@ -30,7 +30,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetFeatByIdResult? other)
+        public virtual global::System.Boolean Equals(GetFeatByIdResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -99,7 +99,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetFeatById_Feats_FeatCollectionSegment? other)
+        public virtual global::System.Boolean Equals(GetFeatById_Feats_FeatCollectionSegment? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -192,7 +192,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetFeatById_Feats_Items_Feat? other)
+        public virtual global::System.Boolean Equals(GetFeatById_Feats_Items_Feat? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -264,7 +264,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetFeatById_Feats_Items_Details_FeatDetailsBlock? other)
+        public virtual global::System.Boolean Equals(GetFeatById_Feats_Items_Details_FeatDetailsBlock? other)
         {
             if (ReferenceEquals(null, other))
             {

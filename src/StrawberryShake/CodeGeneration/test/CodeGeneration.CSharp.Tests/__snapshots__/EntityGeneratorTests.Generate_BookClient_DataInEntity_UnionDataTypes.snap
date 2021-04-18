@@ -30,7 +30,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetStore2Result? other)
+        public virtual global::System.Boolean Equals(GetStore2Result? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -107,7 +107,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetStore2_SearchableStore_SearchableStore? other)
+        public virtual global::System.Boolean Equals(GetStore2_SearchableStore_SearchableStore? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -194,7 +194,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetStore2_SearchableStore_Books_Book? other)
+        public virtual global::System.Boolean Equals(GetStore2_SearchableStore_Books_Book? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -254,7 +254,7 @@ namespace Foo.Bar
         {
         }
 
-        public global::System.Boolean Equals(GetStore2_SearchableStore_Search_Author? other)
+        public virtual global::System.Boolean Equals(GetStore2_SearchableStore_Search_Author? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -324,7 +324,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetStore2_SearchableStore_Search_Book? other)
+        public virtual global::System.Boolean Equals(GetStore2_SearchableStore_Search_Book? other)
         {
             if (ReferenceEquals(null, other))
             {

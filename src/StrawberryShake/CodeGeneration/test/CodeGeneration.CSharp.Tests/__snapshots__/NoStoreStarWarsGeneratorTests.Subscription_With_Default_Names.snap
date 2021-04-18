@@ -30,7 +30,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(OnReviewSubResult? other)
+        public virtual global::System.Boolean Equals(OnReviewSubResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -101,7 +101,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(OnReviewSub_OnReview_Review? other)
+        public virtual global::System.Boolean Equals(OnReviewSub_OnReview_Review? other)
         {
             if (ReferenceEquals(null, other))
             {

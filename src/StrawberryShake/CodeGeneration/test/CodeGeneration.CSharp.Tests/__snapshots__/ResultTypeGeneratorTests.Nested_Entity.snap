@@ -30,7 +30,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(DecodeVINResult? other)
+        public virtual global::System.Boolean Equals(DecodeVINResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -107,7 +107,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(DecodeVIN_DecodeVIN_DecodeVIN? other)
+        public virtual global::System.Boolean Equals(DecodeVIN_DecodeVIN_DecodeVIN? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -200,7 +200,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(DecodeVIN_DecodeVIN_VehicleMake_VehicleMake? other)
+        public virtual global::System.Boolean Equals(DecodeVIN_DecodeVIN_VehicleMake_VehicleMake? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -306,7 +306,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(DecodeVIN_DecodeVIN_VehicleModel_VehicleModel? other)
+        public virtual global::System.Boolean Equals(DecodeVIN_DecodeVIN_VehicleModel_VehicleModel? other)
         {
             if (ReferenceEquals(null, other))
             {

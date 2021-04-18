@@ -30,7 +30,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(OnFooUpdatedResult? other)
+        public virtual global::System.Boolean Equals(OnFooUpdatedResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -101,7 +101,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(OnFooUpdated_OnFooUpdated_FooNotification? other)
+        public virtual global::System.Boolean Equals(OnFooUpdated_OnFooUpdated_FooNotification? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -209,7 +209,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(OnFooUpdated_OnFooUpdated_Data_FooNotificationData? other)
+        public virtual global::System.Boolean Equals(OnFooUpdated_OnFooUpdated_Data_FooNotificationData? other)
         {
             if (ReferenceEquals(null, other))
             {

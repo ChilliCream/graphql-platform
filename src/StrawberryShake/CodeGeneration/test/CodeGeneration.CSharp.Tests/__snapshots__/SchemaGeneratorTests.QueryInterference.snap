@@ -30,7 +30,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetFeatsPageResult? other)
+        public virtual global::System.Boolean Equals(GetFeatsPageResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -105,7 +105,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetFeatsPage_Feats_FeatCollectionSegment? other)
+        public virtual global::System.Boolean Equals(GetFeatsPage_Feats_FeatCollectionSegment? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -205,7 +205,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetFeatsPage_Feats_Items_Feat? other)
+        public virtual global::System.Boolean Equals(GetFeatsPage_Feats_Items_Feat? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -278,7 +278,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetFeatsPage_Feats_Items_Details_FeatDetailsBlock? other)
+        public virtual global::System.Boolean Equals(GetFeatsPage_Feats_Items_Details_FeatDetailsBlock? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -432,7 +432,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetFeatByIdResult? other)
+        public virtual global::System.Boolean Equals(GetFeatByIdResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -501,7 +501,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetFeatById_Feats_FeatCollectionSegment? other)
+        public virtual global::System.Boolean Equals(GetFeatById_Feats_FeatCollectionSegment? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -612,7 +612,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetFeatById_Feats_Items_Feat? other)
+        public virtual global::System.Boolean Equals(GetFeatById_Feats_Items_Feat? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -695,7 +695,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetFeatById_Feats_Items_Details_FeatDetailsBlock? other)
+        public virtual global::System.Boolean Equals(GetFeatById_Feats_Items_Details_FeatDetailsBlock? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -760,7 +760,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetFeatById_Feats_Items_ActionType_ActionType? other)
+        public virtual global::System.Boolean Equals(GetFeatById_Feats_Items_ActionType_ActionType? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -1201,26 +1201,6 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FeatSortInput : global::Foo.Bar.State.IFeatSortInputInfo, global::System.IEquatable<FeatSortInput>
     {
-        public global::System.Boolean Equals(FeatSortInput? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((Name is null && other.Name is null) || Name != null && Name.Equals(other.Name))) && ((CanBeLearnedMoreThanOnce is null && other.CanBeLearnedMoreThanOnce is null) || CanBeLearnedMoreThanOnce != null && CanBeLearnedMoreThanOnce.Equals(other.CanBeLearnedMoreThanOnce)) && ((Special is null && other.Special is null) || Special != null && Special.Equals(other.Special)) && ((Trigger is null && other.Trigger is null) || Trigger != null && Trigger.Equals(other.Trigger)) && ((Level is null && other.Level is null) || Level != null && Level.Equals(other.Level)) && ((ActionTypeId is null && other.ActionTypeId is null) || ActionTypeId != null && ActionTypeId.Equals(other.ActionTypeId)) && ((ActionType is null && other.ActionType is null) || ActionType != null && ActionType.Equals(other.ActionType)) && ((FeatTypeId is null && other.FeatTypeId is null) || FeatTypeId != null && FeatTypeId.Equals(other.FeatTypeId)) && ((FeatType is null && other.FeatType is null) || FeatType != null && FeatType.Equals(other.FeatType)) && ((FrequencyId is null && other.FrequencyId is null) || FrequencyId != null && FrequencyId.Equals(other.FrequencyId)) && ((Frequency is null && other.Frequency is null) || Frequency != null && Frequency.Equals(other.Frequency)) && ((RollableEffect is null && other.RollableEffect is null) || RollableEffect != null && RollableEffect.Equals(other.RollableEffect)) && ((RollableEffectId is null && other.RollableEffectId is null) || RollableEffectId != null && RollableEffectId.Equals(other.RollableEffectId)) && ((Id is null && other.Id is null) || Id != null && Id.Equals(other.Id));
-        }
-
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -1239,6 +1219,26 @@ namespace Foo.Bar
             }
 
             return Equals((FeatSortInput)obj);
+        }
+
+        public virtual global::System.Boolean Equals(FeatSortInput? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Name is null && other.Name is null) || Name != null && Name.Equals(other.Name))) && ((CanBeLearnedMoreThanOnce is null && other.CanBeLearnedMoreThanOnce is null) || CanBeLearnedMoreThanOnce != null && CanBeLearnedMoreThanOnce.Equals(other.CanBeLearnedMoreThanOnce)) && ((Special is null && other.Special is null) || Special != null && Special.Equals(other.Special)) && ((Trigger is null && other.Trigger is null) || Trigger != null && Trigger.Equals(other.Trigger)) && ((Level is null && other.Level is null) || Level != null && Level.Equals(other.Level)) && ((ActionTypeId is null && other.ActionTypeId is null) || ActionTypeId != null && ActionTypeId.Equals(other.ActionTypeId)) && ((ActionType is null && other.ActionType is null) || ActionType != null && ActionType.Equals(other.ActionType)) && ((FeatTypeId is null && other.FeatTypeId is null) || FeatTypeId != null && FeatTypeId.Equals(other.FeatTypeId)) && ((FeatType is null && other.FeatType is null) || FeatType != null && FeatType.Equals(other.FeatType)) && ((FrequencyId is null && other.FrequencyId is null) || FrequencyId != null && FrequencyId.Equals(other.FrequencyId)) && ((Frequency is null && other.Frequency is null) || Frequency != null && Frequency.Equals(other.Frequency)) && ((RollableEffect is null && other.RollableEffect is null) || RollableEffect != null && RollableEffect.Equals(other.RollableEffect)) && ((RollableEffectId is null && other.RollableEffectId is null) || RollableEffectId != null && RollableEffectId.Equals(other.RollableEffectId)) && ((Id is null && other.Id is null) || Id != null && Id.Equals(other.Id));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -1572,26 +1572,6 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ActionTypeSortInput : global::Foo.Bar.State.IActionTypeSortInputInfo, global::System.IEquatable<ActionTypeSortInput>
     {
-        public global::System.Boolean Equals(ActionTypeSortInput? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((Name is null && other.Name is null) || Name != null && Name.Equals(other.Name))) && ((Id is null && other.Id is null) || Id != null && Id.Equals(other.Id));
-        }
-
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -1610,6 +1590,26 @@ namespace Foo.Bar
             }
 
             return Equals((ActionTypeSortInput)obj);
+        }
+
+        public virtual global::System.Boolean Equals(ActionTypeSortInput? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Name is null && other.Name is null) || Name != null && Name.Equals(other.Name))) && ((Id is null && other.Id is null) || Id != null && Id.Equals(other.Id));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -1727,26 +1727,6 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FeatTypeSortInput : global::Foo.Bar.State.IFeatTypeSortInputInfo, global::System.IEquatable<FeatTypeSortInput>
     {
-        public global::System.Boolean Equals(FeatTypeSortInput? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((Name is null && other.Name is null) || Name != null && Name.Equals(other.Name))) && ((Id is null && other.Id is null) || Id != null && Id.Equals(other.Id));
-        }
-
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -1765,6 +1745,26 @@ namespace Foo.Bar
             }
 
             return Equals((FeatTypeSortInput)obj);
+        }
+
+        public virtual global::System.Boolean Equals(FeatTypeSortInput? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Name is null && other.Name is null) || Name != null && Name.Equals(other.Name))) && ((Id is null && other.Id is null) || Id != null && Id.Equals(other.Id));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -1916,26 +1916,6 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FrequencySortInput : global::Foo.Bar.State.IFrequencySortInputInfo, global::System.IEquatable<FrequencySortInput>
     {
-        public global::System.Boolean Equals(FrequencySortInput? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((Name is null && other.Name is null) || Name != null && Name.Equals(other.Name))) && ((Amount is null && other.Amount is null) || Amount != null && Amount.Equals(other.Amount)) && ((TimeSpan is null && other.TimeSpan is null) || TimeSpan != null && TimeSpan.Equals(other.TimeSpan)) && ((Id is null && other.Id is null) || Id != null && Id.Equals(other.Id));
-        }
-
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -1954,6 +1934,26 @@ namespace Foo.Bar
             }
 
             return Equals((FrequencySortInput)obj);
+        }
+
+        public virtual global::System.Boolean Equals(FrequencySortInput? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Name is null && other.Name is null) || Name != null && Name.Equals(other.Name))) && ((Amount is null && other.Amount is null) || Amount != null && Amount.Equals(other.Amount)) && ((TimeSpan is null && other.TimeSpan is null) || TimeSpan != null && TimeSpan.Equals(other.TimeSpan)) && ((Id is null && other.Id is null) || Id != null && Id.Equals(other.Id));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -2158,26 +2158,6 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class RollableEffectSortInput : global::Foo.Bar.State.IRollableEffectSortInputInfo, global::System.IEquatable<RollableEffectSortInput>
     {
-        public global::System.Boolean Equals(RollableEffectSortInput? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((CriticalSuccess is null && other.CriticalSuccess is null) || CriticalSuccess != null && CriticalSuccess.Equals(other.CriticalSuccess))) && ((Success is null && other.Success is null) || Success != null && Success.Equals(other.Success)) && ((Failure is null && other.Failure is null) || Failure != null && Failure.Equals(other.Failure)) && ((CriticalFailure is null && other.CriticalFailure is null) || CriticalFailure != null && CriticalFailure.Equals(other.CriticalFailure)) && ((Id is null && other.Id is null) || Id != null && Id.Equals(other.Id));
-        }
-
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -2196,6 +2176,26 @@ namespace Foo.Bar
             }
 
             return Equals((RollableEffectSortInput)obj);
+        }
+
+        public virtual global::System.Boolean Equals(RollableEffectSortInput? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((CriticalSuccess is null && other.CriticalSuccess is null) || CriticalSuccess != null && CriticalSuccess.Equals(other.CriticalSuccess))) && ((Success is null && other.Success is null) || Success != null && Success.Equals(other.Success)) && ((Failure is null && other.Failure is null) || Failure != null && Failure.Equals(other.Failure)) && ((CriticalFailure is null && other.CriticalFailure is null) || CriticalFailure != null && CriticalFailure.Equals(other.CriticalFailure)) && ((Id is null && other.Id is null) || Id != null && Id.Equals(other.Id));
         }
 
         public override global::System.Int32 GetHashCode()

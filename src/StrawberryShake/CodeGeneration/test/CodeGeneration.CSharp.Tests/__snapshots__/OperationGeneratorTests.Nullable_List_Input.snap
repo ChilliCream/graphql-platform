@@ -30,7 +30,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetSomethingResult? other)
+        public virtual global::System.Boolean Equals(GetSomethingResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -159,26 +159,6 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class Bar : global::Foo.Bar.State.IBarInfo, global::System.IEquatable<Bar>
     {
-        public global::System.Boolean Equals(Bar? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Baz, other.Baz));
-        }
-
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -197,6 +177,26 @@ namespace Foo.Bar
             }
 
             return Equals((Bar)obj);
+        }
+
+        public virtual global::System.Boolean Equals(Bar? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Baz, other.Baz));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -285,26 +285,6 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class Baz : global::Foo.Bar.State.IBazInfo, global::System.IEquatable<Baz>
     {
-        public global::System.Boolean Equals(Baz? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((Qux is null && other.Qux is null) || Qux != null && Qux.Equals(other.Qux)));
-        }
-
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -323,6 +303,26 @@ namespace Foo.Bar
             }
 
             return Equals((Baz)obj);
+        }
+
+        public virtual global::System.Boolean Equals(Baz? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Qux is null && other.Qux is null) || Qux != null && Qux.Equals(other.Qux)));
         }
 
         public override global::System.Int32 GetHashCode()

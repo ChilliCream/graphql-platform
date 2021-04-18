@@ -30,7 +30,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetAllResult? other)
+        public virtual global::System.Boolean Equals(GetAllResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -135,7 +135,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(GetAll_Listings_Offer? other)
+        public virtual global::System.Boolean Equals(GetAll_Listings_Offer? other)
         {
             if (ReferenceEquals(null, other))
             {

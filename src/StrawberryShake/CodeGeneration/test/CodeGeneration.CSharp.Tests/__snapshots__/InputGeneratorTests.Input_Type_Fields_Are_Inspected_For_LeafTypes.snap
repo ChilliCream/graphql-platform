@@ -30,7 +30,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(ChangeHomePlanetResult? other)
+        public virtual global::System.Boolean Equals(ChangeHomePlanetResult? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -95,7 +95,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(ChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload? other)
+        public virtual global::System.Boolean Equals(ChangeHomePlanet_ChangeHomePlanet_ChangeHomePlanetPayload? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -166,7 +166,7 @@ namespace Foo.Bar
             get;
         }
 
-        public global::System.Boolean Equals(ChangeHomePlanet_ChangeHomePlanet_Human_Human? other)
+        public virtual global::System.Boolean Equals(ChangeHomePlanet_ChangeHomePlanet_Human_Human? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -333,26 +333,6 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class ChangeHomePlanetInput : global::Foo.Bar.State.IChangeHomePlanetInputInfo, global::System.IEquatable<ChangeHomePlanetInput>
     {
-        public global::System.Boolean Equals(ChangeHomePlanetInput? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Id == other.Id) && HomePlanet.Equals(other.HomePlanet);
-        }
-
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -371,6 +351,26 @@ namespace Foo.Bar
             }
 
             return Equals((ChangeHomePlanetInput)obj);
+        }
+
+        public virtual global::System.Boolean Equals(ChangeHomePlanetInput? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id == other.Id) && HomePlanet.Equals(other.HomePlanet);
         }
 
         public override global::System.Int32 GetHashCode()
