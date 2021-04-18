@@ -9,51 +9,59 @@ namespace HotChocolate.Execution.Processing
         public static Task ExecuteTasksAsync(
             IOperationContext operationContext)
         {
+            // ensure that all subtasks spawned from this are tracked in the TrackingTaskScheduler
+            return Task.Factory.StartNew(
+                async () => await ExecuteResolversAsync(operationContext),
+                operationContext.RequestAborted,
+                TaskCreationOptions.None,
+                operationContext.Execution.TaskScheduler);
+        }
+
+        private static async Task ExecuteResolversAsync(
+            IOperationContext operationContext)
+        {
             if (operationContext.Execution.TaskBacklog.IsEmpty)
             {
-                return Task.CompletedTask;
+                return;
             }
 
-            return Task.Factory.StartNew(async () =>
-            {
-                var proposedTaskCount = operationContext.Operation.ProposedTaskCount;
+            var proposedTaskCount = operationContext.Operation.ProposedTaskCount;
 
-                if (proposedTaskCount == 1)
+            if (proposedTaskCount == 1)
+            {
+                await ExecuteResolversAsync(
+                    operationContext.Execution,
+                    HandleError,
+                    operationContext.RequestAborted);
+            }
+            else
+            {
+                var tasks = new Task[proposedTaskCount];
+
+                for (var i = 0; i < proposedTaskCount; i++)
                 {
-                    await ExecuteResolversAsync(
+                    tasks[i] = ExecuteResolversAsync(
                         operationContext.Execution,
                         HandleError,
                         operationContext.RequestAborted);
                 }
-                else
-                {
-                    var tasks = new Task[proposedTaskCount];
 
-                    for (var i = 0; i < proposedTaskCount; i++)
-                    {
-                        tasks[i] = ExecuteResolversAsync(
-                            operationContext.Execution,
-                            HandleError,
-                            operationContext.RequestAborted);
-                    }
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+            }
 
-                    await Task.WhenAll(tasks).ConfigureAwait(false);
-                }
+            void HandleError(Exception exception)
+            {
+                IError error =
+                    operationContext.ErrorHandler
+                        .CreateUnexpectedError(exception)
+                        .SetCode(ErrorCodes.Execution.TaskProcessingError)
+                        .Build();
 
-                void HandleError(Exception exception)
-                {
-                    IError error =
-                        operationContext.ErrorHandler
-                            .CreateUnexpectedError(exception)
-                            .SetCode(ErrorCodes.Execution.TaskProcessingError)
-                            .Build();
+                error = operationContext.ErrorHandler.Handle(error);
 
-                    error = operationContext.ErrorHandler.Handle(error);
-
-                    // TODO : this error needs to be reported!
-                    operationContext.Result.AddError(error);
-                }
-            }, operationContext.RequestAborted/*, TaskCreationOptions.None, operationContext.Execution.TaskScheduler TODO: reenable after testing */).Unwrap();
+                // TODO : this error needs to be reported!
+                operationContext.Result.AddError(error);
+            }
         }
 
         private static async Task ExecuteResolversAsync(

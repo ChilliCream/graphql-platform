@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Snapshooter;
@@ -101,6 +103,22 @@ namespace HotChocolate.Tests
             return result;
         }
 
+        /// <summary>Match snapshot by adding extensions to an existing fullname</summary>
+        /// <remarks>
+        /// This is the only method that will completely ignore the Fullname cached in the AsyncLocal storage.
+        /// Use this when you want to check multiple snapshots into one async test that does not trigger an AsyncLocal clear)
+        /// </remarks>
+        public static async Task<IExecutionResult> MatchSnapshotAsync(
+            this Task<IExecutionResult> task,
+            SnapshotFullName snapshotFullName,
+            params object[] snapshotNameExtensions)
+        {
+            IExecutionResult result = await task;
+            result.ToJson(true).MatchSnapshot(
+                snapshotFullName.ApplyExtensions(snapshotNameExtensions));
+            return result;
+        }
+
         public static async Task<IExecutionResult> MatchSnapshotAsync(
             this Task<IExecutionResult> task,
             params object[] snapshotNameExtensions)
@@ -109,6 +127,17 @@ namespace HotChocolate.Tests
             result.ToJson(true).MatchSnapshot(
                 SnapshotNameExtension.Create(snapshotNameExtensions));
             return result;
+        }
+
+        /// <summary>Create a new fullname by applying existings to an existing one</summary>
+        public static SnapshotFullName ApplyExtensions(
+            this SnapshotFullName fullName,
+            params object[] snapshotNameExtensions)
+        {
+            var additions = SnapshotNameExtension.Create(snapshotNameExtensions).ToParamsString();
+            var oldExtension = System.IO.Path.GetExtension(fullName.Filename);
+            var oldBasename = System.IO.Path.GetFileNameWithoutExtension(fullName.Filename);
+            return new SnapshotFullName(oldBasename + additions + oldExtension, fullName.FolderPath);
         }
     }
 }
