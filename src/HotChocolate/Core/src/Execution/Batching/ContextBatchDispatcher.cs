@@ -11,7 +11,7 @@ using HotChocolate.Fetching;
 
 namespace HotChocolate.Execution.Batching
 {
-    internal class ContextBatchDispatcher
+    internal sealed class ContextBatchDispatcher
     : IContextBatchDispatcher, IDisposable
     {
         private readonly object _dispatchLock = new();
