@@ -30,6 +30,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetFeatsPageResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Feats is null && other.Feats is null) || Feats != null && Feats.Equals(other.Feats)));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -48,26 +68,6 @@ namespace Foo.Bar
             }
 
             return Equals((GetFeatsPageResult)obj);
-        }
-
-        public global::System.Boolean Equals(GetFeatsPageResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((Feats is null && other.Feats is null) || Feats != null && Feats.Equals(other.Feats)));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -99,6 +99,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetFeatsPage_Feats_FeatCollectionSegment? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Items, other.Items));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -117,26 +137,6 @@ namespace Foo.Bar
             }
 
             return Equals((GetFeatsPage_Feats_FeatCollectionSegment)obj);
-        }
-
-        public global::System.Boolean Equals(GetFeatsPage_Feats_FeatCollectionSegment? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Items, other.Items));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -192,6 +192,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetFeatsPage_Feats_Items_Feat? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name)) && Level == other.Level && CanBeLearnedMoreThanOnce == other.CanBeLearnedMoreThanOnce && ActionType.Equals(other.ActionType);
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -210,26 +230,6 @@ namespace Foo.Bar
             }
 
             return Equals((GetFeatsPage_Feats_Items_Feat)obj);
-        }
-
-        public global::System.Boolean Equals(GetFeatsPage_Feats_Items_Feat? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Name.Equals(other.Name)) && Level == other.Level && CanBeLearnedMoreThanOnce == other.CanBeLearnedMoreThanOnce && ActionType.Equals(other.ActionType);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -260,6 +260,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetFeatsPage_Feats_Items_ActionType_ActionType? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -278,26 +298,6 @@ namespace Foo.Bar
             }
 
             return Equals((GetFeatsPage_Feats_Items_ActionType_ActionType)obj);
-        }
-
-        public global::System.Boolean Equals(GetFeatsPage_Feats_Items_ActionType_ActionType? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Name.Equals(other.Name));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -852,24 +852,31 @@ namespace Foo.Bar.State
         {
             (IGetFeatsPageResult Result, GetFeatsPageResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
-            try
+            if (response.Exception is null)
             {
-                if (response.Body != null)
+                try
                 {
-                    if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                    if (response.Body != null)
                     {
-                        data = BuildData(dataElement);
-                    }
+                        if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                        {
+                            data = BuildData(dataElement);
+                        }
 
-                    if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
-                    {
-                        errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                        {
+                            errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        }
                     }
                 }
+                catch (global::System.Exception ex)
+                {
+                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                }
             }
-            catch (global::System.Exception ex)
+            else
             {
-                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex)};
+                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
             }
 
             return new global::StrawberryShake.OperationResult<IGetFeatsPageResult>(data?.Result, data?.Info, _resultDataFactory, errors);

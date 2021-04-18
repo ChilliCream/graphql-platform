@@ -1,0 +1,18 @@
+﻿{
+  "errors": [
+    {
+      "message": "Variable \u0060user\u0060 got an invalid value.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 10
+        }
+      ],
+      "extensions": {
+        "code": "HC0016",
+        "variable": "user",
+        "underlyingError": "The field \u0060name\u0060 is required and must be set."
+      }
+    }
+  ]
+}

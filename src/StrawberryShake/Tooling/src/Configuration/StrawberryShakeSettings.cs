@@ -34,6 +34,6 @@ namespace StrawberryShake.Tools.Configuration
                 Entities = false
             };
 
-        public List<StrawberryShakeTransportSettings> TransportProfiles { get; } = new();
+        public List<StrawberryShakeTransportProfile> TransportProfiles { get; } = new();
     }
 }

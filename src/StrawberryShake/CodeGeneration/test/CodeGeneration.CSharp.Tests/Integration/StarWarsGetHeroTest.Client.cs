@@ -115,6 +115,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetHeroResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Hero is null && other.Hero is null) || Hero != null && Hero.Equals(other.Hero)));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -133,26 +153,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
             }
 
             return Equals((GetHeroResult)obj);
-        }
-
-        public global::System.Boolean Equals(GetHeroResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((Hero is null && other.Hero is null) || Hero != null && Hero.Equals(other.Hero)));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -184,6 +184,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetHero_Hero_Droid? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -202,26 +222,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
             }
 
             return Equals((GetHero_Hero_Droid)obj);
-        }
-
-        public global::System.Boolean Equals(GetHero_Hero_Droid? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Name.Equals(other.Name));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -249,6 +249,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetHero_Hero_Human? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -267,26 +287,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero
             }
 
             return Equals((GetHero_Hero_Human)obj);
-        }
-
-        public global::System.Boolean Equals(GetHero_Hero_Human? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Name.Equals(other.Name));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -669,24 +669,31 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHero.Stat
         {
             (IGetHeroResult Result, GetHeroResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
-            try
+            if (response.Exception is null)
             {
-                if (response.Body != null)
+                try
                 {
-                    if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                    if (response.Body != null)
                     {
-                        data = BuildData(dataElement);
-                    }
+                        if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                        {
+                            data = BuildData(dataElement);
+                        }
 
-                    if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
-                    {
-                        errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                        {
+                            errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        }
                     }
                 }
+                catch (global::System.Exception ex)
+                {
+                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                }
             }
-            catch (global::System.Exception ex)
+            else
             {
-                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex)};
+                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
             }
 
             return new global::StrawberryShake.OperationResult<IGetHeroResult>(data?.Result, data?.Info, _resultDataFactory, errors);

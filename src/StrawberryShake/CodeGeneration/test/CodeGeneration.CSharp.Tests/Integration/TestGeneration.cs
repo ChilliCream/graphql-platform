@@ -118,5 +118,56 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration
                         }
                     }
                 }");
+
+        [Fact]
+        public void EntityIdOrData() =>
+            AssertResult(
+                CreateIntegrationTest(profiles: new[]
+                {
+                    new TransportProfile("Default", TransportType.InMemory)
+                }),
+                true,
+                @"
+                query GetFoo {
+                    foo {
+                        ... on Baz {
+                            id
+                        }
+                        ... on Quox {
+                            foo
+                        }
+                        ... on Baz2 {
+                            id
+                        }
+                        ... on Quox2 {
+                            foo
+                        }
+                    }
+                }
+                ",
+                @"
+                type Query {
+                    foo: [Bar]
+                }
+
+                type Baz {
+                    id: String
+                }
+
+                type Baz2 {
+                    id: String
+                }
+
+                type Quox {
+                    foo: String
+                }
+
+                type Quox2 {
+                    foo: String
+                }
+
+                union Bar = Baz | Quox | Baz2 | Quox2
+                ",
+                "extend schema @key(fields: \"id\")");
     }
 }

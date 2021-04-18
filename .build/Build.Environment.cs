@@ -25,7 +25,7 @@ partial class Build : NukeBuild
     AbsolutePath StrawberryShakeNuSpec => SourceDirectory / "StrawberryShake" / "CodeGeneration" / "src" / "MSBuild" / "StrawberryShake.nuspec";
     AbsolutePath StarWarsTemplateNuSpec => RootDirectory / "templates" / "StarWars" / "HotChocolate.Templates.StarWars.nuspec";
 
-    AbsolutePath StarWarsProj => RootDirectory / "templates" / "StarWars" / "content" / "StarWars" / "StarWars.csproj";
+    AbsolutePath StarWarsProj => RootDirectory / "templates" / "StarWars" / "content" / "StarWars.csproj";
     AbsolutePath EmptyServerTemplateNuSpec => RootDirectory / "templates" / "Server" / "HotChocolate.Templates.Server.nuspec";
 
     AbsolutePath EmptyServerProj => RootDirectory / "templates" / "Server" / "content" / "HotChocolate.Server.Template.csproj";

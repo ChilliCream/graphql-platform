@@ -24,7 +24,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
         {
             var dataTypes = context.Types
                 .OfType<ObjectTypeDescriptor>()
-                .Where(x => x.IsDataType())
+                .Where(x => x.IsData())
                 .ToList();
 
             var unionTypes = model.Schema.Types
