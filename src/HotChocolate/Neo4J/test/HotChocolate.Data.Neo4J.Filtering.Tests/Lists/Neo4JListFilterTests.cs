@@ -62,23 +62,6 @@ namespace HotChocolate.Data.Neo4J.Filtering.Lists
         }
 
         [Fact]
-        public async Task Test()
-        {
-            // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(_fooEntities,false);
-
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root{ barString fooNested { bar barNested { foo } }}}")
-                    .Create());
-
-            res1.MatchDocumentSnapshot("a");
-        }
-
-        [Fact]
         public async Task Create_ArrayAllObjectStringEqual_Expression()
         {
             // arrange
@@ -92,23 +75,7 @@ namespace HotChocolate.Data.Neo4J.Filtering.Lists
                         "{ root(where: { barString: {eq: \"a\" } fooNested: { all: { bar: { eq: \"a\" }}}}){ barString fooNested { bar barNested { foo } }}}")
                     .Create());
 
-            res1.MatchDocumentSnapshot("a");
-        }
-
-        [Fact]
-        public async Task Create_ArrayAllObjectStringEqual_Expression2()
-        {
-            // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(_fooEntities,false);
-
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { barString: {eq: \"a\"}, fooNested: { all: { bar: { eq: \"a\" }}}}){ fooNested { bar }}}")
-                    .Create());
-
-            res1.MatchDocumentSnapshot("test");
+            res1.MatchDocumentSnapshot("all");
         }
     }
 }

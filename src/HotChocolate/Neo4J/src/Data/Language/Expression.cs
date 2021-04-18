@@ -44,17 +44,8 @@ namespace HotChocolate.Data.Neo4J.Language
         public Condition Contains(Expression expression) => Conditions.Contains(this, expression);
         public Condition IsNull() => Conditions.IsNull(this);
         public Condition IsNotNull() => Conditions.IsNotNull(this);
-        public Condition IsEmpty() => Conditions.IsEmpty(this);
         public Condition In(Expression expression) => Comparison.Create(this, Operator.In, expression);
-        public Operation Concat(Expression expression) => Operations.Concat(this, expression);
         public Operation Add(Expression expression) => Operations.Add(this, expression);
-        public Operation Subtract(Expression expression) => Operations.Subtract(this, expression);
-        public Operation Multiply(Expression expression) => Operations.Multiply(this, expression);
-        public Operation Divide(Expression expression) => Operations.Divide(this, expression);
-        public Operation Remainder(Expression expression) => Operations.Remainder(this, expression);
-        public Operation Pow(Expression expression) => Operations.Pow(this, expression);
-        // TODO Implement FunctionInvocation
-        //public Condition IsEmpty() => Conditions.IsEmpty(this);
         public SortItem Descending() => SortItem.Create(this, SortDirection.Descending);
         public SortItem Ascending() => SortItem.Create(this, SortDirection.Ascending);
     }

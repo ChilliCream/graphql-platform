@@ -25,11 +25,6 @@ namespace HotChocolate.Data.Neo4J.Language
             return Language.Node.Create(primaryLabel, additionalLabels);
         }
 
-        public static Node Node(string primaryLabel, MapExpression properties, params string[] additionalLabels)
-        {
-            return Language.Node.Create(primaryLabel, properties, additionalLabels);
-        }
-
         public static Node NamedNode(string node) => Node(node).Named(node.ToCamelCase());
 
         public static Expression LiteralOf<T>(T literal)
@@ -70,11 +65,5 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public static SortItem Sort(Expression expression) =>
             SortItem.Create(expression, null);
-
-        public static ListComprehension.IOngoingDefinitionWithVariable ListWith(SymbolicName variable) =>
-            ListComprehension.With(variable);
-
-        public static ListExpression ListOf(params Expression[] expressions) =>
-            ListExpression.Create(expressions);
     }
 }
