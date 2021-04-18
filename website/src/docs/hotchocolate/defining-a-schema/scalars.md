@@ -409,6 +409,7 @@ services
 | LocalCurrency    | The `LocalCurrency` scalar type is a currency string.
 | LocalDate        | The `LocalDate` scalar type represents a ISO date string, represented as UTF-8 character sequences yyyy-mm-dd. The scalar follows the specification defined in RFC3339.
 | LocalTime        | The `LocalTime` scalar type is a local time string (i.e., with no associated timezone) in 24-hr `HH:mm:ss]`.
+| Longitude        | The `Longitude` scalar type represents a valid decimal degrees longitude number.
 | MacAddress       | The `MacAddess` scalar type represents a IEEE 802 48-bit Mac address, represented as UTF-8 character sequences. The scalar follows the specification defined in [RFC7042](https://tools.ietf.org/html/rfc7042#page-19).
 | NegativeFloat    | The `NegativeFloat` scalar type represents a double‐precision fractional value less than 0.
 | NegativeInt      | The `NegativeIntType` scalar type represents a signed 32-bit numeric non-fractional with a maximum of -1.
