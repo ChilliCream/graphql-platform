@@ -14,7 +14,7 @@ namespace HotChocolate.Execution.Batching
     internal class ContextBatchDispatcher
     : IContextBatchDispatcher, IDisposable
     {
-        private object _dispatchLock = new();
+        private readonly object _dispatchLock = new();
         private readonly TrackableTaskScheduler _taskScheduler;
         private readonly TaskScheduler _batchScheduler;
         private readonly IBatchDispatcher _dispatcher;
