@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -85,7 +86,20 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         {
             if (value is { Length: > 0 })
             {
-                return member.AddSimple(XmlSummaryElement(XmlText(value)));
+                using var reader = new StringReader(value);
+                var list = new List<XmlNodeSyntax>();
+                string? line;
+
+                do
+                {
+                    line = reader.ReadLine();
+                    if(line is not null);
+                    {
+                        list.Add(XmlText(line));
+                    }
+                } while (line is not null);
+
+                return member.AddSimple(XmlSummaryElement(list.ToArray()));
             }
 
             return member;
