@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,12 +14,16 @@ namespace HotChocolate.Execution.Batching
     internal class ContextBatchDispatcher
     : IContextBatchDispatcher
     {
+        private object _dispatchLock = new();
+        private readonly TaskScheduler _scheduler;
         private readonly IBatchDispatcher _dispatcher;
         private readonly ConcurrentDictionary<IExecutionContext, bool> _contexts = new();
         private int _suspended = 0;
 
         public ContextBatchDispatcher(IBatchDispatcher dispatcher)
         {
+            _scheduler = TaskScheduler.Current;
+            Contract.Assert(!(_scheduler is TrackableTaskScheduler));
             _dispatcher = dispatcher;
             _dispatcher.TaskEnqueued += BatchDispatcherEventHandler;
         }
@@ -27,15 +32,18 @@ namespace HotChocolate.Execution.Batching
 
         public void Suspend()
         {
-            Interlocked.Increment(ref _suspended);
+            lock(_dispatchLock)
+            {
+                ++_suspended;
+            }
         }
 
         public void Resume()
         {
-            var suspended = Interlocked.Decrement(ref _suspended);
-            if (suspended == 0)
+            lock (_dispatchLock)
             {
-                TryDispatch();
+                --_suspended;
+                StartDispatch();
             }
         }
 
@@ -45,7 +53,6 @@ namespace HotChocolate.Execution.Batching
             {
                 throw new ArgumentException("context is already registered", nameof(context));
             }
-            context.TaskStats.StateChanged += TaskStatisticsEventHandler;
         }
 
         public void Unregister(IExecutionContext context)
@@ -54,65 +61,92 @@ namespace HotChocolate.Execution.Batching
             {
                 throw new ArgumentException("context is not registered", nameof(context));
             }
-            context.TaskStats.StateChanged -= TaskStatisticsEventHandler;
         }
 
-        private void BatchDispatcherEventHandler(
-            object? source, EventArgs args) =>
-            TryDispatch();
-
-        private void TaskStatisticsEventHandler(
-            object? source, EventArgs args) =>
-            TryDispatch();
-
-        private void TryDispatch()
+        private void BatchDispatcherEventHandler(object? source, EventArgs args)
         {
-            if (_suspended == 0 && _contexts.All(x => x.Key.TaskBacklog.IsEmpty ) && _dispatcher.HasTasks)
+            lock (_dispatchLock)
             {
-                Dispatch();
+                StartDispatch();
             }
         }
 
-        private void Dispatch()
+        private void StartDispatch()
         {
-            IExecutionContext safeContext = default!;
-            Exception safeContextException = default!;
-            foreach (var context in _contexts.Keys)
+            if (_suspended == 0 && _dispatcher.HasTasks)
             {
+                Suspend();
                 try
                 {
-                    var taskStats = context.TaskStats;
-                    taskStats.SuspendCompletionEvent();
-                    if (!taskStats.IsCompleted)
-                    {
-                        safeContext = context;
-                        break;
-                    }
-                    else
-                    {
-                        taskStats.ResumeCompletionEvent();
-                    }
+                    Task.Factory.StartNew(Dispatch, default, TaskCreationOptions.None, _scheduler);
                 }
-                catch (Exception e)
+                catch
                 {
-                    safeContextException = e;
+                    Resume();
+                    throw;
                 }
             }
-            if (safeContext is null)
-            {
-                throw new InvalidOperationException("Batch is scheduled but there are no remaining pending contexts", safeContextException);
-            }
+        }
+
+        private async Task Dispatch()
+        {
             try
             {
-                _dispatcher.Dispatch(taskDefinition =>
+                while(_contexts.Any(x => !(x.Key.TaskBacklog.IsEmpty && x.Key.TaskScheduler.IsEmpty)))
                 {
-                    safeContext.TaskBacklog.Register(taskDefinition.Create(safeContext.TaskContext));
-                });
+                    // TODO: more performant way to wait (postponed till after testing proof of concept code)
+                    await Task.Yield();
+                }
+
+                IExecutionContext safeContext = default!;
+                Exception safeContextException = default!;
+                foreach (var context in _contexts.Keys)
+                {
+                    try
+                    {
+                        var taskStats = context.TaskStats;
+                        taskStats.SuspendCompletionEvent();
+                        if (!taskStats.IsCompleted)
+                        {
+                            safeContext = context;
+                            break;
+                        }
+                        else
+                        {
+                            taskStats.ResumeCompletionEvent();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        safeContextException = e;
+                    }
+                }
+                if (safeContext is null)
+                {
+                    throw new InvalidOperationException("Batch is scheduled but there are no remaining pending contexts", safeContextException);
+                }
+                try
+                {
+                    _dispatcher.Dispatch(taskDefinition =>
+                    {
+                        safeContext.TaskBacklog.Register(taskDefinition.Create(safeContext.TaskContext));
+                    });
+                }
+                finally
+                {
+                    safeContext.TaskStats.ResumeCompletionEvent();
+                }
             }
             finally
             {
-                safeContext.TaskStats.ResumeCompletionEvent();
+                Resume();
+            }
+
+            lock (_dispatchLock)
+            {
+                StartDispatch();
             }
         }
     }
 }
+

@@ -15,6 +15,7 @@ namespace HotChocolate.Execution.Processing
         private readonly ObjectPool<ResolverTask> _taskPool;
         private CancellationTokenSource _completed = default!;
         private IContextBatchDispatcher _batchDispatcher = default!;
+        private TrackableTaskScheduler _taskScheduler = default!;
 
         private bool _isPooled = true;
 
@@ -43,6 +44,8 @@ namespace HotChocolate.Execution.Processing
 
             _batchDispatcher = batchDispatcher;
             _batchDispatcher.Register(this);
+
+            _taskScheduler = new TrackableTaskScheduler();
         }
 
         private void TryComplete()
@@ -65,6 +68,12 @@ namespace HotChocolate.Execution.Processing
 
         public void Clean()
         {
+            if (_taskScheduler is not null!)
+            {
+                _taskScheduler.Complete();
+                _taskScheduler = default!;
+            }
+
             if (_batchDispatcher is not null!)
             {
                 _batchDispatcher.Unregister(this);

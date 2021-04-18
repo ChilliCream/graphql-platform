@@ -6,51 +6,54 @@ namespace HotChocolate.Execution.Processing
 {
     internal static class ResolverExecutionHelper
     {
-        public static async Task ExecuteTasksAsync(
+        public static Task ExecuteTasksAsync(
             IOperationContext operationContext)
         {
             if (operationContext.Execution.TaskBacklog.IsEmpty)
             {
-                return;
+                return Task.CompletedTask;
             }
 
-            var proposedTaskCount = operationContext.Operation.ProposedTaskCount;
-
-            if (proposedTaskCount == 1)
+            return Task.Factory.StartNew(async () =>
             {
-                await ExecuteResolversAsync(
-                    operationContext.Execution,
-                    HandleError,
-                    operationContext.RequestAborted);
-            }
-            else
-            {
-                var tasks = new Task[proposedTaskCount];
+                var proposedTaskCount = operationContext.Operation.ProposedTaskCount;
 
-                for (var i = 0; i < proposedTaskCount; i++)
+                if (proposedTaskCount == 1)
                 {
-                    tasks[i] = ExecuteResolversAsync(
+                    await ExecuteResolversAsync(
                         operationContext.Execution,
                         HandleError,
                         operationContext.RequestAborted);
                 }
+                else
+                {
+                    var tasks = new Task[proposedTaskCount];
 
-                await Task.WhenAll(tasks).ConfigureAwait(false);
-            }
+                    for (var i = 0; i < proposedTaskCount; i++)
+                    {
+                        tasks[i] = ExecuteResolversAsync(
+                            operationContext.Execution,
+                            HandleError,
+                            operationContext.RequestAborted);
+                    }
 
-            void HandleError(Exception exception)
-            {
-                IError error =
-                    operationContext.ErrorHandler
-                        .CreateUnexpectedError(exception)
-                        .SetCode(ErrorCodes.Execution.TaskProcessingError)
-                        .Build();
+                    await Task.WhenAll(tasks).ConfigureAwait(false);
+                }
 
-                error = operationContext.ErrorHandler.Handle(error);
+                void HandleError(Exception exception)
+                {
+                    IError error =
+                        operationContext.ErrorHandler
+                            .CreateUnexpectedError(exception)
+                            .SetCode(ErrorCodes.Execution.TaskProcessingError)
+                            .Build();
 
-                // TODO : this error needs to be reported!
-                operationContext.Result.AddError(error);
-            }
+                    error = operationContext.ErrorHandler.Handle(error);
+
+                    // TODO : this error needs to be reported!
+                    operationContext.Result.AddError(error);
+                }
+            }, operationContext.RequestAborted, TaskCreationOptions.None, operationContext.Execution.TaskScheduler).Unwrap();
         }
 
         private static async Task ExecuteResolversAsync(

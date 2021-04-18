@@ -33,6 +33,15 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
+        public TrackableTaskScheduler TaskScheduler
+        {
+            get
+            {
+                AssertNotPooled();
+                return _taskScheduler;
+            }
+        }
+
         public bool IsCompleted
         {
             get

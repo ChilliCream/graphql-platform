@@ -372,11 +372,11 @@ namespace HotChocolate.Execution.Batching
                     .Type<StringType>()
                     .Resolve(async c =>
                     {
-                        var bar = c.ArgumentValue<string>("bar");
+                        var bar = c.ArgumentValue<string>("bar") ?? "<null>";
                         return await c.BatchDataLoader<string, string>((keys, ctxToken) =>
                         {
-                            Interlocked.Increment(ref batchCount);
-                            return Task.FromResult(keys.ToDictionary(x => x, x => $"{x}-{batchCount}") as IReadOnlyDictionary<string, string>);
+                            var currentBatchCount = Interlocked.Increment(ref batchCount);
+                            return Task.FromResult(keys.ToDictionary(x => x, x => $"{x}-{currentBatchCount}") as IReadOnlyDictionary<string, string>);
                         }, "foo").LoadAsync(bar, CancellationToken.None);
                     });
             var services = new ServiceCollection();
@@ -466,12 +466,6 @@ namespace HotChocolate.Execution.Batching
             return AllowParallel_Basic(true, true);
         }
 
-        [Fact]
-        public Task AllowParallel_Basic_OnButNoScope()
-        {
-            return AllowParallel_Basic(true, false);
-        }
-
         /// <summary>data class for AllowParallel_Scheduling</summary>
         class Foo
         {
@@ -496,8 +490,8 @@ namespace HotChocolate.Execution.Batching
                 var bar = c.ArgumentValue<string>("bar");
                 var val = await c.BatchDataLoader<string, string>((keys, ctxToken) =>
                 {
-                    Interlocked.Increment(ref batchCount);
-                    return Task.FromResult(keys.ToDictionary(x => x, x => $"{x}-{batchCount}") as IReadOnlyDictionary<string, string>);
+                    int currentBatchCount =Interlocked.Increment(ref batchCount);
+                    return Task.FromResult(keys.ToDictionary(x => x, x => $"{x}-{currentBatchCount}") as IReadOnlyDictionary<string, string>);
                 }, "foo").LoadAsync(bar, CancellationToken.None);
                 return new Foo(val);
             };
@@ -540,14 +534,8 @@ namespace HotChocolate.Execution.Batching
                 };
 
                 IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch, true);
-
-                // TODO: replace this check with the one below if the core processing
-                //       is ever made more deterministic (3 is the optimal amount of data loads
-                //       however the feature is still a valid improvement even it makes a few more)
-                await batchResult.ToJsonAsync();
-                Assert.InRange(batchCount, 3, 6);
                 
-                // await batchResult.ToJsonAsync().MatchSnapshotAsync();
+                await batchResult.ToJsonAsync().MatchSnapshotAsync();
             }
         }
     }
