@@ -11,7 +11,7 @@
 
 # ChilliCream GraphQL Platform
 
-The ChilliCream GraphQL Platform, at its core, is a new way to create powerful Backends. HotChocolate, our GraphQL server, connects any service or data source and creates a cohesive service to offer your consumers a unified API.
+The ChilliCream GraphQL Platform, at its core, is a new way to create powerful Backends. HotChocolate, our .NET GraphQL server, connects any service or data source and creates a cohesive service to offer your consumers a unified API.
 
 ![ChilliCream GraphQL Platform](https://chillicream.com/resources/chillicream-graphql-platform.svg)
 
