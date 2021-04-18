@@ -22,7 +22,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Latitude_EnsureLatitudeTypeKindIsCorrect()
+        public void Longitude_EnsureLongitudeTypeKindIsCorrect()
         {
             // arrange
             // act
@@ -33,7 +33,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void Latitude_ExpectIsStringValueToMatch()
+        protected void Longitude_ExpectIsStringValueToMatch()
         {
             // arrange
             ScalarType scalar = CreateType<LongitudeType>();
@@ -47,7 +47,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void Latitude_ExpectIsDoubleMatch()
+        protected void Longitude_ExpectIsDoubleMatch()
         {
             // arrange
             ScalarType scalar = CreateType<LongitudeType>();
@@ -78,7 +78,7 @@ namespace HotChocolate.Types
         [InlineData("54° 33' 12.699\" W", -54.5535275, 7)]
         [InlineData("148° 34' 9.124\" W", -148.56920111, 8)]
         [InlineData("44° 44' 2.119\" W", -44.73392194, 8)]
-        protected void Latitude_ExpectParseLiteralToMatch(string literal, double runtime, int precision )
+        protected void Longitude_ExpectParseLiteralToMatch(string literal, double runtime, int precision )
         {
             // arrange
             ScalarType scalar = CreateType<LongitudeType>();
@@ -93,7 +93,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void Latitude_ExpectParseLiteralToThrowSerializationException()
+        protected void Longitude_ExpectParseLiteralToThrowSerializationException()
         {
             // arrange
             ScalarType scalar = CreateType<LongitudeType>();
@@ -107,7 +107,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void Latitude_ExpectParseValueToMatchType()
+        protected void Longitude_ExpectParseValueToMatchType()
         {
             // arrange
             ScalarType scalar = CreateType<LongitudeType>();
@@ -121,7 +121,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void Latitude_ExpectParseValueToMatchDouble()
+        protected void Longitude_ExpectParseValueToMatchDouble()
         {
             // arrange
             ScalarType scalar = CreateType<LongitudeType>();
@@ -135,7 +135,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void Latitude_ExpectParseValueToThrowSerializationException()
+        protected void Longitude_ExpectParseValueToThrowSerializationException()
         {
             // arrange
             ScalarType scalar = CreateType<LongitudeType>();
@@ -149,7 +149,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void Latitude_ExpectDeserializeNullToMatch()
+        protected void Longitude_ExpectDeserializeNullToMatch()
         {
             // arrange
             ScalarType scalar = new LongitudeType();
@@ -163,7 +163,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Latitude_ExpectDeserializeInvalidStringToDouble()
+        public void Longitude_ExpectDeserializeInvalidStringToDouble()
         {
             // arrange
             ScalarType scalar = new LongitudeType();
@@ -176,7 +176,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Latitude_ExpectDeserializeNullToNull()
+        public void Longitude_ExpectDeserializeNullToNull()
         {
             // arrange
             ScalarType scalar = new LongitudeType();
@@ -190,7 +190,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void Latitude_ExpectParseResultToMatchNull()
+        protected void Longitude_ExpectParseResultToMatchNull()
         {
             // arrange
             ScalarType scalar = new LongitudeType();
@@ -203,12 +203,12 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public async Task Latitude_Integration()
+        public async Task Longitude_Integration()
         {
             // arrange
             IRequestExecutor executor = await new ServiceCollection()
                 .AddGraphQL()
-                .AddQueryType<DefaultLatitudeType>()
+                .AddQueryType<DefaultLongitudeType>()
                 .BuildRequestExecutorAsync();
 
             // act
@@ -218,14 +218,14 @@ namespace HotChocolate.Types
             res.ToJson().MatchSnapshot();
         }
 
-        public class DefaultLatitude
+        public class DefaultLongitude
         {
             public double Test => new();
         }
 
-        public class DefaultLatitudeType : ObjectType<DefaultLatitude>
+        public class DefaultLongitudeType : ObjectType<DefaultLongitude>
         {
-            protected override void Configure(IObjectTypeDescriptor<DefaultLatitude> descriptor)
+            protected override void Configure(IObjectTypeDescriptor<DefaultLongitude> descriptor)
             {
                 descriptor.Field(x => x.Test).Type<LongitudeType>();
             }
