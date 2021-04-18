@@ -393,13 +393,13 @@ public class SubscriptionType : ObjectType
     {
         descriptor
             .Field("onBookAdded")
-            .Type<PersonType>()
-            .Resolve(context => context.GetEventMessage<Person>())
+            .Type<BookType>()
+            .Resolve(context => context.GetEventMessage<Book>())
             .Subscribe(async context =>
             {
                 var receiver = context.Service<ITopicEventReceiver>();
 
-                ISourceStream stream = await receiver.SubscribeAsync<string, Person>("OnBookAdded");
+                ISourceStream stream = await receiver.SubscribeAsync<string, Book>("OnBookAdded");
 
                 return stream;
             });
@@ -576,12 +576,12 @@ We can also use the `ITopicEventReceiver` to work with more complex topics.
 public class Subscription
 {
     [SubscribeAndResolve]
-    public async ValueTask<IAsyncEnumerable<Book>> UserCreated(string author, [Service] ITopicEventReceiver receiver)
+    public async ValueTask<ISourceStream<Book>> OnBookAdded(string author,
+        [Service] ITopicEventReceiver receiver)
     {
-        return await receiver.SubscribeAsync<string, Book>($"{author}_AddedBook");
+        var topic = $"{author}_AddedBook";
+        return await receiver.SubscribeAsync<string, Book>(topic);
     }
-
-    // ...
 }
 
 public Book AddBook(Book book, [Service] ITopicEventSender sender)
@@ -591,5 +591,3 @@ public Book AddBook(Book book, [Service] ITopicEventSender sender)
     // Omitted code for brevity
 }
 ```
-
-> Make sure to use the `IAsyncEnumerable<T>` in the return value, otherwise the Schema Builder will throw an exception.
