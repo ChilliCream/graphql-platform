@@ -96,11 +96,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 error.Extensions.TryGetValue(ErrorHelper.FileExtensionKey, out value) &&
                 value is string filePath)
             {
-                context.ReportDiagnostic(code, title, error.Message + error.Exception?.StackTrace, filePath, locations.First());
+                context.ReportDiagnostic(code, title, error.Message, filePath, locations.First());
             }
             else
             {
-                context.ReportDiagnostic(code, title, error.Message + error.Exception?.StackTrace);
+                context.ReportDiagnostic(code, title, error.Message);
             }
         }
     }

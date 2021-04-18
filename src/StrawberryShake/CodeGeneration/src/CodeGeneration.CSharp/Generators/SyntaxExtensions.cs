@@ -93,7 +93,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 do
                 {
                     line = reader.ReadLine();
-                    if(line is not null);
+                    if(line is not null)
                     {
                         list.Add(XmlText(line));
                     }
