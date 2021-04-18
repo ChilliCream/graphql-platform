@@ -317,29 +317,6 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder) =>
             AddMutationType(builder, d => d.Name(OperationTypeNames.Mutation));
 
-        /// <summary>
-        /// Add a GraphQL mutation type with the name `Mutation` and applies the
-        /// <see cref="configure"/> delegate.
-        /// </summary>
-        /// <param name="builder">
-        /// The GraphQL configuration builder.
-        /// </param>
-        /// <param name="configure">
-        /// A delegate to configure the type.
-        /// </param>
-        /// <returns>
-        /// Returns the GraphQL configuration builder.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="builder"/> or <paramref name="configure"/> is null.
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        /// A mutation type was already added.
-        /// </exception>
-        public static IRequestExecutorBuilder AddMutationType(
-            this IRequestExecutorBuilder builder) =>
-            AddMutationType(builder, d => d.Name(OperationTypeNames.Mutation));
-
         public static IRequestExecutorBuilder AddMutationType(
             this IRequestExecutorBuilder builder,
             Action<IObjectTypeDescriptor> configure)
@@ -528,29 +505,6 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder) =>
             AddSubscriptionType(builder, d => d.Name(OperationTypeNames.Subscription));
 
-        /// <summary>
-        /// Add a GraphQL subscription type with the name `Subscription` and applies the
-        /// <see cref="configure"/> delegate.
-        /// </summary>
-        /// <param name="builder">
-        /// The GraphQL configuration builder.
-        /// </param>
-        /// <param name="configure">
-        /// A delegate to configure the type.
-        /// </param>
-        /// <returns>
-        /// Returns the GraphQL configuration builder.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="builder"/> or <paramref name="configure"/> is null.
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        /// A subscription type was already added.
-        /// </exception>
-        public static IRequestExecutorBuilder AddSubscriptionType(
-            this IRequestExecutorBuilder builder) =>
-            AddSubscriptionType(builder, d => d.Name(OperationTypeNames.Subscription));
-
         public static IRequestExecutorBuilder AddSubscriptionType(
             this IRequestExecutorBuilder builder,
             Action<IObjectTypeDescriptor> configure)
@@ -720,6 +674,22 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddSubscriptionType<TSubscription>());
         }
 
+        /// <summary>
+        /// This helper adds a new GraphQL object type and applies the
+        /// <paramref name="configure"/> delegate.
+        /// </summary>
+        /// <param name="builder">
+        /// The GraphQL configuration builder.
+        /// </param>
+        /// <param name="configure">
+        /// A delegate to configure the type.
+        /// </param>
+        /// <returns>
+        /// Returns the GraphQL configuration builder.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="builder"/> or <paramref name="configure"/> is <c>null</c>
+        /// </exception>
         public static IRequestExecutorBuilder AddObjectType(
             this IRequestExecutorBuilder builder,
             Action<IObjectTypeDescriptor> configure)
@@ -737,6 +707,22 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddObjectType(configure));
         }
 
+        /// <summary>
+        /// This helper adds a new GraphQL object type which will be inferred from the
+        /// provided <typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="builder">
+        /// The GraphQL configuration builder.
+        /// </param>
+        /// <returns>
+        /// Returns the GraphQL configuration builder.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="builder"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        /// <typeparamref name="T"/> is a schema type.
+        /// </exception>
         public static IRequestExecutorBuilder AddObjectType<T>(
             this IRequestExecutorBuilder builder)
         {
@@ -748,6 +734,26 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddObjectType<T>());
         }
 
+        /// <summary>
+        /// This helper adds a new GraphQL object type which will be inferred from the
+        /// provided <typeparamref name="T"/> and applies the <paramref name="configure"/>
+        /// delegate.
+        /// </summary>
+        /// <param name="builder">
+        /// The GraphQL configuration builder.
+        /// </param>
+        /// <param name="configure">
+        /// A delegate to configure the type.
+        /// </param>
+        /// <returns>
+        /// Returns the GraphQL configuration builder.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="builder"/> or <paramref name="configure"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        /// <typeparamref name="T"/> is a schema type.
+        /// </exception>
         public static IRequestExecutorBuilder AddObjectType<T>(
             this IRequestExecutorBuilder builder,
             Action<IObjectTypeDescriptor<T>> configure)
@@ -765,6 +771,22 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddObjectType(configure));
         }
 
+        /// <summary>
+        /// This helper adds a new GraphQL union type and applies the
+        /// <paramref name="configure"/> delegate.
+        /// </summary>
+        /// <param name="builder">
+        /// The GraphQL configuration builder.
+        /// </param>
+        /// <param name="configure">
+        /// A delegate to configure the type.
+        /// </param>
+        /// <returns>
+        /// Returns the GraphQL configuration builder.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="builder"/> or <paramref name="configure"/> is <c>null</c>
+        /// </exception>
         public static IRequestExecutorBuilder AddUnionType(
            this IRequestExecutorBuilder builder,
            Action<IUnionTypeDescriptor> configure)
@@ -782,6 +804,22 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddUnionType(configure));
         }
 
+        /// <summary>
+        /// This helper adds a new GraphQL union type which will be inferred from the
+        /// provided <typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="builder">
+        /// The GraphQL configuration builder.
+        /// </param>
+        /// <returns>
+        /// Returns the GraphQL configuration builder.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="builder"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        /// <typeparamref name="T"/> is a schema type.
+        /// </exception>
         public static IRequestExecutorBuilder AddUnionType<T>(
             this IRequestExecutorBuilder builder)
         {
@@ -793,6 +831,26 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddUnionType<T>());
         }
 
+        /// <summary>
+        /// This helper adds a new GraphQL union type which will be inferred from the
+        /// provided <typeparamref name="T"/> and applies the <paramref name="configure"/>
+        /// delegate.
+        /// </summary>
+        /// <param name="builder">
+        /// The GraphQL configuration builder.
+        /// </param>
+        /// <param name="configure">
+        /// A delegate to configure the type.
+        /// </param>
+        /// <returns>
+        /// Returns the GraphQL configuration builder.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="builder"/> or <paramref name="configure"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        /// <typeparamref name="T"/> is a schema type.
+        /// </exception>
         public static IRequestExecutorBuilder AddUnionType<T>(
             this IRequestExecutorBuilder builder,
             Action<IUnionTypeDescriptor> configure)
@@ -810,6 +868,22 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddUnionType(configure));
         }
 
+        /// <summary>
+        /// This helper adds a new GraphQL enum type and applies the
+        /// <paramref name="configure"/> delegate.
+        /// </summary>
+        /// <param name="builder">
+        /// The GraphQL configuration builder.
+        /// </param>
+        /// <param name="configure">
+        /// A delegate to configure the type.
+        /// </param>
+        /// <returns>
+        /// Returns the GraphQL configuration builder.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="builder"/> or <paramref name="configure"/> is <c>null</c>
+        /// </exception>
         public static IRequestExecutorBuilder AddEnumType(
            this IRequestExecutorBuilder builder,
            Action<IEnumTypeDescriptor> configure)
@@ -827,6 +901,22 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddEnumType(configure));
         }
 
+        /// <summary>
+        /// This helper adds a new GraphQL enum type which will be inferred from the
+        /// provided <typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="builder">
+        /// The GraphQL configuration builder.
+        /// </param>
+        /// <returns>
+        /// Returns the GraphQL configuration builder.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="builder"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        /// <typeparamref name="T"/> is a schema type.
+        /// </exception>
         public static IRequestExecutorBuilder AddEnumType<T>(
             this IRequestExecutorBuilder builder)
         {
@@ -838,6 +928,26 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddEnumType<T>());
         }
 
+        /// <summary>
+        /// This helper adds a new GraphQL enum type which will be inferred from the
+        /// provided <typeparamref name="T"/> and applies the <paramref name="configure"/>
+        /// delegate.
+        /// </summary>
+        /// <param name="builder">
+        /// The GraphQL configuration builder.
+        /// </param>
+        /// <param name="configure">
+        /// A delegate to configure the type.
+        /// </param>
+        /// <returns>
+        /// Returns the GraphQL configuration builder.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="builder"/> or <paramref name="configure"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        /// <typeparamref name="T"/> is a schema type.
+        /// </exception>
         public static IRequestExecutorBuilder AddEnumType<T>(
             this IRequestExecutorBuilder builder,
             Action<IEnumTypeDescriptor<T>> configure)
@@ -855,6 +965,22 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddEnumType(configure));
         }
 
+        /// <summary>
+        /// This helper adds a new GraphQL interface type and applies the
+        /// <paramref name="configure"/> delegate.
+        /// </summary>
+        /// <param name="builder">
+        /// The GraphQL configuration builder.
+        /// </param>
+        /// <param name="configure">
+        /// A delegate to configure the type.
+        /// </param>
+        /// <returns>
+        /// Returns the GraphQL configuration builder.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="builder"/> or <paramref name="configure"/> is <c>null</c>
+        /// </exception>
         public static IRequestExecutorBuilder AddInterfaceType(
            this IRequestExecutorBuilder builder,
            Action<IInterfaceTypeDescriptor> configure)
@@ -872,6 +998,22 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddInterfaceType(configure));
         }
 
+        /// <summary>
+        /// This helper adds a new GraphQL interface type which will be inferred from the
+        /// provided <typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="builder">
+        /// The GraphQL configuration builder.
+        /// </param>
+        /// <returns>
+        /// Returns the GraphQL configuration builder.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="builder"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        /// <typeparamref name="T"/> is a schema type.
+        /// </exception>
         public static IRequestExecutorBuilder AddInterfaceType<T>(
             this IRequestExecutorBuilder builder)
         {
@@ -883,6 +1025,26 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddInterfaceType<T>());
         }
 
+        /// <summary>
+        /// This helper adds a new GraphQL interface type which will be inferred from the
+        /// provided <typeparamref name="T"/> and applies the <paramref name="configure"/>
+        /// delegate.
+        /// </summary>
+        /// <param name="builder">
+        /// The GraphQL configuration builder.
+        /// </param>
+        /// <param name="configure">
+        /// A delegate to configure the type.
+        /// </param>
+        /// <returns>
+        /// Returns the GraphQL configuration builder.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="builder"/> or <paramref name="configure"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        /// <typeparamref name="T"/> is a schema type.
+        /// </exception>
         public static IRequestExecutorBuilder AddInterfaceType<T>(
             this IRequestExecutorBuilder builder,
             Action<IInterfaceTypeDescriptor<T>> configure)
@@ -900,6 +1062,22 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddInterfaceType(configure));
         }
 
+        /// <summary>
+        /// This helper adds a new GraphQL input object type and applies the
+        /// <paramref name="configure"/> delegate.
+        /// </summary>
+        /// <param name="builder">
+        /// The GraphQL configuration builder.
+        /// </param>
+        /// <param name="configure">
+        /// A delegate to configure the type.
+        /// </param>
+        /// <returns>
+        /// Returns the GraphQL configuration builder.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="builder"/> or <paramref name="configure"/> is <c>null</c>
+        /// </exception>
         public static IRequestExecutorBuilder AddInputObjectType(
            this IRequestExecutorBuilder builder,
            Action<IInputObjectTypeDescriptor> configure)
@@ -917,6 +1095,22 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddInputObjectType(configure));
         }
 
+        /// <summary>
+        /// This helper adds a new GraphQL input object type which will be inferred from the
+        /// provided <typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="builder">
+        /// The GraphQL configuration builder.
+        /// </param>
+        /// <returns>
+        /// Returns the GraphQL configuration builder.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="builder"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        /// <typeparamref name="T"/> is a schema type.
+        /// </exception>
         public static IRequestExecutorBuilder AddInputObjectType<T>(
             this IRequestExecutorBuilder builder)
         {
@@ -928,6 +1122,26 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddInputObjectType<T>());
         }
 
+        /// <summary>
+        /// This helper adds a new GraphQL input object type which will be inferred from the
+        /// provided <typeparamref name="T"/> and applies the <paramref name="configure"/>
+        /// delegate.
+        /// </summary>
+        /// <param name="builder">
+        /// The GraphQL configuration builder.
+        /// </param>
+        /// <param name="configure">
+        /// A delegate to configure the type.
+        /// </param>
+        /// <returns>
+        /// Returns the GraphQL configuration builder.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="builder"/> or <paramref name="configure"/> is <c>null</c>
+        /// </exception>
+        /// <exception cref="InvalidOperationException">
+        /// <typeparamref name="T"/> is a schema type.
+        /// </exception>
         public static IRequestExecutorBuilder AddInputObjectType<T>(
             this IRequestExecutorBuilder builder,
             Action<IInputObjectTypeDescriptor<T>> configure)
