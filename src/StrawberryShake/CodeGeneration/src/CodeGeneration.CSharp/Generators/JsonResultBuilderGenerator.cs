@@ -277,6 +277,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             var concreteResultType =
                 CreateResultInfoName(resultNamedType.ImplementedBy.First().RuntimeType.Name);
 
+            // (IGetFooResult Result, GetFooResultInfo Info)? data = null;
             buildMethod.AddCode(
                 AssignmentBuilder
                     .New()
@@ -284,6 +285,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         $"({resultNamedType.RuntimeType.Name} Result, {concreteResultType} " +
                         "Info)? data")
                     .SetRighthandSide("null"));
+
+            // IReadOnlyList<IClientError>? errors = null;
             buildMethod.AddCode(
                 AssignmentBuilder
                     .New()
@@ -294,8 +297,34 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .SetRighthandSide("null"));
 
             buildMethod.AddEmptyLine();
+
+
+
+            buildMethod.AddEmptyLine();
             buildMethod.AddCode(
-                TryCatchBuilder
+                IfBuilder.New()
+                    .SetCondition("response.Exception is null")
+                    .AddCode(CreateBuildDataSerialization())
+                    .AddElse(CreateDataError("response.Exception"))
+                );
+
+            buildMethod.AddEmptyLine();
+            buildMethod.AddCode(
+                MethodCallBuilder
+                    .New()
+                    .SetReturn()
+                    .SetNew()
+                    .SetMethodName(TypeNames.OperationResult)
+                    .AddGeneric(resultNamedType.RuntimeType.Name)
+                    .AddArgument("data?.Result")
+                    .AddArgument("data?.Info")
+                    .AddArgument(_resultDataFactory)
+                    .AddArgument("errors"));
+        }
+
+        private TryCatchBuilder CreateBuildDataSerialization()
+        {
+            return TryCatchBuilder
                     .New()
                     .AddTryCode(
                         IfBuilder
@@ -330,33 +359,34 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         CatchBlockBuilder
                             .New()
                             .SetExceptionVariable("ex")
-                            .AddCode(
-                                AssignmentBuilder.New()
-                                    .SetLefthandSide("errors")
-                                    .SetRighthandSide(
-                                        ArrayBuilder.New()
-                                            .SetDetermineStatement(false)
-                                            .SetType(TypeNames.IClientError)
-                                            .AddAssigment(
-                                                MethodCallBuilder
-                                                    .Inline()
-                                                    .SetNew()
-                                                    .SetMethodName(TypeNames.ClientError)
-                                                    .AddArgument("ex.Message")
-                                                    .AddArgument("exception: ex"))))));
+                            .AddCode(CreateDataError()));
+        }
 
-            buildMethod.AddEmptyLine();
-            buildMethod.AddCode(
+        private static AssignmentBuilder CreateDataError(
+            string exception = "ex")
+        {
+            string dict = TypeNames.Dictionary.WithGeneric(
+                TypeNames.String, 
+                TypeNames.Object.MakeNullable());
+            
+            string body = "response.Body?.ToString()";
+
+            MethodCallBuilder createClientError =
                 MethodCallBuilder
-                    .New()
-                    .SetReturn()
+                    .Inline()
                     .SetNew()
-                    .SetMethodName(TypeNames.OperationResult)
-                    .AddGeneric(resultNamedType.RuntimeType.Name)
-                    .AddArgument("data?.Result")
-                    .AddArgument("data?.Info")
-                    .AddArgument(_resultDataFactory)
-                    .AddArgument("errors"));
+                    .SetMethodName(TypeNames.ClientError)
+                    .AddArgument($"{exception}.Message")
+                    .AddArgument($"exception: {exception}")
+                    .AddArgument($"extensions: new  {dict} {{ {{ \"body\", {body} }} }}");
+
+            return AssignmentBuilder.New()
+                .SetLefthandSide("errors")
+                .SetRighthandSide(
+                    ArrayBuilder.New()
+                        .SetDetermineStatement(false)
+                        .SetType(TypeNames.IClientError)
+                        .AddAssignment(createClientError));
         }
 
         private MethodCallBuilder BuildUpdateMethodCall(PropertyDescriptor property)
