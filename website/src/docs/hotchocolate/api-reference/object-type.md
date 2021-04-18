@@ -156,9 +156,49 @@ The GraphQL SDL supports extending object types, this means that we can add fiel
 
 Extending types is useful for schema stitching but also when we want to add just something to an exist type or if we just want to split large type definitions. The latter is often the case with the query type definition.
 
-Hot Chocolate supports extending types with SDL-first, code-first with annotations and code-first with fluent. Let\`s have a look at how we can extend our person object:
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
-SDL-First:
+```csharp
+[ExtendObjectType("Person")]
+public class PersonResolvers
+{
+    public IEnumerable<Person> GetFriends([Parent] Person person, [Service] IPersonRepository repository)
+        => repository.GetFriends(person.Id);
+}
+
+services
+    .AddGraphQLServer()
+    // ...
+    .AddType<PersonResolvers>();
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class PersonTypeExtension : ObjectTypeExtension
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor.Name("Person");
+        descriptor.Field("address")
+            .Type<NonNullType<StringType>>()
+            .Resolver(context =>
+            {
+                // resolver logic
+            });
+    }
+}
+
+services
+    .AddGraphQLServer()
+    // ...
+    .AddType<PersonTypeExtension>()
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
 
 ```sdl
 extend type Person {
@@ -166,44 +206,8 @@ extend type Person {
 }
 ```
 
-Code-First annotation-based:
-
-```csharp
-[ExtendObjectType(Name = "Person")]
-public class PersonResolvers
-{
-    public IEnumerable<Person> GetFriends([Parent]Person person, [Service]IPersonRepository repository) =>
-        repository.GetFriends(person.Id);
-}
-
-services
-    .AddGraphQLServer()
-    ...
-    .AddType<PersonType>()
-    .AddType<PersonResolvers>();
-```
-
-Code-First
-
-```csharp
-public class PersonTypeExtension
-    : ObjectTypeExtension
-{
-    protected override void Configure(IObjectTypeDescriptor descriptor)
-    {
-        descriptor.Name("Person");
-        descriptor.Field("address")
-            .Type<NonNullType<StringType>>()
-            .Resolver(/"Resolver Logic"/);
-    }
-}
-
-services
-    .AddGraphQLServer()
-    ...
-    .AddType<PersonType>()
-    .AddType<PersonTypeExtension>()
-```
+</ExampleTabs.Schema>
+</ExampleTabs>
 
 Type extensions basically work like usual types and are also added like usual types.
 
