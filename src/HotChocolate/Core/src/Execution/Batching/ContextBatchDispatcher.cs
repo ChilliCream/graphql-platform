@@ -12,7 +12,7 @@ using HotChocolate.Fetching;
 namespace HotChocolate.Execution.Batching
 {
     internal class ContextBatchDispatcher
-    : IContextBatchDispatcher
+    : IContextBatchDispatcher, IDisposable
     {
         private object _dispatchLock = new();
         private readonly TrackableTaskScheduler _taskScheduler;
@@ -28,6 +28,11 @@ namespace HotChocolate.Execution.Batching
             _taskScheduler = new TrackableTaskScheduler(_batchScheduler);
             _dispatcher = dispatcher;
             _dispatcher.TaskEnqueued += BatchDispatcherEventHandler;
+        }
+
+        public void Dispose()
+        {
+            _taskScheduler.Complete();
         }
 
         public IBatchDispatcher BatchDispatcher => _dispatcher;
