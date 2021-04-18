@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
 using StrawberryShake.CodeGeneration.Descriptors;
@@ -366,10 +367,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             string exception = "ex")
         {
             string dict = TypeNames.Dictionary.WithGeneric(
-                TypeNames.String, 
+                TypeNames.String,
                 TypeNames.Object.MakeNullable());
-            
-            string body = "response.Body?.ToString()";
+
+            string body = "response.Body?.RootElement.ToString()";
 
             MethodCallBuilder createClientError =
                 MethodCallBuilder
