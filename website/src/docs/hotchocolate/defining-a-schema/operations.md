@@ -528,13 +528,13 @@ public class Mutation
 
 In the example the `"OnBookAdded"` is the topic we want to publish to, and `book` is our payload. Even though we have used a string as the topic, we don't have to. Any other type works just fine.
 
-But where's the connection between `"OnBookAdded"` as a topic and the subscription type? Per default HotChocolate will try to map the topic to a field of the subscription type. If we want to make this binding more explicit, we could do the following:
+But where's the connection between `"OnBookAdded"` as a topic and the subscription type? Per default HotChocolate will try to map the topic to a field of the subscription type. If we want to make this binding less error-prone, we could do the following:
 
 ```csharp
 await sender.SendAsync(nameof(Subscription.OnBookAdded), book);
 ```
 
-We could also use the `Topic` attribute.
+If we don't want to use the method name, we could use the `Topic` attribute.
 
 ```csharp
 public class Subscription
@@ -552,7 +552,7 @@ public Book AddBook(Book book, [Service] ITopicEventSender sender)
 }
 ```
 
-We can even use a subscription argument as the topic.
+We can even use the `Topic` attribute on dynamic arguments of the subscription field.
 
 ```csharp
 public class Subscription
@@ -564,8 +564,32 @@ public class Subscription
 
 public Book AddBook(Book book, [Service] ITopicEventSender sender)
 {
-    await sender.SendAsync("Jon Skeet", book);
+    await sender.SendAsync(book.Author, book);
 
     // Omitted code for brevity
 }
 ```
+
+We can also use the `ITopicEventReceiver` to work with more complex topics.
+
+```csharp
+public class Subscription
+{
+    [SubscribeAndResolve]
+    public async ValueTask<IAsyncEnumerable<Book>> UserCreated(string author, [Service] ITopicEventReceiver receiver)
+    {
+        return await receiver.SubscribeAsync<string, Book>($"{author}_AddedBook");
+    }
+
+    // ...
+}
+
+public Book AddBook(Book book, [Service] ITopicEventSender sender)
+{
+    await sender.SendAsync($"{book.Author}_AddedBook", book);
+
+    // Omitted code for brevity
+}
+```
+
+> Make sure to use the `IAsyncEnumerable<T>` in the return value, otherwise the Schema Builder will throw an exception.
