@@ -12,6 +12,7 @@ namespace HotChocolate.Types
         public const string LocalDate = nameof(LocalDate);
         public const string LocalCurency = nameof(LocalCurency);
         public const string LocalTime = nameof(LocalTime);
+        public const string Longitude = nameof(Longitude);
         public const string MacAddress = nameof(MacAddress);
         public const string NegativeFloat = nameof(NegativeFloat);
         public const string NegativeInt = nameof(NegativeInt);

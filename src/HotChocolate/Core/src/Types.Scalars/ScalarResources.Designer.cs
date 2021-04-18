@@ -243,6 +243,24 @@ namespace HotChocolate.Types {
             }
         }
         
+        internal static string LongitudeType_Description {
+            get {
+                return ResourceManager.GetString("LongitudeType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string LongitudeType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("LongitudeType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string LongitudeType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("LongitudeType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+        
         internal static string NegativeFloatType_Description {
             get {
                 return ResourceManager.GetString("NegativeFloatType_Description", resourceCulture);
