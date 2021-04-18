@@ -11,7 +11,7 @@ namespace HotChocolate.Execution.Processing
         {
             // ensure that all subtasks spawned from this are tracked in the TrackingTaskScheduler
             return Task.Factory.StartNew(
-                async () => await ExecuteResolversAsync(operationContext),
+                () => ExecuteResolversAsync(operationContext),
                 operationContext.RequestAborted,
                 TaskCreationOptions.None,
                 operationContext.Execution.TaskScheduler).Unwrap();
