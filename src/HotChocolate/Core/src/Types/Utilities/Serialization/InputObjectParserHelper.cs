@@ -57,7 +57,7 @@ namespace HotChocolate.Utilities.Serialization
                 ObjectFieldNode fieldValue = source.Fields[i];
                 if (type.Fields.TryGetField(fieldValue.Name.Value, out InputField field))
                 {
-                    object value = field.Type.ParseLiteral(fieldValue.Value);
+                    var value = field.Type.ParseLiteral(fieldValue.Value);
                     value = field.Formatter is not null
                         ? field.Formatter.OnAfterDeserialize(value)
                         : value;
@@ -68,6 +68,18 @@ namespace HotChocolate.Utilities.Serialization
                     throw new SerializationException(
                         $"The field `{fieldValue.Name.Value}` does not exist on " +
                         $"the type `{type.Name}`.",
+                        type);
+                }
+            }
+
+            for (var i = 0; i < type.Fields.Count; i++)
+            {
+                InputField field = type.Fields[i];
+
+                if (field.Type.IsNonNullType() && !target.ContainsKey(field.Name))
+                {
+                    throw new SerializationException(
+                        $"The field `{field.Name}` is required and must be set.",
                         type);
                 }
             }
@@ -167,7 +179,7 @@ namespace HotChocolate.Utilities.Serialization
         {
             if (value is not null && field.RuntimeType != typeof(object))
             {
-                if(field.RuntimeType.IsInterface && field.RuntimeType.IsInstanceOfType(value)) 
+                if(field.RuntimeType.IsInterface && field.RuntimeType.IsInstanceOfType(value))
                 {
                     return value;
                 }

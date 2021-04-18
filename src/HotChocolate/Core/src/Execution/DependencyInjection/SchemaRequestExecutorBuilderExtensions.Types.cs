@@ -143,7 +143,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            return builder.ConfigureSchema(b => b.AddQueryType(configure));
+            return builder.ConfigureSchema(b => b.AddQueryType(d =>
+            {
+                d.Name(OperationTypeNames.Query);
+                configure(d);
+            }));
         }
 
         /// <summary>
@@ -333,6 +337,10 @@ namespace Microsoft.Extensions.DependencyInjection
         /// A mutation type was already added.
         /// </exception>
         public static IRequestExecutorBuilder AddMutationType(
+            this IRequestExecutorBuilder builder) =>
+            AddMutationType(builder, d => d.Name(OperationTypeNames.Mutation));
+
+        public static IRequestExecutorBuilder AddMutationType(
             this IRequestExecutorBuilder builder,
             Action<IObjectTypeDescriptor> configure)
         {
@@ -346,7 +354,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            return builder.ConfigureSchema(b => b.AddMutationType(configure));
+            return builder.ConfigureSchema(b => b.AddMutationType(d =>
+            {
+                d.Name(OperationTypeNames.Mutation);
+                configure(d);
+            }));
         }
 
         /// <summary>
@@ -536,6 +548,10 @@ namespace Microsoft.Extensions.DependencyInjection
         /// A subscription type was already added.
         /// </exception>
         public static IRequestExecutorBuilder AddSubscriptionType(
+            this IRequestExecutorBuilder builder) =>
+            AddSubscriptionType(builder, d => d.Name(OperationTypeNames.Subscription));
+
+        public static IRequestExecutorBuilder AddSubscriptionType(
             this IRequestExecutorBuilder builder,
             Action<IObjectTypeDescriptor> configure)
         {
@@ -549,7 +565,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            return builder.ConfigureSchema(b => b.AddSubscriptionType(configure));
+            return builder.ConfigureSchema(b => b.AddSubscriptionType(d =>
+            {
+                d.Name(OperationTypeNames.Subscription);
+                configure(d);
+            }));
         }
 
         /// <summary>
