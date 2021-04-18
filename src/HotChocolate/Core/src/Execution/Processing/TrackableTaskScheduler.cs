@@ -25,6 +25,9 @@ namespace HotChocolate.Execution.Processing
         private int _processingTaskCount = 0;
         /// <summary>If false, no more work will be accepted and the active processing tasks will stop as soon as possible</summary>
         private bool _running = true;
+        /// <summary>This event is triggered whenever the processing comes to a complete stop (no items left in queue, and nothing running)</summary>
+        /// <remarks>_lock will be acquired while this event is triggered</remarks>
+        private event EventHandler? ProcessingHalted;
 
         /// <summary>Create a new instance that uses the current scheduler to perform the actual work</summary>
         public TrackableTaskScheduler(TaskScheduler underlyingScheduler)
@@ -42,6 +45,34 @@ namespace HotChocolate.Execution.Processing
                     return _processingTaskCount == 0 && _queue.IsEmpty;
                 }
             }
+        }
+
+        public async ValueTask WaitTillEmpty()
+        {
+            TaskCompletionSource completion = default!;
+            lock (_lock)
+            {
+                if (_processingTaskCount == 0 && _queue.IsEmpty)
+                {
+                    return;
+                }
+
+                completion = new TaskCompletionSource();
+                EventHandler completionHandler = default!;
+                completionHandler = (source, args) => {
+                    try
+                    {
+                        completion.SetResult();
+                    }
+                    finally
+                    {
+                        ProcessingHalted -= completionHandler;
+                    }
+                };
+                ProcessingHalted += completionHandler;
+            }
+
+            await completion.Task.ConfigureAwait(false);
         }
 
         /// <summary>Mark that no future work should be handled by this scheduler (will stop all processing tasks as soon as possible)
@@ -122,6 +153,10 @@ namespace HotChocolate.Execution.Processing
                 {
                     if (_processingTaskCount > 0)  --_processingTaskCount;
                     ProcessAsyncIfNecessary();
+                    if (_processingTaskCount==0)
+                    {
+                        ProcessingHalted?.Invoke(this, EventArgs.Empty);
+                    }
                 }
             }
         }

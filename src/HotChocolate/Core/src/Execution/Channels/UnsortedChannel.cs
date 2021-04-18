@@ -40,6 +40,11 @@ namespace HotChocolate.Execution.Channels
 
         public bool IsEmpty => _items.IsEmpty;
 
+        public ValueTask WaitTillEmpty()
+        {
+            return _items.WaitTillEmpty();
+        }
+
         [Conditional("DEBUG")]
         private void AssertInvariants()
         {

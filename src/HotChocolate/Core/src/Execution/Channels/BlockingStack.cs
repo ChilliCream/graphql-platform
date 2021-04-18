@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace HotChocolate.Execution.Channels
 {
@@ -9,6 +11,9 @@ namespace HotChocolate.Execution.Channels
     {
         private readonly Stack<T> _list = new Stack<T>();
         private SpinLock _lock = new SpinLock(Debugger.IsAttached);
+        /// <summary>Generated whenever the amount of items in the stack changes</summary>
+        /// <remarks>_lock will be acquired while this event is generated</remarks>
+        private event EventHandler? CountChanged;
 
         public bool TryPop([MaybeNullWhen(false)]out T item)
         {
@@ -21,6 +26,7 @@ namespace HotChocolate.Execution.Channels
                 {
                     item = _list.Pop();
                     IsEmpty = _list.Count == 0;
+                    CountChanged?.Invoke(this, EventArgs.Empty);
                     return true;
                 }
 
@@ -29,6 +35,7 @@ namespace HotChocolate.Execution.Channels
                 if (_list.TryPop(out item))
                 {
                     IsEmpty = _list.Count == 0;
+                    CountChanged?.Invoke(this, EventArgs.Empty);
                     return true;
                 }
 #endif
@@ -49,6 +56,7 @@ namespace HotChocolate.Execution.Channels
                 _lock.Enter(ref lockTaken);
                 _list.Push(item);
                 IsEmpty = false;
+                CountChanged?.Invoke(this, EventArgs.Empty);
             }
             finally
             {
@@ -57,6 +65,46 @@ namespace HotChocolate.Execution.Channels
         }
 
         public bool IsEmpty { get; private set; } = true;
+
+        public async ValueTask WaitTillEmpty()
+        {
+            if (IsEmpty)
+            {
+                return;
+            }
+
+            TaskCompletionSource completion = default!;
+
+            bool lockTaken = false;
+            try
+            {
+                _lock.Enter(ref lockTaken);
+
+                completion = new TaskCompletionSource();
+                EventHandler completionHandler = default!;
+                completionHandler = (source, args) => {
+                    if (IsEmpty)
+                    {
+                        try
+                        {
+                            completion.SetResult();
+                        }
+                        finally
+                        {
+                            CountChanged -= completionHandler;
+                        }
+                    }
+                };
+                CountChanged += completionHandler;
+            }
+            finally
+            {
+                if (lockTaken)
+                    _lock.Exit(false);
+            }
+
+            await completion.Task.ConfigureAwait(false);
+        }
 
         public int Count => _list.Count;
     }

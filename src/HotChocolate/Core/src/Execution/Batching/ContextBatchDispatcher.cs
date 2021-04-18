@@ -103,8 +103,11 @@ namespace HotChocolate.Execution.Batching
             {
                 while (!_taskScheduler.IsEmpty || _contexts.Any(x => !(x.Key.TaskBacklog.IsEmpty)))
                 {
-                    // TODO: more performant way to wait (postponed till after testing proof of concept code)
-                    await Task.Yield();
+                    await _taskScheduler.WaitTillEmpty().ConfigureAwait(false);
+                    foreach (var taskBacklog in _contexts.Select(x => x.Key.TaskBacklog))
+                    {
+                        await taskBacklog.WaitTillEmpty().ConfigureAwait(false);
+                    }
                 }
 
                 IExecutionContext safeContext = default!;

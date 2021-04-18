@@ -15,6 +15,9 @@ namespace HotChocolate.Execution.Processing
         /// </summary>
         bool IsEmpty { get; }
 
+        /// <summary>Waits till the task backlog is empty</summary>
+        public ValueTask WaitTillEmpty();
+
         /// <summary>
         /// Try to take a task from the backlog.
         /// </summary>

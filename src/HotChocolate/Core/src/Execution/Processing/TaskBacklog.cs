@@ -25,8 +25,13 @@ namespace HotChocolate.Execution.Processing
         /// <inheritdoc/>
         public bool IsEmpty => _channel.IsEmpty;
 
-        /// <inheritdoc/>
-        public bool TryTake([NotNullWhen(true)] out IExecutionTask? task) =>
+        public ValueTask WaitTillEmpty()
+        {
+            return _channel.WaitTillEmpty();
+        }
+
+    /// <inheritdoc/>
+    public bool TryTake([NotNullWhen(true)] out IExecutionTask? task) =>
             _channel.Reader.TryRead(out task);
 
         /// <inheritdoc/>
