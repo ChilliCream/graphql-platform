@@ -14,7 +14,7 @@ namespace HotChocolate.Execution.Processing
                 async () => await ExecuteResolversAsync(operationContext),
                 operationContext.RequestAborted,
                 TaskCreationOptions.None,
-                operationContext.Execution.TaskScheduler);
+                operationContext.Execution.TaskScheduler).Unwrap();
         }
 
         private static async Task ExecuteResolversAsync(
