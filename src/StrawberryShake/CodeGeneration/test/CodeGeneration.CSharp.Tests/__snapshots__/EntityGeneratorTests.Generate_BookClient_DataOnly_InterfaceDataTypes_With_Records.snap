@@ -30,6 +30,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(SearchSomethingResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Prints, other.Prints));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -48,26 +68,6 @@ namespace Foo.Bar
             }
 
             return Equals((SearchSomethingResult)obj);
-        }
-
-        public global::System.Boolean Equals(SearchSomethingResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Prints, other.Prints));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -111,6 +111,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(SearchSomething_Prints_Book? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Isbn.Equals(other.Isbn)) && Title.Equals(other.Title);
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -129,26 +149,6 @@ namespace Foo.Bar
             }
 
             return Equals((SearchSomething_Prints_Book)obj);
-        }
-
-        public global::System.Boolean Equals(SearchSomething_Prints_Book? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Isbn.Equals(other.Isbn)) && Title.Equals(other.Title);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -183,6 +183,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(SearchSomething_Prints_Magazine? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Isbn.Equals(other.Isbn)) && ((CoverImageUrl is null && other.CoverImageUrl is null) || CoverImageUrl != null && CoverImageUrl.Equals(other.CoverImageUrl));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -201,26 +221,6 @@ namespace Foo.Bar
             }
 
             return Equals((SearchSomething_Prints_Magazine)obj);
-        }
-
-        public global::System.Boolean Equals(SearchSomething_Prints_Magazine? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Isbn.Equals(other.Isbn)) && ((CoverImageUrl is null && other.CoverImageUrl is null) || CoverImageUrl != null && CoverImageUrl.Equals(other.CoverImageUrl));
         }
 
         public override global::System.Int32 GetHashCode()
