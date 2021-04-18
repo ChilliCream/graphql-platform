@@ -526,6 +526,46 @@ public class Mutation
 }
 ```
 
-In the example the `"OnBookAdded"` is the topic we want to publish to, and `book` is our payload.
+In the example the `"OnBookAdded"` is the topic we want to publish to, and `book` is our payload. Even though we have used a string as the topic, we don't have to. Any other type works just fine.
 
-TODO: Connection between topics and subscription resolvers
+But where's the connection between `"OnBookAdded"` as a topic and the subscription type? Per default HotChocolate will try to map the topic to a field of the subscription type. If we want to make this binding more explicit, we could do the following:
+
+```csharp
+await sender.SendAsync(nameof(Subscription.OnBookAdded), book);
+```
+
+We could also use the `Topic` attribute.
+
+```csharp
+public class Subscription
+{
+    [Subscribe]
+    [Topic("ExampleTopic")]
+    public Book OnBookAdded([EventMessage] Book book) => book;
+}
+
+public Book AddBook(Book book, [Service] ITopicEventSender sender)
+{
+    await sender.SendAsync("ExampleTopic", book);
+
+    // Omitted code for brevity
+}
+```
+
+We can even use a subscription argument as the topic.
+
+```csharp
+public class Subscription
+{
+    [Subscribe]
+    public Book OnBookAdded([Topic] string author, [EventMessage] Book book)
+        => book;
+}
+
+public Book AddBook(Book book, [Service] ITopicEventSender sender)
+{
+    await sender.SendAsync("Jon Skeet", book);
+
+    // Omitted code for brevity
+}
+```
