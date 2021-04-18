@@ -19,8 +19,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 ? context.OutputDirectory
                 : IOPath.Combine(context.OutputDirectory, document.Path);
 
-            if (_directories.Add(directory) &&
-                context.Settings.EmitGeneratedCode &&
+            if (context.Settings.EmitGeneratedCode &&
+                _directories.Add(directory) &&
                 !Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
