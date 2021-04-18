@@ -149,21 +149,21 @@ public class Startup
 
 # Mutation
 
-A mutation type in GraphQL is used to mutate/change data. This means that when you are doing mutations you are causing side-effects to the system.
+The mutation type in GraphQL is used to mutate/change data. This means that when you are doing mutations you are causing side-effects to the system.
 
 GraphQL defines mutations as top-level fields on the mutation type. Meaning only the fields on the mutation root type itself are mutations. Everything that is returned from a mutation field represents the changed state of the server.
 
 ```graphql
 {
   mutation {
-    # changeUserName is the mutation and is allowed to cause side-effects.
-    changeUserName(input: { id: 1, name: "Michael Staib" }) {
+    # changeBookTitle is a mutation and is allowed to cause side-effects.
+    changeBookTitle(input: { id: 1, title: "C# in depth, Fourth Edition" }) {
       # everything in this selection set and below is a query.
       # We essentially allow the user to query the effect that the mutation had
       # on our system.
-      # In this case we are querying the changed user.
-      user {
-        name
+      # In this case we are querying the changed book.
+      book {
+        title
       }
     }
   }
@@ -175,23 +175,14 @@ In one GraphQL request you can execute multiple mutations. Each of these mutatio
 ```graphql
 {
   mutation {
-    # changeUserName is the mutation and is allowed to cause side-effects.
-    changeUserName(input: { id: 1, name: "Michael Staib" }) {
-      # everything in this selection set and below is a query.
-      # We essentially allow the user to query the effect that the mutation had
-      # on our system.
-      # In this case we are querying the changed user.
-      user {
-        name
+    changeBookTitle(input: { id: 1, title: "C# in depth, Fourth Edition" }) {
+      book {
+        title
       }
     }
-    # activateUser is the mutation and is allowed to cause side-effects.
-    activateUser(input: { id: 1 }) {
-      # everything in this selection set and below is a query.
-      # We essentially allow the user to query the effect that the mutation had
-      # on our system.
-      user {
-        isActive
+    publishBook(input: { id: 1 }) {
+      book {
+        isPublished
       }
     }
   }
