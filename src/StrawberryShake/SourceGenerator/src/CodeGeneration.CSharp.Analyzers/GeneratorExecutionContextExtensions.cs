@@ -87,9 +87,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             string title =
                 error.Extensions is not null &&
                 error.Extensions.TryGetValue(ErrorHelper.TitleExtensionKey, out var value) &&
-                value is string s
-                    ? s
-                    : SourceGeneratorErrorCodes.Unexpected;
+                value is string s ? s : nameof(SourceGeneratorErrorCodes.Unexpected);
 
             string code = error.Code ?? SourceGeneratorErrorCodes.Unexpected;
 
