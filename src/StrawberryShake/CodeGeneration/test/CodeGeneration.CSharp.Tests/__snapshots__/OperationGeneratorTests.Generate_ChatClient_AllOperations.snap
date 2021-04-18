@@ -36,6 +36,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetPeopleResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((People is null && other.People is null) || People != null && People.Equals(other.People)));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -54,26 +74,6 @@ namespace Foo.Bar
             }
 
             return Equals((GetPeopleResult)obj);
-        }
-
-        public global::System.Boolean Equals(GetPeopleResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((People is null && other.People is null) || People != null && People.Equals(other.People)));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -111,6 +111,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetPeople_People_PersonConnection? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Nodes, other.Nodes));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -129,26 +149,6 @@ namespace Foo.Bar
             }
 
             return Equals((GetPeople_People_PersonConnection)obj);
-        }
-
-        public global::System.Boolean Equals(GetPeople_People_PersonConnection? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Nodes, other.Nodes));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -228,6 +228,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetPeople_People_Nodes_Person? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline && ((ImageUri is null && other.ImageUri is null) || ImageUri != null && ImageUri.Equals(other.ImageUri)) && LastSeen.Equals(other.LastSeen);
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -246,26 +266,6 @@ namespace Foo.Bar
             }
 
             return Equals((GetPeople_People_Nodes_Person)obj);
-        }
-
-        public global::System.Boolean Equals(GetPeople_People_Nodes_Person? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline && ((ImageUri is null && other.ImageUri is null) || ImageUri != null && ImageUri.Equals(other.ImageUri)) && LastSeen.Equals(other.LastSeen);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -422,6 +422,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetMessagesResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (PersonByEmail.Equals(other.PersonByEmail));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -440,26 +460,6 @@ namespace Foo.Bar
             }
 
             return Equals((GetMessagesResult)obj);
-        }
-
-        public global::System.Boolean Equals(GetMessagesResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (PersonByEmail.Equals(other.PersonByEmail));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -493,6 +493,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetMessages_PersonByEmail_Person? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Messages is null && other.Messages is null) || Messages != null && Messages.Equals(other.Messages)));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -511,26 +531,6 @@ namespace Foo.Bar
             }
 
             return Equals((GetMessages_PersonByEmail_Person)obj);
-        }
-
-        public global::System.Boolean Equals(GetMessages_PersonByEmail_Person? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((Messages is null && other.Messages is null) || Messages != null && Messages.Equals(other.Messages)));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -568,6 +568,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetMessages_PersonByEmail_Messages_MessageConnection? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Nodes, other.Nodes));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -586,26 +606,6 @@ namespace Foo.Bar
             }
 
             return Equals((GetMessages_PersonByEmail_Messages_MessageConnection)obj);
-        }
-
-        public global::System.Boolean Equals(GetMessages_PersonByEmail_Messages_MessageConnection? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Nodes, other.Nodes));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -694,6 +694,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetMessages_PersonByEmail_Messages_Nodes_Message? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id.Equals(other.Id)) && Text.Equals(other.Text) && Direction.Equals(other.Direction) && Recipient.Equals(other.Recipient) && Sender.Equals(other.Sender) && Sent.Equals(other.Sent);
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -712,26 +732,6 @@ namespace Foo.Bar
             }
 
             return Equals((GetMessages_PersonByEmail_Messages_Nodes_Message)obj);
-        }
-
-        public global::System.Boolean Equals(GetMessages_PersonByEmail_Messages_Nodes_Message? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Id.Equals(other.Id)) && Text.Equals(other.Text) && Direction.Equals(other.Direction) && Recipient.Equals(other.Recipient) && Sender.Equals(other.Sender) && Sent.Equals(other.Sent);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -788,6 +788,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -806,26 +826,6 @@ namespace Foo.Bar
             }
 
             return Equals((GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person)obj);
-        }
-
-        public global::System.Boolean Equals(GetMessages_PersonByEmail_Messages_Nodes_Recipient_Person? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
         }
 
         public override global::System.Int32 GetHashCode()
@@ -879,6 +879,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetMessages_PersonByEmail_Messages_Nodes_Sender_Person? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -897,26 +917,6 @@ namespace Foo.Bar
             }
 
             return Equals((GetMessages_PersonByEmail_Messages_Nodes_Sender_Person)obj);
-        }
-
-        public global::System.Boolean Equals(GetMessages_PersonByEmail_Messages_Nodes_Sender_Person? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
         }
 
         public override global::System.Int32 GetHashCode()
@@ -1128,6 +1128,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(SendMessageInput_1Result? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (SendMessage.Equals(other.SendMessage));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -1146,26 +1166,6 @@ namespace Foo.Bar
             }
 
             return Equals((SendMessageInput_1Result)obj);
-        }
-
-        public global::System.Boolean Equals(SendMessageInput_1Result? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (SendMessage.Equals(other.SendMessage));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -1199,6 +1199,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(SendMessageInput_SendMessage_SendMessagePayload? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Message.Equals(other.Message));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -1217,26 +1237,6 @@ namespace Foo.Bar
             }
 
             return Equals((SendMessageInput_SendMessage_SendMessagePayload)obj);
-        }
-
-        public global::System.Boolean Equals(SendMessageInput_SendMessage_SendMessagePayload? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Message.Equals(other.Message));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -1315,6 +1315,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(SendMessageInput_SendMessage_Message_Message? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id.Equals(other.Id)) && Text.Equals(other.Text) && Direction.Equals(other.Direction) && Recipient.Equals(other.Recipient) && Sender.Equals(other.Sender) && Sent.Equals(other.Sent);
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -1333,26 +1353,6 @@ namespace Foo.Bar
             }
 
             return Equals((SendMessageInput_SendMessage_Message_Message)obj);
-        }
-
-        public global::System.Boolean Equals(SendMessageInput_SendMessage_Message_Message? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Id.Equals(other.Id)) && Text.Equals(other.Text) && Direction.Equals(other.Direction) && Recipient.Equals(other.Recipient) && Sender.Equals(other.Sender) && Sent.Equals(other.Sent);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -1409,6 +1409,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(SendMessageInput_SendMessage_Message_Recipient_Person? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -1427,26 +1447,6 @@ namespace Foo.Bar
             }
 
             return Equals((SendMessageInput_SendMessage_Message_Recipient_Person)obj);
-        }
-
-        public global::System.Boolean Equals(SendMessageInput_SendMessage_Message_Recipient_Person? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
         }
 
         public override global::System.Int32 GetHashCode()
@@ -1500,6 +1500,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(SendMessageInput_SendMessage_Message_Sender_Person? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -1518,26 +1538,6 @@ namespace Foo.Bar
             }
 
             return Equals((SendMessageInput_SendMessage_Message_Sender_Person)obj);
-        }
-
-        public global::System.Boolean Equals(SendMessageInput_SendMessage_Message_Sender_Person? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
         }
 
         public override global::System.Int32 GetHashCode()
@@ -1668,6 +1668,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(SendMessageMutResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (SendMessage.Equals(other.SendMessage));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -1686,26 +1706,6 @@ namespace Foo.Bar
             }
 
             return Equals((SendMessageMutResult)obj);
-        }
-
-        public global::System.Boolean Equals(SendMessageMutResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (SendMessage.Equals(other.SendMessage));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -1739,6 +1739,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(SendMessageMut_SendMessage_SendMessagePayload? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Message.Equals(other.Message));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -1757,26 +1777,6 @@ namespace Foo.Bar
             }
 
             return Equals((SendMessageMut_SendMessage_SendMessagePayload)obj);
-        }
-
-        public global::System.Boolean Equals(SendMessageMut_SendMessage_SendMessagePayload? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Message.Equals(other.Message));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -1855,6 +1855,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(SendMessageMut_SendMessage_Message_Message? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id.Equals(other.Id)) && Text.Equals(other.Text) && Direction.Equals(other.Direction) && Recipient.Equals(other.Recipient) && Sender.Equals(other.Sender) && Sent.Equals(other.Sent);
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -1873,26 +1893,6 @@ namespace Foo.Bar
             }
 
             return Equals((SendMessageMut_SendMessage_Message_Message)obj);
-        }
-
-        public global::System.Boolean Equals(SendMessageMut_SendMessage_Message_Message? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Id.Equals(other.Id)) && Text.Equals(other.Text) && Direction.Equals(other.Direction) && Recipient.Equals(other.Recipient) && Sender.Equals(other.Sender) && Sent.Equals(other.Sent);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -1949,6 +1949,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(SendMessageMut_SendMessage_Message_Recipient_Person? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -1967,26 +1987,6 @@ namespace Foo.Bar
             }
 
             return Equals((SendMessageMut_SendMessage_Message_Recipient_Person)obj);
-        }
-
-        public global::System.Boolean Equals(SendMessageMut_SendMessage_Message_Recipient_Person? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
         }
 
         public override global::System.Int32 GetHashCode()
@@ -2040,6 +2040,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(SendMessageMut_SendMessage_Message_Sender_Person? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -2058,26 +2078,6 @@ namespace Foo.Bar
             }
 
             return Equals((SendMessageMut_SendMessage_Message_Sender_Person)obj);
-        }
-
-        public global::System.Boolean Equals(SendMessageMut_SendMessage_Message_Sender_Person? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
         }
 
         public override global::System.Int32 GetHashCode()
@@ -2208,6 +2208,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(ReadMessagesResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Message.Equals(other.Message));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -2226,26 +2246,6 @@ namespace Foo.Bar
             }
 
             return Equals((ReadMessagesResult)obj);
-        }
-
-        public global::System.Boolean Equals(ReadMessagesResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Message.Equals(other.Message));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -2324,6 +2324,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(ReadMessages_Message_Message? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id.Equals(other.Id)) && Text.Equals(other.Text) && Direction.Equals(other.Direction) && Recipient.Equals(other.Recipient) && Sender.Equals(other.Sender) && Sent.Equals(other.Sent);
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -2342,26 +2362,6 @@ namespace Foo.Bar
             }
 
             return Equals((ReadMessages_Message_Message)obj);
-        }
-
-        public global::System.Boolean Equals(ReadMessages_Message_Message? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Id.Equals(other.Id)) && Text.Equals(other.Text) && Direction.Equals(other.Direction) && Recipient.Equals(other.Recipient) && Sender.Equals(other.Sender) && Sent.Equals(other.Sent);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -2418,6 +2418,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(ReadMessages_Message_Recipient_Person? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -2436,26 +2456,6 @@ namespace Foo.Bar
             }
 
             return Equals((ReadMessages_Message_Recipient_Person)obj);
-        }
-
-        public global::System.Boolean Equals(ReadMessages_Message_Recipient_Person? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
         }
 
         public override global::System.Int32 GetHashCode()
@@ -2509,6 +2509,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(ReadMessages_Message_Sender_Person? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -2527,26 +2547,6 @@ namespace Foo.Bar
             }
 
             return Equals((ReadMessages_Message_Sender_Person)obj);
-        }
-
-        public global::System.Boolean Equals(ReadMessages_Message_Sender_Person? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline;
         }
 
         public override global::System.Int32 GetHashCode()
@@ -2711,8 +2711,64 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class SendMessageInput : global::Foo.Bar.State.ISendMessageInputInfo
+    public partial class SendMessageInput : global::Foo.Bar.State.ISendMessageInputInfo, global::System.IEquatable<SendMessageInput>
     {
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((SendMessageInput)obj);
+        }
+
+        public virtual global::System.Boolean Equals(SendMessageInput? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((ClientMutationId is null && other.ClientMutationId is null) || ClientMutationId != null && ClientMutationId.Equals(other.ClientMutationId))) && RecipientEmail.Equals(other.RecipientEmail) && Text.Equals(other.Text);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                if (ClientMutationId != null)
+                {
+                    hash ^= 397 * ClientMutationId.GetHashCode();
+                }
+
+                hash ^= 397 * RecipientEmail.GetHashCode();
+                hash ^= 397 * Text.GetHashCode();
+                return hash;
+            }
+        }
+
         private global::System.String? _value_clientMutationId;
         private global::System.Boolean _set_clientMutationId;
         private global::System.String _value_recipientEmail = default !;
