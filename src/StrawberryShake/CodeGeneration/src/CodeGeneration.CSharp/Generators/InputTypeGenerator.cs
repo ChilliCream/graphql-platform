@@ -89,7 +89,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     VariableDeclarator(
                         Identifier(CreateInputValueField(prop.Name)));
 
-                if (prop.Type.IsNonNullableType() && !prop.Type.GetRuntimeType().IsValueType)
+                if (prop.Type.IsNonNullable() && !prop.Type.GetRuntimeType().IsValueType)
                 {
                     variable = variable.WithSuppressNullableWarningExpression();
                 }

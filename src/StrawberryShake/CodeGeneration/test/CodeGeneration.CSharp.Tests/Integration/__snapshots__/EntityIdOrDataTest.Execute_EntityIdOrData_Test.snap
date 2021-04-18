@@ -1,0 +1,64 @@
+﻿{
+  "Data": {
+    "Foo": [
+      {
+        "Id": "BarId"
+      },
+      {
+        "Id": "Bar2Id"
+      },
+      {
+        "Foo": "QuoxFoo"
+      },
+      {
+        "Foo": "Quox2Foo"
+      }
+    ]
+  },
+  "DataInfo": {
+    "Foo": [
+      {
+        "EntityId": {
+          "Name": "Baz",
+          "Value": "BarId"
+        },
+        "IsEntityId": true,
+        "Data": null,
+        "IsData": false
+      },
+      {
+        "EntityId": {
+          "Name": "Baz2",
+          "Value": "Bar2Id"
+        },
+        "IsEntityId": true,
+        "Data": null,
+        "IsData": false
+      },
+      {
+        "EntityId": null,
+        "IsEntityId": false,
+        "Data": {
+          "__typename": "Quox",
+          "Foo": "QuoxFoo"
+        },
+        "IsData": true
+      },
+      {
+        "EntityId": null,
+        "IsEntityId": false,
+        "Data": {
+          "__typename": "Quox2",
+          "Foo": "Quox2Foo"
+        },
+        "IsData": true
+      }
+    ],
+    "EntityIds": [],
+    "Version": 1
+  },
+  "DataFactory": {},
+  "Errors": [],
+  "Extensions": {},
+  "ContextData": {}
+}

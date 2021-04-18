@@ -416,7 +416,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             foreach (var typeDescriptor in descriptor.TypeDescriptors
                 .OfType<INamedTypeDescriptor>())
             {
-                if (typeDescriptor.Kind == TypeKind.EntityType && !typeDescriptor.IsInterface())
+                if (typeDescriptor.Kind == TypeKind.Entity && !typeDescriptor.IsInterface())
                 {
                     INamedTypeDescriptor namedTypeDescriptor =
                         (INamedTypeDescriptor)typeDescriptor.NamedType();
@@ -475,7 +475,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             }
 
             foreach (var inputTypeDescriptor in descriptor.TypeDescriptors
-                .Where(x => x.Kind is TypeKind.InputType))
+                .Where(x => x.Kind is TypeKind.Input))
             {
                 var formatter =
                     CreateInputValueFormatter(

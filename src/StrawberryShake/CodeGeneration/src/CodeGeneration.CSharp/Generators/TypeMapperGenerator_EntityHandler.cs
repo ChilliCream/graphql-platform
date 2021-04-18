@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
@@ -34,7 +36,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             if (complexTypeDescriptor is InterfaceTypeDescriptor interfaceTypeDescriptor)
             {
-                foreach (ObjectTypeDescriptor implementee in interfaceTypeDescriptor.ImplementedBy)
+                foreach (ObjectTypeDescriptor implementee in interfaceTypeDescriptor.ImplementedBy
+                    .Where(x => x.IsEntity()))
                 {
                     NameString dataMapperName =
                         CreateEntityMapperName(implementee.RuntimeType.Name, implementee.Name);
