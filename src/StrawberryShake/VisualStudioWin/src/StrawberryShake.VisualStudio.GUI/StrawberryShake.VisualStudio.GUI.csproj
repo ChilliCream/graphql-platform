@@ -100,7 +100,7 @@
       <Version>9.0.1</Version>
     </PackageReference>
     <PackageReference Include="StrawberryShake.Tools.Configuration">
-      <Version>11.2.0-preview.17</Version>
+      <Version>11.2.0-preview.26</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

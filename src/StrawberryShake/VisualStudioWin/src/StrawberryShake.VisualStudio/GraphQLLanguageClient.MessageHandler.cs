@@ -10,6 +10,8 @@ namespace StrawberryShake.VisualStudio
     {       
         public class MessageHandler
         {
+            public string RootDirectory { get; set; }
+
             [JsonRpcMethod("workspace/configuration")]
             public List<object> OnWorkspaceConfigurationRequest(JToken request)
             {
@@ -24,7 +26,7 @@ namespace StrawberryShake.VisualStudio
                                     "load",
                                     new Dictionary<string, object>
                                     {
-                                        { "rootDir", @"C:\Users\michael\source\repos\config" }
+                                        { "rootDir", RootDirectory }
                                     }
                                 }
                             } };
@@ -32,15 +34,6 @@ namespace StrawberryShake.VisualStudio
                 }
 
                 return new List<object>();
-
-
-                // var dte = (EnvDTE.DTE)ServiceProvider.GlobalProvider.GetService(typeof(EnvDTE.DTE));
-                // dte.Windows.Ac
-
-                // object activeSolutionProject = dte.SelectedItems.Item(1);
-                // var project = activeSolutionProject as EnvDTE.SelectedItem;
-
-                //return new Dictionary<string, string>();
             }
         }
     }

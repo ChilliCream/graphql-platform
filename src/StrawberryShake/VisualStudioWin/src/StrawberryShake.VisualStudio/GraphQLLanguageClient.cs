@@ -20,10 +20,11 @@ namespace StrawberryShake.VisualStudio
     [Export(typeof(ILanguageClient))]
     public partial class GraphQLLanguageClient : ILanguageClient, ILanguageClientCustomMessage2
     {
+        private readonly MessageHandler _messageHandler = new MessageHandler();
         private readonly string _rootDirectory;
         private readonly string _languageServer;
         private JsonRpc _rpc;
-
+        
         public event AsyncEventHandler<EventArgs> StartAsync;
         public event AsyncEventHandler<EventArgs> StopAsync;
 
@@ -44,10 +45,21 @@ namespace StrawberryShake.VisualStudio
 
         public object MiddleLayer { get; }
 
-        public object CustomMessageTarget { get; } = new MessageHandler();
+        public object CustomMessageTarget => _messageHandler;
 
         public async Task<Connection> ActivateAsync(CancellationToken cancellationToken)
         {
+            await Microsoft.VisualStudio.Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dte = (EnvDTE.DTE)Microsoft.VisualStudio.Shell.ServiceProvider.GlobalProvider.GetService(typeof(EnvDTE.DTE));
+            if(dte.Solution is { FullName: { Length: > 0 } })
+            {
+                string solutionDir = Path.GetDirectoryName(dte.Solution.FullName);
+                await BuildServerConfigAsync(solutionDir);
+                _messageHandler.RootDirectory = solutionDir;
+            }
+
+
             await Task.Yield();
 
             var process = new Process
@@ -116,13 +128,12 @@ namespace StrawberryShake.VisualStudio
 
         public bool CanHandle(string methodName)
         {
-            return methodName == "textDocument/didOpen";
+            return true;
         }
 
         public async Task HandleNotificationAsync(string methodName, JToken methodParam, Func<JToken, Task> sendNotification)
         {
-            TextDocumentDidOpenRequest request = methodParam.ToObject<TextDocumentDidOpenRequest>();
-
+            string s = methodParam.ToString();
             await sendNotification(methodParam);
         }
 
