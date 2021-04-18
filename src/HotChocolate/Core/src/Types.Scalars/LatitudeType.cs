@@ -67,12 +67,7 @@ namespace HotChocolate.Types
         {
             if (runtimeValue is < Latitude._minLat or > Latitude._maxLat)
             {
-                return new StringValueNode(
-                    Math.Round(
-                        runtimeValue,
-                        Latitude._maxPrecision,
-                        MidpointRounding.AwayFromZero)
-                        .ToString(CultureInfo.InvariantCulture));
+                return new StringValueNode(Latitude.ToPrecision(runtimeValue));
             }
             throw ThrowHelper.LatitudeType_ParseValue_IsInvalid(this);
         }
@@ -115,6 +110,9 @@ namespace HotChocolate.Types
                 value = null;
                 return false;
             }
+
+            internal static string ToPrecision(double d) =>
+                Math.Round(d, _maxPrecision, MidpointRounding.AwayFromZero).ToString(CultureInfo.InvariantCulture);
         }
     }
 }

@@ -47,25 +47,11 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void Latitude_ExpectNegativeIsStringValueToMatch()
-        {
-            // arrange
-            ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = new StringValueNode("90° 0' 0.000\" N");
-
-            // act
-            var result = scalar.IsInstanceOfType(valueSyntax);
-
-            // assert
-            Assert.True(result);
-        }
-
-        [Fact]
         protected void Latitude_ExpectIsDoubleMatch()
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = 90.1;
+            var valueSyntax = 90.00000001;
 
             // act
             var result = scalar.IsInstanceOfType(valueSyntax);
@@ -74,96 +60,34 @@ namespace HotChocolate.Types
             Assert.True(result);
         }
 
-        [Fact]
-        protected void Latitude_ExpectParseLiteralToMatchNegative()
+        [Theory]
+        [InlineData("38° 36' 0.000\" S", -38.6, 1)]
+        [InlineData("66° 54' 0.000\" S", -66.9, 1)]
+        [InlineData("39° 51' 21.600\" N", 39.86, 2)]
+        [InlineData("52° 19' 48.000\" N", 52.33, 2)]
+        [InlineData("51° 30' 28.800\" N", 51.508, 3)]
+        [InlineData("64° 45' 18.000\" N", 64.755, 3)]
+        [InlineData("36° 16' 57.360\" N", 36.2826, 4)]
+        [InlineData("6° 10' 50.160\" S", -6.1806, 4)]
+        [InlineData("41° 53' 30.95\" N", 41.89193, 5)]
+        [InlineData("40° 42' 51.37\" N", 40.71427, 5)]
+        [InlineData("42° 49' 58.845\" N", 42.833013, 6)]
+        [InlineData("6° 41' 37.353\" N", 6.693709, 6)]
+        [InlineData("23° 6' 23.997\" S", -23.1066658, 7)]
+        [InlineData("23° 19' 19.453\" S", -23.3220703, 7)]
+        [InlineData("66° 0' 21.983\" N", 66.00610639, 8)]
+        [InlineData("76° 49' 14.845\" N", 76.82079028, 8)]
+        protected void Latitude_ExpectParseLiteralToMatch(string literal, double runtime, int prec )
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = new StringValueNode("90° 0' 0.000\" S");
-            var expectedResult = -90.0;
+            var valueSyntax = new StringValueNode(literal);
+            var expectedResult = runtime;
 
             // act
-            object result = (double)scalar.ParseLiteral(valueSyntax)!;
+            object result = ToPrecision(scalar, valueSyntax, prec);
 
                 // assert
-            Assert.Equal(expectedResult, result);
-        }
-
-        [Fact]
-        protected void Latitude_ExpectParseLiteralToMatchPositive()
-        {
-            // arrange
-            ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = new StringValueNode("90° 0' 0.000\" N");
-            var expectedResult = 90.0;
-
-            // act
-            object result = (double)scalar.ParseLiteral(valueSyntax)!;
-
-            // assert
-            Assert.Equal(expectedResult, result);
-        }
-
-        [Fact]
-        protected void Latitude_ExpectParseLiteralToMatchPositivePrecision()
-        {
-            // arrange
-            ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = new StringValueNode("39° 51' 21.600\" N");
-            var expectedResult = 39.856;
-
-            // act
-            object result = scalar.ParseLiteral(valueSyntax)!;
-
-            // assert
-            Assert.Equal(expectedResult, result);
-        }
-
-        [Fact]
-        protected void Latitude_ExpectParseLiteralToMatchPositivePrecision1()
-        {
-            // arrange
-            ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = new StringValueNode("66° 0' 21.983\" N");
-            var expectedResult = 66.00610639;
-
-            // act
-            object result = Math.Round((double)scalar.ParseLiteral(
-                valueSyntax)!,
-                8,
-                MidpointRounding.AwayFromZero);
-
-                // assert
-            Assert.Equal(expectedResult, result);
-        }
-
-        [Fact]
-        protected void Latitude_ExpectParseLiteralToMatchNegativePrecision1()
-        {
-            // arrange
-            ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = new StringValueNode("66° 54' 0.000\" S");
-            var expectedResult = -66.9;
-
-            // act
-            object result = scalar.ParseLiteral(valueSyntax)!;
-
-            // assert
-            Assert.Equal(expectedResult, result);
-        }
-
-        [Fact]
-        protected void Latitude_ExpectParseLiteralToMatchNegativePrecision2()
-        {
-            // arrange
-            ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = new StringValueNode("6° 10' 50.160\" S");
-            var expectedResult = -6.1806;
-
-            // act
-            object result = scalar.ParseLiteral(valueSyntax)!;
-
-            // assert
             Assert.Equal(expectedResult, result);
         }
 
@@ -182,7 +106,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void Latitude_ExpectParseValueToMatchDouble()
+        protected void Latitude_ExpectParseValueToMatchType()
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
@@ -193,6 +117,20 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Equal(typeof(StringValueNode), result.GetType());
+        }
+
+        [Fact]
+        protected void Latitude_ExpectParseValueToMatchDouble()
+        {
+            // arrange
+            ScalarType scalar = CreateType<LatitudeType>();
+            var valueSyntax = 90.1;
+
+            // act
+            IValueNode result = scalar.ParseValue(valueSyntax);
+
+            // assert
+            Assert.Equal(valueSyntax, Convert.ToDouble(result.Value));
         }
 
         [Fact]
@@ -264,7 +202,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public async Task Integration_Latitude()
+        public async Task Latitude_Integration()
         {
             // arrange
             IRequestExecutor executor = await new ServiceCollection()
@@ -290,6 +228,17 @@ namespace HotChocolate.Types
             {
                 descriptor.Field(x => x.Test).Type<LatitudeType>();
             }
+        }
+
+        private static double ToPrecision(
+            IParsableType scalar,
+            IValueNode valueSyntax,
+            int precision = 8)
+        {
+            return Math.Round(
+                (double)scalar.ParseLiteral(valueSyntax)!,
+                precision,
+                MidpointRounding.AwayFromZero);
         }
     }
 }
