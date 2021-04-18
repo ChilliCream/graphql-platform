@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace StrawberryShake.Tools.Configuration
 {
-    public class StrawberryShakeTransportSettings
+    public class StrawberryShakeTransportProfile
     {
         public string Name { get; set; } = default!;
 
