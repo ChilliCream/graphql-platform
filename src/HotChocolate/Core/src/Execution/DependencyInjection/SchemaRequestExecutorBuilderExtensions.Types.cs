@@ -310,8 +310,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// A mutation type was already added.
         /// </exception>
         public static IRequestExecutorBuilder AddMutationType(
-<<<<<<< Updated upstream
-=======
             this IRequestExecutorBuilder builder) =>
             AddMutationType(builder, d => d.Name(OperationTypeNames.Mutation));
 
@@ -335,7 +333,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// A mutation type was already added.
         /// </exception>
         public static IRequestExecutorBuilder AddMutationType(
->>>>>>> Stashed changes
             this IRequestExecutorBuilder builder,
             Action<IObjectTypeDescriptor> configure)
         {
@@ -352,12 +349,6 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddMutationType(configure));
         }
 
-<<<<<<< Updated upstream
-        public static IRequestExecutorBuilder AddMutationType(
-            this IRequestExecutorBuilder builder) =>
-            AddMutationType(builder, d => d.Name(OperationTypeNames.Mutation));
-
-=======
         /// <summary>
         /// Add a GraphQL mutation type with the name `Mutation` and applies the
         /// <see cref="configure"/> delegate.
@@ -382,7 +373,6 @@ namespace Microsoft.Extensions.DependencyInjection
         ///
         /// - A mutation type was already added.
         /// </exception>
->>>>>>> Stashed changes
         public static IRequestExecutorBuilder AddMutationType<T>(
             this IRequestExecutorBuilder builder,
             Action<IObjectTypeDescriptor<T>> configure)
@@ -523,8 +513,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// A subscription type was already added.
         /// </exception>
         public static IRequestExecutorBuilder AddSubscriptionType(
-<<<<<<< Updated upstream
-=======
             this IRequestExecutorBuilder builder) =>
             AddSubscriptionType(builder, d => d.Name(OperationTypeNames.Subscription));
 
@@ -548,7 +536,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// A subscription type was already added.
         /// </exception>
         public static IRequestExecutorBuilder AddSubscriptionType(
->>>>>>> Stashed changes
             this IRequestExecutorBuilder builder,
             Action<IObjectTypeDescriptor> configure)
         {
@@ -565,12 +552,6 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddSubscriptionType(configure));
         }
 
-<<<<<<< Updated upstream
-        public static IRequestExecutorBuilder AddSubscriptionType(
-            this IRequestExecutorBuilder builder) =>
-            AddSubscriptionType(builder, d => d.Name(OperationTypeNames.Subscription));
-
-=======
         /// <summary>
         /// Add a GraphQL subscription type with the name `Subscription` and applies the
         /// <see cref="configure"/> delegate.
@@ -595,7 +576,6 @@ namespace Microsoft.Extensions.DependencyInjection
         ///
         /// - A subscription type was already added.
         /// </exception>
->>>>>>> Stashed changes
         public static IRequestExecutorBuilder AddSubscriptionType<T>(
             this IRequestExecutorBuilder builder,
             Action<IObjectTypeDescriptor<T>> configure)
