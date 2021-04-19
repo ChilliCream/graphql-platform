@@ -14,6 +14,7 @@ namespace HotChocolate.Execution.Channels
         private readonly object _lock = new();
         /// <summary>Generated whenever the amount of items in the stack becomes 0</summary>
         private event EventHandler? StackEmptied;
+        /// <summary>The amount of items in _list but safe to access from multiple threads (without locking)</summary>
         private int _count = 0;
 
         public bool TryPop([MaybeNullWhen(false)] out T item)
@@ -72,7 +73,7 @@ namespace HotChocolate.Execution.Channels
                 {
                     completion.TrySetCanceled();
                 }
-                else if (IsEmpty)
+                else if (_count == 0)
                 {
                     completion.TrySetResult(true);
                 }

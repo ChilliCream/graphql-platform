@@ -34,15 +34,6 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        public TaskScheduler TaskScheduler
-        {
-            get
-            {
-                AssertNotPooled();
-                return _batchDispatcher.TaskScheduler;
-            }
-        }
-
         public bool IsCompleted
         {
             get
@@ -67,6 +58,15 @@ namespace HotChocolate.Execution.Processing
             {
                 AssertNotPooled();
                 return _taskContext;
+            }
+        }
+
+        public TaskScheduler TaskScheduler
+        {
+            get
+            {
+                AssertNotPooled();
+                return _batchDispatcher.TaskScheduler;
             }
         }
 

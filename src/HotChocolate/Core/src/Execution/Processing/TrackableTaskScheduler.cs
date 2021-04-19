@@ -36,7 +36,16 @@ namespace HotChocolate.Execution.Processing
         }
 
         /// <returns>true if the scheduler has no remaining work (either on queue or in progress)</returns>
-        public bool IsIdle => _processingTaskCount == 0;
+        public bool IsIdle
+        {
+            get
+            {
+                lock(_lock)
+                {
+                    return _processingTaskCount == 0;
+                }
+            }
+        }
 
         public async Task WaitTillIdle(CancellationToken? ctx = null)
         {
@@ -69,7 +78,7 @@ namespace HotChocolate.Execution.Processing
                 {
                     completion.TrySetCanceled();
                 }
-                else if (IsIdle)
+                else if (_processingTaskCount == 0)
                 {
                     completion.TrySetResult(true);
                 }
@@ -104,8 +113,8 @@ namespace HotChocolate.Execution.Processing
 
         protected override void QueueTask(Task task)
         {
-            Contract.Assert(task != null, "Infrastructure should have provided a non-null task.");
-            Contract.Assert(_shutdown == 0, "After completion no more work should be scheduled");
+            Debug.Assert(task != null, "Infrastructure should have provided a non-null task.");
+            Debug.Assert(_shutdown == 0, "After completion no more work should be scheduled");
             lock (_lock)
             {
                 _queue.Enqueue(task);
@@ -157,7 +166,7 @@ namespace HotChocolate.Execution.Processing
                     if (!task.IsCompleted)
                     {
                         TryExecuteTask(task);
-                        Contract.Assert(task.IsCompleted);
+                        Debug.Assert(task.IsCompleted, "After TaskScheduler.TryExecuteTask the task should be completed");
                     }
                 }
             }

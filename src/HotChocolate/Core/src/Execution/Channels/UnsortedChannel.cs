@@ -38,7 +38,9 @@ namespace HotChocolate.Execution.Channels
         /// <summary>Gets the object used to synchronize access to all state on this instance.</summary>
         private object SyncObj => _items;
 
-        public bool IsIdle => _items.IsEmpty || _completion.Task.IsCompleted;
+        public bool IsEmpty => _items.IsEmpty;
+
+        public bool IsIdle => _completion.Task.IsCompleted || _items.IsEmpty;
 
         public Task WaitTillIdle(CancellationToken? ctx = null)
         {

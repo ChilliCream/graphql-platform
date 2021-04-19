@@ -118,8 +118,13 @@ namespace HotChocolate.Execution.Batching
                     context.TaskStats.ResumeCompletionEvent();
                 }
             }
-            // if general logging is ever implement,
-            // log a warning here is RunningContexts().Any() is true
+            else
+            {
+                // if there are no running contexts this is not a problem,
+                // it could happen when are aborted
+                Debug.Assert(RunningContexts().Any(), "Batch was not dispatched because there was no context available");
+            }
+          
 
             lock (_dispatchLock)
             {
@@ -153,11 +158,11 @@ namespace HotChocolate.Execution.Batching
                 {
                     // keep running as long as there are running contexts
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
                     // if an unexpected exception happened while waiting,
                     // just start the batch and see what happens there
-                    // (if general logging is ever implemented log a warning here).
+                    Debug.Fail($"Unexpected exception while waiting for BatchTimeout completion: {e}");
                     return;
                 }
                 
@@ -188,10 +193,9 @@ namespace HotChocolate.Execution.Batching
                         taskStats.ResumeCompletionEvent();
                     }
                 }
-                catch
+                catch (Exception e)
                 {
-                    // consider the context as unavailable if anything went
-                    // wrong while acquiring it
+                    Debug.Fail($"Unexpected exception while trying to acquire a context: {e}");
                 }
             }
             return acquiredContext;
