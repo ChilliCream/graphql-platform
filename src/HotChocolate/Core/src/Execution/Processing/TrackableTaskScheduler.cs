@@ -27,7 +27,7 @@ namespace HotChocolate.Execution.Processing
         /// <summary>If false, no more work will be accepted and the active processing tasks will stop as soon as possible</summary>
         private bool _running = true;
         /// <summary>This event is triggered whenever the processing comes to a complete stop (no items left in queue, and nothing running)</summary>
-        /// <remarks>_lock will not be acquired while this event is triggered (it is possible process is running event during this event)</remarks>
+        /// <remarks>_lock is allowed, but not required to be acquired while this event is triggered</remarks>
         private event EventHandler? ProcessingHalted;
 
         /// <summary>Create a new instance that uses the current scheduler to perform the actual work</summary>
@@ -61,27 +61,39 @@ namespace HotChocolate.Execution.Processing
                 completion = new TaskCompletionSource<bool>();
                 EventHandler completionHandler = default!;
                 completionHandler = (source, args) => {
-                    if (!completion.Task.IsCompleted)
+                    bool lockTaken = false;
+                    try
                     {
-                        try
+                        if (!Monitor.IsEntered(_lock))
                         {
-                            if (_processingTaskCount == 0 && (_queue.IsEmpty || !_running))
+                            Monitor.Enter(_lock, ref lockTaken);
+                        }
+                        if (!completion.Task.IsCompleted)
+                        {
+                            try
                             {
-                                completion.SetResult(true);
+                                if (ctx?.IsCancellationRequested ?? false)
+                                {
+                                    completion.SetCanceled();
+                                }
+                                else
+                                {
+                                    completion.SetResult(true);
+                                }
                             }
-                            else if (ctx?.IsCancellationRequested ?? false)
+                            catch (Exception e)
                             {
-                                completion.SetCanceled();
+                                completion.SetException(e);
+                            }
+                            finally
+                            {
+                                ProcessingHalted -= completionHandler;
                             }
                         }
-                        catch(Exception e)
-                        {
-                            completion.SetException(e);
-                        }
-                        finally
-                        {
-                            ProcessingHalted -= completionHandler;
-                        }
+                    }
+                    finally
+                    {
+                        if (lockTaken) Monitor.Exit(_lock);
                     }
                 };
                 ctx?.Register(() => completionHandler(this, EventArgs.Empty));
@@ -96,7 +108,11 @@ namespace HotChocolate.Execution.Processing
         /// </summary>
         public void Complete()
         {
-            _running = false;
+            lock (_lock)
+            {
+                _running = false;
+                ProcessingHalted?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         protected override IEnumerable<Task>? GetScheduledTasks()

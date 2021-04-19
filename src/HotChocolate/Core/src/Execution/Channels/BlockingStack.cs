@@ -11,9 +11,9 @@ namespace HotChocolate.Execution.Channels
     {
         private readonly Stack<T> _list = new Stack<T>();
         private SpinLock _lock = new SpinLock(Debugger.IsAttached);
-        /// <summary>Generated whenever the amount of items in the stack changes</summary>
-        /// <remarks>_lock will not be acquired while this event is generated</remarks>
-        private event EventHandler? CountChanged;
+        /// <summary>Generated whenever the amount of items in the stack becomes 0</summary>
+        /// <remarks>_lock is allowed, but not required to be acquired while this event is triggered</remarks>
+        private event EventHandler? StackEmptied;
 
         public bool TryPop([MaybeNullWhen(false)]out T item)
         {
@@ -27,7 +27,8 @@ namespace HotChocolate.Execution.Channels
                 {
                     item = _list.Pop();
                     IsEmpty = _list.Count == 0;
-                    success = true;
+                    if (IsEmpty) StackEmptied?.Invoke(this, EventArgs.Empty);
+                    return true;
                 }
 
                 item = default;
@@ -35,17 +36,17 @@ namespace HotChocolate.Execution.Channels
                 if (_list.TryPop(out item))
                 {
                     IsEmpty = _list.Count == 0;
-                    success = true;
+                    if (IsEmpty) StackEmptied?.Invoke(this, EventArgs.Empty);
+                    return true;
                 }
 #endif
             }
             finally
             {
                 if (lockTaken) _lock.Exit(false);
-                if (success) CountChanged?.Invoke(this, EventArgs.Empty);
             }
 
-            return success;
+            return false;
         }
 
         public void Push(T item)
@@ -60,7 +61,6 @@ namespace HotChocolate.Execution.Channels
             finally
             {
                 if (lockTaken) _lock.Exit(false);
-                CountChanged?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -83,34 +83,46 @@ namespace HotChocolate.Execution.Channels
                 completion = new TaskCompletionSource<bool>();
                 EventHandler completionHandler = default!;
                 completionHandler = (source, args) => {
-                    if (!completion.Task.IsCompleted)
+                    var completionTookLock = false;
+                    try
                     {
-                        if (IsEmpty)
+                        if (!_lock.IsHeld)
                         {
-                            try
-                            {
-                                completion.SetResult(true);
-                            }
-                            finally
-                            {
-                                CountChanged -= completionHandler;
-                            }
+                            _lock.Enter(ref completionTookLock);
                         }
-                        else if (ctx?.IsCancellationRequested ?? false)
+                        if (!completion.Task.IsCompleted)
                         {
                             try
                             {
-                                completion.SetCanceled();
+                                if (ctx?.IsCancellationRequested ?? false)
+                                {
+                                    completion.SetCanceled();
+                                }
+                                else
+                                {
+                                    completion.SetResult(true);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                completion.SetException(e);
                             }
                             finally
                             {
-                                CountChanged -= completionHandler;
+                                StackEmptied -= completionHandler;
                             }
                         }
                     }
+                    finally
+                    {
+                        if (completionTookLock) _lock.Exit(false);
+                    }
+             
+
+                    
                 };
+                StackEmptied += completionHandler;
                 ctx?.Register(() => completionHandler(this, EventArgs.Empty));
-                CountChanged += completionHandler;
             }
             finally
             {
