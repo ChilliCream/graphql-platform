@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
+using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 
@@ -22,18 +23,18 @@ namespace HotChocolate.Execution.Batching
         private readonly ConcurrentDictionary<IExecutionContext, CancellationToken> _contexts = new();
         private int _suspended = 0;
         private Task _dispatchTask = default!;
-        // TODO: make this configurable
         /// <summary>The amount of time in milliseconds that we wait before starting a batch</summary>
         /// <remarks>If nothing is in progress, the wait time will be less, if tasks are still being created it can be more</remarks>
-        private int _dispatchTimeout = 10;
+        private readonly int _dispatchTimeout = 10;
 
-        public ContextBatchDispatcher(IBatchDispatcher dispatcher)
+        public ContextBatchDispatcher(IBatchDispatcher dispatcher, IBatchingOptionsAccessor? options = null)
         {
             _batchScheduler = TaskScheduler.Current;
             Contract.Assert(!(_batchScheduler is TrackableTaskScheduler));
             _taskScheduler = new TrackableTaskScheduler(_batchScheduler);
             _dispatcher = dispatcher;
             _dispatcher.TaskEnqueued += BatchDispatcherEventHandler;
+            _dispatchTimeout = (int) (options?.BatchTimeout.TotalMilliseconds ?? 10);
         }
 
         public void Dispose()

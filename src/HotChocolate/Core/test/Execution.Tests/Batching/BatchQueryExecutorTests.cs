@@ -11,6 +11,7 @@ using static HotChocolate.Tests.TestHelper;
 using HotChocolate.Resolvers;
 using System.Threading;
 using System.Linq;
+using HotChocolate.Execution.Options;
 
 namespace HotChocolate.Execution.Batching
 {
@@ -380,6 +381,8 @@ namespace HotChocolate.Execution.Batching
                         }, "foo").LoadAsync(bar, CancellationToken.None);
                     });
             var services = new ServiceCollection();
+            // enforce consistent output results by only triggering a batch when idle (BatchTimeout > ExecutionTimeout)
+            services.AddSingleton<IBatchingOptionsAccessor>(sp => new BatchingOptions { BatchTimeout = TimeSpan.FromSeconds(40) });
             services.AddGraphQL()
                 .AddQueryType(d => addFooField(d.Name("Query")))
                 .AddMutationType(d => addFooField(d.Name("Mutation")))
@@ -496,6 +499,8 @@ namespace HotChocolate.Execution.Batching
                 return new Foo(val);
             };
             var services = new ServiceCollection();
+            // enforce consistent output results by only triggering a batch when idle (BatchTimeout > ExecutionTimeout)
+            services.AddSingleton<IBatchingOptionsAccessor>(sp => new BatchingOptions { BatchTimeout = TimeSpan.FromSeconds(40) });
             services.AddGraphQL()
                 .AddObjectType<Foo>(d => d
                     .Field("foo")
