@@ -17,6 +17,6 @@ namespace HotChocolate.Execution.Options
 
         /// <summary>If set allow running the experimental but more optimized batching code</summary>
         [Obsolete("This option will be removed in the next major release")]
-        public bool AllowExperimental { get; set; } = true; // TODO: default to false after testing
+        public bool AllowExperimental { get; set; } = false;
     }
 }
