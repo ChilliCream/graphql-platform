@@ -6,8 +6,7 @@
     <RootNamespace>StrawberryShake.Razor</RootNamespace>
     <Nullable>enable</Nullable>
     <Description>Provides razor components for using StrawberryShake.</Description>
-    <TargetFrameworks>net5.0</TargetFrameworks>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFrameworks>$(RazorTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
   
