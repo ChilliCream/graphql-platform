@@ -110,7 +110,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = 90.1;
+            var valueSyntax = 74.3;
 
             // act
             IValueNode result = scalar.ParseValue(valueSyntax);
@@ -124,7 +124,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = 90.1;
+            var valueSyntax = 74.3;
 
             // act
             IValueNode result = scalar.ParseValue(valueSyntax);
@@ -199,6 +199,87 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Equal(typeof(NullValueNode), result.GetType());
+        }
+
+        [Fact]
+        protected void Longitude_ExpectParseResultToMatchNull_Decimal()
+        {
+            // arrange
+            ScalarType scalar = new LatitudeType();
+
+            // act
+            IValueNode result = scalar.ParseResult(-44.73392194d);
+
+            // assert
+
+            Assert.Equal("-44.73392194", Assert.IsType<StringValueNode>(result).Value);
+        }
+
+        [Fact]
+        protected void Longitude_ExpectParseResultToMatchNull_Double()
+        {
+            // arrange
+            ScalarType scalar = new LatitudeType();
+
+            // act
+            IValueNode result = scalar.ParseResult(-44.73392194);
+
+            // assert
+
+            Assert.Equal("-44.73392194", Assert.IsType<StringValueNode>(result).Value);
+        }
+
+        [Fact]
+        protected void Longitude_ExpectParseResultToMatchNull_Int()
+        {
+            // arrange
+            ScalarType scalar = new LatitudeType();
+
+            // act
+            IValueNode result = scalar.ParseResult(-44);
+
+            // assert
+
+            Assert.Equal("-44", Assert.IsType<StringValueNode>(result).Value);
+        }
+
+        [Fact]
+        protected void Longitude_ExpectParseResultToMatchNull_ThrowOnInt()
+        {
+            // arrange
+            ScalarType scalar = new LatitudeType();
+
+            // act
+            Exception? ex = Record.Exception(() => scalar.ParseResult('c'));
+
+            // assert
+            Assert.IsType<SerializationException>(ex);
+        }
+
+        [Fact]
+        protected void Longitude_ExpectParseResultToMatchNull_BiggerThanMin()
+        {
+            // arrange
+            ScalarType scalar = new LatitudeType();
+
+            // act
+            Exception? ex = Record.Exception(() => scalar.ParseResult(-90.1));
+
+            // assert
+            Assert.IsType<SerializationException>(ex);
+        }
+
+        [Fact]
+        protected void Longitude_ExpectParseResultToMatchNull_BiggerThanMax()
+        {
+            // arrange
+            ScalarType scalar = new LatitudeType();
+
+            // act
+            Exception? ex = Record.Exception(() => scalar.ParseResult(90.1));
+
+            // assert
+            Assert.IsType<SerializationException>(ex);
         }
 
         [Fact]
