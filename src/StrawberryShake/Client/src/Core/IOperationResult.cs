@@ -6,7 +6,7 @@ namespace StrawberryShake
     /// <summary>
     /// The result of a GraphQL operation.
     /// </summary>
-    public interface IOperationResult<T> : IOperationResult where T : class
+    public interface IOperationResult<T> : IOperationResult
     {
         /// <summary>
         /// Gets the data object or <c>null</c>.
@@ -15,7 +15,7 @@ namespace StrawberryShake
 
         /// <summary>
         /// Gets the data factory which can build from the
-        /// <see cref="DataInfo"/> a new <see cref="Data"/>.
+        /// <see cref="IOperationResultDataInfo"/> a new <see cref="Data"/>.
         /// </summary>
         new IOperationResultDataFactory<T> DataFactory { get; }
 
