@@ -149,6 +149,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
         /// </summary>
         public global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeople_People? People { get; }
 
+        public virtual global::System.Boolean Equals(GetPeopleResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((People is null && other.People is null) || People != null && People.Equals(other.People)));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -167,26 +187,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
             }
 
             return Equals((GetPeopleResult)obj);
-        }
-
-        public global::System.Boolean Equals(GetPeopleResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((People is null && other.People is null) || People != null && People.Equals(other.People)));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -221,6 +221,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
         /// </summary>
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeople_People_Nodes?>? Nodes { get; }
 
+        public virtual global::System.Boolean Equals(GetPeople_People_PersonConnection? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Nodes, other.Nodes));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -239,26 +259,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
             }
 
             return Equals((GetPeople_People_PersonConnection)obj);
-        }
-
-        public global::System.Boolean Equals(GetPeople_People_PersonConnection? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Nodes, other.Nodes));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -302,6 +302,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
 
         public global::System.DateTimeOffset LastSeen { get; }
 
+        public virtual global::System.Boolean Equals(GetPeople_People_Nodes_Person? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline && LastSeen.Equals(other.LastSeen);
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -320,26 +340,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
             }
 
             return Equals((GetPeople_People_Nodes_Person)obj);
-        }
-
-        public global::System.Boolean Equals(GetPeople_People_Nodes_Person? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Name.Equals(other.Name)) && Email.Equals(other.Email) && IsOnline == other.IsOnline && LastSeen.Equals(other.LastSeen);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -751,24 +751,31 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State
         {
             (IGetPeopleResult Result, GetPeopleResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
-            try
+            if (response.Exception is null)
             {
-                if (response.Body != null)
+                try
                 {
-                    if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                    if (response.Body != null)
                     {
-                        data = BuildData(dataElement);
-                    }
+                        if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                        {
+                            data = BuildData(dataElement);
+                        }
 
-                    if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
-                    {
-                        errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                        {
+                            errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        }
                     }
                 }
+                catch (global::System.Exception ex)
+                {
+                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                }
             }
-            catch (global::System.Exception ex)
+            else
             {
-                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex)};
+                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
             }
 
             return new global::StrawberryShake.OperationResult<IGetPeopleResult>(data?.Result, data?.Info, _resultDataFactory, errors);

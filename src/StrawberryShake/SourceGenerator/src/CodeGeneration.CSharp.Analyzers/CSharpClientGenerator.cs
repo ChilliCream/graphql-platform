@@ -223,6 +223,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     StrictSchemaValidation = context.Settings.StrictSchemaValidation,
                     NoStore = context.Settings.NoStore,
                     InputRecords = context.Settings.Records.Inputs,
+                    RazorComponents = context.Settings.RazorComponents,
                     EntityRecords = context.Settings.Records.Entities,
                     SingleCodeFile = context.Settings.UseSingleFile,
                     HashProvider = context.Settings.HashAlgorithm.ToLowerInvariant() switch
@@ -293,6 +294,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             const string http = "StrawberryShake.Transport.Http";
             const string websockets = "StrawberryShake.Transport.WebSockets";
             const string inmemory = "StrawberryShake.Transport.InMemory";
+            const string razor = "StrawberryShake.Razor";
 
             if (settings.TransportProfiles.Count == 1)
             {
@@ -341,6 +343,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             if (usedTransports.Contains(TransportType.InMemory))
             {
                 if (!EnsureDependencyExists(context, inmemory))
+                {
+                    return false;
+                }
+            }
+
+            if (settings.RazorComponents)
+            {
+                if (!EnsureDependencyExists(context, razor))
                 {
                     return false;
                 }

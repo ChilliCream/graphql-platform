@@ -66,7 +66,7 @@ namespace StrawberryShake.Tools.Configuration
         /// <summary>
         /// Defines if the generator shall generate blazor query components.
         /// </summary>
-        public bool BlazorComponents { get; set; } = false;
+        public bool RazorComponents { get; set; } = false;
 
         /// <summary>
         /// Gets the record generator settings.
