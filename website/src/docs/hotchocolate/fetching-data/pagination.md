@@ -44,8 +44,12 @@ public class Query
 Most of the time we are not working with an `IEnumerable` though, but rather with a database of sorts. Luckily for us, most databases support queries similiar to the following.
 
 ```sql
-SELECT * FROM Users LIMIT 10 OFFSET 5
+SELECT * FROM Users
+ORDER BY Id
+LIMIT %limit OFFSET %offset
 ```
+
+## Problems
 
 But whilst _Offset-based_ pagination is simple to implement and works relatively well, there are also some problems:
 
@@ -55,8 +59,57 @@ But whilst _Offset-based_ pagination is simple to implement and works relatively
 
 Luckily we can solve these issues pretty easily by switching from an `offset` to a `cursor`. Continue reading to find out how this works.
 
+<!-- todo: not happy with this section yet -->
+
 # Cursor Pagination
 
-TODO
+Contrary to the _Offset-based_ pagination, where we identify the position of an entry using an offset, _Cursor-based_ pagination works by returning the pointer to the next entry in our pagination.
+
+To understand this concept better, let's look at an example: We want to pagination over the users in our application.
+
+First we execute the following to receive our first page:
+
+```sql
+SELECT * FROM Users
+ORDER BY Id
+LIMIT %limit
+```
+
+`%limit` is actually `limit + 1`. We are doing this to know wether there are more entries in our dataset and to receive the cursor of the next entry. This additional entry will not be returned to the consumer of our pagination.
+
+To now receive the second page, we execute:
+
+```sql
+SELECT * FROM Users
+WHERE Id >= %cursor
+ORDER BY Id
+LIMIT %limit
+```
+
+Using `WHERE` instead of `OFFSET` is great, since now we can leverage the index of the `Id` field and the database does not have to compute an offset.
+
+For this to work though, our cursor needs to be **unique** and **sequential**. Most of the time the _Id_ field will be the best fit.
+
+But what if we need to sort by a field that does not have the aforementioned properties? We can simply combine the field with another field, which has the needed properties (like `Id`), to form a cursor.
+
+Let's look at another example: We want to paginate over the users sorted by their birthday.
+
+After receiving the first page, we create a combined cursor, like `"1435+2020-12-31"` (`Id` + `Birthday`), of the next entry. To receive the second page, we convert the cursor to its original values (`Id` + `Birthday`) and use them in our query:
+
+```sql
+SELECT * FROM Users
+WHERE Id >= %cursorId
+AND Birthday >= %cursorBirthday
+ORDER BY Name, Id
+LIMIT %limit
+```
+
+## Problems
+
+Even though _Cursor-based_ pagination is more performant than _Offset-based_ pagination, it comes with a big downside.
+
+Since we now only know of the next entry, there is no more concept of pages. If we have a feed or only _Next_ and _Previous_ buttons, this works great, but if we depend on page numbers, we are in a tight spot.
 
 # Relay-style cursor pagination
+
+TODO
