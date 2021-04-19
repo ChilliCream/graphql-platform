@@ -17,7 +17,6 @@ namespace HotChocolate.Execution.Channels
 
         public bool TryPop([MaybeNullWhen(false)]out T item)
         {
-            bool success = false;
             var lockTaken = false;
             try
             {
@@ -66,46 +65,60 @@ namespace HotChocolate.Execution.Channels
 
         public bool IsEmpty { get; private set; } = true;
 
-        public Task WaitTillEmpty(CancellationToken? ctx = null)
+        public async Task WaitTillEmpty(CancellationToken? ctx = null)
         {
-            // TODO: remove this after deadlock experiment is over
-            // (should result in failed tests, but no deadlocks)
-            return Task.Delay(0);
-            /*
-            TaskCompletionSource<bool> completion = new TaskCompletionSource<bool>();
-            var ctxRegistration = ctx?.Register(() => completion.TrySetCanceled());
-            EventHandler completionHandler = (source, args) => {
-                try
-                {
-                    if (ctx?.IsCancellationRequested ?? false)
-                    {
-                        completion.TrySetCanceled();
-                    }
-                    else if (IsEmpty)
-                    {
-                        completion.TrySetResult(true);
-                    }
-                }
-                catch (Exception e)
-                {
-                    completion.TrySetException(e);
-                }
-            };
-            StackEmptied += completionHandler;
-
-            if (ctx?.IsCancellationRequested ?? false)
+            TaskCompletionSource<bool> completion;
+            CancellationTokenRegistration? ctxRegistration;
+            EventHandler completionHandler;
+            bool lockTaken = false;
+            try
             {
-                completion.TrySetCanceled();
+                _lock.Enter(ref lockTaken);
+                completion = new TaskCompletionSource<bool>();
+                ctxRegistration = ctx?.Register(() => completion.TrySetCanceled());
+                completionHandler = (source, args) =>
+                {
+                    try
+                    {
+                        if (ctx?.IsCancellationRequested ?? false)
+                        {
+                            completion.TrySetCanceled();
+                        }
+                        else
+                        {
+                            completion.TrySetResult(true);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        completion.TrySetException(e);
+                    }
+                };
+                StackEmptied += completionHandler;
+
+                if (ctx?.IsCancellationRequested ?? false)
+                {
+                    completion.TrySetCanceled();
+                }
+                else if (IsEmpty)
+                {
+                    completion.TrySetResult(true);
+                }
             }
-            else if (IsEmpty)
+            finally
             {
-                completion.TrySetResult(true);
+                if (lockTaken) _lock.Exit(false);
             }
 
-            await completion.Task.ConfigureAwait(false);
-            ctxRegistration?.Dispose();
-            StackEmptied -= completionHandler;
-            */
+            try
+            {
+                await completion.Task.ConfigureAwait(false);
+            }
+            finally
+            {
+                ctxRegistration?.Dispose();
+                StackEmptied -= completionHandler;
+            }
         }
 
         public int Count => _list.Count;

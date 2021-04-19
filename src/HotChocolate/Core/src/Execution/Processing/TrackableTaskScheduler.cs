@@ -48,46 +48,53 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        public Task WaitTillIdle(CancellationToken? ctx = null)
+        public async Task WaitTillIdle(CancellationToken? ctx = null)
         {
-            // TODO: remove this after deadlock experiment is over
-            // (should result in failed tests, but no deadlocks)
-            return Task.Delay(0);
-            
-            /*
-            TaskCompletionSource<bool> completion = new TaskCompletionSource<bool>();
-            var ctxRegistration = ctx?.Register(() => completion.TrySetCanceled());
-            EventHandler completionHandler = (source, args) => {
-                try
-                {
-                    if (ctx?.IsCancellationRequested ?? false)
-                    {
-                        completion.TrySetCanceled();
-                    }
-                    else if (IsIdle)
-                    {
-                        completion.TrySetResult(true);
-                    }
-                }
-                catch (Exception e)
-                {
-                    completion.TrySetException(e);
-                }
-            };
-            ProcessingHalted += completionHandler;
-
-            if (ctx?.IsCancellationRequested ?? false)
+            TaskCompletionSource<bool> completion;
+            CancellationTokenRegistration? ctxRegistration;
+            EventHandler completionHandler;
+            lock(_lock)
             {
-                completion.TrySetCanceled();
-            }
-            else if (IsIdle)
-            {
-                completion.TrySetResult(true);
-            }
+                completion = new TaskCompletionSource<bool>();
+                ctxRegistration = ctx?.Register(() => completion.TrySetCanceled());
+                completionHandler = (source, args) => {
+                    try
+                    {
+                        if (ctx?.IsCancellationRequested ?? false)
+                        {
+                            completion.TrySetCanceled();
+                        }
+                        else
+                        {
+                            completion.TrySetResult(true);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        completion.TrySetException(e);
+                    }
+                };
+                ProcessingHalted += completionHandler;
 
-            await completion.Task.ConfigureAwait(false);
-            ctxRegistration?.Dispose();
-            ProcessingHalted -= completionHandler;*/
+                if (ctx?.IsCancellationRequested ?? false)
+                {
+                    completion.TrySetCanceled();
+                }
+                else if (IsIdle)
+                {
+                    completion.TrySetResult(true);
+                }
+            }
+           
+            try
+            {
+                await completion.Task.ConfigureAwait(false);
+            }
+            finally
+            {
+                ctxRegistration?.Dispose();
+                ProcessingHalted -= completionHandler;
+            }
         }
 
         /// <summary>Mark that no future work should be handled by this scheduler (will stop all processing tasks as soon as possible)
