@@ -142,13 +142,15 @@ namespace HotChocolate.Execution.Batching
             var timeoutSource = new CancellationTokenSource();
             timeoutSource.CancelAfter(_dispatchTimeout);
 
-            var runningContexts = RunningContexts().ToList();
-            while (!timeoutSource.IsCancellationRequested && runningContexts.Any() && (!(_experimentalScheduler?.IsIdle ?? true) || runningContexts.Any(x => !x.Key.TaskBacklog.IsIdle)))
+            if (_experimentalScheduler is not null)
             {
-                try
+                var runningContexts = RunningContexts().ToList();
+                while (!timeoutSource.IsCancellationRequested && runningContexts.Any() && (!_experimentalScheduler.IsIdle || runningContexts.Any(x => !x.Key.TaskBacklog.IsIdle)))
                 {
-                    await (_experimentalScheduler?.WaitTillIdle(timeoutSource.Token) ?? Task.CompletedTask).ConfigureAwait(false);
-                    foreach (var context in runningContexts)
+                    try
+                    {
+                        await _experimentalScheduler.WaitTillIdle(timeoutSource.Token).ConfigureAwait(false);
+                        foreach (var context in runningContexts)
                         {
                             if (!timeoutSource.IsCancellationRequested)
                             {
@@ -159,7 +161,7 @@ namespace HotChocolate.Execution.Batching
                     }
                     catch (TaskCanceledException)
                     {
-                    // keep running as long as there are running contexts
+                        // keep running as long as there are running contexts
                     }
                     catch (Exception e)
                     {
@@ -168,8 +170,16 @@ namespace HotChocolate.Execution.Batching
                         Debug.Fail($"Unexpected exception while waiting for BatchTimeout completion: {e}");
                         return;
                     }
-                
-                runningContexts = RunningContexts().ToList();
+
+                    runningContexts = RunningContexts().ToList();
+                }
+            }
+            else
+            {
+                while (!timeoutSource.IsCancellationRequested && RunningContexts().Any(x => !x.Key.TaskBacklog.IsIdle))
+                {
+                    await Task.Delay(1);
+                }
             }
         }
 
