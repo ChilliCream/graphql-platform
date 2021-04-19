@@ -10,7 +10,9 @@ namespace StrawberryShake
     /// <typeparam name="TResultData">
     /// The runtime type of the result data object.
     /// </typeparam>
-    public interface IOperationResultDataFactory<out TResultData>  : IOperationResultDataFactory
+    public interface IOperationResultDataFactory<out TResultData>
+        : IOperationResultDataFactory
+        where TResultData : class
     {
         /// <summary>
         /// Creates the data object of a operation result by using the data info which provides
