@@ -207,7 +207,7 @@ namespace StrawberryShake
                 if (a is IEnumerable e1 && b is IEnumerable e2)
                 {
                     // Check the contents of the collection, assuming order is important
-                    if (ComparisonHelper.SequenceEqual(e1, e2))
+                    if (!ComparisonHelper.SequenceEqual(e1, e2))
                     {
                         return false;
                     }
