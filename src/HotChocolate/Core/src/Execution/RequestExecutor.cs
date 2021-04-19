@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Batching;
@@ -90,7 +92,21 @@ namespace HotChocolate.Execution
 
                 _requestContextAccessor.RequestContext = context;
 
-                await _requestDelegate(context).ConfigureAwait(false);
+                // ensure that all subtasks spawned from this are started in the correct scheduler
+                // (this check can be removed once the experimental batching mode becomes the only option
+                TaskScheduler scheduler = services.GetRequiredService<IContextBatchDispatcher>().TaskScheduler;
+                if (scheduler == TaskScheduler.Current)
+                {
+                    await _requestDelegate(context).ConfigureAwait(false);
+                }
+                else
+                {
+                    await Task.Factory.StartNew(
+                        () => _requestDelegate(context).AsTask(),
+                        cancellationToken,
+                        TaskCreationOptions.None,
+                        scheduler).Unwrap().ConfigureAwait(false);
+                }
 
                 if (context.Result is null)
                 {
@@ -129,9 +145,41 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(requestBatch));
             }
 
-            return Task.FromResult<IBatchQueryResult>(new BatchQueryResult(
-                () => _batchExecutor.ExecuteAsync(requestBatch, allowParallelExecution, cancellationToken),
-                null));
+            // ensure that all subtasks spawned from this are started in the correct scheduler
+            // (this check can be removed once the experimental batching mode becomes the only option
+            var scheduler = GetScheduler(requestBatch);
+            if (scheduler == null || scheduler == TaskScheduler.Current)
+            {
+                return Task.FromResult<IBatchQueryResult>(new BatchQueryResult(
+                    () => _batchExecutor.ExecuteAsync(requestBatch, allowParallelExecution, cancellationToken), null));
+            }
+            else
+            {
+                return Task.Factory.StartNew<IBatchQueryResult>(
+                    () => new BatchQueryResult(
+                        () => _batchExecutor.ExecuteAsync(requestBatch, allowParallelExecution, cancellationToken),
+                        null),
+                    cancellationToken,
+                    TaskCreationOptions.None,
+                    scheduler);
+            }
+        }
+
+        private TaskScheduler? GetScheduler(IEnumerable<IQueryRequest> requestBatch)
+        {
+            var taskSchedulers = requestBatch.Select(
+                x => x.Services?.GetRequiredService<IContextBatchDispatcher>().TaskScheduler
+                    ?? _applicationServices.GetRequiredService<IContextBatchDispatcher>().TaskScheduler)
+                .Distinct().ToList();
+            if (taskSchedulers.Count == 1)
+            {
+                return taskSchedulers[0];
+            }
+            else
+            {
+                Debug.Assert(taskSchedulers.Count() == 0, "Not all requests in the batch use the same scheduler");
+                return null;
+            }
         }
     }
 }

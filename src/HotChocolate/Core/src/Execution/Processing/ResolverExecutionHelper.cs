@@ -6,26 +6,7 @@ namespace HotChocolate.Execution.Processing
 {
     internal static class ResolverExecutionHelper
     {
-        public static Task ExecuteTasksAsync(
-            IOperationContext operationContext)
-        {
-            // ensure that all subtasks spawned from this are tracked in the TrackingTaskScheduler
-            // (this check can be removed once the experimental batching mode becomes the only option
-            if (operationContext.Execution.TaskScheduler == TaskScheduler.Current)
-            {
-                return ExecuteResolversAsync(operationContext);
-            }
-            else
-            {
-                return Task.Factory.StartNew(
-                    () => ExecuteResolversAsync(operationContext),
-                    operationContext.RequestAborted,
-                    TaskCreationOptions.None,
-                    operationContext.Execution.TaskScheduler).Unwrap();
-            }
-        }
-
-        private static async Task ExecuteResolversAsync(
+        public async static Task ExecuteTasksAsync(
             IOperationContext operationContext)
         {
             if (operationContext.Execution.TaskBacklog.IsIdle)
