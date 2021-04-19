@@ -73,8 +73,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     File.WriteAllText(fileName, document.SourceText, Encoding.UTF8);
                     File.WriteAllText(hashName, currentHash, Encoding.UTF8);
                 }
-
-                WriteFile(fileName, document.SourceText);
             }
         }
 
@@ -101,16 +99,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             SourceDocumentKind kind)
         {
             return $"{clientName}.{fileName}.{kind}.md5";
-        }
-
-        private void WriteFile(string fileName, string sourceText)
-        {
-            if (File.Exists(fileName))
-            {
-                File.Delete(fileName);
-            }
-
-            File.WriteAllText(fileName, sourceText, Encoding.UTF8);
         }
 
         public void Flush()

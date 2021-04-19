@@ -101,19 +101,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
             foreach (var document in result.Documents)
             {
-                if (!documentNames.Add(document.Name))
+                if (!documentNames.Add($"{document.Name}.{document.Kind}"))
                 {
                     Assert.True(false, $"Document name duplicated {document.Name}");
                 }
 
-                if (document.Kind == SourceDocumentKind.CSharp)
+                if (document.Kind is SourceDocumentKind.CSharp or SourceDocumentKind.Razor)
                 {
                     documents.AppendLine("// " + document.Name);
                     documents.AppendLine();
                     documents.AppendLine(document.SourceText);
                     documents.AppendLine();
                 }
-                else if (document.Kind == SourceDocumentKind.GraphQL)
+                else if (document.Kind is SourceDocumentKind.GraphQL)
                 {
                     documents.AppendLine("// " + document.Name);
                     documents.AppendLine("// " + document.Hash);
