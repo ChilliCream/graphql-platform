@@ -28,4 +28,7 @@
   <data name="DiagnosticErrorHelper_ReportInvalidClientName_Message" xml:space="preserve">
     <value>The client name `{0}` is invalid. A valid client name must start with an ASCII letter or an underscore and can contain ASCII letters, digits and underscores.</value>
   </data>
+  <data name="FileLogger_FileLogger_LogFileCannotBeEmpty" xml:space="preserve">
+    <value>'{0}' cannot be null or empty.</value>
+  </data>
 </root>
