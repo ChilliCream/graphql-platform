@@ -11,12 +11,12 @@ namespace HotChocolate.Execution.Processing
     internal interface ITaskBacklog
     {
         /// <summary>
-        /// Defines if the backlog is empty and has no more tasks.
+        /// Defines if the backlog is empty and has no more tasks or has been completed.
         /// </summary>
-        bool IsEmpty { get; }
+        bool IsIdle { get; }
 
         /// <summary>Waits till the task backlog is empty</summary>
-        public ValueTask WaitTillEmpty();
+        public ValueTask WaitTillIdle(CancellationToken? ctx = null);
 
         /// <summary>
         /// Try to take a task from the backlog.

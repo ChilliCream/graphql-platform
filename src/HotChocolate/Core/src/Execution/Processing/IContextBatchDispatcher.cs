@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Fetching;
 
@@ -12,7 +13,7 @@ namespace HotChocolate.Execution.Processing
         TaskScheduler TaskScheduler { get; }
 
         /// <summary>Marks a context as having started</summary>
-        void Register(IExecutionContext context);
+        void Register(IExecutionContext context, CancellationToken ctx);
 
         /// <summary>Marks a context as having completed</summary>
         void Unregister(IExecutionContext context);

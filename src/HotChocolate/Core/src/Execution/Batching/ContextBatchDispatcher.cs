@@ -18,8 +18,9 @@ namespace HotChocolate.Execution.Batching
         private readonly TrackableTaskScheduler _taskScheduler;
         private readonly TaskScheduler _batchScheduler;
         private readonly IBatchDispatcher _dispatcher;
-        private readonly ConcurrentDictionary<IExecutionContext, bool> _contexts = new();
+        private readonly ConcurrentDictionary<IExecutionContext, CancellationToken> _contexts = new();
         private int _suspended = 0;
+        private Task _dispatchTask = default!;
 
         public ContextBatchDispatcher(IBatchDispatcher dispatcher)
         {
@@ -52,13 +53,13 @@ namespace HotChocolate.Execution.Batching
             lock (_dispatchLock)
             {
                 --_suspended;
-                StartDispatch();
+                TryStartDispatch();
             }
         }
 
-        public void Register(IExecutionContext context)
+        public void Register(IExecutionContext context, CancellationToken ctx)
         {
-            if (!_contexts.TryAdd(context, true))
+            if (!_contexts.TryAdd(context, ctx))
             {
                 throw new ArgumentException("context is already registered", nameof(context));
             }
@@ -66,7 +67,7 @@ namespace HotChocolate.Execution.Batching
 
         public void Unregister(IExecutionContext context)
         {
-            if (!_contexts.TryRemove(context, out bool dummy))
+            if (!_contexts.TryRemove(context, out CancellationToken dummy))
             {
                 throw new ArgumentException("context is not registered", nameof(context));
             }
@@ -76,88 +77,118 @@ namespace HotChocolate.Execution.Batching
         {
             lock (_dispatchLock)
             {
-                StartDispatch();
+                TryStartDispatch();
             }
         }
 
-        private void StartDispatch()
+        /// <remarks>Assumes _dispatchLock has been acquired</remarks>
+        private void TryStartDispatch()
         {
-            if (_suspended == 0 && _dispatcher.HasTasks)
+            if (_suspended == 0 &&
+                _dispatcher.HasTasks &&
+                _dispatchTask is null &&
+                RunningContexts().Any())
             {
-                Suspend();
-                try
-                {
-                    Task.Factory.StartNew(Dispatch, default, TaskCreationOptions.None, _batchScheduler);
-                }
-                catch
-                {
-                    Resume();
-                    throw;
-                }
+                _dispatchTask = Task.Factory.StartNew(Dispatch, default, TaskCreationOptions.None, _batchScheduler);
             }
         }
 
         private async Task Dispatch()
         {
-            try
-            {
-                while (!_taskScheduler.IsEmpty || _contexts.Any(x => !(x.Key.TaskBacklog.IsEmpty)))
-                {
-                    await _taskScheduler.WaitTillEmpty().ConfigureAwait(false);
-                    foreach (var taskBacklog in _contexts.Select(x => x.Key.TaskBacklog))
-                    {
-                        await taskBacklog.WaitTillEmpty().ConfigureAwait(false);
-                    }
-                }
+            await BatchTimeout();
 
-                IExecutionContext safeContext = default!;
-                Exception safeContextException = default!;
-                foreach (var context in _contexts.Keys)
-                {
-                    try
-                    {
-                        var taskStats = context.TaskStats;
-                        taskStats.SuspendCompletionEvent();
-                        if (!taskStats.IsCompleted)
-                        {
-                            safeContext = context;
-                            break;
-                        }
-                        else
-                        {
-                            taskStats.ResumeCompletionEvent();
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        safeContextException = e;
-                    }
-                }
-                if (safeContext is null)
-                {
-                    throw new InvalidOperationException("Batch is scheduled but there are no remaining pending contexts", safeContextException);
-                }
+            var context = AcquireContext();
+            if (context != null)
+            {
                 try
                 {
                     _dispatcher.Dispatch(taskDefinition =>
                     {
-                        safeContext.TaskBacklog.Register(taskDefinition.Create(safeContext.TaskContext));
+                        context.TaskBacklog.Register(taskDefinition.Create(context.TaskContext));
                     });
                 }
                 finally
                 {
-                    safeContext.TaskStats.ResumeCompletionEvent();
+                    context.TaskStats.ResumeCompletionEvent();
                 }
             }
-            finally
-            {
-                Resume();
-            }
+            // if general logging is ever implement,
+            // log a warning here is RunningContexts().Any() is true
 
             lock (_dispatchLock)
             {
-                StartDispatch();
+                _dispatchTask = default!;
+                TryStartDispatch();
             }
+        }
+
+        /// <summary>Wait till the batch should actually be started</summary>
+        private async ValueTask BatchTimeout()
+        {
+            var runningContexts = RunningContexts().ToList();
+            while (runningContexts.Any() && (!_taskScheduler.IsIdle || runningContexts.Any(x => !x.Key.TaskBacklog.IsIdle)))
+            {
+                using (var ctxSource = CancellationTokenSource.CreateLinkedTokenSource(runningContexts.Select(x => x.Value).ToArray()))
+                {
+                    try
+                    {
+                        await _taskScheduler.WaitTillIdle(ctxSource.Token).ConfigureAwait(false);
+                        foreach (var taskBacklog in runningContexts.Select(x => x.Key.TaskBacklog))
+                        {
+                            await taskBacklog.WaitTillIdle(ctxSource.Token).ConfigureAwait(false);
+                        }
+                    }
+                    catch(TaskCanceledException)
+                    {
+                        // keep running as long as there are running contexts
+                    }
+                    catch(Exception)
+                    {
+                        // if an unexpected exception happened while waiting,
+                        // just start the batch and see what happens there
+                        // (if general logging is ever implemented log a warning here).
+                        return;
+                    }
+                }
+                runningContexts = RunningContexts().ToList();
+            }
+        }
+
+        /// <summary>
+        /// Locks one the the running execution contexts for completion and returns it.
+        /// Returns null if there are no remaining uncompleted execution contexts.
+        /// </summary>
+        private IExecutionContext AcquireContext()
+        {
+            IExecutionContext acquiredContext = default!;
+            foreach (var context in RunningContexts().Select(x => x.Key))
+            {
+                try
+                {
+                    var taskStats = context.TaskStats;
+                    taskStats.SuspendCompletionEvent();
+                    if (!taskStats.IsCompleted)
+                    {
+                        acquiredContext = context;
+                        break;
+                    }
+                    else
+                    {
+                        taskStats.ResumeCompletionEvent();
+                    }
+                }
+                catch
+                {
+                    // consider the context as unavailable if anything went
+                    // wrong while acquiring it
+                }
+            }
+            return acquiredContext;
+        }
+
+        private IEnumerable<KeyValuePair<IExecutionContext, CancellationToken>> RunningContexts()
+        {
+            return _contexts.Where(x => !(x.Value.IsCancellationRequested || x.Key.TaskStats.IsCompleted));
         }
     }
 }

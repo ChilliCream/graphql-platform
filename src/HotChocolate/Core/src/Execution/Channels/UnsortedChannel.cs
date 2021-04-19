@@ -38,11 +38,18 @@ namespace HotChocolate.Execution.Channels
         /// <summary>Gets the object used to synchronize access to all state on this instance.</summary>
         private object SyncObj => _items;
 
-        public bool IsEmpty => _items.IsEmpty;
+        public bool IsIdle => _items.IsEmpty || _completion.Task.IsCompleted;
 
-        public ValueTask WaitTillEmpty()
+        public async ValueTask WaitTillIdle(CancellationToken? ctx = null)
         {
-            return _items.WaitTillEmpty();
+            if (!_completion.Task.IsCompleted)
+            {
+                var itemsEmpty = _items.WaitTillEmpty(ctx);
+                if (!itemsEmpty.IsCompleted)
+                {
+                    await Task.WhenAny(itemsEmpty.AsTask(), _completion.Task);
+                }
+            }
         }
 
         [Conditional("DEBUG")]

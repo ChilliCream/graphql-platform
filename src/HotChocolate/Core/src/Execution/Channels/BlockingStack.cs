@@ -66,7 +66,7 @@ namespace HotChocolate.Execution.Channels
 
         public bool IsEmpty { get; private set; } = true;
 
-        public async ValueTask WaitTillEmpty()
+        public async ValueTask WaitTillEmpty(CancellationToken? ctx = null)
         {
             if (IsEmpty)
             {
@@ -83,18 +83,34 @@ namespace HotChocolate.Execution.Channels
                 completion = new TaskCompletionSource<bool>();
                 EventHandler completionHandler = default!;
                 completionHandler = (source, args) => {
-                    if (IsEmpty)
+                    if (!completion.Task.IsCompleted)
                     {
-                        try
+                        if (IsEmpty)
                         {
-                            completion.SetResult(true);
+                            try
+                            {
+
+                                completion.SetResult(true);
+                            }
+                            finally
+                            {
+                                CountChanged -= completionHandler;
+                            }
                         }
-                        finally
+                        else if (ctx?.IsCancellationRequested ?? false)
                         {
-                            CountChanged -= completionHandler;
+                            try
+                            {
+                                completion.SetCanceled();
+                            }
+                            finally
+                            {
+                                CountChanged -= completionHandler;
+                            }
                         }
                     }
                 };
+                ctx?.Register(() => completionHandler(this, EventArgs.Empty));
                 CountChanged += completionHandler;
             }
             finally

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
@@ -14,7 +15,7 @@ namespace HotChocolate.Execution.Batching
 
         public TaskScheduler TaskScheduler => TaskScheduler.Current;
 
-        public void Register(IExecutionContext context)
+        public void Register(IExecutionContext context, CancellationToken ctx)
         {
             // empty
         }

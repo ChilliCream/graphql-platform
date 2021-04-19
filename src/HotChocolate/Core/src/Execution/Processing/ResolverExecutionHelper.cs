@@ -20,7 +20,7 @@ namespace HotChocolate.Execution.Processing
         private static async Task ExecuteResolversAsync(
             IOperationContext operationContext)
         {
-            if (operationContext.Execution.TaskBacklog.IsEmpty)
+            if (operationContext.Execution.TaskBacklog.IsIdle)
             {
                 return;
             }

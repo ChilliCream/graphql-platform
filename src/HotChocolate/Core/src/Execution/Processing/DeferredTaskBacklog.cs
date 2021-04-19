@@ -9,7 +9,7 @@ namespace HotChocolate.Execution.Processing
         private UnsortedChannel<IDeferredExecutionTask> _channel =
             new UnsortedChannel<IDeferredExecutionTask>(true);
 
-        public bool IsEmpty => _channel.IsEmpty;
+        public bool IsEmpty => _channel.IsIdle;
 
         public bool TryTake([NotNullWhen(true)] out IDeferredExecutionTask? task) =>
             _channel.Reader.TryRead(out task);

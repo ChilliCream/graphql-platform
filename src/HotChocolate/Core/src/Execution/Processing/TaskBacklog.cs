@@ -23,11 +23,11 @@ namespace HotChocolate.Execution.Processing
         }
 
         /// <inheritdoc/>
-        public bool IsEmpty => _channel.IsEmpty;
+        public bool IsIdle => _channel.IsIdle;
 
-        public ValueTask WaitTillEmpty()
+        public ValueTask WaitTillIdle(CancellationToken? ctx = null)
         {
-            return _channel.WaitTillEmpty();
+            return _channel.WaitTillIdle(ctx);
         }
 
     /// <inheritdoc/>

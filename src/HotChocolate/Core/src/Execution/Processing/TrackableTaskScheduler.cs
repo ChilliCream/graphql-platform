@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace HotChocolate.Execution.Processing
@@ -36,23 +37,23 @@ namespace HotChocolate.Execution.Processing
         }
 
         /// <returns>true if the scheduler has no remaining work (either on queue or in progress)</returns>
-        public bool IsEmpty
+        public bool IsIdle
         {
             get
             {
                 lock(_lock)
                 {
-                    return _processingTaskCount == 0 && _queue.IsEmpty;
+                    return _processingTaskCount == 0 && (_queue.IsEmpty || !_running);
                 }
             }
         }
 
-        public async ValueTask WaitTillEmpty()
+        public async ValueTask WaitTillIdle(CancellationToken? ctx = null)
         {
             TaskCompletionSource<bool> completion = default!;
             lock (_lock)
             {
-                if (_processingTaskCount == 0 && _queue.IsEmpty)
+                if (_processingTaskCount == 0 && (_queue.IsEmpty || !_running))
                 {
                     return;
                 }
@@ -60,15 +61,30 @@ namespace HotChocolate.Execution.Processing
                 completion = new TaskCompletionSource<bool>();
                 EventHandler completionHandler = default!;
                 completionHandler = (source, args) => {
-                    try
+                    if (!completion.Task.IsCompleted)
                     {
-                        completion.SetResult(true);
-                    }
-                    finally
-                    {
-                        ProcessingHalted -= completionHandler;
+                        try
+                        {
+                            if (_processingTaskCount == 0 && (_queue.IsEmpty || !_running))
+                            {
+                                completion.SetResult(true);
+                            }
+                            else if (ctx?.IsCancellationRequested ?? false)
+                            {
+                                completion.SetCanceled();
+                            }
+                        }
+                        catch(Exception e)
+                        {
+                            completion.SetException(e);
+                        }
+                        finally
+                        {
+                            ProcessingHalted -= completionHandler;
+                        }
                     }
                 };
+                ctx?.Register(() => completionHandler(this, EventArgs.Empty));
                 ProcessingHalted += completionHandler;
             }
 

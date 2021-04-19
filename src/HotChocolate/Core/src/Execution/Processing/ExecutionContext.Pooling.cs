@@ -42,7 +42,7 @@ namespace HotChocolate.Execution.Processing
             _isPooled = false;
 
             _batchDispatcher = batchDispatcher;
-            _batchDispatcher.Register(this);
+            _batchDispatcher.Register(this, requestAborted);
         }
 
         private void TryComplete()
