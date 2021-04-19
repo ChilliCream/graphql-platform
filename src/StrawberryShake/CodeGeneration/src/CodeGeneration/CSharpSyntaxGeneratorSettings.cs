@@ -11,11 +11,12 @@ namespace StrawberryShake.CodeGeneration
         public CSharpSyntaxGeneratorSettings(
             bool noStore,
             bool inputRecords,
-            bool entityRecords)
+            bool entityRecords, bool razorComponents)
         {
             NoStore = noStore;
             InputRecords = inputRecords;
             EntityRecords = entityRecords;
+            RazorComponents = razorComponents;
         }
 
         /// <summary>
@@ -32,5 +33,10 @@ namespace StrawberryShake.CodeGeneration
         /// Generates entities as records.
         /// </summary>
         public bool EntityRecords { get; }
+
+        /// <summary>
+        /// Generate Razor components.
+        /// </summary>
+        public bool RazorComponents { get; }
     }
 }

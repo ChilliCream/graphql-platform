@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <PackageId>StrawberryShake.Razor</PackageId>
+    <AssemblyName>StrawberryShake.Razor</AssemblyName>
+    <RootNamespace>StrawberryShake.Razor</RootNamespace>
+    <Nullable>enable</Nullable>
+    <Description>Provides razor components for using StrawberryShake.</Description>
+    <TargetFrameworks>net5.0</TargetFrameworks>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="5.0.4" />
+    <PackageReference Include="System.Reactive" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\StrawberryShake.Core.csproj" />
+  </ItemGroup>
+
+</Project>

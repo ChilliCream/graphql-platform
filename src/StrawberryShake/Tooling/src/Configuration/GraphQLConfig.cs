@@ -21,7 +21,7 @@ namespace StrawberryShake.Tools.Configuration
             if (Extensions.StrawberryShake.TransportProfiles.Count == 0)
             {
                 Extensions.StrawberryShake.TransportProfiles.Add(
-                    new StrawberryShakeTransportProfile
+                    new StrawberryShakeSettingsTransportProfile
                     {
                         Default = TransportType.Http,
                         Subscription = TransportType.WebSocket
@@ -47,7 +47,7 @@ namespace StrawberryShake.Tools.Configuration
             if (config.Extensions.StrawberryShake.TransportProfiles.Count == 0)
             {
                 config.Extensions.StrawberryShake.TransportProfiles.Add(
-                    new StrawberryShakeTransportProfile
+                    new StrawberryShakeSettingsTransportProfile
                     {
                         Default = TransportType.Http,
                         Subscription = TransportType.WebSocket

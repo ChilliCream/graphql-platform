@@ -49,7 +49,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             new InputTypeGenerator(),
             new InputTypeStateInterfaceGenerator(),
             new ResultInterfaceGenerator(),
-            new DataTypeGenerator()
+            new DataTypeGenerator(),
+            new RazorQueryGenerator()
         };
 
         public static CSharpGeneratorResult Generate(
@@ -240,7 +241,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var generatorSettings = new CSharpSyntaxGeneratorSettings(
                 settings.NoStore,
                 settings.InputRecords,
-                settings.EntityRecords);
+                settings.EntityRecords,
+                settings.RazorComponents);
 
             var results = new List<(Type Generator, CSharpSyntaxGeneratorResult Result)>();
 
@@ -307,7 +309,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             var generatorSettings = new CSharpSyntaxGeneratorSettings(
                 settings.NoStore,
                 settings.InputRecords,
-                settings.EntityRecords);
+                settings.EntityRecords,
+                settings.RazorComponents);
 
             var results = new List<(Type Generator, CSharpSyntaxGeneratorResult Result)>();
 
