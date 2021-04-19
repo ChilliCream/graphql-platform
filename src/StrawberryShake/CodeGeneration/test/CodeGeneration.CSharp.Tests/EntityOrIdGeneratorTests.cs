@@ -144,6 +144,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                   errors: [ErrorNode!]!
                 }
 
+                type ErrorNode {
+                    code: ErrorCode
+                    message: String
+                }
+
                 enum ErrorCode {
                   UNKNOWN
                   MISSING_ARGUMENT
