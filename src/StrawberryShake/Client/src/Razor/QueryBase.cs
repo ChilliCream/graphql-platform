@@ -32,6 +32,8 @@ namespace StrawberryShake.Razor
 
         protected void Subscribe(IObservable<IOperationResult<TResult>> observable)
         {
+            _subscription?.Dispose();
+
             _subscription = observable.Subscribe(operationResult =>
             {
                 _result = operationResult.Data;

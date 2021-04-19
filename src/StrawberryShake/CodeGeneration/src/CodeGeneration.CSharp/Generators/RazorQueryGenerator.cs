@@ -47,7 +47,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 componentName,
                 Components,
                 $"{descriptor.RuntimeType.NamespaceWithoutGlobal}.{Components}",
-                classDeclaration);
+                classDeclaration,
+                isRazorComponent: true);
         }
 
         private PropertyDeclarationSyntax CreateOperationProperty(string typeName) =>
