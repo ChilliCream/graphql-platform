@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Threading;
@@ -21,6 +22,10 @@ namespace HotChocolate.Execution.Batching
         private readonly ConcurrentDictionary<IExecutionContext, CancellationToken> _contexts = new();
         private int _suspended = 0;
         private Task _dispatchTask = default!;
+        // TODO: make this configurable
+        /// <summary>The amount of time in milliseconds that we wait before starting a batch</summary>
+        /// <remarks>If nothing is in progress, the wait time will be less, if tasks are still being created it can be more</remarks>
+        private int _dispatchTimeout = 10;
 
         public ContextBatchDispatcher(IBatchDispatcher dispatcher)
         {
@@ -125,35 +130,38 @@ namespace HotChocolate.Execution.Batching
         /// <summary>Wait till the batch should actually be started</summary>
         private async ValueTask BatchTimeout()
         {
-            // TODO: add configurable timeout as well to account for sync implementations
-            //       (postponed till after all tests pass because that could hide problems with the tests)
+            var timeoutSource = new CancellationTokenSource();
+            timeoutSource.CancelAfter(_dispatchTimeout);
+
             var runningContexts = RunningContexts().ToList();
-            while (runningContexts.Any() && (!_taskScheduler.IsIdle || runningContexts.Any(x => !x.Key.TaskBacklog.IsIdle)))
+            while (!timeoutSource.IsCancellationRequested && runningContexts.Any() && (!_taskScheduler.IsIdle || runningContexts.Any(x => !x.Key.TaskBacklog.IsIdle)))
             {
-                using (var ctxSource = CancellationTokenSource.CreateLinkedTokenSource(runningContexts.Select(x => x.Value).ToArray()))
+                try
                 {
-                    try
+                    await _taskScheduler.WaitTillIdle(timeoutSource.Token).ConfigureAwait(false);
+                    foreach (var context in runningContexts)
                     {
-                        await _taskScheduler.WaitTillIdle(ctxSource.Token).ConfigureAwait(false);
-                        foreach (var taskBacklog in runningContexts.Select(x => x.Key.TaskBacklog))
+                        if (!timeoutSource.IsCancellationRequested)
                         {
-                            await taskBacklog.WaitTillIdle(ctxSource.Token).ConfigureAwait(false);
+                            var ctxSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutSource.Token, context.Value);
+                            await context.Key.TaskBacklog.WaitTillIdle(ctxSource.Token).ConfigureAwait(false);
                         }
                     }
-                    catch(TaskCanceledException)
-                    {
-                        // keep running as long as there are running contexts
-                    }
-                    catch(Exception)
-                    {
-                        // if an unexpected exception happened while waiting,
-                        // just start the batch and see what happens there
-                        // (if general logging is ever implemented log a warning here).
-                        return;
-                    }
                 }
+                catch (TaskCanceledException)
+                {
+                    // keep running as long as there are running contexts
+                }
+                catch (Exception)
+                {
+                    // if an unexpected exception happened while waiting,
+                    // just start the batch and see what happens there
+                    // (if general logging is ever implemented log a warning here).
+                    return;
+                }
+                
                 runningContexts = RunningContexts().ToList();
-            }
+            }            
         }
 
         /// <summary>
