@@ -213,11 +213,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     settings.ClientName,
                     documents);
 
-                GenerateSingleCSharpDocument(
-                    results.Where(t => t.Result.IsRazorComponent),
-                    SourceDocumentKind.Razor,
-                    settings.ClientName,
-                    documents);
+                if (results.Any(t => t.Result.IsRazorComponent))
+                {
+                    GenerateSingleCSharpDocument(
+                        results.Where(t => t.Result.IsRazorComponent),
+                        SourceDocumentKind.Razor,
+                        settings.ClientName,
+                        documents);
+                }
             }
             else
             {
@@ -226,10 +229,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     SourceDocumentKind.CSharp,
                     documents);
 
-                GenerateMultipleCSharpDocuments(
-                    results.Where(t => t.Result.IsRazorComponent),
-                    SourceDocumentKind.Razor,
-                    documents);
+                if (results.Any(t => t.Result.IsRazorComponent))
+                {
+                    GenerateMultipleCSharpDocuments(
+                        results.Where(t => t.Result.IsRazorComponent),
+                        SourceDocumentKind.Razor,
+                        documents);
+                }
             }
 
             // If persisted queries is enabled we will add the queries as documents.
