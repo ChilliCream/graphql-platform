@@ -120,6 +120,8 @@ namespace StrawberryShake.CodeGeneration
             "ServiceCollectionContainerBuilderExtensions.BuildServiceProvider";
         public const string InjectAttribute =
             "global::Microsoft.AspNetCore.Components.InjectAttribute";
+        public const string ParameterAttribute =
+            "global::Microsoft.AspNetCore.Components.ParameterAttribute";
 
         public const string IHttpClientFactory = "global::System.Net.Http.IHttpClientFactory";
         public const string TryAddSingleton= DependencyInjectionExtensions + "TryAddSingleton";

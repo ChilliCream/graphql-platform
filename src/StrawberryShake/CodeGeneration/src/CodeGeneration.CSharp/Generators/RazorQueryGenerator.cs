@@ -41,13 +41,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             }
 
             classDeclaration = classDeclaration.AddMembers(
-                CreateOnInitializedMethod(descriptor.Arguments));
+                CreateLifecycleMethodMethod("OnInitialized", descriptor.Arguments));
+            classDeclaration = classDeclaration.AddMembers(
+                CreateLifecycleMethodMethod("OnParametersSet", descriptor.Arguments));
 
             return new CSharpSyntaxGeneratorResult(
                 componentName,
-                Razor,
-                $"descriptor.RuntimeType.NamespaceWithoutGlobal.{Razor}",
-                classDeclaration);
+                Components,
+                $"{descriptor.RuntimeType.NamespaceWithoutGlobal}.{Components}",
+                classDeclaration,
+                isRazorComponent: true);
         }
 
         private PropertyDeclarationSyntax CreateOperationProperty(string typeName) =>
@@ -66,7 +69,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         {
             PropertyDeclarationSyntax propertySyntax =
                 PropertyDeclaration(property.Type.ToTypeSyntax(), GetPropertyName(property.Name))
-                    .AddModifiers(Token(SyntaxKind.InternalKeyword))
+                    .WithAttributeLists(
+                        SingletonList(
+                            AttributeList(
+                                SingletonSeparatedList(
+                                    Attribute(
+                                        IdentifierName(TypeNames.ParameterAttribute))))))
+                    .AddModifiers(Token(SyntaxKind.PublicKeyword))
                     .WithGetterAndSetter();
 
             if (property.Type.IsNonNullable())
@@ -77,7 +86,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             return propertySyntax;
         }
 
-        private MethodDeclarationSyntax CreateOnInitializedMethod(
+        private MethodDeclarationSyntax CreateLifecycleMethodMethod(
+            string methodName,
             IReadOnlyList<PropertyDescriptor> arguments)
         {
             var argumentList = new List<ArgumentSyntax>();
@@ -111,7 +121,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             return MethodDeclaration(
                     PredefinedType(Token(SyntaxKind.VoidKeyword)),
-                    Identifier("OnInitialized"))
+                    Identifier(methodName))
                 .WithModifiers(
                     TokenList(
                         Token(SyntaxKind.ProtectedKeyword),

@@ -28,10 +28,12 @@ namespace StrawberryShake.Razor
         public RenderFragment? Loading { get; set; }
 
         [Parameter]
-        public ExecutionStrategy Strategy { get; set; }
+        public ExecutionStrategy? Strategy { get; set; }
 
         protected void Subscribe(IObservable<IOperationResult<TResult>> observable)
         {
+            _subscription?.Dispose();
+
             _subscription = observable.Subscribe(operationResult =>
             {
                 _result = operationResult.Data;
