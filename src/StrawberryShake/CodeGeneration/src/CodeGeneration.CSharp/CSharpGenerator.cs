@@ -201,15 +201,41 @@ namespace StrawberryShake.CodeGeneration.CSharp
             DependencyInjectionMapper.Map(clientModel, context);
 
             // Last we execute all our generators with the descriptors.
+            IReadOnlyList<GeneratorResult> results = GenerateCSharpDocuments(context, settings);
+
             var documents = new List<SourceDocument>();
 
             if (settings.SingleCodeFile)
             {
-                GenerateSingleCSharpDocument(context, settings, documents);
+                GenerateSingleCSharpDocument(
+                    results.Where(t => t.Result.IsCSharpDocument),
+                    SourceDocumentKind.CSharp,
+                    settings.ClientName,
+                    documents);
+
+                if (results.Any(t => t.Result.IsRazorComponent))
+                {
+                    GenerateSingleCSharpDocument(
+                        results.Where(t => t.Result.IsRazorComponent),
+                        SourceDocumentKind.Razor,
+                        settings.ClientName,
+                        documents);
+                }
             }
             else
             {
-                GenerateMultipleCSharpDocuments(context, settings, documents);
+                GenerateMultipleCSharpDocuments(
+                    results.Where(t => t.Result.IsCSharpDocument),
+                    SourceDocumentKind.CSharp,
+                    documents);
+
+                if (results.Any(t => t.Result.IsRazorComponent))
+                {
+                    GenerateMultipleCSharpDocuments(
+                        results.Where(t => t.Result.IsRazorComponent),
+                        SourceDocumentKind.Razor,
+                        documents);
+                }
             }
 
             // If persisted queries is enabled we will add the queries as documents.
@@ -234,31 +260,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         private static void GenerateSingleCSharpDocument(
-            MapperContext context,
-            CSharpGeneratorSettings settings,
+            IEnumerable<GeneratorResult> results,
+            SourceDocumentKind kind,
+            string fileName,
             ICollection<SourceDocument> documents)
         {
-            var generatorSettings = new CSharpSyntaxGeneratorSettings(
-                settings.NoStore,
-                settings.InputRecords,
-                settings.EntityRecords,
-                settings.RazorComponents);
-
-            var results = new List<(Type Generator, CSharpSyntaxGeneratorResult Result)>();
-
-            foreach (var descriptor in context.GetAllDescriptors())
-            {
-                foreach (var generator in _generators)
-                {
-                    if (generator.CanHandle(descriptor, generatorSettings))
-                    {
-                        CSharpSyntaxGeneratorResult result =
-                            generator.Generate(descriptor, generatorSettings);
-                        results.Add((generator.GetType(), result));
-                    }
-                }
-            }
-
             var code = new StringBuilder();
 
             // marker for style cop to ignore this code
@@ -274,13 +280,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 NamespaceDeclarationSyntax namespaceDeclaration =
                     NamespaceDeclaration(IdentifierName(group.Key));
 
-                foreach ((Type generator, CSharpSyntaxGeneratorResult result) in group)
+                foreach (var item in group)
                 {
-                    BaseTypeDeclarationSyntax typeDeclaration = result.TypeDeclaration;
+                    BaseTypeDeclarationSyntax typeDeclaration = item.Result.TypeDeclaration;
 #if DEBUG
                     SyntaxTriviaList trivia = typeDeclaration
                         .GetLeadingTrivia()
-                        .Insert(0, Comment("// " + generator.FullName));
+                        .Insert(0, Comment("// " + item.Generator.FullName));
 
                     typeDeclaration = typeDeclaration.WithLeadingTrivia(trivia);
 #endif
@@ -296,15 +302,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
             code.AppendLine(compilationUnit.ToFullString());
 
             documents.Add(new(
-                settings.ClientName,
+                fileName,
                 code.ToString(),
-                SourceDocumentKind.CSharp));
+                kind));
         }
 
-        private static void GenerateMultipleCSharpDocuments(
+        private static IReadOnlyList<GeneratorResult> GenerateCSharpDocuments(
             MapperContext context,
-            CSharpGeneratorSettings settings,
-            ICollection<SourceDocument> documents)
+            CSharpGeneratorSettings settings)
         {
             var generatorSettings = new CSharpSyntaxGeneratorSettings(
                 settings.NoStore,
@@ -312,7 +317,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 settings.EntityRecords,
                 settings.RazorComponents);
 
-            var results = new List<(Type Generator, CSharpSyntaxGeneratorResult Result)>();
+            var results = new List<GeneratorResult>();
 
             foreach (var descriptor in context.GetAllDescriptors())
             {
@@ -322,20 +327,28 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     {
                         CSharpSyntaxGeneratorResult result =
                             generator.Generate(descriptor, generatorSettings);
-                        results.Add((generator.GetType(), result));
+                        results.Add(new(generator.GetType(), result));
                     }
                 }
             }
 
+            return results;
+        }
+
+        private static void GenerateMultipleCSharpDocuments(
+            IEnumerable<GeneratorResult> results,
+            SourceDocumentKind kind,
+            ICollection<SourceDocument> documents)
+        {
             foreach (var group in results.GroupBy(t => t.Result.Namespace).OrderBy(t => t.Key))
             {
-                foreach ((Type generator, CSharpSyntaxGeneratorResult result) in group)
+                foreach (var item in group)
                 {
-                    BaseTypeDeclarationSyntax typeDeclaration = result.TypeDeclaration;
+                    BaseTypeDeclarationSyntax typeDeclaration = item.Result.TypeDeclaration;
 #if DEBUG
                     SyntaxTriviaList trivia = typeDeclaration
                         .GetLeadingTrivia()
-                        .Insert(0, Comment("// " + generator.FullName));
+                        .Insert(0, Comment("// " + item.Generator.FullName));
 
                     typeDeclaration = typeDeclaration.WithLeadingTrivia(trivia);
 #endif
@@ -358,10 +371,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     code.AppendLine(compilationUnit.ToFullString());
 
                     documents.Add(new(
-                        result.FileName,
+                        item.Result.FileName,
                         code.ToString(),
-                        SourceDocumentKind.CSharp,
-                        path: result.Path));
+                        kind,
+                        path: item.Result.Path));
                 }
             }
         }
@@ -444,5 +457,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
         private static DocumentNode MergeDocuments(IReadOnlyList<GraphQLFile> executableFiles) =>
             new(executableFiles.SelectMany(t => t.Document.Definitions).ToList());
+
+        private class GeneratorResult
+        {
+            public GeneratorResult(Type generator, CSharpSyntaxGeneratorResult result)
+            {
+                Generator = generator;
+                Result = result;
+            }
+
+            public Type Generator { get; }
+
+            public CSharpSyntaxGeneratorResult Result { get; }
+        }
     }
 }

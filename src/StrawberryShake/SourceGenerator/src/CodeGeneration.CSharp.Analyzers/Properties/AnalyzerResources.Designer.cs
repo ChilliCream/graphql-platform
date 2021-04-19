@@ -62,5 +62,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Properties {
                 return ResourceManager.GetString("DiagnosticErrorHelper_ReportInvalidClientName_Message", resourceCulture);
             }
         }
+        
+        internal static string FileLogger_FileLogger_LogFileCannotBeEmpty {
+            get {
+                return ResourceManager.GetString("FileLogger_FileLogger_LogFileCannotBeEmpty", resourceCulture);
+            }
+        }
     }
 }
