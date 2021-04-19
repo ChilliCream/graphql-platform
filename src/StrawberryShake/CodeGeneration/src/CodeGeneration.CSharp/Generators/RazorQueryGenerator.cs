@@ -45,8 +45,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             return new CSharpSyntaxGeneratorResult(
                 componentName,
-                Razor,
-                $"descriptor.RuntimeType.NamespaceWithoutGlobal.{Razor}",
+                Components,
+                $"{descriptor.RuntimeType.NamespaceWithoutGlobal}.{Components}",
                 classDeclaration);
         }
 
