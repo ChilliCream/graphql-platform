@@ -264,5 +264,53 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 ",
                 "extend schema @key(fields: \"id\")");
         }
+
+        [Fact]
+        public void NonNullableValueTypeId()
+        {
+            AssertResult(
+                @"
+                query GetFoo {
+                    foo {
+                        ... on Baz {
+                            id
+                        }
+                        ... on Quox {
+                            foo
+                        }
+                        ... on Baz2 {
+                            id
+                        }
+                        ... on Quox2 {
+                            foo
+                        }
+                    }
+                }
+                ",
+                @"
+                type Query {
+                    foo: [Bar]
+                }
+
+                type Baz {
+                    id: Int!
+                }
+
+                type Baz2 {
+                    id: Int!
+                }
+
+                type Quox {
+                    foo: Int!
+                }
+
+                type Quox2 {
+                    foo: Int!
+                }
+
+                union Bar = Baz | Quox | Baz2 | Quox2
+                ",
+                "extend schema @key(fields: \"id\")");
+        }
     }
 }
