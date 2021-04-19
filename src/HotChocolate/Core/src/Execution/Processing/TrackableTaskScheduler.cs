@@ -80,7 +80,7 @@ namespace HotChocolate.Execution.Processing
                 completion.TrySetResult(true);
             }
 
-            await completion.Task;
+            await completion.Task.ConfigureAwait(false);
             ctxRegistration?.Dispose();
             ProcessingHalted -= completionHandler;
         }

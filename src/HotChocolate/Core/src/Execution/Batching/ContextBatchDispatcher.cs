@@ -136,11 +136,6 @@ namespace HotChocolate.Execution.Batching
             var runningContexts = RunningContexts().ToList();
             while (!timeoutSource.IsCancellationRequested && runningContexts.Any() && (!_taskScheduler.IsIdle || runningContexts.Any(x => !x.Key.TaskBacklog.IsIdle)))
             {
-                // TODO: remove this after deadlock experiment is over
-                // (should result in failed tests, but no deadlocks)
-                await Task.Yield();
-                continue;
-
                 try
                 {
                     await _taskScheduler.WaitTillIdle(timeoutSource.Token).ConfigureAwait(false);

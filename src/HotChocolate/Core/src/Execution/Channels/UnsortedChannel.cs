@@ -40,16 +40,21 @@ namespace HotChocolate.Execution.Channels
 
         public bool IsIdle => _items.IsEmpty || _completion.Task.IsCompleted;
 
-        public async ValueTask WaitTillIdle(CancellationToken? ctx = null)
+        public Task WaitTillIdle(CancellationToken? ctx = null)
         {
-            if (!_completion.Task.IsCompleted)
+            var completion = _completion.Task;
+            if (completion.IsCompleted)
             {
-                var itemsEmpty = _items.WaitTillEmpty(ctx);
-                if (!itemsEmpty.IsCompleted)
-                {
-                    await Task.WhenAny(itemsEmpty, _completion.Task);
-                }
+                return completion;
             }
+
+            var itemsEmpty = _items.WaitTillEmpty(ctx);
+            if (itemsEmpty.IsCompleted)
+            {
+                return itemsEmpty; 
+            }
+
+            return Task.WhenAny(itemsEmpty, completion);
         }
 
         [Conditional("DEBUG")]

@@ -16,7 +16,7 @@ namespace HotChocolate.Execution.Processing
         bool IsIdle { get; }
 
         /// <summary>Waits till the task backlog is empty</summary>
-        public ValueTask WaitTillIdle(CancellationToken? ctx = null);
+        public Task WaitTillIdle(CancellationToken? ctx = null);
 
         /// <summary>
         /// Try to take a task from the backlog.

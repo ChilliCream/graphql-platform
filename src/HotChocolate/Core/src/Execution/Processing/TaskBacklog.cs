@@ -25,7 +25,7 @@ namespace HotChocolate.Execution.Processing
         /// <inheritdoc/>
         public bool IsIdle => _channel.IsIdle;
 
-        public ValueTask WaitTillIdle(CancellationToken? ctx = null)
+        public Task WaitTillIdle(CancellationToken? ctx = null)
         {
             return _channel.WaitTillIdle(ctx);
         }

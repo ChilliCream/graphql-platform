@@ -98,7 +98,7 @@ namespace HotChocolate.Execution.Channels
                 completion.TrySetResult(true);
             }
 
-            await completion.Task;
+            await completion.Task.ConfigureAwait(false);
             ctxRegistration?.Dispose();
             StackEmptied -= completionHandler;
         }
