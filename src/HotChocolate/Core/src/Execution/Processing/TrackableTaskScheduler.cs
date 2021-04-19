@@ -40,36 +40,43 @@ namespace HotChocolate.Execution.Processing
 
         public async Task WaitTillIdle(CancellationToken? ctx = null)
         {
-            TaskCompletionSource<bool> completion = new TaskCompletionSource<bool>();
-            CancellationTokenRegistration? ctxRegistration = ctx?.Register(() => completion.TrySetCanceled());
-            EventHandler completionHandler = (source, args) => {
-                try
+            TaskCompletionSource<bool> completion;
+            CancellationTokenRegistration? ctxRegistration;
+            EventHandler completionHandler;
+            lock (_lock)
+            {
+                completion = new TaskCompletionSource<bool>();
+                ctxRegistration = ctx?.Register(() => completion.TrySetCanceled());
+                completionHandler = (source, args) =>
                 {
-                    if (ctx?.IsCancellationRequested ?? false)
+                    try
                     {
-                        completion.TrySetCanceled();
+                        if (ctx?.IsCancellationRequested ?? false)
+                        {
+                            completion.TrySetCanceled();
+                        }
+                        else
+                        {
+                            completion.TrySetResult(true);
+                        }
                     }
-                    else
+                    catch (Exception e)
                     {
-                        completion.TrySetResult(true);
+                        completion.TrySetException(e);
                     }
-                }
-                catch (Exception e)
-                {
-                    completion.TrySetException(e);
-                }
-            };
-            ProcessingHalted += completionHandler;
+                };
+                ProcessingHalted += completionHandler;
 
-            if (ctx?.IsCancellationRequested ?? false)
-            {
-                completion.TrySetCanceled();
+                if (ctx?.IsCancellationRequested ?? false)
+                {
+                    completion.TrySetCanceled();
+                }
+                else if (IsIdle)
+                {
+                    completion.TrySetResult(true);
+                }
             }
-            else if (IsIdle)
-            {
-                completion.TrySetResult(true);
-            }
-           
+
             try
             {
                 await completion.Task.ConfigureAwait(false);

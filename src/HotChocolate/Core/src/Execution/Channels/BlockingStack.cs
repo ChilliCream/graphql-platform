@@ -67,35 +67,47 @@ namespace HotChocolate.Execution.Channels
 
         public async Task WaitTillEmpty(CancellationToken? ctx = null)
         {
-            TaskCompletionSource<bool> completion = new TaskCompletionSource<bool>();
-            CancellationTokenRegistration? ctxRegistration = ctx?.Register(() => completion.TrySetCanceled());
-            EventHandler completionHandler = (source, args) =>
+            TaskCompletionSource<bool> completion;
+            CancellationTokenRegistration? ctxRegistration;
+            EventHandler completionHandler;
+            bool lockTaken = false;
+            try
             {
-                try
+                _lock.Enter(ref lockTaken);
+                completion = new TaskCompletionSource<bool>();
+                ctxRegistration = ctx?.Register(() => completion.TrySetCanceled());
+                completionHandler = (source, args) =>
                 {
-                    if (ctx?.IsCancellationRequested ?? false)
+                    try
                     {
-                        completion.TrySetCanceled();
+                        if (ctx?.IsCancellationRequested ?? false)
+                        {
+                            completion.TrySetCanceled();
+                        }
+                        else
+                        {
+                            completion.TrySetResult(true);
+                        }
                     }
-                    else
+                    catch (Exception e)
                     {
-                        completion.TrySetResult(true);
+                        completion.TrySetException(e);
                     }
-                }
-                catch (Exception e)
-                {
-                    completion.TrySetException(e);
-                }
-            };
-            StackEmptied += completionHandler;
+                };
+                StackEmptied += completionHandler;
 
-            if (ctx?.IsCancellationRequested ?? false)
-            {
-                completion.TrySetCanceled();
+                if (ctx?.IsCancellationRequested ?? false)
+                {
+                    completion.TrySetCanceled();
+                }
+                else if (IsEmpty)
+                {
+                    completion.TrySetResult(true);
+                }
             }
-            else if (IsEmpty)
+            finally
             {
-                completion.TrySetResult(true);
+                if (lockTaken) _lock.Exit(false);
             }
 
             try
