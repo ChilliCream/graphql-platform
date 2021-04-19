@@ -7,7 +7,7 @@ namespace HotChocolate.Types
 {
     /// <summary>
     /// The `LongitudeType` scalar represents a valid decimal degrees longitude number.
-    /// <a>https://en.wikipedia.org/wiki/Longitude</a>
+    /// <a href="https://en.wikipedia.org/wiki/Longitude">Read More</a>
     /// </summary>
     public class LongitudeType : ScalarType<double, StringValueNode>
     {
@@ -40,11 +40,11 @@ namespace HotChocolate.Types
             {
                 null => NullValueNode.Default,
 
-                string s when Longitude.IsSexagesimal(s) &&
-                              Longitude.TryDeserializeFromString(s, out var value) =>
-                    ParseValue(value),
+                string s when Longitude.TryDeserialize(s, out var value) => ParseValue(value),
 
-                decimal d => ParseValue(d),
+                double d => ParseValue(d),
+
+                int d => ParseValue(d),
 
                 _ => throw ThrowHelper.LongitudeType_ParseValue_IsInvalid(this)
             };
@@ -53,8 +53,7 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override double ParseLiteral(StringValueNode valueSyntax)
         {
-            if (Longitude.TryDeserializeFromString(valueSyntax.Value, out var value) &&
-                value != null)
+            if (Longitude.TryDeserialize(valueSyntax.Value, out var value) && value is not null)
             {
                 return value.Value;
             }
@@ -65,40 +64,38 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override StringValueNode ParseValue(double runtimeValue)
         {
-            if (runtimeValue is < Longitude._minLon or > Longitude._maxLon)
+            if (runtimeValue is > Longitude.Min and < Longitude.Max)
             {
                 return new StringValueNode(Longitude.ToPrecision(runtimeValue));
             }
+
             throw ThrowHelper.LongitudeType_ParseValue_IsInvalid(this);
         }
 
         private static class Longitude
         {
-            internal const double _minLon = -180.0;
-            internal const double _maxLon = 180.0;
-            // https://en.wikipedia.org/wiki/Decimal_degrees#Precision
-            internal const int _maxPrecision = 8;
+            public const double Min = -180.0;
+            public const double Max = 180.0;
+            private const int _maxPrecision = 8;
 
             private const string SexagesimalRegex =
-                "^([0-9]{1,3})°\\s*([0-9]{1,3}(?:\\.(?:[0-9]{1,}))?)['′]\\s*(([0-9]{1,3}(\\.([0-9]{1,}))" +
-                "?)[\"″]\\s*)?([NEOSW]?)$";
+                "^([0-9]{1,3})°\\s*([0-9]{1,3}(?:\\.(?:[0-9]{1,}))?)['′]\\s*(([0-9]{1,3}" +
+                "(\\.([0-9]{1,}))?)[\"″]\\s*)?([NEOSW]?)$";
 
-            private static readonly Regex _rx = new(
-                SexagesimalRegex,
-                RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            private static readonly Regex _rx =
+                new(SexagesimalRegex, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-            internal static bool IsSexagesimal(string s)
-            {
-                return _rx.IsMatch(s);
-            }
-
-            internal static bool TryDeserializeFromString(string serialized, out double? value)
+            public static bool TryDeserialize(string serialized, out double? value)
             {
                 MatchCollection coords = _rx.Matches(serialized);
                 if (coords.Count > 0)
                 {
-                    var minute = double.TryParse(coords[0].Groups[2].Value, out var min) ? min / 60 : 0;
-                    var second = double.TryParse(coords[0].Groups[4].Value, out var sec) ? sec / 3600 : 0;
+                    var minute = double.TryParse(coords[0].Groups[2].Value, out var min)
+                        ? min / 60
+                        : 0;
+                    var second = double.TryParse(coords[0].Groups[4].Value, out var sec)
+                        ? sec / 3600
+                        : 0;
                     var degree = double.Parse(coords[0].Groups[1].Value);
                     var result = degree + minute + second;
 
@@ -111,8 +108,9 @@ namespace HotChocolate.Types
                 return false;
             }
 
-            internal static string ToPrecision(double d) =>
-                Math.Round(d, _maxPrecision, MidpointRounding.AwayFromZero).ToString(CultureInfo.InvariantCulture);
+            public static string ToPrecision(double d) =>
+                Math.Round(d, _maxPrecision, MidpointRounding.AwayFromZero)
+                    .ToString(CultureInfo.InvariantCulture);
         }
     }
 }
