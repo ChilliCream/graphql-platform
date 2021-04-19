@@ -125,6 +125,8 @@ namespace HotChocolate.Execution.Batching
         /// <summary>Wait till the batch should actually be started</summary>
         private async ValueTask BatchTimeout()
         {
+            // TODO: add configurable timeout as well to account for sync implementations
+            //       (postponed till after all tests pass because that could hide problems with the tests)
             var runningContexts = RunningContexts().ToList();
             while (runningContexts.Any() && (!_taskScheduler.IsIdle || runningContexts.Any(x => !x.Key.TaskBacklog.IsIdle)))
             {

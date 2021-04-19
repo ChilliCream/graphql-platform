@@ -66,11 +66,11 @@ namespace HotChocolate.Execution.Channels
 
         public bool IsEmpty { get; private set; } = true;
 
-        public async ValueTask WaitTillEmpty(CancellationToken? ctx = null)
+        public Task WaitTillEmpty(CancellationToken? ctx = null)
         {
             if (IsEmpty)
             {
-                return;
+                return Task.CompletedTask;
             }
 
             TaskCompletionSource<bool> completion = default!;
@@ -130,7 +130,7 @@ namespace HotChocolate.Execution.Channels
                     _lock.Exit(false);
             }
 
-            await completion.Task.ConfigureAwait(false);
+            return completion.Task;
         }
 
         public int Count => _list.Count;

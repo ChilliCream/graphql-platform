@@ -47,7 +47,7 @@ namespace HotChocolate.Execution.Channels
                 var itemsEmpty = _items.WaitTillEmpty(ctx);
                 if (!itemsEmpty.IsCompleted)
                 {
-                    await Task.WhenAny(itemsEmpty.AsTask(), _completion.Task);
+                    await Task.WhenAny(itemsEmpty, _completion.Task);
                 }
             }
         }

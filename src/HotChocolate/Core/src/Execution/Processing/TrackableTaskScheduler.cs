@@ -48,14 +48,14 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        public async ValueTask WaitTillIdle(CancellationToken? ctx = null)
+        public Task WaitTillIdle(CancellationToken? ctx = null)
         {
             TaskCompletionSource<bool> completion = default!;
             lock (_lock)
             {
                 if (_processingTaskCount == 0 && (_queue.IsEmpty || !_running))
                 {
-                    return;
+                    return Task.CompletedTask;
                 }
 
                 completion = new TaskCompletionSource<bool>();
@@ -100,7 +100,7 @@ namespace HotChocolate.Execution.Processing
                 ProcessingHalted += completionHandler;
             }
 
-            await completion.Task.ConfigureAwait(false);
+            return completion.Task;
         }
 
         /// <summary>Mark that no future work should be handled by this scheduler (will stop all processing tasks as soon as possible)
