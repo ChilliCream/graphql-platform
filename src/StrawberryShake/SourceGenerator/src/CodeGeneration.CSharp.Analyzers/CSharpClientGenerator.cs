@@ -296,12 +296,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
             if (settings.TransportProfiles.Count == 1)
             {
-                StrawberryShakeTransportProfile transportProfile = settings.TransportProfiles[0];
+                StrawberryShakeSettingsTransportProfile settingsTransportProfile = settings.TransportProfiles[0];
 
-                if (transportProfile.Default == TransportType.Http &&
-                    transportProfile.Subscription == TransportType.WebSocket &&
-                    transportProfile.Query == null &&
-                    transportProfile.Mutation == null)
+                if (settingsTransportProfile.Default == TransportType.Http &&
+                    settingsTransportProfile.Subscription == TransportType.WebSocket &&
+                    settingsTransportProfile.Query == null &&
+                    settingsTransportProfile.Mutation == null)
                 {
                     if (!EnsureDependencyExists(context, http))
                     {
