@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -16,7 +17,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         public async Task One_Document_One_Op_One_Field_No_Fragments()
         {
             // arrange
-            var schema =
+            ISchema schema =
                 await new ServiceCollection()
                     .AddStarWarsRepositories()
                     .AddGraphQL()
@@ -28,10 +29,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     new GraphQLFile[]
                     {
                         new(schema.ToDocument()),
-                        new(Utf8GraphQLParser.Parse(@"extend scalar String @runtimeType(name: ""Abc"")"))
+                        new(Utf8GraphQLParser.Parse(
+                            @"extend scalar String @runtimeType(name: ""Abc"")"))
                     });
 
-            var document =
+            DocumentNode document =
                 Utf8GraphQLParser.Parse(@"
                     query GetHero {
                         hero(episode: NEW_HOPE) {
@@ -48,8 +50,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     .Analyze();
 
             // assert
-            Assert.Empty(
-                clientModel.InputObjectTypes);
+            Assert.Empty(clientModel.InputObjectTypes);
 
             Assert.Collection(
                 clientModel.LeafTypes,
@@ -69,8 +70,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                         op.GetImplementations(op.ResultType),
                         model => Assert.Equal("GetHero", model.Name));
 
-                    OutputTypeModel fieldResultType =
-                        op.GetFieldResultType(op.ResultType.Fields.Single().SyntaxNode);
+                    OutputTypeModel fieldResultType = op.GetFieldResultType(
+                        op.ResultType.Fields.Single().SyntaxNode);
                     Assert.Equal("IGetHero_Hero", fieldResultType.Name);
                 });
         }

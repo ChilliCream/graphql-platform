@@ -278,5 +278,11 @@ namespace HotChocolate.Validation.Properties {
                 return ResourceManager.GetString("ErrorHelper_DirectiveMustBeUniqueInLocation", resourceCulture);
             }
         }
+        
+        internal static string ErrorHelper_IntrospectionNotAllowed {
+            get {
+                return ResourceManager.GetString("ErrorHelper_IntrospectionNotAllowed", resourceCulture);
+            }
+        }
     }
 }

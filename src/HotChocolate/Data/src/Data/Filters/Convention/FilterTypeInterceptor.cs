@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types;
@@ -11,8 +10,7 @@ namespace HotChocolate.Data.Filters
     public class FilterTypeInterceptor
         : TypeInterceptor
     {
-        private readonly Dictionary<string, IFilterConvention> _conventions =
-            new Dictionary<string, IFilterConvention>();
+        private readonly Dictionary<string, IFilterConvention> _conventions = new();
 
         public override bool CanHandle(ITypeSystemObjectContext context) => true;
 
@@ -36,9 +34,13 @@ namespace HotChocolate.Data.Filters
                     def.EntityType,
                     def.Scope);
 
+                ApplyCorrectScope(def, discoveryContext);
+
                 convention.ApplyConfigurations(typeReference, descriptor);
 
                 FilterInputTypeDefinition extensionDefinition = descriptor.CreateDefinition();
+
+                ApplyCorrectScope(extensionDefinition, discoveryContext);
 
                 discoveryContext.RegisterDependencies(extensionDefinition);
             }
@@ -102,14 +104,6 @@ namespace HotChocolate.Data.Filters
                                 filterFieldDefinition);
                         }
 
-                        if (completionContext.TryPredictTypeKind(
-                            filterFieldDefinition.Type,
-                            out TypeKind kind) &&
-                            kind != TypeKind.Scalar && kind != TypeKind.Enum)
-                        {
-                            field.Type = field.Type.With(scope: completionContext.Scope);
-                        }
-
                         if (filterFieldDefinition.Handler is null)
                         {
                             if (convention.TryGetHandler(
@@ -145,6 +139,27 @@ namespace HotChocolate.Data.Filters
             }
 
             return convention;
+        }
+
+        private static void ApplyCorrectScope(
+            InputObjectTypeDefinition definition,
+            ITypeDiscoveryContext discoveryContext)
+        {
+            foreach (InputFieldDefinition field in definition.Fields)
+            {
+                if (field is FilterFieldDefinition filterFieldDefinition &&
+                    field.Type is not null &&
+                    filterFieldDefinition.Type is not null)
+                {
+                    if (discoveryContext.TryPredictTypeKind(
+                            filterFieldDefinition.Type,
+                            out TypeKind kind) &&
+                        kind != TypeKind.Scalar && kind != TypeKind.Enum)
+                    {
+                        field.Type = field.Type.With(scope: discoveryContext.Scope);
+                    }
+                }
+            }
         }
     }
 }

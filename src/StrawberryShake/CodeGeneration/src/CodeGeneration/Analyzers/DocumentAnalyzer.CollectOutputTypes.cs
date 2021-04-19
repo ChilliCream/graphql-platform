@@ -146,5 +146,5 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             }
         }
     }
-   
+
 }

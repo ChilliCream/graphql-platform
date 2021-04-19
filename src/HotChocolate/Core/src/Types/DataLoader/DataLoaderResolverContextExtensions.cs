@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using GreenDonut;
 using HotChocolate.DataLoader;
-using HotChocolate.Properties;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 
@@ -32,14 +31,12 @@ namespace HotChocolate.Resolvers
 
             IServiceProvider services = context.Services;
             IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
-            Func<FetchBatchDataLoader<TKey, TValue>> createDataLoader =
-                () => new FetchBatchDataLoader<TKey, TValue>(
-                    services.GetRequiredService<IBatchScheduler>(),
-                    fetch);
+            FetchBatchDataLoader<TKey, TValue> Loader() =>
+                new(services.GetRequiredService<IBatchScheduler>(), fetch);
 
             return key is null
-                ? reg.GetOrRegister(createDataLoader)
-                : reg.GetOrRegister(key, createDataLoader);
+                ? reg.GetOrRegister(Loader)
+                : reg.GetOrRegister(key, Loader);
         }
 
         [Obsolete]
@@ -52,7 +49,7 @@ namespace HotChocolate.Resolvers
             if (string.IsNullOrEmpty(key))
             {
                 throw new ArgumentException(
-                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
+                    DataLoaderRegistry_KeyNullOrEmpty,
                     nameof(key));
             }
 
@@ -77,14 +74,12 @@ namespace HotChocolate.Resolvers
 
             IServiceProvider services = context.Services;
             IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
-            Func<FetchGroupedDataLoader<TKey, TValue>> createDataLoader =
-                () => new FetchGroupedDataLoader<TKey, TValue>(
-                    services.GetRequiredService<IBatchScheduler>(),
-                    fetch);
+            FetchGroupedDataLoader<TKey, TValue> Loader() =>
+                new(services.GetRequiredService<IBatchScheduler>(), fetch);
 
             return key is null
-                ? reg.GetOrRegister(createDataLoader)
-                : reg.GetOrRegister(key, createDataLoader);
+                ? reg.GetOrRegister(Loader)
+                : reg.GetOrRegister(key, Loader);
         }
 
         [Obsolete]
@@ -97,7 +92,7 @@ namespace HotChocolate.Resolvers
             if (string.IsNullOrEmpty(key))
             {
                 throw new ArgumentException(
-                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
+                    DataLoaderRegistry_KeyNullOrEmpty,
                     nameof(key));
             }
 
@@ -123,14 +118,11 @@ namespace HotChocolate.Resolvers
 
             IServiceProvider services = context.Services;
             IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
-            Func<FetchCacheDataLoader<TKey, TValue>> createDataLoader =
-                () => new FetchCacheDataLoader<TKey, TValue>(
-                    fetch,
-                    cacheSize);
+            FetchCacheDataLoader<TKey, TValue> Loader() => new(fetch, cacheSize);
 
             return key is null
-                ? reg.GetOrRegister(createDataLoader)
-                : reg.GetOrRegister(key, createDataLoader);
+                ? reg.GetOrRegister(Loader)
+                : reg.GetOrRegister(key, Loader);
         }
 
         [Obsolete]
@@ -144,7 +136,7 @@ namespace HotChocolate.Resolvers
             if (string.IsNullOrEmpty(key))
             {
                 throw new ArgumentException(
-                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
+                    DataLoaderRegistry_KeyNullOrEmpty,
                     nameof(key));
             }
 
@@ -168,7 +160,7 @@ namespace HotChocolate.Resolvers
 
             return CacheDataLoader<string, TValue>(
                 context,
-                (k, ct) => fetch(ct),
+                (_, ct) => fetch(ct),
                 key,
                 cacheSize: 1)
                 .LoadAsync("default", context.RequestAborted);
@@ -183,7 +175,7 @@ namespace HotChocolate.Resolvers
             if (string.IsNullOrEmpty(key))
             {
                 throw new ArgumentException(
-                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
+                    DataLoaderRegistry_KeyNullOrEmpty,
                     nameof(key));
             }
 
@@ -191,7 +183,7 @@ namespace HotChocolate.Resolvers
         }
 
         public static T DataLoader<T>(this IResolverContext context, string key)
-            where T : notnull, IDataLoader
+            where T : IDataLoader
         {
             if (context is null)
             {
@@ -209,7 +201,7 @@ namespace HotChocolate.Resolvers
         }
 
         public static T DataLoader<T>(this IResolverContext context)
-            where T : notnull, IDataLoader
+            where T : IDataLoader
         {
             if (context is null)
             {

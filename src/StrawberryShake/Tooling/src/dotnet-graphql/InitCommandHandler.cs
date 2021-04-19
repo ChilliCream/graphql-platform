@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using StrawberryShake.Tools.Config;
+using StrawberryShake.Tools.Configuration;
 using StrawberryShake.Tools.OAuth;
 
 namespace StrawberryShake.Tools
@@ -96,7 +96,19 @@ namespace StrawberryShake.Tools
             {
                 await FileSystem.WriteTextAsync(
                     schemaExtensionFilePath,
-                    @"extend schema @key(fields: ""id"")")
+                    @"scalar _KeyFieldSet
+
+directive @key(fields: _KeyFieldSet!) on SCHEMA | OBJECT
+
+directive @serializationType(name: String!) on SCALAR
+
+directive @runtimeType(name: String!) on SCALAR
+
+directive @enumValue(value: String!) on ENUM_VALUE
+
+directive @rename(name: String!) on INPUT_FIELD_DEFINITION | INPUT_OBJECT | ENUM | ENUM_VALUE
+
+extend schema @key(fields: ""id"")")
                     .ConfigureAwait(false);
                 return true;
             }
@@ -116,10 +128,9 @@ namespace StrawberryShake.Tools
             var configuration = new GraphQLConfig
             {
                 Schema = context.SchemaFileName,
-                Documents = "**/*.graphql",
-                Extensions = new()
+                Extensions =
                 {
-                    StrawberryShake = new()
+                    StrawberryShake =
                     {
                         Name = context.ClientName,
                         Namespace = context.CustomNamespace,
@@ -131,14 +142,7 @@ namespace StrawberryShake.Tools
 
             await FileSystem.WriteTextAsync(
                 configFilePath,
-                JsonSerializer.Serialize(
-                    configuration,
-                    new()
-                    {
-                        WriteIndented = true,
-                        IgnoreNullValues = true,
-                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                    }))
+                configuration.ToString())
                 .ConfigureAwait(false);
         }
     }

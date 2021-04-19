@@ -1,5 +1,5 @@
-using ChilliCream.Testing;
 using Xunit;
+using RequestStrategyGen = StrawberryShake.Tools.Configuration.RequestStrategy;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
 namespace StrawberryShake.CodeGeneration.CSharp
@@ -11,7 +11,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             AssertResult(
                 new AssertSettings
                 {
-                    RequestStrategy = Descriptors.Operations.RequestStrategy.PersistedQuery
+                    RequestStrategy = RequestStrategyGen.PersistedQuery
                 },
                 "query GetPerson { person { name email } }",
                 "type Query { person: Person }",

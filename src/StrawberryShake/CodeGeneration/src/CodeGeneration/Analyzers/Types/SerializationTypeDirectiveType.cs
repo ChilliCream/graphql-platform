@@ -8,8 +8,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Types
             IDirectiveTypeDescriptor<SerializationTypeDirective> descriptor)
         {
             descriptor.Name("serializationType");
-            descriptor.Location(DirectiveLocation.Scalar);
             descriptor.Argument(t => t.Name).Type<NonNullType<StringType>>();
+            descriptor.Location(DirectiveLocation.Scalar);
         }
     }
 }

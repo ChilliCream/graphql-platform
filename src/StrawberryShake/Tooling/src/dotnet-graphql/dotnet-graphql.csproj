@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Configuration\StrawberryShake.Tools.Configuration.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Core\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Utilities\src\Utilities.Introspection\HotChocolate.Utilities.Introspection.csproj" />
   </ItemGroup>

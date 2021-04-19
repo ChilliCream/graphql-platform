@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.8.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -20,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="StrawberryShake.CodeGeneration.CSharp" Version="11.1.0-local.403" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="StrawberryShake.CodeGeneration.CSharp" Version="11.2.0-local.1007" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="DotNet.Glob" Version="3.1.2" PrivateAssets="all" GeneratePathProperty="true" />
   </ItemGroup>
 
@@ -31,6 +32,25 @@
     <None Include="$(MSBuildThisFileDirectory)..\MSBuild\StrawberryShake.props" Pack="true" PackagePath="build/StrawberryShake.CodeGeneration.CSharp.Analyzers.props" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\MSBuild\StrawberryShake.targets" Pack="true" PackagePath="build/StrawberryShake.CodeGeneration.CSharp.Analyzers.targets" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\MSBuild\VSCode.targets" Pack="true" PackagePath="build/VSCode.targets" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Tooling\src\Configuration\StrawberryShake.Tools.Configuration.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\AnalyzerResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>AnalyzerResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\AnalyzerResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AnalyzerResources.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

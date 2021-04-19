@@ -95,7 +95,7 @@ namespace HotChocolate.Execution
 
         public IQueryRequestBuilder SetVariableValues(
             Dictionary<string, object?>? variableValues) =>
-            SetVariableValues((IDictionary<string, object?>)variableValues);
+            SetVariableValues((IDictionary<string, object?>?)variableValues);
 
 
         public IQueryRequestBuilder SetVariableValues(
@@ -120,7 +120,7 @@ namespace HotChocolate.Execution
         {
             InitializeVariables();
 
-            _variableValuesDict[name] = value;
+            _variableValuesDict![name] = value;
             return this;
         }
 
@@ -129,7 +129,7 @@ namespace HotChocolate.Execution
         {
             InitializeVariables();
 
-            _variableValuesDict.Add(name, value);
+            _variableValuesDict!.Add(name, value);
             return this;
         }
 
@@ -138,7 +138,7 @@ namespace HotChocolate.Execution
         {
             InitializeVariables();
 
-            if (!_variableValuesDict.ContainsKey(name))
+            if (!_variableValuesDict!.ContainsKey(name))
             {
                 _variableValuesDict.Add(name, value);
             }
@@ -172,7 +172,7 @@ namespace HotChocolate.Execution
         {
             InitializeProperties();
 
-            _properties[name] = value;
+            _properties![name] = value;
             return this;
         }
 
@@ -181,7 +181,7 @@ namespace HotChocolate.Execution
         {
             InitializeProperties();
 
-            _properties.Add(name, value);
+            _properties!.Add(name, value);
             return this;
         }
 
@@ -190,7 +190,7 @@ namespace HotChocolate.Execution
         {
             InitializeProperties();
 
-            if (!_properties.ContainsKey(name))
+            if (!_properties!.ContainsKey(name))
             {
                 _properties.Add(name, value);
             }
@@ -223,7 +223,7 @@ namespace HotChocolate.Execution
         {
             InitializeExtensions();
 
-            _extensions[name] = value;
+            _extensions![name] = value;
             return this;
         }
 
@@ -232,7 +232,7 @@ namespace HotChocolate.Execution
         {
             InitializeExtensions();
 
-            _extensions.Add(name, value);
+            _extensions!.Add(name, value);
             return this;
         }
 
@@ -241,7 +241,7 @@ namespace HotChocolate.Execution
         {
             InitializeExtensions();
 
-            if (!_extensions.ContainsKey(name))
+            if (!_extensions!.ContainsKey(name))
             {
                 _extensions.Add(name, value);
             }
@@ -267,7 +267,7 @@ namespace HotChocolate.Execution
 
         private IReadOnlyDictionary<string, object?> GetVariableValues()
         {
-            return _variableValuesDict ?? _readOnlyVariableValues;
+            return _variableValuesDict ?? _readOnlyVariableValues!;
         }
 
         private void InitializeVariables()
@@ -282,7 +282,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private IReadOnlyDictionary<string, object?> GetProperties()
+        private IReadOnlyDictionary<string, object?>? GetProperties()
         {
             return _properties ?? _readOnlyProperties;
         }
@@ -299,7 +299,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private IReadOnlyDictionary<string, object?> GetExtensions()
+        private IReadOnlyDictionary<string, object?>? GetExtensions()
         {
             return _extensions ?? _readOnlyExtensions;
         }
@@ -362,6 +362,37 @@ namespace HotChocolate.Execution
             }
 
             return builder;
+        }
+    }
+
+    public static class QueryBuilderExtensions
+    {
+        public static IQueryRequestBuilder AllowIntrospection(
+            this IQueryRequestBuilder builder) =>
+            builder.SetProperty(WellKnownContextData.IntrospectionAllowed, null);
+
+        public static IQueryRequestBuilder SetIntrospectionNotAllowedMessage(
+            this IQueryRequestBuilder builder,
+            string message)
+        {
+            if (message is null)
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            return builder.SetProperty(WellKnownContextData.IntrospectionMessage, message);
+        }
+
+        public static IQueryRequestBuilder SetIntrospectionNotAllowedMessage(
+            this IQueryRequestBuilder builder,
+            Func<string> messageFactory)
+        {
+            if (messageFactory is null)
+            {
+                throw new ArgumentNullException(nameof(messageFactory));
+            }
+
+            return builder.SetProperty(WellKnownContextData.IntrospectionMessage, messageFactory);
         }
     }
 }
