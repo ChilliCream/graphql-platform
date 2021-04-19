@@ -130,6 +130,10 @@ namespace HotChocolate.Execution.Batching
         /// <summary>Wait till the batch should actually be started</summary>
         private async ValueTask BatchTimeout()
         {
+            // TODO: remove this after deadlock experiment is over
+            // (should result in failed tests, but no deadlocks)
+            return;
+
             var timeoutSource = new CancellationTokenSource();
             timeoutSource.CancelAfter(_dispatchTimeout);
 
