@@ -7,7 +7,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
     {
         public static IEnumerable<SourceDocument> SelectCSharp(
             this IEnumerable<SourceDocument> documents) =>
-            documents.Where(t => t.Kind == SourceDocumentKind.CSharp);
+            documents.Where(t => t.Kind is SourceDocumentKind.CSharp or SourceDocumentKind.Razor);
 
         public static IEnumerable<SourceDocument> SelectGraphQL(
             this IEnumerable<SourceDocument> documents) =>

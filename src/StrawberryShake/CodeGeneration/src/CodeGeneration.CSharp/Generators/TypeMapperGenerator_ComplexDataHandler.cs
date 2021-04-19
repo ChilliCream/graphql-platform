@@ -121,7 +121,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         block
                             .AddCode(IfBuilder
                                 .New()
-                                .SetCondition($"{matchedTypeName}.{prop.Name}.HasValue")
+                                .SetCondition($"!{matchedTypeName}.{prop.Name}.HasValue")
                                 .AddCode(ExceptionBuilder.New(TypeNames.ArgumentNullException)))
                             .AddEmptyLine();
 
