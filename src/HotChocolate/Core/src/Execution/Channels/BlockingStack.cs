@@ -12,7 +12,6 @@ namespace HotChocolate.Execution.Channels
         private readonly Stack<T> _list = new Stack<T>();
         private SpinLock _lock = new SpinLock(Debugger.IsAttached);
         /// <summary>Generated whenever the amount of items in the stack becomes 0</summary>
-        /// <remarks>_lock is allowed, but not required to be acquired while this event is triggered</remarks>
         private event EventHandler? StackEmptied;
 
         public bool TryPop([MaybeNullWhen(false)]out T item)
@@ -68,47 +67,35 @@ namespace HotChocolate.Execution.Channels
 
         public async Task WaitTillEmpty(CancellationToken? ctx = null)
         {
-            TaskCompletionSource<bool> completion;
-            CancellationTokenRegistration? ctxRegistration;
-            EventHandler completionHandler;
-            bool lockTaken = false;
-            try
+            TaskCompletionSource<bool> completion = new TaskCompletionSource<bool>();
+            CancellationTokenRegistration? ctxRegistration = ctx?.Register(() => completion.TrySetCanceled());
+            EventHandler completionHandler = (source, args) =>
             {
-                _lock.Enter(ref lockTaken);
-                completion = new TaskCompletionSource<bool>();
-                ctxRegistration = ctx?.Register(() => completion.TrySetCanceled());
-                completionHandler = (source, args) =>
+                try
                 {
-                    try
+                    if (ctx?.IsCancellationRequested ?? false)
                     {
-                        if (ctx?.IsCancellationRequested ?? false)
-                        {
-                            completion.TrySetCanceled();
-                        }
-                        else
-                        {
-                            completion.TrySetResult(true);
-                        }
+                        completion.TrySetCanceled();
                     }
-                    catch (Exception e)
+                    else
                     {
-                        completion.TrySetException(e);
+                        completion.TrySetResult(true);
                     }
-                };
-                StackEmptied += completionHandler;
+                }
+                catch (Exception e)
+                {
+                    completion.TrySetException(e);
+                }
+            };
+            StackEmptied += completionHandler;
 
-                if (ctx?.IsCancellationRequested ?? false)
-                {
-                    completion.TrySetCanceled();
-                }
-                else if (IsEmpty)
-                {
-                    completion.TrySetResult(true);
-                }
-            }
-            finally
+            if (ctx?.IsCancellationRequested ?? false)
             {
-                if (lockTaken) _lock.Exit(false);
+                completion.TrySetCanceled();
+            }
+            else if (IsEmpty)
+            {
+                completion.TrySetResult(true);
             }
 
             try

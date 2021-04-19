@@ -24,10 +24,9 @@ namespace HotChocolate.Execution.Processing
         private readonly long _processingTaskTimeout = 50;
         /// <summary>The actual number of tasks processors that are currently active.</summary>
         private int _processingTaskCount = 0;
-        /// <summary>If false, no more work will be accepted and the active processing tasks will stop as soon as possible</summary>
-        private bool _running = true;
+        /// <summary>If > 0, no more work will be accepted and the active processing tasks will stop as soon as possible</summary>
+        private int _shutdown = 0;
         /// <summary>This event is triggered whenever the processing comes to a complete stop (no items left in queue, and nothing running)</summary>
-        /// <remarks>_lock is allowed, but not required to be acquired while this event is triggered</remarks>
         private event EventHandler? ProcessingHalted;
 
         /// <summary>Create a new instance that uses the current scheduler to perform the actual work</summary>
@@ -37,53 +36,38 @@ namespace HotChocolate.Execution.Processing
         }
 
         /// <returns>true if the scheduler has no remaining work (either on queue or in progress)</returns>
-        public bool IsIdle
-        {
-            get
-            {
-                lock(_lock)
-                {
-                    return _processingTaskCount == 0 && (_queue.IsEmpty || !_running);
-                }
-            }
-        }
+        public bool IsIdle => _processingTaskCount == 0;
 
         public async Task WaitTillIdle(CancellationToken? ctx = null)
         {
-            TaskCompletionSource<bool> completion;
-            CancellationTokenRegistration? ctxRegistration;
-            EventHandler completionHandler;
-            lock(_lock)
-            {
-                completion = new TaskCompletionSource<bool>();
-                ctxRegistration = ctx?.Register(() => completion.TrySetCanceled());
-                completionHandler = (source, args) => {
-                    try
+            TaskCompletionSource<bool> completion = new TaskCompletionSource<bool>();
+            CancellationTokenRegistration? ctxRegistration = ctx?.Register(() => completion.TrySetCanceled());
+            EventHandler completionHandler = (source, args) => {
+                try
+                {
+                    if (ctx?.IsCancellationRequested ?? false)
                     {
-                        if (ctx?.IsCancellationRequested ?? false)
-                        {
-                            completion.TrySetCanceled();
-                        }
-                        else
-                        {
-                            completion.TrySetResult(true);
-                        }
+                        completion.TrySetCanceled();
                     }
-                    catch (Exception e)
+                    else
                     {
-                        completion.TrySetException(e);
+                        completion.TrySetResult(true);
                     }
-                };
-                ProcessingHalted += completionHandler;
+                }
+                catch (Exception e)
+                {
+                    completion.TrySetException(e);
+                }
+            };
+            ProcessingHalted += completionHandler;
 
-                if (ctx?.IsCancellationRequested ?? false)
-                {
-                    completion.TrySetCanceled();
-                }
-                else if (_processingTaskCount == 0 && (_queue.IsEmpty || !_running))
-                {
-                    completion.TrySetResult(true);
-                }
+            if (ctx?.IsCancellationRequested ?? false)
+            {
+                completion.TrySetCanceled();
+            }
+            else if (IsIdle)
+            {
+                completion.TrySetResult(true);
             }
            
             try
@@ -102,11 +86,7 @@ namespace HotChocolate.Execution.Processing
         /// </summary>
         public void Complete()
         {
-            lock (_lock)
-            {
-                _running = false;
-                ProcessingHalted?.Invoke(this, EventArgs.Empty);
-            }
+            Interlocked.Increment(ref _shutdown);
         }
 
         protected override IEnumerable<Task>? GetScheduledTasks()
@@ -117,7 +97,7 @@ namespace HotChocolate.Execution.Processing
         protected override void QueueTask(Task task)
         {
             Contract.Assert(task != null, "Infrastructure should have provided a non-null task.");
-            Contract.Assert(_running, "After completion no more work should be scheduled");
+            Contract.Assert(_shutdown == 0, "After completion no more work should be scheduled");
             lock (_lock)
             {
                 _queue.Enqueue(task);
@@ -133,12 +113,12 @@ namespace HotChocolate.Execution.Processing
         /// <remarks>This method assumes that the caller takes a lock on _lock</remarks>
         private void ProcessAsyncIfNecessary()
         {
-            if (_running && _processingTaskCount < _processingTaskMax && _queue.Count > 0)
+            if (_shutdown == 0 && _processingTaskCount < _processingTaskMax && _queue.Count > 0)
             {
                 // Launch concurrent task processing, up to the allowed limit
                 for (int i = _queue.Count; i > 0 && _processingTaskCount < _processingTaskMax; --i)
                 {
-                    ++_processingTaskCount;
+                    Interlocked.Increment(ref _processingTaskCount);
                     try
                     {
                         var options = TaskCreationOptions.DenyChildAttach | TaskCreationOptions.PreferFairness;
@@ -147,7 +127,7 @@ namespace HotChocolate.Execution.Processing
                     }
                     catch
                     {
-                        --_processingTaskCount;
+                        Interlocked.Decrement(ref _processingTaskCount);
                         throw;
                     }
                 }
@@ -162,7 +142,7 @@ namespace HotChocolate.Execution.Processing
                 stopwatch.Start();
 
                 Task task;
-                while (_running && stopwatch.ElapsedMilliseconds < _processingTaskTimeout && _queue.TryDequeue(out task))
+                while (_shutdown == 0 && stopwatch.ElapsedMilliseconds < _processingTaskTimeout && _queue.TryDequeue(out task))
                 {
                     // Execute the task. If the scheduler was previously faulted,
                     // this task could have been faulted when it was queued; ignore such tasks.
@@ -177,10 +157,17 @@ namespace HotChocolate.Execution.Processing
             {
                 lock(_lock)
                 {
-                    if (_processingTaskCount > 0)  --_processingTaskCount;
+                    var value = Interlocked.Decrement(ref _processingTaskCount);
+                    if (value < 0)
+                    {
+                        // should not happen, but auto recover if it does just in case
+                        Interlocked.CompareExchange(ref _processingTaskCount, 0, value);
+                    }
+
                     ProcessAsyncIfNecessary();
+
+                    if (_processingTaskCount == 0) ProcessingHalted?.Invoke(this, EventArgs.Empty);
                 }
-                if (_processingTaskCount == 0) ProcessingHalted?.Invoke(this, EventArgs.Empty);
             }
         }
     }
