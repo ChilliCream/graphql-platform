@@ -43,32 +43,29 @@ namespace HotChocolate.Execution.Channels
 
         public async Task WaitTillEmpty(CancellationToken? ctx = null)
         {
-            TaskCompletionSource<bool> completion;
-            CancellationTokenRegistration? ctxRegistration;
-            EventHandler completionHandler;
+            TaskCompletionSource<bool> completion = new TaskCompletionSource<bool>();
+            CancellationTokenRegistration? ctxRegistration = ctx?.Register(() => completion.TrySetCanceled());
+            EventHandler completionHandler = (source, args) =>
+            {
+                try
+                {
+                    if (ctx?.IsCancellationRequested ?? false)
+                    {
+                        completion.TrySetCanceled();
+                    }
+                    else
+                    {
+                        completion.TrySetResult(true);
+                    }
+                }
+                catch (Exception e)
+                {
+                    completion.TrySetException(e);
+                }
+            };
 
             lock(_lock)
-            {
-                completion = new TaskCompletionSource<bool>();
-                ctxRegistration = ctx?.Register(() => completion.TrySetCanceled());
-                completionHandler = (source, args) =>
-                {
-                    try
-                    {
-                        if (ctx?.IsCancellationRequested ?? false)
-                        {
-                            completion.TrySetCanceled();
-                        }
-                        else
-                        {
-                            completion.TrySetResult(true);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        completion.TrySetException(e);
-                    }
-                };
+            { 
                 StackEmptied += completionHandler;
 
                 if (ctx?.IsCancellationRequested ?? false)
@@ -88,7 +85,10 @@ namespace HotChocolate.Execution.Channels
             finally
             {
                 ctxRegistration?.Dispose();
-                StackEmptied -= completionHandler;
+                lock (_lock)
+                {
+                    StackEmptied -= completionHandler;
+                }
             }
         }
 

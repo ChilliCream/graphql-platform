@@ -40,31 +40,29 @@ namespace HotChocolate.Execution.Processing
 
         public async Task WaitTillIdle(CancellationToken? ctx = null)
         {
-            TaskCompletionSource<bool> completion;
-            CancellationTokenRegistration? ctxRegistration;
-            EventHandler completionHandler;
+            TaskCompletionSource<bool> completion = new TaskCompletionSource<bool>();
+            CancellationTokenRegistration? ctxRegistration = ctx?.Register(() => completion.TrySetCanceled());
+            EventHandler completionHandler = (source, args) =>
+            {
+                try
+                {
+                    if (ctx?.IsCancellationRequested ?? false)
+                    {
+                        completion.TrySetCanceled();
+                    }
+                    else
+                    {
+                        completion.TrySetResult(true);
+                    }
+                }
+                catch (Exception e)
+                {
+                    completion.TrySetException(e);
+                }
+            };
+
             lock (_lock)
             {
-                completion = new TaskCompletionSource<bool>();
-                ctxRegistration = ctx?.Register(() => completion.TrySetCanceled());
-                completionHandler = (source, args) =>
-                {
-                    try
-                    {
-                        if (ctx?.IsCancellationRequested ?? false)
-                        {
-                            completion.TrySetCanceled();
-                        }
-                        else
-                        {
-                            completion.TrySetResult(true);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        completion.TrySetException(e);
-                    }
-                };
                 ProcessingHalted += completionHandler;
 
                 if (ctx?.IsCancellationRequested ?? false)
@@ -84,7 +82,10 @@ namespace HotChocolate.Execution.Processing
             finally
             {
                 ctxRegistration?.Dispose();
-                ProcessingHalted -= completionHandler;
+                lock (_lock)
+                {
+                    ProcessingHalted -= completionHandler;
+                }
             }
         }
 
