@@ -11,6 +11,8 @@ Various libraries, packages, etc. that developers can add to their own project a
 ### Data access
 
 - [TransactChoco](https://github.com/dalrankov/TransactChoco) - TransactionScope middleware for Hot Chocolate
+- [GraphQL.PreprocessingExtensions](https://github.com/cajuncoding/GraphQL.RepoDB/tree/main/GraphQL.PreProcessingExtensions) - HotChocolate resolver extensions for working with Micro ORM(s) and encapsulated data access without IQueryable.
+- [GraphQL.RepoDB](https://github.com/cajuncoding/GraphQL.RepoDB) - An integration library for HotChocolate and SQL Server data access using RepoDB micro-orm.
 
 ### Relay
 

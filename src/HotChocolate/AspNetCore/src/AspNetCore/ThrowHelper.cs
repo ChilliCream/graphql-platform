@@ -43,14 +43,17 @@ namespace HotChocolate.AspNetCore
                 .SetCode(ErrorCodes.Server.MaxRequestSize)
                 .Build());
 
-        public static NotSupportedException  DataStartMessageHandler_RequestTypeNotSupported() =>
+        public static NotSupportedException DataStartMessageHandler_RequestTypeNotSupported() =>
             new(ThrowHelper_DataStartMessageHandler_RequestTypeNotSupported);
 
-        public static GraphQLException HttpMultipartMiddleware_Form_Incomplete() =>
-            new GraphQLRequestException(
-                ErrorBuilder.New()
-                    .SetMessage(ThrowHelper_HttpMultipartMiddleware_Form_Incomplete)
-                    .SetCode(ErrorCodes.Server.MultiPartFormIncomplete)
+        public static GraphQLException HttpMultipartMiddleware_Invalid_Form(
+            Exception ex) =>
+             new GraphQLRequestException(
+                 ErrorBuilder.New()
+                    .SetMessage(ThrowHelper_HttpMultipartMiddleware_Invalid_Form)
+                    .SetException(ex)
+                    .SetCode(ErrorCodes.Server.MultiPartInvalidForm)
+                    .SetExtension("underlyingError", ex.Message)
                     .Build());
 
         public static GraphQLException HttpMultipartMiddleware_No_Operations_Specified() =>

@@ -18,7 +18,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override bool CanHandle(ITypeDescriptor descriptor,
             CSharpSyntaxGeneratorSettings settings)
         {
-            return descriptor.Kind == TypeKind.EntityType && !descriptor.IsInterface() &&
+            return descriptor.Kind == TypeKind.Entity && !descriptor.IsInterface() &&
                 !settings.NoStore;
         }
 
@@ -69,7 +69,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     ParameterBuilder
                         .New()
                         .SetType(
-                            descriptor.Kind == TypeKind.EntityType
+                            descriptor.Kind == TypeKind.Entity
                                 ? CreateEntityType(
                                         descriptor.Name,
                                         descriptor.RuntimeType.NamespaceWithoutGlobal)

@@ -7,15 +7,15 @@ namespace StrawberryShake.CodeGeneration.Extensions
 {
     public static class TypeDescriptorExtensions
     {
-        public static bool IsLeafType(this ITypeDescriptor typeDescriptor) =>
-            typeDescriptor.Kind == TypeKind.LeafType;
+        public static bool IsLeaf(this ITypeDescriptor typeDescriptor) =>
+            typeDescriptor.Kind == TypeKind.Leaf;
 
-        public static bool IsEntityType(this ITypeDescriptor typeDescriptor) =>
-            typeDescriptor.Kind == TypeKind.EntityType;
+        public static bool IsEntity(this ITypeDescriptor typeDescriptor) =>
+            typeDescriptor.Kind == TypeKind.Entity;
 
-        public static bool IsDataType(this ITypeDescriptor typeDescriptor) =>
-            typeDescriptor.Kind == TypeKind.DataType ||
-            typeDescriptor.Kind == TypeKind.ComplexDataType;
+        public static bool IsData(this ITypeDescriptor typeDescriptor) =>
+            typeDescriptor.Kind == TypeKind.Data ||
+            typeDescriptor.Kind == TypeKind.AbstractData;
 
         public static bool ContainsEntity(this ITypeDescriptor typeDescriptor)
         {
@@ -25,31 +25,31 @@ namespace StrawberryShake.CodeGeneration.Extensions
                     listTypeDescriptor.InnerType.ContainsEntity(),
                 ComplexTypeDescriptor namedTypeDescriptor =>
                     namedTypeDescriptor.Properties
-                        .Any(prop => prop.Type.IsEntityType() || prop.Type.ContainsEntity()),
+                        .Any(prop => prop.Type.IsEntity() || prop.Type.ContainsEntity()),
                 NonNullTypeDescriptor nonNullTypeDescriptor =>
                     nonNullTypeDescriptor.InnerType.ContainsEntity(),
                 _ => false
             };
         }
 
-        public static bool IsOrContainsEntityType(this ITypeDescriptor typeDescriptor)
+        public static bool IsOrContainsEntity(this ITypeDescriptor typeDescriptor)
         {
             return typeDescriptor switch
             {
-                ListTypeDescriptor d => d.InnerType.IsOrContainsEntityType(),
+                ListTypeDescriptor d => d.InnerType.IsOrContainsEntity(),
 
                 InterfaceTypeDescriptor d =>
-                    d.IsEntityType() ||
+                    d.IsEntity() ||
                     d.Properties.Any(p =>
-                        p.Type.IsEntityType() || p.Type.IsOrContainsEntityType()) ||
-                    d.ImplementedBy.Any(x => x.IsOrContainsEntityType()),
+                        p.Type.IsEntity() || p.Type.IsOrContainsEntity()) ||
+                    d.ImplementedBy.Any(x => x.IsOrContainsEntity()),
 
                 ComplexTypeDescriptor d =>
-                    d.IsEntityType() ||
-                    d.Properties.Any(p => p.Type.IsEntityType() || p.Type.IsOrContainsEntityType()),
+                    d.IsEntity() ||
+                    d.Properties.Any(p => p.Type.IsEntity() || p.Type.IsOrContainsEntity()),
 
 
-                NonNullTypeDescriptor d => d.InnerType.IsOrContainsEntityType(),
+                NonNullTypeDescriptor d => d.InnerType.IsOrContainsEntity(),
 
                 _ => false
             };
@@ -58,13 +58,13 @@ namespace StrawberryShake.CodeGeneration.Extensions
         public static bool IsInterface(this ITypeDescriptor typeDescriptor) =>
             typeDescriptor is InterfaceTypeDescriptor;
 
-        public static bool IsNullableType(this ITypeDescriptor typeDescriptor) =>
+        public static bool IsNullable(this ITypeDescriptor typeDescriptor) =>
             typeDescriptor is not NonNullTypeDescriptor;
 
-        public static bool IsNonNullableType(this ITypeDescriptor typeDescriptor) =>
+        public static bool IsNonNullable(this ITypeDescriptor typeDescriptor) =>
             typeDescriptor is NonNullTypeDescriptor;
 
-        public static bool IsListType(this ITypeDescriptor typeDescriptor) =>
+        public static bool IsList(this ITypeDescriptor typeDescriptor) =>
             typeDescriptor is ListTypeDescriptor ||
             typeDescriptor is NonNullTypeDescriptor { InnerType: ListTypeDescriptor };
 

@@ -42,7 +42,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 {
                     Assert.Equal("IGetHero_Hero", type.RuntimeType.Name);
                     Assert.Equal("Foo.Bar", type.RuntimeType.NamespaceWithoutGlobal);
-                    Assert.True(type.IsEntityType());
+                    Assert.True(type.IsEntity());
 
                     Assert.Collection(
                         type.Properties,
@@ -50,7 +50,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         {
                             Assert.Equal("Name", property.Name);
                             Assert.Equal("String", property.Type.Name);
-                            Assert.False(property.Type.IsNullableType());
+                            Assert.False(property.Type.IsNullable());
                         });
                 },
                 type =>
@@ -64,14 +64,14 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         {
                             Assert.Equal("Name", property.Name);
                             Assert.Equal("String", property.Type.Name);
-                            Assert.False(property.Type.IsNullableType());
+                            Assert.False(property.Type.IsNullable());
                         });
                 },
                 type =>
                 {
                     Assert.Equal("IGetHero_Hero_Droid", type.RuntimeType.Name);
                     Assert.Equal("Foo.Bar", type.RuntimeType.NamespaceWithoutGlobal);
-                    Assert.True(type.IsEntityType());
+                    Assert.True(type.IsEntity());
                 },
                 type =>
                 {
@@ -84,14 +84,14 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         {
                             Assert.Equal("Name", property.Name);
                             Assert.Equal("String", property.Type.Name);
-                            Assert.False(property.Type.IsNullableType());
+                            Assert.False(property.Type.IsNullable());
                         });
                 },
                 type =>
                 {
                     Assert.Equal("IGetHero_Hero_Human", type.RuntimeType.Name);
                     Assert.Equal("Foo.Bar", type.RuntimeType.NamespaceWithoutGlobal);
-                    Assert.True(type.IsEntityType());
+                    Assert.True(type.IsEntity());
                 },
                 type =>
                 {
@@ -106,7 +106,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             Assert.Equal("IGetHero_Hero",
                                 Assert.IsType<InterfaceTypeDescriptor>(property.Type)
                                     .RuntimeType.Name);
-                            Assert.True(property.Type.IsNullableType());
+                            Assert.True(property.Type.IsNullable());
                         });
                 },
                 type =>
@@ -122,7 +122,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             Assert.Equal("IGetHero_Hero",
                                 Assert.IsType<InterfaceTypeDescriptor>(property.Type)
                                     .RuntimeType.Name);
-                            Assert.True(property.Type.IsNullableType());
+                            Assert.True(property.Type.IsNullable());
                         });
                 });
         }

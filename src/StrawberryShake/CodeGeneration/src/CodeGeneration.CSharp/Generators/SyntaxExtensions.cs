@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -15,11 +16,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     {
         public static PropertyDeclarationSyntax WithGetterAndSetter(
             this PropertyDeclarationSyntax property) =>
-                property.AddAccessorListAccessors(
-                    AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                        .WithSemicolonToken(Token(SyntaxKind.SemicolonToken)),
-                    AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
-                        .WithSemicolonToken(Token(SyntaxKind.SemicolonToken)));
+            property.AddAccessorListAccessors(
+                AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                    .WithSemicolonToken(Token(SyntaxKind.SemicolonToken)),
+                AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
+                    .WithSemicolonToken(Token(SyntaxKind.SemicolonToken)));
 
         public static PropertyDeclarationSyntax WithGetterAndInit(
             this PropertyDeclarationSyntax property) =>
@@ -68,14 +69,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     Trivia(
                         DocumentationComment(
                             xmlElement,
-                            XmlText().WithTextTokens(
-                                TokenList(
-                                    Token(
-                                        TriviaList(),
-                                        SyntaxKind.XmlTextLiteralNewLineToken,
-                                        System.Environment.NewLine,
-                                        System.Environment.NewLine,
-                                        TriviaList())))))));
+                            XmlText()
+                                .WithTextTokens(
+                                    TokenList(
+                                        Token(
+                                            TriviaList(),
+                                            SyntaxKind.XmlTextLiteralNewLineToken,
+                                            System.Environment.NewLine,
+                                            System.Environment.NewLine,
+                                            TriviaList())))))));
         }
 
         public static TMember AddSummary<TMember>(
@@ -85,7 +87,20 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         {
             if (value is { Length: > 0 })
             {
-                return member.AddSimple(XmlSummaryElement(XmlText(value)));
+                using var reader = new StringReader(value);
+                var list = new List<XmlNodeSyntax>();
+                string? line;
+
+                do
+                {
+                    line = reader.ReadLine();
+                    if (line is not null)
+                    {
+                        list.Add(XmlText(line));
+                    }
+                } while (line is not null);
+
+                return member.AddSimple(XmlSummaryElement(list.ToArray()));
             }
 
             return member;
@@ -97,16 +112,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             AttributeSyntax attribute =
                 Attribute(
-                    QualifiedName(
                         QualifiedName(
                             QualifiedName(
-                                AliasQualifiedName(
-                                    IdentifierName(
-                                        Token(SyntaxKind.GlobalKeyword)),
-                                    IdentifierName("System")),
-                                IdentifierName("CodeDom")),
-                            IdentifierName("Compiler")),
-                        IdentifierName("GeneratedCode")))
+                                QualifiedName(
+                                    AliasQualifiedName(
+                                        IdentifierName(
+                                            Token(SyntaxKind.GlobalKeyword)),
+                                        IdentifierName("System")),
+                                    IdentifierName("CodeDom")),
+                                IdentifierName("Compiler")),
+                            IdentifierName("GeneratedCode")))
                     .AddArgumentListArguments(
                         AttributeArgument(
                             LiteralExpression(
@@ -125,6 +140,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         AttributeList(
                             SingletonSeparatedList(
                                 attribute))));
+        }
+
+        public static T AddImplements<T>(
+            this T type,
+            params string[] implements)
+            where T : TypeDeclarationSyntax
+        {
+            return type.AddImplements((IReadOnlyList<string>)implements);
         }
 
         public static T AddImplements<T>(
@@ -153,8 +176,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 property.Type.ToStateTypeSyntax(),
                 property.Description);
 
-        public static T AddTypeProperty<T>(
-            this T type)
+        public static T AddTypeProperty<T>(this T type)
             where T : TypeDeclarationSyntax =>
             AddProperty(
                 type,
@@ -256,13 +278,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     IdentifierName(parameterName),
                     ThrowExpression(
                         ObjectCreationExpression(IdentifierName(TypeNames.ArgumentNullException))
-                        .WithArgumentList(
-                            ArgumentList(
-                                SingletonSeparatedList(
-                                    Argument(
-                                        InvocationExpression(IdentifierName("nameof"))
-                                        .WithArgumentList(ArgumentList(SingletonSeparatedList(
-                                            Argument(IdentifierName(parameterName)))))))))));
+                            .WithArgumentList(
+                                ArgumentList(
+                                    SingletonSeparatedList(
+                                        Argument(
+                                            InvocationExpression(IdentifierName("nameof"))
+                                                .WithArgumentList(ArgumentList(
+                                                    SingletonSeparatedList(
+                                                        Argument(IdentifierName(
+                                                            parameterName)))))))))));
 
 
             AssignmentExpressionSyntax assignmentExpression =

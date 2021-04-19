@@ -74,7 +74,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.Operations
         public IReadOnlyList<PropertyDescriptor> Arguments { get; }
 
         /// <summary>
-        ///
+        /// The request strategy.
         /// </summary>
         public RequestStrategy Strategy { get; }
 

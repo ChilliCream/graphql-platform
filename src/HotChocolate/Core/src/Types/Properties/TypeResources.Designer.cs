@@ -1202,5 +1202,35 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("Type_SpecifiedByUrl_Description", resourceCulture);
             }
         }
+        
+        internal static string SchemaBuilderExtensions_AddObjectType_TIsSchemaType {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_AddObjectType_TIsSchemaType", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaBuilderExtensions_AddUnionType_TIsSchemaType {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_AddUnionType_TIsSchemaType", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaBuilderExtensions_AddEnumType_TIsSchemaType {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_AddEnumType_TIsSchemaType", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaBuilderExtensions_AddInterfaceType_TIsSchemaType {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_AddInterfaceType_TIsSchemaType", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaBuilderExtensions_AddInputObjectType_TIsSchemaType {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_AddInputObjectType_TIsSchemaType", resourceCulture);
+            }
+        }
     }
 }

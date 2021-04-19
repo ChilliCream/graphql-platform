@@ -33,6 +33,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(PeopleSearchResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((People is null && other.People is null) || People != null && People.Equals(other.People)));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -51,26 +71,6 @@ namespace Foo.Bar
             }
 
             return Equals((PeopleSearchResult)obj);
-        }
-
-        public global::System.Boolean Equals(PeopleSearchResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((People is null && other.People is null) || People != null && People.Equals(other.People)));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -117,6 +117,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(PeopleSearch_People_PersonCollectionSegment? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (TotalCount == other.TotalCount) && PageInfo.Equals(other.PageInfo) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Items, other.Items);
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -135,26 +155,6 @@ namespace Foo.Bar
             }
 
             return Equals((PeopleSearch_People_PersonCollectionSegment)obj);
-        }
-
-        public global::System.Boolean Equals(PeopleSearch_People_PersonCollectionSegment? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (TotalCount == other.TotalCount) && PageInfo.Equals(other.PageInfo) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Items, other.Items);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -206,6 +206,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(PeopleSearch_People_PageInfo_CollectionSegmentInfo? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (HasNextPage == other.HasNextPage) && HasPreviousPage == other.HasPreviousPage;
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -224,26 +244,6 @@ namespace Foo.Bar
             }
 
             return Equals((PeopleSearch_People_PageInfo_CollectionSegmentInfo)obj);
-        }
-
-        public global::System.Boolean Equals(PeopleSearch_People_PageInfo_CollectionSegmentInfo? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (HasNextPage == other.HasNextPage) && HasPreviousPage == other.HasPreviousPage;
         }
 
         public override global::System.Int32 GetHashCode()
@@ -335,6 +335,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(PeopleSearch_People_Items_Person? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id.Equals(other.Id)) && Key == other.Key && ((DisplayName is null && other.DisplayName is null) || DisplayName != null && DisplayName.Equals(other.DisplayName)) && IsActive == other.IsActive && ((Department is null && other.Department is null) || Department != null && Department.Equals(other.Department)) && ((Image is null && other.Image is null) || Image != null && Image.Equals(other.Image)) && Title.Equals(other.Title) && ((Manager is null && other.Manager is null) || Manager != null && Manager.Equals(other.Manager));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -353,26 +373,6 @@ namespace Foo.Bar
             }
 
             return Equals((PeopleSearch_People_Items_Person)obj);
-        }
-
-        public global::System.Boolean Equals(PeopleSearch_People_Items_Person? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Id.Equals(other.Id)) && Key == other.Key && ((DisplayName is null && other.DisplayName is null) || DisplayName != null && DisplayName.Equals(other.DisplayName)) && IsActive == other.IsActive && ((Department is null && other.Department is null) || Department != null && Department.Equals(other.Department)) && ((Image is null && other.Image is null) || Image != null && Image.Equals(other.Image)) && Title.Equals(other.Title) && ((Manager is null && other.Manager is null) || Manager != null && Manager.Equals(other.Manager));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -432,6 +432,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(PeopleSearch_People_Items_Department_Department? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id.Equals(other.Id)) && Name.Equals(other.Name);
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -450,26 +470,6 @@ namespace Foo.Bar
             }
 
             return Equals((PeopleSearch_People_Items_Department_Department)obj);
-        }
-
-        public global::System.Boolean Equals(PeopleSearch_People_Items_Department_Department? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Id.Equals(other.Id)) && Name.Equals(other.Name);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -516,6 +516,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(PeopleSearch_People_Items_Manager_Person? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id.Equals(other.Id)) && Key == other.Key && ((DisplayName is null && other.DisplayName is null) || DisplayName != null && DisplayName.Equals(other.DisplayName));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -534,26 +554,6 @@ namespace Foo.Bar
             }
 
             return Equals((PeopleSearch_People_Items_Manager_Person)obj);
-        }
-
-        public global::System.Boolean Equals(PeopleSearch_People_Items_Manager_Person? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Id.Equals(other.Id)) && Key == other.Key && ((DisplayName is null && other.DisplayName is null) || DisplayName != null && DisplayName.Equals(other.DisplayName));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -1469,24 +1469,31 @@ namespace Foo.Bar.State
         {
             (IPeopleSearchQueryResult Result, PeopleSearchResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
-            try
+            if (response.Exception is null)
             {
-                if (response.Body != null)
+                try
                 {
-                    if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                    if (response.Body != null)
                     {
-                        data = BuildData(dataElement);
-                    }
+                        if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                        {
+                            data = BuildData(dataElement);
+                        }
 
-                    if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
-                    {
-                        errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                        {
+                            errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        }
                     }
                 }
+                catch (global::System.Exception ex)
+                {
+                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                }
             }
-            catch (global::System.Exception ex)
+            else
             {
-                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex)};
+                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
             }
 
             return new global::StrawberryShake.OperationResult<IPeopleSearchQueryResult>(data?.Result, data?.Info, _resultDataFactory, errors);

@@ -30,6 +30,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(CreateReviewMutResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (CreateReview.Equals(other.CreateReview));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -48,26 +68,6 @@ namespace Foo.Bar
             }
 
             return Equals((CreateReviewMutResult)obj);
-        }
-
-        public global::System.Boolean Equals(CreateReviewMutResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (CreateReview.Equals(other.CreateReview));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -101,6 +101,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(CreateReviewMut_CreateReview_Review? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Stars == other.Stars) && ((Commentary is null && other.Commentary is null) || Commentary != null && Commentary.Equals(other.Commentary));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -119,26 +139,6 @@ namespace Foo.Bar
             }
 
             return Equals((CreateReviewMut_CreateReview_Review)obj);
-        }
-
-        public global::System.Boolean Equals(CreateReviewMut_CreateReview_Review? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Stars == other.Stars) && ((Commentary is null && other.Commentary is null) || Commentary != null && Commentary.Equals(other.Commentary));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -249,8 +249,63 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class ReviewInput : global::Foo.Bar.State.IReviewInputInfo
+    public partial class ReviewInput : global::Foo.Bar.State.IReviewInputInfo, global::System.IEquatable<ReviewInput>
     {
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((ReviewInput)obj);
+        }
+
+        public virtual global::System.Boolean Equals(ReviewInput? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Stars == other.Stars) && ((Commentary is null && other.Commentary is null) || Commentary != null && Commentary.Equals(other.Commentary));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                hash ^= 397 * Stars.GetHashCode();
+                if (Commentary != null)
+                {
+                    hash ^= 397 * Commentary.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+
         private global::System.Int32 _value_stars;
         private global::System.Boolean _set_stars;
         private global::System.String? _value_commentary;
@@ -579,24 +634,31 @@ namespace Foo.Bar.State
         {
             (ICreateReviewMutResult Result, CreateReviewMutResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
-            try
+            if (response.Exception is null)
             {
-                if (response.Body != null)
+                try
                 {
-                    if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                    if (response.Body != null)
                     {
-                        data = BuildData(dataElement);
-                    }
+                        if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                        {
+                            data = BuildData(dataElement);
+                        }
 
-                    if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
-                    {
-                        errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                        {
+                            errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        }
                     }
                 }
+                catch (global::System.Exception ex)
+                {
+                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                }
             }
-            catch (global::System.Exception ex)
+            else
             {
-                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex)};
+                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
             }
 
             return new global::StrawberryShake.OperationResult<ICreateReviewMutResult>(data?.Result, data?.Info, _resultDataFactory, errors);

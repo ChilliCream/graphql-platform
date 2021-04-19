@@ -35,7 +35,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
                 RuntimeTypeInfo resultType = context.GetRuntimeType(
                     modelOperation.ResultType.Name,
-                    Descriptors.TypeDescriptors.TypeKind.ResultType);
+                    Descriptors.TypeDescriptors.TypeKind.Result);
 
                 string bodyString = modelOperation.Document.ToString();
                 byte[] body = Encoding.UTF8.GetBytes(modelOperation.Document.ToString(false));

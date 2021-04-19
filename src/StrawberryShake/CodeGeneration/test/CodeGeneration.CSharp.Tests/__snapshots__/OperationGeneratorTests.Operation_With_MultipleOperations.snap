@@ -30,6 +30,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(TestOperationResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Foo is null && other.Foo is null) || Foo != null && Foo.Equals(other.Foo)));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -48,26 +68,6 @@ namespace Foo.Bar
             }
 
             return Equals((TestOperationResult)obj);
-        }
-
-        public global::System.Boolean Equals(TestOperationResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((Foo is null && other.Foo is null) || Foo != null && Foo.Equals(other.Foo)));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -109,6 +109,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(TestOperation2Result? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Foo is null && other.Foo is null) || Foo != null && Foo.Equals(other.Foo)));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -127,26 +147,6 @@ namespace Foo.Bar
             }
 
             return Equals((TestOperation2Result)obj);
-        }
-
-        public global::System.Boolean Equals(TestOperation2Result? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((Foo is null && other.Foo is null) || Foo != null && Foo.Equals(other.Foo)));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -188,6 +188,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(TestOperation3Result? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Foo is null && other.Foo is null) || Foo != null && Foo.Equals(other.Foo)));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -206,26 +226,6 @@ namespace Foo.Bar
             }
 
             return Equals((TestOperation3Result)obj);
-        }
-
-        public global::System.Boolean Equals(TestOperation3Result? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((Foo is null && other.Foo is null) || Foo != null && Foo.Equals(other.Foo)));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -405,8 +405,90 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class Bar : global::Foo.Bar.State.IBarInfo
+    public partial class Bar : global::Foo.Bar.State.IBarInfo, global::System.IEquatable<Bar>
     {
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((Bar)obj);
+        }
+
+        public virtual global::System.Boolean Equals(Bar? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Str is null && other.Str is null) || Str != null && Str.Equals(other.Str))) && StrNonNullable.Equals(other.StrNonNullable) && ((Nested is null && other.Nested is null) || Nested != null && Nested.Equals(other.Nested)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(NestedList, other.NestedList) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(NestedMatrix, other.NestedMatrix);
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                if (Str != null)
+                {
+                    hash ^= 397 * Str.GetHashCode();
+                }
+
+                hash ^= 397 * StrNonNullable.GetHashCode();
+                if (Nested != null)
+                {
+                    hash ^= 397 * Nested.GetHashCode();
+                }
+
+                foreach (var NestedList_elm in NestedList)
+                {
+                    hash ^= 397 * NestedList_elm.GetHashCode();
+                }
+
+                if (NestedMatrix != null)
+                {
+                    foreach (var NestedMatrix_elm in NestedMatrix)
+                    {
+                        if (NestedMatrix_elm != null)
+                        {
+                            foreach (var NestedMatrix_elm_elm in NestedMatrix_elm)
+                            {
+                                if (NestedMatrix_elm_elm != null)
+                                {
+                                    hash ^= 397 * NestedMatrix_elm_elm.GetHashCode();
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return hash;
+            }
+        }
+
         private global::System.String? _value_str;
         private global::System.Boolean _set_str;
         private global::System.String _value_strNonNullable = default !;
@@ -1275,24 +1357,31 @@ namespace Foo.Bar.State
         {
             (ITestOperationResult Result, TestOperationResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
-            try
+            if (response.Exception is null)
             {
-                if (response.Body != null)
+                try
                 {
-                    if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                    if (response.Body != null)
                     {
-                        data = BuildData(dataElement);
-                    }
+                        if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                        {
+                            data = BuildData(dataElement);
+                        }
 
-                    if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
-                    {
-                        errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                        {
+                            errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        }
                     }
                 }
+                catch (global::System.Exception ex)
+                {
+                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                }
             }
-            catch (global::System.Exception ex)
+            else
             {
-                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex)};
+                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
             }
 
             return new global::StrawberryShake.OperationResult<ITestOperationResult>(data?.Result, data?.Info, _resultDataFactory, errors);
@@ -1341,24 +1430,31 @@ namespace Foo.Bar.State
         {
             (ITestOperation2Result Result, TestOperation2ResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
-            try
+            if (response.Exception is null)
             {
-                if (response.Body != null)
+                try
                 {
-                    if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                    if (response.Body != null)
                     {
-                        data = BuildData(dataElement);
-                    }
+                        if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                        {
+                            data = BuildData(dataElement);
+                        }
 
-                    if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
-                    {
-                        errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                        {
+                            errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        }
                     }
                 }
+                catch (global::System.Exception ex)
+                {
+                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                }
             }
-            catch (global::System.Exception ex)
+            else
             {
-                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex)};
+                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
             }
 
             return new global::StrawberryShake.OperationResult<ITestOperation2Result>(data?.Result, data?.Info, _resultDataFactory, errors);
@@ -1407,24 +1503,31 @@ namespace Foo.Bar.State
         {
             (ITestOperation3Result Result, TestOperation3ResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
-            try
+            if (response.Exception is null)
             {
-                if (response.Body != null)
+                try
                 {
-                    if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                    if (response.Body != null)
                     {
-                        data = BuildData(dataElement);
-                    }
+                        if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                        {
+                            data = BuildData(dataElement);
+                        }
 
-                    if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
-                    {
-                        errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                        {
+                            errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        }
                     }
                 }
+                catch (global::System.Exception ex)
+                {
+                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                }
             }
-            catch (global::System.Exception ex)
+            else
             {
-                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex)};
+                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
             }
 
             return new global::StrawberryShake.OperationResult<ITestOperation3Result>(data?.Result, data?.Info, _resultDataFactory, errors);

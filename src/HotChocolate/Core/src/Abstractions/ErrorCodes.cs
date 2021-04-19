@@ -51,9 +51,9 @@ namespace HotChocolate
             public const string QueryAndIdMissing = "HC0013";
 
             /// <summary>
-            /// At least an 'operations' field and a 'map' field need to be present.
+            /// The multipart form could not be read.
             /// </summary>
-            public const string MultiPartFormIncomplete = "HC0033";
+            public const string MultiPartInvalidForm = "HC0033";
 
             /// <summary>
             /// No 'operations' specified.

@@ -32,7 +32,7 @@
 | HC0030 | Spatial           | Coordinates with M values cannot be reprojected                                                                                          |
 | HC0031 | Paging            | Unable to infer the element type from the current resolver. This often happens if the resolver is not an iterable type like IEnumerable, IQueryable, IList etc. Ensure that you either explicitly specify the element type or that the return type of your resolver is an iterable type.                                                                                                                                      |
 | HC0032 | Paging            | The element schema type for pagination must be a valid GraphQL output type (ObjectType, InterfaceType, UnionType, EnumType, ScalarType). |
-| HC0033 | Server            | At least an 'operations' field and a 'map' field need to be present.                                                                     |
+| HC0033 | Server            | The multipart form could not be read.                                                                     |
 | HC0034 | Server            | No 'operations' specified.                                                                                                               |
 | HC0035 | Server            | Misordered multipart fields; 'map' should follow 'operations'.                                                                           |
 | HC0036 | Server            | Invalid JSON in the ‘map’ multipart field; Expected type of Dictionary<string, string[]>.                                                |

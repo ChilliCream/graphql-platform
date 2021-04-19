@@ -9,6 +9,8 @@ to the database.
 Projections operate on `IQueryable` by default, but it is possible to create custom providers for projections
 to support a specific database driver.
 
+> ⚠️ **Note:** Projections currently need a public setter on fields they operate on in order to function correctly. Otherwise the default constructed value will be returned upon query.
+
 ```graphql
 {
   users {
@@ -48,7 +50,7 @@ The projection middleware will create a projection for the whole subtree of its 
 are members of a type will be projected. Fields that define a customer resolver cannot be projected
 to the database. If the middleware encounters a field that specifies `UseProjection()` this field will be skipped.
 
-> ⚠️ **Note:** If you use more than middleware, keep in mind that **ORDER MATTERS**. The correct order is UsePaging > UseProjection > UseFiltering > UseSorting
+> ⚠️ **Note:** If you use more than one middleware, keep in mind that **ORDER MATTERS**. The correct order is UsePaging > UseProjection > UseFiltering > UseSorting
 
 **Code First**
 
@@ -89,7 +91,7 @@ public class Query
 If you want to limit the response to a single result, you would have to declare a resolver.
 Without returning an `IQueryable<>` you lose the ability to use filtering.
 
-There are two extensions you can use to leverage `collection.FirstOrDefault()` and `.collection.SingleOrDefault()` to
+There are two extensions you can use to leverage `collection.FirstOrDefault()` and `collection.SingleOrDefault()` to
 the GraphQL layer. The extensions will rewrite the response type to the element type of the collection apply the behavior.
 
 ```csharp
