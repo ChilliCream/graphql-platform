@@ -36,6 +36,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetListingsCountResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Listings.Equals(other.Listings));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -54,26 +74,6 @@ namespace Foo.Bar
             }
 
             return Equals((GetListingsCountResult)obj);
-        }
-
-        public global::System.Boolean Equals(GetListingsCountResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Listings.Equals(other.Listings));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -101,6 +101,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetListingsCount_Listings_ListingsPayload? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Count == other.Count);
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -119,26 +139,6 @@ namespace Foo.Bar
             }
 
             return Equals((GetListingsCount_Listings_ListingsPayload)obj);
-        }
-
-        public global::System.Boolean Equals(GetListingsCount_Listings_ListingsPayload? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Count == other.Count);
         }
 
         public override global::System.Int32 GetHashCode()
