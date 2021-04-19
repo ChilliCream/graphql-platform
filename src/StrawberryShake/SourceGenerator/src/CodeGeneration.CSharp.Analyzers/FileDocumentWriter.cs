@@ -38,7 +38,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
             var fileName = IOPath.Combine(directory, documentName);
 
-            if (document.Kind == SourceDocumentKind.Razor)
+            if (document.Kind == SourceDocumentKind.CSharp)
             {
                 context.Execution.AddSource(
                     documentName,
