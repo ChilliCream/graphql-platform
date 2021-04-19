@@ -25,8 +25,8 @@ namespace HotChocolate.Execution.Channels
                 if (_list.Count > 0)
                 {
                     item = _list.Pop();
-                    IsEmpty = _list.Count == 0;
-                    if (IsEmpty) StackEmptied?.Invoke(this, EventArgs.Empty);
+                    var value = Interlocked.Decrement(ref _count);
+                    if (value == 0) StackEmptied?.Invoke(this, EventArgs.Empty);
                     return true;
                 }
 
@@ -34,8 +34,8 @@ namespace HotChocolate.Execution.Channels
 #else
                 if (_list.TryPop(out item))
                 {
-                    IsEmpty = _list.Count == 0;
-                    if (IsEmpty) StackEmptied?.Invoke(this, EventArgs.Empty);
+                    var value = Interlocked.Decrement(ref _count);
+                    if (value == 0) StackEmptied?.Invoke(this, EventArgs.Empty);
                     return true;
                 }
 #endif
@@ -55,7 +55,7 @@ namespace HotChocolate.Execution.Channels
             {
                 _lock.Enter(ref lockTaken);
                 _list.Push(item);
-                IsEmpty = false;
+                Interlocked.Increment(ref _count);
             }
             finally
             {
@@ -63,7 +63,8 @@ namespace HotChocolate.Execution.Channels
             }
         }
 
-        public bool IsEmpty { get; private set; } = true;
+        private int _count = 0;
+        public bool IsEmpty => _count == 0;
 
         public async Task WaitTillEmpty(CancellationToken? ctx = null)
         {
@@ -121,6 +122,6 @@ namespace HotChocolate.Execution.Channels
             }
         }
 
-        public int Count => _list.Count;
+        public int Count => _count;
     }
 }

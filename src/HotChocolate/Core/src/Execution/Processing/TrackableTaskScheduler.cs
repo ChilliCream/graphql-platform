@@ -80,7 +80,7 @@ namespace HotChocolate.Execution.Processing
                 {
                     completion.TrySetCanceled();
                 }
-                else if (IsIdle)
+                else if (_processingTaskCount == 0 && (_queue.IsEmpty || !_running))
                 {
                     completion.TrySetResult(true);
                 }
