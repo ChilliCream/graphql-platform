@@ -4,18 +4,19 @@ using Microsoft.AspNetCore.Components;
 
 namespace StrawberryShake.Razor
 {
-    public abstract class DataComponent<TRequest>
+    public abstract class DataComponent<TClientOrOperation>
         : ComponentBase
         , IDisposable
     {
         private readonly List<IDisposable> _subscriptions = new();
         private bool _disposed;
 
-        [Inject] protected internal TRequest Request { get; internal set; } = default!;
+        [Inject]
+        protected internal TClientOrOperation ClientOrOperation { get; internal set; } = default!;
 
-        public void Subscribe(Func<TRequest, IDisposable> subscribe)
+        public void Subscribe(Func<TClientOrOperation, IDisposable> subscribe)
         {
-            _subscriptions.Add(subscribe(Request));
+            _subscriptions.Add(subscribe(ClientOrOperation));
         }
 
         public void Dispose()

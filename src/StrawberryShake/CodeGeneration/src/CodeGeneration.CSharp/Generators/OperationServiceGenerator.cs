@@ -25,7 +25,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _value = "value";
         private const string _cancellationToken = "cancellationToken";
 
-        protected override void Generate(OperationDescriptor descriptor,
+        protected override void Generate(
+            OperationDescriptor descriptor,
             CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
             out string fileName,
@@ -53,11 +54,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .AddConstructor()
                 .SetTypeName(fileName);
 
-            var runtimeTypeName =
+            var resultTypeName =
                 descriptor.ResultTypeReference.GetRuntimeType().Name;
 
             AddConstructorAssignedField(
-                TypeNames.IOperationExecutor.WithGeneric(runtimeTypeName),
+                TypeNames.IOperationExecutor.WithGeneric(resultTypeName),
                 _operationExecutor,
                 operationExecutor,
                 classBuilder,
@@ -67,10 +68,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             if (descriptor is not SubscriptionOperationDescriptor)
             {
-                classBuilder.AddMethod(CreateExecuteMethod(descriptor, runtimeTypeName));
+                classBuilder.AddMethod(CreateExecuteMethod(descriptor, resultTypeName));
             }
 
-            classBuilder.AddMethod(CreateWatchMethod(descriptor, runtimeTypeName));
+            classBuilder.AddMethod(CreateWatchMethod(descriptor, resultTypeName));
             classBuilder.AddMethod(CreateRequestMethod(descriptor));
             classBuilder.AddMethod(CreateRequestVariablesMethod(descriptor));
 
@@ -79,7 +80,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             classBuilder
                 .AddProperty("ResultType")
                 .SetType(TypeNames.Type)
-                .AsLambda($"typeof({runtimeTypeName})")
+                .AsLambda($"typeof({resultTypeName})")
                 .SetInterface(TypeNames.IOperationRequestFactory);
 
             MethodCallBuilder createRequestCall = MethodCallBuilder
