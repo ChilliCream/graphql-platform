@@ -791,9 +791,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State
             {
             }
 
-            )
+            id)
             {
-                return MapIGetFoo_FooData(data.Value.EntityId, snapshot);
+                return MapIGetFoo_FooData(id, snapshot);
             }
             else if (data.Value.Data is global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.State.IBarData d)
             {
