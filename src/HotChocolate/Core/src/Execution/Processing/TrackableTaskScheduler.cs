@@ -48,8 +48,13 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        public async Task WaitTillIdle(CancellationToken? ctx = null)
+        public Task WaitTillIdle(CancellationToken? ctx = null)
         {
+            // TODO: remove this after deadlock experiment is over
+            // (should result in failed tests, but no deadlocks)
+            return Task.Delay(0);
+            
+            /*
             TaskCompletionSource<bool> completion = new TaskCompletionSource<bool>();
             var ctxRegistration = ctx?.Register(() => completion.TrySetCanceled());
             EventHandler completionHandler = (source, args) => {
@@ -82,7 +87,7 @@ namespace HotChocolate.Execution.Processing
 
             await completion.Task.ConfigureAwait(false);
             ctxRegistration?.Dispose();
-            ProcessingHalted -= completionHandler;
+            ProcessingHalted -= completionHandler;*/
         }
 
         /// <summary>Mark that no future work should be handled by this scheduler (will stop all processing tasks as soon as possible)

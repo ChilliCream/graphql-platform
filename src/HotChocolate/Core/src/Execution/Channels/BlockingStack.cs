@@ -66,8 +66,12 @@ namespace HotChocolate.Execution.Channels
 
         public bool IsEmpty { get; private set; } = true;
 
-        public async Task WaitTillEmpty(CancellationToken? ctx = null)
+        public Task WaitTillEmpty(CancellationToken? ctx = null)
         {
+            // TODO: remove this after deadlock experiment is over
+            // (should result in failed tests, but no deadlocks)
+            return Task.Delay(0);
+            /*
             TaskCompletionSource<bool> completion = new TaskCompletionSource<bool>();
             var ctxRegistration = ctx?.Register(() => completion.TrySetCanceled());
             EventHandler completionHandler = (source, args) => {
@@ -101,6 +105,7 @@ namespace HotChocolate.Execution.Channels
             await completion.Task.ConfigureAwait(false);
             ctxRegistration?.Dispose();
             StackEmptied -= completionHandler;
+            */
         }
 
         public int Count => _list.Count;
