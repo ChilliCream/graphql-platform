@@ -10,11 +10,19 @@ namespace HotChocolate.Execution.Processing
             IOperationContext operationContext)
         {
             // ensure that all subtasks spawned from this are tracked in the TrackingTaskScheduler
-            return Task.Factory.StartNew(
-                () => ExecuteResolversAsync(operationContext),
-                operationContext.RequestAborted,
-                TaskCreationOptions.None,
-                operationContext.Execution.TaskScheduler).Unwrap();
+            // (this check can be removed once the experimental batching mode becomes the only option
+            if (operationContext.Execution.TaskScheduler == TaskScheduler.Current)
+            {
+                return ExecuteResolversAsync(operationContext);
+            }
+            else
+            {
+                return Task.Factory.StartNew(
+                    () => ExecuteResolversAsync(operationContext),
+                    operationContext.RequestAborted,
+                    TaskCreationOptions.None,
+                    operationContext.Execution.TaskScheduler).Unwrap();
+            }
         }
 
         private static async Task ExecuteResolversAsync(

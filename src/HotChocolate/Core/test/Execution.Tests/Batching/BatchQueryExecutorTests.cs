@@ -381,8 +381,12 @@ namespace HotChocolate.Execution.Batching
                         }, "foo").LoadAsync(bar, CancellationToken.None);
                     });
             var services = new ServiceCollection();
-            // enforce consistent output results by only triggering a batch when idle (BatchTimeout > ExecutionTimeout)
-            services.AddSingleton<IBatchingOptionsAccessor>(sp => new BatchingOptions { BatchTimeout = TimeSpan.FromSeconds(40) });
+            services.AddSingleton<IBatchingOptionsAccessor>(sp => new BatchingOptions
+            {
+                AllowExperimental = true,
+                // enforce consistent output results by only triggering a batch when idle (BatchTimeout > ExecutionTimeout)
+                BatchTimeout = TimeSpan.FromSeconds(40)
+            });
             services.AddGraphQL()
                 .AddQueryType(d => addFooField(d.Name("Query")))
                 .AddMutationType(d => addFooField(d.Name("Mutation")))
@@ -480,9 +484,8 @@ namespace HotChocolate.Execution.Batching
             }
         }
 
-        /// <returns></returns>
-        [Fact]
-        public async Task AllowParallel_Scheduling()
+        /// Shared code for testing
+        private async Task AllowParallel_Scheduling(bool experimental)
         {
             // arrange
             Snapshot.FullName();
@@ -499,8 +502,12 @@ namespace HotChocolate.Execution.Batching
                 return new Foo(val);
             };
             var services = new ServiceCollection();
-            // enforce consistent output results by only triggering a batch when idle (BatchTimeout > ExecutionTimeout)
-            services.AddSingleton<IBatchingOptionsAccessor>(sp => new BatchingOptions { BatchTimeout = TimeSpan.FromSeconds(40) });
+            services.AddSingleton<IBatchingOptionsAccessor>(sp => new BatchingOptions
+            {
+                AllowExperimental = experimental,
+                // enforce consistent output results by only triggering a batch when idle (BatchTimeout > ExecutionTimeout)
+                BatchTimeout = TimeSpan.FromSeconds(40)
+            });
             services.AddGraphQL()
                 .AddObjectType<Foo>(d => d
                     .Field("foo")
@@ -539,9 +546,32 @@ namespace HotChocolate.Execution.Batching
                 };
 
                 IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch, true);
-                
-                await batchResult.ToJsonAsync().MatchSnapshotAsync();
+
+                if (experimental)
+                {
+                    await batchResult.ToJsonAsync().MatchSnapshotAsync();
+                }
+                else
+                {
+                    // Without experimental mode, the test results are too depedendant on
+                    // the timings to get consistent results.
+                    await batchResult.ToJsonAsync();
+                    Assert.InRange(batchCount, 3, 6);
+                }
             }
+        }
+
+        [Fact]
+        public async Task AllowParallel_Scheduling_Experimental()
+        {
+            await AllowParallel_Scheduling(true);
+        }
+
+
+        [Fact]
+        public async Task AllowParallel_Scheduling_NoExperimental()
+        {
+            await AllowParallel_Scheduling(false);
         }
     }
 }

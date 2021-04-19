@@ -14,5 +14,9 @@ namespace HotChocolate.Execution.Options
         /// A batch can be started later if there is a heavy load on the machine.
         /// </summary>
         public TimeSpan BatchTimeout { get; set; } = TimeSpan.FromMilliseconds(10);
+
+        /// <summary>If set allow running the experimental but more optimized batching code</summary>
+        [Obsolete("This option will be removed in the next major release")]
+        public bool AllowExperimental { get; set; } = true; // TODO: default to false after testing
     }
 }

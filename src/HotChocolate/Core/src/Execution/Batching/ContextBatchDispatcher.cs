@@ -17,7 +17,7 @@ namespace HotChocolate.Execution.Batching
     : IContextBatchDispatcher, IDisposable
     {
         private readonly object _dispatchLock = new();
-        private readonly TrackableTaskScheduler _taskScheduler;
+        private readonly TrackableTaskScheduler? _experimentalScheduler;
         private readonly TaskScheduler _batchScheduler;
         private readonly IBatchDispatcher _dispatcher;
         private readonly ConcurrentDictionary<IExecutionContext, CancellationToken> _contexts = new();
@@ -27,24 +27,27 @@ namespace HotChocolate.Execution.Batching
         /// <remarks>If nothing is in progress, the wait time will be less, if tasks are still being created it can be more</remarks>
         private readonly int _dispatchTimeout = 10;
 
-        public ContextBatchDispatcher(IBatchDispatcher dispatcher, IBatchingOptionsAccessor? options = null)
+        public ContextBatchDispatcher(IBatchDispatcher dispatcher, IBatchingOptionsAccessor options)
         {
             _batchScheduler = TaskScheduler.Current;
             Contract.Assert(!(_batchScheduler is TrackableTaskScheduler));
-            _taskScheduler = new TrackableTaskScheduler(_batchScheduler);
             _dispatcher = dispatcher;
             _dispatcher.TaskEnqueued += BatchDispatcherEventHandler;
-            _dispatchTimeout = (int) (options?.BatchTimeout.TotalMilliseconds ?? 10);
+            _dispatchTimeout = (int) options.BatchTimeout.TotalMilliseconds;
+            if (options.AllowExperimental)
+            {
+                _experimentalScheduler = new TrackableTaskScheduler(_batchScheduler);
+            }
         }
 
         public void Dispose()
         {
-            _taskScheduler.Complete();
+            _experimentalScheduler?.Complete();
         }
 
         public IBatchDispatcher BatchDispatcher => _dispatcher;
 
-        public TaskScheduler TaskScheduler => _taskScheduler;
+        public TaskScheduler TaskScheduler => _experimentalScheduler ?? _batchScheduler;
 
         public void Suspend()
         {
@@ -140,34 +143,34 @@ namespace HotChocolate.Execution.Batching
             timeoutSource.CancelAfter(_dispatchTimeout);
 
             var runningContexts = RunningContexts().ToList();
-            while (!timeoutSource.IsCancellationRequested && runningContexts.Any() && (!_taskScheduler.IsIdle || runningContexts.Any(x => !x.Key.TaskBacklog.IsIdle)))
+            while (!timeoutSource.IsCancellationRequested && runningContexts.Any() && (!(_experimentalScheduler?.IsIdle ?? true) || runningContexts.Any(x => !x.Key.TaskBacklog.IsIdle)))
             {
                 try
                 {
-                    await _taskScheduler.WaitTillIdle(timeoutSource.Token).ConfigureAwait(false);
+                    await (_experimentalScheduler?.WaitTillIdle(timeoutSource.Token) ?? Task.CompletedTask).ConfigureAwait(false);
                     foreach (var context in runningContexts)
-                    {
-                        if (!timeoutSource.IsCancellationRequested)
                         {
-                            var ctxSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutSource.Token, context.Value);
-                            await context.Key.TaskBacklog.WaitTillIdle(ctxSource.Token).ConfigureAwait(false);
+                            if (!timeoutSource.IsCancellationRequested)
+                            {
+                                var ctxSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutSource.Token, context.Value);
+                                await context.Key.TaskBacklog.WaitTillIdle(ctxSource.Token).ConfigureAwait(false);
+                            }
                         }
                     }
-                }
-                catch (TaskCanceledException)
-                {
+                    catch (TaskCanceledException)
+                    {
                     // keep running as long as there are running contexts
-                }
-                catch (Exception e)
-                {
-                    // if an unexpected exception happened while waiting,
-                    // just start the batch and see what happens there
-                    Debug.Fail($"Unexpected exception while waiting for BatchTimeout completion: {e}");
-                    return;
-                }
+                    }
+                    catch (Exception e)
+                    {
+                        // if an unexpected exception happened while waiting,
+                        // just start the batch and see what happens there
+                        Debug.Fail($"Unexpected exception while waiting for BatchTimeout completion: {e}");
+                        return;
+                    }
                 
                 runningContexts = RunningContexts().ToList();
-            }            
+            }
         }
 
         /// <summary>

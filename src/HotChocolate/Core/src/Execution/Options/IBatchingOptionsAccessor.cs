@@ -14,5 +14,9 @@ namespace HotChocolate.Execution.Options
         /// A dataload can be started later if there is a heavy load on the machine.
         /// </summary>
         TimeSpan BatchTimeout { get; }
+
+        /// <summary>If set allow running the experimental but more optimized batching code</summary>
+        [Obsolete("This option will be removed in the next major release")]
+        bool AllowExperimental { get; }
     }
 }
