@@ -27,7 +27,7 @@ namespace HotChocolate.Execution.Processing
         /// <summary>If false, no more work will be accepted and the active processing tasks will stop as soon as possible</summary>
         private bool _running = true;
         /// <summary>This event is triggered whenever the processing comes to a complete stop (no items left in queue, and nothing running)</summary>
-        /// <remarks>_lock will be acquired while this event is triggered</remarks>
+        /// <remarks>_lock will not be acquired while this event is triggered (it is possible process is running event during this event)</remarks>
         private event EventHandler? ProcessingHalted;
 
         /// <summary>Create a new instance that uses the current scheduler to perform the actual work</summary>
@@ -169,11 +169,8 @@ namespace HotChocolate.Execution.Processing
                 {
                     if (_processingTaskCount > 0)  --_processingTaskCount;
                     ProcessAsyncIfNecessary();
-                    if (_processingTaskCount==0)
-                    {
-                        ProcessingHalted?.Invoke(this, EventArgs.Empty);
-                    }
                 }
+                if (_processingTaskCount == 0) ProcessingHalted?.Invoke(this, EventArgs.Empty);
             }
         }
     }
