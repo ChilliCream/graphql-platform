@@ -893,9 +893,9 @@ namespace Foo.Bar.State
             {
             }
 
-            )
+            id)
             {
-                return MapIGetFoo_Test_FooData(data.Value.EntityId, snapshot);
+                return MapIGetFoo_Test_FooData(id, snapshot);
             }
             else if (data.Value.Data is global::Foo.Bar.State.IBarData d)
             {

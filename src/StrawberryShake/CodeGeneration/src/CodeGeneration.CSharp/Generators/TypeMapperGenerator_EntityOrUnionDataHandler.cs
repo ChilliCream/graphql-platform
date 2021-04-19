@@ -74,12 +74,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             IfBuilder ifBuilder = IfBuilder
                 .New()
-                .SetCondition($"{parameterName}.EntityId is {{ }}")
+                .SetCondition($"{parameterName}.EntityId is {{ }} id")
                 .AddCode(MethodCallBuilder
                     .New()
                     .SetReturn()
                     .SetMethodName(entityDataHandlerMethodName)
-                    .AddArgument($"{parameterName}.EntityId")
+                    .AddArgument("id")
                     .AddArgument(_snapshot))
                 .AddIfElse(IfBuilder
                     .New()
