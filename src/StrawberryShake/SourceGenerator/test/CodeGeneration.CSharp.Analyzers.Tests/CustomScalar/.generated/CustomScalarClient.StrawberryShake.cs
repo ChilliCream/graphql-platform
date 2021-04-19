@@ -144,6 +144,26 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
 
         public global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.Custom? CustomScalar { get; }
 
+        public virtual global::System.Boolean Equals(GetCustomValueResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((CustomScalar is null && other.CustomScalar is null) || CustomScalar != null && CustomScalar.Equals(other.CustomScalar)));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -162,26 +182,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
             }
 
             return Equals((GetCustomValueResult)obj);
-        }
-
-        public global::System.Boolean Equals(GetCustomValueResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((CustomScalar is null && other.CustomScalar is null) || CustomScalar != null && CustomScalar.Equals(other.CustomScalar)));
         }
 
         public override global::System.Int32 GetHashCode()
