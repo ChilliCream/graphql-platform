@@ -24,7 +24,7 @@ namespace HotChocolate.Execution.Batching
         private Task _dispatchTask = default!;
         /// <summary>The amount of time in milliseconds that we wait before starting a batch</summary>
         /// <remarks>If nothing is in progress, the wait time will be less, if tasks are still being created it can be more</remarks>
-        private readonly int _dispatchTimeout = 10;
+        private readonly int _dispatchTimeout;
 
         public ContextBatchDispatcher(IBatchDispatcher dispatcher, IBatchingOptionsAccessor options)
         {
@@ -148,7 +148,7 @@ namespace HotChocolate.Execution.Batching
                     {
                         var checks = contexts.Select(x => x.Key.TaskBacklog.WaitTillIdle(contextCtx.Token)).ToList();
                         // if we trigger an actual wait, redo the check because new items might have been added since then
-                        bool willYield = checks.Where(x => !x.IsCompleted).Any();
+                        bool willYield = checks.Any(x => !x.IsCompleted);
                         await Task.WhenAll(checks).ConfigureAwait(false);
                         if (willYield) continue;
                     }
