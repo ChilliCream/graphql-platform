@@ -360,8 +360,8 @@ namespace HotChocolate.Execution.Batching
             await Assert.ThrowsAsync<ArgumentNullException>(action);
         }
 
-        // shared code for AllowParallel_Basic_... tests
-        private async Task AllowParallel_Basic(bool allowParallelExecution, bool batchScoped)
+        // shared code for AllowParallel_... tests
+        private async Task AllowParallel_Shared(bool allowParallelExecution, bool batchScoped)
         {
             // arrange
             Snapshot.FullName();
@@ -460,18 +460,18 @@ namespace HotChocolate.Execution.Batching
         }
 
         [Fact]
-        public Task AllowParallel_Basic_Off()
+        public Task AllowParallel_Off()
         {
-            return AllowParallel_Basic(false, false);
+            return AllowParallel_Shared(false, false);
         }
 
         [Fact]
-        public Task AllowParallel_Basic_On()
+        public Task AllowParallel_On()
         {
-            return AllowParallel_Basic(true, true);
+            return AllowParallel_Shared(true, true);
         }
 
-        /// <summary>data class for AllowParallel_Scheduling</summary>
+        /// <summary>data class for BatchingTimeout_Shared</summary>
         class Foo
         {
             public string Val { get; private set; }
@@ -483,7 +483,7 @@ namespace HotChocolate.Execution.Batching
         }
 
         /// Shared code for testing
-        private async Task AllowParallel_Scheduling(bool experimental)
+        private async Task BatchTimeout_Shared(bool enabled)
         {
             // arrange
             Snapshot.FullName();
@@ -502,7 +502,7 @@ namespace HotChocolate.Execution.Batching
             var services = new ServiceCollection();
             services.AddSingleton<IBatchingOptionsAccessor>(sp => new BatchingOptions
             {
-                BatchTimeout = TimeSpan.FromSeconds(experimental ? 30 : 0)
+                BatchTimeout = TimeSpan.FromSeconds(enabled ? 30 : 0)
             });
             services.AddGraphQL()
                 .AddObjectType<Foo>(d => d
@@ -543,13 +543,13 @@ namespace HotChocolate.Execution.Batching
 
                 IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch, true);
 
-                if (experimental)
+                if (enabled)
                 {
                     await batchResult.ToJsonAsync().MatchSnapshotAsync();
                 }
                 else
                 {
-                    // Without experimental mode, the test results are too depedendant on
+                    // Without BatchTimeout the test results are too depedendant on
                     // the timings to get consistent results.
                     await batchResult.ToJsonAsync();
                     Assert.InRange(batchCount, 3, 6);
@@ -558,16 +558,16 @@ namespace HotChocolate.Execution.Batching
         }
 
         [Fact]
-        public async Task AllowParallel_Scheduling_Experimental()
+        public async Task BatchTimeout_On()
         {
-            await AllowParallel_Scheduling(true);
+            await BatchTimeout_Shared(true);
         }
 
 
         [Fact]
-        public async Task AllowParallel_Scheduling_NoExperimental()
+        public async Task BatchTimeout_Off()
         {
-            await AllowParallel_Scheduling(false);
+            await BatchTimeout_Shared(false);
         }
     }
 }
