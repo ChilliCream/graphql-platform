@@ -569,5 +569,77 @@ namespace HotChocolate.Execution.Batching
         {
             await BatchTimeout_Shared(false);
         }
+
+        [Fact]
+        public async Task BatchTimeout_Multiple_Dataloads()
+        {
+            // arrange
+            Snapshot.FullName();
+
+            int batchCount = 0;
+            var services = new ServiceCollection();
+            services.AddSingleton<IBatchingOptionsAccessor>(sp => new BatchingOptions
+            {
+                BatchTimeout = TimeSpan.FromSeconds(30)
+            });
+            services.AddGraphQL()
+                .AddQueryType(d => d.Name("Query")
+                    .Field("foo")
+                    .Argument("bar", a => a.Type<StringType>())
+                    .Resolve(async (c,ctx) =>
+                    {
+                        var bar = c.ArgumentValue<string>("bar");
+                        var phase1 = await c.BatchDataLoader<string, string>((keys, ctxToken) =>
+                        {
+                            int currentBatchCount = Interlocked.Increment(ref batchCount);
+                            return Task.FromResult(keys.ToDictionary(x => x, x => $"{x}-{currentBatchCount}") as IReadOnlyDictionary<string, string>);
+                        }, "phase1").LoadAsync(bar, ctx);
+                        var phase2 = await c.BatchDataLoader<string, string>((keys, ctxToken) =>
+                        {
+                            int currentBatchCount = Interlocked.Increment(ref batchCount);
+                            return Task.FromResult(keys.ToDictionary(x => x, x => $"{x}-{currentBatchCount}") as IReadOnlyDictionary<string, string>);
+                        }, "phase2").LoadAsync(phase1, ctx);
+                        return await c.BatchDataLoader<string, string>((keys, ctxToken) =>
+                        {
+                            int currentBatchCount = Interlocked.Increment(ref batchCount);
+                            return Task.FromResult(keys.ToDictionary(x => x, x => $"{x}-{currentBatchCount}") as IReadOnlyDictionary<string, string>);
+                        }, "phase3").LoadAsync(phase2, ctx);
+                    }));
+
+            IServiceProvider serviceProvider = services.BuildServiceProvider();
+            using (IServiceScope scope = serviceProvider.CreateScope())
+            {
+                IRequestExecutor executor = await scope.ServiceProvider.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
+
+                // act
+                var batch = new List<IReadOnlyQueryRequest>
+                {
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{ foo(bar:""A"") }")
+                        .TrySetServices(scope.ServiceProvider)
+                        .Create(),
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{ foo(bar:""B"") }")
+                        .TrySetServices(scope.ServiceProvider)
+                        .Create(),
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{ foo(bar:""C"") }")
+                        .TrySetServices(scope.ServiceProvider)
+                        .Create(),
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{ foo(bar:""B"") }")
+                        .TrySetServices(scope.ServiceProvider)
+                        .Create()
+                };
+
+                IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch, true);
+                await batchResult.ToJsonAsync().MatchSnapshotAsync();
+            }
+        }
     }
 }
