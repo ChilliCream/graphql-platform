@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace HotChocolate.Execution.Channels
 {
     /// <summary>Provides a buffered channel of Unsorted capacity.</summary>    
-    internal sealed partial class UnsortedChannel<T> : Channel<T>
+    internal sealed partial class UnsortedChannel<T>
     {
         private sealed class UnsortedChannelWriter : ChannelWriter<T>
         {

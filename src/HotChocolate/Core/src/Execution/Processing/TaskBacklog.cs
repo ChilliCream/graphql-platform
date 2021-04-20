@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Execution.Channels;
+using System;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -31,12 +32,12 @@ namespace HotChocolate.Execution.Processing
         }
 
     /// <inheritdoc/>
-    public bool TryTake([NotNullWhen(true)] out IExecutionTask? task) =>
-            _channel.Reader.TryRead(out task);
+    public bool TryTake(Action<IExecutionTask> receiver) =>
+            _channel.TryRead(receiver);
 
         /// <inheritdoc/>
         public ValueTask<bool> WaitForTaskAsync(CancellationToken cancellationToken) =>
-            _channel.Reader.WaitToReadAsync(cancellationToken);
+            _channel.WaitToReadAsync(cancellationToken);
 
         /// <inheritdoc/>
         public void Register(ResolverTaskDefinition taskDefinition)
@@ -58,10 +59,10 @@ namespace HotChocolate.Execution.Processing
         public void Register(IExecutionTask task)
         {
             _stats.TaskCreated();
-            _channel.Writer.TryWrite(task);
+            _channel.TryWrite(task);
         }
 
-        public void Complete() => _channel.Writer.Complete();
+        public void Complete() => _channel.Complete();
 
         public void Clear()
         {

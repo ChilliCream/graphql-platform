@@ -34,6 +34,35 @@ namespace HotChocolate.Execution.Channels
             return false;
         }
 
+        /// <summary>
+        /// Tries to remove an item from the queue.
+        /// the item will not be counted as removed until the receiver has completed.
+        /// </summary>
+        /// <returns>true if receiver was called (throws if receiver throws)</returns>
+        public bool TryPop(Action<T> receiver)
+        {
+            if (_list.TryPop(out T item))
+            {
+                try
+                {
+                    receiver(item);
+                }
+                finally
+                {
+                    var value = Interlocked.Decrement(ref _count);
+                    if (value == 0)
+                    {
+                        lock (_lock)
+                        {
+                            StackEmptied?.Invoke(this, EventArgs.Empty);
+                        }
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
+
         public void Push(T item)
         {
             _list.Push(item);
