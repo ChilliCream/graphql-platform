@@ -110,6 +110,100 @@ Even though _cursor-based_ pagination is more performant than _offset-based_ pag
 
 Since we now only know of the next entry, there is no more concept of pages. If we have a feed or only _Next_ and _Previous_ buttons, this works great, but if we depend on page numbers, we are in a tight spot.
 
-# Relay-style cursor pagination
+# Connections
+
+_Connections_ are part of a specification that aims to standardize how pagination is exposed to clients.
+
+Instead of returning a list, we now return a _Connection_.
+
+```sdl
+type Query {
+  users(first: Int after: String last: Int before: String): UserConnection
+}
+
+type UserConnection {
+  pageInfo: PageInfo!
+  edges: [UserEdge!]
+  nodes: [User!]
+}
+
+type UserEdge {
+  cursor: String!
+  node: User!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+```
+
+You can learn more about this in the actual [specification](https://relay.dev/graphql/connections.htm).
+
+> Note: _Connections_ are often associated with _cursor-based_ pagination, due to the use of a _cursor_. Since the specification describes the _cursor_ as opague though, it can be used to faciliate an offset as well.
+
+Adding pagination capabilties to our fields with HotChocolate is a breeze. All we have to do is add the `UsePaging` middleware.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+public class Query
+{
+    [UsePaging]
+    public IEnumerable<User> GetUsers([Service] IUserRespository repository)
+        => repository.GetUsers();
+}
+```
+
+If we need to specify the concrete node type of our pagination, we can do so by passing a Type as the constructor argument `[UsePaging(typeof(User))]`.
+
+The `UsePaging` attribute also allows us to configure some other properties, like `DefaultPageSize`, `MaxPageSize` and `IncludeTotalCount`. Example:
+
+```csharp
+[UsePaging(MaxPageSize = 50)]
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class QueryType : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor
+            .Field("users")
+            .UsePaging()
+            .Resolve(context =>
+            {
+                var repository = context.Service<IUserRespository>();
+
+                return repository.GetUsers();
+            });
+    }
+}
+```
+
+If we need to specify the concrete node type of our pagination, we can do so via the generic argument: `UsePaging<UserType>()`.
+
+We can also configure the `UsePaging` middleware further, by specifying `PagingOptions`. Example:
+
+```csharp
+.UsePaging(options: new PagingOptions
+{
+    MaxPageSize = 50
+});
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
 
 TODO
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+For the `UsePaging` middleware to work, our resolver needs to return an `IEnumerable<T>` or an `IQueryable<T>`. In the case of `IQueryable<T>` this means that the pagination operations can be directly translated to native database queries, through database drivers like EntityFramework or the MongoDB client.
