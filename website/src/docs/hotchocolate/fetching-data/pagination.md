@@ -10,13 +10,13 @@ Pagination is one of the most common problems that we have to solve when impleme
 
 Pagination solves this problem by giving the consumer the ability to fetch a set in chunks.
 
-There are various ways we could implement pagination in our server, but there are mainly two concepts we find in most GraphQL servers: _Offset_ and _Cursor_ pagination.
+There are various ways we could implement pagination in our server, but there are mainly two concepts we find in most GraphQL servers: _offset-based_ and _cursor-based_ pagination.
 
 # Offset Pagination
 
 _Offset-based_ pagination is found in many server implementations whether the backend is implemented in SOAP, REST or GraphQL.
 
-The simplest way to implement _Offset-based_ pagination on one of our fields is to add an `offset` and a `limit` argument.
+The simplest way to implement _offset-based_ pagination on one of our fields is to add an `offset` and a `limit` argument.
 
 ```csharp
 public class Query
@@ -51,21 +51,21 @@ LIMIT %limit OFFSET %offset
 
 ## Problems
 
-But whilst _Offset-based_ pagination is simple to implement and works relatively well, there are also some problems:
+But whilst _offset-based_ pagination is simple to implement and works relatively well, there are also some problems:
 
-- Using `LIMIT` and `OFFSET` on the database-side does not scale well for large datasets. Most databases work with an index instead of numbered rows. This means the database always has to count _offset + limit_ rows, before discarding the offset and only returning the requested number of rows.
+- Using `OFFSET` on the database-side does not scale well for large datasets. Most databases work with an index instead of numbered rows. This means the database always has to count _offset + limit_ rows, before discarding the offset and only returning the requested number of rows.
 
 - If new entries are written to or removed from our database at high frequency, the _offset_ becomes unreliable, potentially skipping or returning duplicate entries.
 
-Luckily we can solve these issues pretty easily by switching from an `offset` to a `cursor`. Continue reading to find out how this works.
+Luckily we can solve these issues pretty easily by switching from an _offset_ to a _cursor_. Continue reading to learn more.
 
 <!-- todo: not happy with this section yet -->
 
 # Cursor Pagination
 
-Contrary to the _Offset-based_ pagination, where we identify the position of an entry using an offset, _Cursor-based_ pagination works by returning the pointer to the next entry in our pagination.
+Contrary to the _offset-based_ pagination, where we identify the position of an entry using an offset, _cursor-based_ pagination works by returning the pointer to the next entry in our pagination.
 
-To understand this concept better, let's look at an example: We want to pagination over the users in our application.
+To understand this concept better, let's look at an example: We want to paginate over the users in our application.
 
 First we execute the following to receive our first page:
 
@@ -106,7 +106,7 @@ LIMIT %limit
 
 ## Problems
 
-Even though _Cursor-based_ pagination is more performant than _Offset-based_ pagination, it comes with a big downside.
+Even though _cursor-based_ pagination is more performant than _offset-based_ pagination, it comes with a big downside.
 
 Since we now only know of the next entry, there is no more concept of pages. If we have a feed or only _Next_ and _Previous_ buttons, this works great, but if we depend on page numbers, we are in a tight spot.
 
