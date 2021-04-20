@@ -230,48 +230,4 @@ namespace HotChocolate
                 ? new NameString()
                 : new NameString(s);
     }
-
-    internal class NameStringConverter
-        : TypeConverter
-    {
-        public override bool CanConvertFrom(
-            ITypeDescriptorContext context,
-            Type sourceType) =>
-                sourceType == typeof(string)
-                || base.CanConvertFrom(context, sourceType);
-
-        public override object ConvertFrom(
-            ITypeDescriptorContext context,
-            CultureInfo culture,
-            object value) =>
-                value is string
-                    ? NameString.ConvertFromString((string)value)
-                    : base.ConvertFrom(context, culture, value);
-
-        public override object ConvertTo(
-            ITypeDescriptorContext context,
-            CultureInfo culture,
-            object value,
-            Type destinationType) =>
-                destinationType == typeof(string)
-                    ? value.ToString()
-                    : base.ConvertTo(context, culture, value, destinationType);
-    }
-
-    public static class NameStringExtensions
-    {
-        public static NameString EnsureNotEmpty(
-            in this NameString name,
-            string argumentName)
-        {
-            if (name.IsEmpty)
-            {
-                throw new ArgumentException(
-                    AbstractionResources.Name_MustNotBeEmpty,
-                    argumentName);
-            }
-
-            return name;
-        }
-    }
 }

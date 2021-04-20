@@ -37,6 +37,7 @@ namespace StrawberryShake.CodeGeneration
 
         public const string OperationKind = StrawberryshakeNamespace + "OperationKind";
         public const string EntityId = StrawberryshakeNamespace + "EntityId";
+        public const string EntityIdOrData = StrawberryshakeNamespace + "EntityIdOrData";
         public const string IEntityUpdateSession = StrawberryshakeNamespace + "IEntityUpdateSession";
         public const string IEntityUpdateSession_Version = "Version";
 
@@ -117,6 +118,10 @@ namespace StrawberryShake.CodeGeneration
             "ServiceCollectionServiceExtensions.AddSingleton";
         public const string BuildServiceProvider = GlobalDependencyInjectionNamespace +
             "ServiceCollectionContainerBuilderExtensions.BuildServiceProvider";
+        public const string InjectAttribute =
+            "global::Microsoft.AspNetCore.Components.InjectAttribute";
+        public const string ParameterAttribute =
+            "global::Microsoft.AspNetCore.Components.ParameterAttribute";
 
         public const string IHttpClientFactory = "global::System.Net.Http.IHttpClientFactory";
         public const string TryAddSingleton= DependencyInjectionExtensions + "TryAddSingleton";
@@ -127,6 +132,7 @@ namespace StrawberryShake.CodeGeneration
         public const string GlobalDependencyInjectionNamespace = "global::Microsoft.Extensions.DependencyInjection.";
         public const string DependencyInjectionNamespace = "Microsoft.Extensions.DependencyInjection";
         public const string DependencyInjectionExtensions =  GlobalDependencyInjectionNamespace +"Extensions.ServiceCollectionDescriptorExtensions.";
+        public const string QueryBase = StrawberryshakeNamespace + "Razor.QueryBase";
 
         public const string StringSerializer = StrawberryshakeNamespace + "Serialization.StringSerializer";
         public const string BooleanSerializer = StrawberryshakeNamespace + "Serialization.BooleanSerializer";

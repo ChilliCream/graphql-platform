@@ -73,7 +73,7 @@ namespace StrawberryShake.Transport.WebSockets.Protocols
                 throw ThrowHelper.Protocol_CannotInitializeOnClosedSocket();
             }
 
-            object? payload =
+            var payload =
                 await _socketClient
                     .ConnectionInterceptor
                     .CreateConnectionInitPayload(this, cancellationToken);

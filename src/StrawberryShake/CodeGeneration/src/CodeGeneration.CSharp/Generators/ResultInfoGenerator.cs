@@ -19,7 +19,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected override bool CanHandle(ITypeDescriptor descriptor,
             CSharpSyntaxGeneratorSettings settings)
         {
-            return descriptor.Kind == TypeKind.ResultType && !descriptor.IsInterface();
+            return descriptor.Kind == TypeKind.Result && !descriptor.IsInterface();
         }
 
         protected override void Generate(ITypeDescriptor typeDescriptor,
@@ -65,7 +65,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 constructorBuilder.AddCode(
                     AssignmentBuilder
                         .New()
-                        .SetLefthandSide(prop.Name)
+                        .SetLefthandSide(GetLeftPropertyAssignment(prop.Name))
                         .SetRighthandSide(paramName));
             }
 

@@ -30,6 +30,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetFeatsPageResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Feats is null && other.Feats is null) || Feats != null && Feats.Equals(other.Feats)));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -48,26 +68,6 @@ namespace Foo.Bar
             }
 
             return Equals((GetFeatsPageResult)obj);
-        }
-
-        public global::System.Boolean Equals(GetFeatsPageResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((Feats is null && other.Feats is null) || Feats != null && Feats.Equals(other.Feats)));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -105,6 +105,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetFeatsPage_Feats_FeatCollectionSegment? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (TotalCount == other.TotalCount) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Items, other.Items);
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -123,26 +143,6 @@ namespace Foo.Bar
             }
 
             return Equals((GetFeatsPage_Feats_FeatCollectionSegment)obj);
-        }
-
-        public global::System.Boolean Equals(GetFeatsPage_Feats_FeatCollectionSegment? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (TotalCount == other.TotalCount) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Items, other.Items);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -205,6 +205,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetFeatsPage_Feats_Items_Feat? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id == other.Id) && Name.Equals(other.Name) && Level == other.Level && CanBeLearnedMoreThanOnce == other.CanBeLearnedMoreThanOnce && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Details, other.Details);
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -223,26 +243,6 @@ namespace Foo.Bar
             }
 
             return Equals((GetFeatsPage_Feats_Items_Feat)obj);
-        }
-
-        public global::System.Boolean Equals(GetFeatsPage_Feats_Items_Feat? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Id == other.Id) && Name.Equals(other.Name) && Level == other.Level && CanBeLearnedMoreThanOnce == other.CanBeLearnedMoreThanOnce && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Details, other.Details);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -278,6 +278,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetFeatsPage_Feats_Items_Details_FeatDetailsBlock? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Text.Equals(other.Text));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -296,26 +316,6 @@ namespace Foo.Bar
             }
 
             return Equals((GetFeatsPage_Feats_Items_Details_FeatDetailsBlock)obj);
-        }
-
-        public global::System.Boolean Equals(GetFeatsPage_Feats_Items_Details_FeatDetailsBlock? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Text.Equals(other.Text));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -432,6 +432,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetFeatByIdResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Feats is null && other.Feats is null) || Feats != null && Feats.Equals(other.Feats)));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -450,26 +470,6 @@ namespace Foo.Bar
             }
 
             return Equals((GetFeatByIdResult)obj);
-        }
-
-        public global::System.Boolean Equals(GetFeatByIdResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((Feats is null && other.Feats is null) || Feats != null && Feats.Equals(other.Feats)));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -501,6 +501,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetFeatById_Feats_FeatCollectionSegment? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Items, other.Items));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -519,26 +539,6 @@ namespace Foo.Bar
             }
 
             return Equals((GetFeatById_Feats_FeatCollectionSegment)obj);
-        }
-
-        public global::System.Boolean Equals(GetFeatById_Feats_FeatCollectionSegment? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Items, other.Items));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -612,6 +612,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetFeatById_Feats_Items_Feat? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id == other.Id) && Name.Equals(other.Name) && Level == other.Level && ((Special is null && other.Special is null) || Special != null && Special.Equals(other.Special)) && ((Trigger is null && other.Trigger is null) || Trigger != null && Trigger.Equals(other.Trigger)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Details, other.Details) && ActionType.Equals(other.ActionType);
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -630,26 +650,6 @@ namespace Foo.Bar
             }
 
             return Equals((GetFeatById_Feats_Items_Feat)obj);
-        }
-
-        public global::System.Boolean Equals(GetFeatById_Feats_Items_Feat? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Id == other.Id) && Name.Equals(other.Name) && Level == other.Level && ((Special is null && other.Special is null) || Special != null && Special.Equals(other.Special)) && ((Trigger is null && other.Trigger is null) || Trigger != null && Trigger.Equals(other.Trigger)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Details, other.Details) && ActionType.Equals(other.ActionType);
         }
 
         public override global::System.Int32 GetHashCode()
@@ -695,6 +695,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetFeatById_Feats_Items_Details_FeatDetailsBlock? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Text.Equals(other.Text));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -713,26 +733,6 @@ namespace Foo.Bar
             }
 
             return Equals((GetFeatById_Feats_Items_Details_FeatDetailsBlock)obj);
-        }
-
-        public global::System.Boolean Equals(GetFeatById_Feats_Items_Details_FeatDetailsBlock? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Text.Equals(other.Text));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -760,6 +760,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(GetFeatById_Feats_Items_ActionType_ActionType? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Name.Equals(other.Name));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -778,26 +798,6 @@ namespace Foo.Bar
             }
 
             return Equals((GetFeatById_Feats_Items_ActionType_ActionType)obj);
-        }
-
-        public global::System.Boolean Equals(GetFeatById_Feats_Items_ActionType_ActionType? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Name.Equals(other.Name));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -1199,8 +1199,127 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class FeatSortInput : global::Foo.Bar.State.IFeatSortInputInfo
+    public partial class FeatSortInput : global::Foo.Bar.State.IFeatSortInputInfo, global::System.IEquatable<FeatSortInput>
     {
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FeatSortInput)obj);
+        }
+
+        public virtual global::System.Boolean Equals(FeatSortInput? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Name is null && other.Name is null) || Name != null && Name.Equals(other.Name))) && ((CanBeLearnedMoreThanOnce is null && other.CanBeLearnedMoreThanOnce is null) || CanBeLearnedMoreThanOnce != null && CanBeLearnedMoreThanOnce.Equals(other.CanBeLearnedMoreThanOnce)) && ((Special is null && other.Special is null) || Special != null && Special.Equals(other.Special)) && ((Trigger is null && other.Trigger is null) || Trigger != null && Trigger.Equals(other.Trigger)) && ((Level is null && other.Level is null) || Level != null && Level.Equals(other.Level)) && ((ActionTypeId is null && other.ActionTypeId is null) || ActionTypeId != null && ActionTypeId.Equals(other.ActionTypeId)) && ((ActionType is null && other.ActionType is null) || ActionType != null && ActionType.Equals(other.ActionType)) && ((FeatTypeId is null && other.FeatTypeId is null) || FeatTypeId != null && FeatTypeId.Equals(other.FeatTypeId)) && ((FeatType is null && other.FeatType is null) || FeatType != null && FeatType.Equals(other.FeatType)) && ((FrequencyId is null && other.FrequencyId is null) || FrequencyId != null && FrequencyId.Equals(other.FrequencyId)) && ((Frequency is null && other.Frequency is null) || Frequency != null && Frequency.Equals(other.Frequency)) && ((RollableEffect is null && other.RollableEffect is null) || RollableEffect != null && RollableEffect.Equals(other.RollableEffect)) && ((RollableEffectId is null && other.RollableEffectId is null) || RollableEffectId != null && RollableEffectId.Equals(other.RollableEffectId)) && ((Id is null && other.Id is null) || Id != null && Id.Equals(other.Id));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                if (Name != null)
+                {
+                    hash ^= 397 * Name.GetHashCode();
+                }
+
+                if (CanBeLearnedMoreThanOnce != null)
+                {
+                    hash ^= 397 * CanBeLearnedMoreThanOnce.GetHashCode();
+                }
+
+                if (Special != null)
+                {
+                    hash ^= 397 * Special.GetHashCode();
+                }
+
+                if (Trigger != null)
+                {
+                    hash ^= 397 * Trigger.GetHashCode();
+                }
+
+                if (Level != null)
+                {
+                    hash ^= 397 * Level.GetHashCode();
+                }
+
+                if (ActionTypeId != null)
+                {
+                    hash ^= 397 * ActionTypeId.GetHashCode();
+                }
+
+                if (ActionType != null)
+                {
+                    hash ^= 397 * ActionType.GetHashCode();
+                }
+
+                if (FeatTypeId != null)
+                {
+                    hash ^= 397 * FeatTypeId.GetHashCode();
+                }
+
+                if (FeatType != null)
+                {
+                    hash ^= 397 * FeatType.GetHashCode();
+                }
+
+                if (FrequencyId != null)
+                {
+                    hash ^= 397 * FrequencyId.GetHashCode();
+                }
+
+                if (Frequency != null)
+                {
+                    hash ^= 397 * Frequency.GetHashCode();
+                }
+
+                if (RollableEffect != null)
+                {
+                    hash ^= 397 * RollableEffect.GetHashCode();
+                }
+
+                if (RollableEffectId != null)
+                {
+                    hash ^= 397 * RollableEffectId.GetHashCode();
+                }
+
+                if (Id != null)
+                {
+                    hash ^= 397 * Id.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+
         private global::Foo.Bar.SortEnumType? _value_name;
         private global::System.Boolean _set_name;
         private global::Foo.Bar.SortEnumType? _value_canBeLearnedMoreThanOnce;
@@ -1451,8 +1570,67 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class ActionTypeSortInput : global::Foo.Bar.State.IActionTypeSortInputInfo
+    public partial class ActionTypeSortInput : global::Foo.Bar.State.IActionTypeSortInputInfo, global::System.IEquatable<ActionTypeSortInput>
     {
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((ActionTypeSortInput)obj);
+        }
+
+        public virtual global::System.Boolean Equals(ActionTypeSortInput? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Name is null && other.Name is null) || Name != null && Name.Equals(other.Name))) && ((Id is null && other.Id is null) || Id != null && Id.Equals(other.Id));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                if (Name != null)
+                {
+                    hash ^= 397 * Name.GetHashCode();
+                }
+
+                if (Id != null)
+                {
+                    hash ^= 397 * Id.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+
         private global::Foo.Bar.SortEnumType? _value_name;
         private global::System.Boolean _set_name;
         private global::Foo.Bar.SortEnumType? _value_id;
@@ -1547,8 +1725,67 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class FeatTypeSortInput : global::Foo.Bar.State.IFeatTypeSortInputInfo
+    public partial class FeatTypeSortInput : global::Foo.Bar.State.IFeatTypeSortInputInfo, global::System.IEquatable<FeatTypeSortInput>
     {
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FeatTypeSortInput)obj);
+        }
+
+        public virtual global::System.Boolean Equals(FeatTypeSortInput? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Name is null && other.Name is null) || Name != null && Name.Equals(other.Name))) && ((Id is null && other.Id is null) || Id != null && Id.Equals(other.Id));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                if (Name != null)
+                {
+                    hash ^= 397 * Name.GetHashCode();
+                }
+
+                if (Id != null)
+                {
+                    hash ^= 397 * Id.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+
         private global::Foo.Bar.SortEnumType? _value_name;
         private global::System.Boolean _set_name;
         private global::Foo.Bar.SortEnumType? _value_id;
@@ -1677,8 +1914,77 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class FrequencySortInput : global::Foo.Bar.State.IFrequencySortInputInfo
+    public partial class FrequencySortInput : global::Foo.Bar.State.IFrequencySortInputInfo, global::System.IEquatable<FrequencySortInput>
     {
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((FrequencySortInput)obj);
+        }
+
+        public virtual global::System.Boolean Equals(FrequencySortInput? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Name is null && other.Name is null) || Name != null && Name.Equals(other.Name))) && ((Amount is null && other.Amount is null) || Amount != null && Amount.Equals(other.Amount)) && ((TimeSpan is null && other.TimeSpan is null) || TimeSpan != null && TimeSpan.Equals(other.TimeSpan)) && ((Id is null && other.Id is null) || Id != null && Id.Equals(other.Id));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                if (Name != null)
+                {
+                    hash ^= 397 * Name.GetHashCode();
+                }
+
+                if (Amount != null)
+                {
+                    hash ^= 397 * Amount.GetHashCode();
+                }
+
+                if (TimeSpan != null)
+                {
+                    hash ^= 397 * TimeSpan.GetHashCode();
+                }
+
+                if (Id != null)
+                {
+                    hash ^= 397 * Id.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+
         private global::Foo.Bar.SortEnumType? _value_name;
         private global::System.Boolean _set_name;
         private global::Foo.Bar.SortEnumType? _value_amount;
@@ -1850,8 +2156,82 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class RollableEffectSortInput : global::Foo.Bar.State.IRollableEffectSortInputInfo
+    public partial class RollableEffectSortInput : global::Foo.Bar.State.IRollableEffectSortInputInfo, global::System.IEquatable<RollableEffectSortInput>
     {
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((RollableEffectSortInput)obj);
+        }
+
+        public virtual global::System.Boolean Equals(RollableEffectSortInput? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((CriticalSuccess is null && other.CriticalSuccess is null) || CriticalSuccess != null && CriticalSuccess.Equals(other.CriticalSuccess))) && ((Success is null && other.Success is null) || Success != null && Success.Equals(other.Success)) && ((Failure is null && other.Failure is null) || Failure != null && Failure.Equals(other.Failure)) && ((CriticalFailure is null && other.CriticalFailure is null) || CriticalFailure != null && CriticalFailure.Equals(other.CriticalFailure)) && ((Id is null && other.Id is null) || Id != null && Id.Equals(other.Id));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                if (CriticalSuccess != null)
+                {
+                    hash ^= 397 * CriticalSuccess.GetHashCode();
+                }
+
+                if (Success != null)
+                {
+                    hash ^= 397 * Success.GetHashCode();
+                }
+
+                if (Failure != null)
+                {
+                    hash ^= 397 * Failure.GetHashCode();
+                }
+
+                if (CriticalFailure != null)
+                {
+                    hash ^= 397 * CriticalFailure.GetHashCode();
+                }
+
+                if (Id != null)
+                {
+                    hash ^= 397 * Id.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+
         private global::Foo.Bar.SortEnumType? _value_criticalSuccess;
         private global::System.Boolean _set_criticalSuccess;
         private global::Foo.Bar.SortEnumType? _value_success;
@@ -3164,24 +3544,31 @@ namespace Foo.Bar.State
         {
             (IGetFeatsPageResult Result, GetFeatsPageResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
-            try
+            if (response.Exception is null)
             {
-                if (response.Body != null)
+                try
                 {
-                    if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                    if (response.Body != null)
                     {
-                        data = BuildData(dataElement);
-                    }
+                        if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                        {
+                            data = BuildData(dataElement);
+                        }
 
-                    if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
-                    {
-                        errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                        {
+                            errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        }
                     }
                 }
+                catch (global::System.Exception ex)
+                {
+                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                }
             }
-            catch (global::System.Exception ex)
+            else
             {
-                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex)};
+                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
             }
 
             return new global::StrawberryShake.OperationResult<IGetFeatsPageResult>(data?.Result, data?.Info, _resultDataFactory, errors);
@@ -3366,24 +3753,31 @@ namespace Foo.Bar.State
         {
             (IGetFeatByIdResult Result, GetFeatByIdResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
-            try
+            if (response.Exception is null)
             {
-                if (response.Body != null)
+                try
                 {
-                    if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                    if (response.Body != null)
                     {
-                        data = BuildData(dataElement);
-                    }
+                        if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                        {
+                            data = BuildData(dataElement);
+                        }
 
-                    if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
-                    {
-                        errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                        {
+                            errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        }
                     }
                 }
+                catch (global::System.Exception ex)
+                {
+                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                }
             }
-            catch (global::System.Exception ex)
+            else
             {
-                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex)};
+                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
             }
 
             return new global::StrawberryShake.OperationResult<IGetFeatByIdResult>(data?.Result, data?.Info, _resultDataFactory, errors);

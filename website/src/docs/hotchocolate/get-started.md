@@ -27,7 +27,7 @@ dotnet sln add ./Demo
 2. Add the `HotChocolate.AspNetCore` package.
 
 ```bash
-dotnet add ./Demo package HotChocolate.AspNetCore --version 11.0.0-rc.0
+dotnet add ./Demo package HotChocolate.AspNetCore --version 11.1.0
 ```
 
 # Step 2: Create a GraphQL schema

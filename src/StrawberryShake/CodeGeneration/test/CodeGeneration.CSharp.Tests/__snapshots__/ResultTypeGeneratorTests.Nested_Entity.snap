@@ -30,6 +30,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(DecodeVINResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (DecodeVIN.Equals(other.DecodeVIN));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -48,26 +68,6 @@ namespace Foo.Bar
             }
 
             return Equals((DecodeVINResult)obj);
-        }
-
-        public global::System.Boolean Equals(DecodeVINResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (DecodeVIN.Equals(other.DecodeVIN));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -107,6 +107,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(DecodeVIN_DecodeVIN_DecodeVIN? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (IsValid == other.IsValid) && ((VehicleMake is null && other.VehicleMake is null) || VehicleMake != null && VehicleMake.Equals(other.VehicleMake)) && ((VehicleModel is null && other.VehicleModel is null) || VehicleModel != null && VehicleModel.Equals(other.VehicleModel));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -125,26 +145,6 @@ namespace Foo.Bar
             }
 
             return Equals((DecodeVIN_DecodeVIN_DecodeVIN)obj);
-        }
-
-        public global::System.Boolean Equals(DecodeVIN_DecodeVIN_DecodeVIN? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (IsValid == other.IsValid) && ((VehicleMake is null && other.VehicleMake is null) || VehicleMake != null && VehicleMake.Equals(other.VehicleMake)) && ((VehicleModel is null && other.VehicleModel is null) || VehicleModel != null && VehicleModel.Equals(other.VehicleModel));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -200,6 +200,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(DecodeVIN_DecodeVIN_VehicleMake_VehicleMake? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id == other.Id) && ((Make is null && other.Make is null) || Make != null && Make.Equals(other.Make)) && ((MakeCode is null && other.MakeCode is null) || MakeCode != null && MakeCode.Equals(other.MakeCode)) && IsDisabled == other.IsDisabled;
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -218,26 +238,6 @@ namespace Foo.Bar
             }
 
             return Equals((DecodeVIN_DecodeVIN_VehicleMake_VehicleMake)obj);
-        }
-
-        public global::System.Boolean Equals(DecodeVIN_DecodeVIN_VehicleMake_VehicleMake? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Id == other.Id) && ((Make is null && other.Make is null) || Make != null && Make.Equals(other.Make)) && ((MakeCode is null && other.MakeCode is null) || MakeCode != null && MakeCode.Equals(other.MakeCode)) && IsDisabled == other.IsDisabled;
         }
 
         public override global::System.Int32 GetHashCode()
@@ -306,6 +306,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(DecodeVIN_DecodeVIN_VehicleModel_VehicleModel? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id == other.Id) && ((Model is null && other.Model is null) || Model != null && Model.Equals(other.Model)) && ((ModelCode is null && other.ModelCode is null) || ModelCode != null && ModelCode.Equals(other.ModelCode)) && VehicleMakeId == other.VehicleMakeId && IsDisabled == other.IsDisabled && ((ModelType is null && other.ModelType is null) || ModelType != null && ModelType.Equals(other.ModelType));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -324,26 +344,6 @@ namespace Foo.Bar
             }
 
             return Equals((DecodeVIN_DecodeVIN_VehicleModel_VehicleModel)obj);
-        }
-
-        public global::System.Boolean Equals(DecodeVIN_DecodeVIN_VehicleModel_VehicleModel? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Id == other.Id) && ((Model is null && other.Model is null) || Model != null && Model.Equals(other.Model)) && ((ModelCode is null && other.ModelCode is null) || ModelCode != null && ModelCode.Equals(other.ModelCode)) && VehicleMakeId == other.VehicleMakeId && IsDisabled == other.IsDisabled && ((ModelType is null && other.ModelType is null) || ModelType != null && ModelType.Equals(other.ModelType));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -998,24 +998,31 @@ namespace Foo.Bar.State
         {
             (IDecodeVINResult Result, DecodeVINResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
-            try
+            if (response.Exception is null)
             {
-                if (response.Body != null)
+                try
                 {
-                    if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                    if (response.Body != null)
                     {
-                        data = BuildData(dataElement);
-                    }
+                        if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                        {
+                            data = BuildData(dataElement);
+                        }
 
-                    if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
-                    {
-                        errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                        {
+                            errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        }
                     }
                 }
+                catch (global::System.Exception ex)
+                {
+                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                }
             }
-            catch (global::System.Exception ex)
+            else
             {
-                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex)};
+                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
             }
 
             return new global::StrawberryShake.OperationResult<IDecodeVINResult>(data?.Result, data?.Info, _resultDataFactory, errors);

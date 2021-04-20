@@ -57,7 +57,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             if (settings.IsStoreEnabled())
             {
                 foreach (PropertyDescriptor property in
-                    resultNamedType.Properties.Where(prop => prop.Type.IsOrContainsEntityType()))
+                    resultNamedType.Properties.Where(prop => prop.Type.IsOrContainsEntity()))
                 {
                     var variableName = $"{GetParameterName(property.Name)}Id";
 
@@ -127,7 +127,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             foreach (PropertyDescriptor property in resultNamedType.Properties)
             {
-                if (property.Type.IsOrContainsEntityType())
+                if (property.Type.IsOrContainsEntity())
                 {
                     resultInfoConstructor.AddArgument($"{GetParameterName(property.Name)}Id");
                 }

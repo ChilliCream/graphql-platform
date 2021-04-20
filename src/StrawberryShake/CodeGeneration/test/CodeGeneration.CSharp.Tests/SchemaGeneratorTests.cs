@@ -415,5 +415,31 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }",
                 "extend schema @key(fields: \"id\")");
         }
+
+        [Fact]
+        public void MultiLineDocumentation()
+        {
+            AssertResult(
+                @"query Foo {
+                    abc
+                }",
+                @"type Query {
+                    """"""
+                    ABC
+                    DEF
+                    """"""
+                    abc: String
+                }");
+        }
+
+        [Fact]
+        public void IntrospectionQuery()
+        {
+            AssertResult(
+                FileResource.Open("IntrospectionQuery.graphql"),
+                @"type Query {
+                    abc: String
+                }");
+        }
     }
 }

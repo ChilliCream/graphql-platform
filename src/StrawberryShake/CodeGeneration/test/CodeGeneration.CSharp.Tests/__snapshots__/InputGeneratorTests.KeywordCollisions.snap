@@ -36,6 +36,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(ReadonlyResult? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Readonly is null && other.Readonly is null) || Readonly != null && Readonly.Equals(other.Readonly))) && ((ReadonlyEntity is null && other.ReadonlyEntity is null) || ReadonlyEntity != null && ReadonlyEntity.Equals(other.ReadonlyEntity));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -54,26 +74,6 @@ namespace Foo.Bar
             }
 
             return Equals((ReadonlyResult)obj);
-        }
-
-        public global::System.Boolean Equals(ReadonlyResult? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((Readonly is null && other.Readonly is null) || Readonly != null && Readonly.Equals(other.Readonly))) && ((ReadonlyEntity is null && other.ReadonlyEntity is null) || ReadonlyEntity != null && ReadonlyEntity.Equals(other.ReadonlyEntity));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -110,6 +110,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(Readonly_Readonly_readonly? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Abstract is null && other.Abstract is null) || Abstract != null && Abstract.Equals(other.Abstract)));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -128,26 +148,6 @@ namespace Foo.Bar
             }
 
             return Equals((Readonly_Readonly_readonly)obj);
-        }
-
-        public global::System.Boolean Equals(Readonly_Readonly_readonly? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((Abstract is null && other.Abstract is null) || Abstract != null && Abstract.Equals(other.Abstract)));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -185,6 +185,26 @@ namespace Foo.Bar
             get;
         }
 
+        public virtual global::System.Boolean Equals(Readonly_ReadonlyEntity_readonlyEntity? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Id is null && other.Id is null) || Id != null && Id.Equals(other.Id))) && ((Abstract is null && other.Abstract is null) || Abstract != null && Abstract.Equals(other.Abstract));
+        }
+
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
             if (ReferenceEquals(null, obj))
@@ -203,26 +223,6 @@ namespace Foo.Bar
             }
 
             return Equals((Readonly_ReadonlyEntity_readonlyEntity)obj);
-        }
-
-        public global::System.Boolean Equals(Readonly_ReadonlyEntity_readonlyEntity? other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (((Id is null && other.Id is null) || Id != null && Id.Equals(other.Id))) && ((Abstract is null && other.Abstract is null) || Abstract != null && Abstract.Equals(other.Abstract));
         }
 
         public override global::System.Int32 GetHashCode()
@@ -346,8 +346,62 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class Abstract : global::Foo.Bar.State.IAbstractInfo
+    public partial class Abstract : global::Foo.Bar.State.IAbstractInfo, global::System.IEquatable<Abstract>
     {
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((Abstract)obj);
+        }
+
+        public virtual global::System.Boolean Equals(Abstract? other)
+        {
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Class is null && other.Class is null) || Class != null && Class.Equals(other.Class)));
+        }
+
+        public override global::System.Int32 GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 5;
+                if (Class != null)
+                {
+                    hash ^= 397 * Class.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+
         private global::System.String? _value_class;
         private global::System.Boolean _set_class;
         public global::System.String? Class
@@ -721,24 +775,31 @@ namespace Foo.Bar.State
         {
             (IReadonlyResult Result, ReadonlyResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
-            try
+            if (response.Exception is null)
             {
-                if (response.Body != null)
+                try
                 {
-                    if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                    if (response.Body != null)
                     {
-                        data = BuildData(dataElement);
-                    }
+                        if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                        {
+                            data = BuildData(dataElement);
+                        }
 
-                    if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
-                    {
-                        errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                        {
+                            errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        }
                     }
                 }
+                catch (global::System.Exception ex)
+                {
+                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                }
             }
-            catch (global::System.Exception ex)
+            else
             {
-                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex)};
+                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
             }
 
             return new global::StrawberryShake.OperationResult<IReadonlyResult>(data?.Result, data?.Info, _resultDataFactory, errors);

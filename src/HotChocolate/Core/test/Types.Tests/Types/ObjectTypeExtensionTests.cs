@@ -588,6 +588,20 @@ namespace HotChocolate.Types
                 .MatchSnapshotAsync();
         }
 
+        [Fact]
+        public async Task Extended_Field_Overwrites_Extended_Field()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType()
+                .AddTypeExtension<ExtensionA>()
+                .AddTypeExtension<ExtensionB>()
+                .ExecuteRequestAsync("{ foo }")
+                .MatchSnapshotAsync();
+        }
+
         public class FooType
             : ObjectType<Foo>
         {
@@ -842,6 +856,18 @@ namespace HotChocolate.Types
             [BindMember(nameof(Replace_Field_PersonDto_2.SomeId))]
             public string SomeId([Parent] IPersonDto dto, string arg = "abc") =>
                 dto.SomeId() + arg;
+        }
+
+        [ExtendObjectType(OperationTypeNames.Query)]
+        public class ExtensionA
+        {
+            public string Foo() => "abc";
+        }
+
+        [ExtendObjectType(OperationTypeNames.Query)]
+        public class ExtensionB
+        {
+            public string Foo() => "def";
         }
     }
 }

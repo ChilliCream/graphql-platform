@@ -89,7 +89,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 var hasErrors = !TryGenerateClient(context, out CSharpGeneratorResult? result);
 
                 // Ensure that all needed packages are installed.
-                if (!EnsurePreconditionsAreMet(context.Execution, context.Settings))
+                if (!EnsurePreconditionsAreMet(context.Execution, context.Settings, result))
                 {
                     return;
                 }
@@ -102,9 +102,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 }
 
                 // If the generator has no errors we will write the documents.
-                IDocumentWriter writer = context.Settings.UseSingleFile
-                    ? new SingleFileDocumentWriter()
-                    : new FileDocumentWriter();
+                IDocumentWriter writer = new FileDocumentWriter(
+                    keepFileName: context.Settings.UseSingleFile);
 
                 IReadOnlyList<SourceDocument> documents = hasErrors || result is null
                     ? context.GetLastSuccessfulGeneratedSourceDocuments()
@@ -180,8 +179,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 {
                     foreach (string fileName in GetGeneratedFiles(context.OutputDirectory))
                     {
-                        if (!context.Settings.EmitGeneratedCode ||
-                            !context.FileNames.Contains(fileName))
+                        if (!context.FileNames.Contains(fileName))
                         {
                             context.Log.RemoveFile(fileName);
                             File.Delete(fileName);
@@ -224,6 +222,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     StrictSchemaValidation = context.Settings.StrictSchemaValidation,
                     NoStore = context.Settings.NoStore,
                     InputRecords = context.Settings.Records.Inputs,
+                    RazorComponents = context.Settings.RazorComponents,
                     EntityRecords = context.Settings.Records.Entities,
                     SingleCodeFile = context.Settings.UseSingleFile,
                     HashProvider = context.Settings.HashAlgorithm.ToLowerInvariant() switch
@@ -288,11 +287,38 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         private static bool EnsurePreconditionsAreMet(
             GeneratorExecutionContext context,
-            StrawberryShakeSettings settings)
+            StrawberryShakeSettings settings,
+            CSharpGeneratorResult? result)
         {
             const string http = "StrawberryShake.Transport.Http";
             const string websockets = "StrawberryShake.Transport.WebSockets";
             const string inmemory = "StrawberryShake.Transport.InMemory";
+            const string razor = "StrawberryShake.Razor";
+
+            if (settings.TransportProfiles.Count == 1)
+            {
+                StrawberryShakeSettingsTransportProfile settingsTransportProfile = settings.TransportProfiles[0];
+
+                if (settingsTransportProfile.Default == TransportType.Http &&
+                    settingsTransportProfile.Subscription == TransportType.WebSocket &&
+                    settingsTransportProfile.Query == null &&
+                    settingsTransportProfile.Mutation == null)
+                {
+                    if (!EnsureDependencyExists(context, http))
+                    {
+                        return false;
+                    }
+
+                    if (result is not null &&
+                        result.OperationTypes.Contains(OperationType.Subscription) &&
+                        !EnsureDependencyExists(context, http))
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
 
             var usedTransports = settings.TransportProfiles
                 .SelectMany(t => t.GetUsedTransports()).Distinct().ToList();
@@ -316,6 +342,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             if (usedTransports.Contains(TransportType.InMemory))
             {
                 if (!EnsureDependencyExists(context, inmemory))
+                {
+                    return false;
+                }
+            }
+
+            if (settings.RazorComponents)
+            {
+                if (!EnsureDependencyExists(context, razor))
                 {
                     return false;
                 }

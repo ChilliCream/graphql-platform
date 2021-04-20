@@ -204,7 +204,7 @@ namespace StrawberryShake.Transport.WebSockets
             using IWebHost host = TestServerHelper
                 .CreateServer(
                     x => x.AddTypeExtension<StringSubscriptionExtensions>(),
-                    out int port);
+                    out var port);
 
             ServiceCollection serviceCollection = new();
             serviceCollection
@@ -217,12 +217,12 @@ namespace StrawberryShake.Transport.WebSockets
             ISessionPool sessionPool = services.GetRequiredService<ISessionPool>();
             ConcurrentDictionary<int, List<JsonDocument>> results = new();
 
-            async Task? CreateSubscription(int id)
+            async Task CreateSubscription(int id)
             {
-                var connection =
-                    new WebSocketConnection(async ct => await sessionPool.CreateAsync("Foo", ct));
-                var document =
-                    new MockDocument($"subscription Test {{ onTest(id:{id.ToString()}) }}");
+                var connection = new WebSocketConnection(
+                    async cancellationToken => await sessionPool.CreateAsync("Foo", cancellationToken));
+                var document = new MockDocument(
+                    $"subscription Test {{ onTest(id:{id.ToString()}) }}");
                 var request = new OperationRequest("Test", document);
                 await foreach (var response in connection.ExecuteAsync(request, ct))
                 {
@@ -273,7 +273,7 @@ namespace StrawberryShake.Transport.WebSockets
             using IWebHost host = TestServerHelper
                 .CreateServer(
                     x => x.AddTypeExtension<StringSubscriptionExtensions>(),
-                    out int port);
+                    out var port);
 
             ServiceCollection serviceCollection = new();
             serviceCollection
