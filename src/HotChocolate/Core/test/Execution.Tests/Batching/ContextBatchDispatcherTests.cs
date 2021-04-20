@@ -1,5 +1,4 @@
 using System.Threading;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Options;
 using HotChocolate.Fetching;
 using Xunit;
