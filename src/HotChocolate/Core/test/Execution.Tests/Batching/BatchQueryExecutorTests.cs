@@ -383,9 +383,7 @@ namespace HotChocolate.Execution.Batching
             var services = new ServiceCollection();
             services.AddSingleton<IBatchingOptionsAccessor>(sp => new BatchingOptions
             {
-                AllowExperimental = true,
-                // enforce consistent output results by only triggering a batch when idle (BatchTimeout > ExecutionTimeout)
-                BatchTimeout = TimeSpan.FromSeconds(40)
+                BatchTimeout = TimeSpan.FromSeconds(30)
             });
             services.AddGraphQL()
                 .AddQueryType(d => addFooField(d.Name("Query")))
@@ -504,9 +502,7 @@ namespace HotChocolate.Execution.Batching
             var services = new ServiceCollection();
             services.AddSingleton<IBatchingOptionsAccessor>(sp => new BatchingOptions
             {
-                AllowExperimental = experimental,
-                // enforce consistent output results by only triggering a batch when idle (BatchTimeout > ExecutionTimeout)
-                BatchTimeout = TimeSpan.FromSeconds(40)
+                BatchTimeout = TimeSpan.FromSeconds(experimental ? 30 : 0)
             });
             services.AddGraphQL()
                 .AddObjectType<Foo>(d => d

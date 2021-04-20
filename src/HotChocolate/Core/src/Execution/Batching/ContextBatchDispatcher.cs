@@ -16,8 +16,8 @@ namespace HotChocolate.Execution.Batching
     : IContextBatchDispatcher, IDisposable
     {
         private readonly object _dispatchLock = new();
-        private readonly TrackableTaskScheduler? _experimentalScheduler;
-        private readonly TaskScheduler _batchScheduler;
+        private readonly TrackableTaskScheduler? _trackableScheduler;
+        private readonly TaskScheduler _underlyingScheduler;
         private readonly IBatchDispatcher _dispatcher;
         private readonly ConcurrentDictionary<IExecutionContext, CancellationToken> _contexts = new();
         private int _suspended = 0;
@@ -28,25 +28,25 @@ namespace HotChocolate.Execution.Batching
 
         public ContextBatchDispatcher(IBatchDispatcher dispatcher, IBatchingOptionsAccessor options)
         {
-            _batchScheduler = TaskScheduler.Current;
-            Contract.Assert(!(_batchScheduler is TrackableTaskScheduler));
+            _underlyingScheduler = TaskScheduler.Current;
+            Contract.Assert(!(_underlyingScheduler is TrackableTaskScheduler));
             _dispatcher = dispatcher;
             _dispatcher.TaskEnqueued += BatchDispatcherEventHandler;
             _dispatchTimeout = (int) options.BatchTimeout.TotalMilliseconds;
-            if (options.AllowExperimental)
+            if (_dispatchTimeout > 0)
             {
-                _experimentalScheduler = new TrackableTaskScheduler(_batchScheduler);
+                _trackableScheduler = new TrackableTaskScheduler(_underlyingScheduler);
             }
         }
 
         public void Dispose()
         {
-            _experimentalScheduler?.Complete();
+            _trackableScheduler?.Complete();
         }
 
         public IBatchDispatcher BatchDispatcher => _dispatcher;
 
-        public TaskScheduler TaskScheduler => _experimentalScheduler ?? _batchScheduler;
+        public TaskScheduler TaskScheduler => _trackableScheduler ?? _underlyingScheduler;
 
         public void Suspend()
         {
@@ -97,7 +97,7 @@ namespace HotChocolate.Execution.Batching
                 _dispatchTask is null &&
                 RunningContexts().Any())
             {
-                _dispatchTask = Task.Factory.StartNew(Dispatch, default, TaskCreationOptions.None, _batchScheduler);
+                _dispatchTask = Task.Factory.StartNew(Dispatch, default, TaskCreationOptions.None, _underlyingScheduler);
             }
         }
 
@@ -164,7 +164,7 @@ namespace HotChocolate.Execution.Batching
                         Debug.Fail($"Unexpected exception while waiting for BatchTimeout completion: {e}");
                         break;
                     }
-                    if (!contextCtx.IsCancellationRequested && _experimentalScheduler != null)
+                    if (!contextCtx.IsCancellationRequested && _trackableScheduler != null)
                     {
                         // there are no pending tasks to be scheduled,
                         // wait till there are no more actually running tasks
@@ -179,7 +179,7 @@ namespace HotChocolate.Execution.Batching
                                 timeoutCtx = timeoutSource.Token;
                                 taskCtx = CancellationTokenSource.CreateLinkedTokenSource(taskCtx, timeoutSource.Token).Token;
                             }
-                            var check = _experimentalScheduler.WaitTillIdle(taskCtx);
+                            var check = _trackableScheduler.WaitTillIdle(taskCtx);
                             bool willYield = !check.IsCompleted;
                             await check.ConfigureAwait(false);
                             if (willYield) continue;
