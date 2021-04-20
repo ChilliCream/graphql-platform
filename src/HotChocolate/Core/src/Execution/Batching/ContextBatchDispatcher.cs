@@ -6,7 +6,6 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using GreenDonut;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
@@ -34,10 +33,12 @@ namespace HotChocolate.Execution.Batching
             _dispatcher = dispatcher;
             _dispatcher.TaskEnqueued += BatchDispatcherEventHandler;
             _dispatchTimeout = (int) options.BatchTimeout.TotalMilliseconds;
+            /* TODO renable after experiment
             if (options.AllowExperimental)
             {
                 _experimentalScheduler = new TrackableTaskScheduler(_batchScheduler);
             }
+            */
         }
 
         public void Dispose()
@@ -139,6 +140,38 @@ namespace HotChocolate.Execution.Batching
         /// <summary>Wait till the batch should actually be started</summary>
         private async ValueTask BatchTimeout()
         {
+            var contexts = RunningContexts().ToList();
+            while (contexts.Any())
+            {
+                var ctxSource = CancellationTokenSource.CreateLinkedTokenSource(contexts.Select(x => x.Value).ToArray());
+                var checks = contexts.Select(x => x.Key.TaskBacklog.WaitTillIdle(ctxSource.Token)).ToList();
+                // if we trigger an actual wait, redo the check because new items might have been added since then
+                var keepRunning = checks.Where(x => !x.IsCompleted).Any();
+                try
+                {
+                    await Task.WhenAll(checks).ConfigureAwait(false);
+                }
+                catch(TaskCanceledException)
+                {
+                    // happens when any of the contexts is aborted
+                }
+                catch(Exception)
+                {
+                    // unexpected failure, stop waiting
+                    keepRunning = false;
+                }
+
+                if (keepRunning)
+                {
+                    contexts = RunningContexts().ToList();
+                }
+                else
+                {
+                    break;
+                }
+            }
+                        /* TODO rework after experiment
+                         
             var timeoutSource = new CancellationTokenSource();
             timeoutSource.CancelAfter(_dispatchTimeout);
 
@@ -190,6 +223,7 @@ namespace HotChocolate.Execution.Batching
                     await Task.Delay(1);
                 }
             }
+                        */
         }
 
         /// <summary>
