@@ -103,7 +103,7 @@ namespace HotChocolate.Execution.Batching
 
         private async Task Dispatch()
         {
-            await BatchTimeout();
+            await DispatchCanStart();
 
             var context = AcquireContext();
             if (context != null)
@@ -136,7 +136,7 @@ namespace HotChocolate.Execution.Batching
         }
 
         /// <summary>Wait till the batch should actually be started</summary>
-        private async ValueTask BatchTimeout()
+        private async ValueTask DispatchCanStart()
         {
             bool keepWaiting = true;
             while (keepWaiting)
@@ -154,8 +154,8 @@ namespace HotChocolate.Execution.Batching
                         // if we triggered an actual context switch, restart the loop because new items might have been added since then
                         if (willYield) continue;
 
-                        // all internal tasks are scheduled, await task completion/idle time if necessary
-                        keepWaiting = await AwaitTrackedTasks(contextCtx.Token);
+                        // all internal tasks are scheduled, await running task completion/idle time if necessary
+                        keepWaiting = await TasksBlockDispatch(contextCtx.Token);
                     }
                     catch (TaskCanceledException)
                     {
@@ -178,8 +178,8 @@ namespace HotChocolate.Execution.Batching
 
         /// <summary>Waits for the completion or idle time of all tasks in progress (if necessary)</summary>
         /// <param name="contextCtx">A cancellation token this is triggered when any of the current context's are aborted</param>
-        /// <returns>true if BatchTimeout cannot yet return and should restart the wait loop, false if it can return</returns>
-        private async ValueTask<bool> AwaitTrackedTasks(CancellationToken contextCtx)
+        /// <returns>true if DispatchCanStart cannot yet return and should restart the wait loop, false if it can return</returns>
+        private async ValueTask<bool> TasksBlockDispatch(CancellationToken contextCtx)
         {
             if (!contextCtx.IsCancellationRequested && _trackableScheduler != null)
             {
