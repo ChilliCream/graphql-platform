@@ -12,7 +12,9 @@ Pagination solves this problem by giving the consumer the ability to fetch a set
 
 There are various ways we could implement pagination in our server, but there are mainly two concepts we find in most GraphQL servers: _offset-based_ and _cursor-based_ pagination.
 
-# Offset Pagination
+# Types of pagination
+
+## Offset Pagination
 
 _Offset-based_ pagination is found in many server implementations whether the backend is implemented in SOAP, REST or GraphQL.
 
@@ -49,7 +51,7 @@ ORDER BY Id
 LIMIT %limit OFFSET %offset
 ```
 
-## Problems
+### Problems
 
 But whilst _offset-based_ pagination is simple to implement and works relatively well, there are also some problems:
 
@@ -59,9 +61,7 @@ But whilst _offset-based_ pagination is simple to implement and works relatively
 
 Luckily we can solve these issues pretty easily by switching from an _offset_ to a _cursor_. Continue reading to learn more.
 
-<!-- todo: not happy with this section yet -->
-
-# Cursor Pagination
+## Cursor Pagination
 
 Contrary to the _offset-based_ pagination, where we identify the position of an entry using an offset, _cursor-based_ pagination works by returning the pointer to the next entry in our pagination.
 
@@ -104,7 +104,7 @@ ORDER BY Name, Id
 LIMIT %limit
 ```
 
-## Problems
+### Problems
 
 Even though _cursor-based_ pagination is more performant than _offset-based_ pagination, it comes with a big downside.
 
@@ -112,7 +112,7 @@ Since we now only know of the next entry, there is no more concept of pages. If 
 
 # Connections
 
-_Connections_ are part of a specification that aims to standardize how pagination is exposed to clients.
+_Connections_ are a standardized way to expose pagination to clients.
 
 Instead of returning a list, we now return a _Connection_.
 
@@ -140,9 +140,11 @@ type PageInfo {
 }
 ```
 
-You can learn more about this in the actual [specification](https://relay.dev/graphql/connections.htm).
+You can learn more about this in the [GraphQL Cursor Connections Specification](https://relay.dev/graphql/connections.htm).
 
 > Note: _Connections_ are often associated with _cursor-based_ pagination, due to the use of a _cursor_. Since the specification describes the _cursor_ as opague though, it can be used to faciliate an offset as well.
+
+# Adding Pagination
 
 Adding pagination capabilties to our fields with HotChocolate is a breeze. All we have to do is add the `UsePaging` middleware.
 
@@ -207,3 +209,76 @@ TODO
 </ExampleTabs>
 
 For the `UsePaging` middleware to work, our resolver needs to return an `IEnumerable<T>` or an `IQueryable<T>`. In the case of `IQueryable<T>` this means that the pagination operations can be directly translated to native database queries, through database drivers like EntityFramework or the MongoDB client.
+
+# Customizing Pagination
+
+TODO: Intro text
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+public class Query
+{
+    [UsePaging]
+    public Connection<User> GetUsers(string? after, int? first, string sortBy)
+    {
+        IEnumerable<User> users = null; // get users using the above arguments
+
+        // todo: refine the below parts
+        var edges = users.Select(user => new Edge<User>(user, user.Id)).ToList();
+        var pageInfo = new ConnectionPageInfo(false, false, null, null);
+
+        var connection = new Connection<User>(edges, pageInfo, ct => new ValueTask<int>(0));
+
+        return connection;
+    }
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class QueryType : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor
+            .Field("users")
+            .UsePaging()
+            .Argument("sortBy", a => a.Type<NonNullType<StringType>>())
+            .Resolve(context =>
+            {
+                var after = context.ArgumentValue<string?>("after");
+                var first = context.ArgumentValue<int?>("first");
+                var sortBy = context.ArgumentValue<string?>("sortBy");
+
+                IEnumerable<User> users = null; // get users using the above arguments
+
+                // todo: refine the below parts
+                var edges = users.Select(user => new Edge<User>(user, user.Id)).ToList();
+                var pageInfo = new ConnectionPageInfo(false, false, null, null);
+
+                var connection = new Connection<User>(edges, pageInfo, ct => new ValueTask<int>(0));
+
+                return connection;
+            });
+    }
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+TODO
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+TODO:
+
+- AddPagingArguments / AddOffsetPagingArguments
+- UseOffsetPaging
+- ConnectionType
+- Maybe CursorPagingHandler / CursorPagingProvider?
