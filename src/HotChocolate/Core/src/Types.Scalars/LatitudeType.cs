@@ -108,6 +108,20 @@ namespace HotChocolate.Types
                 return false;
             }
 
+            public static bool TrySerialize(double deserialize, out string? value)
+            {
+                var degree = Math.Floor(deserialize);
+                var degreeDecimals = deserialize - degree;
+                var minutesWhole = degreeDecimals * 60;
+                var minutes = Math.Floor(minutesWhole);
+                var minutesDecimal = minutesWhole - minutes;
+                var seconds = Math.Round(minutesDecimal * 60, 8, MidpointRounding.AwayFromZero);
+
+                value = $"{degree}° {minutes}' {seconds}\"";
+
+                return true;
+            }
+
             public static string ToPrecision(double d) =>
                 Math.Round(d, _maxPrecision, MidpointRounding.AwayFromZero)
                     .ToString(CultureInfo.InvariantCulture);
