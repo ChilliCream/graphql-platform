@@ -14,7 +14,7 @@ namespace HotChocolate.Execution.Batching
         public void Basic()
         {
             var dispatcher = NoopContextBatchDispatcher.Default;
-            Assert.False(dispatcher.BatchDispatcher.HasTasks);
+            Assert.Equal(TaskScheduler.Current, dispatcher.TaskScheduler);
             // ensure that no exceptions are thrown
             dispatcher.Register(null, CancellationToken.None);
             dispatcher.Unregister(null);

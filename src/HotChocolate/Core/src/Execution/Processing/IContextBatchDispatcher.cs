@@ -7,8 +7,6 @@ namespace HotChocolate.Execution.Processing
 {
     internal interface IContextBatchDispatcher
     {
-        IBatchDispatcher BatchDispatcher { get; }
-
         /// <summary>Scheduler for all non-batch tasks</summary>
         TaskScheduler TaskScheduler { get; }
 

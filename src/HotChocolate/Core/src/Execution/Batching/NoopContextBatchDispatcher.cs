@@ -11,8 +11,6 @@ namespace HotChocolate.Execution.Batching
 {
     class NoopContextBatchDispatcher : IContextBatchDispatcher
     {
-        public IBatchDispatcher BatchDispatcher => NoopBatchDispatcher.Default;
-
         public TaskScheduler TaskScheduler => TaskScheduler.Current;
 
         public void Register(IExecutionContext context, CancellationToken ctx)

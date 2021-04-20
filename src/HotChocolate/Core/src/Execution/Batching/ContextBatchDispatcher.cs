@@ -44,8 +44,6 @@ namespace HotChocolate.Execution.Batching
             _trackableScheduler?.Complete();
         }
 
-        public IBatchDispatcher BatchDispatcher => _dispatcher;
-
         public TaskScheduler TaskScheduler => _trackableScheduler ?? _underlyingScheduler;
 
         public void Suspend()
