@@ -169,7 +169,7 @@ extend type Person {
 Code-First annotation-based:
 
 ```csharp
-[ExtendObjectType(Name = "Person")]
+[ExtendObjectType("Person")]
 public class PersonResolvers
 {
     public IEnumerable<Person> GetFriends([Parent]Person person, [Service]IPersonRepository repository) =>
