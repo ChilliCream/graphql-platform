@@ -61,15 +61,6 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        public TaskScheduler TaskScheduler
-        {
-            get
-            {
-                AssertNotPooled();
-                return _batchDispatcher.TaskScheduler;
-            }
-        }
-
         private void OnCompleted(object? source, EventArgs args)
         {
             AssertNotPooled();

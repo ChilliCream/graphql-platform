@@ -27,8 +27,6 @@ namespace HotChocolate.Execution.Processing
 
         IExecutionTaskContext TaskContext { get; }
 
-        TaskScheduler TaskScheduler { get; }
-
         bool IsCompleted { get; }
 
         void Reset();
