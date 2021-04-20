@@ -134,10 +134,17 @@ namespace HotChocolate.Tests
             this SnapshotFullName fullName,
             params object[] snapshotNameExtensions)
         {
-            var additions = SnapshotNameExtension.Create(snapshotNameExtensions).ToParamsString();
-            var oldExtension = System.IO.Path.GetExtension(fullName.Filename);
-            var oldBasename = System.IO.Path.GetFileNameWithoutExtension(fullName.Filename);
-            return new SnapshotFullName(oldBasename + additions + oldExtension, fullName.FolderPath);
+            if (snapshotNameExtensions?.Length == 0)
+            {
+                return fullName;
+            }
+            else
+            {
+                var additions = SnapshotNameExtension.Create(snapshotNameExtensions).ToParamsString();
+                var oldExtension = System.IO.Path.GetExtension(fullName.Filename);
+                var oldBasename = System.IO.Path.GetFileNameWithoutExtension(fullName.Filename);
+                return new SnapshotFullName(oldBasename + additions + oldExtension, fullName.FolderPath);
+            }
         }
     }
 }
