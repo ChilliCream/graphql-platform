@@ -116,9 +116,16 @@ namespace HotChocolate.Types
                 var minutes = Math.Floor(minutesWhole);
                 var minutesDecimal = minutesWhole - minutes;
                 var seconds = Math.Round(minutesDecimal * 60, 8, MidpointRounding.AwayFromZero);
+                string serializedLatitude = $"{degree}° {minutes}' {seconds}\"";;
 
-                value = $"{degree}° {minutes}' {seconds}\"";
+                serializedLatitude = degree switch
+                {
+                    > 0 and < Max => $"{degree}° {minutes}' {seconds}\" N",
+                    < 0 and > Min => $"{degree}° {minutes}' {seconds}\" S",
+                    _ => serializedLatitude
+                };
 
+                value = serializedLatitude;
                 return true;
             }
 
