@@ -5,7 +5,8 @@ namespace HotChocolate.Execution.Options
     /// <summary>
     /// Represents a dedicated options accessor to read the configured batching options.
     /// </summary>
-    public interface IBatchingOptionsAccessor
+    /// <remarks>Internal for 11 release, might become official feature in 12</remarks>
+    internal interface IBatchingOptionsAccessor
     {
         /// <summary>
         /// If set to 0 (default), batched dataloads will trigger as soon as all internal tasks have been scheduled.
