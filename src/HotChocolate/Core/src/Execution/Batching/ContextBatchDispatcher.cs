@@ -183,14 +183,11 @@ namespace HotChocolate.Execution.Batching
             {
                 // there are no pending tasks to be scheduled,
                 // wait till there are no more actually running tasks
-                CancellationToken timeoutCtx = CancellationToken.None;
+                var timeoutSource = new CancellationTokenSource();
                 try
                 {
-                    var timeoutSource = new CancellationTokenSource();
                     timeoutSource.CancelAfter(_dispatchTimeout);
-                    timeoutCtx = timeoutSource.Token;
                     var taskCtx = CancellationTokenSource.CreateLinkedTokenSource(contextCtx, timeoutSource.Token).Token;
-                    
                     var check = _trackableScheduler.WaitTillIdle(taskCtx);
                     bool willYield = !check.IsCompleted;
                     await check.ConfigureAwait(false);
@@ -201,7 +198,7 @@ namespace HotChocolate.Execution.Batching
                 catch (TaskCanceledException)
                 {
                     // if timeout came from context, restart loop
-                    if (!timeoutCtx.IsCancellationRequested)
+                    if (!timeoutSource.IsCancellationRequested)
                     {
                         return true;
                     }
