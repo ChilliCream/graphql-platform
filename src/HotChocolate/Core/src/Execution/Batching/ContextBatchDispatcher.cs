@@ -73,7 +73,7 @@ namespace HotChocolate.Execution.Batching
 
         public void Unregister(IExecutionContext context)
         {
-            if (!_contexts.TryRemove(context, out CancellationToken dummy))
+            if (!_contexts.TryRemove(context, out _))
             {
                 throw new ArgumentException("context is not registered", nameof(context));
             }
