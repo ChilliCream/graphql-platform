@@ -33,12 +33,10 @@ namespace HotChocolate.Execution.Batching
             _dispatcher = dispatcher;
             _dispatcher.TaskEnqueued += BatchDispatcherEventHandler;
             _dispatchTimeout = (int) options.BatchTimeout.TotalMilliseconds;
-            /* TODO renable after experiment
             if (options.AllowExperimental)
             {
                 _experimentalScheduler = new TrackableTaskScheduler(_batchScheduler);
             }
-            */
         }
 
         public void Dispose()
@@ -140,72 +138,24 @@ namespace HotChocolate.Execution.Batching
         /// <summary>Wait till the batch should actually be started</summary>
         private async ValueTask BatchTimeout()
         {
-            var contexts = RunningContexts().ToList();
-            while (contexts.Any())
+            while (true)
             {
-                var ctxSource = CancellationTokenSource.CreateLinkedTokenSource(contexts.Select(x => x.Value).ToArray());
-                var checks = contexts.Select(x => x.Key.TaskBacklog.WaitTillIdle(ctxSource.Token)).ToList();
-                // if we trigger an actual wait, redo the check because new items might have been added since then
-                var keepRunning = checks.Where(x => !x.IsCompleted).Any();
-                try
+                var contexts = RunningContexts().ToList();
+                if (contexts.Any())
                 {
-                    await Task.WhenAll(checks).ConfigureAwait(false);
-                }
-                catch(TaskCanceledException)
-                {
-                    // happens when any of the contexts is aborted
-                }
-                catch(Exception)
-                {
-                    // unexpected failure, stop waiting
-                    keepRunning = false;
-                }
-
-                if (keepRunning)
-                {
-                    contexts = RunningContexts().ToList();
-                }
-                else
-                {
-                    break;
-                }
-            }
-                        /* TODO rework after experiment
-                         
-            var timeoutSource = new CancellationTokenSource();
-            timeoutSource.CancelAfter(_dispatchTimeout);
-
-            if (_experimentalScheduler is not null)
-            {
-                while (!timeoutSource.IsCancellationRequested)
-                {
+                    var contextCtx = CancellationTokenSource.CreateLinkedTokenSource(contexts.Select(x => x.Value).ToArray());
                     try
                     {
-                        var checks = new List<Task>();
-                        checks.Add(_experimentalScheduler.WaitTillIdle(timeoutSource.Token));
-                        checks.AddRange(RunningContexts().Select(x =>
-                        {
-                            var ctxSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutSource.Token, x.Value);
-                            return x.Key.TaskBacklog.WaitTillIdle(ctxSource.Token);
-                        }));
-                        var hasBlockers = checks.Where(x => !x.IsCompleted).Any();
+                        var checks = contexts.Select(x => x.Key.TaskBacklog.WaitTillIdle(contextCtx.Token)).ToList();
+                        // if we trigger an actual wait, redo the check because new items might have been added since then
+                        bool willYield = checks.Where(x => !x.IsCompleted).Any();
                         await Task.WhenAll(checks).ConfigureAwait(false);
-                        if (!hasBlockers)
-                        {
-                            break;
-                        }
-                        else
-                        {
-                            // if the await above actually had to wait on anything,
-                            // there is a good chance that new tasks have been created,
-                            // so in this case we restart the checking again from the beginning
-                        }
+                        if (willYield) continue;
                     }
                     catch (TaskCanceledException)
                     {
-                        // keep running as long as there are running contexts
-                        // (we could have gotten here because one of the running contexts
-                        //  was cancelled)
+                        // happens when any of the contexts is aborted
+                        continue;
                     }
                     catch (Exception e)
                     {
@@ -214,16 +164,48 @@ namespace HotChocolate.Execution.Batching
                         Debug.Fail($"Unexpected exception while waiting for BatchTimeout completion: {e}");
                         break;
                     }
+                    if (!contextCtx.IsCancellationRequested && _experimentalScheduler != null)
+                    {
+                        // there are no pending tasks to be scheduled,
+                        // wait till there are no more actually running tasks
+                        CancellationToken timeoutCtx = CancellationToken.None;
+                        try
+                        {
+                            var taskCtx = contextCtx.Token;
+                            if (_dispatchTimeout > 0)
+                            {
+                                var timeoutSource = new CancellationTokenSource();
+                                timeoutSource.CancelAfter(_dispatchTimeout);
+                                timeoutCtx = timeoutSource.Token;
+                                taskCtx = CancellationTokenSource.CreateLinkedTokenSource(taskCtx, timeoutSource.Token).Token;
+                            }
+                            var check = _experimentalScheduler.WaitTillIdle(taskCtx);
+                            bool willYield = !check.IsCompleted;
+                            await check.ConfigureAwait(false);
+                            if (willYield) continue;
+                        }
+                        catch (TaskCanceledException)
+                        {
+                            if (timeoutCtx.IsCancellationRequested)
+                            {
+                                break;
+                            }
+                            else
+                            {
+                                continue;
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            // if an unexpected exception happened while waiting,
+                            // just start the batch and see what happens there
+                            Debug.Fail($"Unexpected exception while waiting for BatchTimeout completion: {e}");
+                            break;
+                        }
+                    }
                 }
+                break;
             }
-            else
-            {
-                while (!timeoutSource.IsCancellationRequested && RunningContexts().Any(x => !x.Key.TaskBacklog.IsIdle))
-                {
-                    await Task.Delay(1);
-                }
-            }
-                        */
         }
 
         /// <summary>
