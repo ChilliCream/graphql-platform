@@ -517,7 +517,7 @@ Most of the time we'll be publishing events for successful mutations. Therefor w
 ```csharp
 public class Mutation
 {
-    public Book AddBook(Book book, [Service] ITopicEventSender sender)
+    public async Book AddBook(Book book, [Service] ITopicEventSender sender)
     {
         await sender.SendAsync("OnBookAdded", book);
 
@@ -544,7 +544,7 @@ public class Subscription
     public Book OnBookAdded([EventMessage] Book book) => book;
 }
 
-public Book AddBook(Book book, [Service] ITopicEventSender sender)
+public async Book AddBook(Book book, [Service] ITopicEventSender sender)
 {
     await sender.SendAsync("ExampleTopic", book);
 
@@ -562,7 +562,7 @@ public class Subscription
         => book;
 }
 
-public Book AddBook(Book book, [Service] ITopicEventSender sender)
+public async Book AddBook(Book book, [Service] ITopicEventSender sender)
 {
     await sender.SendAsync(book.Author, book);
 
@@ -576,15 +576,15 @@ We can also use the `ITopicEventReceiver` to work with more complex topics.
 public class Subscription
 {
     [SubscribeAndResolve]
-    public async ValueTask<ISourceStream<Book>> OnBookAdded(string author,
+    public ValueTask<ISourceStream<Book>> OnBookAdded(string author,
         [Service] ITopicEventReceiver receiver)
     {
         var topic = $"{author}_AddedBook";
-        return await receiver.SubscribeAsync<string, Book>(topic);
+        return receiver.SubscribeAsync<string, Book>(topic);
     }
 }
 
-public Book AddBook(Book book, [Service] ITopicEventSender sender)
+public async Book AddBook(Book book, [Service] ITopicEventSender sender)
 {
     await sender.SendAsync($"{book.Author}_AddedBook", book);
 
