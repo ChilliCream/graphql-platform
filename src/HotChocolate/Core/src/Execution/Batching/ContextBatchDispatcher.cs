@@ -138,7 +138,8 @@ namespace HotChocolate.Execution.Batching
         /// <summary>Wait till the batch should actually be started</summary>
         private async ValueTask BatchTimeout()
         {
-            while (true)
+            bool keepWaiting = true;
+            while (keepWaiting)
             {
                 var contexts = RunningContexts().ToList();
                 if (contexts.Any())
@@ -147,65 +148,74 @@ namespace HotChocolate.Execution.Batching
                     try
                     {
                         var checks = contexts.Select(x => x.Key.TaskBacklog.WaitTillIdle(contextCtx.Token)).ToList();
-                        // if we trigger an actual wait, redo the check because new items might have been added since then
                         bool willYield = checks.Any(x => !x.IsCompleted);
                         await Task.WhenAll(checks).ConfigureAwait(false);
+
+                        // if we triggered an actual context switch, restart the loop because new items might have been added since then
                         if (willYield) continue;
+
+                        // all internal tasks are scheduled, await task completion/idle time if necessary
+                        keepWaiting = await AwaitTrackedTasks(contextCtx.Token);
                     }
                     catch (TaskCanceledException)
                     {
                         // happens when any of the contexts is aborted
-                        continue;
                     }
                     catch (Exception e)
                     {
                         // if an unexpected exception happened while waiting,
                         // just start the batch and see what happens there
                         Debug.Fail($"Unexpected exception while waiting for BatchTimeout completion: {e}");
-                        break;
-                    }
-                    if (!contextCtx.IsCancellationRequested && _trackableScheduler != null)
-                    {
-                        // there are no pending tasks to be scheduled,
-                        // wait till there are no more actually running tasks
-                        CancellationToken timeoutCtx = CancellationToken.None;
-                        try
-                        {
-                            var taskCtx = contextCtx.Token;
-                            if (_dispatchTimeout > 0)
-                            {
-                                var timeoutSource = new CancellationTokenSource();
-                                timeoutSource.CancelAfter(_dispatchTimeout);
-                                timeoutCtx = timeoutSource.Token;
-                                taskCtx = CancellationTokenSource.CreateLinkedTokenSource(taskCtx, timeoutSource.Token).Token;
-                            }
-                            var check = _trackableScheduler.WaitTillIdle(taskCtx);
-                            bool willYield = !check.IsCompleted;
-                            await check.ConfigureAwait(false);
-                            if (willYield) continue;
-                        }
-                        catch (TaskCanceledException)
-                        {
-                            if (timeoutCtx.IsCancellationRequested)
-                            {
-                                break;
-                            }
-                            else
-                            {
-                                continue;
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            // if an unexpected exception happened while waiting,
-                            // just start the batch and see what happens there
-                            Debug.Fail($"Unexpected exception while waiting for BatchTimeout completion: {e}");
-                            break;
-                        }
+                        keepWaiting = false;
                     }
                 }
-                break;
+                else
+                {
+                    keepWaiting = false;
+                }
             }
+        }
+
+        /// <summary>Waits for the completion or idle time of all tasks in progress (if necessary)</summary>
+        /// <param name="contextCtx">A cancellation token this is triggered when any of the current context's are aborted</param>
+        /// <returns>true if BatchTimeout cannot yet return and should restart the wait loop, false if it can return</returns>
+        private async ValueTask<bool> AwaitTrackedTasks(CancellationToken contextCtx)
+        {
+            if (!contextCtx.IsCancellationRequested && _trackableScheduler != null)
+            {
+                // there are no pending tasks to be scheduled,
+                // wait till there are no more actually running tasks
+                CancellationToken timeoutCtx = CancellationToken.None;
+                try
+                {
+                    var timeoutSource = new CancellationTokenSource();
+                    timeoutSource.CancelAfter(_dispatchTimeout);
+                    timeoutCtx = timeoutSource.Token;
+                    var taskCtx = CancellationTokenSource.CreateLinkedTokenSource(contextCtx, timeoutSource.Token).Token;
+                    
+                    var check = _trackableScheduler.WaitTillIdle(taskCtx);
+                    bool willYield = !check.IsCompleted;
+                    await check.ConfigureAwait(false);
+
+                    // if we triggered an actual context switch, restart the loop because new items might have been added since then
+                    if (willYield) return true;
+                }
+                catch (TaskCanceledException)
+                {
+                    // if timeout came from context, restart loop
+                    if (!timeoutCtx.IsCancellationRequested)
+                    {
+                        return true;
+                    }
+                }
+                catch (Exception e)
+                {
+                    // if an unexpected exception happened while waiting,
+                    // just start the batch and see what happens there
+                    Debug.Fail($"Unexpected exception while waiting for BatchTimeout completion: {e}");
+                }
+            }
+            return false;
         }
 
         /// <summary>
