@@ -8,13 +8,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     public class ClientGenerator : ClassBaseGenerator<ClientDescriptor>
     {
         protected override void Generate(
-            CodeWriter writer,
             ClientDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings,
+            CodeWriter writer,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             fileName = descriptor.Name;
             path = null;
+            ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -38,6 +41,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 AddConstructorAssignedField(
                     operation.InterfaceType.ToString(),
                     GetFieldName(operation.Name),
+                    GetParameterName(operation.Name),
                     classBuilder,
                     constructorBuilder);
 
@@ -48,11 +52,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .AsLambda(GetFieldName(operation.Name));
             }
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
-                .AddType(classBuilder)
-                .Build(writer);
+            classBuilder.Build(writer);
         }
     }
 }

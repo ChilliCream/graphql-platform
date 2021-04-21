@@ -1,0 +1,1 @@
+﻿The specified type `HotChocolate.Types.ObjectType` is a GraphQL schema type. AddInputObjectType<T> is a helper method to register a runtime type as GraphQL input object type. Use AddType<T> to register GraphQL schema types.

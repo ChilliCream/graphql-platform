@@ -317,5 +317,13 @@ namespace Microsoft.Extensions.DependencyInjection
                 .TryAddValidationVisitor((s, o) => new MaxExecutionDepthVisitor(o))
                 .SetAllowedExecutionDepth(maxAllowedExecutionDepth);
         }
+
+        /// <summary>
+        /// Adds a validation rule that only allows requests to use `__schema` or `__type`
+        /// if the request carries an introspection allowed flag.
+        /// </summary>
+        public static IValidationBuilder AddIntrospectionAllowedRule(
+            this IValidationBuilder builder) =>
+            builder.TryAddValidationVisitor((_, _) => new IntrospectionVisitor());
     }
 }

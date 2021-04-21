@@ -19,12 +19,12 @@ namespace HotChocolate
             public const string CannotResolveAbstractType = "EXEC_UNABLE_TO_RESOLVE_ABSTRACT_TYPE";
             public const string ListTypeNotSupported = "EXEC_LIST_TYPE_NOT_SUPPORTED";
             public const string AutoMapVarError = "EXEC_BATCH_AUTO_MAP_VAR_TYPE";
-            
+
             /// <summary>
             /// The request exceeded the configured timeout.
             /// </summary>
             public const string Timeout = "HC0045";
-            
+
             public const string NonNullViolation = "HC0018";
             public const string MustBeInputType = "HC0017";
             public const string InvalidType = "HC0016";
@@ -51,9 +51,9 @@ namespace HotChocolate
             public const string QueryAndIdMissing = "HC0013";
 
             /// <summary>
-            /// At least an 'operations' field and a 'map' field need to be present.
+            /// The multipart form could not be read.
             /// </summary>
-            public const string MultiPartFormIncomplete = "HC0033";
+            public const string MultiPartInvalidForm = "HC0033";
 
             /// <summary>
             /// No 'operations' specified.
@@ -199,6 +199,17 @@ namespace HotChocolate
             /// (ObjectType, InterfaceType, UnionType, EnumType, ScalarType).
             /// </summary>
             public const string SchemaTypeInvalid = "HC0032";
+        }
+
+        /// <summary>
+        /// Error codes relating to the document validation.
+        /// </summary>
+        public static class Validation
+        {
+            /// <summary>
+            /// The introspection is not allowed for the current request
+            /// </summary>
+            public const string IntrospectionNotAllowed = "HC0046";
         }
     }
 }

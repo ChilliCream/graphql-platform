@@ -45,9 +45,9 @@ namespace HotChocolate.Types.Factories
                     d.Directive(directive);
                 }
 
-                DeclareInterfaces(d,schemaOptions, node.Interfaces);
+                DeclareInterfaces(d, schemaOptions, node.Interfaces);
 
-                DeclareFields(bindingInfo,schemaOptions, d, node.Fields);
+                DeclareFields(bindingInfo, schemaOptions, d, node.Fields);
             });
         }
 

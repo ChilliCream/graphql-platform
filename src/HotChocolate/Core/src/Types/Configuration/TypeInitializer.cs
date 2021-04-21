@@ -80,9 +80,6 @@ namespace HotChocolate.Configuration
             // first we are going to find and initialize all types that belong to our schema.
             DiscoverTypes();
 
-            // before we can start completing type names we need to register the field resolvers.
-            RegisterResolvers();
-
             // now that we have the resolvers sorted and know what types our schema will roughly
             // consist of we are going to have a look if we can infer interface usage
             // from .NET classes that implement .NET interfaces.
@@ -94,6 +91,9 @@ namespace HotChocolate.Configuration
             // with the type names all known we can now build pairs to bring together types and
             // their type extensions.
             MergeTypeExtensions();
+
+            // Now that we merged the types it is time to register the resolvers.
+            RegisterResolvers();
 
             // external resolvers are resolvers that are defined on the schema and are associated
             // with the types after they have received a name and the extensions are removed.
@@ -155,14 +155,70 @@ namespace HotChocolate.Configuration
             foreach (TypeDiscoveryContext context in
                 _typeRegistry.Types.Select(t => t.DiscoveryContext))
             {
-                foreach (FieldReference reference in context.Resolvers.Keys)
+                if (context.Type is ObjectType { Definition: { } typeDef })
                 {
-                    if (!_resolvers.ContainsKey(reference))
+                    typeDef.Name = context.Type.Name;
+
+                    foreach (var fieldDef in typeDef.Fields)
                     {
-                        _resolvers[reference] = context.Resolvers[reference];
+                        if (TryRegisterResolver(
+                            fieldDef,
+                            typeDef,
+                            out FieldReference? fieldRef,
+                            out RegisteredResolver? registeredResolver) &&
+                            !_resolvers.ContainsKey(fieldRef))
+                        {
+                            _resolvers.Add(fieldRef, registeredResolver);
+                        }
                     }
                 }
             }
+        }
+
+        private bool TryRegisterResolver(
+            ObjectFieldDefinition fieldDef,
+            ObjectTypeDefinition typeDef,
+            [NotNullWhen(true)] out FieldReference? fieldRef,
+            [NotNullWhen(true)] out RegisteredResolver? registeredResolver)
+        {
+            if (fieldDef.Resolver is null)
+            {
+                fieldRef = new FieldReference(typeDef.Name, fieldDef.Name);
+
+                if (fieldDef.Expression is not null)
+                {
+                    registeredResolver = new RegisteredResolver(
+                        fieldDef.ResolverType,
+                        typeDef.RuntimeType,
+                        fieldRef.WithExpression(fieldDef.Expression));
+
+                    return true;
+                }
+
+                if (fieldDef.ResolverMember is not null)
+                {
+                    registeredResolver = new RegisteredResolver(
+                        fieldDef.ResolverType,
+                        typeDef.RuntimeType,
+                        fieldRef.WithMember(fieldDef.ResolverMember));
+
+                    return true;
+                }
+
+                if (fieldDef.Member is not null)
+                {
+                    registeredResolver = new RegisteredResolver(
+                        fieldDef.ResolverType,
+                        typeDef.RuntimeType,
+                        fieldRef.WithMember(fieldDef.Member));
+
+                    return true;
+                }
+            }
+
+            fieldRef = null;
+            registeredResolver = null;
+            return false;
         }
 
         private void RegisterImplicitInterfaceDependencies()
@@ -348,13 +404,6 @@ namespace HotChocolate.Configuration
                                 namedType.Name))
                             .SetTypeSystemObject((ITypeSystemObject)namedType)
                             .Build());
-                    }
-
-                    TypeDiscoveryContext initContext = extension.DiscoveryContext;
-                    foreach (FieldReference reference in initContext.Resolvers.Keys)
-                    {
-                        _resolvers[reference] = initContext.Resolvers[reference]
-                            .WithSourceType(registeredType.RuntimeType);
                     }
 
                     // merge

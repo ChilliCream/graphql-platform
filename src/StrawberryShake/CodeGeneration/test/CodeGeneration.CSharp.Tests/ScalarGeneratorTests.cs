@@ -52,6 +52,17 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "extend schema @key(fields: \"id\")");
 
         [Fact]
+        public void Custom_Scalar_With_Unknown_RuntimeType() =>
+            AssertResult(
+                "query GetPerson { person { name email } }",
+                "type Query { person: Person }",
+                "type Person { name: String! email: Email }",
+                "scalar Email",
+                @"extend scalar Email @runtimeType(
+                    name: ""global::StrawberryShake.CodeGeneration.CSharp.Custom"")",
+                "extend schema @key(fields: \"id\")");
+
+        [Fact]
         public void Custom_Scalar_With_SerializationType() =>
             AssertResult(
                 "query GetPerson { person { name email } }",
@@ -99,5 +110,38 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 FileResource.Open("Workshop.Schema.graphql"),
                 "extend schema @key(fields: \"id\")");
         }
+
+        [Fact]
+        public void Scalars_Are_Correctly_Inferred()
+        {
+            AssertResult(
+                @"
+                query getAll {
+                  listings {
+                    ...Offer
+                  }
+                }
+                fragment Offer on Offer {
+                   numberFloat
+                   numberInt
+                }",
+                @"
+                schema {
+                  query: Query
+                  mutation: null
+                  subscription: null
+                }
+                type Query {
+                  listings: [Offer!]!
+                }
+                type Offer{
+                  listingId: ID!
+                  numberInt: Int
+                  numberFloat: Float
+                }",
+                "extend schema @key(fields: \"id\")");
+        }
     }
+
+    public class Custom { }
 }

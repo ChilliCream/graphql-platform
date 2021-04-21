@@ -135,6 +135,14 @@ namespace Microsoft.Extensions.DependencyInjection
             int maxAllowedExecutionDepth) =>
             ConfigureValidation(builder, b => b.AddMaxExecutionDepthRule(maxAllowedExecutionDepth));
 
+        /// <summary>
+        /// Adds a validation rule that only allows requests to use `__schema` or `__type`
+        /// if the request carries an introspection allowed flag.
+        /// </summary>
+        public static IRequestExecutorBuilder AddIntrospectionAllowedRule(
+            this IRequestExecutorBuilder builder) =>
+            ConfigureValidation(builder, b => b.AddIntrospectionAllowedRule());
+
         private static IRequestExecutorBuilder ConfigureValidation(
             IRequestExecutorBuilder builder,
             Action<IValidationBuilder> configure)

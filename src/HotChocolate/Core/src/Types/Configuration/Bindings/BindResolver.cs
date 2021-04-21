@@ -8,8 +8,7 @@ namespace HotChocolate.Configuration.Bindings
     {
         private readonly IResolverTypeBindingBuilder _typeBuilder;
 
-        public BindResolver(
-            IResolverTypeBindingBuilder typeBuilder)
+        public BindResolver(IResolverTypeBindingBuilder typeBuilder)
         {
             _typeBuilder = typeBuilder
                 ?? throw new ArgumentNullException(nameof(typeBuilder));

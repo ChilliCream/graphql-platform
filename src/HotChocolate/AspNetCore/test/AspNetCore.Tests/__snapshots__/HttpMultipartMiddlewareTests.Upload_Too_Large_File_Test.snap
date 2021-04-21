@@ -1,0 +1,15 @@
+﻿{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "BadRequest",
+  "Data": null,
+  "Errors": [
+    {
+      "message": "The multipart form could not be read.",
+      "extensions": {
+        "code": "HC0033",
+        "underlyingError": "Multipart body length limit 134217728 exceeded."
+      }
+    }
+  ],
+  "Extensions": null
+}

@@ -5,8 +5,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.AspNetCore.Authorization
 {
-    public sealed class AuthorizeDirective
-        : ISerializable
+    public sealed class AuthorizeDirective : ISerializable
     {
         public AuthorizeDirective(
             IReadOnlyList<string> roles,

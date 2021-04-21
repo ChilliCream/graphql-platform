@@ -1,0 +1,15 @@
+﻿{
+  "data": {
+    "foo": {
+      "someId": "QmFyCmQx",
+      "someIds": [
+        "QmFyCmkx"
+      ],
+      "interceptedId": 1,
+      "interceptedIds": [
+        1,
+        2
+      ]
+    }
+  }
+}

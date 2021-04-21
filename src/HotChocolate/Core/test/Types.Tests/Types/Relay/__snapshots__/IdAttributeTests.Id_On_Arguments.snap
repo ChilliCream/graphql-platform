@@ -1,10 +1,19 @@
 ﻿{
   "data": {
     "intId": "1",
+    "nullableIntId": "1",
+    "nullableIntIdGivenNull": "null",
     "intIdList": "1",
+    "nullableIntIdList": "1, null",
     "stringId": "abc",
+    "nullableStringId": "abc",
+    "nullableStringIdGivenNull": "null",
     "stringIdList": "abc",
-    "guidId": "00000000-0000-0000-0000-000000000000",
-    "guidIdList": "00000000-0000-0000-0000-000000000000, 00000000-0000-0000-0000-000000000000"
+    "nullableStringIdList": "abc, null",
+    "guidId": "26a2dc8f-4dab-408c-88c6-523a0a89a2b5",
+    "nullableGuidId": "26a2dc8f-4dab-408c-88c6-523a0a89a2b5",
+    "nullableGuidIdGivenNull": "null",
+    "guidIdList": "26a2dc8f-4dab-408c-88c6-523a0a89a2b5, 26a2dc8f-4dab-408c-88c6-523a0a89a2b5",
+    "nullableGuidIdList": "26a2dc8f-4dab-408c-88c6-523a0a89a2b5, null, 26a2dc8f-4dab-408c-88c6-523a0a89a2b5"
   }
 }
