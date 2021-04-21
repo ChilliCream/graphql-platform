@@ -120,20 +120,6 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void Latitude_ExpectParseValueToMatchDouble()
-        {
-            // arrange
-            ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = 74.3;
-
-            // act
-            IValueNode result = scalar.ParseValue(valueSyntax);
-
-            // assert
-            Assert.Equal(valueSyntax, Convert.ToDouble(result.Value));
-        }
-
-        [Fact]
         protected void Latitude_ExpectParseValueToThrowSerializationException()
         {
             // arrange
@@ -199,48 +185,6 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Equal(typeof(NullValueNode), result.GetType());
-        }
-
-        [Fact]
-        protected void Longitude_ExpectParseResultToMatchNull_Decimal()
-        {
-            // arrange
-            ScalarType scalar = new LatitudeType();
-
-            // act
-            IValueNode result = scalar.ParseResult(-44.73392194d);
-
-            // assert
-
-            Assert.Equal("-44.73392194", Assert.IsType<StringValueNode>(result).Value);
-        }
-
-        [Fact]
-        protected void Longitude_ExpectParseResultToMatchNull_Double()
-        {
-            // arrange
-            ScalarType scalar = new LatitudeType();
-
-            // act
-            IValueNode result = scalar.ParseResult(-44.73392194);
-
-            // assert
-
-            Assert.Equal("-44.73392194", Assert.IsType<StringValueNode>(result).Value);
-        }
-
-        [Fact]
-        protected void Longitude_ExpectParseResultToMatchNull_Int()
-        {
-            // arrange
-            ScalarType scalar = new LatitudeType();
-
-            // act
-            IValueNode result = scalar.ParseResult(-44);
-
-            // assert
-
-            Assert.Equal("-44", Assert.IsType<StringValueNode>(result).Value);
         }
 
         [Fact]
