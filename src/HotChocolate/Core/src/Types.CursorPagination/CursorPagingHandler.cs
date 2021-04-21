@@ -36,19 +36,7 @@ namespace HotChocolate.Types.Pagination
             IResolverContext context,
             object source)
         {
-            int? first = context.ArgumentValue<int?>(CursorPagingArgumentNames.First);
-            int? last = context.ArgumentValue<int?>(CursorPagingArgumentNames.Last);
-
-            if (first is null && last is null)
-            {
-                first = DefaultPageSize;
-            }
-
-            var arguments = new CursorPagingArguments(
-                first,
-                last,
-                context.ArgumentValue<string?>(CursorPagingArgumentNames.After),
-                context.ArgumentValue<string?>(CursorPagingArgumentNames.Before));
+            CursorPagingArguments arguments = context.GetPagingArguments(DefaultPageSize);
 
             return await SliceAsync(context, source, arguments).ConfigureAwait(false);
         }

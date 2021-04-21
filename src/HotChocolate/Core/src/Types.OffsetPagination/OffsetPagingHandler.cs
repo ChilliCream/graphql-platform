@@ -62,9 +62,7 @@ namespace HotChocolate.Types.Pagination
             IResolverContext context,
             object source)
         {
-            int? skip = context.ArgumentValue<int?>(OffsetPagingArgumentNames.Skip);
-            int? take = context.ArgumentValue<int?>(OffsetPagingArgumentNames.Take);
-            var arguments = new OffsetPagingArguments(skip, take ?? DefaultPageSize);
+            OffsetPagingArguments arguments = context.GetOffsetPagingArguments(DefaultPageSize);
 
             return await SliceAsync(context, source, arguments).ConfigureAwait(false);
         }
