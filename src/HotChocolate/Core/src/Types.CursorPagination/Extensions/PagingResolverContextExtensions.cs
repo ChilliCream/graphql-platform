@@ -12,18 +12,6 @@ namespace HotChocolate.Types
         /// <param name="context">The current resolver context.</param>
         /// <returns>Returns the paging arguments.</returns>
         public static CursorPagingArguments GetPagingArguments(this IResolverContext context)
-            => GetPagingArguments(context, PagingDefaults.DefaultPageSize);
-
-        /// <summary>
-        /// Gets the paging arguments.
-        /// </summary>
-        /// <param name="context">The current resolver context.</param>
-        /// <param name="defaultPageSize">
-        /// If neither 'first' or 'last' have been specified as an argument, 
-        /// this will be used as 'first'.
-        /// </param>
-        /// <returns>Returns the paging arguments.</returns>
-        public static CursorPagingArguments GetPagingArguments(this IResolverContext context, int defaultPageSize)
         {
             if (context is null)
             {
@@ -35,7 +23,7 @@ namespace HotChocolate.Types
 
             if (first is null && last is null)
             {
-                first = defaultPageSize;
+                first = PagingDefaults.DefaultPageSize;
             }
 
             var arguments = new CursorPagingArguments(
