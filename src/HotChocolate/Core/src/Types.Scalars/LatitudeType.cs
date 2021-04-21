@@ -114,11 +114,13 @@ namespace HotChocolate.Types
                     ? Math.Floor(deserialize)
                     : Math.Ceiling(deserialize);
                 var degreeDecimals = deserialize - degree;
+
                 var minutesWhole = degreeDecimals * 60;
                 var minutes = minutesWhole > 0
                     ? Math.Floor(minutesWhole)
                     : Math.Ceiling(minutesWhole);
                 var minutesDecimal = minutesWhole - minutes;
+
                 var seconds = Math.Round(
                     minutesDecimal * 60,
                     8,
