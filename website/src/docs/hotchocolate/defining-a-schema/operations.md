@@ -353,7 +353,7 @@ subscription {
 }
 ```
 
-HotChocolate implements Subscriptions via WebSockets and uses the pub/sub approach of [Apollo](https://www.apollographql.com/docs/apollo-server/data/subscriptions/#the-pubsub-class) for triggering events.
+HotChocolate implements Subscriptions via WebSockets and uses the pub/sub approach of [Apollo](https://www.apollographql.com/docs/apollo-server/data/subscriptions/#the-pubsub-class) for triggering subscriptions.
 
 ## Defining a Subscription
 
@@ -399,7 +399,8 @@ public class SubscriptionType : ObjectType
             {
                 var receiver = context.Service<ITopicEventReceiver>();
 
-                ISourceStream stream = await receiver.SubscribeAsync<string, Book>("OnBookAdded");
+                ISourceStream stream =
+                    await receiver.SubscribeAsync<string, Book>("OnBookAdded");
 
                 return stream;
             });
@@ -512,7 +513,7 @@ Our Redis subscription provider uses the [StackExchange.Redis](https://github.co
 
 To publish events and trigger subscriptions, we can use the `ITopicEventSender`. The `ITopicEventSender` is an abstraction for the registered event publishing provider. Using this abstraction allows us to seamlessly switch between subscription providers, when necessary.
 
-Most of the time we'll be publishing events for successful mutations. Therefor we can simply inject the `ITopicEventSender` into our mutations like we would with every other `Service`. Of course we can not only publish events from mutations, but everywhere we have access to the `ITopicEventSender` through the DI Container.
+Most of the time we will be publishing events for successful mutations. Therefor we can simply inject the `ITopicEventSender` into our mutations like we would with every other `Service`. Of course we can not only publish events from mutations, but everywhere we have access to the `ITopicEventSender` through the DI Container.
 
 ```csharp
 public class Mutation
@@ -526,15 +527,15 @@ public class Mutation
 }
 ```
 
-In the example the `"OnBookAdded"` is the topic we want to publish to, and `book` is our payload. Even though we have used a string as the topic, we don't have to. Any other type works just fine.
+In the example the `"OnBookAdded"` is the topic we want to publish to, and `book` is our payload. Even though we have used a string as the topic, we do not have to. Any other type works just fine.
 
-But where's the connection between `"OnBookAdded"` as a topic and the subscription type? Per default HotChocolate will try to map the topic to a field of the subscription type. If we want to make this binding less error-prone, we could do the following:
+But where is the connection between `"OnBookAdded"` as a topic and the subscription type? Per default HotChocolate will try to map the topic to a field of the subscription type. If we want to make this binding less error-prone, we could do the following:
 
 ```csharp
 await sender.SendAsync(nameof(Subscription.OnBookAdded), book);
 ```
 
-If we don't want to use the method name, we could use the `Topic` attribute.
+If we do not want to use the method name, we could use the `Topic` attribute.
 
 ```csharp
 public class Subscription
@@ -579,8 +580,10 @@ public class Subscription
     public ValueTask<ISourceStream<Book>> OnBookAdded(string author,
         [Service] ITopicEventReceiver receiver)
     {
-        var topic = $"{author}_AddedBook";
-        return receiver.SubscribeAsync<string, Book>(topic);
+        string topic = $"{author}_AddedBook";
+        Book book = receiver.SubscribeAsync<string, Book>(topic);
+
+        return book;
     }
 }
 
@@ -591,3 +594,20 @@ public async Book AddBook(Book book, [Service] ITopicEventSender sender)
     // Omitted code for brevity
 }
 ```
+
+If we do not want to mix the subscription logic with our resolver, we can also use the `With` argument on the `Subscribe` attribute to specify a seperate method that handles the event subscription.
+
+```csharp
+public class Subscription
+{
+    public ValueTask<ISourceStream<Book>> SubscribeToBooks(
+        [Service] ITopicEventReceiver receiver)
+        => receiver.SubscribeAsync<string, Book>("ExampleTopic");
+
+    [Subscribe(With = nameof(SubscribeToBooks))]
+    public ValueTask<ISourceStream<Book>> OnBookAdded([EventMessage] Book book)
+        => book;
+}
+```
+
+> Note: This approach does not support using resolver arguments to create the topic we are subscribing to.
