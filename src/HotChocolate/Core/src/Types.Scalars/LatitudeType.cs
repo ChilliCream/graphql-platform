@@ -119,14 +119,18 @@ namespace HotChocolate.Types
                     ? Math.Floor(minutesWhole)
                     : Math.Ceiling(minutesWhole);
                 var minutesDecimal = minutesWhole - minutes;
-                var seconds = Math.Round(minutesDecimal * 60, 8, MidpointRounding.AwayFromZero);
-                string serializedLatitude = $"{degree}° {minutes}' {seconds}\"";;
+                var seconds = Math.Round(
+                    minutesDecimal * 60,
+                    8,
+                    MidpointRounding.AwayFromZero);
 
-                serializedLatitude = degree switch
+                string serializedLatitude = degree switch
                 {
-                    > 0 and < _max => $"{degree}° {minutes}' {seconds}\" N",
-                    < 0 and > _min => $"{Math.Abs(degree)}° {Math.Abs(minutes)}' {Math.Abs(seconds)}\" S",
-                    _ => serializedLatitude // Can we ever get here?
+                    > 0 and < _max =>
+                        $"{degree}° {minutes}' {seconds}\" N",
+                    < 0 and > _min =>
+                        $"{Math.Abs(degree)}° {Math.Abs(minutes)}' {Math.Abs(seconds)}\" S",
+                    _ => $"{degree}° {minutes}' {seconds}\"" // Can we ever get here?
                 };
 
                 return serializedLatitude;
