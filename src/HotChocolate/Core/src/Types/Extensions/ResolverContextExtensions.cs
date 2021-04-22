@@ -24,7 +24,7 @@ namespace HotChocolate
                 throw String_NullOrEmpty(nameof(name));
             }
 
-            if (context.ContextData.TryGetValue(name, out object? value) &&
+            if (context.ContextData.TryGetValue(name, out var value) &&
                 value is T casted)
             {
                 return casted;
@@ -47,7 +47,7 @@ namespace HotChocolate
                 throw String_NullOrEmpty(nameof(name));
             }
 
-            if (context.ScopedContextData.TryGetValue(name, out object? value) &&
+            if (context.ScopedContextData.TryGetValue(name, out var value) &&
                 value is T casted)
             {
                 return casted;
@@ -70,7 +70,7 @@ namespace HotChocolate
                 throw String_NullOrEmpty(nameof(name));
             }
 
-            if (context.LocalContextData.TryGetValue(name, out object? value) &&
+            if (context.LocalContextData.TryGetValue(name, out var value) &&
                 value is T casted)
             {
                 return casted;
@@ -153,7 +153,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(createValue));
             }
 
-            if (context.ContextData.TryGetValue(name, out object? value) &&
+            if (context.ContextData.TryGetValue(name, out var value) &&
                 value is T casted)
             {
                 return casted;
@@ -187,7 +187,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(createValue));
             }
 
-            if (context.ScopedContextData.TryGetValue(name, out object? value) &&
+            if (context.ScopedContextData.TryGetValue(name, out var value) &&
                 value is T casted)
             {
                 return casted;
@@ -221,7 +221,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(createValue));
             }
 
-            if (context.LocalContextData.TryGetValue(name, out object? value) &&
+            if (context.LocalContextData.TryGetValue(name, out var value) &&
                 value is T casted)
             {
                 return casted;
@@ -285,7 +285,7 @@ namespace HotChocolate
             context.LocalContextData = context.LocalContextData.Remove(name);
         }
 
-        public static T GetEventMessage<T>(this IResolverContext context) 
+        public static T GetEventMessage<T>(this IResolverContext context)
         {
             if (context is null)
             {
@@ -293,8 +293,8 @@ namespace HotChocolate
             }
 
             if (context.ScopedContextData.TryGetValue(
-                WellKnownContextData.EventMessage, 
-                out object? value) && value is { })
+                WellKnownContextData.EventMessage,
+                out var value) && value is { })
             {
                 if(value is T casted)
                 {
