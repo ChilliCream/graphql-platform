@@ -101,35 +101,33 @@ namespace HotChocolate.Execution.Batching
 
         private async Task Dispatch()
         {
-            await DispatchCanStart();
-
-            var context = AcquireContext();
-            if (context != null)
+            try
             {
-                try
+                await DispatchCanStart();
+
+                var context = AcquireContext();
+                if (context != null)
                 {
-                    _dispatcher.Dispatch(taskDefinition =>
+                    try
                     {
-                        context.TaskBacklog.Register(taskDefinition.Create(context.TaskContext));
-                    });
+                        _dispatcher.Dispatch(taskDefinition =>
+                        {
+                            context.TaskBacklog.Register(taskDefinition.Create(context.TaskContext));
+                        });
+                    }
+                    finally
+                    {
+                        context.TaskStats.ResumeCompletionEvent();
+                    }
                 }
-                finally
+            }
+            finally
+            {
+                lock (_dispatchLock)
                 {
-                    context.TaskStats.ResumeCompletionEvent();
+                    _dispatchTask = default!;
+                    TryStartDispatch();
                 }
-            }
-            else
-            {
-                // if there are no running contexts this is not a problem,
-                // it could happen when are aborted
-                Debug.Assert(RunningContexts().Any(), "Batch was not dispatched because there was no context available");
-            }
-          
-
-            lock (_dispatchLock)
-            {
-                _dispatchTask = default!;
-                TryStartDispatch();
             }
         }
 
@@ -155,16 +153,12 @@ namespace HotChocolate.Execution.Batching
                         // all internal tasks are scheduled, await running task completion/idle time if necessary
                         keepWaiting = await TasksBlockDispatch(contextCtx.Token);
                     }
-                    catch (TaskCanceledException)
+                    catch (Exception)
                     {
-                        // happens when any of the contexts is aborted
-                    }
-                    catch (Exception e)
-                    {
-                        // if an unexpected exception happened while waiting,
-                        // just start the batch and see what happens there
-                        Debug.Fail($"Unexpected exception while waiting for BatchTimeout completion: {e}");
-                        keepWaiting = false;
+                        // keep trying if anything goes wrong till all contexts are aborted
+                        // (example exceptions: TaskCanceledException if task aborted but not yet returned to pool,
+                        //                      ObjectDisposedException if context has been returned to pool)
+                        keepWaiting = true;
                     }
                 }
                 else
@@ -195,19 +189,10 @@ namespace HotChocolate.Execution.Batching
                     // if we triggered an actual context switch, restart the loop because new items might have been added since then
                     if (willYield) return true;
                 }
-                catch (TaskCanceledException)
+                catch (Exception)
                 {
-                    // if timeout came from context, restart loop
-                    if (!timeoutSource.IsCancellationRequested)
-                    {
-                        return true;
-                    }
-                }
-                catch (Exception e)
-                {
-                    // if an unexpected exception happened while waiting,
-                    // just start the batch and see what happens there
-                    Debug.Fail($"Unexpected exception while waiting for BatchTimeout completion: {e}");
+                    // in case of failure, keep trying till timeout is reached
+                    return !timeoutSource.IsCancellationRequested;
                 }
             }
             return false;
@@ -236,9 +221,9 @@ namespace HotChocolate.Execution.Batching
                         taskStats.ResumeCompletionEvent();
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    Debug.Fail($"Unexpected exception while trying to acquire a context: {e}");
+                    // could trigger for example when context was returned to pool with unfortunate timing
                 }
             }
             return acquiredContext;
@@ -246,7 +231,17 @@ namespace HotChocolate.Execution.Batching
 
         private IEnumerable<KeyValuePair<IExecutionContext, CancellationToken>> RunningContexts()
         {
-            return _contexts.Where(x => !(x.Value.IsCancellationRequested || x.Key.TaskStats.IsCompleted));
+            return _contexts.Where(x => {
+                try
+                {
+                    return !(x.Value.IsCancellationRequested || x.Key.TaskStats.IsCompleted);
+                }
+                catch (Exception)
+                {
+                    // could trigger for example when context was returned to pool with unfortunate timing
+                    return false;
+                } 
+            });
         }
     }
 }
