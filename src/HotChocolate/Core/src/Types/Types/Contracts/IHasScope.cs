@@ -2,6 +2,9 @@
 
 namespace HotChocolate.Types
 {
+    /// <summary>
+    /// GraphQL type system members that can be scoped.
+    /// </summary>
     public interface IHasScope
     {
         /// <summary>
