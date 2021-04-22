@@ -42,5 +42,12 @@ namespace HotChocolate.Types
         /// This member can be <c>null</c>.
         /// </summary>
         MemberInfo? Member { get; }
+
+        /// <summary>
+        /// Gets the resolver member of this filed.
+        /// If this field has no explicit resolver member
+        /// this property will return <see cref="Member"/>.
+        /// </summary>
+        MemberInfo? ResolverMember { get; }
     }
 }
