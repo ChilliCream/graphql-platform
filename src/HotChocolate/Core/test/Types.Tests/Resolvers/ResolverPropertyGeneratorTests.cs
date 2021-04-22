@@ -5,8 +5,11 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Tests;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
@@ -1461,6 +1464,16 @@ namespace HotChocolate.Resolvers.Expressions
             Assert.Equal("abc", resolverContext.LocalContextData["foo"]);
         }
 
+        [Fact]
+        public async Task SchemaIntegrationTest()
+        {
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Resolvers>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
         public class Resolvers
         {
             public Task<object> ObjectTaskResolver() =>
@@ -1478,6 +1491,7 @@ namespace HotChocolate.Resolvers.Expressions
 
             public string StringResolverWithArg(string a) => a;
 
+            [GraphQLIgnore]
             public string StringValueNodeResolverWithArg(StringValueNode a) => a.Value;
 
             public string OptionalStringResolverWithArg(Optional<string> a) => a.Value;
