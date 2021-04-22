@@ -259,7 +259,7 @@ namespace HotChocolate.Types
 
         public class DefaultLatitude
         {
-            public string Test => new("76° 49' 14.845008\" N");
+            public double Test => new();
         }
 
         public class DefaultLatitudeType : ObjectType<DefaultLatitude>
