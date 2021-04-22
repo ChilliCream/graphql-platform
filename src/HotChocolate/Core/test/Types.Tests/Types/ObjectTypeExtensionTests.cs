@@ -602,6 +602,35 @@ namespace HotChocolate.Types
                 .MatchSnapshotAsync();
         }
 
+        [Fact]
+        public async Task Ensure_Member_And_ResolverMember_Are_Correctly_Set_When_Extending()
+        {
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<ObjectField_Test_Query>()
+                    .AddTypeExtension<ObjectField_Test_Query_Extension>()
+                    .BuildSchemaAsync();
+
+            IObjectField field = schema.QueryType.Fields["foo1"];
+            Assert.Equal("GetFoo", field.Member?.Name);
+            Assert.Equal("GetFoo1", field.ResolverMember?.Name);
+        }
+
+        [Fact]
+        public async Task Ensure_Member_And_ResolverMember_Are_The_Same_When_Not_Extending()
+        {
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<ObjectField_Test_Query>()
+                    .BuildSchemaAsync();
+
+            IObjectField field = schema.QueryType.Fields["foo"];
+            Assert.Equal("GetFoo", field.Member?.Name);
+            Assert.Equal("GetFoo", field.ResolverMember?.Name);
+        }
+
         public class FooType
             : ObjectType<Foo>
         {
@@ -868,6 +897,18 @@ namespace HotChocolate.Types
         public class ExtensionB
         {
             public string Foo() => "def";
+        }
+
+        public class ObjectField_Test_Query
+        {
+            public string GetFoo() => null;
+        }
+
+        [ExtendObjectType(typeof(ObjectField_Test_Query))]
+        public class ObjectField_Test_Query_Extension
+        {
+            [BindMember(nameof(ObjectField_Test_Query.GetFoo))]
+            public string GetFoo1() => null;
         }
     }
 }
