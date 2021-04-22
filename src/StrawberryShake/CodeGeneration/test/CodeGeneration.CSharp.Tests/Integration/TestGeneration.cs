@@ -1,3 +1,4 @@
+using ChilliCream.Testing;
 using StrawberryShake.Tools.Configuration;
 using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
@@ -169,5 +170,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration
                 union Bar = Baz | Quox | Baz2 | Quox2
                 ",
                 "extend schema @key(fields: \"id\")");
+
+        [Fact]
+        public void StarWarsIntrospection() =>
+            AssertStarWarsResult(
+                CreateIntegrationTest(),
+                FileResource.Open("IntrospectionQuery.graphql"));
     }
 }

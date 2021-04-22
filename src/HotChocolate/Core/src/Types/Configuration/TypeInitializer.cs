@@ -525,15 +525,12 @@ namespace HotChocolate.Configuration
                 RegisteredResolver registered = item.Value;
                 if (registered.Field is FieldMember member)
                 {
-                    ResolverDescriptor descriptor =
-                        registered.IsSourceResolver
-                            ? new ResolverDescriptor(
-                                registered.SourceType,
-                                member)
-                            : new ResolverDescriptor(
-                                registered.ResolverType,
-                                registered.SourceType,
-                                member);
+                    ResolverDescriptor descriptor = new(
+                        registered.SourceType,
+                        member,
+                        resolverType: registered.IsSourceResolver
+                            ? null 
+                            : registered.ResolverType);
                     _resolvers[item.Key] = registered.WithField(
                         ResolverCompiler.Resolve.Compile(descriptor));
                 }

@@ -101,6 +101,17 @@ namespace StrawberryShake.CodeGeneration.Utilities
             return "_" + GetParamNameUnsafe(fieldName);
         }
 
+        public static string GetLeftPropertyAssignment(string property)
+        {
+            if (property is { Length: >0 } && property[0] == '_')
+            {
+                return $"this.{property}";
+
+            }
+
+            return property;
+        }
+
         public static string GetParameterName(string parameterName)
         {
             return Keywords.ToSafeName(GetParamNameUnsafe(parameterName));
@@ -108,7 +119,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
 
         public static string GetParamNameUnsafe(string parameterName)
         {
-            if (parameterName == WellKnownNames.TypeName)
+            if (parameterName.Length > 0 && parameterName[0] == '_')
             {
                 return parameterName;
             }

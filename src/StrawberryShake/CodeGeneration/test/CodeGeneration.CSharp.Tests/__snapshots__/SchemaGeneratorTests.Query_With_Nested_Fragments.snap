@@ -644,7 +644,7 @@ namespace Foo.Bar.State
             IGetAll_Listings_Items? returnValue;
             if (data is global::Foo.Bar.State.AuctionData auction)
             {
-                if (auction.StartingPrice.HasValue)
+                if (!auction.StartingPrice.HasValue)
                 {
                     throw new global::System.ArgumentNullException();
                 }
@@ -653,7 +653,7 @@ namespace Foo.Bar.State
             }
             else if (data is global::Foo.Bar.State.OfferData offer)
             {
-                if (offer.Price.HasValue)
+                if (!offer.Price.HasValue)
                 {
                     throw new global::System.ArgumentNullException();
                 }
