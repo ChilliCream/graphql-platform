@@ -5,15 +5,14 @@ namespace HotChocolate.Language
 {
     public static partial class VisitorExtensions
     {
-        private static readonly VisitationMap _defaultVisitationMap =
-            new VisitationMap();
+        private static readonly VisitationMap _defaultVisitationMap = new();
 
         public static void Accept<T>(
             this ISyntaxNode node,
             VisitorFn<T> enter,
             VisitorFn<T> leave)
             where T : ISyntaxNode =>
-            Accept<T>(node, enter, leave, _defaultVisitationMap);
+            Accept(node, enter, leave, _defaultVisitationMap);
 
         public static void Accept<T>(
             this ISyntaxNode node,
@@ -73,7 +72,7 @@ namespace HotChocolate.Language
             this ISyntaxNode node,
             ISyntaxNodeVisitor visitor,
             IVisitationMap visitationMap,
-            Func<ISyntaxNode, VisitorAction> defaultAction)
+            Func<ISyntaxNode, VisitorAction>? defaultAction)
         {
             if (node is null)
             {
@@ -99,12 +98,12 @@ namespace HotChocolate.Language
             root.Push(new SyntaxNodeInfo(node, null));
             level.Push(root);
 
-            int index = 0;
+            var index = 0;
             SyntaxNodeInfo parent = default;
 
             while (level.Count != 0)
             {
-                bool isLeaving = level[index].Count == 0;
+                var isLeaving = level[index].Count == 0;
                 SyntaxNodeInfo current;
                 VisitorAction action;
 
@@ -180,7 +179,6 @@ namespace HotChocolate.Language
                     }
                     else if (action == VisitorAction.Skip)
                     {
-                        // TODO : replace with empty
                         level.Push(new List<SyntaxNodeInfo>());
                     }
 
@@ -215,7 +213,7 @@ namespace HotChocolate.Language
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            if (_enterVisitors.TryGetValue(node.GetType(), out IntVisitorFn v))
+            if (_enterVisitors.TryGetValue(node.GetType(), out IntVisitorFn? v))
             {
                 return v.Invoke(visitor, node, parent, path, ancestors);
             }
@@ -229,7 +227,7 @@ namespace HotChocolate.Language
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            if (_leaveVisitors.TryGetValue(node.GetType(), out IntVisitorFn v))
+            if (_leaveVisitors.TryGetValue(node.GetType(), out IntVisitorFn? v))
             {
                 return v.Invoke(visitor, node, parent, path, ancestors);
             }
