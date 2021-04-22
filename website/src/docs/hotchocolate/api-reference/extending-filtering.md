@@ -380,7 +380,7 @@ public class QueryableStringInvariantEqualsHandler : QueryableStringOperationHan
 }
 ```
 
-This operation handler can be registered on the convention
+This operation handler can be registered on the convention:
 
 ```csharp
 public class CustomFilteringConvention : FilterConvention
@@ -391,7 +391,7 @@ public class CustomFilteringConvention : FilterConvention
         descriptor.Provider(
             new QueryableFilterProvider(
                 x => x
-                    .AddDefaultHandlers()
+                    .AddDefaultFieldHandlers()
                     .AddFieldHandler<QueryableStringInvariantEqualsHandler>()));
     }
 }
@@ -402,13 +402,14 @@ services.AddGraphQLServer()
 ```
 
 To make this registration easier, HotChocolate also supports convention and provider extensions.
-Instead of creating a customer `FilterConvention`, you can also do the follwing:
+Instead of creating a custom `FilterConvention`, you can also do the follwing:
 
 ```csharp
-services.AddGraphQLServer()
-    .AddFiltering<CustomFilteringConvention>();
+services
+    .AddGraphQLServer()
+    .AddFiltering()
     .AddConvention<IFilterConvention>(
-        new FilterConventionConvention(
+        new FilterConventionExtension(
             x => x.AddProviderExtension(
                 new QueryableFilterProviderExtension(
                     y => y.AddFieldHandler<QueryableStringInvariantEqualsHandler>()))));

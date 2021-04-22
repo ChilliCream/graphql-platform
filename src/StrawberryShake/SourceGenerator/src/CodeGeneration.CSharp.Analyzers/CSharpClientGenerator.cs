@@ -102,9 +102,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 }
 
                 // If the generator has no errors we will write the documents.
-                IDocumentWriter writer = context.Settings.UseSingleFile
-                    ? new SingleFileDocumentWriter()
-                    : new FileDocumentWriter();
+                IDocumentWriter writer = new FileDocumentWriter(
+                    keepFileName: context.Settings.UseSingleFile);
 
                 IReadOnlyList<SourceDocument> documents = hasErrors || result is null
                     ? context.GetLastSuccessfulGeneratedSourceDocuments()
@@ -223,6 +222,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     StrictSchemaValidation = context.Settings.StrictSchemaValidation,
                     NoStore = context.Settings.NoStore,
                     InputRecords = context.Settings.Records.Inputs,
+                    RazorComponents = context.Settings.RazorComponents,
                     EntityRecords = context.Settings.Records.Entities,
                     SingleCodeFile = context.Settings.UseSingleFile,
                     HashProvider = context.Settings.HashAlgorithm.ToLowerInvariant() switch
@@ -293,15 +293,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             const string http = "StrawberryShake.Transport.Http";
             const string websockets = "StrawberryShake.Transport.WebSockets";
             const string inmemory = "StrawberryShake.Transport.InMemory";
+            const string razor = "StrawberryShake.Razor";
 
             if (settings.TransportProfiles.Count == 1)
             {
-                StrawberryShakeTransportProfile transportProfile = settings.TransportProfiles[0];
+                StrawberryShakeSettingsTransportProfile settingsTransportProfile = settings.TransportProfiles[0];
 
-                if (transportProfile.Default == TransportType.Http &&
-                    transportProfile.Subscription == TransportType.WebSocket &&
-                    transportProfile.Query == null &&
-                    transportProfile.Mutation == null)
+                if (settingsTransportProfile.Default == TransportType.Http &&
+                    settingsTransportProfile.Subscription == TransportType.WebSocket &&
+                    settingsTransportProfile.Query == null &&
+                    settingsTransportProfile.Mutation == null)
                 {
                     if (!EnsureDependencyExists(context, http))
                     {
@@ -341,6 +342,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             if (usedTransports.Contains(TransportType.InMemory))
             {
                 if (!EnsureDependencyExists(context, inmemory))
+                {
+                    return false;
+                }
+            }
+
+            if (settings.RazorComponents)
+            {
+                if (!EnsureDependencyExists(context, razor))
                 {
                     return false;
                 }

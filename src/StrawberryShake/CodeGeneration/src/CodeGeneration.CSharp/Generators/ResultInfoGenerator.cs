@@ -65,7 +65,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 constructorBuilder.AddCode(
                     AssignmentBuilder
                         .New()
-                        .SetLefthandSide(prop.Name)
+                        .SetLefthandSide(GetLeftPropertyAssignment(prop.Name))
                         .SetRighthandSide(paramName));
             }
 

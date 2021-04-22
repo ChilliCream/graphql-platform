@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using StrawberryShake.CodeGeneration.CSharp.Analyzers.Properties;
 using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
@@ -21,7 +22,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             if (string.IsNullOrEmpty(logFile))
             {
                 throw new ArgumentException(
-                    $"'{nameof(logFile)}' cannot be null or empty.",
+                    string.Format(
+                        AnalyzerResources.FileLogger_FileLogger_LogFileCannotBeEmpty,
+                        nameof(logFile)),
                     nameof(logFile));
             }
 

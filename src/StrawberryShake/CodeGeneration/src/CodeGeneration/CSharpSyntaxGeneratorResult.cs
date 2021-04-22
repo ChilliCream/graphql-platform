@@ -8,12 +8,14 @@ namespace StrawberryShake.CodeGeneration
             string fileName,
             string? path,
             string ns,
-            BaseTypeDeclarationSyntax typeDeclaration)
+            BaseTypeDeclarationSyntax typeDeclaration,
+            bool isRazorComponent = false)
         {
             FileName = fileName;
             Path = path;
             Namespace = ns;
             TypeDeclaration = typeDeclaration;
+            IsRazorComponent = isRazorComponent;
         }
 
         public string FileName { get; }
@@ -23,5 +25,9 @@ namespace StrawberryShake.CodeGeneration
         public string Namespace { get; }
 
         public BaseTypeDeclarationSyntax TypeDeclaration { get; }
+
+        public bool IsCSharpDocument => !IsRazorComponent;
+
+        public bool IsRazorComponent { get; }
     }
 }

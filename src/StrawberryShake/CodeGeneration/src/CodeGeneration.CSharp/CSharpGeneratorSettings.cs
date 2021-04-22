@@ -40,6 +40,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
         public bool EntityRecords { get; set; }
 
         /// <summary>
+        /// Generate razor components.
+        /// </summary>
+        public bool RazorComponents { get; set; }
+
+        /// <summary>
         /// Generate a single CSharp code file.
         /// </summary>
         public bool SingleCodeFile { get; set; } = true;

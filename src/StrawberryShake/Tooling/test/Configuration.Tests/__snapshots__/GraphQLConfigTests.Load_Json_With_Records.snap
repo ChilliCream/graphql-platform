@@ -15,6 +15,7 @@
       "OutputDirectoryName": "Generated",
       "NoStore": false,
       "EmitGeneratedCode": true,
+      "RazorComponents": false,
       "Records": {
         "Inputs": true,
         "Entities": true
