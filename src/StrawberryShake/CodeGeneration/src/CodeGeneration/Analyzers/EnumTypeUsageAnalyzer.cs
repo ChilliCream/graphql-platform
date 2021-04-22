@@ -26,7 +26,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         }
 
         protected override void VisitOperationDefinition(
-            OperationDefinitionNode node, object? context)
+            OperationDefinitionNode node,
+            object? context)
         {
             ObjectType operationType = _schema.GetOperationType(node.Operation);
 
@@ -41,8 +42,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             VariableDefinitionNode node,
             object? context)
         {
-            if (_schema.TryGetType(node.Type.NamedType().Name.Value, out INamedType type)
-                && type is IInputType inputType)
+            if (_schema.TryGetType(node.Type.NamedType().Name.Value, out INamedType type) &&
+                type is IInputType inputType)
             {
                 VisitInputType(inputType);
             }
@@ -52,8 +53,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
         {
             IType currentType = _typeContext.Peek();
 
-            if (currentType is IComplexOutputType complexType
-                && complexType.Fields.TryGetField(node.Name.Value, out IOutputField? field))
+            if (currentType is IComplexOutputType complexType &&
+                complexType.Fields.TryGetField(node.Name.Value, out IOutputField? field))
             {
                 INamedType fieldType = field.Type.NamedType();
                 if (fieldType is IInputType inputType)
@@ -75,8 +76,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             FragmentDefinitionNode node,
             object? context)
         {
-            INamedType type = _schema!.GetType<INamedType>(
-                node.TypeCondition.Name.Value);
+            INamedType type = _schema!.GetType<INamedType>(node.TypeCondition.Name.Value);
 
             _typeContext.Push(type);
 
@@ -115,6 +115,24 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             foreach (IInputField field in type.Fields)
             {
                 VisitInputType(field.Type);
+            }
+        }
+
+        protected override void VisitInlineFragment(
+            InlineFragmentNode node,
+            object? context)
+        {
+            if (node.TypeCondition != null)
+            {
+                INamedType type = _schema!.GetType<INamedType>(node.TypeCondition.Name.Value);
+                _typeContext.Push(type);
+            }
+
+            base.VisitInlineFragment(node, context);
+
+            if (node.TypeCondition != null)
+            {
+                _typeContext.Pop();
             }
         }
     }

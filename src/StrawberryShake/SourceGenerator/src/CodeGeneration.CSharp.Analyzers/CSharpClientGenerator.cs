@@ -102,9 +102,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                 }
 
                 // If the generator has no errors we will write the documents.
-                IDocumentWriter writer = context.Settings.UseSingleFile
-                    ? new SingleFileDocumentWriter()
-                    : new FileDocumentWriter();
+                IDocumentWriter writer = new FileDocumentWriter(
+                    keepFileName: context.Settings.UseSingleFile);
 
                 IReadOnlyList<SourceDocument> documents = hasErrors || result is null
                     ? context.GetLastSuccessfulGeneratedSourceDocuments()

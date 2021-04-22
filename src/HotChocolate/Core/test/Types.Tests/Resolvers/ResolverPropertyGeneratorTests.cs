@@ -5,8 +5,11 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Tests;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
@@ -265,9 +268,9 @@ namespace HotChocolate.Resolvers.Expressions
             Type type = typeof(Resolvers);
             MemberInfo resolverMember = type.GetMethod(nameof(Resolvers.ObjectTaskResolver));
             var resolverDescriptor = new ResolverDescriptor(
-                type,
                 typeof(Entity),
-                new FieldMember("A", "b", resolverMember!));
+                new FieldMember("A", "b", resolverMember!),
+                resolverType: type);
 
             // act
             var compiler = new ResolveCompiler();
@@ -287,9 +290,9 @@ namespace HotChocolate.Resolvers.Expressions
             Type type = typeof(Resolvers);
             MemberInfo resolverMember = type.GetMethod(nameof(Resolvers.StringTaskResolver));
             var resolverDescriptor = new ResolverDescriptor(
-                type,
                 typeof(Entity),
-                new FieldMember("A", "b", resolverMember!));
+                new FieldMember("A", "b", resolverMember!),
+                resolverType: type);
 
             // act
             var compiler = new ResolveCompiler();
@@ -310,9 +313,9 @@ namespace HotChocolate.Resolvers.Expressions
             MemberInfo resolverMember =
                 type.GetMethod(nameof(Resolvers.StringTaskResolverWithArg));
             var resolverDescriptor = new ResolverDescriptor(
-                type,
                 typeof(Entity),
-                new FieldMember("A", "b", resolverMember!));
+                new FieldMember("A", "b", resolverMember!),
+                resolverType: type);
 
             // act
             var compiler = new ResolveCompiler();
@@ -333,9 +336,9 @@ namespace HotChocolate.Resolvers.Expressions
             Type type = typeof(Resolvers);
             MemberInfo resolverMember = type.GetMethod(nameof(Resolvers.ObjectResolver));
             var resolverDescriptor = new ResolverDescriptor(
-                type,
                 typeof(Entity),
-                new FieldMember("A", "b", resolverMember!));
+                new FieldMember("A", "b", resolverMember!),
+                resolverType: type);
 
             // act
             var compiler = new ResolveCompiler();
@@ -355,9 +358,9 @@ namespace HotChocolate.Resolvers.Expressions
             Type type = typeof(Resolvers);
             MemberInfo resolverMember = type.GetMethod(nameof(Resolvers.StringResolver));
             var resolverDescriptor = new ResolverDescriptor(
-                type,
                 typeof(Entity),
-                new FieldMember("A", "b", resolverMember!));
+                new FieldMember("A", "b", resolverMember!),
+                type);
 
             // act
             var compiler = new ResolveCompiler();
@@ -378,9 +381,9 @@ namespace HotChocolate.Resolvers.Expressions
             MemberInfo resolverMember =
                 type.GetMethod(nameof(Resolvers.StringResolverWithArg));
             var resolverDescriptor = new ResolverDescriptor(
-                type,
                 typeof(Entity),
-                new FieldMember("A", "b", resolverMember!));
+                new FieldMember("A", "b", resolverMember!),
+                type);
 
             // act
             var compiler = new ResolveCompiler();
@@ -402,9 +405,9 @@ namespace HotChocolate.Resolvers.Expressions
             MemberInfo resolverMember =
                 type.GetProperty("ObjectTaskStringProp");
             var resolverDescriptor = new ResolverDescriptor(
-                type,
                 typeof(Entity),
-                new FieldMember("A", "b", resolverMember!));
+                new FieldMember("A", "b", resolverMember!),
+                resolverType: type);
 
             // act
             var compiler = new ResolveCompiler();
@@ -425,9 +428,9 @@ namespace HotChocolate.Resolvers.Expressions
             MemberInfo resolverMember =
                 type.GetProperty("StringTaskResolverProp");
             var resolverDescriptor = new ResolverDescriptor(
-                type,
                 typeof(Entity),
-                new FieldMember("A", "b", resolverMember!));
+                new FieldMember("A", "b", resolverMember!),
+                resolverType: type);
 
             // act
             var compiler = new ResolveCompiler();
@@ -448,9 +451,9 @@ namespace HotChocolate.Resolvers.Expressions
             MemberInfo resolverMember =
                 type.GetProperty("StringProp");
             var resolverDescriptor = new ResolverDescriptor(
-                type,
                 typeof(Entity),
-                new FieldMember("A", "b", resolverMember!));
+                new FieldMember("A", "b", resolverMember!),
+                resolverType: type);
 
             // act
             var compiler = new ResolveCompiler();
@@ -1461,6 +1464,17 @@ namespace HotChocolate.Resolvers.Expressions
             Assert.Equal("abc", resolverContext.LocalContextData["foo"]);
         }
 
+        [Fact]
+        public async Task SchemaIntegrationTest()
+        {
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Resolvers>()
+                .ModifyOptions(o => o.SortFieldsByName = true)
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
         public class Resolvers
         {
             public Task<object> ObjectTaskResolver() =>
@@ -1478,6 +1492,7 @@ namespace HotChocolate.Resolvers.Expressions
 
             public string StringResolverWithArg(string a) => a;
 
+            [GraphQLIgnore]
             public string StringValueNodeResolverWithArg(StringValueNode a) => a.Value;
 
             public string OptionalStringResolverWithArg(Optional<string> a) => a.Value;

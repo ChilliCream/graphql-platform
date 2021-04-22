@@ -48,13 +48,14 @@ namespace HotChocolate.Language
             return false;
         }
 
-        public static T PeekOrDefault<T>(this IList<T> list, T defaultValue = default)
+        public static T PeekOrDefault<T>(this IList<T> list, T defaultValue = default!)
         {
             if (list.Count > 0)
             {
                 var lastIndex = list.Count - 1;
                 return list[lastIndex];
             }
+
             return defaultValue;
         }
 
