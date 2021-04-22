@@ -123,7 +123,7 @@ namespace HotChocolate.Types
 
                 var seconds = Math.Round(
                     minutesDecimal * 60,
-                    8,
+                    MaxPrecision,
                     MidpointRounding.AwayFromZero);
 
                 string serializedLatitude = degree switch

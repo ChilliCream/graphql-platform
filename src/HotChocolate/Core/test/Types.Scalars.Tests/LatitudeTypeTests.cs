@@ -120,6 +120,21 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        protected void Latitude_ExpectParseValueToMatch()
+        {
+            // arrange
+            ScalarType scalar = CreateType<LatitudeType>();
+            var valueSyntax = 76.82079028;
+            var expected = new StringValueNode("76° 49' 14.845008\" N");
+
+            // act
+            IValueNode result = scalar.ParseValue(valueSyntax);
+
+            // assert
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
         protected void Latitude_ExpectParseValueToThrowSerializationException()
         {
             // arrange
