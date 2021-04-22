@@ -108,12 +108,12 @@ namespace HotChocolate.Types
                 return false;
             }
 
-            public static string TrySerialize(double deserialize)
+            public static string TrySerialize(double serialize)
             {
-                var degree =  deserialize > 0
-                    ? Math.Floor(deserialize)
-                    : Math.Ceiling(deserialize);
-                var degreeDecimals = deserialize - degree;
+                var degree =  serialize > 0
+                    ? Math.Floor(serialize)
+                    : Math.Ceiling(serialize);
+                var degreeDecimals = serialize - degree;
 
                 var minutesWhole = degreeDecimals * 60;
                 var minutes = minutesWhole > 0
