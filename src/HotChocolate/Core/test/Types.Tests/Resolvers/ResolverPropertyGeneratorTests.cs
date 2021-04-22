@@ -1470,6 +1470,7 @@ namespace HotChocolate.Resolvers.Expressions
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Resolvers>()
+                .ModifyOptions(o => o.SortFieldsByName = true)
                 .BuildSchemaAsync()
                 .MatchSnapshotAsync();
         }
