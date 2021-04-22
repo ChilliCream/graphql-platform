@@ -609,5 +609,3 @@ public class Subscription
         => book;
 }
 ```
-
-> Note: This approach does not support using resolver arguments to create the topic we are subscribing to.
