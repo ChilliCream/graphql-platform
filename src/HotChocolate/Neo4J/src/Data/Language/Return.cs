@@ -11,13 +11,12 @@ namespace HotChocolate.Data.Neo4J.Language
         private readonly ProjectionBody _returnItems;
 
         public Return(
-            bool distinct,
             ExpressionList returnItems,
             OrderBy? orderBy = null,
             Skip? skip = null,
             Limit? limit = null)
         {
-            _returnItems = new ProjectionBody(distinct, returnItems, orderBy, skip, limit);
+            _returnItems = new ProjectionBody(returnItems, orderBy, skip, limit);
         }
 
         public override void Visit(CypherVisitor cypherVisitor)

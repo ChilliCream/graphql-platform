@@ -55,9 +55,6 @@ namespace HotChocolate.Data.Neo4J.Language
                 case ClauseKind.Return:
                     EnterVisitable((Return)visitable);
                     break;
-                case ClauseKind.Distinct:
-                    EnterVisitable((Distinct)visitable);
-                    break;
                 case ClauseKind.OrderBy:
                     EnterVisitable((OrderBy)visitable);
                     break;

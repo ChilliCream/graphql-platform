@@ -111,8 +111,6 @@ namespace HotChocolate.Data.Neo4J.Language
 
         private void EnterVisitable(Return _) => _writer.Write("RETURN ");
 
-        private void EnterVisitable(Distinct _) => _writer.Write("DISTINCT ");
-
         private void EnterVisitable(OrderBy _) => _writer.Write(" ORDER BY ");
 
         private void EnterVisitable(Skip _) => _writer.Write(" SKIP ");

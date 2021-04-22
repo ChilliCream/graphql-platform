@@ -112,17 +112,5 @@ namespace HotChocolate.Data.Neo4J.Language
 
             --_currentLevel;
         }
-
-        // public string EscapeName(string unescapedName)
-        // {
-        //     if (unescapedName == null)
-        //     {
-        //         return string.Empty;
-        //     }
-        //
-        //     MatchCollection matcher = LABEL_AND_TYPE_QUOTATION.Matches(unescapedName);
-        //
-        //     //return string.Format("`{0}`", Regex.Replace(unescapedName, LABEL_AND_TYPE_QUOTATION.Matches(unescapedName)));
-        // }
     }
 }

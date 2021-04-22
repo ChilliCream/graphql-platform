@@ -10,14 +10,13 @@ namespace HotChocolate.Data.Neo4J.Language
         private readonly Where _where;
 
         public With(
-            bool distinct,
             ExpressionList returnItems,
             OrderBy orderBy,
             Skip skip,
             Limit limit,
             Where where)
         {
-            _body = new ProjectionBody(distinct ,returnItems, orderBy, skip, limit);
+            _body = new ProjectionBody(returnItems, orderBy, skip, limit);
             _where = where;
         }
 

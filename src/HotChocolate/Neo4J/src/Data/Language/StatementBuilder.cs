@@ -35,7 +35,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public StatementBuilder Return(params INamed[] elements)
         {
-            _return = new Return(false, new ExpressionList(Expressions.CreateSymbolicNames(elements)));
+            _return = new Return(new ExpressionList(Expressions.CreateSymbolicNames(elements)));
             return this;
         }
 
@@ -53,7 +53,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public StatementBuilder Return(params Expression[]? expressions)
         {
-            _return = new Return(false, new ExpressionList(expressions));
+            _return = new Return(new ExpressionList(expressions));
             return this;
         }
 

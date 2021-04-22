@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -146,10 +145,6 @@ namespace HotChocolate.Data.Neo4J.Language
             GetRequiredSymbolicName().As(alias);
 
         public IReadOnlyList<NodeLabel>? GetLabels() => _labels?.AsReadOnly();
-
-        public Condition HasLabels(params string[] labelsToQuery) =>
-            HasLabelCondition.Create(_symbolicName)
-            ?? throw new InvalidOperationException("Cannot query a node without a symbolic name.");
 
         public override void Visit(CypherVisitor cypherVisitor)
         {
