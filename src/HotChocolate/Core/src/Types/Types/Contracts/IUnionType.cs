@@ -6,6 +6,9 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
 {
+    /// <summary>
+    /// Represents a GraphQL union type.
+    /// </summary>
     public interface IUnionType : INamedOutputType
     {
         /// <summary>
@@ -19,7 +22,7 @@ namespace HotChocolate.Types
         IReadOnlyCollection<IObjectType> Types { get; }
 
         /// <summary>
-        /// Resolves the concrete type for the value of a type 
+        /// Resolves the concrete type for the value of a type
         /// that implements this interface.
         /// </summary>
         /// <param name="context">
@@ -29,7 +32,7 @@ namespace HotChocolate.Types
         /// The value for which the type shall be resolved.
         /// </param>
         /// <returns>
-        /// Returns <c>null</c> if the value is not of a type 
+        /// Returns <c>null</c> if the value is not of a type
         /// implementing this interface.
         /// </returns>
         IObjectType? ResolveConcreteType(
@@ -37,27 +40,27 @@ namespace HotChocolate.Types
             object resolverResult);
 
         /// <summary>
-        /// Checks if the type set of this union type contains the 
+        /// Checks if the type set of this union type contains the
         /// specified <paramref name="objectType"/>.
         /// </summary>
         /// <param name="objectType">
         /// The object type.
         /// </param>
         /// <returns>
-        /// Returns <c>true</c>, if the type set of this union type contains the 
+        /// Returns <c>true</c>, if the type set of this union type contains the
         /// specified <paramref name="objectType"/>; otherwise, <c>false</c> is returned.
         /// </returns>
         bool ContainsType(IObjectType objectType);
 
         /// <summary>
-        /// Checks if the type set of this union type contains the 
+        /// Checks if the type set of this union type contains the
         /// specified <paramref name="typeName"/>.
         /// </summary>
         /// <param name="objectType">
         /// The object type.
         /// </param>
         /// <returns>
-        /// Returns <c>true</c>, if the type set of this union type contains the 
+        /// Returns <c>true</c>, if the type set of this union type contains the
         /// specified <paramref name="typeName"/>; otherwise, <c>false</c> is returned.
         /// </returns>
         bool ContainsType(NameString typeName);
