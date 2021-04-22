@@ -119,13 +119,28 @@ namespace HotChocolate.Types
             Assert.Equal(typeof(StringValueNode), result.GetType());
         }
 
-        [Fact]
-        protected void Latitude_ExpectParseValueToMatch()
+        [Theory]
+        [InlineData(-38.6, "38° 36' 0\" S")]
+        [InlineData(-66.9, "66° 54' 0\" S")]
+        [InlineData(52.33, "52° 19' 48\" N")]
+        [InlineData(51.508, "51° 30' 28.8\" N")]
+        [InlineData(64.755, "64° 45' 18\" N")]
+        [InlineData(36.2826, "36° 16' 57.36\" N")]
+        [InlineData(-6.1806, "6° 10' 50.16\" S")]
+        [InlineData(41.89193, "41° 53' 30.948\" N")]
+        [InlineData(40.71427, "40° 42' 51.372\" N")]
+        [InlineData(42.833013, "42° 49' 58.8468\" N")]
+        [InlineData(6.693709, "6° 41' 37.3524\" N")]
+        [InlineData(-23.1066658, "23° 6' 23.99688\" S")]
+        [InlineData(-23.3220703, "23° 19' 19.45308\" S")]
+        [InlineData(66.00610639, "66° 0' 21.983004\" N")]
+        [InlineData(76.82079028, "76° 49' 14.845008\" N")]
+        protected void Latitude_ExpectParseValueToMatch(double runtime, string literal)
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = 76.82079028;
-            var expected = new StringValueNode("76° 49' 14.845008\" N");
+            var valueSyntax = runtime;
+            var expected = new StringValueNode(literal);
 
             // act
             IValueNode result = scalar.ParseValue(valueSyntax);
