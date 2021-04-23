@@ -123,18 +123,22 @@ namespace HotChocolate.Types
             Assert.Equal(typeof(StringValueNode), result.GetType());
         }
 
-        [Fact]
-        protected void Longitude_ExpectParseValueToMatchDouble()
+        [Theory]
+        [InlineData(-54.5535275, "54° 33' 12.699\" W")]
+        [InlineData(-148.56920111, "148° 34' 9.123996\" W")]
+        [InlineData(-44.73392194, "44° 44' 2.118984\" W")]
+        protected void Longitutde_ExpectParseValueToMatch(double runtime, string literal)
         {
             // arrange
             ScalarType scalar = CreateType<LongitudeType>();
-            var valueSyntax = 170.1;
+            var valueSyntax = runtime;
+            var expected = new StringValueNode(literal);
 
             // act
             IValueNode result = scalar.ParseValue(valueSyntax);
 
             // assert
-            Assert.Equal(valueSyntax, Convert.ToDouble(result.Value));
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -216,7 +220,7 @@ namespace HotChocolate.Types
 
             // assert
 
-            Assert.Equal("-44.73392194", Assert.IsType<StringValueNode>(result).Value);
+            Assert.Equal("44° 44' 2.118984\" W", Assert.IsType<StringValueNode>(result).Value);
         }
 
         [Fact]
@@ -230,7 +234,7 @@ namespace HotChocolate.Types
 
             // assert
 
-            Assert.Equal("-44.73392194", Assert.IsType<StringValueNode>(result).Value);
+            Assert.Equal("44° 44' 2.118984\" W", Assert.IsType<StringValueNode>(result).Value);
         }
 
         [Fact]
@@ -244,7 +248,7 @@ namespace HotChocolate.Types
 
             // assert
 
-            Assert.Equal("-44", Assert.IsType<StringValueNode>(result).Value);
+            Assert.Equal("44° 0' 0\" W", Assert.IsType<StringValueNode>(result).Value);
         }
 
         [Fact]

@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
@@ -64,7 +63,7 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override StringValueNode ParseValue(double runtimeValue)
         {
-            if (runtimeValue is > Longitude._min and < Longitude._max)
+            if (runtimeValue is >= Longitude._min and <= Longitude._max)
             {
                 return new StringValueNode(Longitude.TrySerialize(runtimeValue));
             }
