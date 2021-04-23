@@ -132,7 +132,7 @@ namespace HotChocolate.Types
                         $"{degree}° {minutes}' {seconds}\" N",
                     < 0 and > _min =>
                         $"{Math.Abs(degree)}° {Math.Abs(minutes)}' {Math.Abs(seconds)}\" S",
-                    _ => $"{degree}° {minutes}' {seconds}\"" // Can we ever get here?
+                    _ => $"{degree}° {minutes}' {seconds}\""
                 };
 
                 return serializedLatitude;
