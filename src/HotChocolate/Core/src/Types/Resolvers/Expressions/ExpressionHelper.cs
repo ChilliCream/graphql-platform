@@ -133,7 +133,7 @@ namespace HotChocolate.Resolvers.Expressions
             bool hasDefaultValue,
             TContextData defaultValue)
         {
-            if (contextData.TryGetValue(key, out object value))
+            if (contextData.TryGetValue(key, out var value))
             {
                 if (value is null)
                 {
