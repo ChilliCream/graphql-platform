@@ -72,7 +72,7 @@ This convention is also configurable with a fluent interface, so in most cases y
 ## Descriptor
 
 Most of the capabilities of the descriptor are already documented under `Fetching Data -> Filtering`.
-If you have not done this already, it is now the right time to head over to [Filtering](https://chillicream.com/docs/hotchocolate/fetching-data/filtering) and read the parts about the `FilterConventions`
+If you have not done this already, it is now the right time to head over to [Filtering](/docs/hotchocolate/fetching-data/filtering) and read the parts about the `FilterConventions`
 
 There are two things on this descriptor that are not documented in `Fetching Data`:
 
@@ -284,8 +284,7 @@ A little simplified this is what happens during visitation:
 ```graphql
 {
   users(
-    where: # instance[0] = x # Create SCOPE 1 with parameter x of type User
-    # level[0] = []
+    where: # level[0] = [] # instance[0] = x # Create SCOPE 1 with parameter x of type User
     {
       # Push property User.Company onto the scope
       # instance[1] =  x.Company
@@ -380,7 +379,7 @@ public class QueryableStringInvariantEqualsHandler : QueryableStringOperationHan
 }
 ```
 
-This operation handler can be registered on the convention
+This operation handler can be registered on the convention:
 
 ```csharp
 public class CustomFilteringConvention : FilterConvention
@@ -391,7 +390,7 @@ public class CustomFilteringConvention : FilterConvention
         descriptor.Provider(
             new QueryableFilterProvider(
                 x => x
-                    .AddDefaultHandlers()
+                    .AddDefaultFieldHandlers()
                     .AddFieldHandler<QueryableStringInvariantEqualsHandler>()));
     }
 }
@@ -402,13 +401,14 @@ services.AddGraphQLServer()
 ```
 
 To make this registration easier, HotChocolate also supports convention and provider extensions.
-Instead of creating a customer `FilterConvention`, you can also do the follwing:
+Instead of creating a custom `FilterConvention`, you can also do the follwing:
 
 ```csharp
-services.AddGraphQLServer()
-    .AddFiltering<CustomFilteringConvention>();
+services
+    .AddGraphQLServer()
+    .AddFiltering()
     .AddConvention<IFilterConvention>(
-        new FilterConventionConvention(
+        new FilterConventionExtension(
             x => x.AddProviderExtension(
                 new QueryableFilterProviderExtension(
                     y => y.AddFieldHandler<QueryableStringInvariantEqualsHandler>()))));

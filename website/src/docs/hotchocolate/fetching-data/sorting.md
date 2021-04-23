@@ -2,6 +2,8 @@
 title: Sorting
 ---
 
+import { ExampleTabs } from "../../../components/mdx/example-tabs"
+
 # What is sorting
 
 Ordering results of a query dynamically is a common case. With Hot Chocolate sorting, you can expose a sorting argument, that abstracts the complexity of ordering logic.
@@ -70,41 +72,46 @@ services.AddGraphQLServer()
 
 Hot Chocolate will infer the sorting types directly from your .Net Model and then use a Middleware to apply the order to `IQueryable<T>` or `IEnumerable<T>` on execution.
 
-> ⚠️ **Note:** If you use more than middleware, keep in mind that **ORDER MATTERS**. The correct order is UsePaging > UseProjections > UseFiltering > UseSorting
-
-**Code First**
-
-```csharp
-public class QueryType
-    : ObjectType<Query>
-{
-    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
-    {
-        descriptor.Field(t => t.GetPersons(default)).UseSorting();
-    }
-}
-
-public class Query
-{
-    public IQueryable<Person> GetPersons([Service]IPersonRepository repository) =>
-        repository.GetPersons();
-}
-```
-
-**Pure Code First**
-
-The field descriptor attribute `[UseSorting]` does apply the extension method `UseSorting()` on the field descriptor.
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
 ```csharp
 public class Query
 {
     [UseSorting]
-    public IQueryable<Person> GetPersons([Service]IPersonRepository repository)
-    {
-        repository.GetPersons();
-    }
+    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+        => repository.GetUsers();
 }
 ```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class QueryType : ObjectType<Query>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    {
+        descriptor.Field(f => f.GetUsers(default)).UseSorting();
+    }
+}
+
+public class Query
+{
+    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+        => repository.GetUsers();
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+⚠️ Schema-first does currently not support sorting!
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+> ⚠️ **Note:** If you use more than one middleware, keep in mind that **ORDER MATTERS**. The correct order is UsePaging > UseProjections > UseFiltering > UseSorting
 
 # Customization
 
@@ -117,13 +124,12 @@ When fields are bound implicitly, meaning sorting is added for all valid propert
 It is also possible to customize the GraphQL field of the operation further. You can change the name, add a description or directive.
 
 ```csharp
-public class UserSortType
-    : SortInputType<User>
+public class UserSortType : SortInputType<User>
 {
     protected override void Configure(ISortInputTypeDescriptor<User> descriptor)
     {
         descriptor.BindFieldsExplicitly();
-        descriptor.Field(x => x.Name).Name("custom_name");
+        descriptor.Field(f => f.Name).Name("custom_name");
     }
 }
 ```
@@ -131,18 +137,16 @@ public class UserSortType
 If you want to change the sorting operations on a field, you need to declare you own operation enum type.
 
 ```csharp {7}
-public class UserSortType
-    : SortInputType<User>
+public class UserSortType : SortInputType<User>
 {
     protected override void Configure(ISortInputTypeDescriptor<User> descriptor)
     {
         descriptor.BindFieldsExplicitly();
-        descriptor.Field(x => x.Name).Type<AscOnlySortEnumType>();
+        descriptor.Field(f => f.Name).Type<AscOnlySortEnumType>();
     }
 }
 
-public class AscOnlySortEnumType
-    : DefaultSortEnumType
+public class AscOnlySortEnumType : DefaultSortEnumType
 {
     protected override void Configure(ISortEnumTypeDescriptor descriptor)
     {
@@ -173,33 +177,44 @@ enum AscOnlySortEnumType {
 
 To apply this sorting type we just have to provide it to the `UseSorting` extension method with as the generic type argument.
 
-**Code First**
-
-```csharp
-public class QueryType
-    : ObjectType<Query>
-{
-    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
-    {
-        descriptor
-          .Field(t => t.GetUser(default))
-          .UseSorting<UserSortType>()
-    }
-}
-```
-
-**Pure Code First**
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
 ```csharp
 public class Query
 {
     [UseSorting(typeof(UserSortType))]
-    public IQueryable<User> GetUsers([Service]IUserRepository repository)
-    {
-        repository.GetUsers();
-    }
+    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+        => repository.GetUsers();
 }
 ```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class QueryType : ObjectType<Query>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    {
+        descriptor.Field(f => f.GetUsers(default)).UseSorting<UserSortType>();
+    }
+}
+
+public class Query
+{
+    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+        => repository.GetUsers();
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+⚠️ Schema-first does currently not support sorting!
+
+</ExampleTabs.Schema>
+</ExampleTabs>
 
 # Sorting Conventions
 
@@ -222,10 +237,11 @@ public class CustomConvention
 }
 
 services.AddGraphQLServer()
-  .AddConvention<ISortConvention, CustomConvention>();
+    .AddConvention<ISortConvention, CustomConvention>();
 // or
 services.AddGraphQLServer()
-  .AddConvention<ISortConvention>(new Convention(x => x.AddDefaults()))
+    .AddConvention<ISortConvention>(new Convention(x =>
+        x.AddDefaults()))
 ```
 
 Often you just want to extend the default behaviour of sorting. If this is the case, you can also use `SortConventionExtension`
@@ -241,10 +257,13 @@ public class CustomConventionExtension
 }
 
 services.AddGraphQLServer()
-  .AddConvention<ISortConvention, CustomConventionExtension>();
+    .AddConvention<ISortConvention, CustomConventionExtension>();
 // or
 services.AddGraphQLServer()
-  .AddConvention<IFilterConvention>(new FilterConventionExtension(x => /*config*/))
+    .AddConvention<IFilterConvention>(new FilterConventionExtension(x =>
+    {
+        // config
+    }))
 ```
 
 ## Argument Name
@@ -324,8 +343,7 @@ This can be configured with the method `DefaultBinding`.
 **Configuration**
 
 ```csharp
-public class CustomConvention
-    : SortConvention
+public class CustomConvention : SortConvention
 {
     protected override void Configure(ISortConventionDescriptor descriptor)
     {
@@ -362,7 +380,7 @@ When you build extensions for sorting, you may want to modify or extend the `Def
 
 ```csharp
 descriptor.ConfigureEnum<DefaultSortEnumType>(
-  x => x.Operaion(CustomOperations.NULL_FIRST).Name("NULL_FIRST));
+    x => x.Operaion(CustomOperations.NULL_FIRST).Name("NULL_FIRST));
 ```
 
 ```sdl
@@ -380,7 +398,7 @@ You can use `Configure<TSortType>()` to alter the configuration of a type.
 
 ```csharp
 descriptor.Configure<CustomSortInputType>(
-  x => x.Description("This is my custome description"));
+    x => x.Description("This is my custome description"));
 ```
 
 ```sdl

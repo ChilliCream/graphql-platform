@@ -172,7 +172,7 @@ const IndexPage: FunctionComponent = () => {
               our startup guide and see how simple it is to create your first
               API.
             </p>
-            <Link to="/docs/hotchocolate/v10/">Learn more</Link>
+            <Link to="/docs/hotchocolate">Learn more</Link>
           </ContentContainer>
         </SectionRow>
       </Section>

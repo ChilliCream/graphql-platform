@@ -431,5 +431,15 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     abc: String
                 }");
         }
+
+        [Fact]
+        public void IntrospectionQuery()
+        {
+            AssertResult(
+                FileResource.Open("IntrospectionQuery.graphql"),
+                @"type Query {
+                    abc: String
+                }");
+        }
     }
 }

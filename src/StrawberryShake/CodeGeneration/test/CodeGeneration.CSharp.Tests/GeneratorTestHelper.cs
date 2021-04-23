@@ -91,7 +91,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     TransportProfiles = settings.Profiles,
                     NoStore = settings.NoStore,
                     InputRecords = settings.InputRecords,
-                    EntityRecords = settings.EntityRecords
+                    EntityRecords = settings.EntityRecords,
+                    RazorComponents = settings.RazorComponents
                 });
 
             Assert.False(
@@ -271,6 +272,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
             public bool InputRecords { get; set; }
 
             public bool EntityRecords { get; set; }
+
+            public bool RazorComponents { get; set; }
 
             public List<TransportProfile> Profiles { get; set; } = new();
 
