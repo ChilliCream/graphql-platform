@@ -72,6 +72,25 @@ namespace HotChocolate.Types
             throw ThrowHelper.LatitudeType_ParseValue_IsInvalid(this);
         }
 
+        /// <inheritdoc />
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+        {
+            if (runtimeValue is null)
+            {
+                resultValue = null;
+                return true;
+            }
+
+            if (runtimeValue is double d)
+            {
+                resultValue = Latitude.TrySerialize(d);
+                return true;
+            }
+
+            resultValue = null;
+            return false;
+        }
+
         private static class Latitude
         {
             public const double _min = -90.0;
