@@ -71,6 +71,25 @@ namespace HotChocolate.Types
             throw ThrowHelper.LongitudeType_ParseValue_IsInvalid(this);
         }
 
+        /// <inheritdoc />
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+        {
+            if (runtimeValue is null)
+            {
+                resultValue = null;
+                return true;
+            }
+
+            if (runtimeValue is double d)
+            {
+                resultValue = Longitude.TrySerialize(d);
+                return true;
+            }
+
+            resultValue = null;
+            return false;
+        }
+
         private static class Longitude
         {
             public const double _min = -180.0;
