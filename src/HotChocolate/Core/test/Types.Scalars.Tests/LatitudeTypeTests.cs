@@ -287,7 +287,7 @@ namespace HotChocolate.Types
 
         public class DefaultLatitude
         {
-            public double Test => 180.0;
+            public double Test => 91.0;
         }
 
         public class DefaultLatitudeType : ObjectType<DefaultLatitude>
