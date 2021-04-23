@@ -64,9 +64,9 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override StringValueNode ParseValue(double runtimeValue)
         {
-            if (runtimeValue is > Longitude.Min and < Longitude.Max)
+            if (runtimeValue is > Longitude._min and < Longitude._max)
             {
-                return new StringValueNode(Longitude.ToPrecision(runtimeValue));
+                return new StringValueNode(Longitude.TrySerialize(runtimeValue));
             }
 
             throw ThrowHelper.LongitudeType_ParseValue_IsInvalid(this);
@@ -74,9 +74,9 @@ namespace HotChocolate.Types
 
         private static class Longitude
         {
-            public const double Min = -180.0;
-            public const double Max = 180.0;
-            private const int _maxPrecision = 8;
+            public const double _min = -180.0;
+            public const double _max = 180.0;
+            private const int MaxPrecision = 8;
 
             private const string SexagesimalRegex =
                 "^([0-9]{1,3})°\\s*([0-9]{1,3}(?:\\.(?:[0-9]{1,}))?)['′]\\s*(([0-9]{1,3}" +
@@ -108,9 +108,35 @@ namespace HotChocolate.Types
                 return false;
             }
 
-            public static string ToPrecision(double d) =>
-                Math.Round(d, _maxPrecision, MidpointRounding.AwayFromZero)
-                    .ToString(CultureInfo.InvariantCulture);
+            public static string TrySerialize(double serialize)
+            {
+                var degree =  serialize > 0
+                    ? Math.Floor(serialize)
+                    : Math.Ceiling(serialize);
+                var degreeDecimals = serialize - degree;
+
+                var minutesWhole = degreeDecimals * 60;
+                var minutes = minutesWhole > 0
+                    ? Math.Floor(minutesWhole)
+                    : Math.Ceiling(minutesWhole);
+                var minutesDecimal = minutesWhole - minutes;
+
+                var seconds = Math.Round(
+                    minutesDecimal * 60,
+                    MaxPrecision,
+                    MidpointRounding.AwayFromZero);
+
+                string serializedLatitude = degree switch
+                {
+                    > 0 and < _max =>
+                        $"{degree}° {minutes}' {seconds}\" N",
+                    < 0 and > _min =>
+                        $"{Math.Abs(degree)}° {Math.Abs(minutes)}' {Math.Abs(seconds)}\" S",
+                    _ => $"{degree}° {minutes}' {seconds}\""
+                };
+
+                return serializedLatitude;
+            }
         }
     }
 }
