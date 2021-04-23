@@ -124,10 +124,21 @@ namespace HotChocolate.Types
         }
 
         [Theory]
+        [InlineData(-62.2, "62° 12' 0\" W")]
+        [InlineData(-4.77, "4° 46' 12\" W")]
+        [InlineData(-6.48, "6° 28' 48\" W")]
+        [InlineData(-0.169, "-0° -10' -8.4\"")]
+        [InlineData(118.751, "118° 45' 3.6\" E")]
+        [InlineData(139.3191, "139° 19' 8.76\" E")]
+        [InlineData(141.9909, "141° 59' 27.24\" E")]
+        [InlineData(12.51133, "12° 30' 40.788\" E")]
+        [InlineData(-74.00597, "74° 0' 21.492\" W")]
+        [InlineData(21.932245, "21° 55' 56.082\" E")]
+        [InlineData(-99.748897, "99° 44' 56.0292\" W")]
         [InlineData(-54.5535275, "54° 33' 12.699\" W")]
-        [InlineData(-148.56920111, "148° 34' 9.123996\" W")]
         [InlineData(-44.73392194, "44° 44' 2.118984\" W")]
-        protected void Longitutde_ExpectParseValueToMatch(double runtime, string literal)
+        [InlineData(-148.56920111, "148° 34' 9.123996\" W")]
+        protected void Longitude_ExpectParseValueToMatch(double runtime, string literal)
         {
             // arrange
             ScalarType scalar = CreateType<LongitudeType>();
