@@ -319,7 +319,7 @@ namespace HotChocolate.Types
 
         public class DefaultLongitude
         {
-            public double Test => 181.0;
+            public double Test => new();
         }
 
         public class DefaultLongitudeType : ObjectType<DefaultLongitude>
