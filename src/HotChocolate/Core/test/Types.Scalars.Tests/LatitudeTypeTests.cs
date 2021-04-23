@@ -218,6 +218,19 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        protected void Latitude_ExpectParseResultToMatchInt()
+        {
+            // arrange
+            ScalarType scalar = new LatitudeType();
+
+            // act
+            IValueNode result = scalar.ParseResult(1);
+
+            // assert
+            Assert.Equal(typeof(StringValueNode), result.GetType());
+        }
+
+        [Fact]
         protected void Longitude_ExpectParseResultToMatchNull_ThrowOnInt()
         {
             // arrange
