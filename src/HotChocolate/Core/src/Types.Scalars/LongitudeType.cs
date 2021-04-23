@@ -125,7 +125,7 @@ namespace HotChocolate.Types
                     MaxPrecision,
                     MidpointRounding.AwayFromZero);
 
-                string serializedLatitude = degree switch
+                string serializedLongitude = degree switch
                 {
                     > 0 and < _max =>
                         $"{degree}° {minutes}' {seconds}\" E",
@@ -134,7 +134,7 @@ namespace HotChocolate.Types
                     _ => $"{degree}° {minutes}' {seconds}\""
                 };
 
-                return serializedLatitude;
+                return serializedLongitude;
             }
         }
     }
