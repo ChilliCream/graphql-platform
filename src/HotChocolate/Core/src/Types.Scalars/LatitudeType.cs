@@ -87,6 +87,12 @@ namespace HotChocolate.Types
                 return true;
             }
 
+            if (runtimeValue is int i)
+            {
+                resultValue = Latitude.TrySerialize(i);
+                return true;
+            }
+
             resultValue = null;
             return false;
         }

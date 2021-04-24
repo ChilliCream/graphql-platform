@@ -205,6 +205,32 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void Longitude_ExpectSerializeInt()
+        {
+            // arrange
+            ScalarType scalar = new LatitudeType();
+
+            // act
+            var success = scalar.TrySerialize(180, out _);
+
+            // assert
+            Assert.True(success);
+        }
+
+        [Fact]
+        public void Longitude_ExpectSerializeDouble()
+        {
+            // arrange
+            ScalarType scalar = new LatitudeType();
+
+            // act
+            var success = scalar.TrySerialize(180.0, out _);
+
+            // assert
+            Assert.True(success);
+        }
+
+        [Fact]
         protected void Latitude_ExpectParseResultToMatchNull()
         {
             // arrange
