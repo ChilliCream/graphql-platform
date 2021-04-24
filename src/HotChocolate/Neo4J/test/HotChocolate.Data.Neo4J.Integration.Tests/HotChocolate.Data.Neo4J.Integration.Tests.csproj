@@ -10,7 +10,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="\Users\hanifa\Desktop\Projects\squadron\src\Neo4j\Neo4j.csproj" />
     <ProjectReference Include="..\..\src\Data\HotChocolate.Data.Neo4J.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
