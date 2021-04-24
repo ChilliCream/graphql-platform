@@ -37,7 +37,7 @@ It is transported as a string over the wire:
   }
 }
 ```  
-The `registrationDate` in out .NET client, should on the other hand be represented as a `System.DateTime`
+The `registrationDate` in our .NET client, should on the other hand be represented as a `System.DateTime`.
 ```csharp
 public partial class GetUser_User : IEquatable<GetUser_User>, IGetUser_User
 {
@@ -52,7 +52,7 @@ public partial class GetUser_User : IEquatable<GetUser_User>, IGetUser_User
 ```
 
 By default, all custom scalars are treated like the `String` scalar. 
-This means, that the client expects a string value and will deserialize it to a `System.String` on the client.
+This means, that the client expects a string value and will deserialize it to a `System.String`.
 
 If you want to change the `serializationType` or/and the `runtimeType` of a scalar, you have to specify the desired types in the `schema.extensions.graphql`.
 You can declare a scalar extension and add the `@serializationType` or/and the `@runtimeType` directive.
@@ -65,7 +65,9 @@ directive @serializationType(name: String!) on SCALAR
 directive @runtimeType(name: String!) on SCALAR
 
 "Represents a integer value that is greater or equal to 0"
-extend scalar PositiveInt @serializationType(name: "global::System.Int32") @runtimeType(name: "global::System.Int32")
+extend scalar PositiveInt 
+    @serializationType(name: "global::System.Int32") 
+    @runtimeType(name: "global::System.Int32")
 ```
 
 As soon as you specify custom serialization and runtime types you also need to provide a serializer for the type. 
@@ -76,6 +78,7 @@ Use the base class `ScalarSerializer<TValue>` or `ScalarSerializer<TSerializer, 
 
 ### Simple Example
 If the serialization and the value type are identical, you can just use the `ScalarSerializer` base class.
+
 _schema.extensions.graphql_
 ```graphql
 extend scalar PositiveInt @serializationType(name: "global::System.Int32") @runtimeType(name: "global::System.Int32")
@@ -85,7 +88,12 @@ _serializer_
 ```csharp
 public class PositiveIntSerializer : ScalarSerializer<int>
 {
-    public PositiveInt() : base("PositiveInt") { }
+    public PositiveInt() 
+        : base(
+            // the name of the scalar
+            "PositiveInt") 
+    {
+    }
 }
 ```
 
@@ -96,6 +104,8 @@ serviceCollection.AddSerializer<PositiveIntSerializer>();
 ### Advanced Example
 Your schema contains `X509Certificate`'s. These are serialized to `Base64` on the server and transported as strings.
 
+
+_schema.extensions.graphql_
 ```graphql
 extend scalar X509Certificate 
       @serializationType(name: "global::System.String") 
@@ -108,15 +118,19 @@ public class X509CertificateSerializer
     : ScalarSerializer<string, X509Certificate2>
 {
     public X509CertificateSerializer() 
-       : base("X509Certificate")
+       : base(
+           // the name of the scalar
+           "X509Certificate")
     {
     }
 
+    // Parses the value that is returned from the server (Output)
     public override X509Certificate2 Parse(string serializedValue)
     {
         return new X509Certificate2(Convert.FromBase64String(serializedValue));
     }
 
+    // Formats the value to send to the server (Input)
     protected override string Format(X509Certificate2 runtimeValue)
     {
         return Convert.ToBase64String(runtimeValue.Export(X509ContentType.Cert));
