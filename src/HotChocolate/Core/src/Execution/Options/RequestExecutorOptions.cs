@@ -7,7 +7,7 @@ namespace HotChocolate.Execution.Options
     /// Represents the entirety of settings to configure the behavior of the
     /// query execution engine.
     /// </summary>
-    public class RequestExecutorAnalyzerOptions : IRequestExecutorAnalyzerOptionsAccessor
+    public class RequestExecutorOptions : IRequestExecutorOptionsAccessor
     {
         private const int _minQueryCacheSize = 10;
         private static readonly TimeSpan _minExecutionTimeout = TimeSpan.FromMilliseconds(100);

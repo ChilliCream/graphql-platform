@@ -13,15 +13,15 @@ namespace HotChocolate.Execution.Pipeline
 
         public TimeoutMiddleware(
             RequestDelegate next,
-            IRequestExecutorAnalyzerOptionsAccessor analyzerOptions)
+            IRequestExecutorOptionsAccessor options)
         {
-            if (analyzerOptions is null)
+            if (options is null)
             {
-                throw new ArgumentNullException(nameof(analyzerOptions));
+                throw new ArgumentNullException(nameof(options));
             }
 
             _next = next ?? throw new ArgumentNullException(nameof(next));
-            _timeout = analyzerOptions.ExecutionTimeout;
+            _timeout = options.ExecutionTimeout;
         }
 
         public async ValueTask InvokeAsync(IRequestContext context)

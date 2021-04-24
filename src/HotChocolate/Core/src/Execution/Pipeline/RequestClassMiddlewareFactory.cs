@@ -14,7 +14,7 @@ namespace HotChocolate.Execution.Pipeline
     internal static class RequestClassMiddlewareFactory
     {
         private static readonly Type _validatorFactory = typeof(IDocumentValidatorFactory);
-        private static readonly Type _requestOptions = typeof(IRequestExecutorAnalyzerOptionsAccessor);
+        private static readonly Type _requestOptions = typeof(IRequestExecutorOptionsAccessor);
 
         private static readonly PropertyInfo _getSchemaName =
             typeof(IRequestCoreMiddlewareContext)
@@ -49,12 +49,12 @@ namespace HotChocolate.Execution.Pipeline
                     MiddlewareCompiler<TMiddleware>
                         .CompileFactory<IRequestCoreMiddlewareContext, RequestDelegate>(
                             (c, n) => CreateFactoryParameterHandlers(
-                                c, context.AnalyzerOptions, typeof(TMiddleware)))
+                                c, context.Options, typeof(TMiddleware)))
                         .Invoke(context, next);
 
                 ClassQueryDelegate<TMiddleware, IRequestContext> compiled =
                     MiddlewareCompiler<TMiddleware>.CompileDelegate<IRequestContext>(
-                        (c, m) => CreateDelegateParameterHandlers(c, context.AnalyzerOptions));
+                        (c, m) => CreateDelegateParameterHandlers(c, context.Options));
 
                 return c => compiled(c, middleware);
             };
@@ -62,7 +62,7 @@ namespace HotChocolate.Execution.Pipeline
 
         private static List<IParameterHandler> CreateFactoryParameterHandlers(
             Expression context,
-            IRequestExecutorAnalyzerOptionsAccessor analyzerOptions,
+            IRequestExecutorOptionsAccessor options,
             Type middleware)
         {
             Expression schemaName = Expression.Property(context, _getSchemaName);
@@ -118,7 +118,7 @@ namespace HotChocolate.Execution.Pipeline
             AddService<MutationExecutor>(list, schemaServices);
             AddService<IEnumerable<ISelectionOptimizer>>(list, schemaServices);
             AddService<SubscriptionExecutor>(list, schemaServices);
-            AddOptions(list, analyzerOptions);
+            AddOptions(list, options);
             list.Add(new SchemaNameParameterHandler(schemaName));
             list.Add(new ServiceParameterHandler(services));
             return list;
@@ -142,30 +142,30 @@ namespace HotChocolate.Execution.Pipeline
 
         private static List<IParameterHandler> CreateDelegateParameterHandlers(
             Expression context,
-            IRequestExecutorAnalyzerOptionsAccessor analyzerOptions)
+            IRequestExecutorOptionsAccessor options)
         {
             var list = new List<IParameterHandler>();
-            AddOptions(list, analyzerOptions);
+            AddOptions(list, options);
             list.Add(new ServiceParameterHandler(Expression.Property(context, _requestServices)));
             return list;
         }
 
         private static void AddOptions(
             IList<IParameterHandler> parameterHandlers,
-            IRequestExecutorAnalyzerOptionsAccessor analyzerOptions)
+            IRequestExecutorOptionsAccessor options)
         {
             parameterHandlers.Add(new TypeParameterHandler(
                 typeof(IDocumentCacheSizeOptionsAccessor),
-                Expression.Constant(analyzerOptions)));
+                Expression.Constant(options)));
             parameterHandlers.Add(new TypeParameterHandler(
                 typeof(IErrorHandlerOptionsAccessor),
-                Expression.Constant(analyzerOptions)));
+                Expression.Constant(options)));
             parameterHandlers.Add(new TypeParameterHandler(
                 typeof(IInstrumentationOptionsAccessor),
-                Expression.Constant(analyzerOptions)));
+                Expression.Constant(options)));
             parameterHandlers.Add(new TypeParameterHandler(
-                typeof(IRequestExecutorAnalyzerOptionsAccessor),
-                Expression.Constant(analyzerOptions)));
+                typeof(IRequestExecutorOptionsAccessor),
+                Expression.Constant(options)));
         }
 
         private class SchemaNameParameterHandler : IParameterHandler

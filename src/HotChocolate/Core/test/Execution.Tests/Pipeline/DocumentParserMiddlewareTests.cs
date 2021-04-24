@@ -96,7 +96,7 @@ namespace HotChocolate.Execution.Pipeline
             requestContext.SetupGet(t => t.ErrorHandler).Returns(
                 new DefaultErrorHandler(
                     Array.Empty<IErrorFilter>(),
-                    new RequestExecutorAnalyzerOptions()));
+                    new RequestExecutorOptions()));
             requestContext.SetupProperty(t => t.Document);
             requestContext.SetupProperty(t => t.DocumentId);
             requestContext.SetupProperty(t => t.Exception);
