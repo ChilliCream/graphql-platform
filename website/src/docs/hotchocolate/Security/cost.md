@@ -162,7 +162,7 @@ services
 
 With this, it is possible to add a request middleware and aggregate the complexity over time on something like _Redis_ and fail a request if the allowed complexity was used up.
 
-## Custom Calculation
+## Custom Complexity Calculation
 
 The default complexity calculation is fairly basic and can be customized to fit your needs.
 
