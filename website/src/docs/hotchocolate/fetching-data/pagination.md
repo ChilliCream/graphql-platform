@@ -4,8 +4,6 @@ title: "Pagination"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-<!-- todo: reword and update link, once final -->
-
 > This document starts by covering different pagination approaches. If you just want to learn how to implement pagination, head over [here](/docs/hotchocolate/fetching-data/pagination/#connections).
 
 Pagination is one of the most common problems that we have to solve when implementing our backend. Often, sets of data are too large to pass them directly to the consumer of our service.
@@ -170,7 +168,7 @@ If we need to specify the concrete node type of our pagination, we can do so via
 We can also configure the `UsePaging` middleware further, by specifying `PagingOptions`.
 
 ```csharp
-.UsePaging(options: new PagingOptions
+descriptor.UsePaging(options: new PagingOptions
 {
     MaxPageSize = 50
 });
@@ -228,7 +226,7 @@ public class QueryType : ObjectType
             {
                 var after = context.ArgumentValue<string?>("after");
                 var first = context.ArgumentValue<int?>("first");
-                var sortBy = context.ArgumentValue<string?>("sortBy");
+                var sortBy = context.ArgumentValue<string>("sortBy");
 
                 IEnumerable<User> users = null; // get users using the above arguments
 
@@ -245,7 +243,7 @@ public class QueryType : ObjectType
 }
 ```
 
-If we need to work on an even lower level, we could also use `descriptor.AddPagingArguments()` and `descriptor.Type<ConnectionType<TType>>()` to get rid of the `UsePaging` middleware.
+If we need to work on an even lower level, we could also use `descriptor.AddPagingArguments()` and `descriptor.Type<ConnectionType<UserType>>()` to get rid of the `UsePaging` middleware.
 
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
@@ -257,24 +255,115 @@ TODO
 
 ## Total count
 
+Sometimes we might want to return the total number of pageable entries.
+
+For this to work we need to enable the `IncludeTotalCount` flag on the `UsePaging` middleware.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+[UsePaging(IncludeTotalCount = true)]
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+descriptor.UsePaging(options: new PagingOptions
+{
+    IncludeTotalCount = true
+});
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
 TODO
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+This will add a new field called `totalCount` to our _Connection_.
+
+```sdl
+type UserConnection {
+  pageInfo: PageInfo!
+  edges: [UserEdge!]
+  nodes: [User!]
+  totalCount: Int!
+}
+```
+
+If our resolver returns an `IEnumerable<T>` or an `IQueryable<T>` the `totalCount` will be automatically computed, if it has been specified as a subfield in the query.
+
+If we have customized our pagination and our resolver now returns a `Connection<T>`, we have to explicitly declare how the `totalCount` value is computed.
+
+```csharp
+var connection = new Connection<User>(edges, pageInfo,
+                    getTotalCount: cancellationToken => ValueTask.FromResult(0));
+```
 
 ## Custom Edges
 
+_Edges_ are not only there to hold the _cusor_, they can also be used to include information about the relation between the parent and one of the _nodes_.
+
+```sdl
+type User {
+  id: ID!
+  name: String!
+  friends: FriendConnection
+}
+
+type FriendConnection {
+  pageInfo: PageInfo!
+  edges: [FriendEdge!]
+  nodes: [User!]
+}
+
+type FriendEdge {
+  cursor: String!
+  # this is a relation specific property
+  friendsSince: DateTime!
+  node: User!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+```
+
 TODO
 
-# Offset Pagination
+<!-- I only include -based in the name, since otherwise it wouldn't be a unique header -->
+
+# Offset-based Pagination
 
 > Note: While we support _offset_ pagination, we highly encourage the use of [_Connections_](/docs/hotchocolate/fetching-data/pagination/#connections) instead. _Connections_ provide an abstraction which makes it easier to switch to another pagination mechanism later on.
 
-## Usage
+The API used to implement _Offset-based_ pagination in HotChocolate is really similar to the _Connections_ API.
 
-TODO
+| Connections-based Pagination | Offset-based Pagination    |
+| ---------------------------- | -------------------------- |
+| `UsePaging`                  | `UseOffsetPaging`          |
+| `AddPagingArguments`         | `AddOffsetPagingArguments` |
+| `Connection<T>`              | `CollectionSegment`        |
+| `ConnectionPageInfo`         | `CollectionSegmentInfo`    |
 
-## Customization
+TODO:
 
-TODO
+- Schema differences
+- How to customize offset pagination? The following doesn't work
 
-## Total count
+```csharp
+[UseOffsetPaging(typeof(User))]
+public CollectionSegment GetUsers(int? take, int? skip)
+{
+    var collection = new CollectionSegment(_users, new CollectionSegmentInfo(true, false), ct => ValueTask.FromResult(0));
 
-TODO
+    return collection;
+}
+```
