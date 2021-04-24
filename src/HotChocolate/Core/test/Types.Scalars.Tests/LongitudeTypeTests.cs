@@ -247,27 +247,13 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void Longitude_ExpectParseResultToMatchNull_Decimal()
-        {
-            // arrange
-            ScalarType scalar = new LongitudeType();
-
-            // act
-            IValueNode result = scalar.ParseResult(-44.73392194d);
-
-            // assert
-
-            Assert.Equal("44° 44' 2.118984\" W", Assert.IsType<StringValueNode>(result).Value);
-        }
-
-        [Fact]
         protected void Longitude_ExpectParseResultToMatchNull_Double()
         {
             // arrange
             ScalarType scalar = new LongitudeType();
 
             // act
-            IValueNode result = scalar.ParseResult(-44.73392194);
+            IValueNode result = scalar.ParseResult(-44.73392194d);
 
             // assert
 
