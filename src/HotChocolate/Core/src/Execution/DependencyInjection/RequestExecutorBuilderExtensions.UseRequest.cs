@@ -3,6 +3,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Pipeline;
 using System.Collections.Generic;
+using HotChocolate.Execution.Pipeline.Complexity;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -107,6 +108,10 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder) =>
             builder.UseRequest<OperationCacheMiddleware>();
 
+        public static IRequestExecutorBuilder UseOperationComplexityAnalyzer(
+            this IRequestExecutorBuilder builder) =>
+            builder.UseRequest<OperationComplexityAnalyzer>();
+
         public static IRequestExecutorBuilder UseOperationExecution(
             this IRequestExecutorBuilder builder) =>
             builder.UseRequest<OperationExecutionMiddleware>();
@@ -157,6 +162,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .UseDocumentParser()
                 .UseDocumentValidation()
                 .UseOperationCache()
+                .UseOperationComplexityAnalyzer()
                 .UseOperationResolver()
                 .UseOperationVariableCoercion()
                 .UseOperationExecution();
@@ -194,6 +200,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .UseDocumentParser()
                 .UseDocumentValidation()
                 .UseOperationCache()
+                .UseOperationComplexityAnalyzer()
                 .UseOperationResolver()
                 .UseOperationVariableCoercion()
                 .UseOperationExecution();
@@ -208,6 +215,7 @@ namespace Microsoft.Extensions.DependencyInjection
             pipeline.Add(RequestClassMiddlewareFactory.Create<DocumentParserMiddleware>());
             pipeline.Add(RequestClassMiddlewareFactory.Create<DocumentValidationMiddleware>());
             pipeline.Add(RequestClassMiddlewareFactory.Create<OperationCacheMiddleware>());
+            pipeline.Add(RequestClassMiddlewareFactory.Create<OperationComplexityMiddleware>());
             pipeline.Add(RequestClassMiddlewareFactory.Create<OperationResolverMiddleware>());
             pipeline.Add(RequestClassMiddlewareFactory.Create<OperationVariableCoercionMiddleware>());
             pipeline.Add(RequestClassMiddlewareFactory.Create<OperationExecutionMiddleware>());

@@ -19,12 +19,14 @@ namespace HotChocolate.Execution.Pipeline
         private readonly ComplexityAnalyzerSettings _settings;
         private readonly IComplexityAnalyzerCache _cache;
         private readonly ComplexityAnalyzerCompilerVisitor _compiler;
+        private readonly VariableCoercionHelper _coercionHelper;
 
         public OperationComplexityMiddleware(
             RequestDelegate next,
             DocumentValidatorContextPool contextPool,
             IComplexityAnalyzerOptionsAccessor options,
-            IComplexityAnalyzerCache cache)
+            IComplexityAnalyzerCache cache,
+            VariableCoercionHelper coercionHelper)
         {
             _next = next ??
                 throw new ArgumentNullException(nameof(next));
@@ -34,6 +36,9 @@ namespace HotChocolate.Execution.Pipeline
                 throw new ArgumentNullException(nameof(options));
             _cache = cache ??
                 throw new ArgumentNullException(nameof(cache));
+            _coercionHelper = coercionHelper ??
+                throw new ArgumentNullException(nameof(coercionHelper));
+
             _compiler = new ComplexityAnalyzerCompilerVisitor(_settings);
         }
 
@@ -44,17 +49,26 @@ namespace HotChocolate.Execution.Pipeline
             {
                 if (context.DocumentId is not null &&
                     context.OperationId is not null &&
-                    context.Document is not null &&
-                    context.Variables is not null)
+                    context.Document is not null)
                 {
+                    DocumentNode document = context.Document;
+                    OperationDefinitionNode operationDefinition =
+                        context.Operation?.Definition ??
+                        document.GetOperation(context.Request.OperationName);
+
                     if (!_cache.TryGetOperation(
                         context.OperationId,
                         out ComplexityAnalyzerDelegate? analyzer))
                     {
-                        analyzer = CompileAnalyzer(context);
+                        analyzer = CompileAnalyzer(context, document, operationDefinition);
                     }
 
-                    var complexity = analyzer(context.Variables);
+                    CoerceVariables(
+                        context,
+                        _coercionHelper,
+                        operationDefinition.VariableDefinitions);
+
+                    var complexity = analyzer(context.Variables!);
                     context.ContextData[_settings.ContextDataKey] = complexity;
 
                     if (complexity <= _settings.MaximumAllowed)
@@ -77,12 +91,12 @@ namespace HotChocolate.Execution.Pipeline
             }
         }
 
-        private ComplexityAnalyzerDelegate CompileAnalyzer(IRequestContext context)
+        private ComplexityAnalyzerDelegate CompileAnalyzer(
+            IRequestContext context,
+            DocumentNode document,
+            OperationDefinitionNode operationDefinition)
         {
             DocumentValidatorContext validatorContext = _contextPool.Get();
-            DocumentNode document = context.Document!;
-            OperationDefinitionNode operationDefinition =
-                document.GetOperation(context.Request.OperationName);
             ComplexityAnalyzerDelegate? operationAnalyzer = null;
 
             try

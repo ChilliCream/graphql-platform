@@ -103,6 +103,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 _ => new DefaultDocumentCache());
             services.TryAddSingleton<IPreparedOperationCache>(
                 _ => new DefaultPreparedOperationCache());
+            services.TryAddSingleton<IComplexityAnalyzerCache>(
+                _ => new DefaultComplexityAnalyzerCache());
             return services;
         }
 

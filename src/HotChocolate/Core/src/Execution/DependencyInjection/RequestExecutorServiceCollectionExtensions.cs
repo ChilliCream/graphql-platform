@@ -141,7 +141,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             services.RemoveAll<IDocumentCache>();
             services.AddSingleton<IDocumentCache>(
-                sp => new DefaultDocumentCache(capacity));
+                _ => new DefaultDocumentCache(capacity));
             return services;
         }
 
@@ -151,7 +151,17 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             services.RemoveAll<IPreparedOperationCache>();
             services.AddSingleton<IPreparedOperationCache>(
-                sp => new DefaultPreparedOperationCache(capacity));
+                _ => new DefaultPreparedOperationCache(capacity));
+            return services;
+        }
+
+        public static IServiceCollection AddComplexityAnalyzerCache(
+            this IServiceCollection services,
+            int capacity = 100)
+        {
+            services.RemoveAll<IComplexityAnalyzerCache>();
+            services.AddSingleton<IComplexityAnalyzerCache>(
+                _ => new DefaultComplexityAnalyzerCache(capacity));
             return services;
         }
 
