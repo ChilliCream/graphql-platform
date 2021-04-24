@@ -6,13 +6,10 @@ using HotChocolate.Types.Introspection;
 
 namespace HotChocolate.Validation
 {
-    public class TypeDocumentValidatorVisitor
-       : DocumentValidatorVisitor
+    public class TypeDocumentValidatorVisitor : DocumentValidatorVisitor
     {
         internal static ObjectField TypeNameField { get; } =
-            new ObjectField(
-                IntrospectionFields.CreateTypeNameField(DescriptorContext.Create()),
-                default);
+            new(IntrospectionFields.CreateTypeNameField(DescriptorContext.Create()), default);
 
         protected TypeDocumentValidatorVisitor(SyntaxVisitorOptions options = default)
             : base(options)
@@ -29,6 +26,7 @@ namespace HotChocolate.Validation
                 context.Variables.Clear();
                 return Continue;
             }
+
             return Skip;
         }
 
@@ -48,18 +46,17 @@ namespace HotChocolate.Validation
             {
                 return Continue;
             }
-            else if (context.Schema.TryGetType(
+
+            if (context.Schema.TryGetType(
                 node.TypeCondition.Name.Value,
                 out INamedOutputType type))
             {
                 context.Types.Push(type);
                 return Continue;
             }
-            else
-            {
-                context.UnexpectedErrorsDetected = true;
-                return Skip;
-            }
+
+            context.UnexpectedErrorsDetected = true;
+            return Skip;
         }
 
         protected override ISyntaxVisitorAction Enter(
@@ -73,11 +70,9 @@ namespace HotChocolate.Validation
                 context.Types.Push(namedOutputType);
                 return Continue;
             }
-            else
-            {
-                context.UnexpectedErrorsDetected = true;
-                return Skip;
-            }
+
+            context.UnexpectedErrorsDetected = true;
+            return Skip;
         }
 
         protected override ISyntaxVisitorAction Leave(
@@ -97,6 +92,7 @@ namespace HotChocolate.Validation
             {
                 context.Types.Pop();
             }
+
             return Continue;
         }
 

@@ -34,7 +34,7 @@ namespace HotChocolate.Validation.Rules
 
             IDefinitionNode? typeSystemNode = null;
 
-            for (int i = 0; i < document.Definitions.Count; i++)
+            for (var i = 0; i < document.Definitions.Count; i++)
             {
                 IDefinitionNode node = document.Definitions[i];
                 if (node.Kind != SyntaxKind.OperationDefinition &&
@@ -45,11 +45,9 @@ namespace HotChocolate.Validation.Rules
                 }
             }
 
-            if (typeSystemNode is { })
+            if (typeSystemNode is not null)
             {
-                context.Errors.Add(
-                    ErrorHelper.TypeSystemDefinitionNotAllowed(
-                        context, typeSystemNode));
+                context.Errors.Add(context.TypeSystemDefinitionNotAllowed(typeSystemNode));
             }
         }
     }

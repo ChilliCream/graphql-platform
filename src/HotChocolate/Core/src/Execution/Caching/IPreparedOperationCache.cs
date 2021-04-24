@@ -56,4 +56,3 @@ namespace HotChocolate.Execution.Caching
         void Clear();
     }
 }
-

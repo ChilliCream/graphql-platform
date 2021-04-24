@@ -1,5 +1,8 @@
 using System;
 using System.Diagnostics;
+using HotChocolate.Execution.Pipeline.Complexity;
+using HotChocolate.Types;
+using HotChocolate.Validation.Options;
 
 namespace HotChocolate.Execution.Options
 {
@@ -69,5 +72,48 @@ namespace HotChocolate.Execution.Options
 
         [Obsolete("This can now be configured on the validation rule.", true)]
         public bool? UseComplexityMultipliers { get; set; }
+    }
+
+
+        public interface IMaxComplexityOptionsAccessor
+        {
+            MaxComplexitySettings Complexity { get; }
+        }
+
+    public class MaxComplexitySettings
+    {
+        public int? MaximumAllowed { get; set; }
+
+        public bool ApplyDefaults { get; set; }
+
+        public int DefaultComplexity { get; set; }
+
+        public int DefaultResolverComplexity { get; set; }
+
+        public string ContextDataKey { get; set; }
+
+        private ComplexityCalculation ComplexityCalculation { get; set; }
+
+        public static int DefaultCalculation(ComplexityContext context)
+        {
+            if (context.Multipliers.Count == 0)
+            {
+                return context.Complexity + context.ChildComplexity;
+            }
+
+            var cost = context.Complexity;
+            var childCost = context.ChildComplexity;
+
+            foreach (MultiplierPathString multiplier in context.Multipliers)
+            {
+                if (context.TryGetArgumentValue(multiplier, out int value))
+                {
+                    cost *= value;
+                    childCost *= value;
+                }
+            }
+
+            return cost + childCost;
+        }
     }
 }

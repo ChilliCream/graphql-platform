@@ -86,12 +86,14 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         internal static IValidationBuilder UseMultipliers(
-            this IValidationBuilder builder, bool useMultipliers) =>
+            this IValidationBuilder builder,
+            bool useMultipliers) =>
             builder.ConfigureValidation(
                 m => m.Modifiers.Add(o => o.UseComplexityMultipliers = useMultipliers));
 
         internal static IValidationBuilder SetAllowedComplexity(
-            this IValidationBuilder builder, int allowedComplexity) =>
+            this IValidationBuilder builder,
+            int allowedComplexity) =>
             builder.ConfigureValidation(m =>
                 m.Modifiers.Add(o => o.MaxAllowedComplexity = allowedComplexity));
 
@@ -101,7 +103,8 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <c>1</c>.
         /// </summary>
         internal static IValidationBuilder SetAllowedExecutionDepth(
-            this IValidationBuilder builder, int allowedExecutionDepth)
+            this IValidationBuilder builder,
+            int allowedExecutionDepth)
         {
             if (allowedExecutionDepth < 1)
             {
@@ -116,7 +119,8 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         public static IValidationBuilder SetComplexityCalculation(
-            this IValidationBuilder builder, ComplexityCalculation calculation) =>
+            this IValidationBuilder builder,
+            ComplexityCalculation calculation) =>
             builder.ConfigureValidation(m =>
                 m.Modifiers.Add(o => o.ComplexityCalculation = calculation));
 

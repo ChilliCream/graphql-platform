@@ -40,13 +40,13 @@ namespace HotChocolate.Validation
         public DocumentValidatorResult Validate(
             ISchema schema,
             DocumentNode document) =>
-            Validate(schema, document, null);
+            Validate(schema, document, new Dictionary<string, object?>());
 
         /// <inheritdoc />
         public DocumentValidatorResult Validate(
             ISchema schema,
             DocumentNode document,
-            IEnumerable<KeyValuePair<string, object?>>? contextData)
+            IDictionary<string, object?> contextData)
         {
             if (schema is null)
             {
@@ -83,7 +83,7 @@ namespace HotChocolate.Validation
             ISchema schema,
             DocumentNode document,
             DocumentValidatorContext context,
-            IEnumerable<KeyValuePair<string, object?>>? contextData)
+            IDictionary<string, object?> contextData)
         {
             context.Schema = schema;
 
@@ -97,13 +97,7 @@ namespace HotChocolate.Validation
                 }
             }
 
-            if (contextData is not null)
-            {
-                foreach (KeyValuePair<string, object?> entry in contextData)
-                {
-                    context.ContextData[entry.Key] = entry.Value;
-                }
-            }
+            context.ContextData = contextData;
         }
     }
 }

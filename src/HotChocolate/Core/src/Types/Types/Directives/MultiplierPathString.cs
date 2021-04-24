@@ -11,8 +11,7 @@ namespace HotChocolate.Types
     /// GraphQL spec rules: /[_A-Za-z][_0-9A-Za-z]*/
     /// </summary>
     [TypeConverter(typeof(MultiplierPathStringConverter))]
-    public struct MultiplierPathString
-        : IEquatable<MultiplierPathString>
+    public struct MultiplierPathString : IEquatable<MultiplierPathString>
     {
 
         /// <summary>
@@ -20,7 +19,6 @@ namespace HotChocolate.Types
         /// <see cref="MultiplierPathString"/> struct.
         /// </summary>
         /// <param name="value">The actual type name string</param>
-        /// <exception cref="ArgumentException"
         public MultiplierPathString(string value)
         {
             if (!IsValidPath(value))
@@ -71,7 +69,7 @@ namespace HotChocolate.Types
         /// <returns>The combined <see cref="MultiplierPathString"/>.</returns>
         public MultiplierPathString Add(MultiplierPathString other)
         {
-            return new MultiplierPathString(Value + other.Value);
+            return new(Value + other.Value);
         }
 
         /// <summary>
@@ -146,7 +144,7 @@ namespace HotChocolate.Types
         /// </returns>
         public override int GetHashCode()
         {
-            return (HasValue ? StringComparer.Ordinal.GetHashCode(Value) : 0);
+            return HasValue ? StringComparer.Ordinal.GetHashCode(Value) : 0;
         }
 
         /// <summary>

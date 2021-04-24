@@ -27,7 +27,6 @@ namespace HotChocolate.Validation
 
         public IReadOnlyList<IError> Errors { get; }
 
-        public static DocumentValidatorResult Ok { get; } =
-            new DocumentValidatorResult();
+        public static DocumentValidatorResult Ok { get; } = new();
     }
 }

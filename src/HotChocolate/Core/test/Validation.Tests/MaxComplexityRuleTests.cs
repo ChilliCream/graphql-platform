@@ -284,7 +284,7 @@ namespace HotChocolate.Validation
             return SchemaBuilder.New()
                 .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
                 .AddCostDirectiveType()
-                .Use(next => context => default(ValueTask))
+                .Use(_ => _ => default)
                 .Create();
         }
     }
