@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Pipeline.Complexity;
+using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Caching
 {
@@ -22,7 +23,7 @@ namespace HotChocolate.Execution.Caching
         /// <param name="operationId">
         /// The internal operation id.
         /// </param>
-        /// <param name="operation">
+        /// <param name="analyzer">
         /// The operation that is associated with the id or null if no operation was found
         /// that matches the specified id.
         /// </param>
@@ -32,7 +33,7 @@ namespace HotChocolate.Execution.Caching
         /// </returns>
         bool TryGetOperation(
             string operationId,
-            [NotNullWhen(true)] out ComplexityAnalyzerDelegate? complexityAnalyzer);
+            [NotNullWhen(true)] out ComplexityAnalyzerDelegate? analyzer);
 
         /// <summary>
         /// Tries to add a new compiled operation to the cache.
@@ -40,12 +41,12 @@ namespace HotChocolate.Execution.Caching
         /// <param name="operationId">
         /// The internal operation id.
         /// </param>
-        /// <param name="operation">
+        /// <param name="analyzer">
         /// The operation that shall be cached.
         /// </param>
         void TryAddOperation(
             string operationId,
-            ComplexityAnalyzerDelegate complexityAnalyzer);
+            ComplexityAnalyzerDelegate analyzer);
 
         /// <summary>
         /// Clears all items from the cache.
