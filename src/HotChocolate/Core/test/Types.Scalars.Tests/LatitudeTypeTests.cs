@@ -225,10 +225,11 @@ namespace HotChocolate.Types
             ScalarType scalar = new LatitudeType();
 
             // act
-            var success = scalar.TrySerialize(180.0, out _);
+            var success = scalar.TrySerialize(180.0, out var d);
 
             // assert
             Assert.True(success);
+            Assert.IsType<string>(d);
         }
 
         [Fact]
@@ -258,7 +259,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void Longitude_ExpectParseResultToMatchNull_ThrowOnInt()
+        protected void Longitude_ExpectParseResultToMatchNull_ThrowOnChar()
         {
             // arrange
             ScalarType scalar = new LatitudeType();
