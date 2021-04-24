@@ -206,13 +206,13 @@ namespace HotChocolate.Data.Neo4J.Filtering
             res3.MatchDocumentSnapshot("null");
         }
 
-        /*
-
         [Fact]
         public async Task Create_StringNotIn_Expression()
         {
             // arrange
-            IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
+                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
+                false);
 
             // act
             // assert
@@ -243,7 +243,9 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_StringContains_Expression()
         {
             // arrange
-            IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
+                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
+                false);
 
             // act
             // assert
@@ -273,7 +275,9 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_StringNoContains_Expression()
         {
             // arrange
-            IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
+                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
+                false);
 
             // act
             // assert
@@ -299,15 +303,13 @@ namespace HotChocolate.Data.Neo4J.Filtering
             res3.MatchDocumentSnapshot("null");
         }
 
-
-
-
-
         [Fact]
         public async Task Create_StringEndsWith_Expression()
         {
             // arrange
-            IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
+                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
+                false);
 
             // act
             // assert
@@ -337,7 +339,9 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_StringNotEndsWith_Expression()
         {
             // arrange
-            IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
+                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
+                false);
 
             // act
             // assert
@@ -367,8 +371,9 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_NullableStringEqual_Expression()
         {
             // arrange
-            IRequestExecutor tester = CreateSchema<FooNullable, FooNullableFilterType>(
-                _fooNullableEntities);
+            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
+                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
+                false);
 
             // act
             // assert
@@ -398,8 +403,9 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_NullableStringNotEqual_Expression()
         {
             // arrange
-            IRequestExecutor tester = CreateSchema<FooNullable, FooNullableFilterType>(
-                _fooNullableEntities);
+            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
+                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
+                false);
 
             // act
             // assert
@@ -429,8 +435,9 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_NullableStringIn_Expression()
         {
             // arrange
-            IRequestExecutor tester = CreateSchema<FooNullable, FooNullableFilterType>(
-                _fooNullableEntities);
+            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
+                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
+                false);
 
             // act
             // assert
@@ -461,8 +468,9 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_NullableStringNotIn_Expression()
         {
             // arrange
-            IRequestExecutor tester = CreateSchema<FooNullable, FooNullableFilterType>(
-                _fooNullableEntities);
+            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
+                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
+                false);
 
             // act
             // assert
@@ -493,8 +501,9 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_NullableStringContains_Expression()
         {
             // arrange
-            IRequestExecutor tester = CreateSchema<FooNullable, FooNullableFilterType>(
-                _fooNullableEntities);
+            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
+                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
+                false);
 
             // act
             // assert
@@ -524,8 +533,9 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_NullableStringNoContains_Expression()
         {
             // arrange
-            IRequestExecutor tester = CreateSchema<FooNullable, FooNullableFilterType>(
-                _fooNullableEntities);
+            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
+                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
+                false);
 
             // act
             // assert
@@ -555,8 +565,9 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_NullableStringStartsWith_Expression()
         {
             // arrange
-            IRequestExecutor tester = CreateSchema<FooNullable, FooNullableFilterType>(
-                _fooNullableEntities);
+            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
+                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
+                false);
 
             // act
             // assert
@@ -586,8 +597,9 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_NullableStringNotStartsWith_Expression()
         {
             // arrange
-            IRequestExecutor tester = CreateSchema<FooNullable, FooNullableFilterType>(
-                _fooNullableEntities);
+            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
+                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
+                false);
 
             // act
             // assert
@@ -617,8 +629,9 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_NullableStringEndsWith_Expression()
         {
             // arrange
-            IRequestExecutor tester = CreateSchema<FooNullable, FooNullableFilterType>(
-                _fooNullableEntities);
+            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
+                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
+                false);
 
             // act
             // assert
@@ -648,8 +661,9 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_NullableStringNotEndsWith_Expression()
         {
             // arrange
-            IRequestExecutor tester = CreateSchema<FooNullable, FooNullableFilterType>(
-                _fooNullableEntities);
+            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
+                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
+                false);
 
             // act
             // assert
@@ -673,6 +687,6 @@ namespace HotChocolate.Data.Neo4J.Filtering
                     .Create());
 
             res3.MatchDocumentSnapshot("null");
-        }*/
+        }
     }
 }

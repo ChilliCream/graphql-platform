@@ -1,0 +1,1 @@
+﻿MATCH (foo:Foo) WHERE foo.Bar STARTS WITH 'testb' RETURN foo {.Bar}

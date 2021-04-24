@@ -36,9 +36,4 @@
       <DependentUpon>Neo4JResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Filtering\Handlers\Spatial" />
-    <Folder Include="Filtering\Handlers\Temporal" />
-  </ItemGroup>
 </Project>

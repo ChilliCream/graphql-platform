@@ -1,0 +1,1 @@
+﻿MATCH (foo:Foo) WHERE NOT (foo.Bar IN 'System.Collections.Generic.List`1[System.String]') RETURN foo {.Bar}

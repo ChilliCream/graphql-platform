@@ -32,7 +32,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
         {
             Condition? expression = context
                 .GetNode()
-                .Property(context.GetNeo4JFilterScope().GetPath()).In(Cypher.LiteralOf(parsedValue))
+                .Property(context.GetNeo4JFilterScope().GetPath()).In(Cypher.LiteralOf(parsedValue?.ToString()))
                 .Not();
 
             return expression;

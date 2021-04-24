@@ -1,0 +1,1 @@
+﻿MATCH (foo:Foo) WHERE NOT (foo.Bar CONTAINS 'a') RETURN foo {.Bar}

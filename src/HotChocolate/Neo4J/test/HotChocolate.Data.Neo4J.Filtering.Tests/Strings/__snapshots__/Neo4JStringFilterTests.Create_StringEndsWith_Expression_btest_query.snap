@@ -1,0 +1,1 @@
+﻿MATCH (foo:Foo) WHERE foo.Bar ENDS WITH 'btest' RETURN foo {.Bar}
