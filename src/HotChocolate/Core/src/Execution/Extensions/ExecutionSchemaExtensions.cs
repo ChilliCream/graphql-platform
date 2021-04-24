@@ -29,22 +29,22 @@ namespace HotChocolate
 
         public static IRequestExecutor MakeExecutable(
             this ISchema schema,
-            RequestExecutorOptions options)
+            RequestExecutorAnalyzerOptions analyzerOptions)
         {
             if (schema is null)
             {
                 throw new ArgumentNullException(nameof(schema));
             }
 
-            if (options is null)
+            if (analyzerOptions is null)
             {
-                throw new ArgumentNullException(nameof(options));
+                throw new ArgumentNullException(nameof(analyzerOptions));
             }
 
             return new ServiceCollection()
                 .AddGraphQL()
                 .Configure(o => o.Schema = schema)
-                .SetRequestOptions(() => options)
+                .SetRequestOptions(() => analyzerOptions)
                 .Services
                 .BuildServiceProvider()
                 .GetRequiredService<IRequestExecutorResolver>()

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using static HotChocolate.Execution.Properties.Resources;
@@ -181,5 +182,25 @@ namespace HotChocolate.Execution
                 new Error(
                     string.Format(ErrorHelper_RequestTimeout, timeout),
                     ErrorCodes.Execution.Timeout));
+
+        public static IQueryResult MaxComplexityReached(
+            int complexity,
+            int allowedComplexity) =>
+            QueryResultBuilder.CreateError(
+                new Error(
+                    ErrorHelper_MaxComplexityReached,
+                    ErrorCodes.Execution.ComplexityExceeded,
+                    extensions: new Dictionary<string, object?>
+                    {
+                        { nameof(complexity), complexity },
+                        { nameof(allowedComplexity), allowedComplexity }
+                    }));
+
+        public static IQueryResult StateInvalidForComplexityAnalyzer() =>
+            QueryResultBuilder.CreateError(
+                ErrorBuilder.New()
+                    .SetMessage(ErrorHelper_StateInvalidForComplexityAnalyzer_Message)
+                    .SetCode(ErrorCodes.Execution.ComplexityStateInvalid)
+                    .Build());
     }
 }

@@ -24,7 +24,7 @@ namespace HotChocolate.Execution.Configuration
 
         public ISchemaBuilder? SchemaBuilder { get; set; }
 
-        public RequestExecutorOptions? RequestExecutorOptions { get; set; }
+        public RequestExecutorAnalyzerOptions? RequestExecutorOptions { get; set; }
 
         public IList<SchemaBuilderAction> SchemaBuilderActions =>
             _schemaBuilderActions;

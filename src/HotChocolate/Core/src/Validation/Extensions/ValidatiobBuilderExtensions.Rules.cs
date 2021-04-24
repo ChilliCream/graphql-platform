@@ -300,15 +300,6 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.TryAddValidationVisitor<OperationVisitor>();
         }
 
-        public static IValidationBuilder AddMaxComplexityRule(
-            this IValidationBuilder builder,
-            int maxAllowedComplexity)
-        {
-            return builder
-                .TryAddValidationVisitor((s, o) => new MaxComplexityVisitor(o))
-                .SetAllowedComplexity(maxAllowedComplexity);
-        }
-
         public static IValidationBuilder AddMaxExecutionDepthRule(
             this IValidationBuilder builder,
             int maxAllowedExecutionDepth)

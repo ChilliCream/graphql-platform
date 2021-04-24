@@ -27,12 +27,12 @@ namespace HotChocolate.Execution.Pipeline
                 .AddSingleton<ISelectionOptimizer, StubOptimizer>()
                 .BuildServiceProvider();
             var schemaName = "_Default";
-            IRequestExecutorOptionsAccessor optionsAccessor = new RequestExecutorOptions();
+            IRequestExecutorAnalyzerOptionsAccessor analyzerOptionsAccessor = new RequestExecutorAnalyzerOptions();
             var factoryContext = new RequestCoreMiddlewareContext(
                 schemaName,
                 applicationServices,
                 schemaServices,
-                optionsAccessor);
+                analyzerOptionsAccessor);
             var context = new RequestContext(
                 new Mock<ISchema>().Object,
                 1,

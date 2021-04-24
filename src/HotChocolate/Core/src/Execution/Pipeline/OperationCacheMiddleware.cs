@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
+using static HotChocolate.Execution.Pipeline.PipelineTools;
 
 namespace HotChocolate.Execution.Pipeline
 {
@@ -33,14 +34,14 @@ namespace HotChocolate.Execution.Pipeline
             }
             else
             {
-                bool addToCache = true;
-                string? operationId = context.OperationId;
+                var addToCache = true;
+                var operationId = context.OperationId;
 
                 if (operationId is null)
                 {
-                    operationId = context.Request.OperationName is null
-                        ? context.DocumentId
-                        : $"{context.DocumentId}+{context.Request.OperationName}";
+                    operationId = CreateOperationId(
+                        context.DocumentId,
+                        context.Request.OperationName);
                     context.OperationId = operationId;
                 }
 

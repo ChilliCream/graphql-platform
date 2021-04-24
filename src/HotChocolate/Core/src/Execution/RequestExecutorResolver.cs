@@ -173,7 +173,7 @@ namespace HotChocolate.Execution
 
             var lazy = new SchemaBuilder.LazySchema();
 
-            RequestExecutorOptions executorOptions =
+            RequestExecutorAnalyzerOptions executorAnalyzerOptions =
                 await CreateExecutorOptionsAsync(options, cancellationToken)
                     .ConfigureAwait(false);
 
@@ -184,17 +184,17 @@ namespace HotChocolate.Execution
 
             serviceCollection.AddSingleton(_ => lazy.Schema);
 
-            serviceCollection.AddSingleton(executorOptions);
-            serviceCollection.AddSingleton<IRequestExecutorOptionsAccessor>(
-                s => s.GetRequiredService<RequestExecutorOptions>());
+            serviceCollection.AddSingleton(executorAnalyzerOptions);
+            serviceCollection.AddSingleton<IRequestExecutorAnalyzerOptionsAccessor>(
+                s => s.GetRequiredService<RequestExecutorAnalyzerOptions>());
             serviceCollection.AddSingleton<IInstrumentationOptionsAccessor>(
-                s => s.GetRequiredService<RequestExecutorOptions>());
+                s => s.GetRequiredService<RequestExecutorAnalyzerOptions>());
             serviceCollection.AddSingleton<IErrorHandlerOptionsAccessor>(
-                s => s.GetRequiredService<RequestExecutorOptions>());
+                s => s.GetRequiredService<RequestExecutorAnalyzerOptions>());
             serviceCollection.AddSingleton<IDocumentCacheSizeOptionsAccessor>(
-                s => s.GetRequiredService<RequestExecutorOptions>());
+                s => s.GetRequiredService<RequestExecutorAnalyzerOptions>());
             serviceCollection.AddSingleton<IRequestTimeoutOptionsAccessor>(
-                s => s.GetRequiredService<RequestExecutorOptions>());
+                s => s.GetRequiredService<RequestExecutorAnalyzerOptions>());
 
             serviceCollection.AddSingleton<IErrorHandler, DefaultErrorHandler>();
 
@@ -222,7 +222,7 @@ namespace HotChocolate.Execution
                     schemaName,
                     options.Pipeline,
                     sp,
-                    sp.GetRequiredService<IRequestExecutorOptionsAccessor>()));
+                    sp.GetRequiredService<IRequestExecutorAnalyzerOptionsAccessor>()));
 
             serviceCollection.AddSingleton<IRequestExecutor>(
                 sp => new RequestExecutor(
@@ -300,11 +300,11 @@ namespace HotChocolate.Execution
             }
         }
 
-        private static async ValueTask<RequestExecutorOptions> CreateExecutorOptionsAsync(
+        private static async ValueTask<RequestExecutorAnalyzerOptions> CreateExecutorOptionsAsync(
             RequestExecutorSetup options,
             CancellationToken cancellationToken)
         {
-            var executorOptions = options.RequestExecutorOptions ?? new RequestExecutorOptions();
+            var executorOptions = options.RequestExecutorOptions ?? new RequestExecutorAnalyzerOptions();
 
             foreach (RequestExecutorOptionsAction action in options.RequestExecutorOptionsActions)
             {
@@ -326,7 +326,7 @@ namespace HotChocolate.Execution
             NameString schemaName,
             IList<RequestCoreMiddleware> pipeline,
             IServiceProvider schemaServices,
-            IRequestExecutorOptionsAccessor options)
+            IRequestExecutorAnalyzerOptionsAccessor analyzerOptions)
         {
             if (pipeline.Count == 0)
             {
@@ -337,7 +337,7 @@ namespace HotChocolate.Execution
                 schemaName,
                 _applicationServices,
                 schemaServices,
-                options);
+                analyzerOptions);
 
             RequestDelegate next = _ => default;
 

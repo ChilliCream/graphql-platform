@@ -11,12 +11,12 @@ namespace HotChocolate.Execution
             NameString schemaName,
             IServiceProvider services,
             IServiceProvider schemaServices,
-            IRequestExecutorOptionsAccessor options)
+            IRequestExecutorAnalyzerOptionsAccessor analyzerOptions)
         {
             SchemaName = schemaName;
             Services = services;
             SchemaServices = schemaServices;
-            Options = options;
+            AnalyzerOptions = analyzerOptions;
         }
 
         public NameString SchemaName { get; }
@@ -25,6 +25,6 @@ namespace HotChocolate.Execution
 
         public IServiceProvider SchemaServices { get; }
 
-        public IRequestExecutorOptionsAccessor Options { get; }
+        public IRequestExecutorAnalyzerOptionsAccessor AnalyzerOptions { get; }
     }
 }

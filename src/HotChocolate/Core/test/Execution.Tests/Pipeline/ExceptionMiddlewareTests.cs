@@ -16,7 +16,7 @@ namespace HotChocolate.Execution.Pipeline
             // arrange
             var errorHandler = new DefaultErrorHandler(
                 Array.Empty<IErrorFilter>(),
-                new RequestExecutorOptions());
+                new RequestExecutorAnalyzerOptions());
 
             var middleware = new ExceptionMiddleware(
                 context => throw new Exception("Something is wrong."),
@@ -43,7 +43,7 @@ namespace HotChocolate.Execution.Pipeline
             // arrange
             var errorHandler = new DefaultErrorHandler(
                 Array.Empty<IErrorFilter>(),
-                new RequestExecutorOptions());
+                new RequestExecutorAnalyzerOptions());
 
             var middleware = new ExceptionMiddleware(
                 context => throw new GraphQLException("Something is wrong."),

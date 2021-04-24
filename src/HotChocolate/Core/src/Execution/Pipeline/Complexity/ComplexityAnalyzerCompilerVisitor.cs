@@ -1,29 +1,26 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Execution.Options;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 using HotChocolate.Validation;
-using HotChocolate.Validation.Options;
 using static System.Linq.Expressions.Expression;
 
 namespace HotChocolate.Execution.Pipeline.Complexity
 {
-    internal sealed class MaxComplexityVisitor : TypeDocumentValidatorVisitor
+    internal sealed class ComplexityAnalyzerCompilerVisitor : TypeDocumentValidatorVisitor
     {
-        private readonly Expression _options;
+        private readonly Expression _settings;
         private readonly Expression _zero = Constant(0, typeof(int));
         private readonly ParameterExpression _variables =
             Parameter(typeof(IVariableValueCollection), "variables");
 
-        public MaxComplexityVisitor(IMaxComplexityOptionsAccessor options)
+        public ComplexityAnalyzerCompilerVisitor(ComplexityAnalyzerSettings settings)
         {
-            _options = Constant(options, typeof(IMaxComplexityOptionsAccessor));
+            _settings = Constant(settings, typeof(ComplexityAnalyzerSettings));
         }
 
         protected override ISyntaxVisitorAction Enter(
@@ -46,12 +43,12 @@ namespace HotChocolate.Execution.Pipeline.Complexity
             OperationDefinitionNode node,
             IDocumentValidatorContext context)
         {
-            var expressions = (List<Expression>)context.List.Pop();
-            var analyzers = (List<OperationComplexityAnalyzer>)context.List.Peek();
+            var expressions = (List<Expression>)context.List.Pop()!;
+            var analyzers = (List<OperationComplexityAnalyzer>)context.List.Peek()!;
 
             analyzers.Add(new OperationComplexityAnalyzer(
                 node,
-                Lambda<AnalyzeComplexity>(Combine(expressions), _variables).Compile()));
+                Lambda<ComplexityAnalyzerDelegate>(Combine(expressions), _variables).Compile()));
 
             return base.Leave(node, context);
         }
@@ -107,15 +104,21 @@ namespace HotChocolate.Execution.Pipeline.Complexity
             FieldNode selection,
             Expression childComplexity)
         {
+            CostDirective costDirective =
+                field.Directives["cost"]
+                    .FirstOrDefault()?
+                    .ToObject<CostDirective>();
+
             return Call(
                 Helper.CalculateMethod,
                 Constant(field, typeof(IOutputField)),
                 Constant(selection, typeof(FieldNode)),
+                Constant(costDirective, typeof(CostDirective)),
                 Constant(context.Fields.Count + 1, typeof(int)),
                 Constant(context.Path.Count + 1, typeof(int)),
                 childComplexity,
                 _variables,
-                _options);
+                _settings);
         }
 
         private Expression Combine(IReadOnlyList<Expression> expressions)
@@ -138,134 +141,24 @@ namespace HotChocolate.Execution.Pipeline.Complexity
             public static int Calculate(
                 IOutputField field,
                 FieldNode selection,
+                CostDirective costDirective,
                 int fieldDepth,
                 int nodeDepth,
                 int childComplexity,
                 IVariableValueCollection variables,
-                IMaxComplexityOptionsAccessor options)
+                ComplexityAnalyzerSettings analyzerSettings)
             {
-                return options.ComplexityCalculation(
+                return analyzerSettings.Calculation.Invoke(
                     new ComplexityContext(
                         field,
                         selection,
-                        field.Directives["cost"].FirstOrDefault()?.ToObject<CostDirective>(),
+                        costDirective,
                         fieldDepth,
                         nodeDepth,
                         childComplexity,
-                        variables,
-                        options));
+                        analyzerSettings.DefaultComplexity,
+                        variables));
             }
-        }
-    }
-
-    public class OperationComplexityAnalyzer
-    {
-        private readonly AnalyzeComplexity _analyze;
-
-        public OperationComplexityAnalyzer(
-            OperationDefinitionNode operationDefinitionNode,
-            AnalyzeComplexity analyze)
-        {
-            _analyze = analyze;
-            OperationDefinitionNode = operationDefinitionNode;
-        }
-
-        public OperationDefinitionNode OperationDefinitionNode { get;  }
-
-        public int Analyze(IVariableValueCollection variableValues)
-        {
-            if (variableValues is null)
-            {
-                throw new ArgumentNullException(nameof(variableValues));
-            }
-
-            return _analyze(variableValues);
-        }
-    }
-
-    public delegate int AnalyzeComplexity(IVariableValueCollection variableValues);
-
-
-    public delegate int ComplexityCalculation(ComplexityContext context);
-
-    public ref struct ComplexityContext
-    {
-        private readonly IVariableValueCollection _valueCollection;
-
-        public ComplexityContext(
-            IOutputField field,
-            FieldNode selection,
-            CostDirective? cost,
-            int fieldDepth,
-            int nodeDepth,
-            int childComplexity,
-            IVariableValueCollection valueCollection,
-            IMaxComplexityOptionsAccessor options)
-        {
-            Field = field;
-            Selection = selection;
-            Complexity = cost?.Complexity ?? options.DefaultComplexity;
-            ChildComplexity = childComplexity;
-            Multipliers = cost?.Multipliers ?? Array.Empty<MultiplierPathString>();
-            FieldDepth = fieldDepth;
-            NodeDepth = nodeDepth;
-            _valueCollection = valueCollection;
-        }
-
-        /// <summary>
-        /// Gets the field for which the complexity is calculated.
-        /// </summary>
-        public IOutputField Field { get; }
-
-        /// <summary>
-        /// Gets the field selection that references the field in the query.
-        /// </summary>
-        public FieldNode Selection { get; }
-
-        public int Complexity { get; }
-
-        public int ChildComplexity { get; }
-
-        public IReadOnlyList<MultiplierPathString> Multipliers { get; }
-
-        public int FieldDepth { get; }
-
-        public int NodeDepth { get; }
-
-        public bool TryGetArgumentValue<T>(string name, [NotNullWhen(true)] out T value)
-        {
-            if (Field.Arguments.TryGetField(name, out IInputField? argument))
-            {
-                IValueNode? argumentValue = Selection.Arguments
-                    .FirstOrDefault(t => t.Name.Value.EqualsOrdinal(name))?
-                    .Value;
-
-                if (argumentValue is VariableNode variable &&
-                    _valueCollection.TryGetVariable(variable.Name.Value, out T castedVariable))
-                {
-                    value = castedVariable;
-                    return true;
-                }
-
-                if (argumentValue is not null)
-                {
-                    try
-                    {
-                        if (argument.Type.ParseLiteral(argumentValue) is T castedArgument)
-                        {
-                            value = castedArgument;
-                            return true;
-                        }
-                    }
-                    catch (SerializationException)
-                    {
-                        // we ignore serialization errors and fall through.
-                    }
-                }
-            }
-
-            value = default!;
-            return false;
         }
     }
 }

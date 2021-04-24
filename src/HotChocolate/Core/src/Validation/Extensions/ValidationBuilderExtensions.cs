@@ -85,18 +85,6 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder;
         }
 
-        internal static IValidationBuilder UseMultipliers(
-            this IValidationBuilder builder,
-            bool useMultipliers) =>
-            builder.ConfigureValidation(
-                m => m.Modifiers.Add(o => o.UseComplexityMultipliers = useMultipliers));
-
-        internal static IValidationBuilder SetAllowedComplexity(
-            this IValidationBuilder builder,
-            int allowedComplexity) =>
-            builder.ConfigureValidation(m =>
-                m.Modifiers.Add(o => o.MaxAllowedComplexity = allowedComplexity));
-
         /// <summary>
         /// Sets the maximum allowed depth of a query. The default
         /// value is <see langword="null"/>. The minimum allowed value is
@@ -117,12 +105,6 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureValidation(m =>
                 m.Modifiers.Add(o => o.MaxAllowedExecutionDepth = allowedExecutionDepth));
         }
-
-        public static IValidationBuilder SetComplexityCalculation(
-            this IValidationBuilder builder,
-            ComplexityCalculation calculation) =>
-            builder.ConfigureValidation(m =>
-                m.Modifiers.Add(o => o.ComplexityCalculation = calculation));
 
         public static IValidationBuilder TryAddValidationVisitor<T>(
             this IValidationBuilder builder)

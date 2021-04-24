@@ -7,21 +7,21 @@ namespace HotChocolate.Execution.Configuration
 {
     public readonly struct RequestExecutorOptionsAction
     {
-        public RequestExecutorOptionsAction(Action<RequestExecutorOptions> action)
+        public RequestExecutorOptionsAction(Action<RequestExecutorAnalyzerOptions> action)
         {
             Action = action;
             AsyncAction = default;
         }
 
         public RequestExecutorOptionsAction(
-            Func<RequestExecutorOptions, CancellationToken, ValueTask> asyncAction)
+            Func<RequestExecutorAnalyzerOptions, CancellationToken, ValueTask> asyncAction)
         {
             Action = default;
             AsyncAction = asyncAction;
         }
 
-        public Action<RequestExecutorOptions>? Action { get; }
+        public Action<RequestExecutorAnalyzerOptions>? Action { get; }
 
-        public Func<RequestExecutorOptions, CancellationToken, ValueTask>? AsyncAction { get; }
+        public Func<RequestExecutorAnalyzerOptions, CancellationToken, ValueTask>? AsyncAction { get; }
     }
 }

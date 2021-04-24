@@ -25,6 +25,16 @@ namespace HotChocolate
             /// </summary>
             public const string Timeout = "HC0045";
 
+            /// <summary>
+            /// The operation complexity was exceeded.
+            /// </summary>
+            public const string ComplexityExceeded = "HC0047";
+
+            /// <summary>
+            /// The analyzer needs a documentId, operationId, document and coerced variables.
+            /// </summary>
+            public const string ComplexityStateInvalid = "HC0048";
+
             public const string NonNullViolation = "HC0018";
             public const string MustBeInputType = "HC0017";
             public const string InvalidType = "HC0016";

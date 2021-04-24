@@ -255,4 +255,10 @@
   <data name="ResultHelper_BuildResult_InvalidResult" xml:space="preserve">
     <value>A GraphQL result must have data, errors or both.</value>
   </data>
+  <data name="ErrorHelper_MaxComplexityReached" xml:space="preserve">
+    <value>The maximum allowed operation complexity was exceeded.</value>
+  </data>
+  <data name="ErrorHelper_StateInvalidForComplexityAnalyzer_Message" xml:space="preserve">
+    <value>The analyzer needs a documentId, operationId, document and coerced variables.</value>
+  </data>
 </root>

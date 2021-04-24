@@ -6,10 +6,11 @@
     /// provided from the outside, to influence the behavior of the query
     /// execution engine itself.
     /// </summary>
-    public interface IRequestExecutorOptionsAccessor
+    public interface IRequestExecutorAnalyzerOptionsAccessor
         : IInstrumentationOptionsAccessor
         , IErrorHandlerOptionsAccessor
         , IDocumentCacheSizeOptionsAccessor
         , IRequestTimeoutOptionsAccessor
+        , IComplexityAnalyzerOptionsAccessor
     { }
 }

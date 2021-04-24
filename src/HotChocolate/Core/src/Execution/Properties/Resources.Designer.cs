@@ -320,5 +320,17 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("ResultHelper_BuildResult_InvalidResult", resourceCulture);
             }
         }
+        
+        internal static string ErrorHelper_MaxComplexityReached {
+            get {
+                return ResourceManager.GetString("ErrorHelper_MaxComplexityReached", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_StateInvalidForComplexityAnalyzer_Message {
+            get {
+                return ResourceManager.GetString("ErrorHelper_StateInvalidForComplexityAnalyzer_Message", resourceCulture);
+            }
+        }
     }
 }

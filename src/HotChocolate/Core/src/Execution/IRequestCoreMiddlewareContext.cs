@@ -27,6 +27,6 @@ namespace HotChocolate.Execution
         /// <summary>
         /// Gets the executor options.
         /// </summary>
-        IRequestExecutorOptionsAccessor Options { get; }
+        IRequestExecutorAnalyzerOptionsAccessor AnalyzerOptions { get; }
     }
 }
