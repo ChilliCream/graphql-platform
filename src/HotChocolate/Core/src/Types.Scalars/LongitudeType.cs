@@ -86,6 +86,12 @@ namespace HotChocolate.Types
                 return true;
             }
 
+            if (runtimeValue is int i)
+            {
+                resultValue = Longitude.TrySerialize(i);
+                return true;
+            }
+
             resultValue = null;
             return false;
         }

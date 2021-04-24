@@ -194,6 +194,32 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void Longitude_ExpectSerializeInt()
+        {
+            // arrange
+            ScalarType scalar = new LongitudeType();
+
+            // act
+            var success = scalar.TrySerialize(180, out _);
+
+            // assert
+            Assert.True(success);
+        }
+
+        [Fact]
+        public void Longitude_ExpectSerializeDouble()
+        {
+            // arrange
+            ScalarType scalar = new LongitudeType();
+
+            // act
+            var success = scalar.TrySerialize(180.0, out _);
+
+            // assert
+            Assert.True(success);
+        }
+
+        [Fact]
         public void Longitude_ExpectDeserializeNullToNull()
         {
             // arrange
@@ -249,7 +275,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void Longitude_ExpectParseResultToMatchNull_Int()
+        protected void Longitude_ExpectParseResultToMatch_Int()
         {
             // arrange
             ScalarType scalar = new LongitudeType();
@@ -263,7 +289,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void Longitude_ExpectParseResultToMatchNull_ThrowOnInt()
+        protected void Longitude_ExpectParseResultToMatch_ThrowOnChar()
         {
             // arrange
             ScalarType scalar = new LongitudeType();
