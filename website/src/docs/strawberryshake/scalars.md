@@ -2,7 +2,7 @@
 title: "Scalars"
 ---
 
-Strawberry Shake support the following scalars out of the box:
+Strawberry Shake supports the following scalars out of the box:
 
 | Type        | Description                                                 |
 | ----------- | ----------------------------------------------------------- |
@@ -22,9 +22,9 @@ Strawberry Shake support the following scalars out of the box:
 | `Uuid`      | GUID                                                        |
 
 # Custom Scalars
-As a addition to the scalars listed above, you can defined your own scalars for the client. 
+As an addition to the scalars listed above, you can define your own scalars for the client. 
 A scalar has two representation: the `runtimeType` and the `serializationType`. 
-The `runtimeType` referes to the type you use in your dotnet application. 
+The `runtimeType` refers to the type you use in your dotnet application. 
 The `serializationType` is the type that is used to transport the value. 
 
 Let us explore this with the example of `DateTime`. The server serializes a date into a string on the server.
@@ -71,7 +71,7 @@ extend scalar PositiveInt @serializationType(name: "global::System.Int32") @runt
 As soon as you specify custom serialization and runtime types you also need to provide a serializer for the type. 
 ## Serializer
 A scalar identifies its serializer by the scalar name, runtime- and serialization type.
-You have to provide a `ISerializer` as soon as you change the `serializationType` or the `runtimeType`. 
+You have to provide an `ISerializer` as soon as you change the `serializationType` or the `runtimeType`. 
 Use the base class `ScalarSerializer<TValue>` or `ScalarSerializer<TSerializer, TRuntime>` to create you custom serializer.
 
 ### Simple Example
