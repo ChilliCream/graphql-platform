@@ -108,6 +108,24 @@ namespace HotChocolate.Types
             return false;
         }
 
+        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
+        {
+            if (resultValue is null)
+            {
+                runtimeValue = null;
+                return true;
+            }
+
+            if (resultValue is string s && Latitude.TryDeserialize(s, out var runtimeDouble))
+            {
+                runtimeValue = runtimeDouble;
+                return true;
+            }
+
+            runtimeValue = null;
+            return false;
+        }
+
         private static class Latitude
         {
             public const double _min = -90.0;
