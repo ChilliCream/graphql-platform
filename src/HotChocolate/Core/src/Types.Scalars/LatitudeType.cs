@@ -116,9 +116,21 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (resultValue is string s && Latitude.TryDeserialize(s, out var d))
+            if (resultValue is string s && Latitude.TryDeserialize(s, out var value))
+            {
+                runtimeValue = value;
+                return true;
+            }
+
+            if (resultValue is double d and < Latitude._max and > Latitude._min)
             {
                 runtimeValue = d;
+                return true;
+            }
+
+            if (resultValue is int i && i < Latitude._max && i > Latitude._min)
+            {
+                runtimeValue = resultValue;
                 return true;
             }
 

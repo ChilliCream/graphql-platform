@@ -247,6 +247,34 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void Latitude_ExpectDeSerializeDouble()
+        {
+            // arrange
+            ScalarType scalar = new LatitudeType();
+
+            // act
+            var success = scalar.TryDeserialize(89.0, out var d);
+
+            // assert
+            Assert.True(success);
+            Assert.IsType<double>(d);
+        }
+
+        [Fact]
+        public void Latitude_ExpectDeSerializeInt()
+        {
+            // arrange
+            ScalarType scalar = new LatitudeType();
+
+            // act
+            var success = scalar.TryDeserialize(89, out var i);
+
+            // assert
+            Assert.True(success);
+            Assert.IsType<int>(i);
+        }
+
+        [Fact]
         protected void Latitude_ExpectParseResultToMatchNull()
         {
             // arrange
