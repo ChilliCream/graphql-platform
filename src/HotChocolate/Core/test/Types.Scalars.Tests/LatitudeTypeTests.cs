@@ -211,7 +211,7 @@ namespace HotChocolate.Types
             ScalarType scalar = new LatitudeType();
 
             // act
-            var success = scalar.TrySerialize(180, out var s);
+            var success = scalar.TrySerialize(89, out var s);
 
             // assert
             Assert.True(success);
@@ -225,7 +225,7 @@ namespace HotChocolate.Types
             ScalarType scalar = new LatitudeType();
 
             // act
-            var success = scalar.TrySerialize(180.0, out var d);
+            var success = scalar.TrySerialize(89.0, out var d);
 
             // assert
             Assert.True(success);

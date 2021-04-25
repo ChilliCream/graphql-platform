@@ -53,9 +53,13 @@ namespace HotChocolate.Types
             return resultValue switch
             {
                 null => NullValueNode.Default,
+
                 string s when Latitude.TryDeserialize(s, out var stringValue) => ParseValue(stringValue),
+
                 int runtimeInt => ParseValue(runtimeInt),
+
                 double runtimeDouble => ParseValue(runtimeDouble),
+
                 _ => throw ThrowHelper.LatitudeType_ParseValue_IsInvalid(this)
             };
         }
@@ -80,6 +84,30 @@ namespace HotChocolate.Types
             throw ThrowHelper.LatitudeType_ParseLiteral_IsInvalid(this);
         }
 
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+        {
+            if (runtimeValue is null)
+            {
+                resultValue = null;
+                return true;
+            }
+
+            if (runtimeValue is double d && Latitude.TrySerialize(d, out string serializedDouble))
+            {
+                resultValue = serializedDouble;
+                return true;
+            }
+
+            if (runtimeValue is int i && Latitude.TrySerialize(i, out string serializedInt))
+            {
+                resultValue = serializedInt;
+                return true;
+            }
+
+            resultValue = null;
+            return false;
+        }
+
         private static class Latitude
         {
             public const double _min = -90.0;
@@ -90,14 +118,14 @@ namespace HotChocolate.Types
                 "^([0-9]{1,3})°\\s*([0-9]{1,3}(?:\\.(?:[0-9]{1,}))?)['′]\\s*(([0-9]{1,3}" +
                 "(\\.([0-9]{1,}))?)[\"″]\\s*)?([NEOSW]?)$";
 
-            private static readonly Regex _rx =
+            private static readonly Regex _validationPattern =
                 new(SexagesimalRegex, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
             public static bool TryDeserialize(
                 string serialized,
                 [NotNullWhen(true)] out double? value)
             {
-                MatchCollection coords = _rx.Matches(serialized);
+                MatchCollection coords = _validationPattern.Matches(serialized);
                 if (coords.Count > 0)
                 {
                     var minute = double.TryParse(coords[0].Groups[2].Value, out var min)
@@ -118,7 +146,9 @@ namespace HotChocolate.Types
                 return false;
             }
 
-            public static bool TrySerialize(double runtimeValue, [NotNullWhen(true)] out string? resultValue)
+            public static bool TrySerialize(
+                double runtimeValue,
+                [NotNullWhen(true)] out string? resultValue)
             {
                 if (runtimeValue is > _min and < _max)
                 {
