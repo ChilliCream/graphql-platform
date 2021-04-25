@@ -13,7 +13,7 @@ module.exports = {
       },
       {
         name: `Docs`,
-        link: `/docs/hotchocolate/`,
+        link: `/docs`,
       },
       {
         name: `Support`,
@@ -57,7 +57,7 @@ module.exports = {
             options: {
               maxWidth: 800,
               quality: 90,
-              backgroundColor: 'transparent',
+              backgroundColor: "transparent",
             },
           },
         ],
