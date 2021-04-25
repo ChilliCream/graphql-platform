@@ -336,34 +336,40 @@ type PageInfo {
 }
 ```
 
-TODO
+TODO: Code Example
 
 <!-- I only include -based in the name, since otherwise it wouldn't be a unique header -->
 
 # Offset-based Pagination
 
-> Note: While we support _offset_ pagination, we highly encourage the use of [_Connections_](/docs/hotchocolate/fetching-data/pagination/#connections) instead. _Connections_ provide an abstraction which makes it easier to switch to another pagination mechanism later on.
+> Note: While we support _offset-based_ pagination, we highly encourage the use of [_Connections_](/docs/hotchocolate/fetching-data/pagination/#connections) instead. _Connections_ provide an abstraction which makes it easier to switch to another pagination mechanism later on.
 
-The API used to implement _Offset-based_ pagination in HotChocolate is really similar to the _Connections_ API.
+Besides _Connections_ we can also expose a more traditional _offset-based_ pagination.
 
-| Connections-based Pagination | Offset-based Pagination    |
-| ---------------------------- | -------------------------- |
-| `UsePaging`                  | `UseOffsetPaging`          |
-| `AddPagingArguments`         | `AddOffsetPagingArguments` |
-| `Connection<T>`              | `CollectionSegment`        |
-| `ConnectionPageInfo`         | `CollectionSegmentInfo`    |
+```sdl
+type Query {
+  users(skip: Int take: Int): UserCollectionSegment
+}
 
-TODO:
+type UserCollectionSegment {
+  items: [User!]
+  pageInfo: CollectionSegmentInfo!
+}
 
-- Schema differences
-- How to customize offset pagination? The following doesn't work
-
-```csharp
-[UseOffsetPaging(typeof(User))]
-public CollectionSegment GetUsers(int? take, int? skip)
-{
-    var collection = new CollectionSegment(_users, new CollectionSegmentInfo(true, false), ct => ValueTask.FromResult(0));
-
-    return collection;
+type CollectionSegmentInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
 }
 ```
+
+We tried to keep the API for _offset-based_ pagination as similar to _Connections_ as possible. You can largely follow the [_Connections_](/docs/hotchocolate/fetching-data/pagination/#connections) documentation, just switch out the following methods and types:
+
+| Connections             | Offset-based Pagination  |
+| ----------------------- | ------------------------ |
+| UsePaging               | UseOffsetPaging          |
+| AddPagingArguments      | AddOffsetPagingArguments |
+| Connection&#x3C;T&#x3E; | CollectionSegment        |
+| ConnectionPageInfo      | CollectionSegmentInfo    |
+
+Please note that the paging arguments have also changed.
+It's no longer `after` and `first`, but `skip` and `take`.
