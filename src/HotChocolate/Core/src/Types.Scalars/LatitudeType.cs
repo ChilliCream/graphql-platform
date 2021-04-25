@@ -54,7 +54,7 @@ namespace HotChocolate.Types
             {
                 null => NullValueNode.Default,
 
-                string s when Latitude.TryDeserialize(s, out var stringValue) => ParseValue(stringValue),
+                string s when Latitude.TryDeserialize(s, out var runtimeValue) => ParseValue(runtimeValue),
 
                 int runtimeInt => ParseValue(runtimeInt),
 
