@@ -166,6 +166,9 @@ namespace HotChocolate.Execution.Pipeline
             parameterHandlers.Add(new TypeParameterHandler(
                 typeof(IRequestExecutorOptionsAccessor),
                 Expression.Constant(options)));
+            parameterHandlers.Add(new TypeParameterHandler(
+                typeof(IComplexityAnalyzerOptionsAccessor),
+                Expression.Constant(options)));
         }
 
         private class SchemaNameParameterHandler : IParameterHandler

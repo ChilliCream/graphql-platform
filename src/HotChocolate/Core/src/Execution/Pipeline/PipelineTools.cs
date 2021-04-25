@@ -12,6 +12,9 @@ namespace HotChocolate.Execution.Pipeline
         public static string CreateOperationId(string documentId, string? operationName) =>
             operationName is null ? documentId : $"{documentId}+{operationName}";
 
+        public static string CreateCacheId(this IRequestContext context, string operationId) =>
+            $"{context.Schema.Name}-{context.ExecutorVersion}-{operationId}";
+
         public static void CoerceVariables(
             IRequestContext context,
             VariableCoercionHelper coercionHelper,

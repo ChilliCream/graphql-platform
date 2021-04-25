@@ -19,15 +19,15 @@ namespace HotChocolate.Execution.Pipeline
             validator.Setup(t => t.Validate(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
-                It.IsAny<IEnumerable<KeyValuePair<string, object>>>()))
+                It.IsAny<IDictionary<string, object>>()))
                 .Returns(DocumentValidatorResult.Ok);
 
             var middleware = new DocumentValidationMiddleware(
-                context => default,
+                _ => default,
                 new NoopDiagnosticEvents(),
                 validator.Object);
 
-            var request = QueryRequestBuilder.New()
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ a }")
                 .SetQueryId("a")
                 .Create();
@@ -56,15 +56,15 @@ namespace HotChocolate.Execution.Pipeline
             validator.Setup(t => t.Validate(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
-                It.IsAny<IEnumerable<KeyValuePair<string, object>>>()))
+                It.IsAny<IDictionary<string, object>>()))
                 .Returns(DocumentValidatorResult.Ok);
 
             var middleware = new DocumentValidationMiddleware(
-                context => default,
+                _ => default,
                 new NoopDiagnosticEvents(),
                 validator.Object);
 
-            var request = QueryRequestBuilder.New()
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ a }")
                 .SetQueryId("a")
                 .Create();
@@ -96,15 +96,15 @@ namespace HotChocolate.Execution.Pipeline
             validator.Setup(t => t.Validate(
                     It.IsAny<ISchema>(),
                     It.IsAny<DocumentNode>(),
-                    It.IsAny<IEnumerable<KeyValuePair<string, object>>>()))
+                    It.IsAny<IDictionary<string, object>>()))
                 .Returns(validationResult);
 
             var middleware = new DocumentValidationMiddleware(
-                context => throw new Exception("Should not be called."),
+                _ => throw new Exception("Should not be called."),
                 new NoopDiagnosticEvents(),
                 validator.Object);
 
-            var request = QueryRequestBuilder.New()
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ a }")
                 .SetQueryId("a")
                 .Create();
@@ -135,15 +135,15 @@ namespace HotChocolate.Execution.Pipeline
             validator.Setup(t => t.Validate(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
-                It.IsAny<IEnumerable<KeyValuePair<string, object>>>()))
+                It.IsAny<IDictionary<string, object>>()))
                 .Returns(DocumentValidatorResult.Ok);
 
             var middleware = new DocumentValidationMiddleware(
-                context => throw new Exception("Should not be called."),
+                _ => throw new Exception("Should not be called."),
                 new NoopDiagnosticEvents(),
                 validator.Object);
 
-            var request = QueryRequestBuilder.New()
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ a }")
                 .SetQueryId("a")
                 .Create();

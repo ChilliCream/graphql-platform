@@ -110,13 +110,4 @@ namespace HotChocolate.Types
             info.AddValue(nameof(Multipliers), Multipliers.ToArray());
         }
     }
-
-    public class CostDirective2
-    {
-        public int Complexity { get; }
-
-        public IReadOnlyList<MultiplierPathString> Multipliers { get; }
-
-        public int? DefaultMultiplier { get; }
-    }
 }

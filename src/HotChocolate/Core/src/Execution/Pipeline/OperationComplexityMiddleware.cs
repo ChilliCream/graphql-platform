@@ -7,6 +7,7 @@ using HotChocolate.Execution.Pipeline.Complexity;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Validation;
+using static HotChocolate.WellKnownContextData;
 using static HotChocolate.Execution.ErrorHelper;
 using static HotChocolate.Execution.Pipeline.PipelineTools;
 
@@ -44,21 +45,19 @@ namespace HotChocolate.Execution.Pipeline
 
         public async ValueTask InvokeAsync(IRequestContext context)
         {
-            if (_settings.Enable &&
-                !context.ContextData.ContainsKey(WellKnownContextData.NoComplexityAnalysis))
+            if (_settings.Enable && !context.ContextData.ContainsKey(NoComplexityAnalysis))
             {
                 if (context.DocumentId is not null &&
                     context.OperationId is not null &&
                     context.Document is not null)
                 {
+                    string cacheId = context.CreateCacheId(context.OperationId);
                     DocumentNode document = context.Document;
                     OperationDefinitionNode operationDefinition =
                         context.Operation?.Definition ??
                         document.GetOperation(context.Request.OperationName);
 
-                    if (!_cache.TryGetOperation(
-                        context.OperationId,
-                        out ComplexityAnalyzerDelegate? analyzer))
+                    if (!_cache.TryGetOperation(cacheId, out ComplexityAnalyzerDelegate? analyzer))
                     {
                         analyzer = CompileAnalyzer(context, document, operationDefinition);
                     }
@@ -92,7 +91,7 @@ namespace HotChocolate.Execution.Pipeline
         }
 
         private ComplexityAnalyzerDelegate CompileAnalyzer(
-            IRequestContext context,
+            IRequestContext requestContext,
             DocumentNode document,
             OperationDefinitionNode operationDefinition)
         {
@@ -101,7 +100,8 @@ namespace HotChocolate.Execution.Pipeline
 
             try
             {
-                validatorContext.ContextData = context.ContextData;
+                PrepareContext(requestContext, document, validatorContext);
+
                 _compiler.Visit(document, validatorContext);
                 var analyzers = (List<OperationComplexityAnalyzer>)validatorContext.List.Peek()!;
 
@@ -113,9 +113,10 @@ namespace HotChocolate.Execution.Pipeline
                     }
 
                     _cache.TryAddOperation(
-                        CreateOperationId(
-                            context.DocumentId!,
-                            analyzer.OperationDefinitionNode.Name?.Value),
+                        requestContext.CreateCacheId(
+                            CreateOperationId(
+                                requestContext.DocumentId!,
+                                analyzer.OperationDefinitionNode.Name?.Value)),
                         analyzer.Analyzer);
                 }
 
@@ -126,6 +127,24 @@ namespace HotChocolate.Execution.Pipeline
                 validatorContext.Clear();
                 _contextPool.Return(validatorContext);
             }
+        }
+
+        private void PrepareContext(
+            IRequestContext requestContext,
+            DocumentNode document,
+            DocumentValidatorContext validatorContext)
+        {
+            validatorContext.Schema = requestContext.Schema;
+
+            for (var i = 0; i < document.Definitions.Count; i++)
+            {
+                if (document.Definitions[i] is FragmentDefinitionNode fragmentDefinition)
+                {
+                    validatorContext.Fragments[fragmentDefinition.Name.Value] = fragmentDefinition;
+                }
+            }
+
+            validatorContext.ContextData = requestContext.ContextData;
         }
     }
 }

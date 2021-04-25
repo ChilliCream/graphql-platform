@@ -1,108 +1,147 @@
 ﻿using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
+using HotChocolate.Execution.Options;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using static HotChocolate.Validation.TestHelper;
+using static HotChocolate.WellKnownContextData;
+using static HotChocolate.Tests.TestHelper;
 
-namespace HotChocolate.Validation
+namespace HotChocolate.Execution.Pipeline
 {
-    public class MaxComplexityRuleTests
+    public class ComplexityAnalyzerTests
     {
-        [InlineData(11)]
-        [InlineData(10)]
-        [InlineData(9)]
-        [Theory]
-        public void MaxComplexity_Not_Reached(int maxAllowedComplexity)
+        [Fact]
+        public async Task MaxComplexity_Not_Reached()
         {
-            // arrange
-            ExpectValid(
-                CreateSchema(),
-                b => b.AddMaxComplexityRule(maxAllowedComplexity),
+            int complexity = 0;
+
+            await ExpectValid(
                 @"
-                {
-                    foo {
-                        ... on Foo {
+                    {
+                        foo {
                             ... on Foo {
-                                field
-                                ... on Bar {
-                                    baz {
-                                        foo {
-                                            field
+                                ... on Foo {
+                                    field
+                                    ... on Bar {
+                                        baz {
+                                            foo {
+                                                field
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                }
-            ");
+                ",
+                configure: b => b
+                    .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
+                    .UseField(_ => _ => default)
+                    .ConfigureSchema(s => s.AddCostDirectiveType())
+                    .ModifyRequestOptions(o =>
+                    {
+                        o.Complexity.Enable = true;
+                        o.Complexity.MaximumAllowed = 9;
+                    })
+                    .UseRequest(next => async context =>
+                    {
+                        await next(context);
+                        complexity = (int)context.ContextData[OperationComplexity];
+                    })
+                    .UseDefaultPipeline());
+
+            Assert.Equal(9, complexity);
         }
 
         [Fact]
-        public void MaxComplexity_Reached_8()
+        public async Task MaxComplexity_Reached()
         {
-            // arrange
-            ExpectErrors(
-                CreateSchema(),
-                b => b.AddMaxComplexityRule(8),
+            int complexity = 0;
+
+            await ExpectError(
                 @"
-                {
-                    foo {
-                        ... on Foo {
+                    {
+                        foo {
                             ... on Foo {
-                                field
-                                ... on Bar {
-                                    baz {
-                                        foo {
-                                            field
+                                ... on Foo {
+                                    field
+                                    ... on Bar {
+                                        baz {
+                                            foo {
+                                                field
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                }
-            ");
+                ",
+                configure: b => b
+                    .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
+                    .UseField(_ => _ => default)
+                    .ConfigureSchema(s => s.AddCostDirectiveType())
+                    .ModifyRequestOptions(o =>
+                    {
+                        o.Complexity.Enable = true;
+                        o.Complexity.MaximumAllowed = 8;
+                    })
+                    .UseRequest(next => async context =>
+                    {
+                        await next(context);
+                        complexity = (int)context.ContextData[OperationComplexity];
+                    })
+                    .UseDefaultPipeline());
         }
 
-        [InlineData(19)]
-        [InlineData(18)]
-        [Theory]
-        public void MaxComplexity_Not_Reached_With_CustomCalculateDelegate(int maxAllowedComplexity)
+        [Fact]
+        public async Task MaxComplexity_Custom_Calculation()
         {
-            // arrange
-            ExpectValid(
-                CreateSchema(),
-                b => b.AddMaxComplexityRule(maxAllowedComplexity)
-                    .SetComplexityCalculation(
-                        (field, selection, cost, fieldDepth, nodeDepth, getVariable, options) =>
+            int complexity = 0;
+
+            await ExpectValid(
+                @"
+                    {
+                        foo {
+                            ... on Foo {
+                                ... on Foo {
+                                    field
+                                    ... on Bar {
+                                        baz {
+                                            foo {
+                                                field
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ",
+                configure: b => b
+                    .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
+                    .UseField(_ => _ => default)
+                    .ConfigureSchema(s => s.AddCostDirectiveType())
+                    .ModifyRequestOptions(o =>
+                    {
+                        o.Complexity.Enable = true;
+                        o.Complexity.MaximumAllowed = 1000;
+                        o.Complexity.Calculation = context => 
                         {
-                            if (cost is null)
-                            {
-                                return 2;
-                            }
-                            return cost.Complexity * 2;
-                        }),
-                @"
-                {
-                    foo {
-                        ... on Foo {
-                            ... on Foo {
-                                field
-                                ... on Bar {
-                                    baz {
-                                        foo {
-                                            field
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            ");
+                            return ComplexityAnalyzerSettings.DefaultCalculation(context) * 2;
+                        };
+                    })
+                    .UseRequest(next => async context =>
+                    {
+                        await next(context);
+                        complexity = (int)context.ContextData[OperationComplexity];
+                    })
+                    .UseDefaultPipeline());
+
+            Assert.Equal(50, complexity);
         }
 
+/*
         [Fact]
         public void MaxComplexity_Reached_With_CustomCalculateDelegate_17()
         {
@@ -277,9 +316,9 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-        }
+        }*/
 
-        private ISchema CreateSchema()
+        private static ISchema CreateSchema()
         {
             return SchemaBuilder.New()
                 .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))

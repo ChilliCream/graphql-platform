@@ -76,10 +76,11 @@ namespace HotChocolate.Execution.Pipeline.Complexity
             IDocumentValidatorContext context)
         {
             IOutputField field = context.OutputFields.Pop();
-            var children = (List<MethodCallExpression>)context.List.Pop();
+            var children = (List<Expression>)context.List.Pop()!;
             context.Types.Pop();
 
-            context.List.Push(CreateFieldComplexityExpression(context, field, node, children));
+            var parent = (List<Expression>)context.List.Peek()!;
+            parent.Add(CreateFieldComplexityExpression(context, field, node, children));
 
             return Continue;
         }
@@ -88,7 +89,7 @@ namespace HotChocolate.Execution.Pipeline.Complexity
             IDocumentValidatorContext context,
             IOutputField field,
             FieldNode selection,
-            List<MethodCallExpression> children)
+            List<Expression> children)
         {
             return children.Count switch
             {
@@ -104,7 +105,7 @@ namespace HotChocolate.Execution.Pipeline.Complexity
             FieldNode selection,
             Expression childComplexity)
         {
-            CostDirective costDirective =
+            CostDirective? costDirective =
                 field.Directives["cost"]
                     .FirstOrDefault()?
                     .ToObject<CostDirective>();
