@@ -76,9 +76,9 @@ namespace HotChocolate.Types
 
         protected override StringValueNode ParseValue(double runtimeValue)
         {
-            if (Latitude.TrySerialize(runtimeValue, out var value))
+            if (Latitude.TrySerialize(runtimeValue, out var s))
             {
-                return new StringValueNode(value);
+                return new StringValueNode(s);
             }
 
             throw ThrowHelper.LatitudeType_ParseLiteral_IsInvalid(this);
@@ -116,9 +116,9 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (resultValue is string s && Latitude.TryDeserialize(s, out var runtimeDouble))
+            if (resultValue is string s && Latitude.TryDeserialize(s, out var d))
             {
-                runtimeValue = runtimeDouble;
+                runtimeValue = d;
                 return true;
             }
 
