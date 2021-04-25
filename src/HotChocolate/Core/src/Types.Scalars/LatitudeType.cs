@@ -53,9 +53,9 @@ namespace HotChocolate.Types
             return resultValue switch
             {
                 null => NullValueNode.Default,
-                string s => new StringValueNode(s),
-                int i => ParseValue(i),
-                double d => ParseValue(d),
+                string s when Latitude.TryDeserialize(s, out var stringValue) => ParseValue(stringValue),
+                int runtimeInt => ParseValue(runtimeInt),
+                double runtimeDouble => ParseValue(runtimeDouble),
                 _ => throw ThrowHelper.LatitudeType_ParseValue_IsInvalid(this)
             };
         }
