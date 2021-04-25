@@ -37,7 +37,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = new StringValueNode("90° 0' 0.000\" S");
+            var valueSyntax = new StringValueNode("89° 0' 0.000\" S");
 
             // act
             var result = scalar.IsInstanceOfType(valueSyntax);
@@ -51,7 +51,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = 90.00000001;
+            var valueSyntax = 89.99;
 
             // act
             var result = scalar.IsInstanceOfType(valueSyntax);

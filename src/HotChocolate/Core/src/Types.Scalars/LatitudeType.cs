@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
@@ -33,68 +34,51 @@ namespace HotChocolate.Types
             Description = description;
         }
 
-        /// <inheritdoc />
+        protected override bool IsInstanceOfType(StringValueNode valueSyntax)
+        {
+            if(Latitude.TryDeserialize(valueSyntax.Value, out var value))
+            {
+                return value is > Latitude._min and < Latitude._max;
+            }
+
+            return false;
+        }
+
+        protected override bool IsInstanceOfType(double valueSyntax)
+        {
+            return valueSyntax is > Latitude._min and < Latitude._max;
+        }
+
         public override IValueNode ParseResult(object? resultValue)
         {
             return resultValue switch
             {
                 null => NullValueNode.Default,
-
-                string s when Latitude.TryDeserialize(s, out var value) => ParseValue(value),
-
+                string s => new StringValueNode(s),
+                int i => ParseValue(i),
                 double d => ParseValue(d),
-
-                int d => ParseValue(d),
-
                 _ => throw ThrowHelper.LatitudeType_ParseValue_IsInvalid(this)
             };
         }
 
-        /// <inheritdoc />
         protected override double ParseLiteral(StringValueNode valueSyntax)
         {
-            if (Latitude.TryDeserialize(valueSyntax.Value, out var value) && value is not null)
+            if (Latitude.TryDeserialize(valueSyntax.Value,  out var runtimeValue))
             {
-                return value.Value;
+                return runtimeValue.Value;
             }
 
             throw ThrowHelper.LatitudeType_ParseLiteral_IsInvalid(this);
         }
 
-        /// <inheritdoc />
         protected override StringValueNode ParseValue(double runtimeValue)
         {
-            if (runtimeValue is > Latitude._min and < Latitude._max)
+            if (Latitude.TrySerialize(runtimeValue, out var value))
             {
-                return new StringValueNode(Latitude.TrySerialize(runtimeValue));
+                return new StringValueNode(value);
             }
 
-            throw ThrowHelper.LatitudeType_ParseValue_IsInvalid(this);
-        }
-
-        /// <inheritdoc />
-        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
-        {
-            if (runtimeValue is null)
-            {
-                resultValue = null;
-                return true;
-            }
-
-            if (runtimeValue is double d)
-            {
-                resultValue = Latitude.TrySerialize(d);
-                return true;
-            }
-
-            if (runtimeValue is int i)
-            {
-                resultValue = Latitude.TrySerialize(i);
-                return true;
-            }
-
-            resultValue = null;
-            return false;
+            throw ThrowHelper.LatitudeType_ParseLiteral_IsInvalid(this);
         }
 
         private static class Latitude
@@ -110,7 +94,9 @@ namespace HotChocolate.Types
             private static readonly Regex _rx =
                 new(SexagesimalRegex, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-            public static bool TryDeserialize(string serialized, out double? value)
+            public static bool TryDeserialize(
+                string serialized,
+                [NotNullWhen(true)] out double? value)
             {
                 MatchCollection coords = _rx.Matches(serialized);
                 if (coords.Count > 0)
@@ -133,34 +119,41 @@ namespace HotChocolate.Types
                 return false;
             }
 
-            public static string TrySerialize(double serialize)
+            public static bool TrySerialize(double runtimeValue, [NotNullWhen(true)] out string? resultValue)
             {
-                var degree =  serialize > 0
-                    ? Math.Floor(serialize)
-                    : Math.Ceiling(serialize);
-                var degreeDecimals = serialize - degree;
-
-                var minutesWhole = degreeDecimals * 60;
-                var minutes = minutesWhole > 0
-                    ? Math.Floor(minutesWhole)
-                    : Math.Ceiling(minutesWhole);
-                var minutesDecimal = minutesWhole - minutes;
-
-                var seconds = Math.Round(
-                    minutesDecimal * 60,
-                    MaxPrecision,
-                    MidpointRounding.AwayFromZero);
-
-                string serializedLatitude = degree switch
+                if (runtimeValue is > _min and < _max)
                 {
-                    > 0 and < _max =>
-                        $"{degree}° {minutes}' {seconds}\" N",
-                    < 0 and > _min =>
-                        $"{Math.Abs(degree)}° {Math.Abs(minutes)}' {Math.Abs(seconds)}\" S",
-                    _ => $"{degree}° {minutes}' {seconds}\""
-                };
+                    var degree =  runtimeValue > 0
+                        ? Math.Floor(runtimeValue)
+                        : Math.Ceiling(runtimeValue);
+                    var degreeDecimals = runtimeValue - degree;
 
-                return serializedLatitude;
+                    var minutesWhole = degreeDecimals * 60;
+                    var minutes = minutesWhole > 0
+                        ? Math.Floor(minutesWhole)
+                        : Math.Ceiling(minutesWhole);
+                    var minutesDecimal = minutesWhole - minutes;
+
+                    var seconds = Math.Round(
+                        minutesDecimal * 60,
+                        MaxPrecision,
+                        MidpointRounding.AwayFromZero);
+
+                    string serializedLatitude = degree switch
+                    {
+                        > 0 and < _max =>
+                            $"{degree}° {minutes}' {seconds}\" N",
+                        < 0 and > _min =>
+                            $"{Math.Abs(degree)}° {Math.Abs(minutes)}' {Math.Abs(seconds)}\" S",
+                        _ => $"{degree}° {minutes}' {seconds}\""
+                    };
+
+                    resultValue = serializedLatitude;
+                    return true;
+                }
+
+                resultValue = null;
+                return false;
             }
         }
     }
