@@ -19,4 +19,4 @@ This package adds support for filtering, sorting, projection and pagination with
 # Spatial Data
 This collection of packages help you to expose [NetTopologySuite types](https://github.com/NetTopologySuite/NetTopologySuite) in form of [GeoJSON](https://geojson.org/) and even integrate it with the data api.
 
-[Find out more!](/docs/hotchocolate/integrations/mongodb/)
+[Find out more!](/docs/hotchocolate/integrations/spatial-data/)
