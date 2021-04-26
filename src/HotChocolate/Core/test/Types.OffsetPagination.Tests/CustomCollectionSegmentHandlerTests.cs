@@ -7,10 +7,10 @@ using Xunit;
 
 namespace HotChocolate.Types.Pagination
 {
-    public class CustomCursorHandlerTests
+    public class CustomCollectionSegmentHandlerTests
     {
         [Fact]
-        public void Infer_Schema_Correctly_When_Connection_IsUsed()
+        public void Infer_Schema_Correctly_When_CollectionSegment_IsUsed()
         {
             SchemaBuilder.New()
                 .AddQueryType<Query>()

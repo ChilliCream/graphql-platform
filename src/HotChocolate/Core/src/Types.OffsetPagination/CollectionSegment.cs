@@ -31,7 +31,8 @@ namespace HotChocolate.Types.Pagination
         {
             Items = items ??
                 throw new ArgumentNullException(nameof(items));
-            Info = info;
+            Info = info ??
+                throw new ArgumentNullException(nameof(info));
             _getTotalCount = getTotalCount ??
                 throw new ArgumentNullException(nameof(getTotalCount));
         }
