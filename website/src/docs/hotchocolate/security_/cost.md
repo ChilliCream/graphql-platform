@@ -124,13 +124,14 @@ services
     .AddGraphQL()
     .ModifyRequestOptions(o =>
     {
+        o.Enable = true;
         o.Complexity.MaximumAllowed = 1500;
     });
 ```
 
 # Default Complexity Rules
 
-Hot Chocolate will automatically apply multipliers to fields that enable pagination. Moreover, explicit resolvers and resolvers compiled from async resolvers are by default weighted with `2` to mark them as having more impact than fields that do not fetch data.
+Hot Chocolate will automatically apply multipliers to fields that enable pagination. Moreover, explicit resolvers and resolvers compiled from async resolvers are by default weighted with `5` to mark them as having more impact than fields that do not fetch data.
 
 These defaults can be configured.
 
@@ -141,7 +142,7 @@ services
     {
         o.Complexity.ApplyDefaults = true;
         o.Complexity.DefaultComplexity = 1;
-        o.Complexity.DefaultDataResolverComplexity = 2;
+        o.Complexity.DefaultDataResolverComplexity = 5;
     });
 ```
 
@@ -178,32 +179,38 @@ services
                 return context.Complexity + context.ChildComplexity;
             }
 
-            var cost = context.Complexity;
-            var childCost = context.ChildComplexity;
+            var cost = context.Complexity + context.ChildComplexity;
+            bool needsDefaultMultiplier = true;
 
             foreach (MultiplierPathString multiplier in context.Multipliers)
             {
                 if (context.TryGetArgumentValue(multiplier, out int value))
                 {
                     cost *= value;
-                    childCost *= value;
+                    needsDefaultMultiplier = false;
                 }
             }
 
-            return cost + childCost;
+            if(needsDefaultMultiplier && context.DefaultMultiplier.HasValue)
+            {
+                cost *= context.DefaultMultiplier.Value;
+            }
+
+            return cost;
         });
     });
 ```
 
 **Complexity Context**
 
-| Member              | Description                                                |
-| ------------------- | ---------------------------------------------------------- |
-| Field               | The `IOutputField` for which the complexity is calculated. |
-| Selection           | The field selection node in the query syntax tree.         |
-| Complexity          | The field`s base complexity.                               |
-| ChildComplexity     | The calculated complexity of all child fields.             |
-| Multipliers         | The multiplier argument names.                             |
-| FieldDepth          | The field depth in the query.                              |
-| NodeDepth           | The syntax node depth in the query syntax tree.            |
-| TryGetArgumentValue | Helper to get the coerced argument value of a multiplier.  |
+| Member              | Description                                                           |
+| ------------------- | --------------------------------------------------------------------- |
+| Field               | The `IOutputField` for which the complexity is calculated.            |
+| Selection           | The field selection node in the query syntax tree.                    |
+| Complexity          | The field`s base complexity.                                          |
+| ChildComplexity     | The calculated complexity of all child fields.                        |
+| Multipliers         | The multiplier argument names.                                        |
+| Multipliers         | The default multiplier value when no multiplier argument has a value. |
+| FieldDepth          | The field depth in the query.                                         |
+| NodeDepth           | The syntax node depth in the query syntax tree.                       |
+| TryGetArgumentValue | Helper to get the coerced argument value of a multiplier.             |
