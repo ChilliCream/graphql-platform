@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace HotChocolate.Types.Pagination
 {
     /// <summary>
-    /// The collection segment represents one page of a pagebale data set / collection.
+    /// The collection segment represents one page of a pageable dataset / collection.
     /// </summary>
     public class CollectionSegment : IPage
     {
