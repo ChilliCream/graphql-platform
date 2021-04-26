@@ -155,6 +155,32 @@
             ]
           },
           {
+            "path": "security",
+            "title": "Security",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "authorization",
+                "title": "Authorization"
+              },
+              {
+                "path": "introspection",
+                "title": "Introspection"
+              },
+              {
+                "path": "operation-complexity",
+                "title": "Operation Complexity"
+              },
+              {
+                "path": "introspection",
+                "title": "Introspection"
+              }
+            ]
+          },
+          {
             "path": "api-reference",
             "title": "API Reference",
             "items": [

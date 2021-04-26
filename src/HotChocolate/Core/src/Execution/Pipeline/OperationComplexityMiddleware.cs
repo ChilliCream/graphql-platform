@@ -45,7 +45,7 @@ namespace HotChocolate.Execution.Pipeline
 
         public async ValueTask InvokeAsync(IRequestContext context)
         {
-            if (_settings.Enable && !context.ContextData.ContainsKey(NoComplexityAnalysis))
+            if (_settings.Enable && !context.ContextData.ContainsKey(SkipComplexityAnalysis))
             {
                 if (context.DocumentId is not null &&
                     context.OperationId is not null &&

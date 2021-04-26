@@ -1,8 +1,8 @@
 ---
-title: Query complexity
+title: Operation Complexity
 ---
 
-Query complexity is a useful tool to make your API secure. The query complexity assigns by default every field a complexity of `1`. The complexity of all fields in one of the operations of a GraphQL request is not allowed to be greater than the maximum permitted operation complexity.
+The operation complexity analyzer is a useful tool to make your API secure. The operation complexity analyzer assigns by default every field a complexity of `1`. The complexity of all fields in one of the operations of a GraphQL request is not allowed to be greater than the maximum permitted operation complexity.
 
 # Static Request Analysis
 
@@ -25,9 +25,9 @@ type Author {
 }
 ```
 
-In the above example executing the `books` field on the `Query` type might go to the database and fetch the `Book`. This means that the cost of the `books` field is probably higher than the cost of the `title` field. The cost of the title field might be the impact on the memory and to the transport. For `title`, we can do with the default cost. But for `books`, we might want to go with a higher cost of `10` since we are getting a list here.
+In the above example executing the `books` field on the `Query` type might go to the database and fetch the `Book`. This means that the cost of the `books` field is probably higher than the cost of the `title` field. The cost of the title field might be the impact on the memory and to the transport. For `title`, the default cost of `1` os OK. But for `books`, we might want to go with a higher cost of `10` since we are getting a list of books from our database.
 
-Moreover, we have the field `author` on the book, which might go to the database to fetch the `Author` object. Since we are only fetching a single item here, we might want to apply a cost of `5` to this field.
+Moreover, we have the field `author` on the book, which might go to the database as well to fetch the `Author` object. Since we are only fetching a single item here, we might want to apply a cost of `5` to this field.
 
 ```graphql
 type Query {
@@ -67,15 +67,15 @@ query {
 }
 ```
 
-This kind of analysis is entirely static and can just be done by inspecting the query syntax tree. The impact on the overall execution performance is very low. But with this static approach, we do have a very rough idea of the performance. Is it correct to apply always a cost of `10` even though we might get one or one hundred books back?
+This kind of analysis is entirely static and could just be done by inspecting the query syntax tree. The impact on the overall execution performance is very low. But with this static approach, we do have a very rough idea of the performance. Is it correct to apply always a cost of `10` even though we might get one or one hundred books back?
 
 # Full Request Analysis
 
-The hot chocolate complexity analysis can also take arguments into account when analyzing complexity.
+The hot chocolate operation complexity analyzer can also take arguments into account when analyzing operation complexity.
 
-If we look at our data graph, we can see that books actually have an argument that defines how many books are returned. The `take` argument, in this case, specifies the maximum books that the field will return.
+If we look at our data graph, we can see that the `books` field actually has an argument that defines how many books are returned. The `take` argument, in this case, specifies the maximum books that the field will return.
 
-When measuring the fields`impact, we can take the argument`take`into account as a multiplier of our cost. This means we might want to lower the cost to`5` since now we get a more fine-grained cost calculation by multiplying the complexity of the field with the take argument.
+When measuring the field\`s impact, we can take the argument `take` into account as a multiplier of our cost. This means we might want to lower the cost to `5` since now we get a more fine-grained cost calculation by multiplying the complexity of the field with the `take` argument.
 
 ```graphql
 type Query {
@@ -104,7 +104,7 @@ query {
 }
 ```
 
-When drilling in further, the cost will go up to `110`.
+When drilling in further, the cost will go up to `110` since we are also now pulling in the author and by doing so causing a second database call.
 
 Cost calculation: `(5 * 10) + ((1 + 5) * 10)`
 

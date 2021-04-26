@@ -364,35 +364,4 @@ namespace HotChocolate.Execution
             return builder;
         }
     }
-
-    public static class QueryBuilderExtensions
-    {
-        public static IQueryRequestBuilder AllowIntrospection(
-            this IQueryRequestBuilder builder) =>
-            builder.SetProperty(WellKnownContextData.IntrospectionAllowed, null);
-
-        public static IQueryRequestBuilder SetIntrospectionNotAllowedMessage(
-            this IQueryRequestBuilder builder,
-            string message)
-        {
-            if (message is null)
-            {
-                throw new ArgumentNullException(nameof(message));
-            }
-
-            return builder.SetProperty(WellKnownContextData.IntrospectionMessage, message);
-        }
-
-        public static IQueryRequestBuilder SetIntrospectionNotAllowedMessage(
-            this IQueryRequestBuilder builder,
-            Func<string> messageFactory)
-        {
-            if (messageFactory is null)
-            {
-                throw new ArgumentNullException(nameof(messageFactory));
-            }
-
-            return builder.SetProperty(WellKnownContextData.IntrospectionMessage, messageFactory);
-        }
-    }
 }
