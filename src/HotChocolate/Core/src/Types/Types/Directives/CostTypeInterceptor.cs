@@ -36,7 +36,7 @@ namespace HotChocolate.Types
             // if the cost settings are set to apply default cost we need to ensure that
             // object types that we apply defaults to have type dependencies to the
             // cost directive.
-            if (_costSettings.ApplyDefaults && 
+            if (_costSettings.ApplyDefaults &&
                 !discoveryContext.IsIntrospectionType &&
                 definition is ObjectTypeDefinition objectDef &&
                 objectDef.Fields.Any(CanApplyDefaultCost))
@@ -60,7 +60,7 @@ namespace HotChocolate.Types
                 return;
             }
 
-            if (!completionContext.IsIntrospectionType && 
+            if (!completionContext.IsIntrospectionType &&
                 definition is ObjectTypeDefinition objectDef)
             {
                 foreach (ObjectFieldDefinition field in objectDef.Fields)
@@ -108,8 +108,13 @@ namespace HotChocolate.Types
 
         private bool CanApplyDefaultCost(ObjectFieldDefinition field)
         {
+            if (field.IsIntrospectionField)
+            {
+                return false;
+            }
+
             IReadOnlyList<DirectiveDefinition> directives = field.GetDirectives();
-            return directives  is { Count: 0 } || !directives.Any(IsCostDirective);
+            return directives is { Count: 0 } || !directives.Any(IsCostDirective);
         }
 
         private static bool IsCostDirective(DirectiveDefinition directive)

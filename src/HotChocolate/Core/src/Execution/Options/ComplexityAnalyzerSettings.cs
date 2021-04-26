@@ -62,19 +62,24 @@ namespace HotChocolate.Execution.Options
                 return context.Complexity + context.ChildComplexity;
             }
 
-            var cost = context.Complexity;
-            var childCost = context.ChildComplexity;
+            var cost = context.Complexity + context.ChildComplexity;
+            bool needsDefaultMultiplier = true;
 
             foreach (MultiplierPathString multiplier in context.Multipliers)
             {
                 if (context.TryGetArgumentValue(multiplier, out int value))
                 {
                     cost *= value;
-                    childCost *= value;
+                    needsDefaultMultiplier = false;
                 }
             }
 
-            return cost + childCost;
+            if(needsDefaultMultiplier && context.DefaultMultiplier.HasValue) 
+            {
+                cost *= context.DefaultMultiplier.Value;
+            }
+
+            return cost;
         }
     }
 }

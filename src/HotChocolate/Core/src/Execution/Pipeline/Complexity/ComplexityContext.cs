@@ -27,6 +27,7 @@ namespace HotChocolate.Execution.Pipeline.Complexity
             Complexity = cost?.Complexity ?? defaultComplexity;
             ChildComplexity = childComplexity;
             Multipliers = cost?.Multipliers ?? Array.Empty<MultiplierPathString>();
+            DefaultMultiplier = cost?.DefaultMultiplier;
             FieldDepth = fieldDepth;
             NodeDepth = nodeDepth;
             _valueCollection = valueCollection;
@@ -51,6 +52,8 @@ namespace HotChocolate.Execution.Pipeline.Complexity
         public int FieldDepth { get; }
 
         public int NodeDepth { get; }
+
+        public int? DefaultMultiplier { get; }
 
         public bool TryGetArgumentValue<T>(string name, [NotNullWhen(true)] out T value)
         {

@@ -1,11 +1,10 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
 using HotChocolate.Execution.Options;
 using HotChocolate.Tests;
 using HotChocolate.Types;
-using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.WellKnownContextData;
 using static HotChocolate.Tests.TestHelper;
@@ -162,8 +161,6 @@ namespace HotChocolate.Execution.Pipeline
                     {
                         o.Complexity.Enable = true;
                         o.Complexity.MaximumAllowed = 1000;
-                        o.Complexity.Calculation = context =>
-                            ComplexityAnalyzerSettings.DefaultCalculation(context) * 2;
                     })
                     .UseRequest(next => async context =>
                     {
@@ -172,7 +169,74 @@ namespace HotChocolate.Execution.Pipeline
                     })
                     .UseDefaultPipeline());
 
-            Assert.Equal(50, complexity);
+            Assert.Equal(70, complexity);
+        }
+
+        [Fact]
+        public async Task Apply_Complexity_Defaults_For_Connections_And_Resolvers()
+        {
+            var complexity = 0;
+
+            await ExpectValid(
+                @"{
+                    persons {
+                        nodes {
+                            name
+                        }
+                    }
+                    person {
+                        name
+                    }
+                }",
+                configure: b => b
+                    .AddQueryType<Query>()
+                    .ModifyRequestOptions(o =>
+                    {
+                        o.Complexity.Enable = true;
+                        o.Complexity.MaximumAllowed = 1000;
+                    })
+                    .UseRequest(next => async context =>
+                    {
+                        await next(context);
+                        complexity = (int)context.ContextData[OperationComplexity]!;
+                    })
+                    .UseDefaultPipeline());
+
+            Assert.Equal(76, complexity);
+        }
+
+         [Fact]
+        public async Task Apply_Complexity_Defaults_For_Connections_And_Resolvers_And_InMemField()
+        {
+            var complexity = 0;
+
+            await ExpectValid(
+                @"{
+                    persons {
+                        nodes {
+                            name
+                        }
+                    }
+                    person {
+                        name
+                    }
+                    sayHello
+                }",
+                configure: b => b
+                    .AddQueryType<Query>()
+                    .ModifyRequestOptions(o =>
+                    {
+                        o.Complexity.Enable = true;
+                        o.Complexity.MaximumAllowed = 1000;
+                    })
+                    .UseRequest(next => async context =>
+                    {
+                        await next(context);
+                        complexity = (int)context.ContextData[OperationComplexity]!;
+                    })
+                    .UseDefaultPipeline());
+
+            Assert.Equal(77, complexity);
         }
 
         [Fact]
@@ -190,182 +254,55 @@ namespace HotChocolate.Execution.Pipeline
                 .MatchSnapshotAsync();
         }
 
-/*
         [Fact]
-        public void MaxComplexity_Reached_With_CustomCalculateDelegate_17()
+        public async Task MaxComplexity_Not_With_Union()
         {
-            // arrange
-            ExpectErrors(
-                CreateSchema(),
-                b => b.AddMaxComplexityRule(17)
-                    .SetComplexityCalculation(
-                        (field, selection, cost, fieldDepth, nodeDepth, getVariable, options) =>
-                        {
-                            if (cost is null)
-                            {
-                                return 2;
-                            }
-                            return cost.Complexity * 2;
-                        }),
-                @"
-                {
-                    foo {
-                        ... on Foo {
-                            ... on Foo {
-                                field
-                                ... on Bar {
-                                    baz {
-                                        foo {
-                                            field
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            ");
-        }
+            var complexity = 0;
 
-        [Fact]
-        public void MaxComplexity_Reached_With_CustomCalculateDelegate_16()
-        {
-            // arrange
-            ExpectErrors(
-                CreateSchema(),
-                b => b.AddMaxComplexityRule(16)
-                    .SetComplexityCalculation(
-                        (field, selection, cost, fieldDepth, nodeDepth, getVariable, options) =>
-                        {
-                            if (cost is null)
-                            {
-                                return 2;
-                            }
-                            return cost.Complexity * 2;
-                        }),
+            await ExpectValid(
                 @"
-                {
-                    foo {
-                        ... on Foo {
+                    {
+                        bazOrBar {
                             ... on Foo {
-                                field
-                                ... on Bar {
-                                    baz {
-                                        foo {
-                                            field
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            ");
-        }
-
-        [InlineData(17)]
-        [InlineData(16)]
-        [Theory]
-        public void MaxComplexity_Not_Reached_WithUnions(int maxAllowedComplexity)
-        {
-            // arrange
-            ExpectValid(
-                CreateSchema(),
-                b => b.AddMaxComplexityRule(maxAllowedComplexity),
-                @"
-                {
-                    bazOrBar {
-                        ... on Foo {
-                            ... on Foo {
-                                field
-                                ... on Bar {
-                                    baz {
-                                        foo {
-                                            field
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        ... on Bar {
-                            baz {
-                                foo {
+                                ... on Foo {
                                     field
-                                }
-                            }
-                        }
-                    }
-                }
-            ");
-        }
-
-        [Fact]
-        public void MaxComplexity_Reached_WithUnions_15()
-        {
-            // arrange
-            ExpectErrors(
-                CreateSchema(),
-                b => b.AddMaxComplexityRule(15),
-                @"
-                {
-                    bazOrBar {
-                        ... on Foo {
-                            ... on Foo {
-                                field
-                                ... on Bar {
-                                    baz {
-                                        foo {
-                                            field
+                                    ... on Bar {
+                                        baz {
+                                            foo {
+                                                field
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
-                        ... on Bar {
-                            baz {
-                                foo {
-                                    field
-                                }
-                            }
-                        }
-                    }
-                }
-            ");
-        }
-
-        [Fact]
-        public void MaxComplexity_Reached_WithUnions_14()
-        {
-            // arrange
-            ExpectErrors(
-                CreateSchema(),
-                b => b.AddMaxComplexityRule(15),
-                @"
-                {
-                    bazOrBar {
-                        ... on Foo {
-                            ... on Foo {
-                                field
-                                ... on Bar {
-                                    baz {
-                                        foo {
-                                            field
-                                        }
+                            ... on Bar {
+                                baz {
+                                    foo {
+                                        field
                                     }
                                 }
                             }
                         }
-                        ... on Bar {
-                            baz {
-                                foo {
-                                    field
-                                }
-                            }
-                        }
                     }
-                }
-            ");
-        }*/
+                ",
+                configure: b => b
+                    .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
+                    .UseField(_ => _ => default)
+                    .ConfigureSchema(s => s.AddCostDirectiveType())
+                    .ModifyRequestOptions(o =>
+                    {
+                        o.Complexity.Enable = true;
+                        o.Complexity.MaximumAllowed = 1000;
+                    })
+                    .UseRequest(next => async context =>
+                    {
+                        await next(context);
+                        complexity = (int)context.ContextData[OperationComplexity]!;
+                    })
+                    .UseDefaultPipeline());
+
+            Assert.Equal(16, complexity);
+        }
 
         private static ISchema CreateSchema()
         {
