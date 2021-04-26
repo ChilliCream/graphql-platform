@@ -364,12 +364,12 @@ type CollectionSegmentInfo {
 
 We tried to keep the API for _offset-based_ pagination as similar to _Connections_ as possible. You can largely follow the [_Connections_](/docs/hotchocolate/fetching-data/pagination/#connections) documentation, just switch out the following methods and types:
 
-| Connections             | Offset-based Pagination  |
-| ----------------------- | ------------------------ |
-| UsePaging               | UseOffsetPaging          |
-| AddPagingArguments      | AddOffsetPagingArguments |
-| Connection&#x3C;T&#x3E; | CollectionSegment        |
-| ConnectionPageInfo      | CollectionSegmentInfo    |
+| Connections             | Offset-based Pagination        |
+| ----------------------- | ------------------------------ |
+| UsePaging               | UseOffsetPaging                |
+| AddPagingArguments      | AddOffsetPagingArguments       |
+| Connection&#x3C;T&#x3E; | CollectionSegment&#x3C;T&#x3E; |
+| ConnectionPageInfo      | CollectionSegmentInfo          |
 
 Please note that the paging arguments have also changed.
 It's no longer `after` and `first`, but `skip` and `take`.
