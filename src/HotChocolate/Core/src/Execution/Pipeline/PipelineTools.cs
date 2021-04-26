@@ -20,21 +20,24 @@ namespace HotChocolate.Execution.Pipeline
             VariableCoercionHelper coercionHelper,
             IReadOnlyList<VariableDefinitionNode> variableDefinitions)
         {
-            if (variableDefinitions.Count == 0)
+            if (context.Variables is null)
             {
-                context.Variables = VariableValueCollection.Empty;
-            }
-            else
-            {
-                var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+                if (variableDefinitions.Count == 0)
+                {
+                    context.Variables = VariableValueCollection.Empty;
+                }
+                else
+                {
+                    var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
 
-                coercionHelper.CoerceVariableValues(
-                    context.Schema,
-                    variableDefinitions,
-                    context.Request.VariableValues ?? _empty,
-                    coercedValues);
+                    coercionHelper.CoerceVariableValues(
+                        context.Schema,
+                        variableDefinitions,
+                        context.Request.VariableValues ?? _empty,
+                        coercedValues);
 
-                context.Variables = new VariableValueCollection(coercedValues);
+                    context.Variables = new VariableValueCollection(coercedValues);
+                }
             }
         }
     }
