@@ -8,10 +8,16 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Pipeline.Complexity
 {
+    /// <summary>
+    /// The context to calculate a field complexity.
+    /// </summary>
     public readonly ref struct ComplexityContext
     {
         private readonly IVariableValueCollection _valueCollection;
 
+        /// <summary>
+        /// Creates a new instance of <see cref="ComplexityContext" />
+        /// </summary>
         public ComplexityContext(
             IOutputField field,
             FieldNode selection,
@@ -43,18 +49,42 @@ namespace HotChocolate.Execution.Pipeline.Complexity
         /// </summary>
         public FieldNode Selection { get; }
 
+        /// <summary>
+        /// Gets the field`s base complexity.
+        /// </summary>
+        /// <value></value>
         public int Complexity { get; }
 
+        /// <summary>
+        /// Gets the calculated complexity of all child fields.
+        /// </summary>
         public int ChildComplexity { get; }
 
+        /// <summary>
+        /// Gets the multiplier argument names.
+        /// </summary>
+        /// <value></value>
         public IReadOnlyList<MultiplierPathString> Multipliers { get; }
 
-        public int FieldDepth { get; }
-
-        public int NodeDepth { get; }
-
+        /// <summary>
+        /// Gets the default multiplier value that is used when no 
+        /// multiplier argument has a value.
+        /// </summary>
         public int? DefaultMultiplier { get; }
 
+        /// <summary>
+        /// Gets the field depth in the query of the current field.
+        /// </summary>
+        public int FieldDepth { get; }
+
+        /// <summary>
+        /// Gets the selection depth of the syntax tree.
+        /// </summary>
+        public int NodeDepth { get; }
+
+        /// <summary>
+        /// A helper to resolver a multiplier argument value.
+        /// </summary>
         public bool TryGetArgumentValue<T>(string name, [NotNullWhen(true)] out T value)
         {
             if (Field.Arguments.TryGetField(name, out IInputField? argument))
