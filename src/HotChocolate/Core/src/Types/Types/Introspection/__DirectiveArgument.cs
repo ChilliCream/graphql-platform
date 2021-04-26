@@ -12,6 +12,7 @@ namespace HotChocolate.Types.Introspection
     /// The values are in graphql SDL syntax printed as a string.
     /// This type is NOT specified by the graphql specification presently.
     /// </summary>
+    [Introspection]
     public class __DirectiveArgument : ObjectType<ArgumentNode>
     {
         protected override void Configure(

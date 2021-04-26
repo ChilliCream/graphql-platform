@@ -7,18 +7,12 @@ namespace HotChocolate.Execution.Configuration
 {
     public class RequestExecutorSetup
     {
-        private readonly List<SchemaBuilderAction> _schemaBuilderActions =
-            new List<SchemaBuilderAction>();
-        private readonly List<RequestExecutorOptionsAction> _requestExecutorOptionsActions =
-            new List<RequestExecutorOptionsAction>();
-        private readonly List<RequestCoreMiddleware> _pipeline =
-            new List<RequestCoreMiddleware>();
-        private readonly List<Action<IServiceCollection>> _schemaServices =
-            new List<Action<IServiceCollection>>();
-        private readonly List<OnRequestExecutorCreatedAction> _onRequestExecutorCreated =
-            new List<OnRequestExecutorCreatedAction>();
-        private readonly List<OnRequestExecutorEvictedAction> _onRequestExecutorEvicted =
-            new List<OnRequestExecutorEvictedAction>();
+        private readonly List<SchemaBuilderAction> _schemaBuilderActions = new();
+        private readonly List<RequestExecutorOptionsAction> _requestExecutorOptionsActions = new();
+        private readonly List<RequestCoreMiddleware> _pipeline = new();
+        private readonly List<Action<IServiceCollection>> _schemaServices = new();
+        private readonly List<OnRequestExecutorCreatedAction> _onRequestExecutorCreated = new();
+        private readonly List<OnRequestExecutorEvictedAction> _onRequestExecutorEvicted = new();
 
         public ISchema? Schema { get; set; }
 

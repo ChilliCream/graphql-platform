@@ -11,16 +11,16 @@ namespace HotChocolate.Validation
 {
     public static class ValidationUtils
     {
-        public static IDocumentValidatorContext CreateContext(ISchema? schema = null)
+        public static DocumentValidatorContext CreateContext(ISchema? schema = null)
         {
-            return new DocumentValidatorContext { Schema = schema ?? CreateSchema() };
+            return new() { Schema = schema ?? CreateSchema() };
         }
 
         public static void Prepare(this IDocumentValidatorContext context, DocumentNode document)
         {
             context.Fragments.Clear();
 
-            for (int i = 0; i < document.Definitions.Count; i++)
+            for (var i = 0; i < document.Definitions.Count; i++)
             {
                 IDefinitionNode definitionNode = document.Definitions[i];
                 if (definitionNode.Kind == SyntaxKind.FragmentDefinition)

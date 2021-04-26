@@ -28,7 +28,7 @@ namespace HotChocolate.Types.Pagination
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            FieldMiddleware placeholder = next => context => default;
+            FieldMiddleware placeholder = _ => _ => default;
 
             descriptor
                 .Use(placeholder)
@@ -171,7 +171,7 @@ namespace HotChocolate.Types.Pagination
             PagingOptions options)
         {
             PagingOptions global = default;
-            if (context.ContextData.TryGetValue(typeof(PagingOptions).FullName!, out object? o) &&
+            if (context.ContextData.TryGetValue(typeof(PagingOptions).FullName!, out var o) &&
                 o is PagingOptions casted)
             {
                 global = casted;

@@ -1,13 +1,15 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace HotChocolate.Validation.Options
 {
+    /// <summary>
+    /// The validation options.
+    /// </summary>
     public class ValidationOptions : IMaxExecutionDepthOptionsAccessor
     {
+        /// <summary>
+        /// Gets the document rules of the validation.
+        /// </summary>
         public IList<IDocumentValidatorRule> Rules { get; } =
             new List<IDocumentValidatorRule>();
 

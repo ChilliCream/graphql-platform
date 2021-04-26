@@ -20,7 +20,7 @@ namespace HotChocolate.Execution.Processing
             private readonly IRequestContext _requestContext;
             private readonly ObjectType _subscriptionType;
             private readonly ISelectionSet _rootSelections;
-            private readonly Func<object> _resolveQueryRootValue;
+            private readonly Func<object?> _resolveQueryRootValue;
             private ISourceStream _sourceStream = default!;
             private object? _cachedRootValue;
             private bool _disposed;
@@ -31,7 +31,7 @@ namespace HotChocolate.Execution.Processing
                 IRequestContext requestContext,
                 ObjectType subscriptionType,
                 ISelectionSet rootSelections,
-                Func<object> resolveQueryRootValue,
+                Func<object?> resolveQueryRootValue,
                 IDiagnosticEvents diagnosticEvents)
             {
                 _operationContextPool = operationContextPool;
@@ -109,7 +109,7 @@ namespace HotChocolate.Execution.Processing
                         ImmutableDictionary<string, object?>.Empty
                             .SetItem(WellKnownContextData.EventMessage, payload);
 
-                    object? rootValue = RootValueResolver.Resolve(
+                    var rootValue = RootValueResolver.Resolve(
                         _requestContext,
                         eventServices,
                         _subscriptionType,

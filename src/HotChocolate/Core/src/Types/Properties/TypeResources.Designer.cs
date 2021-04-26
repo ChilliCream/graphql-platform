@@ -1232,5 +1232,17 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SchemaBuilderExtensions_AddInputObjectType_TIsSchemaType", resourceCulture);
             }
         }
+        
+        internal static string CostDirective_ComplexityCannotBeBelowOne {
+            get {
+                return ResourceManager.GetString("CostDirective_ComplexityCannotBeBelowOne", resourceCulture);
+            }
+        }
+        
+        internal static string CostDirective_DefaultMultiplierCannotBeBelowTwo {
+            get {
+                return ResourceManager.GetString("CostDirective_DefaultMultiplierCannotBeBelowTwo", resourceCulture);
+            }
+        }
     }
 }

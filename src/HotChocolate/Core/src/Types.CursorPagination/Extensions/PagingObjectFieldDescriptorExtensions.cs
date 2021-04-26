@@ -53,8 +53,12 @@ namespace HotChocolate.Types
             descriptor
                 .Extend()
                 .OnBeforeCreate(
-                    (c, d) => d.Type = CreateConnectionTypeRef(
-                        c, d.ResolverMember ?? d.Member, type, options));
+                    (c, d) =>
+                    {
+                        MemberInfo resolverMember = d.ResolverMember ?? d.Member;
+                        d.Type = CreateConnectionTypeRef(c, resolverMember, type, options);
+                        d.CustomSettings.Add(typeof(Connection));
+                    });
 
             return descriptor;
         }

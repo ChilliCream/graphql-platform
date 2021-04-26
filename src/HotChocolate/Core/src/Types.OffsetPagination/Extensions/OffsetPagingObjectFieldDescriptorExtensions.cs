@@ -98,7 +98,9 @@ namespace HotChocolate.Types
                 .Extend()
                 .OnBeforeCreate((c, d) =>
                 {
-                    d.Type = CreateTypeRef(c, d.ResolverMember ?? d.Member, type, options);
+                    MemberInfo resolverMember = d.ResolverMember ?? d.Member;
+                    d.Type = CreateTypeRef(c, resolverMember, type, options);
+                    d.CustomSettings.Add(typeof(CollectionSegment));
                 });
 
             return descriptor;

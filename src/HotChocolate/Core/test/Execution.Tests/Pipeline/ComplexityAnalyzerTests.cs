@@ -1,7 +1,11 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution.Options;
+using HotChocolate.Tests;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
+using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.WellKnownContextData;
 using static HotChocolate.Tests.TestHelper;
@@ -13,7 +17,7 @@ namespace HotChocolate.Execution.Pipeline
         [Fact]
         public async Task MaxComplexity_Not_Reached()
         {
-            int complexity = 0;
+            var complexity = 0;
 
             await ExpectValid(
                 @"
@@ -46,7 +50,7 @@ namespace HotChocolate.Execution.Pipeline
                     .UseRequest(next => async context =>
                     {
                         await next(context);
-                        complexity = (int)context.ContextData[OperationComplexity];
+                        complexity = (int)context.ContextData[OperationComplexity]!;
                     })
                     .UseDefaultPipeline());
 
@@ -56,7 +60,7 @@ namespace HotChocolate.Execution.Pipeline
         [Fact]
         public async Task MaxComplexity_Reached()
         {
-            int complexity = 0;
+            var complexity = 0;
 
             await ExpectError(
                 @"
@@ -89,7 +93,7 @@ namespace HotChocolate.Execution.Pipeline
                     .UseRequest(next => async context =>
                     {
                         await next(context);
-                        complexity = (int)context.ContextData[OperationComplexity];
+                        complexity = (int)context.ContextData[OperationComplexity]!;
                     })
                     .UseDefaultPipeline());
         }
@@ -97,7 +101,7 @@ namespace HotChocolate.Execution.Pipeline
         [Fact]
         public async Task MaxComplexity_Custom_Calculation()
         {
-            int complexity = 0;
+            var complexity = 0;
 
             await ExpectValid(
                 @"
@@ -126,19 +130,64 @@ namespace HotChocolate.Execution.Pipeline
                     {
                         o.Complexity.Enable = true;
                         o.Complexity.MaximumAllowed = 1000;
-                        o.Complexity.Calculation = context => 
-                        {
-                            return ComplexityAnalyzerSettings.DefaultCalculation(context) * 2;
-                        };
+                        o.Complexity.Calculation = context =>
+                            ComplexityAnalyzerSettings.DefaultCalculation(context) * 2;
                     })
                     .UseRequest(next => async context =>
                     {
                         await next(context);
-                        complexity = (int)context.ContextData[OperationComplexity];
+                        complexity = (int)context.ContextData[OperationComplexity]!;
                     })
                     .UseDefaultPipeline());
 
             Assert.Equal(50, complexity);
+        }
+
+        [Fact]
+        public async Task Apply_Complexity_Defaults_For_Connections()
+        {
+            var complexity = 0;
+
+            await ExpectValid(
+                @"{
+                    persons {
+                        nodes {
+                            name
+                        }
+                    }
+                }",
+                configure: b => b
+                    .AddQueryType<Query>()
+                    .ModifyRequestOptions(o =>
+                    {
+                        o.Complexity.Enable = true;
+                        o.Complexity.MaximumAllowed = 1000;
+                        o.Complexity.Calculation = context =>
+                            ComplexityAnalyzerSettings.DefaultCalculation(context) * 2;
+                    })
+                    .UseRequest(next => async context =>
+                    {
+                        await next(context);
+                        complexity = (int)context.ContextData[OperationComplexity]!;
+                    })
+                    .UseDefaultPipeline());
+
+            Assert.Equal(50, complexity);
+        }
+
+        [Fact]
+        public async Task Apply_Complexity_Defaults()
+        {
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .ModifyRequestOptions(o =>
+                {
+                    o.Complexity.Enable = true;
+                    o.Complexity.MaximumAllowed = 1000;
+                })
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
         }
 
 /*
@@ -321,10 +370,28 @@ namespace HotChocolate.Execution.Pipeline
         private static ISchema CreateSchema()
         {
             return SchemaBuilder.New()
-                .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
+                .AddDocumentFromString(
+                    FileResource.Open("CostSchema.graphql"))
                 .AddCostDirectiveType()
                 .Use(_ => _ => default)
                 .Create();
+        }
+
+        public class Query
+        {
+            [UsePaging]
+            public IQueryable<Person> GetPersons() =>
+                new[] { new Person() }.AsQueryable();
+
+            public Task<Person> GetPersonAsync() =>
+                Task.FromResult(new Person());
+
+            public string SayHello() => "Hello";
+        }
+
+        public class Person
+        {
+            public string Name { get; set; } = "Luke";
         }
     }
 }

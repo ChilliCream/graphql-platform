@@ -6,7 +6,7 @@ namespace HotChocolate.Execution.Options
     /// <summary>
     /// The complexity settings.
     /// </summary>
-    public class ComplexityAnalyzerSettings
+    public class ComplexityAnalyzerSettings : ICostSettings
     {
         /// <summary>
         /// Defines if the complexity analysis is enabled.

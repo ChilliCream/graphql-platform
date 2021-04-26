@@ -717,4 +717,10 @@ Type: `{0}`</value>
   <data name="SchemaBuilderExtensions_AddInputObjectType_TIsSchemaType" xml:space="preserve">
     <value>The specified type `{0}` is a GraphQL schema type. AddInputObjectType&lt;T&gt; is a helper method to register a runtime type as GraphQL input object type. Use AddType&lt;T&gt; to register GraphQL schema types.</value>
   </data>
+  <data name="CostDirective_ComplexityCannotBeBelowOne" xml:space="preserve">
+    <value>The complexity cannot be below one.</value>
+  </data>
+  <data name="CostDirective_DefaultMultiplierCannotBeBelowTwo" xml:space="preserve">
+    <value>Default multiplier cannot be below two.</value>
+  </data>
 </root>

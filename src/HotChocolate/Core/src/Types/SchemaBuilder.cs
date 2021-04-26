@@ -31,7 +31,8 @@ namespace HotChocolate
         private readonly List<object> _typeInterceptors = new()
         {
             typeof(IntrospectionTypeInterceptor),
-            typeof(InterfaceCompletionTypeInterceptor)
+            typeof(InterfaceCompletionTypeInterceptor),
+            typeof(CostTypeInterceptor)
         };
         private readonly IBindingCompiler _bindingCompiler = new BindingCompiler();
         private SchemaOptions _options = new();

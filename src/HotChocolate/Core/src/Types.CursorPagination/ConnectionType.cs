@@ -52,10 +52,10 @@ namespace HotChocolate.Types.Pagination
                 .Type<ListType<NonNullType<EdgeType<T>>>>();
 
             descriptor
-                .Field("nodes")
+                .Field(t => t.Edges.Select(t => t.Node))
+                .Name("nodes")
                 .Description("A flattened list of the nodes.")
-                .Type<ListType<T>>()
-                .Resolver(ctx => ctx.Parent<Connection>().Edges.Select(t => t.Node));
+                .Type<ListType<T>>();
         }
 
         protected override void OnRegisterDependencies(

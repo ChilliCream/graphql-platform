@@ -12,6 +12,11 @@ namespace HotChocolate.Language
         {
         }
 
+        public ArgumentNode(string name, int value)
+            : this(null, new NameNode(name), new IntValueNode(value))
+        {
+        }
+
         public ArgumentNode(string name, IValueNode value)
             : this(null, new NameNode(name), value)
         {
