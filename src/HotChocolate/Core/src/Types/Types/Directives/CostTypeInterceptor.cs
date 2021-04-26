@@ -33,6 +33,11 @@ namespace HotChocolate.Types
             EnsurePagingSettingsAreLoaded(discoveryContext.DescriptorContext);
             EnsureCostSettingsAreLoaded(discoveryContext.DescriptorContext);
 
+            if (!_costSettings.Enable)
+            {
+                return;
+            }
+
             // if the cost settings are set to apply default cost we need to ensure that
             // object types that we apply defaults to have type dependencies to the
             // cost directive.
@@ -55,7 +60,7 @@ namespace HotChocolate.Types
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
-            if (!_costSettings.ApplyDefaults)
+            if (!_costSettings.Enable || !_costSettings.ApplyDefaults)
             {
                 return;
             }
@@ -193,6 +198,7 @@ namespace HotChocolate.Types
 
         private class DefaultCostSettings : ICostSettings
         {
+            public bool Enable => false;
             public bool ApplyDefaults => false;
             public int DefaultComplexity => 1;
             public int DefaultResolverComplexity => 5;

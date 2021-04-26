@@ -6,6 +6,11 @@ namespace HotChocolate.Types
     public interface ICostSettings
     {
         /// <summary>
+        /// Defines if the complexity analysis is enabled.
+        /// </summary>
+        bool Enable { get; }
+
+        /// <summary>
         /// Defines if default cost and multipliers shall be applied to the schema.
         /// </summary>
         bool ApplyDefaults { get; }
