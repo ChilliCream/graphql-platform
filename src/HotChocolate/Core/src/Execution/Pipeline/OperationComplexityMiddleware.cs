@@ -68,9 +68,10 @@ namespace HotChocolate.Execution.Pipeline
                         operationDefinition.VariableDefinitions);
 
                     var complexity = analyzer(context.Variables!);
+                    var maximumAllowedComplexity = GetMaximumAllowedComplexity(context);
                     context.ContextData[_settings.ContextDataKey] = complexity;
 
-                    if (complexity <= _settings.MaximumAllowed)
+                    if (complexity <= maximumAllowedComplexity)
                     {
                         await _next(context).ConfigureAwait(false);
                     }
@@ -145,6 +146,17 @@ namespace HotChocolate.Execution.Pipeline
             }
 
             validatorContext.ContextData = requestContext.ContextData;
+        }
+
+        private int GetMaximumAllowedComplexity(IRequestContext requestContext)
+        {
+            if (requestContext.ContextData.TryGetValue(MaximumAllowedComplexity, out var value) &&
+                value is int allowedComplexity)
+            {
+                return allowedComplexity;
+            }
+
+            return _settings.MaximumAllowed;
         }
     }
 }

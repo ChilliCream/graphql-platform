@@ -50,5 +50,15 @@ namespace HotChocolate.Execution
         public static IQueryRequestBuilder SkipComplexityAnalysis(
             this IQueryRequestBuilder builder) =>
             builder.SetProperty(WellKnownContextData.SkipComplexityAnalysis, null);
+
+        /// <summary>
+        /// Set allowed complexity for this request and override the global allowed complexity.
+        /// </summary>
+        public static IQueryRequestBuilder SetMaximumAllowedComplexity(
+            this IQueryRequestBuilder builder,
+            int maximumAllowedComplexity) =>
+            builder.SetProperty(
+                WellKnownContextData.MaximumAllowedComplexity,
+                maximumAllowedComplexity);
     }
 }

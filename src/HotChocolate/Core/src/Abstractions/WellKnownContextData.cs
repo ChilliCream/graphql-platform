@@ -11,5 +11,6 @@ namespace HotChocolate
         public const string IntrospectionMessage = "HotChocolate.Execution.Introspection.Message";
         public const string SkipComplexityAnalysis = "HotChocolate.Execution.NoComplexityAnalysis";
         public const string OperationComplexity = "HotChocolate.Execution.OperationComplexity";
+        public const string MaximumAllowedComplexity = "HotChocolate.Execution.AllowedComplexity";
     }
 }

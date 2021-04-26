@@ -126,6 +126,41 @@ namespace HotChocolate.Execution.Pipeline
         }
 
         [Fact]
+        public async Task MaxComplexity_Analysis_Request_Maximum()
+        {
+            await ExpectValid(
+                @"
+                    {
+                        foo {
+                            ... on Foo {
+                                ... on Foo {
+                                    field
+                                    ... on Bar {
+                                        baz {
+                                            foo {
+                                                field
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ",
+                request: b => b.SetMaximumAllowedComplexity(1000),
+                configure: b => b
+                    .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
+                    .UseField(_ => _ => default)
+                    .ConfigureSchema(s => s.AddCostDirectiveType())
+                    .ModifyRequestOptions(o =>
+                    {
+                        o.Complexity.Enable = true;
+                        o.Complexity.MaximumAllowed = 8;
+                    })
+                    .UseDefaultPipeline());
+        }
+
+        [Fact]
         public async Task MaxComplexity_Custom_Calculation()
         {
             var complexity = 0;
