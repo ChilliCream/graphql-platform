@@ -28,6 +28,10 @@ namespace StrawberryShake.Json
 
             switch (value)
             {
+                case byte[] b:
+                    writer.WriteBase64StringValue(b);
+                    break;
+
                 case IEnumerable<KeyValuePair<string, object?>> dict:
                     WriteDictionary(dict, writer);
                     break;
