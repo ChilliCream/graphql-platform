@@ -78,4 +78,7 @@
   <data name="ErrorHelper_ResponseTypeNotSupported" xml:space="preserve">
     <value>The response type is not supported.</value>
   </data>
+  <data name="Subscription_SendResultsAsync" xml:space="preserve">
+    <value>Unexpected Execution Error</value>
+  </data>
 </root>

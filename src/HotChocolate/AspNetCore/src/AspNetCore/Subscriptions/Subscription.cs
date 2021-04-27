@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.Execution;
+using static HotChocolate.AspNetCore.ErrorHelper;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
@@ -52,7 +53,9 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     {
                         if (!cancellationToken.IsCancellationRequested && !_connection.Closed)
                         {
-                            await _connection.SendAsync(new DataResultMessage(Id, result), cancellationToken);
+                            await _connection.SendAsync(
+                                new DataResultMessage(Id, result),
+                                cancellationToken);
                         }
                     }
                 }
@@ -70,34 +73,33 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 {
                     try
                     {
-                        IError error =
-                            ErrorBuilder
-                                .New()
-                                .SetException(ex)
-                                .SetCode(ErrorCodes.Execution.TaskProcessingError)
-                                .SetMessage("Unexpected Execution Error")
-                                .Build();
-
-                        IQueryResult result = QueryResultBuilder.CreateError(error);
                         try
                         {
-                            await _connection.SendAsync(new DataResultMessage(Id, result), cancellationToken);
+                            await _connection.SendAsync(
+                                new DataResultMessage(Id, UnknownSubscriptionError(ex)),
+                                cancellationToken);
                         }
                         finally
                         {
-                            await _connection.SendAsync(new DataCompleteMessage(Id), cancellationToken);
+                            await _connection.SendAsync(
+                                new DataCompleteMessage(Id),
+                                cancellationToken);
                         }
-
                     }
-                    catch { } // suppress all errors, so original exception can be rethrown
+                    catch
+                    {
+                        // suppress all errors, so original exception can be rethrown
+                    }
                 }
 
-                // original exception should be propagated to upper level in order to be logged correctly at least
+                // original exception should be propagated to upper level in order to be logged
+                // correctly at least.
                 throw;
             }
             finally
             {
-                // completed should be always invoked to be ensure that disposed subscription is removed from subscription manager
+                // completed should be always invoked to be ensure that disposed subscription is
+                // removed from subscription manager
                 Completed?.Invoke(this, EventArgs.Empty);
                 Dispose();
             }
