@@ -128,7 +128,10 @@ namespace HotChocolate.Execution.Processing
             Interlocked.Increment(ref _processingTaskCount);
             try
             {
-                _queue.Writer.WriteAsync(task);
+                if (!_queue.Writer.TryWrite(task))
+                {
+                    MarkTaskDequeued();
+                }
             }
             catch(Exception)
             {
