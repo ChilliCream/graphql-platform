@@ -50,7 +50,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 {
                     using (result)
                     {
-                        if (!_connection.Closed)
+                        if (!cancellationToken.IsCancellationRequested && !_connection.Closed)
                         {
                             await _connection.SendAsync(new DataResultMessage(Id, result), cancellationToken);
                         }
