@@ -4,6 +4,7 @@ using ChilliCream.Testing;
 using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Tests;
+using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;

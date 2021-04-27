@@ -13,7 +13,7 @@ module.exports = {
       },
       {
         name: `Docs`,
-        link: `/docs/hotchocolate/`,
+        link: `/docs/platform/`,
       },
       {
         name: `Support`,

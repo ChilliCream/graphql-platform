@@ -1,12 +1,29 @@
 [
   {
+    "path": "platform",
+    "title": "ChilliCream Platform",
+    "description": "Build your own thin GraphQL API layer on top of any resource.",
+    "versions": [
+      {
+        "path": "",
+        "title": "v11.1 (latest)",
+        "items": [
+          {
+            "path": "index",
+            "title": "Overview"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "path": "hotchocolate",
     "title": "Hot Chocolate",
     "description": "Build your own thin GraphQL API layer on top of any resource.",
     "versions": [
       {
         "path": "",
-        "title": "v11.1 (latest)",
+        "title": "v11.1",
         "items": [
           {
             "path": "index",
@@ -493,6 +510,10 @@
           {
             "path": "tooling",
             "title": "Tooling / CLI"
+          },
+          {
+            "path": "visual-studio",
+            "title": "Visual Studio"
           },
           {
             "path": "caching",
