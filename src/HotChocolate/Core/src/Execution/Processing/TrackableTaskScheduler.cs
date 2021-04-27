@@ -17,7 +17,7 @@ namespace HotChocolate.Execution.Processing
         
         /// <summary>The queue holding pending tasks</summary>
         private readonly Channel<Task> _queue = Channel.CreateUnbounded<Task>(new UnboundedChannelOptions {
-            AllowSynchronousContinuations = true,
+            AllowSynchronousContinuations = false,
             SingleReader = false,
             SingleWriter = false
         });
