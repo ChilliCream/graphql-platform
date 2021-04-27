@@ -56,10 +56,8 @@ namespace HotChocolate.Data.Filters.Expressions
 
                 // if no filter is defined we can stop here and yield back control.
                 if (filter.IsNull() ||
-                    (context.LocalContextData.TryGetValue(
-                            SkipFilteringKey,
-                            out object? skipObject) &&
-                        skipObject is bool skip &&
+                    (context.LocalContextData.TryGetValue(SkipFilteringKey, out object? skipObj) &&
+                        skipObj is bool skip &&
                         skip))
                 {
                     return;
@@ -77,10 +75,8 @@ namespace HotChocolate.Data.Filters.Expressions
                         context.Result is not IQueryable ||
                         context.Result is EnumerableQuery;
 
-                    QueryableFilterContext visitorContext = executor(
-                        filter,
-                        filterInput,
-                        inMemory);
+                    QueryableFilterContext visitorContext =
+                        executor(filter, filterInput, inMemory);
 
                     // compile expression tree
                     if (visitorContext.TryCreateLambda(
