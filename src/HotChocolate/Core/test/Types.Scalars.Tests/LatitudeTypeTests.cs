@@ -47,37 +47,11 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void Latitude_ExpectIsStringInstanceToThrowOnInvalidString_GreaterThanMax()
-        {
-            // arrange
-            ScalarType scalar = new LatitudeType();
-
-            // act
-            Exception? result = Record.Exception(() => scalar.ParseResult("92° 0' 0.000\" N"));
-
-            // assert
-            Assert.IsType<SerializationException>(result);
-        }
-
-        [Fact]
-        protected void Latitude_ExpectIsStringInstanceToThrowOnInvalidString_LessThanMin()
-        {
-            // arrange
-            ScalarType scalar = new LatitudeType();
-
-            // act
-            Exception? result = Record.Exception(() => scalar.ParseResult("92° 0' 0.000\" S"));
-
-            // assert
-            Assert.IsType<SerializationException>(result);
-        }
-
-        [Fact]
         protected void Latitude_ExpectIsDoubleInstanceToMatch()
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = 89.0;
+            const double valueSyntax = 89d;
 
             // act
             var result = scalar.IsInstanceOfType(valueSyntax);
@@ -87,29 +61,31 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void Latitude_ExpectIsDoubleInstanceToThrowOnInvalidString_LessThanMin()
+        protected void Latitude_ExpectIsDoubleInstanceToFail_LessThanMin()
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
+            const double valueSyntax = -91d;
 
             // act
-            Exception? result = Record.Exception(() => scalar.ParseResult(-91d));
+            var result = scalar.IsInstanceOfType(valueSyntax);
 
             // assert
-            Assert.IsType<SerializationException>(result);
+            Assert.False(result);
         }
 
         [Fact]
-        protected void Latitude_ExpectIsDoubleInstanceToThrowOnInvalidString_GreaterThanMax()
+        protected void Latitude_ExpectIsDoubleInstanceToFail_GreaterThanMax()
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
+            const double valueSyntax = 91d;
 
             // act
-            Exception? result = Record.Exception(() => scalar.ParseResult(91d));
+            var result = scalar.IsInstanceOfType(valueSyntax);
 
             // assert
-            Assert.IsType<SerializationException>(result);
+            Assert.False(result);
         }
 
         [Fact]
@@ -117,9 +93,10 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
+            object valueSyntax = null!;
 
             // act
-            IValueNode result = scalar.ParseResult(null);
+            IValueNode result = scalar.ParseResult(valueSyntax);
 
             // assert
             Assert.Equal(typeof(NullValueNode), result.GetType());
@@ -130,9 +107,10 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
+            var valueSyntax = "92° 0' 0.000\" S";
 
             // act
-            Exception? result = Record.Exception(() => scalar.ParseResult("92° 0' 0.000\" S"));
+            Exception? result = Record.Exception(() => scalar.ParseResult(valueSyntax));
 
             // assert
             Assert.IsType<SerializationException>(result);
@@ -143,9 +121,10 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
+            const int valueSyntax = 89;
 
             // act
-            IValueNode result = scalar.ParseResult(89);
+            IValueNode result = scalar.ParseResult(valueSyntax);
 
             // assert
             Assert.Equal(typeof(StringValueNode), result.GetType());
@@ -156,9 +135,10 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
+            const int valueSyntax = 92;
 
             // act
-            Exception? result = Record.Exception(() => scalar.ParseResult(92));
+            Exception? result = Record.Exception(() => scalar.ParseResult(valueSyntax));
 
             // assert
             Assert.IsType<SerializationException>(result);
@@ -169,9 +149,10 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
+            var valueSyntax = 89d;
 
             // act
-            IValueNode result = scalar.ParseResult(89.0);
+            IValueNode result = scalar.ParseResult(valueSyntax);
 
             // assert
             Assert.Equal(typeof(StringValueNode), result.GetType());
@@ -182,9 +163,10 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
+            var valueSyntax = 92d;
 
             // act
-            Exception? result = Record.Exception(() => scalar.ParseResult(92.0));
+            Exception? result = Record.Exception(() => scalar.ParseResult(valueSyntax));
 
             // assert
             Assert.IsType<SerializationException>(result);
@@ -268,7 +250,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = 74.3;
+            const double valueSyntax = 74.3;
 
             // act
             IValueNode result = scalar.ParseValue(valueSyntax);
@@ -297,11 +279,10 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = runtime;
             var expected = new StringValueNode(literal);
 
             // act
-            IValueNode result = scalar.ParseValue(valueSyntax);
+            IValueNode result = scalar.ParseValue(runtime);
 
             // assert
             Assert.Equal(expected, result);
@@ -312,7 +293,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
-            var runtimeValue = 91.0;
+            const double runtimeValue = 91d;
 
             // act
             Exception? result = Record.Exception(() => scalar.ParseValue(runtimeValue));
@@ -326,7 +307,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
-            var runtimeValue = -91.0;
+            const double runtimeValue = -91d;
 
             // act
             Exception? result = Record.Exception(() => scalar.ParseValue(runtimeValue));
@@ -340,9 +321,10 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
+            object valueSyntax = null!;
 
             // act
-            var success = scalar.TryDeserialize(null, out var deserialized);
+            var success = scalar.TryDeserialize(valueSyntax, out var deserialized);
 
             // assert
             Assert.True(success);
@@ -354,7 +336,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
-            var expectedValue = -89.0;
+            const double expectedValue = -89d;
 
             // act
             var success = scalar.TryDeserialize("89° 0' 0.000\" S",
@@ -370,12 +352,14 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
+            const string valueSyntax = "91° 0' 0.000\" S"!;
 
             // act
-            var success = scalar.TryDeserialize("91° 0' 0.000\" S", out var _);
+
+            Exception? result = Record.Exception(() => scalar.Deserialize(valueSyntax));
 
             // assert
-            Assert.False(success);
+            Assert.IsType<SerializationException>(result);
         }
 
         [Fact]
@@ -383,12 +367,13 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
+            const string? valueSyntax = "92° 0' 0.000\" N"!;
 
             // act
-            var success = scalar.TryDeserialize("92° 0' 0.000\" N", out var _);
+            Exception? result = Record.Exception(() => scalar.Deserialize(valueSyntax));
 
             // assert
-            Assert.False(success);
+            Assert.IsType<SerializationException>(result);
         }
 
         [Fact]
@@ -396,7 +381,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
-            var expectedValue = -89.0;
+            const double expectedValue = -89d;
 
             // act
             var success = scalar.TryDeserialize(-89d, out var deserialized);
@@ -411,12 +396,13 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
+            const double valueSyntax = -91d;
 
             // act
-            var success = scalar.TryDeserialize(-91d, out var _);
+            Exception? result = Record.Exception(() => scalar.Deserialize(valueSyntax));
 
             // assert
-            Assert.False(success);
+            Assert.IsType<SerializationException>(result);
         }
 
         [Fact]
@@ -424,12 +410,13 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
+            const double valueSyntax = 91d;
 
             // act
-            var success = scalar.TryDeserialize(91d, out var _);
+            Exception? result = Record.Exception(() => scalar.Deserialize(valueSyntax));
 
             // assert
-            Assert.False(success);
+            Assert.IsType<SerializationException>(result);
         }
 
         [Fact]
@@ -437,7 +424,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
-            var expectedValue = -89;
+            const int expectedValue = -89;
 
             // act
             var success = scalar.TryDeserialize(-89, out var deserialized);
@@ -452,12 +439,13 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
+            const int valueSyntax = -91;
 
             // act
-            var success = scalar.TryDeserialize(-91, out var _);
+            Exception? result = Record.Exception(() => scalar.Deserialize(valueSyntax));
 
             // assert
-            Assert.False(success);
+            Assert.IsType<SerializationException>(result);
         }
 
         [Fact]
@@ -465,12 +453,13 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
+            const int valueSyntax = 91;
 
             // act
-            var success = scalar.TryDeserialize(91, out var _);
+            Exception? result = Record.Exception(() => scalar.Deserialize(valueSyntax));
 
             // assert
-            Assert.False(success);
+            Assert.IsType<SerializationException>(result);
         }
 
         [Fact]
@@ -478,9 +467,10 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
+            object valueSyntax = null!;
 
             // act
-            var success = scalar.TryDeserialize(null, out var deserialized);
+            var success = scalar.TryDeserialize(valueSyntax, out var deserialized);
 
             // assert
             Assert.True(success);
@@ -492,9 +482,10 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
+            object valueSyntax = null!;
 
             // act
-            var success = scalar.TrySerialize(null, out var deserialized);
+            var success = scalar.TrySerialize(valueSyntax, out var deserialized);
 
             // assert
             Assert.True(success);
@@ -506,9 +497,10 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
+            const int valueSyntax = 89;
 
             // act
-            var success = scalar.TrySerialize(89, out var s);
+            var success = scalar.TrySerialize(valueSyntax, out var s);
 
             // assert
             Assert.True(success);
@@ -520,12 +512,13 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
+            const int valueSyntax = -91;
 
             // act
-            var success = scalar.TrySerialize(-91, out var _);
+            Exception? result = Record.Exception(() => scalar.Serialize(valueSyntax));
 
             // assert
-            Assert.False(success);
+            Assert.IsType<SerializationException>(result);
         }
 
         [Fact]
@@ -533,12 +526,13 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
+            const int valueSyntax = 91;
 
             // act
-            var success = scalar.TryDeserialize(91, out var _);
+            Exception? result = Record.Exception(() => scalar.Serialize(valueSyntax));
 
             // assert
-            Assert.False(success);
+            Assert.IsType<SerializationException>(result);
         }
 
         [Fact]
@@ -546,9 +540,10 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
+            const double valueSyntax = 89d;
 
             // act
-            var success = scalar.TrySerialize(89.0, out var d);
+            var success = scalar.TrySerialize(valueSyntax, out var d);
 
             // assert
             Assert.True(success);
@@ -560,12 +555,13 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
+            const double valueSyntax = -91d;
 
             // act
-            var success = scalar.TrySerialize(-91d, out var _);
+            Exception? result = Record.Exception(() => scalar.Serialize(valueSyntax));
 
             // assert
-            Assert.False(success);
+            Assert.IsType<SerializationException>(result);
         }
 
         [Fact]
@@ -573,12 +569,13 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
+            const double valueSyntax = 91d;
 
             // act
-            var success = scalar.TryDeserialize(91d, out var _);
+            Exception? result = Record.Exception(() => scalar.Serialize(valueSyntax));
 
             // assert
-            Assert.False(success);
+            Assert.IsType<SerializationException>(result);
         }
 
         [Fact]
@@ -594,7 +591,7 @@ namespace HotChocolate.Types
             IExecutionResult res = await executor.ExecuteAsync("{ test }");
 
             // assert
-            res.ToJson().MatchSnapshot();
+            (await res.ToJsonAsync()).MatchSnapshot();
         }
 
         public class DefaultLatitude

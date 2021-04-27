@@ -33,16 +33,6 @@ namespace HotChocolate.Types
             Description = description;
         }
 
-        protected override bool IsInstanceOfType(StringValueNode valueSyntax)
-        {
-            if(Latitude.TryDeserialize(valueSyntax.Value, out var value))
-            {
-                return value is > Latitude.Min and < Latitude.Max;
-            }
-
-            return false;
-        }
-
         protected override bool IsInstanceOfType(double runtimeValue)
         {
             return runtimeValue is > Latitude.Min and < Latitude.Max;
@@ -56,9 +46,9 @@ namespace HotChocolate.Types
 
                 string s when Latitude.TryDeserialize(s, out var runtimeValue) => ParseValue(runtimeValue),
 
-                int runtimeInt => ParseValue(runtimeInt),
+                int i => ParseValue(i),
 
-                double runtimeDouble => ParseValue(runtimeDouble),
+                double d => ParseValue(d),
 
                 _ => throw ThrowHelper.LatitudeType_ParseValue_IsInvalid(this)
             };
@@ -92,13 +82,13 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (runtimeValue is double d && Latitude.TrySerialize(d, out string serializedDouble))
+            if (runtimeValue is double d && Latitude.TrySerialize(d, out var serializedDouble))
             {
                 resultValue = serializedDouble;
                 return true;
             }
 
-            if (runtimeValue is int i && Latitude.TrySerialize(i, out string serializedInt))
+            if (runtimeValue is int i && Latitude.TrySerialize(i, out var serializedInt))
             {
                 resultValue = serializedInt;
                 return true;
@@ -118,7 +108,7 @@ namespace HotChocolate.Types
 
             if (resultValue is string s &&
                 Latitude.TryDeserialize(s, out var value) &&
-                value is < Latitude.Max and > Latitude.Min)
+                value is > Latitude.Min and < Latitude.Max)
             {
                 runtimeValue = value;
                 return true;
