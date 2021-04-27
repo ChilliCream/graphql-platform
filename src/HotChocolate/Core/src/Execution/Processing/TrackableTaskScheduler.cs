@@ -140,7 +140,7 @@ namespace HotChocolate.Execution.Processing
 
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
-            return SafeExecuteTask(task);
+            return SafeExecuteTask(task, taskWasPreviouslyQueued);
         }
 
         /// <remarks>This method assumes that the caller takes a lock on _lock</remarks>
@@ -149,7 +149,7 @@ namespace HotChocolate.Execution.Processing
             for(int i = 0; i < _processingTaskMax; ++i)
             {
                 var options = TaskCreationOptions.DenyChildAttach | TaskCreationOptions.PreferFairness;
-                Task.Factory.StartNew(() => ProcessTasks(), default, options, _underlyingScheduler);
+                Task.Factory.StartNew(() => ProcessTasks(), _shutdown.Token, options, _underlyingScheduler);
             }
         }
 
@@ -186,7 +186,7 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        private bool SafeExecuteTask(Task task)
+        private bool SafeExecuteTask(Task task, bool taskWasPreviouslyQueued = true)
         {
             bool result;
             try
@@ -206,7 +206,10 @@ namespace HotChocolate.Execution.Processing
             }
             finally
             {
-                MarkTaskDone();
+                if (taskWasPreviouslyQueued)
+                {
+                    MarkTaskDone();
+                }
             }
             return result;
         }
