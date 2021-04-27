@@ -26,7 +26,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var type = new LatitudeType();
+            LatitudeType type = new()!;
 
             // assert
             Assert.Equal(TypeKind.Scalar, type.Kind);
@@ -317,21 +317,6 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void Latitude_ExpectDeserializeNullToMatch()
-        {
-            // arrange
-            ScalarType scalar = new LatitudeType();
-            object valueSyntax = null!;
-
-            // act
-            var success = scalar.TryDeserialize(valueSyntax, out var deserialized);
-
-            // assert
-            Assert.True(success);
-            Assert.Null(deserialized);
-        }
-
-        [Fact]
         protected void Latitude_ExpectDeserializeStringToMatch()
         {
             // arrange
@@ -374,122 +359,6 @@ namespace HotChocolate.Types
 
             // assert
             Assert.IsType<SerializationException>(result);
-        }
-
-        [Fact]
-        protected void Latitude_ExpectDeserializeDoubleToMatch()
-        {
-            // arrange
-            ScalarType scalar = new LatitudeType();
-            const double expectedValue = -89d;
-
-            // act
-            var success = scalar.TryDeserialize(-89d, out var deserialized);
-
-            // assert
-            Assert.True(success);
-            Assert.Equal(expectedValue, deserialized);
-        }
-
-        [Fact]
-        protected void Latitude_ExpectDeserializeDoubleToThrowSerializationException_LessThanMin()
-        {
-            // arrange
-            ScalarType scalar = new LatitudeType();
-            const double valueSyntax = -91d;
-
-            // act
-            Exception? result = Record.Exception(() => scalar.Deserialize(valueSyntax));
-
-            // assert
-            Assert.IsType<SerializationException>(result);
-        }
-
-        [Fact]
-        protected void Latitude_ExpectDeserializeDoubleToThrowSerializationException_GreaterThanMax()
-        {
-            // arrange
-            ScalarType scalar = new LatitudeType();
-            const double valueSyntax = 91d;
-
-            // act
-            Exception? result = Record.Exception(() => scalar.Deserialize(valueSyntax));
-
-            // assert
-            Assert.IsType<SerializationException>(result);
-        }
-
-        [Fact]
-        protected void Latitude_ExpectDeserializeIntToMatch()
-        {
-            // arrange
-            ScalarType scalar = new LatitudeType();
-            const int expectedValue = -89;
-
-            // act
-            var success = scalar.TryDeserialize(-89, out var deserialized);
-
-            // assert
-            Assert.True(success);
-            Assert.Equal(expectedValue, deserialized);
-        }
-
-        [Fact]
-        protected void Latitude_ExpectDeserializeIntToThrowSerializationException_LessThanMin()
-        {
-            // arrange
-            ScalarType scalar = new LatitudeType();
-            const int valueSyntax = -91;
-
-            // act
-            Exception? result = Record.Exception(() => scalar.Deserialize(valueSyntax));
-
-            // assert
-            Assert.IsType<SerializationException>(result);
-        }
-
-        [Fact]
-        protected void Latitude_ExpectDeserializeIntToThrowSerializationException_GreaterThanMax()
-        {
-            // arrange
-            ScalarType scalar = new LatitudeType();
-            const int valueSyntax = 91;
-
-            // act
-            Exception? result = Record.Exception(() => scalar.Deserialize(valueSyntax));
-
-            // assert
-            Assert.IsType<SerializationException>(result);
-        }
-
-        [Fact]
-        public void Latitude_ExpectDeserializeNullToNull()
-        {
-            // arrange
-            ScalarType scalar = new LatitudeType();
-            object valueSyntax = null!;
-
-            // act
-            var success = scalar.TryDeserialize(valueSyntax, out var deserialized);
-
-            // assert
-            Assert.True(success);
-            Assert.Null(deserialized);
-        }
-
-        [Fact]
-        protected void Latitude_ExpectSerializeNullToMatch()
-        {
-            // arrange
-            ScalarType scalar = new LatitudeType();
-            object valueSyntax = null!;
-
-            // act
-            var success = scalar.TrySerialize(valueSyntax, out var deserialized);
-
-            // assert
-            Assert.True(success);
-            Assert.Null(deserialized);
         }
 
         [Fact]

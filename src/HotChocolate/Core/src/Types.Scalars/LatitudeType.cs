@@ -100,29 +100,11 @@ namespace HotChocolate.Types
 
         public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
-            if (resultValue is null)
-            {
-                runtimeValue = null;
-                return true;
-            }
-
             if (resultValue is string s &&
                 Latitude.TryDeserialize(s, out var value) &&
                 value is > Latitude.Min and < Latitude.Max)
             {
                 runtimeValue = value;
-                return true;
-            }
-
-            if (resultValue is double d and < Latitude.Max and > Latitude.Min)
-            {
-                runtimeValue = d;
-                return true;
-            }
-
-            if (resultValue is int i && i < Latitude.Max && i > Latitude.Min)
-            {
-                runtimeValue = resultValue;
                 return true;
             }
 
