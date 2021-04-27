@@ -195,9 +195,10 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
+            var valueSyntax = 'c';
 
             // act
-            Exception? result = Record.Exception(() => scalar.ParseResult('c'));
+            Exception? result = Record.Exception(() => scalar.ParseResult(valueSyntax));
 
             // assert
             Assert.IsType<SerializationException>(result);
@@ -246,6 +247,8 @@ namespace HotChocolate.Types
 
             // assert
             Assert.IsType<SerializationException>(result);
+            Assert.Throws<SerializationException>(
+                () => scalar.ParseLiteral(valueSyntax));
         }
 
         [Fact]
@@ -260,6 +263,8 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Null(value);
+            Assert.Throws<ArgumentNullException>(
+                () => scalar.ParseLiteral(null!));
         }
 
         [Fact]
