@@ -37,15 +37,15 @@ namespace HotChocolate.Types
         {
             if(Latitude.TryDeserialize(valueSyntax.Value, out var value))
             {
-                return value is > Latitude._min and < Latitude._max;
+                return value is > Latitude.Min and < Latitude.Max;
             }
 
             return false;
         }
 
-        protected override bool IsInstanceOfType(double valueSyntax)
+        protected override bool IsInstanceOfType(double runtimeValue)
         {
-            return valueSyntax is > Latitude._min and < Latitude._max;
+            return runtimeValue is > Latitude.Min and < Latitude.Max;
         }
 
         public override IValueNode ParseResult(object? resultValue)
@@ -116,19 +116,21 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (resultValue is string s && Latitude.TryDeserialize(s, out var value))
+            if (resultValue is string s &&
+                Latitude.TryDeserialize(s, out var value) &&
+                value is < Latitude.Max and > Latitude.Min)
             {
                 runtimeValue = value;
                 return true;
             }
 
-            if (resultValue is double d and < Latitude._max and > Latitude._min)
+            if (resultValue is double d and < Latitude.Max and > Latitude.Min)
             {
                 runtimeValue = d;
                 return true;
             }
 
-            if (resultValue is int i && i < Latitude._max && i > Latitude._min)
+            if (resultValue is int i && i < Latitude.Max && i > Latitude.Min)
             {
                 runtimeValue = resultValue;
                 return true;
@@ -140,8 +142,8 @@ namespace HotChocolate.Types
 
         private static class Latitude
         {
-            public const double _min = -90.0;
-            public const double _max = 90.0;
+            public const double Min = -90.0;
+            public const double Max = 90.0;
             private const int MaxPrecision = 8;
 
             private const string SexagesimalRegex =
@@ -180,7 +182,7 @@ namespace HotChocolate.Types
                 double runtimeValue,
                 [NotNullWhen(true)] out string? resultValue)
             {
-                if (runtimeValue is > _min and < _max)
+                if (runtimeValue is > Min and < Max)
                 {
                     var degree =  runtimeValue > 0
                         ? Math.Floor(runtimeValue)
@@ -200,9 +202,9 @@ namespace HotChocolate.Types
 
                     string serializedLatitude = degree switch
                     {
-                        > 0 and < _max =>
+                        > 0 and < Max =>
                             $"{degree}° {minutes}' {seconds}\" N",
-                        < 0 and > _min =>
+                        < 0 and > Min =>
                             $"{Math.Abs(degree)}° {Math.Abs(minutes)}' {Math.Abs(seconds)}\" S",
                         _ => $"{degree}° {minutes}' {seconds}\""
                     };
