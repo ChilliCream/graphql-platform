@@ -140,7 +140,19 @@ namespace HotChocolate.Execution.Processing
 
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
-            return SafeExecuteTask(task, taskWasPreviouslyQueued);
+            if (taskWasPreviouslyQueued)
+            {
+                // in this state, the task may (or may not) have been queued through
+                // QueueTask, since we cannot know if it is already counted in _processingTaskCount
+                // we force it to go through QueueTask to be be sure
+                return false;
+            }
+            else
+            {
+                // make sure we are not seen as idle while processing this task
+                Interlocked.Increment(ref _processingTaskCount);
+                return SafeExecuteTask(task);
+            }
         }
 
         /// <remarks>This method assumes that the caller takes a lock on _lock</remarks>
@@ -186,7 +198,7 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        private bool SafeExecuteTask(Task task, bool taskWasPreviouslyQueued = true)
+        private bool SafeExecuteTask(Task task)
         {
             bool result;
             try
@@ -206,10 +218,7 @@ namespace HotChocolate.Execution.Processing
             }
             finally
             {
-                if (taskWasPreviouslyQueued)
-                {
-                    MarkTaskDone();
-                }
+                MarkTaskDone();
             }
             return result;
         }
