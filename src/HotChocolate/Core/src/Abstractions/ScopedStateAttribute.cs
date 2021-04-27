@@ -1,10 +1,11 @@
 using System;
 
+#nullable enable
+
 namespace HotChocolate
 {
     [AttributeUsage(AttributeTargets.Parameter)]
-    public class ScopedStateAttribute
-         : Attribute
+    public class ScopedStateAttribute : Attribute
     {
         public ScopedStateAttribute()
         {
@@ -15,6 +16,6 @@ namespace HotChocolate
             Key = key;
         }
 
-        public string Key { get; }
+        public string? Key { get; }
     }
 }

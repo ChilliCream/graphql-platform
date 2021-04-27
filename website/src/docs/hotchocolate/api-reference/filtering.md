@@ -1462,7 +1462,7 @@ private static bool TryCreateStringFilter(
     IFilterConvention filterConventions,
     [NotNullWhen(true)] out FilterFieldDefintion? definition)
 {
-    if (type == typeof())
+    if (type == typeof(string))
     {
         var field = new StringFilterFieldDescriptor(context, property, filterConventions);
         definition = field.CreateDefinition();
@@ -1646,14 +1646,14 @@ public static class DateTimeFilterConventionExtensions
 `DateTime` is a new filter. Hot Chocolate is only aware of its existence because of the delegate passed to `AddImplicitFilter`
 
 ```csharp
-private static bool TryCreateDateTimeFiler(
+private static bool TryCreateDateTimeFilter(
     IDescriptorContext context,
     Type type,
     PropertyInfo property,
     IFilterConvention filterConventions,
     [NotNullWhen(true)] out FilterFieldDefintion? definition)
 {
-    if (type == typeof())
+    if (type == typeof(DateTime))
     {
         var field = new DateTimeFilterFieldDescriptor(
           context, property, filterConventions);

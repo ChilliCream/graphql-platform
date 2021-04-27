@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake.Tools.Configuration;
 using StrawberryShake.Tools.OAuth;
+using static StrawberryShake.Tools.Configuration.FileContents;
 
 namespace StrawberryShake.Tools
 {
@@ -96,19 +97,7 @@ namespace StrawberryShake.Tools
             {
                 await FileSystem.WriteTextAsync(
                     schemaExtensionFilePath,
-                    @"scalar _KeyFieldSet
-
-directive @key(fields: _KeyFieldSet!) on SCHEMA | OBJECT
-
-directive @serializationType(name: String!) on SCALAR
-
-directive @runtimeType(name: String!) on SCALAR
-
-directive @enumValue(value: String!) on ENUM_VALUE
-
-directive @rename(name: String!) on INPUT_FIELD_DEFINITION | INPUT_OBJECT | ENUM | ENUM_VALUE
-
-extend schema @key(fields: ""id"")")
+                    SchemaExtensionFileContent)
                     .ConfigureAwait(false);
                 return true;
             }

@@ -194,7 +194,7 @@ namespace HotChocolate.Types.Descriptors
             // assert
             Assert.Equal("List<String!>!", typeReference.Type.ToString());
             Assert.Equal(TypeContext.Output, typeReference.Context);
-            Assert.Equal(typeReference.Scope, "abc");
+            Assert.Equal("abc", typeReference.Scope);
         }
 
         [Fact]
@@ -267,7 +267,7 @@ namespace HotChocolate.Types.Descriptors
             // assert
             Assert.Equal("String!", typeReference.Type.ToString());
             Assert.Equal(TypeContext.Input, typeReference.Context);
-            Assert.Equal(typeReference.Scope, "abc");
+            Assert.Equal("abc", typeReference.Scope);
         }
 
         [Fact]
@@ -341,7 +341,7 @@ namespace HotChocolate.Types.Descriptors
             // assert
             Assert.Equal("Foo", typeReference.Type.ToString());
             Assert.Equal(TypeContext.Output, typeReference.Context);
-            Assert.Equal(typeReference.Scope, "abc");
+            Assert.Equal("abc", typeReference.Scope);
         }
 
         [Fact]
