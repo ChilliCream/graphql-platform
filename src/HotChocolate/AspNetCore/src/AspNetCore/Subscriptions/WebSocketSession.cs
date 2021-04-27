@@ -41,7 +41,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     _messageProcessor.Begin(cts.Token);
                     await _messageReceiver.ReceiveAsync(cts.Token);
                 }
-                catch(OperationCanceledException) 
+                catch(OperationCanceledException) when (cts.Token.IsCancellationRequested)
                 { 
                     // OperationCanceledException are catched and will not
                     // bubble further. We will just close the current subscription
@@ -49,11 +49,19 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 }
                 finally
                 {
-                    cts.Cancel();
-                    await _connection.CloseAsync(
+                    try
+                    {
+                        if (!cts.IsCancellationRequested)
+                        {
+                            cts.Cancel();
+                        }
+                        
+                        await _connection.CloseAsync(
                             "Session ended.",
                             SocketCloseStatus.NormalClosure,
                             CancellationToken.None);
+                    }
+                    catch {} // original exception must not be lost if new exception occurs during closing session
                 }
             }
         }

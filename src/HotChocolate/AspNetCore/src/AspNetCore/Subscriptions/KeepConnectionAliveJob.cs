@@ -51,7 +51,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     }
                 }
             }
-            catch (TaskCanceledException)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 // the message processing was canceled.
             }

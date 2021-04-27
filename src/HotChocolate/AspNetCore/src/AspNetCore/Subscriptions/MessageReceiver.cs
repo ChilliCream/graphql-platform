@@ -18,13 +18,21 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         public async Task ReceiveAsync(CancellationToken cancellationToken)
         {
-            while (!_connection.Closed &&
-                !cancellationToken.IsCancellationRequested)
+            try
             {
-                await _connection.ReceiveAsync(_writer, cancellationToken);
-                await WriteMessageDelimiterAsync(cancellationToken);
+                while (!_connection.Closed &&
+                       !cancellationToken.IsCancellationRequested)
+                {
+                    await _connection.ReceiveAsync(_writer, cancellationToken);
+                    await WriteMessageDelimiterAsync(cancellationToken);
+                }
             }
-            await _writer.CompleteAsync();
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { } 
+            finally
+            {
+                // writer should be always completed
+                await _writer.CompleteAsync();
+            }
         }
 
         private async Task WriteMessageDelimiterAsync(

@@ -123,10 +123,13 @@ namespace HotChocolate.Subscriptions.InMemory
                         ImmutableHashSet<Channel<TMessage>> closedChannel =
                             ImmutableHashSet<Channel<TMessage>>.Empty;
 
-                        for (var i = 0; i < _outgoing.Count; i++)
+                        var outgoingCount = _outgoing.Count;
+
+                        for (var i = 0; i < outgoingCount; i++)
                         {
                             Channel<TMessage> channel = _outgoing[i];
 
+                            // close outgoing channel if related subscription is completed (no reader available)
                             if (!channel.Writer.TryWrite(message)
                                 && channel.Reader.Completion.IsCompleted)
                             {
@@ -139,7 +142,8 @@ namespace HotChocolate.Subscriptions.InMemory
                             _outgoing.RemoveAll(c => closedChannel.Contains(c));
                         }
 
-                        if (_outgoing.Count == 0)
+                        // raises unsubscribed event only once when all outgoing channels (subscriptions) are removed
+                        if (_outgoing.Count == 0 && outgoingCount > 0)
                         {
                             RaiseUnsubscribedEvent();
                         }

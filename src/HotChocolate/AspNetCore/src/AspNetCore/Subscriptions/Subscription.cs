@@ -9,7 +9,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
     internal sealed class Subscription : ISubscription
     {
         internal const byte Delimiter = 0x07;
-        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cts;
         private readonly ISocketConnection _connection;
         private readonly IResponseStream _responseStream;
         private bool _disposed;
@@ -28,9 +28,11 @@ namespace HotChocolate.AspNetCore.Subscriptions
             Id = id ??
                 throw new ArgumentNullException(nameof(id));
 
+            _cts = CancellationTokenSource.CreateLinkedTokenSource(_connection.RequestAborted);
+
             Task.Factory.StartNew(
                 SendResultsAsync,
-                CancellationToken.None,
+                _cts.Token,
                 TaskCreationOptions.LongRunning,
                 TaskScheduler.Default);
         }
@@ -39,51 +41,64 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         private async Task SendResultsAsync()
         {
+            CancellationToken cancellationToken = _cts.Token;
+
             try
             {
                 await foreach (IQueryResult result in
-                    _responseStream.ReadResultsAsync().WithCancellation(_cts.Token))
+                    _responseStream.ReadResultsAsync().WithCancellation(cancellationToken))
                 {
                     using (result)
                     {
-                        await _connection.SendAsync(new DataResultMessage(Id, result), _cts.Token);
+                        if (!_connection.Closed)
+                        {
+                            await _connection.SendAsync(new DataResultMessage(Id, result), cancellationToken);
+                        }
                     }
                 }
 
-                if (!_cts.IsCancellationRequested)
+                if (!cancellationToken.IsCancellationRequested && !_connection.Closed)
                 {
-                    await _connection.SendAsync(new DataCompleteMessage(Id), _cts.Token);
-                    Completed?.Invoke(this, EventArgs.Empty);
+                    await _connection.SendAsync(new DataCompleteMessage(Id), cancellationToken);
                 }
             }
-            catch (OperationCanceledException) { }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
             catch (ObjectDisposedException) { }
-            catch (Exception ex)
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
             {
-                if (!_cts.IsCancellationRequested)
+                if (!_connection.Closed)
                 {
-                    IError error =
-                        ErrorBuilder
-                            .New()
-                            .SetException(ex)
-                            .SetCode(ErrorCodes.Execution.TaskProcessingError)
-                            .SetMessage("Unexpected Execution Error")
-                            .Build();
-
-                    IQueryResult result = QueryResultBuilder.CreateError(error);
                     try
                     {
-                        await _connection.SendAsync(new DataResultMessage(Id, result), _cts.Token);
+                        IError error =
+                            ErrorBuilder
+                                .New()
+                                .SetException(ex)
+                                .SetCode(ErrorCodes.Execution.TaskProcessingError)
+                                .SetMessage("Unexpected Execution Error")
+                                .Build();
+
+                        IQueryResult result = QueryResultBuilder.CreateError(error);
+                        try
+                        {
+                            await _connection.SendAsync(new DataResultMessage(Id, result), cancellationToken);
+                        }
+                        finally
+                        {
+                            await _connection.SendAsync(new DataCompleteMessage(Id), cancellationToken);
+                        }
+
                     }
-                    finally
-                    {
-                        await _connection.SendAsync(new DataCompleteMessage(Id), _cts.Token);
-                        Completed?.Invoke(this, EventArgs.Empty);
-                    }
+                    catch { } // suppress all errors, so original exception can be rethrown
                 }
+
+                // original exception should be propagated to upper level in order to be logged correctly at least
+                throw;
             }
             finally
             {
+                // completed should be always invoked to be ensure that disposed subscription is removed from subscription manager
+                Completed?.Invoke(this, EventArgs.Empty);
                 Dispose();
             }
         }

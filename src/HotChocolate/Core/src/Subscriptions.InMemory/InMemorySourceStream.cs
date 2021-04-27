@@ -58,7 +58,13 @@ namespace HotChocolate.Subscriptions.InMemory
                 _channel = channel;
             }
 
-            public async IAsyncEnumerator<T> GetAsyncEnumerator(
+            public IAsyncEnumerator<T> GetAsyncEnumerator(
+                CancellationToken cancellationToken = default)
+            {
+                return new WrappedEnumerator<T>(GetAsyncEnumeratorInternally(cancellationToken), CompleteChannel);
+            }
+
+            public async IAsyncEnumerator<T> GetAsyncEnumeratorInternally(
                 CancellationToken cancellationToken = default)
             {
                 while (await _channel.Reader.WaitToReadAsync(cancellationToken))
@@ -71,6 +77,13 @@ namespace HotChocolate.Subscriptions.InMemory
                     yield return await _channel.Reader.ReadAsync(cancellationToken)
                         .ConfigureAwait(false);
                 }
+            }
+
+            private ValueTask CompleteChannel()
+            {
+                // no more readers, outgoing channel should be closed
+                _channel.Writer.TryComplete();
+                return default;
             }
         }
 
@@ -91,6 +104,31 @@ namespace HotChocolate.Subscriptions.InMemory
                     yield return message!;
                 }
             }
+        }
+
+        private class WrappedEnumerator<T> : IAsyncEnumerator<T>
+        {
+            private readonly IAsyncEnumerator<T> _enumerator;
+            private readonly Func<ValueTask> _disposingAction;
+
+            public WrappedEnumerator(IAsyncEnumerator<T> enumerator, Func<ValueTask> disposingAction)
+            {
+                _enumerator = enumerator;
+                _disposingAction = disposingAction;
+            }
+
+            public async ValueTask DisposeAsync()
+            {
+                await _enumerator.DisposeAsync();
+                await _disposingAction();
+            }
+
+            public ValueTask<bool> MoveNextAsync()
+            {
+                return _enumerator.MoveNextAsync();
+            }
+
+            public T Current => _enumerator.Current;
         }
     }
 }

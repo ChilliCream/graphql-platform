@@ -127,6 +127,9 @@ namespace HotChocolate.Execution.Processing
                     return await _queryExecutor
                         .ExecuteAsync(operationContext, scopedContext)
                         .ConfigureAwait(false);
+
+                    // I believe operation context should be marked as completed here?
+                    //((IExecutionTaskContext)operationContext).Completed();
                 }
                 finally
                 {
@@ -201,6 +204,9 @@ namespace HotChocolate.Execution.Processing
                     ISourceStream sourceStream =
                         await rootSelection.Field.SubscribeResolver!.Invoke(middlewareContext)
                             .ConfigureAwait(false);
+
+                    // mark operation context as Completed in order to free all associated resources and allow to return it to pool
+                    ((IExecutionTaskContext)operationContext).Completed();
 
                     if (operationContext.Result.Errors.Count > 0)
                     {
