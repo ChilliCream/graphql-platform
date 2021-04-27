@@ -28,7 +28,7 @@ namespace HotChocolate.Execution.Processing
         /// <summary>The amount of time in milliseconds a single processing task can keep the underlying scheduler occupied</summary>
         /// <remarks>If a task takes longer it will not quit, it will just result in a new processing task after it completes</remarks>
         private readonly int _processingTaskTimeout = 50;
-        /// <summary>The number of tasks processors that are currently processing a task.</summary>
+        /// <summary>The number of tasks that are current queued or being executed.</summary>
         private int _processingTaskCount = 0;
         /// <summary>If > 0, no more work will be accepted and the active processing tasks will stop as soon as possible</summary>
         private CancellationTokenSource _shutdown = new();
@@ -126,7 +126,16 @@ namespace HotChocolate.Execution.Processing
         {
             Debug.Assert(task != null, "Infrastructure should have provided a non-null task.");
             Debug.Assert(!_shutdown.IsCancellationRequested, "After completion no more work should be scheduled");
-            _queue.Writer.WriteAsync(task);
+            Interlocked.Increment(ref _processingTaskCount);
+            try
+            {
+                _queue.Writer.WriteAsync(task);
+            }
+            catch(Exception)
+            {
+                MarkTaskDone();
+                throw;
+            }
         }
 
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
@@ -153,31 +162,11 @@ namespace HotChocolate.Execution.Processing
                     var ctxSource = CancellationTokenSource.CreateLinkedTokenSource(_shutdown.Token);
                     ctxSource.CancelAfter(_processingTaskTimeout);
 
-                    Task task = await _queue.Reader.ReadAsync(ctxSource.Token);
-                    Interlocked.Increment(ref _processingTaskCount);
-                    try
+                    Task task = await _queue.Reader.ReadAsync(ctxSource.Token);   
+                    SafeExecuteTask(task);
+                    while (!ctxSource.IsCancellationRequested && _queue.Reader.TryRead(out task))
                     {
                         SafeExecuteTask(task);
-                        while (!ctxSource.IsCancellationRequested && _queue.Reader.TryRead(out task))
-                        {
-                            SafeExecuteTask(task);
-                        }
-                    }
-                    finally
-                    {
-                        var value = Interlocked.Decrement(ref _processingTaskCount);
-                        if (value < 0)
-                        {
-                            Debug.Fail("Inconstistent processing task count, investigate why this is happening");
-                            value = Interlocked.CompareExchange(ref _processingTaskCount, 0, value);
-                        }
-                        if (value == 0)
-                        {
-                            lock (_lock)
-                            {
-                                ProcessingHalted?.Invoke(this, EventArgs.Empty);
-                            }
-                        }
                     }
                     
                     if (!_shutdown.IsCancellationRequested)
@@ -199,19 +188,44 @@ namespace HotChocolate.Execution.Processing
 
         private bool SafeExecuteTask(Task task)
         {
-            // Execute the task. If the scheduler was previously faulted,
-            // this task could have been faulted when it was queued; ignore such tasks.
             bool result;
-            if (task.IsCompleted)
+            try
             {
-                result = true;
+                // Execute the task. If the scheduler was previously faulted,
+                // this task could have been faulted when it was queued; ignore such tasks.
+                
+                if (task.IsCompleted)
+                {
+                    result = true;
+                }
+                else
+                {
+                    result = TryExecuteTask(task);
+                    Debug.Assert(task.IsCompleted, "After TaskScheduler.TryExecuteTask the task should be completed");
+                }
             }
-            else
+            finally
             {
-                result = TryExecuteTask(task);
-                Debug.Assert(task.IsCompleted, "After TaskScheduler.TryExecuteTask the task should be completed");
+                MarkTaskDone();
             }
             return result;
+        }
+
+        private void MarkTaskDone()
+        {
+            var value = Interlocked.Decrement(ref _processingTaskCount);
+            if (value < 0)
+            {
+                Debug.Fail("Inconstistent processing task count, investigate why this is happening");
+                value = Interlocked.CompareExchange(ref _processingTaskCount, 0, value);
+            }
+            if (value == 0)
+            {
+                lock (_lock)
+                {
+                    ProcessingHalted?.Invoke(this, EventArgs.Empty);
+                }
+            }
         }
     }
 }
