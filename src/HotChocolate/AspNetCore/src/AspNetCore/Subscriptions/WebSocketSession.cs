@@ -8,7 +8,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 {
     public class WebSocketSession : ISocketSession
     {
-        private readonly Pipe _pipe = new Pipe();
+        private readonly Pipe _pipe = new();
         private readonly ISocketConnection _connection;
         private readonly KeepConnectionAliveJob _keepAlive;
         private readonly MessageProcessor _messageProcessor;
@@ -42,8 +42,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     await _messageReceiver.ReceiveAsync(cts.Token);
                 }
                 catch(OperationCanceledException) when (cts.Token.IsCancellationRequested)
-                { 
-                    // OperationCanceledException are catched and will not
+                {
+                    // OperationCanceledException are caught and will not
                     // bubble further. We will just close the current subscription
                     // context.
                 }
@@ -55,13 +55,17 @@ namespace HotChocolate.AspNetCore.Subscriptions
                         {
                             cts.Cancel();
                         }
-                        
+
                         await _connection.CloseAsync(
                             "Session ended.",
                             SocketCloseStatus.NormalClosure,
                             CancellationToken.None);
                     }
-                    catch {} // original exception must not be lost if new exception occurs during closing session
+                    catch
+                    {
+                        // original exception must not be lost if new exception occurs
+                        // during closing session
+                    }
                 }
             }
         }
