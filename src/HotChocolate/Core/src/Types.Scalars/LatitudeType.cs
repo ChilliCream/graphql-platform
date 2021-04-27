@@ -76,26 +76,18 @@ namespace HotChocolate.Types
 
         public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
-            if (runtimeValue is null)
+            switch (runtimeValue)
             {
-                resultValue = null;
-                return true;
+                case double d when Latitude.TrySerialize(d, out var serializedDouble):
+                    resultValue = serializedDouble;
+                    return true;
+                case int i when Latitude.TrySerialize(i, out var serializedInt):
+                    resultValue = serializedInt;
+                    return true;
+                default:
+                    resultValue = null;
+                    return false;
             }
-
-            if (runtimeValue is double d && Latitude.TrySerialize(d, out var serializedDouble))
-            {
-                resultValue = serializedDouble;
-                return true;
-            }
-
-            if (runtimeValue is int i && Latitude.TrySerialize(i, out var serializedInt))
-            {
-                resultValue = serializedInt;
-                return true;
-            }
-
-            resultValue = null;
-            return false;
         }
 
         public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
