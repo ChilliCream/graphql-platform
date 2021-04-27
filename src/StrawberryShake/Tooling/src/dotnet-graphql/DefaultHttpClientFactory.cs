@@ -20,10 +20,16 @@ namespace StrawberryShake.Tools
 
             if (token is not null)
             {
-                httpClient.DefaultRequestHeaders.Authorization =
-                    scheme is null
-                        ? new AuthenticationHeaderValue(token)
-                        : new AuthenticationHeaderValue(scheme, token);
+                if (string.IsNullOrWhiteSpace(scheme))
+                {
+                    httpClient.DefaultRequestHeaders
+                        .TryAddWithoutValidation("Authorization", token);
+                }
+                else
+                {
+                    httpClient.DefaultRequestHeaders.Authorization =
+                        new AuthenticationHeaderValue(scheme, token);
+                }
             }
 
             return httpClient;
