@@ -170,5 +170,11 @@ namespace HotChocolate.AspNetCore.Properties {
                 return ResourceManager.GetString("Subscription_SendResultsAsync", resourceCulture);
             }
         }
+        
+        internal static string WebSocketSession_SessionEnded {
+            get {
+                return ResourceManager.GetString("WebSocketSession_SessionEnded", resourceCulture);
+            }
+        }
     }
 }

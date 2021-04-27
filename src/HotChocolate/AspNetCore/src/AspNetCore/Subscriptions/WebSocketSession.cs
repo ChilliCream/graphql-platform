@@ -2,6 +2,7 @@ using System;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Properties;
 using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore.Subscriptions
@@ -57,7 +58,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                         }
 
                         await _connection.CloseAsync(
-                            "Session ended.",
+                            AspNetCoreResources.WebSocketSession_SessionEnded,
                             SocketCloseStatus.NormalClosure,
                             CancellationToken.None);
                     }
