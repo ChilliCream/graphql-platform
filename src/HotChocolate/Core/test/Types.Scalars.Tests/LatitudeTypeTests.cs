@@ -87,6 +87,32 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        protected void Latitude_ExpectIsDoubleInstanceToThrowOnInvalidString_LessThanMin()
+        {
+            // arrange
+            ScalarType scalar = CreateType<LatitudeType>();
+
+            // act
+            Exception? result = Record.Exception(() => scalar.ParseResult(-91d));
+
+            // assert
+            Assert.IsType<SerializationException>(result);
+        }
+
+        [Fact]
+        protected void Latitude_ExpectIsDoubleInstanceToThrowOnInvalidString_GreaterThanMax()
+        {
+            // arrange
+            ScalarType scalar = CreateType<LatitudeType>();
+
+            // act
+            Exception? result = Record.Exception(() => scalar.ParseResult(91d));
+
+            // assert
+            Assert.IsType<SerializationException>(result);
+        }
+
+        [Fact]
         protected void Latitude_ExpectParseResultToMatchNull()
         {
             // arrange
@@ -461,13 +487,13 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Latitude_ExpectSerializeNullToNull()
+        protected void Latitude_ExpectSerializeNullToMatch()
         {
             // arrange
             ScalarType scalar = new LatitudeType();
 
             // act
-            var success = scalar.TryDeserialize(null, out var deserialized);
+            var success = scalar.TrySerialize(null, out var deserialized);
 
             // assert
             Assert.True(success);
