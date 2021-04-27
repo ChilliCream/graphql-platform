@@ -247,8 +247,6 @@ namespace HotChocolate.Types
 
             // assert
             Assert.IsType<SerializationException>(result);
-            Assert.Throws<SerializationException>(
-                () => scalar.ParseLiteral(valueSyntax));
         }
 
         [Fact]
@@ -263,8 +261,6 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Null(value);
-            Assert.Throws<ArgumentNullException>(
-                () => scalar.ParseLiteral(null!));
         }
 
         [Fact]
