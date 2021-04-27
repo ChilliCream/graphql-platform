@@ -14,7 +14,7 @@ namespace HotChocolate.Execution.Processing
     /// <remarks>Based on code from QueuedTaskScheduler and ConcurrentExclusiveSchedulerPair</remarks>
     internal class TrackableTaskScheduler : TaskScheduler
     {
-        private readonly object _lock = new();
+        
         /// <summary>The queue holding pending tasks</summary>
         private readonly Channel<Task> _queue = Channel.CreateUnbounded<Task>(new UnboundedChannelOptions {
             AllowSynchronousContinuations = true,
@@ -34,6 +34,8 @@ namespace HotChocolate.Execution.Processing
         private CancellationTokenSource _shutdown = new();
         /// <summary>This event is triggered whenever the processing comes to a complete stop (no items left in queue, and nothing running)</summary>
         private event EventHandler? ProcessingHalted;
+        /// <summary>Lock for access to ProcessingHalted</summary>
+        private readonly object _processingHaltedLock = new();
 
         /// <summary>Create a new instance that uses the current scheduler to perform the actual work</summary>
         public TrackableTaskScheduler(TaskScheduler underlyingScheduler)
@@ -47,10 +49,7 @@ namespace HotChocolate.Execution.Processing
         {
             get
             {
-                lock(_lock)
-                {
-                    return _processingTaskCount == 0;
-                }
+                return _processingTaskCount == 0;
             }
         }
 
@@ -77,7 +76,7 @@ namespace HotChocolate.Execution.Processing
                 }
             };
 
-            lock (_lock)
+            lock (_processingHaltedLock)
             {
                 ProcessingHalted += completionHandler;
 
@@ -98,7 +97,7 @@ namespace HotChocolate.Execution.Processing
             finally
             {
                 ctxRegistration?.Dispose();
-                lock (_lock)
+                lock (_processingHaltedLock)
                 {
                     ProcessingHalted -= completionHandler;
                 }
@@ -133,7 +132,7 @@ namespace HotChocolate.Execution.Processing
             }
             catch(Exception)
             {
-                MarkTaskDone();
+                MarkTaskDequeued();
                 throw;
             }
         }
@@ -144,12 +143,12 @@ namespace HotChocolate.Execution.Processing
             {
                 // in this state, the task may (or may not) have been queued through
                 // QueueTask, since we cannot know if it is already counted in _processingTaskCount
-                // we force it to go through QueueTask to be be sure
+                // we force it to go through QueueTask
                 return false;
             }
             else
             {
-                // make sure we are not seen as idle while processing this task
+                // task has not been queued, count is queued while processing
                 Interlocked.Increment(ref _processingTaskCount);
                 return SafeExecuteTask(task);
             }
@@ -213,17 +212,16 @@ namespace HotChocolate.Execution.Processing
                 else
                 {
                     result = TryExecuteTask(task);
-                    Debug.Assert(task.IsCompleted, "After TaskScheduler.TryExecuteTask the task should be completed");
                 }
             }
             finally
             {
-                MarkTaskDone();
+                MarkTaskDequeued();
             }
             return result;
         }
 
-        private void MarkTaskDone()
+        private void MarkTaskDequeued()
         {
             var value = Interlocked.Decrement(ref _processingTaskCount);
             if (value < 0)
@@ -233,7 +231,7 @@ namespace HotChocolate.Execution.Processing
             }
             if (value == 0)
             {
-                lock (_lock)
+                lock (_processingHaltedLock)
                 {
                     ProcessingHalted?.Invoke(this, EventArgs.Empty);
                 }
