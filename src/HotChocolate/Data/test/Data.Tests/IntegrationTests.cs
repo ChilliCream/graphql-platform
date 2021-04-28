@@ -611,6 +611,70 @@ namespace HotChocolate.Data
             result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
         }
 
+        [Fact]
+        public async Task Execute_And_OnRoot()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddFiltering("Foo")
+                .AddSorting("Foo")
+                .AddProjections("Foo")
+                .AddQueryType<DifferentScope>()
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                query GetBooks($title: String) {
+                    books(where: {
+                            and: [
+                                { title: { startsWith: $title } },
+                                { title: { eq: ""BookTitle"" } },
+                            ]
+                    }) {
+                        nodes { title }
+                    }
+                }",
+                new Dictionary<string, object?> { ["title"] = "BookTitle" });
+
+            // assert
+            executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
+            result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+        }
+
+        [Fact]
+        public async Task Execute_And_OnRoot_Reverse()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddFiltering("Foo")
+                .AddSorting("Foo")
+                .AddProjections("Foo")
+                .AddQueryType<DifferentScope>()
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                query GetBooks($title: String) {
+                    books(where: {
+                            and: [
+                                { title: { eq: ""BookTitle"" } },
+                                { title: { startsWith: $title } },
+                            ]
+                    }) {
+                        nodes { title }
+                    }
+                }",
+                new Dictionary<string, object?> { ["title"] = "BookTitle" });
+
+            // assert
+            executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
+            result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+        }
+
         public class FooType : ObjectType
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
