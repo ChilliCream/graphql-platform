@@ -526,6 +526,40 @@ namespace HotChocolate.Data
         }
 
         [Fact]
+        public async Task
+            ExecuteAsync_Should_ProjectAndPage_When_AliasIsSameAsAlwaysProjectedField()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddFiltering()
+                .EnableRelaySupport()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType(c => c.Name("Query"))
+                .AddTypeExtension<PagingAndProjectionExtension>()
+                .AddObjectType<Book>(x =>
+                    x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    books {
+                        nodes {
+                            authorId: title
+                        }
+                    }
+                }
+                ");
+
+            // assert
+            executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
+            result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+        }
+
+        [Fact]
         public async Task CreateSchema_CodeFirst_AsyncQueryable()
         {
             // arrange
