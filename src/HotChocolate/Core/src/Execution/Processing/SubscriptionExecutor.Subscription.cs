@@ -20,7 +20,7 @@ namespace HotChocolate.Execution.Processing
             private readonly IRequestContext _requestContext;
             private readonly ObjectType _subscriptionType;
             private readonly ISelectionSet _rootSelections;
-            private readonly Func<object> _resolveQueryRootValue;
+            private readonly Func<object?> _resolveQueryRootValue;
             private ISourceStream _sourceStream = default!;
             private object? _cachedRootValue;
             private bool _disposed;
@@ -31,7 +31,7 @@ namespace HotChocolate.Execution.Processing
                 IRequestContext requestContext,
                 ObjectType subscriptionType,
                 ISelectionSet rootSelections,
-                Func<object> resolveQueryRootValue,
+                Func<object?> resolveQueryRootValue,
                 IDiagnosticEvents diagnosticEvents)
             {
                 _operationContextPool = operationContextPool;
@@ -109,7 +109,7 @@ namespace HotChocolate.Execution.Processing
                         ImmutableDictionary<string, object?>.Empty
                             .SetItem(WellKnownContextData.EventMessage, payload);
 
-                    object? rootValue = RootValueResolver.Resolve(
+                    var rootValue = RootValueResolver.Resolve(
                         _requestContext,
                         eventServices,
                         _subscriptionType,
@@ -127,9 +127,6 @@ namespace HotChocolate.Execution.Processing
                     return await _queryExecutor
                         .ExecuteAsync(operationContext, scopedContext)
                         .ConfigureAwait(false);
-
-                    // I believe operation context should be marked as completed here?
-                    //((IExecutionTaskContext)operationContext).Completed();
                 }
                 finally
                 {
@@ -147,7 +144,7 @@ namespace HotChocolate.Execution.Processing
                 {
                     // first we will create the root value which essentially
                     // is the subscription object. In some cases this object is null.
-                    object? rootValue = RootValueResolver.Resolve(
+                    var rootValue = RootValueResolver.Resolve(
                         _requestContext,
                         _requestContext.Services,
                         _subscriptionType,
@@ -204,9 +201,6 @@ namespace HotChocolate.Execution.Processing
                     ISourceStream sourceStream =
                         await rootSelection.Field.SubscribeResolver!.Invoke(middlewareContext)
                             .ConfigureAwait(false);
-
-                    // mark operation context as Completed in order to free all associated resources and allow to return it to pool
-                    ((IExecutionTaskContext)operationContext).Completed();
 
                     if (operationContext.Result.Errors.Count > 0)
                     {

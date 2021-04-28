@@ -14,7 +14,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// Called when starting to execute a request.
         /// </summary>
         /// <param name="context">
-        /// The request context encapsulates all GraphQL-specific information about an 
+        /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
         /// <returns>
@@ -27,7 +27,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// including unhandled exceptions when resolving fields.
         /// </summary>
         /// <param name="context">
-        /// The request context encapsulates all GraphQL-specific information about an 
+        /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
         /// <param name="exception">
@@ -39,7 +39,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// Called when starting to parse a document.
         /// </summary>
         /// <param name="context">
-        /// The request context encapsulates all GraphQL-specific information about an 
+        /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
         /// <returns>
@@ -51,7 +51,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// Called if a syntax error is detected in a document during parsing.
         /// </summary>
         /// <param name="context">
-        /// The request context encapsulates all GraphQL-specific information about an 
+        /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
         /// <param name="error">
@@ -63,7 +63,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// Called when starting to validate a document.
         /// </summary>
         /// <param name="context">
-        /// The request context encapsulates all GraphQL-specific information about an 
+        /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
         /// <returns>
@@ -75,7 +75,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// Called if there are any document validation errors.
         /// </summary>
         /// <param name="context">
-        /// The request context encapsulates all GraphQL-specific information about an 
+        /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
         /// <param name="errors">
@@ -91,7 +91,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// a listener implements this method to ensure that it is called.
         /// </remarks>
         /// <param name="context">
-        /// The middleware context encapsulates all resolver-specific information about the 
+        /// The middleware context encapsulates all resolver-specific information about the
         /// execution of an individual field selection.
         /// </param>
         /// <returns>
@@ -102,8 +102,13 @@ namespace HotChocolate.Execution.Instrumentation
         /// <summary>
         /// Called for any errors during field resolution, including unhandled exceptions.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="error"></param>
+        /// <param name="context">
+        /// The middleware context encapsulates all resolver-specific information about the
+        /// execution of an individual field selection.
+        /// </param>
+        /// <param name="error">
+        /// The error object.
+        /// </param>
         void ResolverError(IMiddlewareContext context, IError error);
 
         /// <summary>
@@ -137,7 +142,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// A GraphQL request document was added to the document cache.
         /// </summary>
         /// <param name="context">
-        /// The request context encapsulates all GraphQL-specific information about an 
+        /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
         void AddedDocumentToCache(IRequestContext context);
@@ -146,7 +151,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// A GraphQL request document was retrieved from the document cache.
         /// </summary>
         /// <param name="context">
-        /// The request context encapsulates all GraphQL-specific information about an 
+        /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
         void RetrievedDocumentFromCache(IRequestContext context);
@@ -161,7 +166,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// A compiled operation was added to the operation cache.
         /// </summary>
         /// <param name="context">
-        /// The request context encapsulates all GraphQL-specific information about an 
+        /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
         void AddedOperationToCache(IRequestContext context);
@@ -170,18 +175,18 @@ namespace HotChocolate.Execution.Instrumentation
         /// A compiled operation was retrieved from the operation cache.
         /// </summary>
         /// <param name="context">
-        /// The request context encapsulates all GraphQL-specific information about an 
+        /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
         void RetrievedOperationFromCache(IRequestContext context);
 
         /// <summary>
-        /// During execution we allow components like the DataLoader or schema stitching to 
-        /// defer execution of data resolvers to be executed in batches. If the execution engine 
+        /// During execution we allow components like the DataLoader or schema stitching to
+        /// defer execution of data resolvers to be executed in batches. If the execution engine
         /// has nothing to execute anymore these batches will be dispatched for execution.
         /// </summary>
         /// <param name="context">
-        /// The request context encapsulates all GraphQL-specific information about an 
+        /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
         void BatchDispatched(IRequestContext context);
