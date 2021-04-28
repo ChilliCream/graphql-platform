@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.AspNetCore.Properties;
 using HotChocolate.Execution;
 
@@ -25,5 +26,18 @@ namespace HotChocolate.AspNetCore
                 ErrorBuilder.New()
                     .SetMessage(AspNetCoreResources.ErrorHelper_ResponseTypeNotSupported)
                     .Build());
+
+        public static IQueryResult UnknownSubscriptionError(Exception ex)
+        {
+            IError error =
+                ErrorBuilder
+                    .New()
+                    .SetException(ex)
+                    .SetCode(ErrorCodes.Execution.TaskProcessingError)
+                    .SetMessage(AspNetCoreResources.Subscription_SendResultsAsync)
+                    .Build();
+
+            return QueryResultBuilder.CreateError(error);
+        }
     }
 }
