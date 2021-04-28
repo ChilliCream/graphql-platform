@@ -20,14 +20,13 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             try
             {
-                while (!_connection.Closed &&
-                       !cancellationToken.IsCancellationRequested)
+                while (!_connection.Closed && !cancellationToken.IsCancellationRequested)
                 {
                     await _connection.ReceiveAsync(_writer, cancellationToken);
                     await WriteMessageDelimiterAsync(cancellationToken);
                 }
             }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { } 
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
             finally
             {
                 // writer should be always completed
@@ -35,8 +34,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             }
         }
 
-        private async Task WriteMessageDelimiterAsync(
-            CancellationToken cancellationToken)
+        private async Task WriteMessageDelimiterAsync(CancellationToken cancellationToken)
         {
             Memory<byte> memory = _writer.GetMemory(1);
             memory.Span[0] = Subscription.Delimiter;

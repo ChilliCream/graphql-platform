@@ -8,7 +8,7 @@ namespace HotChocolate.Execution.Instrumentation
 {
     internal sealed class AggregateDiagnosticEvents : IDiagnosticEvents
     {
-        private static EmptyActivityScope _empty = new EmptyActivityScope();
+        private static EmptyActivityScope _empty = new();
         private readonly IDiagnosticEventListener[] _listeners;
         private readonly IDiagnosticEventListener[] _resolverListener;
 

@@ -150,8 +150,7 @@ namespace HotChocolate.Execution.Processing
             /// </returns>
             private async Task<IQueryResult> OnEvent(object payload)
             {
-                using IActivityScope eventScope =
-                    _diagnosticEvents.OnSubscriptionEvent(new(this, payload));
+                using IActivityScope es = _diagnosticEvents.OnSubscriptionEvent(new(this, payload));
                 using IServiceScope serviceScope = _requestContext.Services.CreateScope();
 
                 OperationContext operationContext = _operationContextPool.Get();
@@ -184,6 +183,10 @@ namespace HotChocolate.Execution.Processing
                         _requestContext.Variables!,
                         rootValue,
                         _resolveQueryRootValue);
+
+                    operationContext.Result.SetContextData(
+                        WellKnownContextData.EventMessage,
+                        payload);
 
                     IQueryResult result = await _queryExecutor
                         .ExecuteAsync(operationContext, scopedContext)

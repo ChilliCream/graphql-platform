@@ -36,18 +36,15 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             try
             {
-                while (!_connection.Closed
-                    && !cancellationToken.IsCancellationRequested)
+                while (!_connection.Closed && !cancellationToken.IsCancellationRequested)
                 {
-                    await Task.Delay(_timeout, cancellationToken)
-                        ;
+                    await Task.Delay(_timeout, cancellationToken);
 
                     if (!_connection.Closed)
                     {
                         await _connection.SendAsync(
                             KeepConnectionAliveMessage.Default.Serialize(),
-                            cancellationToken)
-                            ;
+                            cancellationToken);
                     }
                 }
             }

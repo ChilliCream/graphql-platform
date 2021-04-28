@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.Execution;
+using ISubscriptionInternal = HotChocolate.Execution.Processing.ISubscription;
 using static HotChocolate.AspNetCore.ErrorHelper;
 
 namespace HotChocolate.AspNetCore.Subscriptions
@@ -13,6 +14,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         private readonly CancellationTokenSource _cts;
         private readonly ISocketConnection _connection;
         private readonly IResponseStream _responseStream;
+        private readonly ISubscriptionInternal _subscription;
         private bool _disposed;
 
         public event EventHandler? Completed;

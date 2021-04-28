@@ -31,8 +31,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 TaskScheduler.Default);
         }
 
-        private async Task ProcessMessagesAsync(
-            CancellationToken cancellationToken)
+        private async Task ProcessMessagesAsync(CancellationToken cancellationToken)
         {
             try
             {
@@ -67,10 +66,11 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     }
                 }
             }
-            catch(OperationCanceledException) when (cancellationToken.IsCancellationRequested) {} 
-            finally 
+            catch(OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+            finally
             {
-                // reader should be completed always, so that related pipe writer can stop write new messages
+                // reader should be completed always, so that related pipe writer can
+                // stop write new messages
                 await _reader.CompleteAsync();
             }
         }
