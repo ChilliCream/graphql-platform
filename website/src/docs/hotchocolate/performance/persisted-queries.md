@@ -32,7 +32,6 @@ Nuget namespaces:
 - HotChocolate.PersistedQueries.InMemory
 
 # Setup
-In the following tutorial, we will walk you through creating a Hot Chocolate GraphQL server and configuring it to support standard persisted queries.
 
 To Configure GraphQL server to use the persisted query pipeline.
 
