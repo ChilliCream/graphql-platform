@@ -28,7 +28,7 @@ namespace HotChocolate.Data.Projections.Handlers
                         field.Field.Name != fields[i])
                     {
                         IObjectField nodesField = type.Fields[fields[i]];
-                        var alias = "__projection_alias" + aliasCount++;
+                        var alias = "__projection_alias_" + aliasCount++;
                         var nodesFieldNode = new FieldNode(
                             null,
                             new NameNode(fields[i]),
