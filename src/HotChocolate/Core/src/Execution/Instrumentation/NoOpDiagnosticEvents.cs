@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Instrumentation
@@ -44,7 +45,17 @@ namespace HotChocolate.Execution.Instrumentation
 
         public void TaskError(IExecutionTask task, IError error)
         { }
-        
+
+        public IActivityScope ExecuteSubscription(ISubscription subscription) => this;
+
+        public IActivityScope OnSubscriptionEvent(SubscriptionEventContext context) => this;
+
+        public void SubscriptionEventResult(SubscriptionEventContext context, IQueryResult result)
+        {  }
+
+        public void SubscriptionEventError(SubscriptionEventContext context, Exception exception)
+        { }
+
         public void AddedDocumentToCache(
             IRequestContext context)
         { }

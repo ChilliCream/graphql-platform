@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Instrumentation
@@ -137,6 +138,50 @@ namespace HotChocolate.Execution.Instrumentation
         /// The error that occurred while running the execution task.
         /// </param>
         void TaskError(IExecutionTask task, IError error);
+
+        /// <summary>
+        /// Called when a subscription was created.
+        /// </summary>
+        /// <param name="subscription">
+        /// The subscription object.
+        /// </param>
+        /// <returns>
+        /// A scope that will be disposed when the subscription has completed.
+        /// </returns>
+        IActivityScope ExecuteSubscription(ISubscription subscription);
+
+        /// <summary>
+        /// Called when an event was raised and a new subscription result is being produced.
+        /// </summary>
+        /// <param name="context">
+        /// The subscription event context.
+        /// </param>
+        /// <returns>
+        /// A scope that will be disposed when the subscription event execution has completed.
+        /// </returns>
+        IActivityScope OnSubscriptionEvent(SubscriptionEventContext context);
+
+        /// <summary>
+        /// Called when a result for a specific subscription event was produced.
+        /// </summary>
+        /// <param name="context">
+        /// The subscription event context.
+        /// </param>
+        /// <param name="result">
+        /// The subscription result that is being written to the response stream.
+        /// </param>
+        void SubscriptionEventResult(SubscriptionEventContext context, IQueryResult result);
+
+        /// <summary>
+        /// Called when an error occured while producing the subscription event result.
+        /// </summary>
+        /// <param name="context">
+        /// The subscription event context.
+        /// </param>
+        /// <param name="exception">
+        /// The exception that occured.
+        /// </param>
+        void SubscriptionEventError(SubscriptionEventContext context, Exception exception);
 
         /// <summary>
         /// A GraphQL request document was added to the document cache.

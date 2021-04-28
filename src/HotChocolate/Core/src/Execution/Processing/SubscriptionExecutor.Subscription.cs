@@ -12,11 +12,13 @@ namespace HotChocolate.Execution.Processing
 {
     internal sealed partial class SubscriptionExecutor
     {
-        private sealed class Subscription : IAsyncDisposable
+        private sealed class Subscription : ISubscription, IAsyncDisposable
         {
+            private readonly ulong _id;
             private readonly ObjectPool<OperationContext> _operationContextPool;
             private readonly QueryExecutor _queryExecutor;
             private readonly IDiagnosticEvents _diagnosticEvents;
+            private IActivityScope? _subscriptionScope;
             private readonly IRequestContext _requestContext;
             private readonly ObjectType _subscriptionType;
             private readonly ISelectionSet _rootSelections;
@@ -34,6 +36,11 @@ namespace HotChocolate.Execution.Processing
                 Func<object?> resolveQueryRootValue,
                 IDiagnosticEvents diagnosticEvents)
             {
+                unchecked
+                {
+                    _id++;
+                }
+
                 _operationContextPool = operationContextPool;
                 _queryExecutor = queryExecutor;
                 _requestContext = requestContext;
@@ -89,6 +96,9 @@ namespace HotChocolate.Execution.Processing
                     resolveQueryRootValue,
                     diagnosticsEvents);
 
+                subscription._subscriptionScope =
+                    diagnosticsEvents.ExecuteSubscription(subscription);
+
                 subscription._sourceStream =
                     await subscription.SubscribeAsync().ConfigureAwait(false);
 
@@ -112,11 +122,18 @@ namespace HotChocolate.Execution.Processing
                 }
             }
 
+            /// <inheritdoc />
+            public ulong Id => _id;
+
+            /// <inheritdoc />
+            public IPreparedOperation Operation => _requestContext.Operation!;
+
             public async ValueTask DisposeAsync()
             {
                 if (!_disposed)
                 {
                     await _sourceStream.DisposeAsync().ConfigureAwait(false);
+                    _subscriptionScope?.Dispose();
                     _disposed = true;
                 }
             }
@@ -133,15 +150,17 @@ namespace HotChocolate.Execution.Processing
             /// </returns>
             private async Task<IQueryResult> OnEvent(object payload)
             {
+                using IActivityScope eventScope =
+                    _diagnosticEvents.OnSubscriptionEvent(new(this, payload));
                 using IServiceScope serviceScope = _requestContext.Services.CreateScope();
-
-                IServiceProvider eventServices = serviceScope.ServiceProvider;
-                IBatchDispatcher dispatcher = eventServices.GetRequiredService<IBatchDispatcher>();
 
                 OperationContext operationContext = _operationContextPool.Get();
 
                 try
                 {
+                    var eventServices = serviceScope.ServiceProvider;
+                    var dispatcher = eventServices.GetRequiredService<IBatchDispatcher>();
+
                     // we store the event payload on the scoped context so that it is accessible
                     // in the resolvers.
                     ImmutableDictionary<string, object?> scopedContext =
@@ -166,9 +185,18 @@ namespace HotChocolate.Execution.Processing
                         rootValue,
                         _resolveQueryRootValue);
 
-                    return await _queryExecutor
+                    IQueryResult result = await _queryExecutor
                         .ExecuteAsync(operationContext, scopedContext)
                         .ConfigureAwait(false);
+
+                    _diagnosticEvents.SubscriptionEventResult(new(this, payload), result);
+
+                    return result;
+                }
+                catch (Exception ex)
+                {
+                    _diagnosticEvents.SubscriptionEventError(new(this, payload), ex);
+                    throw;
                 }
                 finally
                 {
@@ -252,6 +280,14 @@ namespace HotChocolate.Execution.Processing
                     }
 
                     return sourceStream;
+                }
+                catch
+                {
+                    // if there is an error we will just dispose our instrumentation scope
+                    // the error is reported in the request level in this case.
+                    _subscriptionScope?.Dispose();
+                    _subscriptionScope = null;
+                    throw;
                 }
                 finally
                 {
