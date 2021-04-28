@@ -37,7 +37,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         private async Task WriteMessageDelimiterAsync(CancellationToken cancellationToken)
         {
             Memory<byte> memory = _writer.GetMemory(1);
-            memory.Span[0] = Subscription.Delimiter;
+            memory.Span[0] = SubscriptionSession.Delimiter;
             _writer.Advance(1);
             await _writer.FlushAsync(cancellationToken);
         }

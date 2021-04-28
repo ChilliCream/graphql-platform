@@ -84,4 +84,7 @@
   <data name="WebSocketSession_SessionEnded" xml:space="preserve">
     <value>Session ended.</value>
   </data>
+  <data name="DataStartMessageHandler_Not_A_SubscriptionResult" xml:space="preserve">
+    <value>The specified result object is not a valid subscription result.</value>
+  </data>
 </root>

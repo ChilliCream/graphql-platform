@@ -3,33 +3,41 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.Execution;
-using ISubscriptionInternal = HotChocolate.Execution.Processing.ISubscription;
+using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Processing;
 using static HotChocolate.AspNetCore.ErrorHelper;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
-    internal sealed class Subscription : ISubscription
+    internal sealed class SubscriptionSession : ISubscriptionSession
     {
         internal const byte Delimiter = 0x07;
         private readonly CancellationTokenSource _cts;
         private readonly ISocketConnection _connection;
         private readonly IResponseStream _responseStream;
-        private readonly ISubscriptionInternal _subscription;
+        private readonly IDiagnosticEvents _diagnosticEvents;
         private bool _disposed;
 
+        /// <inheritdoc />
         public event EventHandler? Completed;
 
-        public Subscription(
+        public SubscriptionSession(
             ISocketConnection connection,
             IResponseStream responseStream,
-            string id)
+            ISubscription subscription,
+            IDiagnosticEvents diagnosticEvents,
+            string clientSubscriptionId)
         {
             _connection = connection ??
                 throw new ArgumentNullException(nameof(connection));
             _responseStream = responseStream ??
                 throw new ArgumentNullException(nameof(responseStream));
-            Id = id ??
-                throw new ArgumentNullException(nameof(id));
+            _diagnosticEvents = diagnosticEvents ??
+                throw new ArgumentNullException(nameof(diagnosticEvents));
+            Subscription = subscription ??
+                throw new ArgumentNullException(nameof(subscription));
+            Id = clientSubscriptionId ??
+                throw new ArgumentNullException(nameof(clientSubscriptionId));
 
             _cts = CancellationTokenSource.CreateLinkedTokenSource(_connection.RequestAborted);
 
@@ -40,7 +48,11 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 TaskScheduler.Default);
         }
 
+        /// <inheritdoc />
         public string Id { get; }
+
+        /// <inheritdoc />
+        public ISubscription Subscription { get; }
 
         private async Task SendResultsAsync()
         {
@@ -94,9 +106,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     }
                 }
 
-                // original exception should be propagated to upper level in order to be logged
-                // correctly at least.
-                throw;
+                _diagnosticEvents.SubscriptionTransportError(Subscription, ex);
             }
             finally
             {

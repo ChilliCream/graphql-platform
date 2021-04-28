@@ -186,13 +186,13 @@ namespace HotChocolate.Execution.Instrumentation
         /// <summary>
         /// Called when an error occured while producing the subscription event result.
         /// </summary>
-        /// <param name="context">
-        /// The subscription event context.
+        /// <param name="subscription">
+        /// The subscription object.
         /// </param>
         /// <param name="exception">
         /// The exception that occured.
         /// </param>
-        void SubscriptionTransportError(SubscriptionEventContext context, Exception exception);
+        void SubscriptionTransportError(ISubscription subscription, Exception exception);
 
         /// <summary>
         /// A GraphQL request document was added to the document cache.

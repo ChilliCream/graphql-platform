@@ -56,6 +56,9 @@ namespace HotChocolate.Execution.Instrumentation
         public void SubscriptionEventError(SubscriptionEventContext context, Exception exception)
         { }
 
+        public void SubscriptionTransportError(ISubscription subscription, Exception exception)
+        { }
+
         public void AddedDocumentToCache(
             IRequestContext context)
         { }

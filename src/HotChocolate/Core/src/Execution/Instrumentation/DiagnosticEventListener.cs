@@ -90,6 +90,13 @@ namespace HotChocolate.Execution.Instrumentation
         }
 
         /// <inheritdoc />
+        public virtual void SubscriptionTransportError(
+            ISubscription subscription,
+            Exception exception)
+        {
+        }
+
+        /// <inheritdoc />
         public virtual void AddedDocumentToCache(IRequestContext context)
         {
         }

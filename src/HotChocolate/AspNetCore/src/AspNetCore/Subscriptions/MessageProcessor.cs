@@ -43,7 +43,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
                     do
                     {
-                        position = buffer.PositionOf(Subscription.Delimiter);
+                        position = buffer.PositionOf(SubscriptionSession.Delimiter);
 
                         if (position is not null)
                         {

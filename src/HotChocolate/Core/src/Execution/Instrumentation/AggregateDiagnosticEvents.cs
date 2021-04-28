@@ -168,6 +168,14 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
+        public void SubscriptionTransportError(ISubscription subscription, Exception exception)
+        {
+            for (var i = 0; i < _listeners.Length; i++)
+            {
+                _listeners[i].SubscriptionTransportError(subscription, exception);
+            }
+        }
+
         public void AddedDocumentToCache(IRequestContext context)
         {
             for (var i = 0; i < _listeners.Length; i++)

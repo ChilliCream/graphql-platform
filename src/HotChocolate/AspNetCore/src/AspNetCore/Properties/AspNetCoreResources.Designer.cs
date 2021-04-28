@@ -176,5 +176,11 @@ namespace HotChocolate.AspNetCore.Properties {
                 return ResourceManager.GetString("WebSocketSession_SessionEnded", resourceCulture);
             }
         }
+        
+        internal static string DataStartMessageHandler_Not_A_SubscriptionResult {
+            get {
+                return ResourceManager.GetString("DataStartMessageHandler_Not_A_SubscriptionResult", resourceCulture);
+            }
+        }
     }
 }

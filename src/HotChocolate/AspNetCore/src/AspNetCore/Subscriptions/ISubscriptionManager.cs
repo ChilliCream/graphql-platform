@@ -4,10 +4,10 @@ using System.Collections.Generic;
 namespace HotChocolate.AspNetCore.Subscriptions
 {
     public interface ISubscriptionManager
-        : IEnumerable<ISubscription>
+        : IEnumerable<ISubscriptionSession>
         , IDisposable
     {
-        void Register(ISubscription subscription);
+        void Register(ISubscriptionSession subscriptionSession);
 
         void Unregister(string subscriptionId);
     }

@@ -58,7 +58,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                 (IResponseStream)await executor.ExecuteAsync(
                     "subscription { onReview(episode: NEW_HOPE) { stars } }");
 
-            var subscription = new Subscription(connection, stream, "123");
+            var subscription = new SubscriptionSession(connection, stream, "123");
             connection.Subscriptions.Register(subscription);
 
             var handler = new DataStopMessageHandler();
