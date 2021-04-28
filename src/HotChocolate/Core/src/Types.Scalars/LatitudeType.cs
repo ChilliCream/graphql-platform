@@ -81,9 +81,11 @@ namespace HotChocolate.Types
                 case double d when Latitude.TrySerialize(d, out var serializedDouble):
                     resultValue = serializedDouble;
                     return true;
+
                 case int i when Latitude.TrySerialize(i, out var serializedInt):
                     resultValue = serializedInt;
                     return true;
+
                 default:
                     resultValue = null;
                     return false;
