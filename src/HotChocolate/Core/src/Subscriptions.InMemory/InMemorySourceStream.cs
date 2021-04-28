@@ -4,11 +4,11 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using static HotChocolate.Subscriptions.Properties.Resources;
 
 namespace HotChocolate.Subscriptions.InMemory
 {
-    public class InMemorySourceStream<TMessage>
-        : ISourceStream<TMessage>
+    public class InMemorySourceStream<TMessage> : ISourceStream<TMessage>
     {
         private readonly Channel<TMessage> _channel;
         private bool _read;
@@ -23,7 +23,8 @@ namespace HotChocolate.Subscriptions.InMemory
         {
             if (_read)
             {
-                throw new InvalidOperationException("This stream can only be read once.");
+                throw new InvalidOperationException(
+                    InMemorySourceStream_ReadEventsAsync_ReadOnlyOnce);
             }
 
             if (_disposed)
@@ -58,15 +59,16 @@ namespace HotChocolate.Subscriptions.InMemory
             }
 
             public IAsyncEnumerator<T> GetAsyncEnumerator(
-                CancellationToken cancellationToken = default)
-            {
-                return new WrappedEnumerator<T>(GetAsyncEnumeratorInternally(cancellationToken), CompleteChannel);
-            }
+                CancellationToken cancellationToken = default) =>
+                new WrappedEnumerator<T>(
+                    GetAsyncEnumeratorInternally(cancellationToken),
+                    CompleteChannel);
 
-            public async IAsyncEnumerator<T> GetAsyncEnumeratorInternally(
+            private async IAsyncEnumerator<T> GetAsyncEnumeratorInternally(
                 CancellationToken cancellationToken = default)
             {
-                while (await _channel.Reader.WaitToReadAsync(cancellationToken))
+                while (await _channel.Reader.WaitToReadAsync(cancellationToken)
+                    .ConfigureAwait(false))
                 {
                     if (cancellationToken.IsCancellationRequested)
                     {
@@ -108,26 +110,23 @@ namespace HotChocolate.Subscriptions.InMemory
         private class WrappedEnumerator<T> : IAsyncEnumerator<T>
         {
             private readonly IAsyncEnumerator<T> _enumerator;
-            private readonly Func<ValueTask> _disposingAction;
+            private readonly Func<ValueTask> _dispose;
 
-            public WrappedEnumerator(IAsyncEnumerator<T> enumerator, Func<ValueTask> disposingAction)
+            public WrappedEnumerator(IAsyncEnumerator<T> enumerator, Func<ValueTask> dispose)
             {
                 _enumerator = enumerator;
-                _disposingAction = disposingAction;
+                _dispose = dispose;
             }
+
+            public T Current => _enumerator.Current;
+
+            public ValueTask<bool> MoveNextAsync() => _enumerator.MoveNextAsync();
 
             public async ValueTask DisposeAsync()
             {
                 await _enumerator.DisposeAsync();
-                await _disposingAction();
+                await _dispose();
             }
-
-            public ValueTask<bool> MoveNextAsync()
-            {
-                return _enumerator.MoveNextAsync();
-            }
-
-            public T Current => _enumerator.Current;
         }
     }
 }
