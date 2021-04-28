@@ -11,9 +11,9 @@ namespace HotChocolate.Subscriptions.InMemory
         : IEventTopic
             , IDisposable
     {
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _semaphore = new(1, 1);
         private readonly Channel<TMessage> _incoming = Channel.CreateUnbounded<TMessage>();
-        private readonly List<Channel<TMessage>> _outgoing = new List<Channel<TMessage>>();
+        private readonly List<Channel<TMessage>> _outgoing = new();
         private bool _disposed;
 
         public event EventHandler<EventArgs>? Unsubscribed;
@@ -47,7 +47,7 @@ namespace HotChocolate.Subscriptions.InMemory
         public async ValueTask<InMemorySourceStream<TMessage>> SubscribeAsync(
             CancellationToken cancellationToken)
         {
-            await _semaphore.WaitAsync().ConfigureAwait(false);
+            await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
             try
             {
@@ -129,7 +129,8 @@ namespace HotChocolate.Subscriptions.InMemory
                         {
                             Channel<TMessage> channel = _outgoing[i];
 
-                            // close outgoing channel if related subscription is completed (no reader available)
+                            // close outgoing channel if related subscription is completed
+                            // (no reader available)
                             if (!channel.Writer.TryWrite(message)
                                 && channel.Reader.Completion.IsCompleted)
                             {
@@ -142,7 +143,8 @@ namespace HotChocolate.Subscriptions.InMemory
                             _outgoing.RemoveAll(c => closedChannel.Contains(c));
                         }
 
-                        // raises unsubscribed event only once when all outgoing channels (subscriptions) are removed
+                        // raises unsubscribed event only once when all outgoing channels
+                        // (subscriptions) are removed
                         if (_outgoing.Count == 0 && outgoingCount > 0)
                         {
                             RaiseUnsubscribedEvent();
@@ -168,7 +170,7 @@ namespace HotChocolate.Subscriptions.InMemory
             {
                 try
                 {
-                    for (int i = 0; i < _outgoing.Count; i++)
+                    for (var i = 0; i < _outgoing.Count; i++)
                     {
                         _outgoing[i].Writer.TryComplete();
                         ;
