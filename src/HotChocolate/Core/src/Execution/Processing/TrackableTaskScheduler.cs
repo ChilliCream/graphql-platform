@@ -31,7 +31,7 @@ namespace HotChocolate.Execution.Processing
         /// <summary>The number of tasks that are current queued or being executed.</summary>
         private int _processingTaskCount = 0;
         /// <summary>If > 0, no more work will be accepted and the active processing tasks will stop as soon as possible</summary>
-        private CancellationTokenSource _shutdown = new();
+        private readonly CancellationTokenSource _shutdown = new();
         /// <summary>This event is triggered whenever the processing comes to a complete stop (no items left in queue, and nothing running)</summary>
         private event EventHandler? ProcessingHalted;
         /// <summary>Lock for access to ProcessingHalted</summary>
@@ -115,10 +115,13 @@ namespace HotChocolate.Execution.Processing
 
         protected override IEnumerable<Task>? GetScheduledTasks()
         {
+            /*
             // for debugging only, try to use internal member of UnboundedQueue
             var itemsField = _queue.GetType()
                 .GetField("_items", BindingFlags.Instance | BindingFlags.NonPublic);
             return itemsField?.GetValue(_queue) as IEnumerable<Task> ?? new List<Task>();
+            */
+            throw new NotImplementedException();
         }
 
         protected override void QueueTask(Task task)
