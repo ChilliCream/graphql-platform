@@ -16,7 +16,7 @@ namespace HotChocolate.Execution.Processing
 
         public bool Return(OperationContext obj)
         {
-            if (obj.IsPooled)
+            if (!obj.IsInitialized)
             {
                 return true;
             }
