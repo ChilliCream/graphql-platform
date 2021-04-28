@@ -2,7 +2,7 @@
 title: "Pagination"
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs } from "../../../components/mdx/example-tabs";
 
 > This document starts by covering different pagination approaches. If you just want to learn how to implement pagination, head over [here](/docs/hotchocolate/fetching-data/pagination/#connections).
 
@@ -136,7 +136,7 @@ public class Query
 
 If we need to specify the concrete node type of our pagination, we can do so by passing a Type as the constructor argument `[UsePaging(typeof(User))]`.
 
-The `UsePaging` attribute also allows us to configure some other properties, like `DefaultPageSize`, `MaxPageSize` and `IncludeTotalCount`. Example:
+The `UsePaging` attribute also allows us to configure some other properties, like `DefaultPageSize`, `MaxPageSize` and `IncludeTotalCount`.
 
 ```csharp
 [UsePaging(MaxPageSize = 50)]
@@ -197,9 +197,11 @@ public class Query
     [UsePaging]
     public Connection<User> GetUsers(string? after, int? first, string sortBy)
     {
-        IEnumerable<User> users = null; // get users using the above arguments
+        // get users using the above arguments
+        IEnumerable<User> users = null;
 
-        var edges = users.Select(user => new Edge<User>(user, user.Id)).ToList();
+        var edges = users.Select(user => new Edge<User>(user, user.Id))
+                            .ToList();
         var pageInfo = new ConnectionPageInfo(false, false, null, null);
 
         var connection = new Connection<User>(edges, pageInfo,
@@ -228,7 +230,8 @@ public class QueryType : ObjectType
                 var first = context.ArgumentValue<int?>("first");
                 var sortBy = context.ArgumentValue<string>("sortBy");
 
-                IEnumerable<User> users = null; // get users using the above arguments
+                // get users using the above arguments
+                IEnumerable<User> users = null;
 
                 var edges = users.Select(user => new Edge<User>(user, user.Id))
                                     .ToList();
@@ -300,8 +303,10 @@ If our resolver returns an `IEnumerable<T>` or an `IQueryable<T>` the `totalCoun
 If we have customized our pagination and our resolver now returns a `Connection<T>`, we have to explicitly declare how the `totalCount` value is computed.
 
 ```csharp
-var connection = new Connection<User>(edges, pageInfo,
-                    getTotalCount: cancellationToken => ValueTask.FromResult(0));
+var connection = new Connection<User>(
+    edges,
+    pageInfo,
+    getTotalCount: cancellationToken => ValueTask.FromResult(0));
 ```
 
 ## Custom Edges
@@ -338,9 +343,7 @@ type PageInfo {
 
 TODO: Code Example
 
-<!-- I only include -based in the name, since otherwise it wouldn't be a unique header -->
-
-# Offset-based Pagination
+# Offset Pagination
 
 > Note: While we support _offset-based_ pagination, we highly encourage the use of [_Connections_](/docs/hotchocolate/fetching-data/pagination/#connections) instead. _Connections_ provide an abstraction which makes it easier to switch to another pagination mechanism later on.
 
@@ -362,14 +365,212 @@ type CollectionSegmentInfo {
 }
 ```
 
-We tried to keep the API for _offset-based_ pagination as similar to _Connections_ as possible. You can largely follow the [_Connections_](/docs/hotchocolate/fetching-data/pagination/#connections) documentation, just switch out the following methods and types:
+## Usage
 
-| Connections             | Offset-based Pagination        |
-| ----------------------- | ------------------------------ |
-| UsePaging               | UseOffsetPaging                |
-| AddPagingArguments      | AddOffsetPagingArguments       |
-| Connection&#x3C;T&#x3E; | CollectionSegment&#x3C;T&#x3E; |
-| ConnectionPageInfo      | CollectionSegmentInfo          |
+Adding pagination capabilties to our fields is a breeze. All we have to do is add the `UseOffsetPaging` middleware.
 
-Please note that the paging arguments have also changed.
-It's no longer `after` and `first`, but `skip` and `take`.
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+public class Query
+{
+    [UseOffsetPaging]
+    public IEnumerable<User> GetUsers([Service] IUserRespository repository)
+        => repository.GetUsers();
+}
+```
+
+If we need to specify the concrete node type of our pagination, we can do so by passing a Type as the constructor argument `[UseOffsetPaging(typeof(User))]`.
+
+The `UseOffsetPaging` attribute also allows us to configure some other properties, like `DefaultPageSize`, `MaxPageSize` and `IncludeTotalCount`.
+
+```csharp
+[UseOffsetPaging(MaxPageSize = 50)]
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class QueryType : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor
+            .Field("users")
+            .UseOffsetPaging()
+            .Resolve(context =>
+            {
+                var repository = context.Service<IUserRespository>();
+
+                return repository.GetUsers();
+            });
+    }
+}
+```
+
+If we need to specify the concrete node type of our pagination, we can do so via the generic argument: `UseOffsetPaging<UserType>()`.
+
+We can also configure the `UseOffsetPaging` middleware further, by specifying `PagingOptions`.
+
+```csharp
+descriptor.UseOffsetPaging(options: new PagingOptions
+{
+    MaxPageSize = 50
+});
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+TODO
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+For the `UseOffsetPaging` middleware to work, our resolver needs to return an `IEnumerable<T>` or an `IQueryable<T>`. The middleware will then apply the pagination arguments to what we have returned. In the case of an `IQueryable<T>` this means that the pagination operations can be directly translated to native database queries, through database drivers like EntityFramework or the MongoDB client.
+
+## Customization
+
+If we need more control over the pagination process we can do so, by returning a `CollectionSegment<T>`.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+public class Query
+{
+    [UseOffsetPaging]
+    public CollectionSegment<User> GetUsers(int? skip, int? take, string sortBy)
+    {
+        /// get users using the above arguments
+        IEnumerable<User> users = null;
+
+        var pageInfo = new CollectionSegmentInfo(false, false);
+
+        var collectionSegment = new CollectionSegment<User>(
+            users,
+            pageInfo,
+            ct => ValueTask.FromResult(0));
+
+        return collectionSegment;
+    }
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class QueryType : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor
+            .Field("users")
+            .UseOffsetPaging()
+            .Argument("sortBy", a => a.Type<NonNullType<StringType>>())
+            .Resolve(context =>
+            {
+                var skip = context.ArgumentValue<int?>("skip");
+                var take = context.ArgumentValue<int?>("take");
+                var sortBy = context.ArgumentValue<string>("sortBy");
+
+                // get users using the above arguments
+                IEnumerable<User> users = null;
+
+                var pageInfo = new CollectionSegmentInfo(false, false);
+
+                var collectionSegment = new CollectionSegment<User>(
+                    users,
+                    pageInfo,
+                    ct => ValueTask.FromResult(0));
+
+                return collectionSegment;
+            });
+    }
+}
+```
+
+If we need to work on an even lower level, we could also use `descriptor.AddOffsetPagingArguments()` and `descriptor.Type<CollectionSegmentType<UserType>>()` to get rid of the `UseOffsetPaging` middleware.
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+TODO
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+## Total count
+
+Sometimes we might want to return the total number of pageable entries.
+
+For this to work we need to enable the `IncludeTotalCount` flag on the `UseOffsetPaging` middleware.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+[UseOffsetPaging(IncludeTotalCount = true)]
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+descriptor.UseOffsetPaging(options: new PagingOptions
+{
+    IncludeTotalCount = true
+});
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+TODO
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+This will add a new field called `totalCount` to our _CollectionSegment_.
+
+```sdl
+type UserCollectionSegment {
+  pageInfo: CollectionSegmentInfo!
+  items: [User!]
+  totalCount: Int!
+}
+```
+
+If our resolver returns an `IEnumerable<T>` or an `IQueryable<T>` the `totalCount` will be automatically computed, if it has been specified as a subfield in the query.
+
+If we have customized our pagination and our resolver now returns a `CollectionSegment<T>`, we have to explicitly declare how the `totalCount` value is computed.
+
+```csharp
+var collectionSegment = new CollectionSegment<User>(
+    items,
+    pageInfo,
+    getTotalCount: cancellationToken => ValueTask.FromResult(0));
+```
+
+# Pagination defaults
+
+If we want to enforce consistent pagination defaults throughout our app, we can do so, by setting the global `PagingOptions`.
+
+```csharp
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            // ...
+            .SetPagingOptions(new PagingOptions
+            {
+                MaxPageSize = 50
+            });
+    }
+}
+```
