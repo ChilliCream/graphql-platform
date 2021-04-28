@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Execution;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.Execution.Instrumentation
+namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {
     internal sealed class NoopDiagnosticEvents
         : IDiagnosticEvents
