@@ -4,21 +4,17 @@ title: "Persisted queries"
 
 This guide will walk you through how standard persisted queries works and how you can set them up with the Hot Chocolate GraphQL server.
 
-# What they are
+Persisted queries allows you to pre-register all required queries/mutations from your client on your GraphQl server.
 
-Allows you to pre-register all required queries/mutations from your client on your GraphQl server.
+This can be done by extracting the queries from your client application at build time and putting them to server query storage. Persisted client output contains queries / mutations that your client application needs to run. Each extracted query has a specific Hash (identifier) and the client uses it with Variables to query data from your server. There is no more query string in the body of your request. The server obtains only concrete identifier + variables and searches for them in AllowedList. If there is a match, the request is directly executed without the need for query parsing else the particular error message is returned to the request initiator. 
 
-## Why to use
+## Benefits
 
 There are two main reasons why to use persisted queries:
 
 - Performance - Payload contains only Hash and variables. This will reduce the size of your client application since queries can be removed from the client code at the build time.
 
 - Security - By using persisted queries, the server will accept only known queries / mutations and refuse all others that are not part of persisted "Allowed-List". Useful mainly for public APIs. 
-
-## How it works
-
-This can be done by extracting the queries from your client application at build time and putting them to server query storage. Persisted client output contains queries / mutations that your client application needs to run. Each extracted query has a specific Hash (identifier) and the client uses it with Variables to query data from your server. There is no more query string in the body of your request. The server obtains only concrete identifier + variables and searches for them in AllowedList. If there is a match, the request is directly executed without the need for query parsing else the particular error message is returned to the request initiator. 
 
 ## Limitations
 
@@ -38,33 +34,7 @@ Nuget namespaces:
 # Setup
 In the following tutorial, we will walk you through creating a Hot Chocolate GraphQL server and configuring it to support standard persisted queries.
 
-## Step 1: Create a GraphQL server project
-
-Open your preferred terminal and select a directory where you want to add the code of this tutorial.
-
-1. Install the Hot Chocolate GraphQL server template.
-
-```bash
-dotnet new -i HotChocolate.Templates.Server
-```
-
-2. Create a new Hot Chocolate GraphQL server project.
-
-```bash
-dotnet new graphql
-```
-
-3. Add the file query storage to your project. (Example use file-storage)
-
-```bash
-dotnet add package HotChocolate.PersistedQueries.FileSystem
-```
-
-## Step 2: Configure persisted queries on server
-
-Next, we want to configure our GraphQL server to be able to handle persisted query requests. For this, we need to register the corresponding query storage and configure the persisted query request pipeline.
-
-1. Configure GraphQL server to use the persisted query pipeline.
+To Configure GraphQL server to use the persisted query pipeline.
 
 ```csharp
 public void ConfigureServices(IServiceCollection services)
@@ -77,7 +47,9 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-2. Next, register the file-query storage. (You can use any other, this example use file-storage).
+## Configure persisted queries on server (FileStorage)
+
+If we want to configure our GraphQL server to be able to handle persisted query requests. For this, we need to register the corresponding query storage and configure the persisted query request pipeline.
 
 ```csharp
 public void ConfigureServices(IServiceCollection services)
@@ -97,7 +69,7 @@ Example: `0c95d31ca29272475bf837f944f4e513.graphql`
 Now your server knows where to search for the requested query `Id` and loads it in memory in case of a successful match. 
 
 
-## Step 3: Configure persisted  queries on the client (Relay)
+## Configure persisted  queries on the client (Relay)
 
 This step shows what you need to configure on the client-side or adjust on the server regarding clients. Example show Relay implementation. You can use any other GraphQL client like Apollo. The configuration is always client-related so follow offical client Docs. 
 
@@ -139,19 +111,6 @@ public void ConfigureServices(IServiceCollection services)
 #### Enable persisted output (Frontent project part)
 
 Make shure you have installed all packages related to Relay and [compiler](https://www.npmjs.com/package/relay-compiler). This example counts that you are allready user of Relay and will no explain deep how to Setup-it.
-
-Some common packages while working with relay
-
-```json
-"react-relay": "0.0.0-experimental-4c4107dd",
-"relay-runtime": "^10.1.3"
-"@types/relay-compiler": "^8.0.0",
-"@types/relay-runtime": "^10.1.8",
-"relay-compiler": "^11.0.0",
-"relay-compiler-language-typescript": "^13.0.4",
-"relay-config": "^10.1.3",
-"eslint-plugin-relay": "^1.8.2",
-```
 
 Extend your relay script in `package.json` by `--persist-output ./path/to/persisted-queries.json"`. Set correct path of your output.
 
