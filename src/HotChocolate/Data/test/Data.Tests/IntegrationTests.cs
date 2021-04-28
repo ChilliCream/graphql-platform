@@ -526,7 +526,8 @@ namespace HotChocolate.Data
         }
 
         [Fact]
-        public async Task ExecuteAsync_Should_ProjectAndPage_When_FragmentExclude()
+        public async Task
+            ExecuteAsync_Should_ProjectAndPage_When_AliasIsSameAsAlwaysProjectedField()
         {
             // arrange
             IRequestExecutor executor = await new ServiceCollection()
@@ -544,17 +545,11 @@ namespace HotChocolate.Data
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 @"
-                query GetBooks($nope: Boolean = false) {
+                {
                     books {
                         nodes {
                             authorId: title
-                            ... Test @include(if: $nope)
                         }
-                    }
-                }
-                fragment Test on Book {
-                    author {
-                       name
                     }
                 }
                 ");
