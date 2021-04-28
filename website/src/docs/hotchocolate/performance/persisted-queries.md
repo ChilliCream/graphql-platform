@@ -142,7 +142,7 @@ Make shure you have installed all packages related to Relay and [compiler](https
 
 Some common packages while working with relay
 
-```
+```json
 "react-relay": "0.0.0-experimental-4c4107dd",
 "relay-runtime": "^10.1.3"
 "@types/relay-compiler": "^8.0.0",
@@ -203,7 +203,6 @@ return fetch('/graphql', {
 
 ```bash
 yarn run relay
-// Or
 npm start relay
 ```
 
@@ -233,7 +232,6 @@ Run new generation and you are ready to go with persisted-queries.
 
 ```bash
 yarn run relay
-// Or
 npm start relay
 ```
 
