@@ -72,7 +72,14 @@ namespace HotChocolate.Data.MongoDb
                 if (_value is DateTimeOffset dateTimeOffset &&
                     resolvedFieldSerializer is DateTimeSerializer or NullableSerializer<DateTime>)
                 {
-                    resolvedFieldSerializer.Serialize(context, dateTimeOffset.DateTime);
+                    if (dateTimeOffset.Offset == TimeSpan.Zero)
+                    {
+                        resolvedFieldSerializer.Serialize(context, dateTimeOffset.UtcDateTime);
+                    }
+                    else
+                    {
+                        resolvedFieldSerializer.Serialize(context, dateTimeOffset.DateTime);
+                    }
                 }
                 else
                 {

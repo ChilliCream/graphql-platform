@@ -14,17 +14,41 @@ namespace HotChocolate.Data.MongoDb.Filters
     {
         private static readonly Foo[] _fooEntities =
         {
-            new() { BarShort = 12, BarDateTime = new DateTime(2000, 1, 12) },
-            new() { BarShort = 14, BarDateTime = new DateTime(2000, 1, 14) },
-            new() { BarShort = 13, BarDateTime = new DateTime(2000, 1, 13) }
+            new()
+            {
+                BarShort = 12,
+                BarDateTime = new DateTime(2000, 1, 12, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new()
+            {
+                BarShort = 14,
+                BarDateTime = new DateTime(2000, 1, 14, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new()
+            {
+                BarShort = 13,
+                BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc)
+            }
         };
 
         private static readonly FooNullable[] _fooNullableEntities =
         {
-            new() { BarShort = 12, BarDateTime = new DateTime(2000, 1, 12) },
+            new()
+            {
+                BarShort = 12,
+                BarDateTime = new DateTime(2000, 1, 12, 0, 0, 0, DateTimeKind.Utc)
+            },
             new() { BarShort = null, BarDateTime = null },
-            new() { BarShort = 14, BarDateTime = new DateTime(2000, 1, 14) },
-            new() { BarShort = 13, BarDateTime = new DateTime(2000, 1, 13) }
+            new()
+            {
+                BarShort = 14,
+                BarDateTime = new DateTime(2000, 1, 14, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new()
+            {
+                BarShort = 13,
+                BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc)
+            }
         };
 
         public MongoDbFilterVisitorComparableTests(MongoResource resource)
@@ -75,7 +99,7 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00Z\"}})" +
+                    .SetQuery("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})" +
                         "{ barDateTime}}")
                     .Create());
 
@@ -83,7 +107,7 @@ namespace HotChocolate.Data.MongoDb.Filters
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00Z\"}})" +
+                    .SetQuery("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})" +
                         "{ barDateTime}}")
                     .Create());
 
