@@ -43,6 +43,34 @@ namespace HotChocolate.Execution.Processing
                 _diagnosticEvents = diagnosticEvents;
             }
 
+            /// <summary>
+            /// Subscribes to the pub/sub-system and creates a new <see cref="Subscription"/>
+            /// instance representing that subscriptions.
+            /// </summary>
+            /// <param name="operationContextPool">
+            /// The operation context pool to rent context pools for execution.
+            /// </param>
+            /// <param name="queryExecutor">
+            /// The query executor to process event payloads.
+            /// </param>
+            /// <param name="requestContext">
+            /// The original request context.
+            /// </param>
+            /// <param name="subscriptionType">
+            /// The object type that represents the subscription.
+            /// </param>
+            /// <param name="rootSelections">
+            /// The operation selection set.
+            /// </param>
+            /// <param name="resolveQueryRootValue">
+            /// A delegate to resolve the subscription instance.
+            /// </param>
+            /// <param name="diagnosticsEvents">
+            /// The internal diagnostic events to report telemetry.
+            /// </param>
+            /// <returns>
+            /// Returns a new subscription instance.
+            /// </returns>
             public static async ValueTask<Subscription> SubscribeAsync(
                 ObjectPool<OperationContext> operationContextPool,
                 QueryExecutor queryExecutor,
@@ -61,27 +89,26 @@ namespace HotChocolate.Execution.Processing
                     resolveQueryRootValue,
                     diagnosticsEvents);
 
-                subscription._sourceStream =  await subscription
-                    .SubscribeAsync()
-                    .ConfigureAwait(false);
+                subscription._sourceStream =
+                    await subscription.SubscribeAsync().ConfigureAwait(false);
 
                 return subscription;
             }
 
             public async IAsyncEnumerable<IQueryResult> ExecuteAsync()
             {
-                await using IAsyncEnumerator<object> enumerator =
+                await using IAsyncEnumerator<object> eventStreamEnumerator =
                     _sourceStream.ReadEventsAsync().GetAsyncEnumerator(
                         _requestContext.RequestAborted);
 
-                while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+                while (await eventStreamEnumerator.MoveNextAsync().ConfigureAwait(false))
                 {
                     if (_requestContext.RequestAborted.IsCancellationRequested)
                     {
                         break;
                     }
 
-                    yield return await OnEvent(enumerator.Current).ConfigureAwait(false);
+                    yield return await OnEvent(eventStreamEnumerator.Current).ConfigureAwait(false);
                 }
             }
 
@@ -94,6 +121,16 @@ namespace HotChocolate.Execution.Processing
                 }
             }
 
+            /// <summary>
+            /// OnEvent is called whenever the event stream yields a payload and triggers an
+            /// execution of the subscription query.
+            /// </summary>
+            /// <param name="payload">
+            /// The event stream payload.
+            /// </param>
+            /// <returns>
+            /// Returns a query result which will be enqueued to the response stream.
+            /// </returns>
             private async Task<IQueryResult> OnEvent(object payload)
             {
                 using IServiceScope serviceScope = _requestContext.Services.CreateScope();
@@ -105,16 +142,21 @@ namespace HotChocolate.Execution.Processing
 
                 try
                 {
+                    // we store the event payload on the scoped context so that it is accessible
+                    // in the resolvers.
                     ImmutableDictionary<string, object?> scopedContext =
                         ImmutableDictionary<string, object?>.Empty
                             .SetItem(WellKnownContextData.EventMessage, payload);
 
+                    // next we resolve the subscription instance.
                     var rootValue = RootValueResolver.Resolve(
                         _requestContext,
                         eventServices,
                         _subscriptionType,
                         ref _cachedRootValue);
 
+                    // last we initialize a standard operation context to execute
+                    // the subscription query with the standard query executor.
                     operationContext.Initialize(
                         _requestContext,
                         eventServices,
