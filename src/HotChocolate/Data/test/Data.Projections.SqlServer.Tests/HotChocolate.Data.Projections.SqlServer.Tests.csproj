@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.Projections.SqlServer.Tests</AssemblyName>
@@ -17,6 +17,6 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.0" />
     
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
   </ItemGroup>
 </Project>
