@@ -1,0 +1,74 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/website"
+  schedule:
+    interval: monthly
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: gatsby-plugin-mdx
+    versions:
+    - 1.10.1
+    - 1.9.0
+    - 2.0.1
+  - dependency-name: gatsby
+    versions:
+    - 2.31.1
+    - 2.32.11
+    - 2.32.8
+  - dependency-name: "@types/react"
+    versions:
+    - 17.0.2
+    - 17.0.3
+  - dependency-name: husky
+    versions:
+    - 4.3.8
+    - 5.1.2
+    - 5.1.3
+  - dependency-name: react-instantsearch-dom
+    versions:
+    - 6.10.0
+    - 6.10.3
+    - 6.8.3
+  - dependency-name: elliptic
+    versions:
+    - 6.5.4
+  - dependency-name: gatsby-plugin-manifest
+    versions:
+    - 2.12.1
+  - dependency-name: react-responsive-carousel
+    versions:
+    - 3.2.12
+  - dependency-name: typescript
+    versions:
+    - 4.2.2
+  - dependency-name: gatsby-plugin-sharp
+    versions:
+    - 2.14.3
+  - dependency-name: react-share
+    versions:
+    - 4.4.0
+  - dependency-name: gatsby-transformer-sharp
+    versions:
+    - 2.11.0
+  - dependency-name: "@types/react-redux"
+    versions:
+    - 7.1.16
+  - dependency-name: gatsby-plugin-google-analytics
+    versions:
+    - 2.10.0
+  - dependency-name: gatsby-plugin-styled-components
+    versions:
+    - 3.9.0
+  - dependency-name: algoliasearch
+    versions:
+    - 4.8.4
+  - dependency-name: gatsby-plugin-offline
+    versions:
+    - 3.9.0
+  - dependency-name: gatsby-transformer-json
+    versions:
+    - 2.10.0
+  - dependency-name: gatsby-plugin-react-helmet
+    versions:
+    - 3.9.0
