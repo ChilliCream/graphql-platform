@@ -27,7 +27,7 @@ In order to use the `@authorize`-directive we have to register it like the follo
 ```csharp
 SchemaBuilder.New()
   ...
-  .AddAuthorizeDirectiveType()
+  .AddAuthorization()
   ...
   .Create();
 ```
