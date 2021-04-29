@@ -168,7 +168,7 @@ namespace HotChocolate.Types
 
                     string serializedLatitude = degree switch
                     {
-                        > 0 and < Max =>
+                        >= 0 and < Max =>
                             $"{degree}° {minutes}' {seconds}\" N",
                         < 0 and > Min =>
                             $"{Math.Abs(degree)}° {Math.Abs(minutes)}' {Math.Abs(seconds)}\" S",

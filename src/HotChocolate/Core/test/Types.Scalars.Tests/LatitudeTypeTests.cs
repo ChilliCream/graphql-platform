@@ -37,7 +37,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = new StringValueNode("89° 0' 0.000\" S");
+            StringValueNode valueSyntax = new("89° 0' 0.000\" S");
 
             // act
             var result = scalar.IsInstanceOfType(valueSyntax);
@@ -149,7 +149,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
-            var valueSyntax = 89d;
+            const double valueSyntax = 89d;
 
             // act
             IValueNode result = scalar.ParseResult(valueSyntax);
@@ -163,7 +163,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
-            var valueSyntax = 92d;
+            const double valueSyntax = 92d;
 
             // act
             Exception? result = Record.Exception(() => scalar.ParseResult(valueSyntax));
@@ -177,7 +177,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LatitudeType();
-            var valueSyntax = 'c';
+            const char valueSyntax = 'c';
 
             // act
             Exception? result = Record.Exception(() => scalar.ParseResult(valueSyntax));
@@ -207,14 +207,13 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = new StringValueNode(literal);
-            var expectedResult = runtime;
+            StringValueNode valueSyntax = new(literal);
 
             // act
             object result = ToPrecision(scalar, valueSyntax, precision);
 
                 // assert
-            Assert.Equal(expectedResult, result);
+            Assert.Equal(runtime, result);
         }
 
         [Fact]
@@ -222,7 +221,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
-            var valueSyntax = new StringValueNode("foo");
+            StringValueNode valueSyntax = new("foo");
 
             // act
             Exception? result = Record.Exception(() => scalar.ParseLiteral(valueSyntax));
@@ -279,7 +278,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
-            var expected = new StringValueNode(literal);
+            StringValueNode expected = new(literal);
 
             // act
             IValueNode result = scalar.ParseValue(runtime);
