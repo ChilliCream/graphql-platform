@@ -26,18 +26,18 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var type = new LongitudeType();
+            ScalarType type = new LongitudeType();
 
             // assert
             Assert.Equal(TypeKind.Scalar, type.Kind);
         }
 
         [Fact]
-        protected void Longitude_ExpectIsStringValueToMatch()
+        protected void Longitude_ExpectIsStringInstanceToMatch()
         {
             // arrange
             ScalarType scalar = CreateType<LongitudeType>();
-            var valueSyntax = new StringValueNode("180° 0' 0.000\" W");
+            StringValueNode valueSyntax = new("179° 0' 0.000\" E")!;
 
             // act
             var result = scalar.IsInstanceOfType(valueSyntax);
@@ -47,11 +47,11 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void Longitude_ExpectIsDoubleMatch()
+        protected void Longitude_ExpectIsDoubleInstanceToMatch()
         {
             // arrange
             ScalarType scalar = CreateType<LongitudeType>();
-            var valueSyntax = 180.00000001;
+            const double valueSyntax = -179d;
 
             // act
             var result = scalar.IsInstanceOfType(valueSyntax);
@@ -60,8 +60,135 @@ namespace HotChocolate.Types
             Assert.True(result);
         }
 
+        [Fact]
+        protected void Longitude_ExpectIsDoubleInstanceToFail_LessThanMin()
+        {
+            // arrange
+            ScalarType scalar = CreateType<LongitudeType>();
+            const double valueSyntax = -181d;
+
+            // act
+            var result = scalar.IsInstanceOfType(valueSyntax);
+
+            // assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        protected void Longitude_ExpectIsDoubleInstanceToFail_GreaterThanMax()
+        {
+            // arrange
+            ScalarType scalar = CreateType<LongitudeType>();
+            const double valueSyntax = 181d;
+
+            // act
+            var result = scalar.IsInstanceOfType(valueSyntax);
+
+            // assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        protected void Longitude_ExpectParseResultToMatchNull()
+        {
+            // arrange
+            ScalarType scalar = new LongitudeType();
+            object valueSyntax = null!;
+
+            // act
+            IValueNode result = scalar.ParseResult(valueSyntax);
+
+            // assert
+            Assert.Equal(typeof(NullValueNode), result.GetType());
+        }
+
+        [Fact]
+        protected void Longitude_ExpectParseResultToThrowOnInvalidString()
+        {
+            // arrange
+            ScalarType scalar = new LongitudeType();
+            const string valueSyntax = "-181° 0' 0.000\" W"!;
+
+            // act
+            Exception? result = Record.Exception(() => scalar.ParseResult(valueSyntax));
+
+            // assert
+            Assert.IsType<SerializationException>(result);
+        }
+
+        [Fact]
+        protected void Longitude_ExpectParseResultToMatchInt()
+        {
+            // arrange
+            ScalarType scalar = new LongitudeType();
+            const int valueSyntax = 179;
+
+            // act
+            IValueNode result = scalar.ParseResult(valueSyntax);
+
+            // assert
+            Assert.Equal(typeof(StringValueNode), result.GetType());
+        }
+
+        [Fact]
+        protected void Longitude_ExpectParseResultToThrowOnInvalidInt()
+        {
+            // arrange
+            ScalarType scalar = new LongitudeType();
+            const int valueSyntax = 181;
+
+            // act
+            Exception? result = Record.Exception(() => scalar.ParseResult(valueSyntax));
+
+            // assert
+            Assert.IsType<SerializationException>(result);
+        }
+
+        [Fact]
+        protected void Longitude_ExpectParseResultToMatchDouble()
+        {
+            // arrange
+            ScalarType scalar = new LongitudeType();
+            const double valueSyntax = 179d;
+
+            // act
+            IValueNode result = scalar.ParseResult(valueSyntax);
+
+            // assert
+            Assert.Equal(typeof(StringValueNode), result.GetType());
+        }
+
+        [Fact]
+        protected void Longitude_ExpectParseResultToThrowOnInvalidDouble()
+        {
+            // arrange
+            ScalarType scalar = new LongitudeType();
+            const double valueSyntax = -182d;
+
+            // act
+            Exception? result = Record.Exception(() => scalar.ParseResult(valueSyntax));
+
+            // assert
+            Assert.IsType<SerializationException>(result);
+        }
+
+        [Fact]
+        protected void Longitude_ExpectParseResultToThrowOnInvalidType()
+        {
+            // arrange
+            ScalarType scalar = new LongitudeType();
+            const char valueSyntax = 'c';
+
+            // act
+            Exception? result = Record.Exception(() => scalar.ParseResult(valueSyntax));
+
+            // assert
+            Assert.IsType<SerializationException>(result);
+        }
+
         [Theory]
-        [InlineData("180° 0' 0.000\" E", 180.0, 1)]
+        [InlineData("180° 0' 0.000\" E", 180.0, 0)]
+        [InlineData("180° 0' 0.000\" W", -180.0, 0)]
         [InlineData("176° 19' 26.576\" E", 176.3, 1)]
         [InlineData("62° 12' 48.831\" W", -62.2, 1)]
         [InlineData("4° 46' 6.456\" W", -4.77, 2)]
@@ -70,29 +197,25 @@ namespace HotChocolate.Types
         [InlineData("118° 45' 3.780\" E", 118.751, 3)]
         [InlineData("139° 19' 8.803\" E", 139.3191, 4)]
         [InlineData("141° 59' 27.377\" E", 141.9909, 4)]
-        [InlineData("12° 30' 40.79\" E", 12.51133, 5)]
-        [InlineData("74° 0' 21.49\" W", -74.00597, 5)]
+        [InlineData("12°30'40.79\"E", 12.51133, 5)]
+        [InlineData("74°0'21.49\"W", -74.00597, 5)]
         [InlineData("99° 44' 56.030\" W", -99.748897, 6)]
         [InlineData("21° 55' 56.083\" E", 21.932245, 6)]
         [InlineData("129° 39' 38.704\" E", 129.6607511, 7)]
         [InlineData("54° 33' 12.699\" W", -54.5535275, 7)]
         [InlineData("148° 34' 9.124\" W", -148.56920111, 8)]
         [InlineData("44° 44' 2.119\" W", -44.73392194, 8)]
-        protected void Longitude_ExpectParseLiteralToMatch(
-            string literal,
-            double runtime,
-            int precision)
+        protected void Longitude_ExpectParseLiteralToMatch(string literal, double runtime, int precision )
         {
             // arrange
             ScalarType scalar = CreateType<LongitudeType>();
-            var valueSyntax = new StringValueNode(literal);
-            var expectedResult = runtime;
+            StringValueNode valueSyntax = new(literal);
 
             // act
             object result = ToPrecision(scalar, valueSyntax, precision);
 
             // assert
-            Assert.Equal(expectedResult, result);
+            Assert.Equal(runtime, result);
         }
 
         [Fact]
@@ -100,7 +223,7 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = CreateType<LongitudeType>();
-            var valueSyntax = new StringValueNode("foo");
+            StringValueNode valueSyntax = new("foo");
 
             // act
             Exception? result = Record.Exception(() => scalar.ParseLiteral(valueSyntax));
@@ -110,11 +233,25 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void Longitude_ParseLiteral_NullValueNode()
+        {
+            // arrange
+            ScalarType scalar = CreateType<LongitudeType>();
+            NullValueNode literal = NullValueNode.Default;
+
+            // act
+            object value = scalar.ParseLiteral(literal)!;
+
+            // assert
+            Assert.Null(value);
+        }
+
+        [Fact]
         protected void Longitude_ExpectParseValueToMatchType()
         {
             // arrange
             ScalarType scalar = CreateType<LongitudeType>();
-            var valueSyntax = 170.1;
+            const double valueSyntax = 74.3d;
 
             // act
             IValueNode result = scalar.ParseValue(valueSyntax);
@@ -124,40 +261,43 @@ namespace HotChocolate.Types
         }
 
         [Theory]
-        [InlineData(-62.2, "62° 12' 0\" W")]
-        [InlineData(-4.77, "4° 46' 12\" W")]
-        [InlineData(-6.48, "6° 28' 48\" W")]
-        [InlineData(-0.169, "-0° -10' -8.4\"")]
-        [InlineData(118.751, "118° 45' 3.6\" E")]
-        [InlineData(139.3191, "139° 19' 8.76\" E")]
-        [InlineData(141.9909, "141° 59' 27.24\" E")]
-        [InlineData(12.51133, "12° 30' 40.788\" E")]
-        [InlineData(-74.00597, "74° 0' 21.492\" W")]
-        [InlineData(21.932245, "21° 55' 56.082\" E")]
-        [InlineData(-99.748897, "99° 44' 56.0292\" W")]
-        [InlineData(-54.5535275, "54° 33' 12.699\" W")]
-        [InlineData(-44.73392194, "44° 44' 2.118984\" W")]
+        [InlineData(179d, "179° 0' 0\" E")]
+        [InlineData(-179d, "179° 0' 0\" W")]
+        [InlineData(174.3, "174° 18' 0\" E")]
+        [InlineData(-82.2, "82° 12' 0\" W")]
+        [InlineData(-165.77, "165° 46' 12\" W")]
+        [InlineData(-9.48, "9° 28' 48\" W")]
+        [InlineData(0.189, "0° 11' 20.4\" E")]
+        [InlineData(134.296, "134° 17' 45.6\" E")]
+        [InlineData(153.7891, "153° 47' 20.76\" E")]
+        [InlineData(111.2939, "111° 17' 38.04\" E")]
+        [InlineData(8.51133, "8° 30' 40.788\" E")]
+        [InlineData(-76.00157, "76° 0' 5.652\" W")]
+        [InlineData(-44.28764, "44° 17' 15.504\" W")]
+        [InlineData(22.783647, "22° 47' 1.1292\" E")]
+        [InlineData(175.8855460, "175° 53' 7.9656\" E")]
+        [InlineData(-79.0000275, "79° 0' 0.099\" W")]
         [InlineData(-148.56920111, "148° 34' 9.123996\" W")]
+        [InlineData(-44.73392194, "44° 44' 2.118984\" W")]
         protected void Longitude_ExpectParseValueToMatch(double runtime, string literal)
         {
             // arrange
             ScalarType scalar = CreateType<LongitudeType>();
-            var valueSyntax = runtime;
-            var expected = new StringValueNode(literal);
+            StringValueNode expected = new(literal);
 
             // act
-            IValueNode result = scalar.ParseValue(valueSyntax);
+            object result = scalar.ParseValue(runtime);
 
             // assert
             Assert.Equal(expected, result);
         }
 
         [Fact]
-        protected void Longitude_ExpectParseValueToThrowSerializationException()
+        protected void Longitude_ExpectParseValueToThrowSerializationException_GreaterThanMax()
         {
             // arrange
             ScalarType scalar = CreateType<LongitudeType>();
-            var runtimeValue = new StringValueNode("foo");
+            const double runtimeValue = 181d;
 
             // act
             Exception? result = Record.Exception(() => scalar.ParseValue(runtimeValue));
@@ -167,30 +307,62 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void Longitude_ExpectDeserializeNullToMatch()
+        protected void Longitude_ExpectParseValueToThrowSerializationException_LessThanMin()
         {
             // arrange
-            ScalarType scalar = new LongitudeType();
+            ScalarType scalar = CreateType<LongitudeType>();
+            const double runtimeValue = -181d;
 
             // act
-            var success = scalar.TryDeserialize(null, out var deserialized);
+            Exception? result = Record.Exception(() => scalar.ParseValue(runtimeValue));
 
             // assert
-            Assert.True(success);
-            Assert.Null(deserialized);
+            Assert.IsType<SerializationException>(result);
         }
 
         [Fact]
-        public void Longitude_ExpectDeserializeInvalidStringToDouble()
+        protected void Longitude_ExpectDeserializeStringToMatch()
         {
             // arrange
             ScalarType scalar = new LongitudeType();
+            const double expectedValue = -179d;
 
             // act
-            var success = scalar.TryDeserialize("abc", out _);
+            var success = scalar.TryDeserialize("179° 0' 0.000\" W",
+                out var deserialized);
 
             // assert
-            Assert.False(success);
+            Assert.True(success);
+            Assert.Equal(expectedValue, deserialized);
+        }
+
+        [Fact]
+        protected void Longitude_ExpectDeserializeStringToThrowSerializationException_LessThanMin()
+        {
+            // arrange
+            ScalarType scalar = new LongitudeType();
+            const string valueSyntax = "-181° 0' 0.000\" W"!;
+
+            // act
+
+            Exception? result = Record.Exception(() => scalar.Deserialize(valueSyntax));
+
+            // assert
+            Assert.IsType<SerializationException>(result);
+        }
+
+        [Fact]
+        protected void Longitude_ExpectDeserializeStringToThrowSerializationException_GreaterThanMax()
+        {
+            // arrange
+            ScalarType scalar = new LongitudeType();
+            const string? valueSyntax = "182° 0' 0.000\" E"!;
+
+            // act
+            Exception? result = Record.Exception(() => scalar.Deserialize(valueSyntax));
+
+            // assert
+            Assert.IsType<SerializationException>(result);
         }
 
         [Fact]
@@ -198,12 +370,42 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LongitudeType();
+            const int valueSyntax = 179;
 
             // act
-            var success = scalar.TrySerialize(180, out _);
+            var success = scalar.TrySerialize(valueSyntax, out var s);
 
             // assert
             Assert.True(success);
+            Assert.IsType<string>(s);
+        }
+
+        [Fact]
+        protected void Longitude_ExpectSerializeIntToThrowSerializationException_LessThanMin()
+        {
+            // arrange
+            ScalarType scalar = new LongitudeType();
+            const int valueSyntax = -181;
+
+            // act
+            Exception? result = Record.Exception(() => scalar.Serialize(valueSyntax));
+
+            // assert
+            Assert.IsType<SerializationException>(result);
+        }
+
+        [Fact]
+        protected void Longitude_ExpectSerializeIntToThrowSerializationException_GreaterThanMax()
+        {
+            // arrange
+            ScalarType scalar = new LongitudeType();
+            const int valueSyntax = 181;
+
+            // act
+            Exception? result = Record.Exception(() => scalar.Serialize(valueSyntax));
+
+            // assert
+            Assert.IsType<SerializationException>(result);
         }
 
         [Fact]
@@ -211,106 +413,42 @@ namespace HotChocolate.Types
         {
             // arrange
             ScalarType scalar = new LongitudeType();
+            const double valueSyntax = 179d;
 
             // act
-            var success = scalar.TrySerialize(180.0, out _);
+            var success = scalar.TrySerialize(valueSyntax, out var d);
 
             // assert
             Assert.True(success);
+            Assert.IsType<string>(d);
         }
 
         [Fact]
-        public void Longitude_ExpectDeserializeNullToNull()
+        protected void Longitude_ExpectSerializeDoubleToThrowSerializationException_LessThanMin()
         {
             // arrange
             ScalarType scalar = new LongitudeType();
+            const double valueSyntax = -181d;
 
             // act
-            var success = scalar.TryDeserialize(null, out var deserialized);
+            Exception? result = Record.Exception(() => scalar.Serialize(valueSyntax));
 
             // assert
-            Assert.True(success);
-            Assert.Null(deserialized);
+            Assert.IsType<SerializationException>(result);
         }
 
         [Fact]
-        protected void Longitude_ExpectParseResultToMatchNull()
+        protected void Longitude_ExpectSerializeDoubleToThrowSerializationException_GreaterThanMax()
         {
             // arrange
             ScalarType scalar = new LongitudeType();
+            const double valueSyntax = 181d;
 
             // act
-            IValueNode result = scalar.ParseResult(null);
+            Exception? result = Record.Exception(() => scalar.Serialize(valueSyntax));
 
             // assert
-            Assert.Equal(typeof(NullValueNode), result.GetType());
-        }
-
-        [Fact]
-        protected void Longitude_ExpectParseResultToMatchNull_Double()
-        {
-            // arrange
-            ScalarType scalar = new LongitudeType();
-
-            // act
-            IValueNode result = scalar.ParseResult(-44.73392194d);
-
-            // assert
-
-            Assert.Equal("44° 44' 2.118984\" W", Assert.IsType<StringValueNode>(result).Value);
-        }
-
-        [Fact]
-        protected void Longitude_ExpectParseResultToMatch_Int()
-        {
-            // arrange
-            ScalarType scalar = new LongitudeType();
-
-            // act
-            IValueNode result = scalar.ParseResult(-44);
-
-            // assert
-
-            Assert.Equal("44° 0' 0\" W", Assert.IsType<StringValueNode>(result).Value);
-        }
-
-        [Fact]
-        protected void Longitude_ExpectParseResultToMatch_ThrowOnChar()
-        {
-            // arrange
-            ScalarType scalar = new LongitudeType();
-
-            // act
-            Exception? ex = Record.Exception(() => scalar.ParseResult('c'));
-
-            // assert
-            Assert.IsType<SerializationException>(ex);
-        }
-
-        [Fact]
-        protected void Longitude_ExpectParseResultToMatchNull_BiggerThanMin()
-        {
-            // arrange
-            ScalarType scalar = new LongitudeType();
-
-            // act
-            Exception? ex = Record.Exception(() => scalar.ParseResult(-180.1));
-
-            // assert
-            Assert.IsType<SerializationException>(ex);
-        }
-
-        [Fact]
-        protected void Longitude_ExpectParseResultToMatchNull_BiggerThanMax()
-        {
-            // arrange
-            ScalarType scalar = new LongitudeType();
-
-            // act
-            Exception? ex = Record.Exception(() => scalar.ParseResult(180.1));
-
-            // assert
-            Assert.IsType<SerializationException>(ex);
+            Assert.IsType<SerializationException>(result);
         }
 
         [Fact]
@@ -326,12 +464,12 @@ namespace HotChocolate.Types
             IExecutionResult res = await executor.ExecuteAsync("{ test }");
 
             // assert
-            res.ToJson().MatchSnapshot();
+            (await res.ToJsonAsync()).MatchSnapshot();
         }
 
         public class DefaultLongitude
         {
-            public double Test => new();
+            public double Test => 0;
         }
 
         public class DefaultLongitudeType : ObjectType<DefaultLongitude>

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
@@ -33,17 +34,23 @@ namespace HotChocolate.Types
         }
 
         /// <inheritdoc />
+        protected override bool IsInstanceOfType(double runtimeValue)
+        {
+            return runtimeValue is > Longitude.Min and < Longitude.Max;
+        }
+
+        /// <inheritdoc />
         public override IValueNode ParseResult(object? resultValue)
         {
             return resultValue switch
             {
                 null => NullValueNode.Default,
 
-                string s when Longitude.TryDeserialize(s, out var value) => ParseValue(value),
+                string s when Longitude.TryDeserialize(s, out var runtimeValue) => ParseValue(runtimeValue),
+
+                int i => ParseValue(i),
 
                 double d => ParseValue(d),
-
-                int d => ParseValue(d),
 
                 _ => throw ThrowHelper.LongitudeType_ParseValue_IsInvalid(this)
             };
@@ -52,9 +59,9 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override double ParseLiteral(StringValueNode valueSyntax)
         {
-            if (Longitude.TryDeserialize(valueSyntax.Value, out var value) && value is not null)
+            if (Longitude.TryDeserialize(valueSyntax.Value,  out var runtimeValue))
             {
-                return value.Value;
+                return runtimeValue.Value;
             }
 
             throw ThrowHelper.LongitudeType_ParseLiteral_IsInvalid(this);
@@ -63,9 +70,9 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override StringValueNode ParseValue(double runtimeValue)
         {
-            if (runtimeValue is >= Longitude._min and <= Longitude._max)
+            if (Longitude.TrySerialize(runtimeValue, out var s))
             {
-                return new StringValueNode(Longitude.TrySerialize(runtimeValue));
+                return new StringValueNode(s);
             }
 
             throw ThrowHelper.LongitudeType_ParseValue_IsInvalid(this);
@@ -74,44 +81,54 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
-            if (runtimeValue is null)
+            switch (runtimeValue)
             {
-                resultValue = null;
+                case double d when Longitude.TrySerialize(d, out var serializedDouble):
+                    resultValue = serializedDouble;
+                    return true;
+
+                case int i when Longitude.TrySerialize(i, out var serializedInt):
+                    resultValue = serializedInt;
+                    return true;
+
+                default:
+                    resultValue = null;
+                    return false;
+            }
+        }
+
+        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
+        {
+            if (resultValue is string s &&
+                Longitude.TryDeserialize(s, out var value) &&
+                value is > Longitude.Min and < Longitude.Max)
+            {
+                runtimeValue = value;
                 return true;
             }
 
-            if (runtimeValue is double d)
-            {
-                resultValue = Longitude.TrySerialize(d);
-                return true;
-            }
-
-            if (runtimeValue is int i)
-            {
-                resultValue = Longitude.TrySerialize(i);
-                return true;
-            }
-
-            resultValue = null;
+            runtimeValue = null;
             return false;
         }
 
         private static class Longitude
         {
-            public const double _min = -180.0;
-            public const double _max = 180.0;
+            public const double Min = -180.0;
+            public const double Max = 180.0;
             private const int MaxPrecision = 8;
 
             private const string SexagesimalRegex =
                 "^([0-9]{1,3})°\\s*([0-9]{1,3}(?:\\.(?:[0-9]{1,}))?)['′]\\s*(([0-9]{1,3}" +
                 "(\\.([0-9]{1,}))?)[\"″]\\s*)?([NEOSW]?)$";
 
-            private static readonly Regex _rx =
+            private static readonly Regex _validationPattern =
                 new(SexagesimalRegex, RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-            public static bool TryDeserialize(string serialized, out double? value)
+            public static bool TryDeserialize(
+                string serialized,
+                [NotNullWhen(true)] out double? value)
             {
-                MatchCollection coords = _rx.Matches(serialized);
+                MatchCollection coords = _validationPattern.Matches(serialized);
                 if (coords.Count > 0)
                 {
                     var minute = double.TryParse(coords[0].Groups[2].Value, out var min)
@@ -132,34 +149,43 @@ namespace HotChocolate.Types
                 return false;
             }
 
-            public static string TrySerialize(double serialize)
+            public static bool TrySerialize(
+                double runtimeValue,
+                [NotNullWhen(true)] out string? resultValue)
             {
-                var degree =  serialize > 0
-                    ? Math.Floor(serialize)
-                    : Math.Ceiling(serialize);
-                var degreeDecimals = serialize - degree;
-
-                var minutesWhole = degreeDecimals * 60;
-                var minutes = minutesWhole > 0
-                    ? Math.Floor(minutesWhole)
-                    : Math.Ceiling(minutesWhole);
-                var minutesDecimal = minutesWhole - minutes;
-
-                var seconds = Math.Round(
-                    minutesDecimal * 60,
-                    MaxPrecision,
-                    MidpointRounding.AwayFromZero);
-
-                string serializedLongitude = degree switch
+                if (runtimeValue is > Min and < Max)
                 {
-                    > 0 and < _max =>
-                        $"{degree}° {minutes}' {seconds}\" E",
-                    < 0 and > _min =>
-                        $"{Math.Abs(degree)}° {Math.Abs(minutes)}' {Math.Abs(seconds)}\" W",
-                    _ => $"{degree}° {minutes}' {seconds}\""
-                };
+                    var degree =  runtimeValue > 0
+                        ? Math.Floor(runtimeValue)
+                        : Math.Ceiling(runtimeValue);
+                    var degreeDecimals = runtimeValue - degree;
 
-                return serializedLongitude;
+                    var minutesWhole = degreeDecimals * 60;
+                    var minutes = minutesWhole > 0
+                        ? Math.Floor(minutesWhole)
+                        : Math.Ceiling(minutesWhole);
+                    var minutesDecimal = minutesWhole - minutes;
+
+                    var seconds = Math.Round(
+                        minutesDecimal * 60,
+                        MaxPrecision,
+                        MidpointRounding.AwayFromZero);
+
+                    string serializedLatitude = degree switch
+                    {
+                        >= 0 and < Max =>
+                            $"{degree}° {minutes}' {seconds}\" E",
+                        < 0 and > Min =>
+                            $"{Math.Abs(degree)}° {Math.Abs(minutes)}' {Math.Abs(seconds)}\" W",
+                        _ => $"{degree}° {minutes}' {seconds}\""
+                    };
+
+                    resultValue = serializedLatitude;
+                    return true;
+                }
+
+                resultValue = null;
+                return false;
             }
         }
     }
