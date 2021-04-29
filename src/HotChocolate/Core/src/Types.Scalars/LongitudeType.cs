@@ -67,7 +67,6 @@ namespace HotChocolate.Types
             throw ThrowHelper.LongitudeType_ParseLiteral_IsInvalid(this);
         }
 
-        /// <inheritdoc />
         protected override StringValueNode ParseValue(double runtimeValue)
         {
             if (Longitude.TrySerialize(runtimeValue, out var s))
@@ -78,7 +77,6 @@ namespace HotChocolate.Types
             throw ThrowHelper.LongitudeType_ParseValue_IsInvalid(this);
         }
 
-        /// <inheritdoc />
         public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
             switch (runtimeValue)
