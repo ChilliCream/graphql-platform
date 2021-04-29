@@ -190,4 +190,4 @@ public class SessionResolvers
 }
 ```
 
-> Note, that all of the advanced type extension methods are also possible with code-first.
+> Note: All of the advanced type extension methods are also possible with code-first.

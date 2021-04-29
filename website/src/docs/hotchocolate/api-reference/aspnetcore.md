@@ -293,26 +293,42 @@ Hot Chocolate implements the GraphQL multipart request specification which allow
 In order to use file upload streams in your input types or as an argument register the `Upload` scalar like the following.
 
 ```csharp
-service
+services
     .AddGraphQLServer()
-    ...
+    // ...
     .AddType<UploadType>();
 ```
 
 In your resolver or input type you can then use the `IFile` interface to use the upload scalar.
 
 ```csharp
-public class Query 
+public class Query
 {
     public async Task<bool> UploadFile(IFile file)
     {
         using Stream stream = file.OpenReadStream();
         // you can now work with standard stream functionality of .NET to handle the file.
     }
+
+    public async Task<bool> UploadFiles(List<IFile> files)
+    {
+        // Omitted code for brevity
+    }
+
+    public async Task<bool> UploadFileInInput(ExampleInput input)
+    {
+        // Omitted code for brevity
+    }
+}
+
+public class ExampleInput
+{
+    [GraphQLType(typeof(NonNullType<UploadType>))]
+    public IFile File { get; set; }
 }
 ```
 
-> Note, that the `Upload` scalar can only be used as an input type and does not work on output types.
+> Note: The `Upload` scalar can only be used as an input type and does not work on output types.
 
 If you need to upload large files or set custom upload size limits, you can configure those by registering custom [`FormOptions`](https://docs.microsoft.com/dotnet/api/microsoft.aspnetcore.http.features.formoptions).
 
