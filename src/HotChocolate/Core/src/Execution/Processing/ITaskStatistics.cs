@@ -27,5 +27,9 @@ namespace HotChocolate.Execution.Processing
         void TaskStarted();
 
         void TaskCompleted();
+
+        void SuspendCompletionEvent();
+
+        void ResumeCompletionEvent();
     }
 }

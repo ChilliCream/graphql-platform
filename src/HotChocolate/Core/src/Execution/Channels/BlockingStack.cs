@@ -1,63 +1,127 @@
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace HotChocolate.Execution.Channels
 {
     internal sealed class BlockingStack<T>
     {
-        private readonly Stack<T> _list = new Stack<T>();
-        private SpinLock _lock = new SpinLock(Debugger.IsAttached);
+        private readonly ConcurrentStack<T> _list = new();
+        private readonly object _lock = new();
+        /// <summary>Generated whenever the amount of items in the stack becomes 0</summary>
+        private event EventHandler? StackEmptied;
+        /// <summary>The amount of items in _list but safe to access from multiple threads (without locking)</summary>
+        private int _count = 0;
 
-        public bool TryPop([MaybeNullWhen(false)]out T item)
+        public bool TryPop([MaybeNullWhen(false)] out T item)
         {
-            var lockTaken = false;
-            try
+            if (_list.TryPop(out item))
             {
-                _lock.Enter(ref lockTaken);
-#if NETSTANDARD2_0
-                if (_list.Count > 0)
+                var value = Interlocked.Decrement(ref _count);
+                if (value == 0)
                 {
-                    item = _list.Pop();
-                    IsEmpty = _list.Count == 0;
-                    return true;
+                    lock (_lock)
+                    {
+                        StackEmptied?.Invoke(this, EventArgs.Empty);
+                    }
                 }
-
-                item = default;
-#else
-                if (_list.TryPop(out item))
-                {
-                    IsEmpty = _list.Count == 0;
-                    return true;
-                }
-#endif
-
-                return false;
+                return true;
             }
-            finally
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to remove an item from the queue.
+        /// the item will not be counted as removed until the receiver has completed.
+        /// </summary>
+        /// <returns>true if receiver was called (throws if receiver throws)</returns>
+        public bool TryPop(Action<T> receiver)
+        {
+            if (_list.TryPop(out T item))
             {
-                if (lockTaken) _lock.Exit(false);
+                try
+                {
+                    receiver(item);
+                }
+                finally
+                {
+                    var value = Interlocked.Decrement(ref _count);
+                    if (value == 0)
+                    {
+                        lock (_lock)
+                        {
+                            StackEmptied?.Invoke(this, EventArgs.Empty);
+                        }
+                    }
+                }
+                return true;
             }
+            return false;
         }
 
         public void Push(T item)
         {
-            bool lockTaken = false;
+            _list.Push(item);
+            Interlocked.Increment(ref _count);
+        }
+        
+        public bool IsEmpty => _count == 0;
+
+        public async Task WaitTillEmpty(CancellationToken? ctx = null)
+        {
+            TaskCompletionSource<bool> completion = new TaskCompletionSource<bool>();
+            CancellationTokenRegistration? ctxRegistration = ctx?.Register(() => completion.TrySetCanceled());
+            EventHandler completionHandler = (source, args) =>
+            {
+                try
+                {
+                    if (ctx?.IsCancellationRequested ?? false)
+                    {
+                        completion.TrySetCanceled();
+                    }
+                    else
+                    {
+                        completion.TrySetResult(true);
+                    }
+                }
+                catch (Exception e)
+                {
+                    completion.TrySetException(e);
+                }
+            };
+
+            lock(_lock)
+            { 
+                StackEmptied += completionHandler;
+
+                if (ctx?.IsCancellationRequested ?? false)
+                {
+                    completion.TrySetCanceled();
+                }
+                else if (_count == 0)
+                {
+                    completion.TrySetResult(true);
+                }
+            }
+
             try
             {
-                _lock.Enter(ref lockTaken);
-                _list.Push(item);
-                IsEmpty = false;
+                await completion.Task.ConfigureAwait(false);
             }
             finally
             {
-                if (lockTaken) _lock.Exit(false);
+                ctxRegistration?.Dispose();
+                lock (_lock)
+                {
+                    StackEmptied -= completionHandler;
+                }
             }
         }
 
-        public bool IsEmpty { get; private set; } = true;
-
-        public int Count => _list.Count;
+        public int Count => _count;
     }
 }

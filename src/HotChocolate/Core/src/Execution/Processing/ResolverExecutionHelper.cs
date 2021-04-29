@@ -6,10 +6,10 @@ namespace HotChocolate.Execution.Processing
 {
     internal static class ResolverExecutionHelper
     {
-        public static async Task ExecuteTasksAsync(
+        public async static Task ExecuteTasksAsync(
             IOperationContext operationContext)
         {
-            if (operationContext.Execution.TaskBacklog.IsEmpty)
+            if (operationContext.Execution.TaskBacklog.IsIdle)
             {
                 return;
             }
@@ -58,15 +58,17 @@ namespace HotChocolate.Execution.Processing
             Action<Exception> handleError,
             CancellationToken cancellationToken)
         {
+            Action<IExecutionTask> taskReceiver =
+                task => task.BeginExecute(cancellationToken);
             while (!cancellationToken.IsCancellationRequested &&
                 !executionContext.IsCompleted)
             {
                 try
                 {
                     while (!cancellationToken.IsCancellationRequested &&
-                        executionContext.TaskBacklog.TryTake(out IExecutionTask? task))
+                        executionContext.TaskBacklog.TryTake(taskReceiver))
                     {
-                        task.BeginExecute(cancellationToken);
+                        // empty
                     }
 
                     await executionContext.TaskBacklog

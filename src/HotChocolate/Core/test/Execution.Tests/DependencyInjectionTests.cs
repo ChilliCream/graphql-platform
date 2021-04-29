@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
+using Snapshooter;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -12,6 +14,8 @@ namespace HotChocolate.Execution
         [Fact]
         public async Task Extension_With_Constructor_Injection()
         {
+            var fullName = Snapshot.FullName();
+
             // this test ensures that we inject services into type instances without the need of
             // registering the type into the dependency container.
             IRequestExecutor executor =
@@ -21,19 +25,21 @@ namespace HotChocolate.Execution
                     .AddQueryType<Query1>()
                     .AddType<ExtendQuery1>()
                     .BuildRequestExecutorAsync();
+            
+            await executor
+                .ExecuteAsync("{ hello }")
+                .MatchSnapshotAsync(fullName, "1");
 
             await executor
                 .ExecuteAsync("{ hello }")
-                .MatchSnapshotAsync("1");
-
-            await executor
-                .ExecuteAsync("{ hello }")
-                .MatchSnapshotAsync("2");
+                .MatchSnapshotAsync(fullName, "2");
         }
 
         [Fact]
         public async Task Extension_With_Scoped_Constructor_Injection()
         {
+            Snapshot.FullName();
+
             IServiceProvider services =
                 new ServiceCollection()
                     .AddScoped<SomeService>()
@@ -74,6 +80,8 @@ namespace HotChocolate.Execution
         [Fact]
         public async Task Type_With_Constructor_Injection()
         {
+            var name = Snapshot.FullName();
+
             // this test ensures that we inject services into type instances without the need of
             // registering the type into the dependency container.
             IRequestExecutor executor =
@@ -85,16 +93,18 @@ namespace HotChocolate.Execution
 
             await executor
                 .ExecuteAsync("{ hello }")
-                .MatchSnapshotAsync("1");
+                .MatchSnapshotAsync(name, "1");
 
             await executor
                 .ExecuteAsync("{ hello }")
-                .MatchSnapshotAsync("2");
+                .MatchSnapshotAsync(name, "2");
         }
 
         [Fact]
         public async Task Type_With_Scoped_Constructor_Injection()
         {
+            Snapshot.FullName();
+
             IServiceProvider services =
                 new ServiceCollection()
                     .AddScoped<SomeService>()

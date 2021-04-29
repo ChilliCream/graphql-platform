@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,19 +12,19 @@ namespace HotChocolate.Execution.Processing
     internal interface ITaskBacklog
     {
         /// <summary>
-        /// Defines if the backlog is empty and has no more tasks.
+        /// Defines if the backlog is empty and has no more tasks or has been completed.
         /// </summary>
-        bool IsEmpty { get; }
+        bool IsIdle { get; }
+
+        /// <summary>Waits till the task backlog is empty or has been completed</summary>
+        public Task WaitTillIdle(CancellationToken? ctx = null);
 
         /// <summary>
-        /// Try to take a task from the backlog.
+        /// Tries to remove an item from the queue.
+        /// the item will not be counted as removed until the receiver has completed.
         /// </summary>
-        /// <param name="task">
-        /// The task that was acquired from the backlog.
-        /// The task is not null when the method returns<c>true</c>
-        /// </param>
-        /// <returns>Return <c>true</c> if there was a task on the backlog.</returns>
-        bool TryTake([NotNullWhen(true)] out IExecutionTask? task);
+        /// <returns>true if receiver was called (throws if receiver throws)</returns>
+        bool TryTake(Action<IExecutionTask> receiver);
 
         /// <summary>
         /// Waits for either the <paramref name="cancellationToken" /> to raise or

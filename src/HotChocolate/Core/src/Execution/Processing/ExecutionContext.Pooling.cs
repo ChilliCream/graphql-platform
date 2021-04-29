@@ -14,7 +14,7 @@ namespace HotChocolate.Execution.Processing
         private readonly IDeferredTaskBacklog _deferredTaskBacklog;
         private readonly ObjectPool<ResolverTask> _taskPool;
         private CancellationTokenSource _completed = default!;
-        private IBatchDispatcher _batchDispatcher = default!;
+        private IContextBatchDispatcher _batchDispatcher = default!;
 
         private bool _isPooled = true;
 
@@ -27,12 +27,11 @@ namespace HotChocolate.Execution.Processing
             _taskBacklog = new TaskBacklog(_taskStatistics, resolverTaskPool);
             _deferredTaskBacklog = new DeferredTaskBacklog();
             _taskPool = resolverTaskPool;
-            _taskStatistics.StateChanged += TaskStatisticsEventHandler;
             _taskStatistics.AllTasksCompleted += OnCompleted;
         }
 
         public void Initialize(
-            IBatchDispatcher batchDispatcher,
+            IContextBatchDispatcher batchDispatcher,
             CancellationToken requestAborted)
         {
             _taskStatistics.Clear();
@@ -40,10 +39,10 @@ namespace HotChocolate.Execution.Processing
             _completed = new CancellationTokenSource();
             requestAborted.Register(TryComplete);
 
-            _batchDispatcher = batchDispatcher;
-            _batchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
-
             _isPooled = false;
+
+            _batchDispatcher = batchDispatcher;
+            _batchDispatcher.Register(this, requestAborted);
         }
 
         private void TryComplete()
@@ -68,7 +67,7 @@ namespace HotChocolate.Execution.Processing
         {
             if (_batchDispatcher is not null!)
             {
-                _batchDispatcher.TaskEnqueued -= BatchDispatcherEventHandler;
+                _batchDispatcher.Unregister(this);
                 _batchDispatcher = default!;
             }
 

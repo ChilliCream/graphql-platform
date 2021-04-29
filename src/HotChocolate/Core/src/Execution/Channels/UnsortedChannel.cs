@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 namespace HotChocolate.Execution.Channels
 {
     /// <summary>Provides a buffered channel of Unsorted capacity.</summary>    
-    internal sealed partial class UnsortedChannel<T> : Channel<T>
+    internal sealed partial class UnsortedChannel<T> 
     {
         /// <summary>Task that indicates the channel has completed.</summary>
         private readonly TaskCompletionSource<bool> _completion;
@@ -17,6 +18,8 @@ namespace HotChocolate.Execution.Channels
         private readonly Deque<AsyncOperation<T>> _blockedReaders = new Deque<AsyncOperation<T>>();
         /// <summary>Whether to force continuations to be executed asynchronously from producer writes.</summary>
         private readonly bool _runContinuationsAsynchronously;
+        private readonly UnsortedChannelReader _reader;
+        private readonly UnsortedChannelWriter _writer;
 
         /// <summary>Readers waiting for a notification that data is available.</summary>
         private AsyncOperation<bool>? _waitingReadersTail;
@@ -31,14 +34,58 @@ namespace HotChocolate.Execution.Channels
                 runContinuationsAsynchronously
                     ? TaskCreationOptions.RunContinuationsAsynchronously
                     : TaskCreationOptions.None);
-            Reader = new UnsortedChannelReader(this);
-            Writer = new UnsortedChannelWriter(this);
+            _reader = new UnsortedChannelReader(this);
+            _writer = new UnsortedChannelWriter(this);
         }
 
         /// <summary>Gets the object used to synchronize access to all state on this instance.</summary>
         private object SyncObj => _items;
 
         public bool IsEmpty => _items.IsEmpty;
+
+        public bool IsIdle => _completion.Task.IsCompleted || _items.IsEmpty;
+
+        public Task WaitTillIdle(CancellationToken? ctx = null)
+        {
+            var completion = _completion.Task;
+            if (completion.IsCompleted)
+            {
+                return completion;
+            }
+
+            var itemsEmpty = _items.WaitTillEmpty(ctx);
+            if (itemsEmpty.IsCompleted)
+            {
+                return itemsEmpty; 
+            }
+
+            return Task.WhenAny(itemsEmpty, completion);
+        }
+
+        public bool TryRead([MaybeNullWhen(false)] out T item)
+        {
+            return _reader.TryRead(out item);
+        }
+
+        public bool TryRead(Action<T> receiver)
+        {
+            return _reader.TryRead(receiver);
+        }
+
+        public ValueTask<bool> WaitToReadAsync(CancellationToken cancellationToken)
+        {
+            return _reader.WaitToReadAsync(cancellationToken);
+        }
+
+        public bool TryWrite(T item)
+        {
+            return _writer.TryWrite(item);
+        }
+
+        public void Complete(Exception? error = null)
+        {
+            _writer.Complete(error);
+        }
 
         [Conditional("DEBUG")]
         private void AssertInvariants()

@@ -9,6 +9,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Batching
@@ -28,12 +29,16 @@ namespace HotChocolate.Execution.Batching
                 new CollectVariablesVisitationMap();
             private DocumentNode? _previous;
             private Dictionary<string, FragmentDefinitionNode>? _fragments;
+            private readonly bool _allowParallelExecution;
+            private readonly List<IContextBatchDispatcher> _batchDispatchers;
+            private static readonly List<IContextBatchDispatcher> EmptyBatchDispatchers = new();
 
             public BatchExecutorEnumerable(
                 IEnumerable<IQueryRequest> requestBatch,
                 IRequestExecutor requestExecutor,
                 IErrorHandler errorHandler,
-                ITypeConverter typeConverter)
+                ITypeConverter typeConverter,
+                bool allowParallelExecution = false)
             {
                 _requestBatch = requestBatch ??
                     throw new ArgumentNullException(nameof(requestBatch));
@@ -44,76 +49,189 @@ namespace HotChocolate.Execution.Batching
                 _typeConverter = typeConverter ??
                     throw new ArgumentNullException(nameof(typeConverter));
                 _visitor = new CollectVariablesVisitor(requestExecutor.Schema);
+                _allowParallelExecution = allowParallelExecution;
+                if (_allowParallelExecution)
+                {
+                    // note: if Services isn't overwritten, a new IBatchDispatcher will
+                    //       be allocated for each request, so suspending/resuming will
+                    //       never have effect so we can ignore it here as well
+                    _batchDispatchers = requestBatch
+                        .Where(x => x.Services is not null)
+                        .Select(x => x.Services.GetRequiredService<IContextBatchDispatcher>())
+                        .Distinct()
+                        .ToList();
+                }
+                else
+                {
+                    _batchDispatchers = EmptyBatchDispatchers;
+                }
+
             }
 
             public async IAsyncEnumerator<IQueryResult> GetAsyncEnumerator(
                 CancellationToken cancellationToken = default)
             {
-                foreach (IQueryRequest queryRequest in _requestBatch)
+                _batchDispatchers.ForEach(x => x.Suspend());
+                try
                 {
-                    var request = (IReadOnlyQueryRequest) queryRequest;
-                    IQueryResult result =
-                        await ExecuteNextAsync(request, cancellationToken).ConfigureAwait(false);
-                    yield return result;
-
-                    if (result.Data is null)
+                    foreach(var groupedItems in GroupedItems())
                     {
-                        break;
+                        var tasks = groupedItems.Select(x => x.Execute(cancellationToken)).ToList();
+                        _batchDispatchers.ForEach(x => x.Resume());
+                        bool keepRunning = true;
+                        try
+                        {
+                            foreach (var task in tasks)
+                            {
+                                IQueryResult result = await task.ConfigureAwait(false);
+                                if (keepRunning)
+                                {
+                                    yield return result;
+                                }
+                                if (result.Data is null)
+                                {
+                                    keepRunning = false;
+                                }
+                            }
+                        }
+                        finally
+                        {
+                            _batchDispatchers.ForEach(x => x.Suspend());
+                        }
+                        if (!keepRunning)
+                        {
+                            break;
+                        }
                     }
+                }
+                finally
+                {
+                    _batchDispatchers.ForEach(x => x.Resume());
                 }
             }
 
-            private async Task<IQueryResult> ExecuteNextAsync(
-                IReadOnlyQueryRequest request,
-                CancellationToken cancellationToken)
+            /// <summary>
+            /// Convert the queries from _requestBatch into groups of tasks that can be executed in parallel.
+            /// </summary>
+            private IEnumerable<List<WorkItem>> GroupedItems()
             {
-                try
+                var grouped = new List<WorkItem>();
+                foreach(var request in _requestBatch)
                 {
-                    DocumentNode document = request.Query is QueryDocument d
-                        ? d.Document
-                        : Utf8GraphQLParser.Parse(request.Query!.AsSpan());
-
-                    OperationDefinitionNode operation =
-                        document.GetOperation(request.OperationName);
-
-                    if (document != _previous)
+                    var item = new WorkItem((IReadOnlyQueryRequest)request, this);
+                    if (!_allowParallelExecution)
                     {
-                        _fragments = document.GetFragments();
-                        _visitationMap.Initialize(_fragments);
+                        yield return new List<WorkItem> { item };
                     }
-
-                    operation.Accept(
-                        _visitor,
-                        _visitationMap,
-                        n => VisitorAction.Continue);
-
-                    _previous = document;
-                    document = RewriteDocument(operation);
-                    operation = (OperationDefinitionNode)document.Definitions[0];
-                    IReadOnlyDictionary<string, object?>? variableValues =
-                        MergeVariables(request.VariableValues, operation);
-
-                    request = QueryRequestBuilder.From(request)
-                        .SetQuery(document)
-                        .SetVariableValues(variableValues)
-                        .AddExportedVariables(_exportedVariables)
-                        .SetQueryId(null) // TODO ... should we create a name here?
-                        .SetQueryHash(null)
-                        .Create();
-
-                    return (IReadOnlyQueryResult)await _requestExecutor.ExecuteAsync(
-                        request, cancellationToken)
-                        .ConfigureAwait(false);
+                    else
+                    {
+                        if (grouped.Count > 0 && item.IsBlockedByPending)
+                        {
+                            yield return grouped;
+                            grouped = new List<WorkItem>();
+                        }
+                        grouped.Add(item);
+                        if (item.IsBlocking)
+                        {
+                            yield return grouped;
+                            grouped = new List<WorkItem>();
+                        }
+                    }
                 }
-                catch (GraphQLException ex)
+                if (grouped.Count > 0)
                 {
-                    return QueryResultBuilder.CreateError(ex.Errors);
+                    yield return grouped;
                 }
-                catch (Exception ex)
+            }
+
+            private class WorkItem
+            {
+                private readonly BatchExecutorEnumerable _parent;
+                private readonly IReadOnlyQueryRequest _request = default!;
+                private readonly OperationDefinitionNode _operation = default!;
+                private readonly int _exportCount;
+                private readonly IQueryResult _error = default!;
+
+                public WorkItem(IReadOnlyQueryRequest request, BatchExecutorEnumerable parent)
                 {
-                    return QueryResultBuilder.CreateError(
-                        _errorHandler.Handle(
-                            _errorHandler.CreateUnexpectedError(ex).Build()));
+                    _parent = parent;
+                    try
+                    {
+                        DocumentNode document = request.Query is QueryDocument d
+                            ? d.Document
+                            : Utf8GraphQLParser.Parse(request.Query!.AsSpan());
+
+                        _operation = document.GetOperation(request.OperationName);
+
+                        if (document != _parent._previous)
+                        {
+                            _parent._fragments = document.GetFragments();
+                            _parent._visitationMap.Initialize(_parent._fragments);
+                        }
+
+                        int oldExportCount = _parent._visitor.ExportCount;
+                        _operation.Accept(
+                            _parent._visitor,
+                            _parent._visitationMap,
+                            n => VisitorAction.Continue);
+                        _exportCount = _parent._visitor.ExportCount - oldExportCount;
+
+
+                        _parent._previous = document;
+                        document = _parent.RewriteDocument(_operation);
+                        _operation = (OperationDefinitionNode)document.Definitions[0];
+                        IReadOnlyDictionary<string, object?>? variableValues =
+                            _parent.MergeVariables(request.VariableValues, _operation);
+
+                        _request = QueryRequestBuilder.From(request)
+                            .SetQuery(document)
+                            .SetVariableValues(variableValues)
+                            .AddExportedVariables(_parent._exportedVariables)
+                            .SetQueryId(null) // TODO ... should we create a name here?
+                            .SetQueryHash(null)
+                            .Create();
+                    }
+                    catch (GraphQLException ex)
+                    {
+                        _error = QueryResultBuilder.CreateError(ex.Errors);
+                    }
+                    catch (Exception ex)
+                    {
+                        _error = QueryResultBuilder.CreateError(
+                            _parent._errorHandler.Handle(
+                                _parent._errorHandler.CreateUnexpectedError(ex).Build()));
+                    }
+                }
+
+                /// <summary>If true, all pending work items should be handled before this one should start</summary>
+                public bool IsBlockedByPending => _operation?.Operation != OperationType.Query;
+
+                /// <summary>If true, no new work items should start before this one completes</summary>
+                public bool IsBlocking => _error is not null || _operation.Operation != OperationType.Query || _exportCount > 0;
+
+                public async Task<IQueryResult> Execute(CancellationToken cancellationToken)
+                {
+                    if (_error is null)
+                    {
+                        try
+                        {
+                            return (IQueryResult) (await _parent._requestExecutor.ExecuteAsync(_request, cancellationToken));
+                        }
+                        catch (GraphQLException ex)
+                        {
+                            return QueryResultBuilder.CreateError(ex.Errors);
+                        }
+                        catch (Exception ex)
+                        {
+                            return QueryResultBuilder.CreateError(
+                                _parent._errorHandler.Handle(
+                                    _parent._errorHandler.CreateUnexpectedError(ex).Build()));
+                        }
+                    }
+                    else
+                    {
+                        return _error;
+                    }
                 }
             }
 

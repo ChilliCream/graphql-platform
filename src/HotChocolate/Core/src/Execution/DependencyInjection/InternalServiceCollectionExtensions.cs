@@ -14,6 +14,8 @@ using HotChocolate.Fetching;
 using HotChocolate.Language;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
+using HotChocolate.Execution.Batching;
+using HotChocolate.Execution.Options;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -120,6 +122,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddScoped<BatchScheduler>();
             services.TryAddScoped<IBatchScheduler>(sp => sp.GetRequiredService<BatchScheduler>());
             services.TryAddScoped<IBatchDispatcher>(sp => sp.GetRequiredService<BatchScheduler>());
+            services.TryAddScoped<IBatchingOptionsAccessor, BatchingOptions>();
+            services.TryAddScoped<IContextBatchDispatcher, ContextBatchDispatcher>();
             return services;
         }
 

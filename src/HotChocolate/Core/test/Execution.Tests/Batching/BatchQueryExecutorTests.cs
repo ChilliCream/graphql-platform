@@ -8,6 +8,10 @@ using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Tests.TestHelper;
+using HotChocolate.Resolvers;
+using System.Threading;
+using System.Linq;
+using HotChocolate.Execution.Options;
 
 namespace HotChocolate.Execution.Batching
 {
@@ -354,6 +358,288 @@ namespace HotChocolate.Execution.Batching
 
             // assert
             await Assert.ThrowsAsync<ArgumentNullException>(action);
+        }
+
+        // shared code for AllowParallel_... tests
+        private async Task AllowParallel_Shared(bool allowParallelExecution, bool batchScoped)
+        {
+            // arrange
+            Snapshot.FullName();
+
+            int batchCount = 0;
+            Action<IObjectTypeDescriptor> addFooField = d => d
+                    .Field("foo")
+                    .Argument("bar", a => a.Type<StringType>())
+                    .Type<StringType>()
+                    .Resolve(async c =>
+                    {
+                        var bar = c.ArgumentValue<string>("bar") ?? "<null>";
+                        return await c.BatchDataLoader<string, string>((keys, ctxToken) =>
+                        {
+                            var currentBatchCount = Interlocked.Increment(ref batchCount);
+                            return Task.FromResult(keys.ToDictionary(x => x, x => $"{x}-{currentBatchCount}") as IReadOnlyDictionary<string, string>);
+                        }, "foo").LoadAsync(bar, CancellationToken.None);
+                    });
+            var services = new ServiceCollection();
+            services.AddSingleton<IBatchingOptionsAccessor>(sp => new BatchingOptions
+            {
+                BatchTimeout = TimeSpan.FromSeconds(30)
+            });
+            services.AddGraphQL()
+                .AddQueryType(d => addFooField(d.Name("Query")))
+                .AddMutationType(d => addFooField(d.Name("Mutation")))
+                .AddExportDirectiveType();
+
+            IServiceProvider serviceProvider = services.BuildServiceProvider();
+            IServiceScope scope = null;
+            if (batchScoped)
+            {
+                scope = serviceProvider.CreateScope();
+                serviceProvider = scope.ServiceProvider;
+            }
+            try
+            {
+                IRequestExecutor executor = await serviceProvider.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
+                var requestServices = scope is not null ? serviceProvider : null;
+
+                // act
+                var batch = new List<IReadOnlyQueryRequest>
+                {
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{ f1: foo(bar:""A""), f2: foo(bar:""B"") }")
+                        .TrySetServices(requestServices)
+                        .Create(),
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{ f3: foo(bar:""C"") @export(as: ""var"") }")
+                        .TrySetServices(requestServices)
+                        .Create(),
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{ f4: foo(bar:$var) }")
+                        .TrySetServices(requestServices)
+                        .Create(),
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"mutation { f5: foo(bar:""D"") }")
+                        .TrySetServices(requestServices)
+                        .Create(),
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"query { f6: foo(bar:""E"") }")
+                        .TrySetServices(requestServices)
+                        .Create(),
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"query { f7: foo(bar:""F"") }")
+                        .TrySetServices(requestServices)
+                        .Create(),
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"query { corrupt: foo(wrongParamName:""F"") }")
+                        .TrySetServices(requestServices)
+                        .Create(),
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"query { f8: foo(bar:""G"") }")
+                        .TrySetServices(requestServices)
+                        .Create()
+                };
+
+                IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch, allowParallelExecution);
+
+                // assert
+                await batchResult.ToJsonAsync().MatchSnapshotAsync();
+            }
+            finally
+            {
+                scope?.Dispose();
+            }
+        }
+
+        [Fact]
+        public Task AllowParallel_Off()
+        {
+            return AllowParallel_Shared(false, false);
+        }
+
+        [Fact]
+        public Task AllowParallel_On()
+        {
+            return AllowParallel_Shared(true, true);
+        }
+
+        /// <summary>data class for BatchingTimeout_Shared</summary>
+        class Foo
+        {
+            public string Val { get; private set; }
+
+            public Foo(string val)
+            {
+                Val = val;
+            }
+        }
+
+        /// Shared code for testing
+        private async Task BatchTimeout_Shared(bool enabled)
+        {
+            // arrange
+            Snapshot.FullName();
+
+            int batchCount = 0;
+            Func<IResolverContext, Task<Foo>> fooResolver = async c =>
+            {
+                var bar = c.ArgumentValue<string>("bar");
+                var val = await c.BatchDataLoader<string, string>((keys, ctxToken) =>
+                {
+                    int currentBatchCount =Interlocked.Increment(ref batchCount);
+                    return Task.FromResult(keys.ToDictionary(x => x, x => $"{x}-{currentBatchCount}") as IReadOnlyDictionary<string, string>);
+                }, "foo").LoadAsync(bar, CancellationToken.None);
+                return new Foo(val);
+            };
+            var services = new ServiceCollection();
+            services.AddSingleton<IBatchingOptionsAccessor>(sp => new BatchingOptions
+            {
+                BatchTimeout = TimeSpan.FromSeconds(enabled ? 30 : 0)
+            });
+            services.AddGraphQL()
+                .AddObjectType<Foo>(d => d
+                    .Field("foo")
+                    .Argument("bar", a => a.Type<StringType>())
+                    .Resolve(fooResolver))
+                .AddQueryType(d => d.Name("Query")
+                    .Field("foo")
+                    .Argument("bar", a => a.Type<StringType>())
+                    .Resolve(fooResolver))
+                .AddExportDirectiveType();
+
+            IServiceProvider serviceProvider = services.BuildServiceProvider();
+            using (IServiceScope scope = serviceProvider.CreateScope())
+            {
+                IRequestExecutor executor = await scope.ServiceProvider.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
+
+                // act
+                var batch = new List<IReadOnlyQueryRequest>
+                {
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{ foo(bar:""A1"") { A1: val, foo(bar:""B1"") {  B1: val, foo(bar:""C1"") { C1: val } } } }")
+                        .TrySetServices(scope.ServiceProvider)
+                        .Create(),
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{ foo(bar:""D2"") { D2: val, foo(bar:""E2"") {  E2: val, foo(bar:""A1"") { A1B: val } } } }")
+                        .TrySetServices(scope.ServiceProvider)
+                        .Create(),
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{ foo(bar:""A3"") { A3: val, foo(bar:""B3"") {  B3: val, foo(bar:""C3"") { C3: val } } } }")
+                        .TrySetServices(scope.ServiceProvider)
+                        .Create()
+                };
+
+                IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch, true);
+
+                if (enabled)
+                {
+                    await batchResult.ToJsonAsync().MatchSnapshotAsync();
+                }
+                else
+                {
+                    // Without BatchTimeout the test results are too depedendant on
+                    // the timings to get consistent results.
+                    await batchResult.ToJsonAsync();
+                    Assert.InRange(batchCount, 3, 6);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task BatchTimeout_On()
+        {
+            await BatchTimeout_Shared(true);
+        }
+
+
+        [Fact]
+        public async Task BatchTimeout_Off()
+        {
+            await BatchTimeout_Shared(false);
+        }
+
+        [Fact]
+        public async Task BatchTimeout_Multiple_Dataloads()
+        {
+            // arrange
+            Snapshot.FullName();
+
+            int batchCount = 0;
+            var services = new ServiceCollection();
+            services.AddSingleton<IBatchingOptionsAccessor>(sp => new BatchingOptions
+            {
+                BatchTimeout = TimeSpan.FromSeconds(30)
+            });
+            services.AddGraphQL()
+                .AddQueryType(d => d.Name("Query")
+                    .Field("foo")
+                    .Argument("bar", a => a.Type<StringType>())
+                    .Resolve(async (c,ctx) =>
+                    {
+                        var bar = c.ArgumentValue<string>("bar");
+                        var phase1 = await c.BatchDataLoader<string, string>((keys, ctxToken) =>
+                        {
+                            int currentBatchCount = Interlocked.Increment(ref batchCount);
+                            return Task.FromResult(keys.ToDictionary(x => x, x => $"{x}-{currentBatchCount}") as IReadOnlyDictionary<string, string>);
+                        }, "phase1").LoadAsync(bar, ctx);
+                        var phase2 = await c.BatchDataLoader<string, string>((keys, ctxToken) =>
+                        {
+                            int currentBatchCount = Interlocked.Increment(ref batchCount);
+                            return Task.FromResult(keys.ToDictionary(x => x, x => $"{x}-{currentBatchCount}") as IReadOnlyDictionary<string, string>);
+                        }, "phase2").LoadAsync(phase1, ctx);
+                        return await c.BatchDataLoader<string, string>((keys, ctxToken) =>
+                        {
+                            int currentBatchCount = Interlocked.Increment(ref batchCount);
+                            return Task.FromResult(keys.ToDictionary(x => x, x => $"{x}-{currentBatchCount}") as IReadOnlyDictionary<string, string>);
+                        }, "phase3").LoadAsync(phase2, ctx);
+                    }));
+
+            IServiceProvider serviceProvider = services.BuildServiceProvider();
+            using (IServiceScope scope = serviceProvider.CreateScope())
+            {
+                IRequestExecutor executor = await scope.ServiceProvider.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
+
+                // act
+                var batch = new List<IReadOnlyQueryRequest>
+                {
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{ foo(bar:""A"") }")
+                        .TrySetServices(scope.ServiceProvider)
+                        .Create(),
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{ foo(bar:""B"") }")
+                        .TrySetServices(scope.ServiceProvider)
+                        .Create(),
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{ foo(bar:""C"") }")
+                        .TrySetServices(scope.ServiceProvider)
+                        .Create(),
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{ foo(bar:""B"") }")
+                        .TrySetServices(scope.ServiceProvider)
+                        .Create()
+                };
+
+                IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch, true);
+                await batchResult.ToJsonAsync().MatchSnapshotAsync();
+            }
         }
     }
 }

@@ -12,10 +12,10 @@ namespace HotChocolate.Execution.Processing
         public bool IsEmpty => _channel.IsEmpty;
 
         public bool TryTake([NotNullWhen(true)] out IDeferredExecutionTask? task) =>
-            _channel.Reader.TryRead(out task);
+            _channel.TryRead(out task);
 
         public void Register(IDeferredExecutionTask deferredTask) =>
-            _channel.Writer.TryWrite(deferredTask);
+            _channel.TryWrite(deferredTask);
 
         public void Clear() =>
             _channel = new UnsortedChannel<IDeferredExecutionTask>(true);

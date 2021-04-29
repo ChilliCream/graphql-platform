@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
 
@@ -24,10 +25,7 @@ namespace HotChocolate.Execution.Processing
 
         ITaskStatistics TaskStats { get; }
 
-        /// <summary>
-        /// Gets the batch dispatcher.
-        /// </summary>
-        IBatchDispatcher BatchDispatcher { get; }
+        IExecutionTaskContext TaskContext { get; }
 
         bool IsCompleted { get; }
 

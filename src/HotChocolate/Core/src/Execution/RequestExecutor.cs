@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Batching;
@@ -90,7 +92,21 @@ namespace HotChocolate.Execution
 
                 _requestContextAccessor.RequestContext = context;
 
-                await _requestDelegate(context).ConfigureAwait(false);
+                // ensure that all subtasks spawned from this are started in the correct scheduler
+                // (this check can be removed once the experimental batching mode becomes the only option
+                TaskScheduler scheduler = services.GetRequiredService<IContextBatchDispatcher>().TaskScheduler;
+                if (scheduler == TaskScheduler.Current)
+                {
+                    await _requestDelegate(context).ConfigureAwait(false);
+                }
+                else
+                {
+                    await Task.Factory.StartNew(
+                        () => _requestDelegate(context).AsTask(),
+                        cancellationToken,
+                        TaskCreationOptions.None,
+                        scheduler).Unwrap().ConfigureAwait(false);
+                }
 
                 if (context.Result is null)
                 {
@@ -130,8 +146,9 @@ namespace HotChocolate.Execution
             }
 
             return Task.FromResult<IBatchQueryResult>(new BatchQueryResult(
-                () => _batchExecutor.ExecuteAsync(requestBatch, cancellationToken),
+                () => _batchExecutor.ExecuteAsync(requestBatch, allowParallelExecution, cancellationToken),
                 null));
         }
+
     }
 }

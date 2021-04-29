@@ -1,0 +1,22 @@
+﻿[
+  {
+    "ContentType": "application/json; charset=utf-8",
+    "StatusCode": "OK",
+    "Data": {
+      "f1": "A-1",
+      "f2": "B-1"
+    },
+    "Errors": null,
+    "Extensions": null
+  },
+  {
+    "ContentType": "application/json; charset=utf-8",
+    "StatusCode": "OK",
+    "Data": {
+      "f3": "A-1",
+      "f4": "C-1"
+    },
+    "Errors": null,
+    "Extensions": null
+  }
+]

@@ -28,6 +28,8 @@ namespace HotChocolate.Execution.Batching
         private readonly HashSet<string> _touchedFragments =
             new HashSet<string>();
         private readonly ISchema _schema;
+        // the amount of export directives visited
+        private int _exportCount;
 
         public CollectVariablesVisitor(ISchema schema)
         {
@@ -39,6 +41,9 @@ namespace HotChocolate.Execution.Batching
                 _variables.Values;
         public IReadOnlyCollection<string> TouchedFragments =>
             _touchedFragments;
+
+        public int ExportCount =>
+            _exportCount;
 
         public VisitorAction Enter(
             OperationDefinitionNode node,
@@ -80,6 +85,8 @@ namespace HotChocolate.Execution.Batching
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
+            _exportCount += node.Directives.Count(x => string.Equals(x.Name.Value, ExportDirectiveHelper.Name));
+
             if (_type.Peek().NamedType() is IComplexOutputType complexType
                 && complexType.Fields.TryGetField(
                     node.Name.Value, out IOutputField? field))

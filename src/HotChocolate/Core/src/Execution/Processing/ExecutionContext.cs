@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
 
@@ -51,37 +52,14 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        public IBatchDispatcher BatchDispatcher
+        public IExecutionTaskContext TaskContext
         {
             get
             {
                 AssertNotPooled();
-                return _batchDispatcher;
+                return _taskContext;
             }
         }
-
-        private void TryDispatchBatches()
-        {
-            AssertNotPooled();
-
-            if (TaskBacklog.IsEmpty && BatchDispatcher.HasTasks)
-            {
-                BatchDispatcher.Dispatch(Register);
-            }
-
-            void Register(IExecutionTaskDefinition taskDefinition)
-            {
-                TaskBacklog.Register(taskDefinition.Create(_taskContext));
-            }
-        }
-
-        private void BatchDispatcherEventHandler(
-            object? source, EventArgs args) =>
-            TryDispatchBatches();
-
-        private void TaskStatisticsEventHandler(
-            object? source, EventArgs args) =>
-            TryDispatchBatches();
 
         private void OnCompleted(object? source, EventArgs args)
         {
