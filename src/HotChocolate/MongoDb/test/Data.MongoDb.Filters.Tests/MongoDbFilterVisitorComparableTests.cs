@@ -14,22 +14,111 @@ namespace HotChocolate.Data.MongoDb.Filters
     {
         private static readonly Foo[] _fooEntities =
         {
-            new Foo { BarShort = 12 },
-            new Foo { BarShort = 14 },
-            new Foo { BarShort = 13 }
+            new()
+            {
+                BarShort = 12,
+                BarDateTime = new DateTime(2000, 1, 12, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new()
+            {
+                BarShort = 14,
+                BarDateTime = new DateTime(2000, 1, 14, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new()
+            {
+                BarShort = 13,
+                BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc)
+            }
         };
 
         private static readonly FooNullable[] _fooNullableEntities =
         {
-            new FooNullable { BarShort = 12 },
-            new FooNullable { BarShort = null },
-            new FooNullable { BarShort = 14 },
-            new FooNullable { BarShort = 13 }
+            new()
+            {
+                BarShort = 12,
+                BarDateTime = new DateTime(2000, 1, 12, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new() { BarShort = null, BarDateTime = null },
+            new()
+            {
+                BarShort = 14,
+                BarDateTime = new DateTime(2000, 1, 14, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new()
+            {
+                BarShort = 13,
+                BarDateTime = new DateTime(2000, 1, 13, 0, 0, 0, DateTimeKind.Utc)
+            }
         };
 
         public MongoDbFilterVisitorComparableTests(MongoResource resource)
         {
             Init(resource);
+        }
+
+        [Fact]
+        public async Task Create_ShortEqual_Expression_DateTime()
+        {
+            // arrange
+            IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00Z\"}})" +
+                        "{ barDateTime}}")
+                    .Create());
+
+            res1.MatchDocumentSnapshot("12");
+
+            IExecutionResult res2 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00Z\"}})" +
+                        "{ barDateTime}}")
+                    .Create());
+
+            res2.MatchDocumentSnapshot("13");
+
+            IExecutionResult res3 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root(where: { barDateTime: { eq: null}}){ barDateTime}}")
+                    .Create());
+
+            res3.MatchDocumentSnapshot("null");
+        }
+
+        [Fact]
+        public async Task Create_ShortEqual_Expression_DateTime_Nullable()
+        {
+            // arrange
+            IRequestExecutor tester =
+                CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})" +
+                        "{ barDateTime}}")
+                    .Create());
+
+            res1.MatchDocumentSnapshot("12");
+
+            IExecutionResult res2 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root(where: { barDateTime: { eq: \"2000-01-12T00:00:00Z\"}})" +
+                        "{ barDateTime}}")
+                    .Create());
+
+            res2.MatchDocumentSnapshot("13");
+
+            IExecutionResult res3 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root(where: { barDateTime: { eq: null}}){ barDateTime}}")
+                    .Create());
+
+            res3.MatchDocumentSnapshot("null");
         }
 
         [Fact]
@@ -867,6 +956,8 @@ namespace HotChocolate.Data.MongoDb.Filters
             public double BarDouble { get; set; }
 
             public decimal BarDecimal { get; set; }
+
+            public DateTime BarDateTime { get; set; }
         }
 
         public class FooNullable
@@ -875,6 +966,8 @@ namespace HotChocolate.Data.MongoDb.Filters
             public Guid Id { get; set; } = Guid.NewGuid();
 
             public short? BarShort { get; set; }
+
+            public DateTime? BarDateTime { get; set; }
         }
 
         public class FooFilterType

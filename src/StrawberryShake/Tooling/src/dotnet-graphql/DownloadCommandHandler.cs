@@ -55,7 +55,7 @@ namespace StrawberryShake.Tools
             DownloadCommandContext context,
             CancellationToken cancellationToken)
         {
-            using var activity = Output.WriteActivity("Download schema");
+            using IActivity activity = Output.WriteActivity("Download schema");
 
             HttpClient client = HttpClientFactory.Create(
                 context.Uri, context.Token, context.Scheme);

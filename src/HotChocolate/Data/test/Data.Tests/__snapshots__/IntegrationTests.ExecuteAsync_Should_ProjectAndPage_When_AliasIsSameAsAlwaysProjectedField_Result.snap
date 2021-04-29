@@ -1,0 +1,11 @@
+﻿{
+  "data": {
+    "books": {
+      "nodes": [
+        {
+          "authorId": "BookTitle"
+        }
+      ]
+    }
+  }
+}
