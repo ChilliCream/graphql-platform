@@ -1,0 +1,17 @@
+﻿{
+  "data": {
+    "foo": [
+      {
+        "__typename": "Bar2",
+        "bar": false,
+        "specificBar2": false
+      },
+      {
+        "__typename": "Bar1",
+        "bar": false,
+        "specificBar1": false
+      },
+      null
+    ]
+  }
+}

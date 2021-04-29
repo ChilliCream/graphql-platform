@@ -1,7 +1,10 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -520,6 +523,64 @@ namespace HotChocolate.Types
                 .Create();
 
             schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task InterfaceType_Execution()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Field("foo")
+                    .Resolve(new IFoo[]
+                    {
+                        new Bar2(),
+                        new Bar1(),
+                        null
+                    }))
+                .AddType<Bar2>()
+                .AddType<Bar1>()
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                QueryRequestBuilder
+                    .New()
+                    .SetQuery(@"
+                    {
+                        foo {
+                            __typename
+                            bar
+                            ... on Bar1 {
+                                specificBar1
+                            }
+                            ... on Bar2 {
+                                specificBar2
+                            }
+                        }
+                    }")
+                    .Create());
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        public class Bar2 : IFoo
+        {
+            public bool SpecificBar2 { get; }
+
+            public bool Bar { get; }
+            public string Baz() => "baz";
+            public int Qux(string a) => 1;
+        }
+
+        public class Bar1 : IFoo
+        {
+            public bool SpecificBar1 { get; }
+
+            public bool Bar { get; }
+            public string Baz() => "foo";
+            public int Qux(string a) => 1;
         }
 
         public interface IFoo
