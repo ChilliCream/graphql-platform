@@ -1,0 +1,382 @@
+#nullable enable
+abstract StrawberryShake.Serialization.ScalarSerializer<TSerialized, TRuntime>.Format(TRuntime runtimeValue) -> TSerialized
+abstract StrawberryShake.Serialization.ScalarSerializer<TSerialized, TRuntime>.Parse(TSerialized serializedValue) -> TRuntime
+const StrawberryShake.Serialization.BuiltInScalarNames.Any = "Any" -> string!
+const StrawberryShake.Serialization.BuiltInScalarNames.Boolean = "Boolean" -> string!
+const StrawberryShake.Serialization.BuiltInScalarNames.Byte = "Byte" -> string!
+const StrawberryShake.Serialization.BuiltInScalarNames.ByteArray = "ByteArray" -> string!
+const StrawberryShake.Serialization.BuiltInScalarNames.Date = "Date" -> string!
+const StrawberryShake.Serialization.BuiltInScalarNames.DateTime = "DateTime" -> string!
+const StrawberryShake.Serialization.BuiltInScalarNames.Decimal = "Decimal" -> string!
+const StrawberryShake.Serialization.BuiltInScalarNames.Float = "Float" -> string!
+const StrawberryShake.Serialization.BuiltInScalarNames.ID = "ID" -> string!
+const StrawberryShake.Serialization.BuiltInScalarNames.Int = "Int" -> string!
+const StrawberryShake.Serialization.BuiltInScalarNames.Long = "Long" -> string!
+const StrawberryShake.Serialization.BuiltInScalarNames.MultiplierPath = "MultiplierPath" -> string!
+const StrawberryShake.Serialization.BuiltInScalarNames.Name = "Name" -> string!
+const StrawberryShake.Serialization.BuiltInScalarNames.Short = "Short" -> string!
+const StrawberryShake.Serialization.BuiltInScalarNames.String = "String" -> string!
+const StrawberryShake.Serialization.BuiltInScalarNames.TimeSpan = "TimeSpan" -> string!
+const StrawberryShake.Serialization.BuiltInScalarNames.Url = "Url" -> string!
+const StrawberryShake.Serialization.BuiltInScalarNames.Uuid = "Uuid" -> string!
+override sealed StrawberryShake.GraphQLClientException.Message.get -> string!
+override StrawberryShake.EntityId.Equals(object? obj) -> bool
+override StrawberryShake.EntityId.GetHashCode() -> int
+override StrawberryShake.OperationRequest.Equals(object? obj) -> bool
+override StrawberryShake.OperationRequest.GetHashCode() -> int
+override StrawberryShake.Serialization.DateSerializer.Format(System.DateTime runtimeValue) -> string!
+override StrawberryShake.Serialization.DateSerializer.Parse(string! serializedValue) -> System.DateTime
+override StrawberryShake.Serialization.DateTimeSerializer.Format(System.DateTimeOffset runtimeValue) -> string!
+override StrawberryShake.Serialization.DateTimeSerializer.Parse(string! serializedValue) -> System.DateTimeOffset
+override StrawberryShake.Serialization.ScalarSerializer<T>.Format(T runtimeValue) -> T
+override StrawberryShake.Serialization.ScalarSerializer<T>.Parse(T serializedValue) -> T
+override StrawberryShake.Serialization.TimeSpanSerializer.Format(System.TimeSpan runtimeValue) -> string!
+override StrawberryShake.Serialization.TimeSpanSerializer.Parse(string! serializedValue) -> System.TimeSpan
+override StrawberryShake.Serialization.UrlSerializer.Format(System.Uri! runtimeValue) -> string!
+override StrawberryShake.Serialization.UrlSerializer.Parse(string! serializedValue) -> System.Uri!
+static readonly StrawberryShake.Json.JsonOperationRequestSerializer.Default -> StrawberryShake.Json.JsonOperationRequestSerializer!
+static StrawberryShake.CachePolicy.Default(StrawberryShake.IStoreAccessor! storeAccessor) -> StrawberryShake.CachePolicy!
+static StrawberryShake.CachePolicy.Default(StrawberryShake.IStoreAccessor! storeAccessor, System.TimeSpan timeToLive) -> StrawberryShake.CachePolicy!
+static StrawberryShake.CachePolicy.NoCache(StrawberryShake.IStoreAccessor! storeAccessor) -> StrawberryShake.CachePolicy!
+static StrawberryShake.EntityId.operator !=(StrawberryShake.EntityId x, StrawberryShake.EntityId y) -> bool
+static StrawberryShake.EntityId.operator ==(StrawberryShake.EntityId x, StrawberryShake.EntityId y) -> bool
+static StrawberryShake.EntityIdOrData.implicit operator StrawberryShake.EntityIdOrData(StrawberryShake.EntityId entityId) -> StrawberryShake.EntityIdOrData
+static StrawberryShake.Extensions.ObservableExtensions.Subscribe<T>(this System.IObservable<T>! observable, System.Action<T>! next, System.Action? complete = null) -> System.IDisposable!
+static StrawberryShake.Helper.ComparisonHelper.SequenceEqual(System.Collections.IEnumerable? first, System.Collections.IEnumerable? second) -> bool
+static StrawberryShake.Helper.ComparisonHelper.SequenceEqual<TSource>(System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<TSource>?>? first, System.Collections.Generic.IEnumerable<System.Collections.Generic.IEnumerable<TSource>?>? second) -> bool
+static StrawberryShake.Helper.ComparisonHelper.SequenceEqual<TSource>(System.Collections.Generic.IEnumerable<TSource>? first, System.Collections.Generic.IEnumerable<TSource>? second) -> bool
+static StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(this System.Text.Json.JsonElement jsonElement, string! key) -> System.Text.Json.JsonElement?
+static StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(this System.Text.Json.JsonElement? jsonElement, string! key) -> System.Text.Json.JsonElement?
+static StrawberryShake.Json.JsonErrorParser.ParseErrors(System.Text.Json.JsonElement result) -> System.Collections.Generic.IReadOnlyList<StrawberryShake.IClientError!>?
+static StrawberryShake.Json.JsonSerializationHelper.ReadDictionary(string! json) -> System.Collections.Generic.Dictionary<string!, object?>!
+static StrawberryShake.Json.JsonSerializationHelper.ReadDictionary(System.Text.Json.JsonElement element) -> System.Collections.Generic.Dictionary<string!, object?>!
+static StrawberryShake.Json.JsonSerializationHelper.ReadList(string! json) -> System.Collections.Generic.List<object?>!
+static StrawberryShake.Json.JsonSerializationHelper.ReadList(System.Text.Json.JsonElement element) -> System.Collections.Generic.List<object?>!
+static StrawberryShake.Json.JsonSerializationHelper.ReadValue(string! json) -> object?
+static StrawberryShake.Json.JsonSerializationHelper.ReadValue(System.Text.Json.JsonElement element) -> object?
+static StrawberryShake.Json.JsonSerializationHelper.WriteDictionary(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, object?>>! dictionary, System.Text.Json.Utf8JsonWriter! writer) -> void
+static StrawberryShake.Json.JsonSerializationHelper.WriteList(System.Collections.IList! list, System.Text.Json.Utf8JsonWriter! writer) -> void
+static StrawberryShake.Json.JsonSerializationHelper.WriteValue(object? value) -> string!
+static StrawberryShake.Json.JsonSerializationHelper.WriteValue(object? value, System.Text.Json.Utf8JsonWriter! writer) -> void
+static StrawberryShake.OperationResult.Create(object? data, System.Type! dataType, StrawberryShake.IOperationResultDataInfo? dataInfo, StrawberryShake.IOperationResultDataFactory! dataFactory, System.Collections.Generic.IReadOnlyList<StrawberryShake.IClientError!>? errors, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? extensions = null, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? contextData = null) -> StrawberryShake.IOperationResult!
+static StrawberryShake.OperationResult.Create<TData>(TData? data, StrawberryShake.IOperationResultDataInfo? dataInfo, StrawberryShake.IOperationResultDataFactory<TData!>! dataFactory, System.Collections.Generic.IReadOnlyList<StrawberryShake.IClientError!>? errors, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? extensions = null, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? contextData = null) -> StrawberryShake.IOperationResult<TData!>!
+static StrawberryShake.OperationResultExtensions.EnsureNoErrors(this StrawberryShake.IOperationResult! result) -> void
+static StrawberryShake.OperationResultExtensions.IsErrorResult(this StrawberryShake.IOperationResult! result) -> bool
+static StrawberryShake.OperationResultExtensions.IsSuccessResult(this StrawberryShake.IOperationResult! result) -> bool
+StrawberryShake.CachePolicy
+StrawberryShake.CachePolicy.CachePolicy(System.IDisposable! session) -> void
+StrawberryShake.CachePolicy.Dispose() -> void
+StrawberryShake.ClientBuilder<T>
+StrawberryShake.ClientBuilder<T>.ClientBuilder(string! clientName, Microsoft.Extensions.DependencyInjection.IServiceCollection! services, Microsoft.Extensions.DependencyInjection.IServiceCollection! clientServices) -> void
+StrawberryShake.ClientBuilder<T>.ClientName.get -> string!
+StrawberryShake.ClientBuilder<T>.ClientServices.get -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+StrawberryShake.ClientBuilder<T>.Services.get -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+StrawberryShake.ClientError
+StrawberryShake.ClientError.ClientError(string! message, string? code = null, System.Collections.Generic.IReadOnlyList<object!>? path = null, System.Collections.Generic.IReadOnlyList<StrawberryShake.Location>? locations = null, System.Exception? exception = null, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? extensions = null) -> void
+StrawberryShake.ClientError.Code.get -> string?
+StrawberryShake.ClientError.Exception.get -> System.Exception?
+StrawberryShake.ClientError.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
+StrawberryShake.ClientError.Locations.get -> System.Collections.Generic.IReadOnlyList<StrawberryShake.Location>?
+StrawberryShake.ClientError.Message.get -> string!
+StrawberryShake.ClientError.Path.get -> System.Collections.Generic.IReadOnlyList<object!>?
+StrawberryShake.DocumentHash
+StrawberryShake.DocumentHash.Algorithm.get -> string!
+StrawberryShake.DocumentHash.DocumentHash() -> void
+StrawberryShake.DocumentHash.DocumentHash(string! algorithm, string! value) -> void
+StrawberryShake.DocumentHash.Value.get -> string!
+StrawberryShake.EntityId
+StrawberryShake.EntityId.Deconstruct(out string! name, out object! value) -> void
+StrawberryShake.EntityId.EntityId() -> void
+StrawberryShake.EntityId.EntityId(string! name, object! value) -> void
+StrawberryShake.EntityId.Equals(StrawberryShake.EntityId other) -> bool
+StrawberryShake.EntityId.Name.get -> string!
+StrawberryShake.EntityId.Value.get -> object!
+StrawberryShake.EntityIdOrData
+StrawberryShake.EntityIdOrData.Data.get -> object?
+StrawberryShake.EntityIdOrData.EntityId.get -> StrawberryShake.EntityId?
+StrawberryShake.EntityIdOrData.EntityIdOrData() -> void
+StrawberryShake.EntityIdOrData.EntityIdOrData(object! data) -> void
+StrawberryShake.EntityIdOrData.EntityIdOrData(StrawberryShake.EntityId entityId) -> void
+StrawberryShake.EntityIdOrData.IsData.get -> bool
+StrawberryShake.EntityIdOrData.IsEntityId.get -> bool
+StrawberryShake.EntityInfo
+StrawberryShake.EntityInfo.Entity.get -> object!
+StrawberryShake.EntityInfo.EntityInfo() -> void
+StrawberryShake.EntityInfo.EntityInfo(StrawberryShake.EntityId id, object! entity) -> void
+StrawberryShake.EntityInfo.Id.get -> StrawberryShake.EntityId
+StrawberryShake.EntityStore
+StrawberryShake.EntityStore.CurrentSnapshot.get -> StrawberryShake.IEntityStoreSnapshot!
+StrawberryShake.EntityStore.Dispose() -> void
+StrawberryShake.EntityStore.EntityStore() -> void
+StrawberryShake.EntityStore.Update(System.Action<StrawberryShake.IEntityStoreUpdateSession!>! action) -> void
+StrawberryShake.EntityStore.Watch() -> System.IObservable<StrawberryShake.EntityUpdate!>!
+StrawberryShake.EntityUpdate
+StrawberryShake.EntityUpdate.EntityUpdate(StrawberryShake.IEntityStoreSnapshot! snapshot, System.Collections.Generic.ISet<StrawberryShake.EntityId>! updatedEntityIds) -> void
+StrawberryShake.EntityUpdate.Snapshot.get -> StrawberryShake.IEntityStoreSnapshot!
+StrawberryShake.EntityUpdate.UpdatedEntityIds.get -> System.Collections.Generic.ISet<StrawberryShake.EntityId>!
+StrawberryShake.EntityUpdate.Version.get -> ulong
+StrawberryShake.ExecutionStrategy
+StrawberryShake.ExecutionStrategy.CacheAndNetwork = 1 -> StrawberryShake.ExecutionStrategy
+StrawberryShake.ExecutionStrategy.CacheFirst = 0 -> StrawberryShake.ExecutionStrategy
+StrawberryShake.ExecutionStrategy.NetworkOnly = 2 -> StrawberryShake.ExecutionStrategy
+StrawberryShake.Extensions.ObservableExtensions
+StrawberryShake.GraphQLClientException
+StrawberryShake.GraphQLClientException.Errors.get -> System.Collections.Generic.IReadOnlyList<StrawberryShake.IClientError!>!
+StrawberryShake.GraphQLClientException.GraphQLClientException(params StrawberryShake.IClientError![]! errors) -> void
+StrawberryShake.GraphQLClientException.GraphQLClientException(StrawberryShake.IClientError! error) -> void
+StrawberryShake.GraphQLClientException.GraphQLClientException(string! message) -> void
+StrawberryShake.GraphQLClientException.GraphQLClientException(System.Collections.Generic.IEnumerable<StrawberryShake.IClientError!>! errors) -> void
+StrawberryShake.GraphQLClientException.GraphQLClientException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
+StrawberryShake.Helper.ComparisonHelper
+StrawberryShake.IClientBuilder<T>
+StrawberryShake.IClientBuilder<T>.ClientName.get -> string!
+StrawberryShake.IClientBuilder<T>.ClientServices.get -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+StrawberryShake.IClientBuilder<T>.Services.get -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+StrawberryShake.IClientError
+StrawberryShake.IClientError.Code.get -> string?
+StrawberryShake.IClientError.Exception.get -> System.Exception?
+StrawberryShake.IClientError.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
+StrawberryShake.IClientError.Locations.get -> System.Collections.Generic.IReadOnlyList<StrawberryShake.Location>?
+StrawberryShake.IClientError.Message.get -> string!
+StrawberryShake.IClientError.Path.get -> System.Collections.Generic.IReadOnlyList<object!>?
+StrawberryShake.IConnection<TResponseBody>
+StrawberryShake.IConnection<TResponseBody>.ExecuteAsync(StrawberryShake.OperationRequest! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<StrawberryShake.Response<TResponseBody!>!>!
+StrawberryShake.IDocument
+StrawberryShake.IDocument.Body.get -> System.ReadOnlySpan<byte>
+StrawberryShake.IDocument.Hash.get -> StrawberryShake.DocumentHash
+StrawberryShake.IDocument.Kind.get -> StrawberryShake.OperationKind
+StrawberryShake.IEntityIdSerializer
+StrawberryShake.IEntityIdSerializer.Format(StrawberryShake.EntityId entityId) -> string!
+StrawberryShake.IEntityIdSerializer.Parse(System.Text.Json.JsonElement obj) -> StrawberryShake.EntityId
+StrawberryShake.IEntityMapper<TEntity, TModel>
+StrawberryShake.IEntityMapper<TEntity, TModel>.Map(TEntity! entity, StrawberryShake.IEntityStoreSnapshot? snapshot = null) -> TModel!
+StrawberryShake.IEntityReadSession
+StrawberryShake.IEntityReadSession.Version.get -> ulong
+StrawberryShake.IEntityStore
+StrawberryShake.IEntityStore.CurrentSnapshot.get -> StrawberryShake.IEntityStoreSnapshot!
+StrawberryShake.IEntityStore.Update(System.Action<StrawberryShake.IEntityStoreUpdateSession!>! action) -> void
+StrawberryShake.IEntityStore.Watch() -> System.IObservable<StrawberryShake.EntityUpdate!>!
+StrawberryShake.IEntityStoreSnapshot
+StrawberryShake.IEntityStoreSnapshot.GetEntities(string? typeName = null) -> System.Collections.Generic.IEnumerable<StrawberryShake.EntityInfo>!
+StrawberryShake.IEntityStoreSnapshot.GetEntities<TEntity>(System.Collections.Generic.IEnumerable<StrawberryShake.EntityId>! ids) -> System.Collections.Generic.IReadOnlyList<TEntity!>!
+StrawberryShake.IEntityStoreSnapshot.GetEntity<TEntity>(StrawberryShake.EntityId id) -> TEntity?
+StrawberryShake.IEntityStoreSnapshot.GetEntityIds() -> System.Collections.Generic.IReadOnlyCollection<StrawberryShake.EntityId>!
+StrawberryShake.IEntityStoreSnapshot.TryGetEntity<TEntity>(StrawberryShake.EntityId id, out TEntity? entity) -> bool
+StrawberryShake.IEntityStoreSnapshot.Version.get -> ulong
+StrawberryShake.IEntityStoreUpdateSession
+StrawberryShake.IEntityStoreUpdateSession.CurrentSnapshot.get -> StrawberryShake.IEntityStoreSnapshot!
+StrawberryShake.IEntityStoreUpdateSession.RemoveEntity(StrawberryShake.EntityId id) -> void
+StrawberryShake.IEntityStoreUpdateSession.RemoveEntityRange(System.Collections.Generic.IEnumerable<StrawberryShake.EntityId>! entityIds) -> void
+StrawberryShake.IEntityStoreUpdateSession.SetEntity<TEntity>(StrawberryShake.EntityId id, TEntity! entity) -> void
+StrawberryShake.IEntityUpdateSession
+StrawberryShake.IEntityUpdateSession.Version.get -> ulong
+StrawberryShake.Internal.ArrayWriter
+StrawberryShake.Internal.ArrayWriter.Advance(int count) -> void
+StrawberryShake.Internal.ArrayWriter.ArrayWriter() -> void
+StrawberryShake.Internal.ArrayWriter.Body.get -> System.ReadOnlyMemory<byte>
+StrawberryShake.Internal.ArrayWriter.Clear() -> void
+StrawberryShake.Internal.ArrayWriter.Dispose() -> void
+StrawberryShake.Internal.ArrayWriter.GetInternalBuffer() -> byte[]!
+StrawberryShake.Internal.ArrayWriter.GetMemory(int sizeHint = 0) -> System.Memory<byte>
+StrawberryShake.Internal.ArrayWriter.GetSpan(int sizeHint = 0) -> System.Span<byte>
+StrawberryShake.Internal.ArrayWriter.Length.get -> int
+StrawberryShake.IOperationExecutor<TResultData>
+StrawberryShake.IOperationExecutor<TResultData>.ExecuteAsync(StrawberryShake.OperationRequest! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<StrawberryShake.IOperationResult<TResultData!>!>!
+StrawberryShake.IOperationExecutor<TResultData>.Watch(StrawberryShake.OperationRequest! request, StrawberryShake.ExecutionStrategy? strategy = null) -> System.IObservable<StrawberryShake.IOperationResult<TResultData!>!>!
+StrawberryShake.IOperationRequestFactory
+StrawberryShake.IOperationRequestFactory.Create(System.Collections.Generic.IReadOnlyDictionary<string!, object?>? variables) -> StrawberryShake.OperationRequest!
+StrawberryShake.IOperationRequestFactory.ResultType.get -> System.Type!
+StrawberryShake.IOperationResult
+StrawberryShake.IOperationResult.ContextData.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>!
+StrawberryShake.IOperationResult.Data.get -> object?
+StrawberryShake.IOperationResult.DataFactory.get -> object!
+StrawberryShake.IOperationResult.DataInfo.get -> StrawberryShake.IOperationResultDataInfo?
+StrawberryShake.IOperationResult.DataType.get -> System.Type!
+StrawberryShake.IOperationResult.Errors.get -> System.Collections.Generic.IReadOnlyList<StrawberryShake.IClientError!>!
+StrawberryShake.IOperationResult.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>!
+StrawberryShake.IOperationResult<TResultData>
+StrawberryShake.IOperationResult<TResultData>.Data.get -> TResultData?
+StrawberryShake.IOperationResult<TResultData>.DataFactory.get -> StrawberryShake.IOperationResultDataFactory<TResultData!>!
+StrawberryShake.IOperationResult<TResultData>.WithData(TResultData! data, StrawberryShake.IOperationResultDataInfo! dataInfo) -> StrawberryShake.IOperationResult<TResultData!>!
+StrawberryShake.IOperationResultBuilder<TResponseBody, TResultData>
+StrawberryShake.IOperationResultBuilder<TResponseBody, TResultData>.Build(StrawberryShake.Response<TResponseBody!>! response) -> StrawberryShake.IOperationResult<TResultData!>!
+StrawberryShake.IOperationResultDataFactory
+StrawberryShake.IOperationResultDataFactory.Create(StrawberryShake.IOperationResultDataInfo! dataInfo, StrawberryShake.IEntityStoreSnapshot? snapshot = null) -> object!
+StrawberryShake.IOperationResultDataFactory.ResultType.get -> System.Type!
+StrawberryShake.IOperationResultDataFactory<TResultData>
+StrawberryShake.IOperationResultDataFactory<TResultData>.Create(StrawberryShake.IOperationResultDataInfo! dataInfo, StrawberryShake.IEntityStoreSnapshot? snapshot = null) -> TResultData!
+StrawberryShake.IOperationResultDataInfo
+StrawberryShake.IOperationResultDataInfo.EntityIds.get -> System.Collections.Generic.IReadOnlyCollection<StrawberryShake.EntityId>!
+StrawberryShake.IOperationResultDataInfo.Version.get -> ulong
+StrawberryShake.IOperationResultDataInfo.WithVersion(ulong version) -> StrawberryShake.IOperationResultDataInfo!
+StrawberryShake.IOperationStore
+StrawberryShake.IOperationStore.Clear() -> void
+StrawberryShake.IOperationStore.GetAll() -> System.Collections.Generic.IEnumerable<StrawberryShake.StoredOperationVersion>!
+StrawberryShake.IOperationStore.GetUsedEntityIds() -> System.Collections.Generic.IReadOnlyList<StrawberryShake.EntityId>!
+StrawberryShake.IOperationStore.Remove(StrawberryShake.OperationRequest! operationRequest) -> void
+StrawberryShake.IOperationStore.Reset(StrawberryShake.OperationRequest! operationRequest) -> void
+StrawberryShake.IOperationStore.Set(StrawberryShake.OperationRequest! operationRequest, StrawberryShake.IOperationResult! operationResult) -> void
+StrawberryShake.IOperationStore.Set<TResultData>(StrawberryShake.OperationRequest! operationRequest, StrawberryShake.IOperationResult<TResultData!>! operationResult) -> void
+StrawberryShake.IOperationStore.TryGet<TResultData>(StrawberryShake.OperationRequest! operationRequest, out StrawberryShake.IOperationResult<TResultData!>? result) -> bool
+StrawberryShake.IOperationStore.Watch() -> System.IObservable<StrawberryShake.OperationUpdate!>!
+StrawberryShake.IOperationStore.Watch<TResultData>(StrawberryShake.OperationRequest! operationRequest) -> System.IObservable<StrawberryShake.IOperationResult<TResultData!>!>!
+StrawberryShake.IStoreAccessor
+StrawberryShake.IStoreAccessor.EntityIdSerializer.get -> StrawberryShake.IEntityIdSerializer!
+StrawberryShake.IStoreAccessor.EntityStore.get -> StrawberryShake.IEntityStore!
+StrawberryShake.IStoreAccessor.GetOperationRequestFactory(System.Type! resultType) -> StrawberryShake.IOperationRequestFactory!
+StrawberryShake.IStoreAccessor.GetOperationResultDataFactory(System.Type! resultType) -> StrawberryShake.IOperationResultDataFactory!
+StrawberryShake.IStoreAccessor.OperationStore.get -> StrawberryShake.IOperationStore!
+StrawberryShake.Json.JsonElementExtensions
+StrawberryShake.Json.JsonErrorParser
+StrawberryShake.Json.JsonOperationRequestSerializer
+StrawberryShake.Json.JsonOperationRequestSerializer.JsonOperationRequestSerializer() -> void
+StrawberryShake.Json.JsonOperationRequestSerializer.Serialize(StrawberryShake.OperationRequest! request, System.Buffers.IBufferWriter<byte>! bufferWriter, bool ignoreExtensions = false) -> void
+StrawberryShake.Json.JsonOperationRequestSerializer.Serialize(StrawberryShake.OperationRequest! request, System.Text.Json.Utf8JsonWriter! jsonWriter, bool ignoreExtensions = false) -> void
+StrawberryShake.Json.JsonSerializationHelper
+StrawberryShake.Location
+StrawberryShake.Location.Column.get -> int
+StrawberryShake.Location.Line.get -> int
+StrawberryShake.Location.Location() -> void
+StrawberryShake.Location.Location(int line, int column) -> void
+StrawberryShake.OperationExecutor<TData, TResult>
+StrawberryShake.OperationExecutor<TData, TResult>.ExecuteAsync(StrawberryShake.OperationRequest! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<StrawberryShake.IOperationResult<TResult!>!>!
+StrawberryShake.OperationExecutor<TData, TResult>.OperationExecutor(StrawberryShake.IConnection<TData!>! connection, System.Func<StrawberryShake.IOperationResultBuilder<TData!, TResult!>!>! resultBuilder, StrawberryShake.IOperationStore! operationStore, StrawberryShake.ExecutionStrategy strategy = StrawberryShake.ExecutionStrategy.NetworkOnly) -> void
+StrawberryShake.OperationExecutor<TData, TResult>.Watch(StrawberryShake.OperationRequest! request, StrawberryShake.ExecutionStrategy? strategy = null) -> System.IObservable<StrawberryShake.IOperationResult<TResult!>!>!
+StrawberryShake.OperationKind
+StrawberryShake.OperationKind.Mutation = 1 -> StrawberryShake.OperationKind
+StrawberryShake.OperationKind.Query = 0 -> StrawberryShake.OperationKind
+StrawberryShake.OperationKind.Subscription = 2 -> StrawberryShake.OperationKind
+StrawberryShake.OperationRequest
+StrawberryShake.OperationRequest.ContextData.get -> System.Collections.Generic.IDictionary<string!, object?>!
+StrawberryShake.OperationRequest.Deconstruct(out string? id, out string! name, out StrawberryShake.IDocument! document, out System.Collections.Generic.IReadOnlyDictionary<string!, object?>! variables, out System.Collections.Generic.IReadOnlyDictionary<string!, object?>? extensions, out System.Collections.Generic.IReadOnlyDictionary<string!, object?>? contextData, out StrawberryShake.RequestStrategy strategy) -> void
+StrawberryShake.OperationRequest.Document.get -> StrawberryShake.IDocument!
+StrawberryShake.OperationRequest.Equals(StrawberryShake.OperationRequest? other) -> bool
+StrawberryShake.OperationRequest.Extensions.get -> System.Collections.Generic.IDictionary<string!, object?>!
+StrawberryShake.OperationRequest.GetContextDataOrNull() -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
+StrawberryShake.OperationRequest.GetExtensionsOrNull() -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
+StrawberryShake.OperationRequest.GetHash() -> string!
+StrawberryShake.OperationRequest.Id.get -> string?
+StrawberryShake.OperationRequest.Name.get -> string!
+StrawberryShake.OperationRequest.OperationRequest(string! name, StrawberryShake.IDocument! document, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? variables = null, StrawberryShake.RequestStrategy strategy = StrawberryShake.RequestStrategy.Default) -> void
+StrawberryShake.OperationRequest.OperationRequest(string? id, string! name, StrawberryShake.IDocument! document, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? variables = null, StrawberryShake.RequestStrategy strategy = StrawberryShake.RequestStrategy.Default) -> void
+StrawberryShake.OperationRequest.Strategy.get -> StrawberryShake.RequestStrategy
+StrawberryShake.OperationRequest.Variables.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>!
+StrawberryShake.OperationResult
+StrawberryShake.OperationResult<T>
+StrawberryShake.OperationResult<T>.ContextData.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>!
+StrawberryShake.OperationResult<T>.Data.get -> T?
+StrawberryShake.OperationResult<T>.DataFactory.get -> StrawberryShake.IOperationResultDataFactory<T!>!
+StrawberryShake.OperationResult<T>.DataInfo.get -> StrawberryShake.IOperationResultDataInfo?
+StrawberryShake.OperationResult<T>.Errors.get -> System.Collections.Generic.IReadOnlyList<StrawberryShake.IClientError!>!
+StrawberryShake.OperationResult<T>.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>!
+StrawberryShake.OperationResult<T>.OperationResult(T? data, StrawberryShake.IOperationResultDataInfo? dataInfo, StrawberryShake.IOperationResultDataFactory<T!>! dataFactory, System.Collections.Generic.IReadOnlyList<StrawberryShake.IClientError!>? errors, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? extensions = null, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? contextData = null) -> void
+StrawberryShake.OperationResult<T>.WithData(T! data, StrawberryShake.IOperationResultDataInfo! dataInfo) -> StrawberryShake.IOperationResult<T!>!
+StrawberryShake.OperationResultExtensions
+StrawberryShake.OperationStore
+StrawberryShake.OperationStore.Clear() -> void
+StrawberryShake.OperationStore.Dispose() -> void
+StrawberryShake.OperationStore.GetAll() -> System.Collections.Generic.IEnumerable<StrawberryShake.StoredOperationVersion>!
+StrawberryShake.OperationStore.GetUsedEntityIds() -> System.Collections.Generic.IReadOnlyList<StrawberryShake.EntityId>!
+StrawberryShake.OperationStore.OperationStore(StrawberryShake.IEntityStore! entityStore) -> void
+StrawberryShake.OperationStore.Remove(StrawberryShake.OperationRequest! operationRequest) -> void
+StrawberryShake.OperationStore.Reset(StrawberryShake.OperationRequest! operationRequest) -> void
+StrawberryShake.OperationStore.Set(StrawberryShake.OperationRequest! operationRequest, StrawberryShake.IOperationResult! operationResult) -> void
+StrawberryShake.OperationStore.Set<T>(StrawberryShake.OperationRequest! operationRequest, StrawberryShake.IOperationResult<T!>! operationResult) -> void
+StrawberryShake.OperationStore.TryGet<T>(StrawberryShake.OperationRequest! operationRequest, out StrawberryShake.IOperationResult<T!>? result) -> bool
+StrawberryShake.OperationStore.Watch() -> System.IObservable<StrawberryShake.OperationUpdate!>!
+StrawberryShake.OperationStore.Watch<T>(StrawberryShake.OperationRequest! operationRequest) -> System.IObservable<StrawberryShake.IOperationResult<T!>!>!
+StrawberryShake.OperationUpdate
+StrawberryShake.OperationUpdate.Kind.get -> StrawberryShake.OperationUpdateKind
+StrawberryShake.OperationUpdate.OperationUpdate(StrawberryShake.OperationUpdateKind kind, System.Collections.Generic.IReadOnlyList<StrawberryShake.StoredOperationVersion>! operationVersions) -> void
+StrawberryShake.OperationUpdate.OperationVersions.get -> System.Collections.Generic.IReadOnlyList<StrawberryShake.StoredOperationVersion>!
+StrawberryShake.OperationUpdateKind
+StrawberryShake.OperationUpdateKind.Removed = 1 -> StrawberryShake.OperationUpdateKind
+StrawberryShake.OperationUpdateKind.Updated = 0 -> StrawberryShake.OperationUpdateKind
+StrawberryShake.RequestStrategy
+StrawberryShake.RequestStrategy.AutomaticPersistedQuery = 2 -> StrawberryShake.RequestStrategy
+StrawberryShake.RequestStrategy.Default = 0 -> StrawberryShake.RequestStrategy
+StrawberryShake.RequestStrategy.PersistedQuery = 1 -> StrawberryShake.RequestStrategy
+StrawberryShake.Response<TBody>
+StrawberryShake.Response<TBody>.Body.get -> TBody?
+StrawberryShake.Response<TBody>.Dispose() -> void
+StrawberryShake.Response<TBody>.Exception.get -> System.Exception?
+StrawberryShake.Response<TBody>.Response(TBody? body, System.Exception? exception) -> void
+StrawberryShake.Serialization.BooleanSerializer
+StrawberryShake.Serialization.BooleanSerializer.BooleanSerializer(string! typeName = "Boolean") -> void
+StrawberryShake.Serialization.BuiltInScalarNames
+StrawberryShake.Serialization.ByteArraySerializer
+StrawberryShake.Serialization.ByteArraySerializer.ByteArraySerializer(string! typeName = "ByteArray") -> void
+StrawberryShake.Serialization.ByteSerializer
+StrawberryShake.Serialization.ByteSerializer.ByteSerializer(string! typeName = "Byte") -> void
+StrawberryShake.Serialization.DateSerializer
+StrawberryShake.Serialization.DateSerializer.DateSerializer(string! typeName = "Date") -> void
+StrawberryShake.Serialization.DateTimeSerializer
+StrawberryShake.Serialization.DateTimeSerializer.DateTimeSerializer(string! typeName = "DateTime") -> void
+StrawberryShake.Serialization.DecimalSerializer
+StrawberryShake.Serialization.DecimalSerializer.DecimalSerializer(string! typeName = "Decimal") -> void
+StrawberryShake.Serialization.FloatSerializer
+StrawberryShake.Serialization.FloatSerializer.FloatSerializer(string! typeName = "Float") -> void
+StrawberryShake.Serialization.IdSerializer
+StrawberryShake.Serialization.IdSerializer.IdSerializer(string! typeName = "ID") -> void
+StrawberryShake.Serialization.IInputObjectFormatter
+StrawberryShake.Serialization.IInputObjectFormatter.Initialize(StrawberryShake.Serialization.ISerializerResolver! serializerResolver) -> void
+StrawberryShake.Serialization.IInputValueFormatter
+StrawberryShake.Serialization.IInputValueFormatter.Format(object? runtimeValue) -> object?
+StrawberryShake.Serialization.ILeafValueParser<TSerialized, TRuntime>
+StrawberryShake.Serialization.ILeafValueParser<TSerialized, TRuntime>.Parse(TSerialized serializedValue) -> TRuntime
+StrawberryShake.Serialization.IntSerializer
+StrawberryShake.Serialization.IntSerializer.IntSerializer(string! typeName = "Int") -> void
+StrawberryShake.Serialization.ISerializer
+StrawberryShake.Serialization.ISerializer.TypeName.get -> string!
+StrawberryShake.Serialization.ISerializerResolver
+StrawberryShake.Serialization.ISerializerResolver.GetInputValueFormatter(string! typeName) -> StrawberryShake.Serialization.IInputValueFormatter!
+StrawberryShake.Serialization.ISerializerResolver.GetLeafValueParser<TSerialized, TRuntime>(string! typeName) -> StrawberryShake.Serialization.ILeafValueParser<TSerialized, TRuntime>!
+StrawberryShake.Serialization.LongSerializer
+StrawberryShake.Serialization.LongSerializer.LongSerializer(string! typeName = "Long") -> void
+StrawberryShake.Serialization.ScalarSerializer<T>
+StrawberryShake.Serialization.ScalarSerializer<T>.ScalarSerializer(string! typeName) -> void
+StrawberryShake.Serialization.ScalarSerializer<TSerialized, TRuntime>
+StrawberryShake.Serialization.ScalarSerializer<TSerialized, TRuntime>.Format(object? runtimeValue) -> object?
+StrawberryShake.Serialization.ScalarSerializer<TSerialized, TRuntime>.ScalarSerializer(string! typeName) -> void
+StrawberryShake.Serialization.ScalarSerializer<TSerialized, TRuntime>.TypeName.get -> string!
+StrawberryShake.Serialization.SerializerResolver
+StrawberryShake.Serialization.SerializerResolver.GetInputValueFormatter(string! typeName) -> StrawberryShake.Serialization.IInputValueFormatter!
+StrawberryShake.Serialization.SerializerResolver.GetLeafValueParser<TSerialized, TRuntime>(string! typeName) -> StrawberryShake.Serialization.ILeafValueParser<TSerialized, TRuntime>!
+StrawberryShake.Serialization.SerializerResolver.SerializerResolver(System.Collections.Generic.IEnumerable<StrawberryShake.Serialization.ISerializer!>! serializers) -> void
+StrawberryShake.Serialization.ShortSerializer
+StrawberryShake.Serialization.ShortSerializer.ShortSerializer(string! typeName = "Short") -> void
+StrawberryShake.Serialization.StringSerializer
+StrawberryShake.Serialization.StringSerializer.StringSerializer(string! typeName = "String") -> void
+StrawberryShake.Serialization.TimeSpanFormat
+StrawberryShake.Serialization.TimeSpanFormat.DotNet = 1 -> StrawberryShake.Serialization.TimeSpanFormat
+StrawberryShake.Serialization.TimeSpanFormat.Iso8601 = 0 -> StrawberryShake.Serialization.TimeSpanFormat
+StrawberryShake.Serialization.TimeSpanSerializer
+StrawberryShake.Serialization.TimeSpanSerializer.TimeSpanSerializer(string! typeName = "TimeSpan", StrawberryShake.Serialization.TimeSpanFormat format = StrawberryShake.Serialization.TimeSpanFormat.Iso8601) -> void
+StrawberryShake.Serialization.UrlSerializer
+StrawberryShake.Serialization.UrlSerializer.UrlSerializer(string! typeName = "Url") -> void
+StrawberryShake.Serialization.UuidSerializer
+StrawberryShake.Serialization.UuidSerializer.UuidSerializer(string! typeName = "Uuid") -> void
+StrawberryShake.StoreAccessor
+StrawberryShake.StoreAccessor.EntityIdSerializer.get -> StrawberryShake.IEntityIdSerializer!
+StrawberryShake.StoreAccessor.EntityStore.get -> StrawberryShake.IEntityStore!
+StrawberryShake.StoreAccessor.GetOperationRequestFactory(System.Type! resultType) -> StrawberryShake.IOperationRequestFactory!
+StrawberryShake.StoreAccessor.GetOperationResultDataFactory(System.Type! resultType) -> StrawberryShake.IOperationResultDataFactory!
+StrawberryShake.StoreAccessor.OperationStore.get -> StrawberryShake.IOperationStore!
+StrawberryShake.StoreAccessor.StoreAccessor(StrawberryShake.IOperationStore! operationStore, StrawberryShake.IEntityStore! entityStore, StrawberryShake.IEntityIdSerializer! entityIdSerializer, System.Collections.Generic.IEnumerable<StrawberryShake.IOperationRequestFactory!>! operationRequestFactories, System.Collections.Generic.IEnumerable<StrawberryShake.IOperationResultDataFactory!>! operationResultDataFactories) -> void
+StrawberryShake.StoredOperationVersion
+StrawberryShake.StoredOperationVersion.LastModified.get -> System.DateTime
+StrawberryShake.StoredOperationVersion.Request.get -> StrawberryShake.OperationRequest!
+StrawberryShake.StoredOperationVersion.Result.get -> StrawberryShake.IOperationResult?
+StrawberryShake.StoredOperationVersion.StoredOperationVersion() -> void
+StrawberryShake.StoredOperationVersion.StoredOperationVersion(StrawberryShake.OperationRequest! request, StrawberryShake.IOperationResult? result, int subscribers, System.DateTime lastModified) -> void
+StrawberryShake.StoredOperationVersion.Subscribers.get -> int
+StrawberryShake.StorelessOperationExecutor<TData, TResult>
+StrawberryShake.StorelessOperationExecutor<TData, TResult>.ExecuteAsync(StrawberryShake.OperationRequest! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<StrawberryShake.IOperationResult<TResult!>!>!
+StrawberryShake.StorelessOperationExecutor<TData, TResult>.StorelessOperationExecutor(StrawberryShake.IConnection<TData!>! connection, System.Func<StrawberryShake.IOperationResultBuilder<TData!, TResult!>!>! resultBuilder) -> void
+StrawberryShake.StorelessOperationExecutor<TData, TResult>.Watch(StrawberryShake.OperationRequest! request, StrawberryShake.ExecutionStrategy? strategy = null) -> System.IObservable<StrawberryShake.IOperationResult<TResult!>!>!
+StrawberryShake.ValueKind
+StrawberryShake.ValueKind.Boolean = 3 -> StrawberryShake.ValueKind
+StrawberryShake.ValueKind.Enum = 4 -> StrawberryShake.ValueKind
+StrawberryShake.ValueKind.Float = 2 -> StrawberryShake.ValueKind
+StrawberryShake.ValueKind.Integer = 1 -> StrawberryShake.ValueKind
+StrawberryShake.ValueKind.String = 0 -> StrawberryShake.ValueKind

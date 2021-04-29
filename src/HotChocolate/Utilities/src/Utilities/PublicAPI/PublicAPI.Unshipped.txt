@@ -1,0 +1,60 @@
+#nullable enable
+HotChocolate.Utilities.BufferHelper
+HotChocolate.Utilities.Cache<TValue>
+HotChocolate.Utilities.Cache<TValue>.Cache(int size) -> void
+HotChocolate.Utilities.Cache<TValue>.Clear() -> void
+HotChocolate.Utilities.Cache<TValue>.GetOrCreate(string! key, System.Func<TValue>! create) -> TValue
+HotChocolate.Utilities.Cache<TValue>.Size.get -> int
+HotChocolate.Utilities.Cache<TValue>.TryGet(string! key, out TValue value) -> bool
+HotChocolate.Utilities.Cache<TValue>.Usage.get -> int
+HotChocolate.Utilities.CacheEntryEventArgs<TValue>
+HotChocolate.Utilities.CacheEntryEventArgs<TValue>.Key.get -> string!
+HotChocolate.Utilities.CacheEntryEventArgs<TValue>.Value.get -> TValue
+HotChocolate.Utilities.CreateServiceDelegate
+HotChocolate.Utilities.CreateServiceDelegate<T>
+HotChocolate.Utilities.DictionaryServiceProvider
+HotChocolate.Utilities.DictionaryServiceProvider.DictionaryServiceProvider(params (System.Type!, object!)[]! services) -> void
+HotChocolate.Utilities.DictionaryServiceProvider.DictionaryServiceProvider(params System.Collections.Generic.KeyValuePair<System.Type!, object!>[]! services) -> void
+HotChocolate.Utilities.DictionaryServiceProvider.DictionaryServiceProvider(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<System.Type!, object!>>! services) -> void
+HotChocolate.Utilities.DictionaryServiceProvider.DictionaryServiceProvider(System.Type! service, object! instance) -> void
+HotChocolate.Utilities.DictionaryServiceProvider.GetService(System.Type! serviceType) -> object?
+HotChocolate.Utilities.EmptyServiceProvider
+HotChocolate.Utilities.EmptyServiceProvider.EmptyServiceProvider() -> void
+HotChocolate.Utilities.EmptyServiceProvider.GetService(System.Type! serviceType) -> object?
+HotChocolate.Utilities.IParameterHandler
+HotChocolate.Utilities.IParameterHandler.CanHandle(System.Reflection.ParameterInfo! parameter) -> bool
+HotChocolate.Utilities.IParameterHandler.CreateExpression(System.Reflection.ParameterInfo! parameter) -> System.Linq.Expressions.Expression!
+HotChocolate.Utilities.QueueExtensions
+HotChocolate.Utilities.ServiceException
+HotChocolate.Utilities.ServiceException.ServiceException() -> void
+HotChocolate.Utilities.ServiceException.ServiceException(string! message) -> void
+HotChocolate.Utilities.ServiceException.ServiceException(string! message, System.Exception! inner) -> void
+HotChocolate.Utilities.ServiceException.ServiceException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
+HotChocolate.Utilities.ServiceFactory
+HotChocolate.Utilities.ServiceFactory.CreateInstance(System.Type! type) -> object?
+HotChocolate.Utilities.ServiceFactory.ServiceFactory() -> void
+HotChocolate.Utilities.ServiceFactory.Services.get -> System.IServiceProvider?
+HotChocolate.Utilities.ServiceFactory.Services.set -> void
+HotChocolate.Utilities.ServiceParameterHandler
+HotChocolate.Utilities.ServiceParameterHandler.CanHandle(System.Reflection.ParameterInfo! parameter) -> bool
+HotChocolate.Utilities.ServiceParameterHandler.CreateExpression(System.Reflection.ParameterInfo! parameter) -> System.Linq.Expressions.Expression!
+HotChocolate.Utilities.ServiceParameterHandler.ServiceParameterHandler(System.Linq.Expressions.Expression! services) -> void
+HotChocolate.Utilities.ServiceProviderExtensions
+HotChocolate.Utilities.StackExtensions
+HotChocolate.Utilities.StringExtensions
+HotChocolate.Utilities.TypeParameterHandler
+HotChocolate.Utilities.TypeParameterHandler.CanHandle(System.Reflection.ParameterInfo! parameter) -> bool
+HotChocolate.Utilities.TypeParameterHandler.CreateExpression(System.Reflection.ParameterInfo! parameter) -> System.Linq.Expressions.Expression!
+HotChocolate.Utilities.TypeParameterHandler.TypeParameterHandler(System.Type! parameterType, System.Linq.Expressions.Expression! expression) -> void
+static HotChocolate.Utilities.BufferHelper.ReadAsync<T>(System.IO.Stream! stream, System.Func<byte[]!, int, T>! handle, System.Action<int>? checkSize, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<T>!
+static HotChocolate.Utilities.BufferHelper.ReadAsync<T>(System.IO.Stream! stream, System.Func<byte[]!, int, T>! handle, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<T>!
+static HotChocolate.Utilities.QueueExtensions.TryPeekElement<T>(this System.Collections.Generic.Queue<T>! queue, out T value) -> bool
+static HotChocolate.Utilities.ServiceProviderExtensions.CreateInstance<T>(this System.IServiceProvider! services, System.Type! type) -> T
+static HotChocolate.Utilities.ServiceProviderExtensions.GetOrCreateService<T>(this System.IServiceProvider! services, System.Type! type) -> T
+static HotChocolate.Utilities.ServiceProviderExtensions.Include(this System.IServiceProvider! first, System.IServiceProvider! second) -> System.IServiceProvider!
+static HotChocolate.Utilities.ServiceProviderExtensions.TryCreateInstance<T>(this System.IServiceProvider! services, System.Type! type, out T service) -> bool
+static HotChocolate.Utilities.ServiceProviderExtensions.TryGetOrCreateService<T>(this System.IServiceProvider! services, System.Type! type, out T service) -> bool
+static HotChocolate.Utilities.ServiceProviderExtensions.TryGetService(this System.IServiceProvider! services, System.Type! type, out object? service) -> bool
+static HotChocolate.Utilities.StackExtensions.TryPeekElement<T>(this System.Collections.Generic.Stack<T>! stack, out T value) -> bool
+static HotChocolate.Utilities.StringExtensions.EqualsInvariantIgnoreCase(this string? s, string? other) -> bool
+static HotChocolate.Utilities.StringExtensions.EqualsOrdinal(this string? s, string? other) -> bool

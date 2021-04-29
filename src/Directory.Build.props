@@ -4,6 +4,8 @@
     <LangVersion>preview</LangVersion>
     <Version Condition="$(Version) == ''">0.0.0</Version>
     <NoWarn>$(NoWarn);CS0436</NoWarn>
+    <WarningsAsErrors>$(WarningsAsErrors);RS0016;RS0017;RS0024;RS0025</WarningsAsErrors>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -43,5 +45,22 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
   </ItemGroup>
+
+  <Choose>
+    <When Condition="!$(MSBuildProjectName.Contains('.Tests')) and !$(MSBuildProjectName.Contains('.Resources'))">
+      <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.2">
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+          <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+      </ItemGroup>
+
+      <ItemGroup>
+        <!-- $(TargetFramework)/ -->
+        <AdditionalFiles Include="PublicAPI/PublicAPI.Shipped.txt" />
+        <AdditionalFiles Include="PublicAPI/PublicAPI.Unshipped.txt" />
+      </ItemGroup>
+    </When>
+  </Choose>
 
 </Project>
