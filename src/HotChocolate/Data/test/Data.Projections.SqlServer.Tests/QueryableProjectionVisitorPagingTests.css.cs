@@ -403,6 +403,24 @@ namespace HotChocolate.Data.Projections
             res1.MatchSqlSnapshot();
         }
 
+        [Fact]
+        public async Task CreateNullable_NodesAndEdgesWithAliases()
+        {
+            // arrange
+            IRequestExecutor tester = _cache.CreateSchema(
+                _fooNullableEntities,
+                usePaging: true);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root{ b: nodes{ baz } a: edges { node { bar }} }}")
+                    .Create());
+
+            res1.MatchSqlSnapshot();
+        }
+
         public class Foo
         {
             public int Id { get; set; }

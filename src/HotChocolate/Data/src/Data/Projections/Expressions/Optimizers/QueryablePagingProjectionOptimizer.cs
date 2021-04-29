@@ -66,14 +66,14 @@ namespace HotChocolate.Data.Projections.Handlers
 
         private (string filedName, IObjectField field) TryGetObjectField(IPageType type)
         {
-            if (type.Fields.ContainsField("nodes"))
+            if (type.Fields.FirstOrDefault(x => x.Name.Value == "nodes") is { } nodes)
             {
-                return ("nodes", type.Fields["nodes"]);
+                return ("nodes", nodes);
             }
 
-            if (type.Fields.ContainsField("items"))
+            if (type.Fields.FirstOrDefault(x => x.Name.Value == "items") is { } items)
             {
-                return ("items", type.Fields["items"]);
+                return ("items", items);
             }
 
             throw new GraphQLException(
@@ -95,7 +95,8 @@ namespace HotChocolate.Data.Projections.Handlers
             SelectionOptimizerContext context,
             List<ISelectionNode> selections)
         {
-            if (context.Fields.TryGetValue("edges", out Selection? edgeSelection))
+            if (context.Fields.Values
+                .FirstOrDefault(x => x.Field.Name == "edges") is { } edgeSelection)
             {
                 foreach (var edgeSubField in edgeSelection.SelectionSet.Selections)
                 {
@@ -117,7 +118,8 @@ namespace HotChocolate.Data.Projections.Handlers
             SelectionOptimizerContext context,
             List<ISelectionNode> selections)
         {
-            if (context.Fields.TryGetValue("items", out Selection? itemSelection))
+            if (context.Fields.Values
+                .FirstOrDefault(x => x.Field.Name == "items") is { } itemSelection)
             {
                 foreach (var nodeField in itemSelection.SelectionSet.Selections)
                 {
@@ -130,7 +132,8 @@ namespace HotChocolate.Data.Projections.Handlers
             SelectionOptimizerContext context,
             List<ISelectionNode> selections)
         {
-            if (context.Fields.TryGetValue("nodes", out Selection? nodeSelection))
+            if (context.Fields.Values
+                .FirstOrDefault(x => x.Field.Name == "nodes") is { } nodeSelection)
             {
                 foreach (var nodeField in nodeSelection.SelectionSet.Selections)
                 {
