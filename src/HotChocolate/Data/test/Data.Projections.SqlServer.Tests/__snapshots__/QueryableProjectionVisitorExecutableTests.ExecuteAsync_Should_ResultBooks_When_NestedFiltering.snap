@@ -1,0 +1,14 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "name": "Baz",
+        "books": [
+          {
+            "title": "Baz1"
+          }
+        ]
+      }
+    ]
+  }
+}

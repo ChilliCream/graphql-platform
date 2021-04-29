@@ -1,0 +1,12 @@
+﻿.param set @__p_0 'Baz1'
+.param set @__p_1 'Baz'
+
+SELECT "d"."Name", "d"."Id", "t"."Title", "t"."Id"
+FROM "Data" AS "d"
+LEFT JOIN (
+    SELECT "b"."Title", "b"."Id", "b"."AuthorId"
+    FROM "Book" AS "b"
+    WHERE "b"."Title" = @__p_0
+) AS "t" ON "d"."Id" = "t"."AuthorId"
+WHERE "d"."Name" = @__p_1
+ORDER BY "d"."Id", "t"."Title" DESC, "t"."Id"

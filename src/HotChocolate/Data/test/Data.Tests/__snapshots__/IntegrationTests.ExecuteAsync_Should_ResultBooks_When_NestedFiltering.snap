@@ -1,0 +1,17 @@
+﻿{
+  "data": {
+    "executable": [
+      {
+        "name": "Baz",
+        "books": [
+          {
+            "title": "Baz2"
+          },
+          {
+            "title": "Baz1"
+          }
+        ]
+      }
+    ]
+  }
+}

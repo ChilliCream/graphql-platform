@@ -10,6 +10,8 @@ namespace HotChocolate.Data
 
         public string? Name { get; set; }
 
+        [UseFiltering]
+        [UseSorting]
         public virtual ICollection<Book> Books { get; set; } =
             new List<Book>();
     }

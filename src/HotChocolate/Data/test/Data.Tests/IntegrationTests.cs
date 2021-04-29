@@ -230,6 +230,43 @@ namespace HotChocolate.Data
         }
 
         [Fact]
+        public async Task ExecuteAsync_Should_ResultBooks_When_NestedFiltering()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddFiltering()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType(
+                    x => x
+                        .Name("Query")
+                        .Field("executable")
+                        .Type<ListType<ObjectType<Author>>>()
+                        .Resolve(_authors.AsExecutable())
+                        .UseProjection()
+                        .UseFiltering()
+                        .UseSorting())
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    executable(where: {name: {eq: ""Baz""}}) {
+                        name
+                        books(where: {title: {in: [""Baz1"", ""Baz2""] } }, order: {title: DESC}) {
+                            title
+                        }
+                    }
+                }
+                ");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
         public async Task ExecuteAsync_Should_ProjectAndPage_When_BothMiddlewaresAreApplied()
         {
             // arrange
