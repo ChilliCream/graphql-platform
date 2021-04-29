@@ -97,6 +97,7 @@ namespace HotChocolate.Types
             }
         }
 
+        /// <inheritdoc />
         public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
             if (resultValue is string s &&
