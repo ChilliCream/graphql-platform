@@ -33,11 +33,13 @@ namespace HotChocolate.Types
             Description = description;
         }
 
+        /// <inheritdoc />
         protected override bool IsInstanceOfType(double runtimeValue)
         {
             return runtimeValue is > Latitude.Min and < Latitude.Max;
         }
 
+        /// <inheritdoc />
         public override IValueNode ParseResult(object? resultValue)
         {
             return resultValue switch
@@ -54,6 +56,7 @@ namespace HotChocolate.Types
             };
         }
 
+        /// <inheritdoc />
         protected override double ParseLiteral(StringValueNode valueSyntax)
         {
             if (Latitude.TryDeserialize(valueSyntax.Value,  out var runtimeValue))
@@ -64,6 +67,7 @@ namespace HotChocolate.Types
             throw ThrowHelper.LatitudeType_ParseLiteral_IsInvalid(this);
         }
 
+        /// <inheritdoc />
         protected override StringValueNode ParseValue(double runtimeValue)
         {
             if (Latitude.TrySerialize(runtimeValue, out var s))
