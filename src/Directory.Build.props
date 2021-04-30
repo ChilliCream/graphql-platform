@@ -47,7 +47,7 @@
   </ItemGroup>
 
   <Choose>
-    <When Condition="!$(MSBuildProjectName.Contains('.Tests')) and !$(MSBuildProjectName.Contains('.Resources'))">
+    <When Condition="!$(MSBuildProjectName.Contains('.Tests')) and !$(MSBuildProjectName.Contains('.Resources')) and !$(MSBuildProjectName.Equals('StrawberryShake.Razor'))">
       <ItemGroup>
         <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.2">
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
