@@ -67,8 +67,9 @@ Example: `0c95d31ca29272475bf837f944f4e513.graphql`
 
 Now your server knows where to search for the requested query `Id` and loads it in memory in case of a successful match. 
 
+> ⚠️ **Note:** Don't forget to ensure if the storage directory exists and the server has particular access rights to it.
 
-## Configure persisted  queries on the client (Relay)
+## Configure persisted  queries on the client
 
 This step shows what you need to configure on the client-side or adjust on the server regarding clients. Example show Relay implementation. You can use any other GraphQL client like Apollo. The configuration is always client-related so follow offical client Docs. 
 
@@ -105,9 +106,9 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-### Relay persisted queries setup
+### Client persisted queries setup - (Relay)
 
-#### Enable persisted output (Frontent project part)
+#### Enable persisted output (Frontent)
 
 Make shure you have installed all packages related to Relay and [compiler](https://www.npmjs.com/package/relay-compiler). This example counts that you are allready user of Relay and will no explain deep how to Setup-it.
 
