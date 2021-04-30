@@ -261,7 +261,7 @@ namespace HotChocolate.Utilities.Introspection
                 null,
                 new NameNode(directive.Name),
                 CreateDescription(directive.Description),
-                directive.IsRepeatable,
+                directive.IsRepeatable ?? false,
                 CreateInputValues(directive.Args),
                 locations
             );
