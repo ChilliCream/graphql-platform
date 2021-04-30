@@ -1,0 +1,18 @@
+#nullable enable
+HotChocolate.Fetching.AutoBatchScheduler
+HotChocolate.Fetching.AutoBatchScheduler.AutoBatchScheduler() -> void
+HotChocolate.Fetching.AutoBatchScheduler.Schedule(System.Func<System.Threading.Tasks.ValueTask> dispatch) -> void
+HotChocolate.Fetching.BatchScheduler
+HotChocolate.Fetching.BatchScheduler.BatchScheduler() -> void
+HotChocolate.Fetching.BatchScheduler.Dispatch(System.Action<HotChocolate.Execution.IExecutionTaskDefinition> enqueue) -> void
+HotChocolate.Fetching.BatchScheduler.HasTasks.get -> bool
+HotChocolate.Fetching.BatchScheduler.Schedule(System.Func<System.Threading.Tasks.ValueTask> dispatch) -> void
+HotChocolate.Fetching.BatchScheduler.TaskEnqueued -> System.EventHandler
+HotChocolate.Fetching.IAdHocDataLoaderRegistrar
+HotChocolate.Fetching.IAdHocDataLoaderRegistrar.GetOrAddDataLoader<TDataLoader>(string name, System.Func<GreenDonut.IBatchScheduler, TDataLoader> factory) -> TDataLoader
+HotChocolate.Fetching.IAutoBatchDispatcher
+HotChocolate.Fetching.IBatchDispatcher
+HotChocolate.Fetching.IBatchDispatcher.Dispatch(System.Action<HotChocolate.Execution.IExecutionTaskDefinition> enqueue) -> void
+HotChocolate.Fetching.IBatchDispatcher.HasTasks.get -> bool
+HotChocolate.Fetching.IBatchDispatcher.TaskEnqueued -> System.EventHandler
+static HotChocolate.Fetching.AutoBatchScheduler.Default.get -> HotChocolate.Fetching.AutoBatchScheduler

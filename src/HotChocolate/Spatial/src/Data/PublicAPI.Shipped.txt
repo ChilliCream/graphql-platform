@@ -1,0 +1,156 @@
+#nullable enable
+abstract HotChocolate.Data.Filters.Spatial.QueryableSpatialBooleanMethodHandler.IsTrue.get -> bool
+abstract HotChocolate.Data.Filters.Spatial.QueryableSpatialBooleanMethodHandler.Operation.get -> int
+abstract HotChocolate.Data.Filters.Spatial.QueryableSpatialBooleanMethodHandler.TryHandleOperation(HotChocolate.Data.Filters.Expressions.QueryableFilterContext context, HotChocolate.Data.Filters.IFilterOperationField field, HotChocolate.Language.ObjectFieldNode node, out System.Linq.Expressions.Expression result) -> bool
+abstract HotChocolate.Data.Filters.Spatial.QueryableSpatialMethodHandler.Operation.get -> int
+abstract HotChocolate.Data.Filters.Spatial.QueryableSpatialMethodHandler.TryHandleOperation(HotChocolate.Data.Filters.Expressions.QueryableFilterContext context, HotChocolate.Data.Filters.IFilterOperationField field, HotChocolate.Language.ObjectFieldNode node, out System.Linq.Expressions.Expression result) -> bool
+const HotChocolate.Data.Filters.Spatial.SpatialFilterOperations.Buffer = 513 -> int
+const HotChocolate.Data.Filters.Spatial.SpatialFilterOperations.Contains = 515 -> int
+const HotChocolate.Data.Filters.Spatial.SpatialFilterOperations.Distance = 517 -> int
+const HotChocolate.Data.Filters.Spatial.SpatialFilterOperations.Geometry = 514 -> int
+const HotChocolate.Data.Filters.Spatial.SpatialFilterOperations.Intersects = 518 -> int
+const HotChocolate.Data.Filters.Spatial.SpatialFilterOperations.NotContains = 516 -> int
+const HotChocolate.Data.Filters.Spatial.SpatialFilterOperations.NotIntersects = 519 -> int
+const HotChocolate.Data.Filters.Spatial.SpatialFilterOperations.NotOverlaps = 521 -> int
+const HotChocolate.Data.Filters.Spatial.SpatialFilterOperations.NotTouches = 523 -> int
+const HotChocolate.Data.Filters.Spatial.SpatialFilterOperations.NotWithin = 525 -> int
+const HotChocolate.Data.Filters.Spatial.SpatialFilterOperations.Overlaps = 520 -> int
+const HotChocolate.Data.Filters.Spatial.SpatialFilterOperations.Touches = 522 -> int
+const HotChocolate.Data.Filters.Spatial.SpatialFilterOperations.Within = 524 -> int
+HotChocolate.Data.Filters.Spatial.GeometryContainsOperationFilterInputType
+HotChocolate.Data.Filters.Spatial.GeometryContainsOperationFilterInputType.GeometryContainsOperationFilterInputType() -> void
+HotChocolate.Data.Filters.Spatial.GeometryDistanceOperationFilterInputType
+HotChocolate.Data.Filters.Spatial.GeometryDistanceOperationFilterInputType.GeometryDistanceOperationFilterInputType() -> void
+HotChocolate.Data.Filters.Spatial.GeometryFilterInputType
+HotChocolate.Data.Filters.Spatial.GeometryFilterInputType.GeometryFilterInputType() -> void
+HotChocolate.Data.Filters.Spatial.GeometryFilterInputType<T>
+HotChocolate.Data.Filters.Spatial.GeometryFilterInputType<T>.GeometryFilterInputType() -> void
+HotChocolate.Data.Filters.Spatial.GeometryIntersectsOperationFilterInputType
+HotChocolate.Data.Filters.Spatial.GeometryIntersectsOperationFilterInputType.GeometryIntersectsOperationFilterInputType() -> void
+HotChocolate.Data.Filters.Spatial.GeometryOverlapsOperationFilterInputType
+HotChocolate.Data.Filters.Spatial.GeometryOverlapsOperationFilterInputType.GeometryOverlapsOperationFilterInputType() -> void
+HotChocolate.Data.Filters.Spatial.GeometryTouchesOperationFilterInputType
+HotChocolate.Data.Filters.Spatial.GeometryTouchesOperationFilterInputType.GeometryTouchesOperationFilterInputType() -> void
+HotChocolate.Data.Filters.Spatial.GeometryWithinOperationFilterInputType
+HotChocolate.Data.Filters.Spatial.GeometryWithinOperationFilterInputType.GeometryWithinOperationFilterInputType() -> void
+HotChocolate.Data.Filters.Spatial.LineStringFilterInputType
+HotChocolate.Data.Filters.Spatial.LineStringFilterInputType.LineStringFilterInputType() -> void
+HotChocolate.Data.Filters.Spatial.MultiLineStringFilterInputType
+HotChocolate.Data.Filters.Spatial.MultiLineStringFilterInputType.MultiLineStringFilterInputType() -> void
+HotChocolate.Data.Filters.Spatial.MultiPointFilterInputType
+HotChocolate.Data.Filters.Spatial.MultiPointFilterInputType.MultiPointFilterInputType() -> void
+HotChocolate.Data.Filters.Spatial.MultiPolygonFilterInputType
+HotChocolate.Data.Filters.Spatial.MultiPolygonFilterInputType.MultiPolygonFilterInputType() -> void
+HotChocolate.Data.Filters.Spatial.PointFilterInputType
+HotChocolate.Data.Filters.Spatial.PointFilterInputType.PointFilterInputType() -> void
+HotChocolate.Data.Filters.Spatial.PolygonFilterInputType
+HotChocolate.Data.Filters.Spatial.PolygonFilterInputType.PolygonFilterInputType() -> void
+HotChocolate.Data.Filters.Spatial.QueryableSpatialBooleanMethodHandler
+HotChocolate.Data.Filters.Spatial.QueryableSpatialBooleanMethodHandler.BufferFieldName.get -> string
+HotChocolate.Data.Filters.Spatial.QueryableSpatialBooleanMethodHandler.GeometryFieldName.get -> string
+HotChocolate.Data.Filters.Spatial.QueryableSpatialBooleanMethodHandler.QueryableSpatialBooleanMethodHandler(HotChocolate.Data.Filters.IFilterConvention convention, HotChocolate.Types.Descriptors.ITypeInspector inspector, System.Reflection.MethodInfo method) -> void
+HotChocolate.Data.Filters.Spatial.QueryableSpatialBufferDataHandler
+HotChocolate.Data.Filters.Spatial.QueryableSpatialBufferDataHandler.QueryableSpatialBufferDataHandler() -> void
+HotChocolate.Data.Filters.Spatial.QueryableSpatialContainsOperationHandler
+HotChocolate.Data.Filters.Spatial.QueryableSpatialContainsOperationHandler.QueryableSpatialContainsOperationHandler(HotChocolate.Data.Filters.IFilterConvention convention, HotChocolate.Types.Descriptors.ITypeInspector inspector) -> void
+HotChocolate.Data.Filters.Spatial.QueryableSpatialContainsOperationHandlerBase
+HotChocolate.Data.Filters.Spatial.QueryableSpatialContainsOperationHandlerBase.QueryableSpatialContainsOperationHandlerBase(HotChocolate.Data.Filters.IFilterConvention convention, HotChocolate.Types.Descriptors.ITypeInspector inspector) -> void
+HotChocolate.Data.Filters.Spatial.QueryableSpatialDistanceOperationHandler
+HotChocolate.Data.Filters.Spatial.QueryableSpatialDistanceOperationHandler.QueryableSpatialDistanceOperationHandler(HotChocolate.Data.Filters.IFilterConvention convention, HotChocolate.Types.Descriptors.ITypeInspector inspector) -> void
+HotChocolate.Data.Filters.Spatial.QueryableSpatialGeometryDataHandler
+HotChocolate.Data.Filters.Spatial.QueryableSpatialGeometryDataHandler.QueryableSpatialGeometryDataHandler() -> void
+HotChocolate.Data.Filters.Spatial.QueryableSpatialIntersectsOperationHandler
+HotChocolate.Data.Filters.Spatial.QueryableSpatialIntersectsOperationHandler.QueryableSpatialIntersectsOperationHandler(HotChocolate.Data.Filters.IFilterConvention convention, HotChocolate.Types.Descriptors.ITypeInspector inspector) -> void
+HotChocolate.Data.Filters.Spatial.QueryableSpatialIntersectsOperationHandlerBase
+HotChocolate.Data.Filters.Spatial.QueryableSpatialIntersectsOperationHandlerBase.QueryableSpatialIntersectsOperationHandlerBase(HotChocolate.Data.Filters.IFilterConvention convention, HotChocolate.Types.Descriptors.ITypeInspector inspector) -> void
+HotChocolate.Data.Filters.Spatial.QueryableSpatialMethodHandler
+HotChocolate.Data.Filters.Spatial.QueryableSpatialMethodHandler.BufferFieldName.get -> string
+HotChocolate.Data.Filters.Spatial.QueryableSpatialMethodHandler.GeometryFieldName.get -> string
+HotChocolate.Data.Filters.Spatial.QueryableSpatialMethodHandler.QueryableSpatialMethodHandler(HotChocolate.Data.Filters.IFilterConvention convention, HotChocolate.Types.Descriptors.ITypeInspector inspector, System.Reflection.MethodInfo method) -> void
+HotChocolate.Data.Filters.Spatial.QueryableSpatialNotContainsOperationHandler
+HotChocolate.Data.Filters.Spatial.QueryableSpatialNotContainsOperationHandler.QueryableSpatialNotContainsOperationHandler(HotChocolate.Data.Filters.IFilterConvention convention, HotChocolate.Types.Descriptors.ITypeInspector inspector) -> void
+HotChocolate.Data.Filters.Spatial.QueryableSpatialNotIntersectsOperationHandler
+HotChocolate.Data.Filters.Spatial.QueryableSpatialNotIntersectsOperationHandler.QueryableSpatialNotIntersectsOperationHandler(HotChocolate.Data.Filters.IFilterConvention convention, HotChocolate.Types.Descriptors.ITypeInspector inspector) -> void
+HotChocolate.Data.Filters.Spatial.QueryableSpatialNotOverlapsOperationHandler
+HotChocolate.Data.Filters.Spatial.QueryableSpatialNotOverlapsOperationHandler.QueryableSpatialNotOverlapsOperationHandler(HotChocolate.Data.Filters.IFilterConvention convention, HotChocolate.Types.Descriptors.ITypeInspector inspector) -> void
+HotChocolate.Data.Filters.Spatial.QueryableSpatialNotTouchesOperationHandler
+HotChocolate.Data.Filters.Spatial.QueryableSpatialNotTouchesOperationHandler.QueryableSpatialNotTouchesOperationHandler(HotChocolate.Data.Filters.IFilterConvention convention, HotChocolate.Types.Descriptors.ITypeInspector inspector) -> void
+HotChocolate.Data.Filters.Spatial.QueryableSpatialNotWithinOperationHandler
+HotChocolate.Data.Filters.Spatial.QueryableSpatialNotWithinOperationHandler.QueryableSpatialNotWithinOperationHandler(HotChocolate.Data.Filters.IFilterConvention convention, HotChocolate.Types.Descriptors.ITypeInspector inspector) -> void
+HotChocolate.Data.Filters.Spatial.QueryableSpatialOverlapsOperationHandler
+HotChocolate.Data.Filters.Spatial.QueryableSpatialOverlapsOperationHandler.QueryableSpatialOverlapsOperationHandler(HotChocolate.Data.Filters.IFilterConvention convention, HotChocolate.Types.Descriptors.ITypeInspector inspector) -> void
+HotChocolate.Data.Filters.Spatial.QueryableSpatialOverlapsOperationHandlerBase
+HotChocolate.Data.Filters.Spatial.QueryableSpatialOverlapsOperationHandlerBase.QueryableSpatialOverlapsOperationHandlerBase(HotChocolate.Data.Filters.IFilterConvention convention, HotChocolate.Types.Descriptors.ITypeInspector inspector) -> void
+HotChocolate.Data.Filters.Spatial.QueryableSpatialTouchesOperationHandler
+HotChocolate.Data.Filters.Spatial.QueryableSpatialTouchesOperationHandler.QueryableSpatialTouchesOperationHandler(HotChocolate.Data.Filters.IFilterConvention convention, HotChocolate.Types.Descriptors.ITypeInspector inspector) -> void
+HotChocolate.Data.Filters.Spatial.QueryableSpatialTouchesOperationHandlerBase
+HotChocolate.Data.Filters.Spatial.QueryableSpatialTouchesOperationHandlerBase.QueryableSpatialTouchesOperationHandlerBase(HotChocolate.Data.Filters.IFilterConvention convention, HotChocolate.Types.Descriptors.ITypeInspector inspector) -> void
+HotChocolate.Data.Filters.Spatial.QueryableSpatialWithinOperationHandler
+HotChocolate.Data.Filters.Spatial.QueryableSpatialWithinOperationHandler.QueryableSpatialWithinOperationHandler(HotChocolate.Data.Filters.IFilterConvention convention, HotChocolate.Types.Descriptors.ITypeInspector inspector) -> void
+HotChocolate.Data.Filters.Spatial.QueryableSpatialWithinOperationHandlerBase
+HotChocolate.Data.Filters.Spatial.QueryableSpatialWithinOperationHandlerBase.QueryableSpatialWithinOperationHandlerBase(HotChocolate.Data.Filters.IFilterConvention convention, HotChocolate.Types.Descriptors.ITypeInspector inspector) -> void
+HotChocolate.Data.Filters.Spatial.SpatialFilterOperations
+HotChocolate.Data.Filters.Spatial.SpatialOperationHandlerHelper
+HotChocolate.Data.Projections.Spatial.QueryableSpatialProjectionScalarHandler
+HotChocolate.Data.Projections.Spatial.QueryableSpatialProjectionScalarHandler.QueryableSpatialProjectionScalarHandler() -> void
+HotChocolate.Data.Projections.Spatial.SpatialProjectionProviderDescriptorQueryableExtensions
+HotChocolate.Data.SpatialFilterConventionDescriptorExtensions
+HotChocolate.Data.SpatialFilterProviderDescriptorQueryableExtensions
+HotChocolate.SpatialFilteringRequestExecutorBuilderExtensions
+HotChocolate.SpatialFilteringSchemaBuilderExtensions
+HotChocolate.SpatialProjectionsRequestExecutorBuilderExtensions
+HotChocolate.SpatialProjectionsSchemaBuilderExtensions
+override HotChocolate.Data.Filters.Spatial.GeometryContainsOperationFilterInputType.Configure(HotChocolate.Data.Filters.IFilterInputTypeDescriptor descriptor) -> void
+override HotChocolate.Data.Filters.Spatial.GeometryDistanceOperationFilterInputType.Configure(HotChocolate.Data.Filters.IFilterInputTypeDescriptor descriptor) -> void
+override HotChocolate.Data.Filters.Spatial.GeometryFilterInputType<T>.Configure(HotChocolate.Data.Filters.IFilterInputTypeDescriptor<T> descriptor) -> void
+override HotChocolate.Data.Filters.Spatial.GeometryIntersectsOperationFilterInputType.Configure(HotChocolate.Data.Filters.IFilterInputTypeDescriptor descriptor) -> void
+override HotChocolate.Data.Filters.Spatial.GeometryOverlapsOperationFilterInputType.Configure(HotChocolate.Data.Filters.IFilterInputTypeDescriptor descriptor) -> void
+override HotChocolate.Data.Filters.Spatial.GeometryTouchesOperationFilterInputType.Configure(HotChocolate.Data.Filters.IFilterInputTypeDescriptor descriptor) -> void
+override HotChocolate.Data.Filters.Spatial.GeometryWithinOperationFilterInputType.Configure(HotChocolate.Data.Filters.IFilterInputTypeDescriptor descriptor) -> void
+override HotChocolate.Data.Filters.Spatial.PointFilterInputType.Configure(HotChocolate.Data.Filters.IFilterInputTypeDescriptor<NetTopologySuite.Geometries.Point> descriptor) -> void
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialBooleanMethodHandler.CanHandle(HotChocolate.Configuration.ITypeCompletionContext context, HotChocolate.Data.Filters.IFilterInputTypeDefinition typeDefinition, HotChocolate.Data.Filters.IFilterFieldDefinition fieldDefinition) -> bool
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialBooleanMethodHandler.TryHandleEnter(HotChocolate.Data.Filters.Expressions.QueryableFilterContext context, HotChocolate.Data.Filters.IFilterField field, HotChocolate.Language.ObjectFieldNode node, out HotChocolate.Language.Visitors.ISyntaxVisitorAction action) -> bool
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialBooleanMethodHandler.TryHandleLeave(HotChocolate.Data.Filters.Expressions.QueryableFilterContext context, HotChocolate.Data.Filters.IFilterField field, HotChocolate.Language.ObjectFieldNode node, out HotChocolate.Language.Visitors.ISyntaxVisitorAction action) -> bool
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialBufferDataHandler.Operation.get -> int
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialContainsOperationHandler.IsTrue.get -> bool
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialContainsOperationHandler.Operation.get -> int
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialContainsOperationHandlerBase.TryHandleOperation(HotChocolate.Data.Filters.Expressions.QueryableFilterContext context, HotChocolate.Data.Filters.IFilterOperationField field, HotChocolate.Language.ObjectFieldNode node, out System.Linq.Expressions.Expression result) -> bool
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialDistanceOperationHandler.Operation.get -> int
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialDistanceOperationHandler.TryHandleOperation(HotChocolate.Data.Filters.Expressions.QueryableFilterContext context, HotChocolate.Data.Filters.IFilterOperationField field, HotChocolate.Language.ObjectFieldNode node, out System.Linq.Expressions.Expression result) -> bool
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialGeometryDataHandler.Operation.get -> int
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialIntersectsOperationHandler.IsTrue.get -> bool
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialIntersectsOperationHandler.Operation.get -> int
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialIntersectsOperationHandlerBase.TryHandleOperation(HotChocolate.Data.Filters.Expressions.QueryableFilterContext context, HotChocolate.Data.Filters.IFilterOperationField field, HotChocolate.Language.ObjectFieldNode node, out System.Linq.Expressions.Expression result) -> bool
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialMethodHandler.CanHandle(HotChocolate.Configuration.ITypeCompletionContext context, HotChocolate.Data.Filters.IFilterInputTypeDefinition typeDefinition, HotChocolate.Data.Filters.IFilterFieldDefinition fieldDefinition) -> bool
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialMethodHandler.TryHandleEnter(HotChocolate.Data.Filters.Expressions.QueryableFilterContext context, HotChocolate.Data.Filters.IFilterField field, HotChocolate.Language.ObjectFieldNode node, out HotChocolate.Language.Visitors.ISyntaxVisitorAction action) -> bool
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialMethodHandler.TryHandleLeave(HotChocolate.Data.Filters.Expressions.QueryableFilterContext context, HotChocolate.Data.Filters.IFilterField field, HotChocolate.Language.ObjectFieldNode node, out HotChocolate.Language.Visitors.ISyntaxVisitorAction action) -> bool
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialNotContainsOperationHandler.IsTrue.get -> bool
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialNotContainsOperationHandler.Operation.get -> int
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialNotIntersectsOperationHandler.IsTrue.get -> bool
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialNotIntersectsOperationHandler.Operation.get -> int
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialNotOverlapsOperationHandler.IsTrue.get -> bool
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialNotOverlapsOperationHandler.Operation.get -> int
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialNotTouchesOperationHandler.IsTrue.get -> bool
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialNotTouchesOperationHandler.Operation.get -> int
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialNotWithinOperationHandler.IsTrue.get -> bool
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialNotWithinOperationHandler.Operation.get -> int
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialOverlapsOperationHandler.IsTrue.get -> bool
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialOverlapsOperationHandler.Operation.get -> int
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialOverlapsOperationHandlerBase.TryHandleOperation(HotChocolate.Data.Filters.Expressions.QueryableFilterContext context, HotChocolate.Data.Filters.IFilterOperationField field, HotChocolate.Language.ObjectFieldNode node, out System.Linq.Expressions.Expression result) -> bool
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialTouchesOperationHandler.IsTrue.get -> bool
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialTouchesOperationHandler.Operation.get -> int
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialTouchesOperationHandlerBase.TryHandleOperation(HotChocolate.Data.Filters.Expressions.QueryableFilterContext context, HotChocolate.Data.Filters.IFilterOperationField field, HotChocolate.Language.ObjectFieldNode node, out System.Linq.Expressions.Expression result) -> bool
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialWithinOperationHandler.IsTrue.get -> bool
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialWithinOperationHandler.Operation.get -> int
+override HotChocolate.Data.Filters.Spatial.QueryableSpatialWithinOperationHandlerBase.TryHandleOperation(HotChocolate.Data.Filters.Expressions.QueryableFilterContext context, HotChocolate.Data.Filters.IFilterOperationField field, HotChocolate.Language.ObjectFieldNode node, out System.Linq.Expressions.Expression result) -> bool
+override HotChocolate.Data.Projections.Spatial.QueryableSpatialProjectionScalarHandler.CanHandle(HotChocolate.Execution.Processing.ISelection selection) -> bool
+static HotChocolate.Data.Filters.Spatial.SpatialOperationHandlerHelper.TryGetParameter<T>(HotChocolate.Data.Filters.IFilterField parentField, HotChocolate.Language.IValueNode node, string fieldName, out T fieldNode) -> bool
+static HotChocolate.Data.Projections.Spatial.SpatialProjectionProviderDescriptorQueryableExtensions.AddSpatialHandlers(this HotChocolate.Data.Projections.IProjectionProviderDescriptor descriptor) -> HotChocolate.Data.Projections.IProjectionProviderDescriptor
+static HotChocolate.Data.SpatialFilterConventionDescriptorExtensions.AddSpatialDefaults(this HotChocolate.Data.Filters.IFilterConventionDescriptor descriptor) -> HotChocolate.Data.Filters.IFilterConventionDescriptor
+static HotChocolate.Data.SpatialFilterConventionDescriptorExtensions.AddSpatialOperations(this HotChocolate.Data.Filters.IFilterConventionDescriptor descriptor) -> HotChocolate.Data.Filters.IFilterConventionDescriptor
+static HotChocolate.Data.SpatialFilterConventionDescriptorExtensions.BindSpatialTypes(this HotChocolate.Data.Filters.IFilterConventionDescriptor descriptor) -> HotChocolate.Data.Filters.IFilterConventionDescriptor
+static HotChocolate.Data.SpatialFilterProviderDescriptorQueryableExtensions.AddSpatialHandlers(this HotChocolate.Data.Filters.IFilterProviderDescriptor<HotChocolate.Data.Filters.Expressions.QueryableFilterContext> descriptor) -> HotChocolate.Data.Filters.IFilterProviderDescriptor<HotChocolate.Data.Filters.Expressions.QueryableFilterContext>
+static HotChocolate.SpatialFilteringRequestExecutorBuilderExtensions.AddSpatialFiltering(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder builder) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder
+static HotChocolate.SpatialFilteringSchemaBuilderExtensions.AddSpatialFiltering(this HotChocolate.ISchemaBuilder builder) -> HotChocolate.ISchemaBuilder
+static HotChocolate.SpatialProjectionsRequestExecutorBuilderExtensions.AddSpatialProjections(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder builder) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder
+static HotChocolate.SpatialProjectionsSchemaBuilderExtensions.AddSpatialProjections(this HotChocolate.ISchemaBuilder builder) -> HotChocolate.ISchemaBuilder

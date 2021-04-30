@@ -1,0 +1,71 @@
+#nullable enable
+abstract HotChocolate.Types.Pagination.OffsetPagingHandler.SliceAsync(HotChocolate.Resolvers.IResolverContext context, object source, HotChocolate.Types.Pagination.OffsetPagingArguments arguments) -> System.Threading.Tasks.ValueTask<HotChocolate.Types.Pagination.CollectionSegment>
+abstract HotChocolate.Types.Pagination.OffsetPagingProvider.CanHandle(HotChocolate.Internal.IExtendedType source) -> bool
+abstract HotChocolate.Types.Pagination.OffsetPagingProvider.CreateHandler(HotChocolate.Internal.IExtendedType source, HotChocolate.Types.Pagination.PagingOptions options) -> HotChocolate.Types.Pagination.OffsetPagingHandler
+HotChocolate.Types.GetOffsetPagingProvider
+HotChocolate.Types.OffsetPagingObjectFieldDescriptorExtensions
+HotChocolate.Types.Pagination.CollectionSegment
+HotChocolate.Types.Pagination.CollectionSegment.CollectionSegment(System.Collections.Generic.IReadOnlyCollection<object> items, HotChocolate.Types.Pagination.CollectionSegmentInfo info, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<int>> getTotalCount) -> void
+HotChocolate.Types.Pagination.CollectionSegment.GetTotalCountAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<int>
+HotChocolate.Types.Pagination.CollectionSegment.Info.get -> HotChocolate.Types.Pagination.IPageInfo
+HotChocolate.Types.Pagination.CollectionSegment.Items.get -> System.Collections.Generic.IReadOnlyCollection<object>
+HotChocolate.Types.Pagination.CollectionSegment<T>
+HotChocolate.Types.Pagination.CollectionSegment<T>.CollectionSegment(System.Collections.Generic.IReadOnlyCollection<T> items, HotChocolate.Types.Pagination.CollectionSegmentInfo info, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<int>> getTotalCount) -> void
+HotChocolate.Types.Pagination.CollectionSegment<T>.Items.get -> System.Collections.Generic.IReadOnlyCollection<T>
+HotChocolate.Types.Pagination.CollectionSegmentCountType<T>
+HotChocolate.Types.Pagination.CollectionSegmentCountType<T>.CollectionSegmentCountType() -> void
+HotChocolate.Types.Pagination.CollectionSegmentCountType<T>.CollectionSegmentCountType(System.Action<HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.CollectionSegment>> configure) -> void
+HotChocolate.Types.Pagination.CollectionSegmentInfo
+HotChocolate.Types.Pagination.CollectionSegmentInfo.CollectionSegmentInfo(bool hasNextPage, bool hasPreviousPage) -> void
+HotChocolate.Types.Pagination.CollectionSegmentInfo.HasNextPage.get -> bool
+HotChocolate.Types.Pagination.CollectionSegmentInfo.HasPreviousPage.get -> bool
+HotChocolate.Types.Pagination.CollectionSegmentInfoType
+HotChocolate.Types.Pagination.CollectionSegmentInfoType.CollectionSegmentInfoType() -> void
+HotChocolate.Types.Pagination.CollectionSegmentType<T>
+HotChocolate.Types.Pagination.CollectionSegmentType<T>.CollectionSegmentType() -> void
+HotChocolate.Types.Pagination.CollectionSegmentType<T>.CollectionSegmentType(System.Action<HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.CollectionSegment>> configure) -> void
+HotChocolate.Types.Pagination.CollectionSegmentType<T>.ItemType.get -> HotChocolate.Types.IOutputType
+HotChocolate.Types.Pagination.OffsetPagingArguments
+HotChocolate.Types.Pagination.OffsetPagingArguments.OffsetPagingArguments() -> void
+HotChocolate.Types.Pagination.OffsetPagingArguments.OffsetPagingArguments(int? skip, int take) -> void
+HotChocolate.Types.Pagination.OffsetPagingArguments.Skip.get -> int?
+HotChocolate.Types.Pagination.OffsetPagingArguments.Take.get -> int
+HotChocolate.Types.Pagination.OffsetPagingHandler
+HotChocolate.Types.Pagination.OffsetPagingHandler.DefaultPageSize.get -> int
+HotChocolate.Types.Pagination.OffsetPagingHandler.IncludeTotalCount.get -> bool
+HotChocolate.Types.Pagination.OffsetPagingHandler.MaxPageSize.get -> int
+HotChocolate.Types.Pagination.OffsetPagingHandler.OffsetPagingHandler(HotChocolate.Types.Pagination.PagingOptions options) -> void
+HotChocolate.Types.Pagination.OffsetPagingHandler.ValidateContext(HotChocolate.Resolvers.IResolverContext context) -> void
+HotChocolate.Types.Pagination.OffsetPagingProvider
+HotChocolate.Types.Pagination.OffsetPagingProvider.OffsetPagingProvider() -> void
+HotChocolate.Types.Pagination.QueryableOffsetPagingHandler<TItemType>
+HotChocolate.Types.Pagination.QueryableOffsetPagingHandler<TItemType>.QueryableOffsetPagingHandler(HotChocolate.Types.Pagination.PagingOptions options) -> void
+HotChocolate.Types.Pagination.QueryableOffsetPagingProvider
+HotChocolate.Types.Pagination.QueryableOffsetPagingProvider.QueryableOffsetPagingProvider() -> void
+HotChocolate.Types.UseOffsetPagingAttribute
+HotChocolate.Types.UseOffsetPagingAttribute.DefaultPageSize.get -> int
+HotChocolate.Types.UseOffsetPagingAttribute.DefaultPageSize.set -> void
+HotChocolate.Types.UseOffsetPagingAttribute.IncludeTotalCount.get -> bool
+HotChocolate.Types.UseOffsetPagingAttribute.IncludeTotalCount.set -> void
+HotChocolate.Types.UseOffsetPagingAttribute.MaxPageSize.get -> int
+HotChocolate.Types.UseOffsetPagingAttribute.MaxPageSize.set -> void
+HotChocolate.Types.UseOffsetPagingAttribute.Type.get -> System.Type
+HotChocolate.Types.UseOffsetPagingAttribute.UseOffsetPagingAttribute(System.Type type = null) -> void
+override HotChocolate.Types.Pagination.CollectionSegmentCountType<T>.Configure(HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.CollectionSegment> descriptor) -> void
+override HotChocolate.Types.Pagination.CollectionSegmentInfoType.Configure(HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.CollectionSegmentInfo> descriptor) -> void
+override HotChocolate.Types.Pagination.CollectionSegmentType<T>.Configure(HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.CollectionSegment> descriptor) -> void
+override HotChocolate.Types.Pagination.CollectionSegmentType<T>.OnCompleteType(HotChocolate.Configuration.ITypeCompletionContext context, HotChocolate.Types.Descriptors.Definitions.ObjectTypeDefinition definition) -> void
+override HotChocolate.Types.Pagination.CollectionSegmentType<T>.OnRegisterDependencies(HotChocolate.Configuration.ITypeDiscoveryContext context, HotChocolate.Types.Descriptors.Definitions.ObjectTypeDefinition definition) -> void
+override HotChocolate.Types.Pagination.QueryableOffsetPagingHandler<TItemType>.SliceAsync(HotChocolate.Resolvers.IResolverContext context, object source, HotChocolate.Types.Pagination.OffsetPagingArguments arguments) -> System.Threading.Tasks.ValueTask<HotChocolate.Types.Pagination.CollectionSegment>
+override HotChocolate.Types.Pagination.QueryableOffsetPagingProvider.CanHandle(HotChocolate.Internal.IExtendedType source) -> bool
+override HotChocolate.Types.Pagination.QueryableOffsetPagingProvider.CreateHandler(HotChocolate.Internal.IExtendedType source, HotChocolate.Types.Pagination.PagingOptions options) -> HotChocolate.Types.Pagination.OffsetPagingHandler
+override HotChocolate.Types.UseOffsetPagingAttribute.TryConfigure(HotChocolate.Types.Descriptors.IDescriptorContext context, HotChocolate.Types.IDescriptor descriptor, System.Reflection.ICustomAttributeProvider element) -> void
+static HotChocolate.Types.OffsetPagingObjectFieldDescriptorExtensions.AddOffsetPagingArguments(this HotChocolate.Types.IInterfaceFieldDescriptor descriptor) -> HotChocolate.Types.IInterfaceFieldDescriptor
+static HotChocolate.Types.OffsetPagingObjectFieldDescriptorExtensions.AddOffsetPagingArguments(this HotChocolate.Types.IObjectFieldDescriptor descriptor) -> HotChocolate.Types.IObjectFieldDescriptor
+static HotChocolate.Types.OffsetPagingObjectFieldDescriptorExtensions.UseOffsetPaging(this HotChocolate.Types.IInterfaceFieldDescriptor descriptor, System.Type type = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IInterfaceFieldDescriptor
+static HotChocolate.Types.OffsetPagingObjectFieldDescriptorExtensions.UseOffsetPaging(this HotChocolate.Types.IObjectFieldDescriptor descriptor, System.Type type = null, System.Type itemType = null, HotChocolate.Types.GetOffsetPagingProvider resolvePagingProvider = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor
+static HotChocolate.Types.OffsetPagingObjectFieldDescriptorExtensions.UseOffsetPaging<TSchemaType>(this HotChocolate.Types.IInterfaceFieldDescriptor descriptor, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IInterfaceFieldDescriptor
+static HotChocolate.Types.OffsetPagingObjectFieldDescriptorExtensions.UseOffsetPaging<TSchemaType>(this HotChocolate.Types.IObjectFieldDescriptor descriptor, System.Type itemType = null, HotChocolate.Types.GetOffsetPagingProvider resolvePagingProvider = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor
+static HotChocolate.Types.Pagination.CollectionSegmentCountType<T>.ApplyConfig(HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.CollectionSegment> descriptor) -> void
+static HotChocolate.Types.Pagination.CollectionSegmentType<T>.ApplyConfig(HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.CollectionSegment> descriptor) -> void
+virtual HotChocolate.Types.Pagination.QueryableOffsetPagingHandler<TItemType>.ExecuteQueryableAsync(System.Linq.IQueryable<TItemType> queryable, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.List<TItemType>>

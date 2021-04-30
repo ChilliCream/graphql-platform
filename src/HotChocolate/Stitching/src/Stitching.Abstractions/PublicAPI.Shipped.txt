@@ -1,0 +1,6 @@
+#nullable enable
+HotChocolate.Stitching.RemoteSchemaDefinition
+HotChocolate.Stitching.RemoteSchemaDefinition.Document.get -> HotChocolate.Language.DocumentNode
+HotChocolate.Stitching.RemoteSchemaDefinition.ExtensionDocuments.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DocumentNode>
+HotChocolate.Stitching.RemoteSchemaDefinition.Name.get -> HotChocolate.NameString
+HotChocolate.Stitching.RemoteSchemaDefinition.RemoteSchemaDefinition(HotChocolate.NameString name, HotChocolate.Language.DocumentNode document, System.Collections.Generic.IEnumerable<HotChocolate.Language.DocumentNode> extensionDocuments = null) -> void

@@ -1,0 +1,19 @@
+#nullable enable
+HotChocolate.HotChocolateFileSystemPersistedQueriesServiceCollectionExtensions
+HotChocolate.PersistedQueries.FileSystem.DefaultQueryFileMap
+HotChocolate.PersistedQueries.FileSystem.DefaultQueryFileMap.DefaultQueryFileMap() -> void
+HotChocolate.PersistedQueries.FileSystem.DefaultQueryFileMap.DefaultQueryFileMap(string cacheDirectory) -> void
+HotChocolate.PersistedQueries.FileSystem.DefaultQueryFileMap.MapToFilePath(string queryId) -> string
+HotChocolate.PersistedQueries.FileSystem.DefaultQueryFileMap.Root.get -> string
+HotChocolate.PersistedQueries.FileSystem.FileSystemQueryStorage
+HotChocolate.PersistedQueries.FileSystem.FileSystemQueryStorage.FileSystemQueryStorage(HotChocolate.PersistedQueries.FileSystem.IQueryFileMap queryMap) -> void
+HotChocolate.PersistedQueries.FileSystem.FileSystemQueryStorage.TryReadQueryAsync(string queryId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<HotChocolate.Execution.QueryDocument>
+HotChocolate.PersistedQueries.FileSystem.FileSystemQueryStorage.WriteQueryAsync(string queryId, HotChocolate.Execution.IQuery query, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
+HotChocolate.PersistedQueries.FileSystem.IQueryFileMap
+HotChocolate.PersistedQueries.FileSystem.IQueryFileMap.MapToFilePath(string queryId) -> string
+HotChocolate.PersistedQueries.FileSystem.IQueryFileMap.Root.get -> string
+Microsoft.Extensions.DependencyInjection.HotChocolateFileSystemPersistedQueriesRequestExecutorBuilderExtensions
+static HotChocolate.HotChocolateFileSystemPersistedQueriesServiceCollectionExtensions.AddFileSystemQueryStorage(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, string cacheDirectory = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection
+static HotChocolate.HotChocolateFileSystemPersistedQueriesServiceCollectionExtensions.AddReadOnlyFileSystemQueryStorage(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, string cacheDirectory = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection
+static Microsoft.Extensions.DependencyInjection.HotChocolateFileSystemPersistedQueriesRequestExecutorBuilderExtensions.AddFileSystemQueryStorage(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder builder, string cacheDirectory = null) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder
+static Microsoft.Extensions.DependencyInjection.HotChocolateFileSystemPersistedQueriesRequestExecutorBuilderExtensions.AddReadOnlyFileSystemQueryStorage(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder builder, string cacheDirectory = null) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder

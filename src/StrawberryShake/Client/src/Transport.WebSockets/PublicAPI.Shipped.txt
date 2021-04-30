@@ -1,0 +1,183 @@
+#nullable enable
+abstract StrawberryShake.Transport.WebSockets.SocketProtocolBase.InitializeAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+abstract StrawberryShake.Transport.WebSockets.SocketProtocolBase.StartOperationAsync(string operationId, StrawberryShake.OperationRequest request, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+abstract StrawberryShake.Transport.WebSockets.SocketProtocolBase.StopOperationAsync(string operationId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+abstract StrawberryShake.Transport.WebSockets.SocketProtocolBase.TerminateAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+Microsoft.Extensions.DependencyInjection.WebSocketClientBuilderExtensions
+Microsoft.Extensions.DependencyInjection.WebSocketClientFactoryServiceCollectionExtensions
+Microsoft.Extensions.DependencyInjection.WebSocketClientPoolServiceCollectionExtensions
+override StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketProtocol.DisposeAsync() -> System.Threading.Tasks.ValueTask
+override StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketProtocol.InitializeAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+override StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketProtocol.StartOperationAsync(string operationId, StrawberryShake.OperationRequest request, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+override StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketProtocol.StopOperationAsync(string operationId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+override StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketProtocol.TerminateAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+override StrawberryShake.Transport.WebSockets.SocketMessageWriter.Reset() -> void
+static Microsoft.Extensions.DependencyInjection.WebSocketClientBuilderExtensions.ConfigureConnectionInterceptor(this StrawberryShake.Transport.WebSockets.IWebSocketClientBuilder builder, StrawberryShake.Transport.WebSockets.ISocketConnectionInterceptor interceptor) -> StrawberryShake.Transport.WebSockets.IWebSocketClientBuilder
+static Microsoft.Extensions.DependencyInjection.WebSocketClientBuilderExtensions.ConfigureConnectionInterceptor(this StrawberryShake.Transport.WebSockets.IWebSocketClientBuilder builder, System.Func<System.IServiceProvider, StrawberryShake.Transport.WebSockets.ISocketConnectionInterceptor> factory) -> StrawberryShake.Transport.WebSockets.IWebSocketClientBuilder
+static Microsoft.Extensions.DependencyInjection.WebSocketClientBuilderExtensions.ConfigureConnectionInterceptor<TInterceptor>(this StrawberryShake.Transport.WebSockets.IWebSocketClientBuilder builder) -> StrawberryShake.Transport.WebSockets.IWebSocketClientBuilder
+static Microsoft.Extensions.DependencyInjection.WebSocketClientBuilderExtensions.ConfigureWebSocketClient(this StrawberryShake.Transport.WebSockets.IWebSocketClientBuilder builder, System.Action<StrawberryShake.Transport.WebSockets.IWebSocketClient> configureClient) -> StrawberryShake.Transport.WebSockets.IWebSocketClientBuilder
+static Microsoft.Extensions.DependencyInjection.WebSocketClientBuilderExtensions.ConfigureWebSocketClient(this StrawberryShake.Transport.WebSockets.IWebSocketClientBuilder builder, System.Action<System.IServiceProvider, StrawberryShake.Transport.WebSockets.IWebSocketClient> configureClient) -> StrawberryShake.Transport.WebSockets.IWebSocketClientBuilder
+static Microsoft.Extensions.DependencyInjection.WebSocketClientBuilderExtensions.ConfigureWebSocketClient<T>(this StrawberryShake.IClientBuilder<T> clientBuilder, System.Action<StrawberryShake.Transport.WebSockets.IWebSocketClient> configureClient, System.Action<StrawberryShake.Transport.WebSockets.IWebSocketClientBuilder> configureClientBuilder = null) -> StrawberryShake.IClientBuilder<T>
+static Microsoft.Extensions.DependencyInjection.WebSocketClientBuilderExtensions.ConfigureWebSocketClient<T>(this StrawberryShake.IClientBuilder<T> clientBuilder, System.Action<System.IServiceProvider, StrawberryShake.Transport.WebSockets.IWebSocketClient> configureClient, System.Action<StrawberryShake.Transport.WebSockets.IWebSocketClientBuilder> configureClientBuilder = null) -> StrawberryShake.IClientBuilder<T>
+static Microsoft.Extensions.DependencyInjection.WebSocketClientFactoryServiceCollectionExtensions.AddProtocol<TFactory>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection
+static Microsoft.Extensions.DependencyInjection.WebSocketClientFactoryServiceCollectionExtensions.AddWebSocketClient(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, string name) -> StrawberryShake.Transport.WebSockets.IWebSocketClientBuilder
+static Microsoft.Extensions.DependencyInjection.WebSocketClientFactoryServiceCollectionExtensions.AddWebSocketClient(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, string name, System.Action<StrawberryShake.Transport.WebSockets.IWebSocketClient> configureClient) -> StrawberryShake.Transport.WebSockets.IWebSocketClientBuilder
+static Microsoft.Extensions.DependencyInjection.WebSocketClientFactoryServiceCollectionExtensions.AddWebSocketClient(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, string name, System.Action<System.IServiceProvider, StrawberryShake.Transport.WebSockets.IWebSocketClient> configureClient) -> StrawberryShake.Transport.WebSockets.IWebSocketClientBuilder
+static Microsoft.Extensions.DependencyInjection.WebSocketClientPoolServiceCollectionExtensions.AddWebSocketClientPool(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection
+static readonly StrawberryShake.Transport.WebSockets.Messages.CancelledOperationMessage.Default -> StrawberryShake.Transport.WebSockets.Messages.CancelledOperationMessage
+static readonly StrawberryShake.Transport.WebSockets.Messages.CompleteOperationMessage.Default -> StrawberryShake.Transport.WebSockets.Messages.CompleteOperationMessage
+static readonly StrawberryShake.Transport.WebSockets.Messages.ErrorOperationMessage.ConnectionInitializationError -> StrawberryShake.Transport.WebSockets.Messages.ErrorOperationMessage
+static readonly StrawberryShake.Transport.WebSockets.Messages.ErrorOperationMessage.ResponseParsingError -> StrawberryShake.Transport.WebSockets.Messages.ErrorOperationMessage
+static readonly StrawberryShake.Transport.WebSockets.Messages.ErrorOperationMessage.UnexpectedServerError -> StrawberryShake.Transport.WebSockets.Messages.ErrorOperationMessage
+static StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketMessageTypeSpans.Complete.get -> System.ReadOnlySpan<byte>
+static StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketMessageTypeSpans.ConnectionAccept.get -> System.ReadOnlySpan<byte>
+static StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketMessageTypeSpans.ConnectionError.get -> System.ReadOnlySpan<byte>
+static StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketMessageTypeSpans.ConnectionInitialize.get -> System.ReadOnlySpan<byte>
+static StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketMessageTypeSpans.ConnectionTerminate.get -> System.ReadOnlySpan<byte>
+static StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketMessageTypeSpans.Data.get -> System.ReadOnlySpan<byte>
+static StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketMessageTypeSpans.Error.get -> System.ReadOnlySpan<byte>
+static StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketMessageTypeSpans.KeepAlive.get -> System.ReadOnlySpan<byte>
+static StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketMessageTypeSpans.Start.get -> System.ReadOnlySpan<byte>
+static StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketMessageTypeSpans.Stop.get -> System.ReadOnlySpan<byte>
+StrawberryShake.Transport.WebSockets.DefaultSocketClientFactory
+StrawberryShake.Transport.WebSockets.DefaultSocketClientFactory.CreateClient(string name) -> StrawberryShake.Transport.WebSockets.ISocketClient
+StrawberryShake.Transport.WebSockets.DefaultSocketClientFactory.DefaultSocketClientFactory(Microsoft.Extensions.Options.IOptionsMonitor<StrawberryShake.Transport.WebSockets.SocketClientFactoryOptions> optionsMonitor, System.Collections.Generic.IEnumerable<StrawberryShake.Transport.WebSockets.ISocketProtocolFactory> protocolFactories) -> void
+StrawberryShake.Transport.WebSockets.IRequestWriter
+StrawberryShake.Transport.WebSockets.IRequestWriter.Body.get -> System.ReadOnlyMemory<byte>
+StrawberryShake.Transport.WebSockets.IRequestWriter.Reset() -> void
+StrawberryShake.Transport.WebSockets.ISession
+StrawberryShake.Transport.WebSockets.ISession.Name.get -> string
+StrawberryShake.Transport.WebSockets.ISession.StartOperationAsync(StrawberryShake.OperationRequest request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<StrawberryShake.Transport.WebSockets.ISocketOperation>
+StrawberryShake.Transport.WebSockets.ISession.StopOperationAsync(string operationId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
+StrawberryShake.Transport.WebSockets.ISessionPool
+StrawberryShake.Transport.WebSockets.ISessionPool.CreateAsync(string name, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<StrawberryShake.Transport.WebSockets.ISession>
+StrawberryShake.Transport.WebSockets.ISocketClient
+StrawberryShake.Transport.WebSockets.ISocketClient.CloseAsync(string message, StrawberryShake.Transport.WebSockets.SocketCloseStatus closeStatus, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
+StrawberryShake.Transport.WebSockets.ISocketClient.ConnectionInterceptor.get -> StrawberryShake.Transport.WebSockets.ISocketConnectionInterceptor
+StrawberryShake.Transport.WebSockets.ISocketClient.ConnectionInterceptor.set -> void
+StrawberryShake.Transport.WebSockets.ISocketClient.IsClosed.get -> bool
+StrawberryShake.Transport.WebSockets.ISocketClient.Name.get -> string
+StrawberryShake.Transport.WebSockets.ISocketClient.OpenAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<StrawberryShake.Transport.WebSockets.ISocketProtocol>
+StrawberryShake.Transport.WebSockets.ISocketClient.ReceiveAsync(System.IO.Pipelines.PipeWriter writer, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+StrawberryShake.Transport.WebSockets.ISocketClient.SendAsync(System.ReadOnlyMemory<byte> message, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+StrawberryShake.Transport.WebSockets.ISocketClient.Uri.get -> System.Uri
+StrawberryShake.Transport.WebSockets.ISocketClient.Uri.set -> void
+StrawberryShake.Transport.WebSockets.ISocketClientFactory
+StrawberryShake.Transport.WebSockets.ISocketClientFactory.CreateClient(string name) -> StrawberryShake.Transport.WebSockets.ISocketClient
+StrawberryShake.Transport.WebSockets.ISocketConnectionInterceptor
+StrawberryShake.Transport.WebSockets.ISocketConnectionInterceptor.CreateConnectionInitPayload(StrawberryShake.Transport.WebSockets.ISocketProtocol protocol, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<object>
+StrawberryShake.Transport.WebSockets.ISocketOperation
+StrawberryShake.Transport.WebSockets.ISocketOperation.Id.get -> string
+StrawberryShake.Transport.WebSockets.ISocketOperation.ReadAsync(System.Threading.CancellationToken cancellationToken) -> System.Collections.Generic.IAsyncEnumerable<StrawberryShake.Transport.WebSockets.Messages.OperationMessage>
+StrawberryShake.Transport.WebSockets.ISocketProtocol
+StrawberryShake.Transport.WebSockets.ISocketProtocol.Disposed -> System.EventHandler
+StrawberryShake.Transport.WebSockets.ISocketProtocol.InitializeAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+StrawberryShake.Transport.WebSockets.ISocketProtocol.StartOperationAsync(string operationId, StrawberryShake.OperationRequest request, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+StrawberryShake.Transport.WebSockets.ISocketProtocol.StopOperationAsync(string operationId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+StrawberryShake.Transport.WebSockets.ISocketProtocol.Subscribe(StrawberryShake.Transport.WebSockets.OnReceiveAsync listener) -> void
+StrawberryShake.Transport.WebSockets.ISocketProtocol.TerminateAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+StrawberryShake.Transport.WebSockets.ISocketProtocol.Unsubscribe(StrawberryShake.Transport.WebSockets.OnReceiveAsync listener) -> void
+StrawberryShake.Transport.WebSockets.ISocketProtocolFactory
+StrawberryShake.Transport.WebSockets.ISocketProtocolFactory.Create(StrawberryShake.Transport.WebSockets.ISocketClient socketClient) -> StrawberryShake.Transport.WebSockets.ISocketProtocol
+StrawberryShake.Transport.WebSockets.ISocketProtocolFactory.ProtocolName.get -> string
+StrawberryShake.Transport.WebSockets.IWebSocketClient
+StrawberryShake.Transport.WebSockets.IWebSocketClient.Socket.get -> System.Net.WebSockets.ClientWebSocket
+StrawberryShake.Transport.WebSockets.IWebSocketClientBuilder
+StrawberryShake.Transport.WebSockets.IWebSocketClientBuilder.Name.get -> string
+StrawberryShake.Transport.WebSockets.IWebSocketClientBuilder.Services.get -> Microsoft.Extensions.DependencyInjection.IServiceCollection
+StrawberryShake.Transport.WebSockets.IWebSocketConnection
+StrawberryShake.Transport.WebSockets.Messages.CancelledOperationMessage
+StrawberryShake.Transport.WebSockets.Messages.CompleteOperationMessage
+StrawberryShake.Transport.WebSockets.Messages.DataDocumentOperationMessage<TData>
+StrawberryShake.Transport.WebSockets.Messages.DataDocumentOperationMessage<TData>.DataDocumentOperationMessage(TData payload) -> void
+StrawberryShake.Transport.WebSockets.Messages.ErrorOperationMessage
+StrawberryShake.Transport.WebSockets.Messages.ErrorOperationMessage.ErrorOperationMessage(string message) -> void
+StrawberryShake.Transport.WebSockets.Messages.ErrorOperationMessage.Message.get -> string
+StrawberryShake.Transport.WebSockets.Messages.OperationMessage
+StrawberryShake.Transport.WebSockets.Messages.OperationMessage.OperationMessage(StrawberryShake.Transport.WebSockets.Messages.OperationMessageType type) -> void
+StrawberryShake.Transport.WebSockets.Messages.OperationMessage.Type.get -> StrawberryShake.Transport.WebSockets.Messages.OperationMessageType
+StrawberryShake.Transport.WebSockets.Messages.OperationMessage<T>
+StrawberryShake.Transport.WebSockets.Messages.OperationMessage<T>.OperationMessage(StrawberryShake.Transport.WebSockets.Messages.OperationMessageType type, T payload) -> void
+StrawberryShake.Transport.WebSockets.Messages.OperationMessage<T>.Payload.get -> T
+StrawberryShake.Transport.WebSockets.Messages.OperationMessageType
+StrawberryShake.Transport.WebSockets.Messages.OperationMessageType.Cancelled = 2 -> StrawberryShake.Transport.WebSockets.Messages.OperationMessageType
+StrawberryShake.Transport.WebSockets.Messages.OperationMessageType.Complete = 3 -> StrawberryShake.Transport.WebSockets.Messages.OperationMessageType
+StrawberryShake.Transport.WebSockets.Messages.OperationMessageType.Data = 1 -> StrawberryShake.Transport.WebSockets.Messages.OperationMessageType
+StrawberryShake.Transport.WebSockets.Messages.OperationMessageType.Error = 0 -> StrawberryShake.Transport.WebSockets.Messages.OperationMessageType
+StrawberryShake.Transport.WebSockets.OnReceiveAsync
+StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketMessageTypeSpans
+StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketProtocol
+StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketProtocol.GraphQLWebSocketProtocol(StrawberryShake.Transport.WebSockets.ISocketClient socketClient) -> void
+StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketProtocolFactory
+StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketProtocolFactory.Create(StrawberryShake.Transport.WebSockets.ISocketClient socketClient) -> StrawberryShake.Transport.WebSockets.ISocketProtocol
+StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketProtocolFactory.GraphQLWebSocketProtocolFactory() -> void
+StrawberryShake.Transport.WebSockets.Protocols.GraphQLWebSocketProtocolFactory.ProtocolName.get -> string
+StrawberryShake.Transport.WebSockets.RequestWriter
+StrawberryShake.Transport.WebSockets.RequestWriter.Advance(int count) -> void
+StrawberryShake.Transport.WebSockets.RequestWriter.Body.get -> System.ReadOnlyMemory<byte>
+StrawberryShake.Transport.WebSockets.RequestWriter.Dispose() -> void
+StrawberryShake.Transport.WebSockets.RequestWriter.GetMemory(int sizeHint = 0) -> System.Memory<byte>
+StrawberryShake.Transport.WebSockets.RequestWriter.GetSpan(int sizeHint = 0) -> System.Span<byte>
+StrawberryShake.Transport.WebSockets.RequestWriter.RequestWriter() -> void
+StrawberryShake.Transport.WebSockets.Session
+StrawberryShake.Transport.WebSockets.Session.CloseSessionAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
+StrawberryShake.Transport.WebSockets.Session.DisposeAsync() -> System.Threading.Tasks.ValueTask
+StrawberryShake.Transport.WebSockets.Session.Name.get -> string
+StrawberryShake.Transport.WebSockets.Session.OpenSessionAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
+StrawberryShake.Transport.WebSockets.Session.Session(StrawberryShake.Transport.WebSockets.ISocketClient socketClient) -> void
+StrawberryShake.Transport.WebSockets.Session.StartOperationAsync(StrawberryShake.OperationRequest request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<StrawberryShake.Transport.WebSockets.ISocketOperation>
+StrawberryShake.Transport.WebSockets.Session.StopOperationAsync(string operationId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
+StrawberryShake.Transport.WebSockets.SocketClientFactoryOptions
+StrawberryShake.Transport.WebSockets.SocketClientFactoryOptions.SocketClientActions.get -> System.Collections.Generic.IList<System.Action<StrawberryShake.Transport.WebSockets.ISocketClient>>
+StrawberryShake.Transport.WebSockets.SocketClientFactoryOptions.SocketClientFactoryOptions() -> void
+StrawberryShake.Transport.WebSockets.SocketCloseStatus
+StrawberryShake.Transport.WebSockets.SocketCloseStatus.EndpointUnavailable = 2 -> StrawberryShake.Transport.WebSockets.SocketCloseStatus
+StrawberryShake.Transport.WebSockets.SocketCloseStatus.InternalServerError = 9 -> StrawberryShake.Transport.WebSockets.SocketCloseStatus
+StrawberryShake.Transport.WebSockets.SocketCloseStatus.InvalidMessageType = 4 -> StrawberryShake.Transport.WebSockets.SocketCloseStatus
+StrawberryShake.Transport.WebSockets.SocketCloseStatus.InvalidPayloadData = 5 -> StrawberryShake.Transport.WebSockets.SocketCloseStatus
+StrawberryShake.Transport.WebSockets.SocketCloseStatus.MandatoryExtension = 8 -> StrawberryShake.Transport.WebSockets.SocketCloseStatus
+StrawberryShake.Transport.WebSockets.SocketCloseStatus.MessageTooBig = 7 -> StrawberryShake.Transport.WebSockets.SocketCloseStatus
+StrawberryShake.Transport.WebSockets.SocketCloseStatus.None = 0 -> StrawberryShake.Transport.WebSockets.SocketCloseStatus
+StrawberryShake.Transport.WebSockets.SocketCloseStatus.NormalClosure = 1 -> StrawberryShake.Transport.WebSockets.SocketCloseStatus
+StrawberryShake.Transport.WebSockets.SocketCloseStatus.PolicyViolation = 6 -> StrawberryShake.Transport.WebSockets.SocketCloseStatus
+StrawberryShake.Transport.WebSockets.SocketCloseStatus.ProtocolError = 3 -> StrawberryShake.Transport.WebSockets.SocketCloseStatus
+StrawberryShake.Transport.WebSockets.SocketMessageWriter
+StrawberryShake.Transport.WebSockets.SocketMessageWriter.DisposeAsync() -> System.Threading.Tasks.ValueTask
+StrawberryShake.Transport.WebSockets.SocketMessageWriter.SocketMessageWriter() -> void
+StrawberryShake.Transport.WebSockets.SocketMessageWriter.WriteEndObject() -> void
+StrawberryShake.Transport.WebSockets.SocketMessageWriter.Writer.get -> System.Text.Json.Utf8JsonWriter
+StrawberryShake.Transport.WebSockets.SocketMessageWriter.WriteStartObject() -> void
+StrawberryShake.Transport.WebSockets.SocketOperation
+StrawberryShake.Transport.WebSockets.SocketOperation.DisposeAsync() -> System.Threading.Tasks.ValueTask
+StrawberryShake.Transport.WebSockets.SocketOperation.Id.get -> string
+StrawberryShake.Transport.WebSockets.SocketOperation.ReadAsync(System.Threading.CancellationToken cancellationToken) -> System.Collections.Generic.IAsyncEnumerable<StrawberryShake.Transport.WebSockets.Messages.OperationMessage>
+StrawberryShake.Transport.WebSockets.SocketOperation.SocketOperation(StrawberryShake.Transport.WebSockets.ISession manager) -> void
+StrawberryShake.Transport.WebSockets.SocketOperation.SocketOperation(StrawberryShake.Transport.WebSockets.ISession manager, string id) -> void
+StrawberryShake.Transport.WebSockets.SocketOperationException
+StrawberryShake.Transport.WebSockets.SocketOperationException.SocketOperationException(string message) -> void
+StrawberryShake.Transport.WebSockets.SocketProtocolBase
+StrawberryShake.Transport.WebSockets.SocketProtocolBase.Disposed -> System.EventHandler
+StrawberryShake.Transport.WebSockets.SocketProtocolBase.Notify(string operationId, StrawberryShake.Transport.WebSockets.Messages.OperationMessage message, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+StrawberryShake.Transport.WebSockets.SocketProtocolBase.SocketProtocolBase() -> void
+StrawberryShake.Transport.WebSockets.SocketProtocolBase.Subscribe(StrawberryShake.Transport.WebSockets.OnReceiveAsync listener) -> void
+StrawberryShake.Transport.WebSockets.SocketProtocolBase.Unsubscribe(StrawberryShake.Transport.WebSockets.OnReceiveAsync listener) -> void
+StrawberryShake.Transport.WebSockets.WebSocketClient
+StrawberryShake.Transport.WebSockets.WebSocketClient.CloseAsync(string message, StrawberryShake.Transport.WebSockets.SocketCloseStatus closeStatus, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
+StrawberryShake.Transport.WebSockets.WebSocketClient.ConnectionInterceptor.get -> StrawberryShake.Transport.WebSockets.ISocketConnectionInterceptor
+StrawberryShake.Transport.WebSockets.WebSocketClient.ConnectionInterceptor.set -> void
+StrawberryShake.Transport.WebSockets.WebSocketClient.DisposeAsync() -> System.Threading.Tasks.ValueTask
+StrawberryShake.Transport.WebSockets.WebSocketClient.IsClosed.get -> bool
+StrawberryShake.Transport.WebSockets.WebSocketClient.Name.get -> string
+StrawberryShake.Transport.WebSockets.WebSocketClient.OpenAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<StrawberryShake.Transport.WebSockets.ISocketProtocol>
+StrawberryShake.Transport.WebSockets.WebSocketClient.ReceiveAsync(System.IO.Pipelines.PipeWriter writer, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+StrawberryShake.Transport.WebSockets.WebSocketClient.SendAsync(System.ReadOnlyMemory<byte> message, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+StrawberryShake.Transport.WebSockets.WebSocketClient.Socket.get -> System.Net.WebSockets.ClientWebSocket
+StrawberryShake.Transport.WebSockets.WebSocketClient.Uri.get -> System.Uri
+StrawberryShake.Transport.WebSockets.WebSocketClient.Uri.set -> void
+StrawberryShake.Transport.WebSockets.WebSocketClient.WebSocketClient(string name, System.Collections.Generic.IReadOnlyList<StrawberryShake.Transport.WebSockets.ISocketProtocolFactory> protocolFactories) -> void
+StrawberryShake.Transport.WebSockets.WebSocketConnection
+StrawberryShake.Transport.WebSockets.WebSocketConnection.ExecuteAsync(StrawberryShake.OperationRequest request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<StrawberryShake.Response<System.Text.Json.JsonDocument>>
+StrawberryShake.Transport.WebSockets.WebSocketConnection.WebSocketConnection(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<StrawberryShake.Transport.WebSockets.ISession>> sessionFactory) -> void
+virtual StrawberryShake.Transport.WebSockets.RequestWriter.Dispose(bool disposing) -> void
+virtual StrawberryShake.Transport.WebSockets.RequestWriter.Reset() -> void
+virtual StrawberryShake.Transport.WebSockets.SocketProtocolBase.DisposeAsync() -> System.Threading.Tasks.ValueTask

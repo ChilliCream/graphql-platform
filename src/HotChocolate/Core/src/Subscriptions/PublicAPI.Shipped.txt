@@ -1,0 +1,6 @@
+#nullable enable
+HotChocolate.Subscriptions.ITopicEventReceiver
+HotChocolate.Subscriptions.ITopicEventReceiver.SubscribeAsync<TTopic, TMessage>(TTopic topic, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<HotChocolate.Execution.ISourceStream<TMessage>>
+HotChocolate.Subscriptions.ITopicEventSender
+HotChocolate.Subscriptions.ITopicEventSender.CompleteAsync<TTopic>(TTopic topic) -> System.Threading.Tasks.ValueTask
+HotChocolate.Subscriptions.ITopicEventSender.SendAsync<TTopic, TMessage>(TTopic topic, TMessage message, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
