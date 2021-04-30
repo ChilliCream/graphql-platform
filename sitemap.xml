@@ -85,10 +85,6 @@
 <url> <loc>https://chillicream.com/docs/hotchocolate/api-reference/relay</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/api-reference/union-type</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/api-reference/visitors</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
-<url> <loc>https://chillicream.com/docs/hotchocolate/distributed-schema</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
-<url> <loc>https://chillicream.com/docs/hotchocolate/distributed-schema/schema-configuration</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
-<url> <loc>https://chillicream.com/docs/hotchocolate/distributed-schema/schema-federations</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
-<url> <loc>https://chillicream.com/docs/hotchocolate/distributed-schema/schema-stitching</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/defining-a-schema/descriptions</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/defining-a-schema/directives</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/defining-a-schema/extending-types</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
@@ -97,6 +93,10 @@
 <url> <loc>https://chillicream.com/docs/hotchocolate/defining-a-schema/scalars</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/defining-a-schema/unions-and-interfaces</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/defining-a-schema/versioning</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
+<url> <loc>https://chillicream.com/docs/hotchocolate/distributed-schema</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
+<url> <loc>https://chillicream.com/docs/hotchocolate/distributed-schema/schema-configuration</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
+<url> <loc>https://chillicream.com/docs/hotchocolate/distributed-schema/schema-federations</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
+<url> <loc>https://chillicream.com/docs/hotchocolate/distributed-schema/schema-stitching</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/fetching-data/dataloader</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/fetching-data/fetching-from-databases</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/fetching-data/fetching-from-rest</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
