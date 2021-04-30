@@ -78,4 +78,13 @@
   <data name="ErrorHelper_ResponseTypeNotSupported" xml:space="preserve">
     <value>The response type is not supported.</value>
   </data>
+  <data name="Subscription_SendResultsAsync" xml:space="preserve">
+    <value>Unexpected Execution Error</value>
+  </data>
+  <data name="WebSocketSession_SessionEnded" xml:space="preserve">
+    <value>Session ended.</value>
+  </data>
+  <data name="DataStartMessageHandler_Not_A_SubscriptionResult" xml:space="preserve">
+    <value>The specified result object is not a valid subscription result.</value>
+  </data>
 </root>

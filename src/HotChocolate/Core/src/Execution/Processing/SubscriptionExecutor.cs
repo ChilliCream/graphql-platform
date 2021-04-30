@@ -65,7 +65,10 @@ namespace HotChocolate.Execution.Processing
                 return new SubscriptionResult(
                     subscription.ExecuteAsync,
                     null,
-                    session: subscription);
+                    session: subscription,
+                    contextData: new SingleValueExtensionData(
+                        WellKnownContextData.Subscription,
+                        subscription));
             }
             catch (GraphQLException ex)
             {

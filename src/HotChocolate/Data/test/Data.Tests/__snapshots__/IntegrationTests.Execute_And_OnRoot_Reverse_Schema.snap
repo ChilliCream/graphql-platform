@@ -1,0 +1,127 @@
+﻿schema {
+  query: DifferentScope
+}
+
+type Author {
+  id: Int!
+  name: String
+  books: [Book!]!
+}
+
+type Book {
+  id: Int!
+  authorId: Int!
+  title: String
+  author: Author
+}
+
+"A connection to a list of items."
+type BookConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [BookEdge!]
+  "A flattened list of the nodes."
+  nodes: [Book!]
+}
+
+"An edge in a connection."
+type BookEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Book!
+}
+
+type DifferentScope {
+  books(first: Int after: String last: Int before: String where: Foo_BookFilterInput order: [Foo_BookSortInput!]): BookConnection
+}
+
+"Information about pagination in a connection."
+type PageInfo {
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
+}
+
+input Foo_AuthorFilterInput {
+  and: [Foo_AuthorFilterInput!]
+  or: [Foo_AuthorFilterInput!]
+  id: Foo_ComparableInt32OperationFilterInput
+  name: Foo_StringOperationFilterInput
+  books: Foo_ListFilterInputTypeOfBookFilterInput
+}
+
+input Foo_AuthorSortInput {
+  id: Foo_SortEnumType
+  name: Foo_SortEnumType
+}
+
+input Foo_BookFilterInput {
+  and: [Foo_BookFilterInput!]
+  or: [Foo_BookFilterInput!]
+  id: Foo_ComparableInt32OperationFilterInput
+  authorId: Foo_ComparableInt32OperationFilterInput
+  title: Foo_StringOperationFilterInput
+  author: Foo_AuthorFilterInput
+}
+
+input Foo_BookSortInput {
+  id: Foo_SortEnumType
+  authorId: Foo_SortEnumType
+  title: Foo_SortEnumType
+  author: Foo_AuthorSortInput
+}
+
+input Foo_ComparableInt32OperationFilterInput {
+  eq: Int
+  neq: Int
+  in: [Int!]
+  nin: [Int!]
+  gt: Int
+  ngt: Int
+  gte: Int
+  ngte: Int
+  lt: Int
+  nlt: Int
+  lte: Int
+  nlte: Int
+}
+
+input Foo_ListFilterInputTypeOfBookFilterInput {
+  all: Foo_BookFilterInput
+  none: Foo_BookFilterInput
+  some: Foo_BookFilterInput
+  any: Boolean
+}
+
+input Foo_StringOperationFilterInput {
+  and: [Foo_StringOperationFilterInput!]
+  or: [Foo_StringOperationFilterInput!]
+  eq: String
+  neq: String
+  contains: String
+  ncontains: String
+  in: [String]
+  nin: [String]
+  startsWith: String
+  nstartsWith: String
+  endsWith: String
+  nendsWith: String
+}
+
+enum Foo_SortEnumType {
+  ASC
+  DESC
+}
+
+"The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
+directive @defer("If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to." label: String "Deferred when true." if: Boolean) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"The `@stream` directive may be provided for a field of `List` type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. `@include` and `@skip` take precedence over `@stream`."
+directive @stream("If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to." label: String "The initial elements that shall be send down to the consumer." initialCount: Int! "Streamed when true." if: Boolean!) on FIELD

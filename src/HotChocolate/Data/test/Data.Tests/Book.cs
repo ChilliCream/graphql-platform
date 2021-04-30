@@ -4,6 +4,7 @@ namespace HotChocolate.Data
     {
         public int Id { get; set; }
 
+        [IsProjected(true)]
         public int AuthorId { get; set; }
 
         public string? Title { get; set; }

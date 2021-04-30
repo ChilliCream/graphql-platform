@@ -53,7 +53,8 @@ namespace HotChocolate.Types.Spatial.Transformation
         {
             foreach (var field in definition.Fields)
             {
-                if (completionContext.IsNamedType<IGeoJsonInputType>(field.Type))
+                if (field.Type is not null &&
+                    completionContext.IsNamedType<IGeoJsonInputType>(field.Type))
                 {
                     field.Formatters.Add(
                         new GeometryTransformerInputFormatter(
@@ -70,7 +71,8 @@ namespace HotChocolate.Types.Spatial.Transformation
         {
             foreach (var arg in definition.Arguments)
             {
-                if (completionContext.IsNamedType<IGeoJsonInputType>(arg.Type))
+                if (arg.Type is not null &&
+                    completionContext.IsNamedType<IGeoJsonInputType>(arg.Type))
                 {
                     arg.Formatters.Add(
                         new GeometryTransformerInputFormatter(
@@ -89,7 +91,8 @@ namespace HotChocolate.Types.Spatial.Transformation
             {
                 foreach (var arg in field.Arguments)
                 {
-                    if (completionContext.IsNamedType<IGeoJsonInputType>(arg.Type))
+                    if (arg.Type is not null &&
+                        completionContext.IsNamedType<IGeoJsonInputType>(arg.Type))
                     {
                         arg.Formatters.Add(
                             new GeometryTransformerInputFormatter(
@@ -98,7 +101,8 @@ namespace HotChocolate.Types.Spatial.Transformation
                     }
                 }
 
-                if (completionContext.IsNamedType<IGeoJsonObjectType>(field.Type))
+                if (field.Type is not null &&
+                    completionContext.IsNamedType<IGeoJsonObjectType>(field.Type))
                 {
                     var argument =
                         ArgumentDescriptor.New(
