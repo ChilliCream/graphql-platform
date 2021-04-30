@@ -78,6 +78,7 @@ namespace HotChocolate.Types
             throw ThrowHelper.LatitudeType_ParseLiteral_IsInvalid(this);
         }
 
+        /// <inheritdoc />
         public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
             switch (runtimeValue)
@@ -96,6 +97,7 @@ namespace HotChocolate.Types
             }
         }
 
+        /// <inheritdoc />
         public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
             if (resultValue is string s &&
