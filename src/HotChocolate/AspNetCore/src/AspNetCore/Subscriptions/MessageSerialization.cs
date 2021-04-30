@@ -8,13 +8,13 @@ namespace HotChocolate.AspNetCore.Subscriptions
     internal static class MessageSerialization
     {
         private static readonly JsonSerializerSettings _jsonSettings =
-            new JsonSerializerSettings
+            new()
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver(),
                 NullValueHandling = NullValueHandling.Ignore
             };
 
-        private static readonly UTF8Encoding _encoding = new UTF8Encoding();
+        private static readonly UTF8Encoding _encoding = new();
 
         private static readonly byte[] _keepConnectionAliveMessage =
            SerializeInternal(KeepConnectionAliveMessage.Default);
@@ -22,8 +22,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         private static readonly byte[] _acceptConnectionMessage =
            SerializeInternal(AcceptConnectionMessage.Default);
 
-        public static byte[] Serialize(
-            this OperationMessage message)
+        public static byte[] Serialize(this OperationMessage message)
         {
             if (message is KeepConnectionAliveMessage)
             {

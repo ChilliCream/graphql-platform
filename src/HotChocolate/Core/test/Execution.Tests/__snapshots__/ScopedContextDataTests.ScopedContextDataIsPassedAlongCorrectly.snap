@@ -1,0 +1,18 @@
+﻿{
+  "Label": null,
+  "Path": null,
+  "Data": {
+    "root": {
+      "a": {
+        "foo": "./root/a/foo"
+      },
+      "b": {
+        "foo": "./root/b/foo"
+      }
+    }
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null,
+  "HasNext": null
+}
