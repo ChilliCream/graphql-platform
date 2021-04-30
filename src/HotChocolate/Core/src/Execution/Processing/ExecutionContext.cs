@@ -1,4 +1,6 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
 
@@ -6,6 +8,8 @@ namespace HotChocolate.Execution.Processing
 {
     internal partial class ExecutionContext : IExecutionContext
     {
+        public TaskScheduler Scheduler => _foo;
+
         public ITaskBacklog TaskBacklog
         {
             get
@@ -60,13 +64,21 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        private void TryDispatchBatches()
+        private void BeginTryDispatchBatches() =>
+            TryDispatchBatches();
+
+        private async ValueTask TryDispatchBatches()
         {
             AssertNotPooled();
 
-            if (TaskBacklog.IsEmpty && BatchDispatcher.HasTasks)
+            if (TaskBacklog.IsEmpty && _foo.HasEmptyQueue && BatchDispatcher.HasTasks)
             {
-                BatchDispatcher.Dispatch(Register);
+                await Task.Delay(1);
+
+                if (TaskBacklog.IsEmpty && _foo.HasEmptyQueue && BatchDispatcher.HasTasks)
+                {
+                    BatchDispatcher.Dispatch(Register);
+                }
             }
 
             void Register(IExecutionTaskDefinition taskDefinition)
@@ -77,11 +89,11 @@ namespace HotChocolate.Execution.Processing
 
         private void BatchDispatcherEventHandler(
             object? source, EventArgs args) =>
-            TryDispatchBatches();
+            BeginTryDispatchBatches();
 
         private void TaskStatisticsEventHandler(
             object? source, EventArgs args) =>
-            TryDispatchBatches();
+            BeginTryDispatchBatches();
 
         private void OnCompleted(object? source, EventArgs args)
         {

@@ -13,6 +13,7 @@ namespace HotChocolate.Execution.Processing
         private readonly TaskStatistics _taskStatistics;
         private readonly IDeferredTaskBacklog _deferredTaskBacklog;
         private readonly ObjectPool<ResolverTask> _taskPool;
+        private readonly FooTaskScheduler _foo = new();
         private CancellationTokenSource _completed = default!;
         private IBatchDispatcher _batchDispatcher = default!;
 
@@ -29,6 +30,7 @@ namespace HotChocolate.Execution.Processing
             _taskPool = resolverTaskPool;
             _taskStatistics.StateChanged += TaskStatisticsEventHandler;
             _taskStatistics.AllTasksCompleted += OnCompleted;
+            _foo.QueueEmpty += (sender, args) => BeginTryDispatchBatches();
         }
 
         public void Initialize(

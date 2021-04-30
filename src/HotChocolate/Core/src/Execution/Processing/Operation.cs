@@ -25,7 +25,7 @@ namespace HotChocolate.Execution.Processing
             RootType = rootType;
             Type = definition.Operation;
             _selectionSets = selectionSets;
-            ProposedTaskCount = 1;
+            ProposedTaskCount = 4;
         }
 
         public string Id { get; }

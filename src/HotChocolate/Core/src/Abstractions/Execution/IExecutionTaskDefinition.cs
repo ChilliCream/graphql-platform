@@ -2,6 +2,6 @@ namespace HotChocolate.Execution
 {
     public interface IExecutionTaskDefinition
     {
-        IExecutionTask Create(IExecutionTaskContext context);
+        IAsyncExecutionTask Create(IExecutionTaskContext context);
     }
 }

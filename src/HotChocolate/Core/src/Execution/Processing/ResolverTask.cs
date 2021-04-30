@@ -7,21 +7,20 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing
 {
-    internal sealed partial class ResolverTask : IExecutionTask
+    internal sealed partial class ResolverTask : IAsyncExecutionTask
     {
-        private readonly MiddlewareContext _context = new MiddlewareContext();
+        private readonly MiddlewareContext _context = new();
         private IOperationContext _operationContext = default!;
         private ISelection _selection = default!;
-        private ValueTask _task;
 
-        public bool IsCompleted => _task.IsCompleted;
+        public bool IsCompleted { get; private set;  }
 
         public bool IsCanceled { get; private set; }
 
-        public void BeginExecute(CancellationToken cancellationToken)
+        public ValueTask ExecuteAsync(CancellationToken cancellationToken)
         {
             _operationContext.Execution.TaskStats.TaskStarted();
-            _task = TryExecuteAndCompleteAsync(cancellationToken);
+            return TryExecuteAndCompleteAsync(cancellationToken);
         }
 
         private async ValueTask TryExecuteAndCompleteAsync(CancellationToken cancellationToken)
@@ -46,6 +45,8 @@ namespace HotChocolate.Execution.Processing
             }
             finally
             {
+                IsCompleted = true;
+
                 if (cancellationToken.IsCancellationRequested)
                 {
                     IsCanceled = true;

@@ -13,7 +13,6 @@ namespace HotChocolate.Execution.Processing
             Path path,
             IImmutableDictionary<string, object?> scopedContextData)
         {
-            _task = default;
             _operationContext = operationContext;
             _selection = selection;
             _context.Initialize(
@@ -28,7 +27,6 @@ namespace HotChocolate.Execution.Processing
 
         public bool Reset()
         {
-            _task = default!;
             _operationContext = default!;
             _selection = default!;
             _context.Clean();

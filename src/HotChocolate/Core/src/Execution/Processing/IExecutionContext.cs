@@ -1,5 +1,6 @@
-using HotChocolate.Fetching;
+using System.Threading.Tasks;
 using Microsoft.Extensions.ObjectPool;
+using HotChocolate.Fetching;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -9,6 +10,8 @@ namespace HotChocolate.Execution.Processing
     /// </summary>
     internal interface IExecutionContext
     {
+        TaskScheduler Scheduler { get; }
+
         /// <summary>
         /// Gets the backlog of the task that have to be processed.
         /// </summary>

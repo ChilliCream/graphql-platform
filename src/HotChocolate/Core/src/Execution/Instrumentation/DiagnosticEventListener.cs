@@ -38,9 +38,9 @@ namespace HotChocolate.Execution.Instrumentation
         {
         }
 
-        public virtual IActivityScope RunTask(IExecutionTask task) => EmptyScope;
+        public virtual IActivityScope RunTask(IAsyncExecutionTask task) => EmptyScope;
 
-        public virtual void TaskError(IExecutionTask task, IError error)
+        public virtual void TaskError(IAsyncExecutionTask task, IError error)
         {
         }
 

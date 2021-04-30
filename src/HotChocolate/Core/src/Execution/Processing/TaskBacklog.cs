@@ -11,8 +11,8 @@ namespace HotChocolate.Execution.Processing
     {
         private readonly ObjectPool<ResolverTask> _resolverTaskPool;
         private readonly ITaskStatistics _stats;
-        private UnsortedChannel<IExecutionTask> _channel =
-            new UnsortedChannel<IExecutionTask>(true);
+        private UnsortedChannel<IAsyncExecutionTask> _channel =
+            new UnsortedChannel<IAsyncExecutionTask>(true);
 
         internal TaskBacklog(
             ITaskStatistics stats,
@@ -26,7 +26,7 @@ namespace HotChocolate.Execution.Processing
         public bool IsEmpty => _channel.IsEmpty;
 
         /// <inheritdoc/>
-        public bool TryTake([NotNullWhen(true)] out IExecutionTask? task) =>
+        public bool TryTake([NotNullWhen(true)] out IAsyncExecutionTask? task) =>
             _channel.Reader.TryRead(out task);
 
         /// <inheritdoc/>
@@ -50,7 +50,7 @@ namespace HotChocolate.Execution.Processing
             Register(resolverTask);
         }
 
-        public void Register(IExecutionTask task)
+        public void Register(IAsyncExecutionTask task)
         {
             _stats.TaskCreated();
             _channel.Writer.TryWrite(task);
@@ -60,7 +60,7 @@ namespace HotChocolate.Execution.Processing
 
         public void Clear()
         {
-            _channel = new UnsortedChannel<IExecutionTask>(true);
+            _channel = new UnsortedChannel<IAsyncExecutionTask>(true);
         }
     }
 }

@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -57,5 +60,42 @@ namespace HotChocolate.Execution.Processing
             _completedTasks = 0;
             IsCompleted = false;
         }
+    }
+
+
+    public class FooTaskScheduler : TaskScheduler
+    {
+        private int _queuedTasks = 0;
+
+        public event EventHandler<EventArgs> QueueEmpty;
+
+        public bool HasEmptyQueue => _queuedTasks == 0;
+
+        protected override IEnumerable<Task> GetScheduledTasks()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void QueueTask(Task task)
+        {
+            Interlocked.Increment(ref _queuedTasks);
+            ThreadPool.UnsafeQueueUserWorkItem(ExecuteTask, task);
+        }
+
+        protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
+        {
+            return task.IsCompleted || TryExecuteTask(task);
+        }
+
+        private void ExecuteTask(object task)
+        {
+            if (Interlocked.Decrement(ref _queuedTasks) == 0)
+            {
+                QueueEmpty(this, EventArgs.Empty);
+            }
+
+            TryExecuteTask((Task)task);
+        }
+
     }
 }

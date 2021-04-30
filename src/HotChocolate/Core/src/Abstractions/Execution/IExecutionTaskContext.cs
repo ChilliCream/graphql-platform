@@ -4,11 +4,11 @@ namespace HotChocolate.Execution
 {
     public interface IExecutionTaskContext
     {
-        void ReportError(IExecutionTask task, IError error);
+        void ReportError(IAsyncExecutionTask task, IError error);
 
-        void ReportError(IExecutionTask task, Exception exception);
+        void ReportError(IAsyncExecutionTask task, Exception exception);
 
-        IDisposable Track(IExecutionTask task);
+        IDisposable Track(IAsyncExecutionTask task);
 
         void Started();
 
