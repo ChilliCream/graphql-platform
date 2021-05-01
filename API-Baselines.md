@@ -56,6 +56,18 @@ Microsoft.AspNetCore.DataProtection.Infrastructure.IApplicationDiscriminator.Dis
 
 The removed case needs to be handled by hand as explained [here](#removed-apis).
 
+## Ignoring projects
+
+Projects ending in `.Tests` or `.Resources` are ignored per default.
+
+If you need to manually ignore a project, include the following in its `.csproj` file:
+
+```xml
+<PropertyGroup>
+    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
+</PropertyGroup>
+```
+
 ## New projects
 
 The two text files mentioned above need to be added to each new project.
@@ -83,6 +95,10 @@ This will output the contents of all `PublicAPI.Unshipped.txt` files throughout 
 
 ### diff-shipped-api.ps1
 
-This shows all changes of `PublicAPI.Shipped.txt` files between git refs.
+This shows all changes of `PublicAPI.Shipped.txt` files between git refs. Tags, commit hashes and branch names are supported.
 
-Example: `diff-shipped-api.ps1 -from 11.0.0 -to 12.0.0`
+Example:
+
+```sh
+diff-shipped-api.ps1 -from 11.0.0 -to 12.0.0
+```
