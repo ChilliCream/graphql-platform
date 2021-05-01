@@ -4,7 +4,6 @@
     <LangVersion>preview</LangVersion>
     <Version Condition="$(Version) == ''">0.0.0</Version>
     <NoWarn>$(NoWarn);CS0436</NoWarn>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup>
