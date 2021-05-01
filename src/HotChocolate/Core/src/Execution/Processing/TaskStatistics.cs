@@ -30,6 +30,7 @@ namespace HotChocolate.Execution.Processing
 
         public void TaskCreated()
         {
+            IsCompleted = false;
             Interlocked.Increment(ref _allTasks);
             Interlocked.Increment(ref _newTasks);
             StateChanged?.Invoke(this, _empty);

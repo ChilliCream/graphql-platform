@@ -62,14 +62,16 @@ namespace HotChocolate.Execution.Processing
                 taskDefinition.Path,
                 taskDefinition.ScopedContextData);
 
-
-
             Register(resolverTask);
         }
 
         public void Register(IExecutionTask task)
         {
-            _stats.TaskCreated();
+            if (task is not PureResolverTask or PureExecutionTask)
+            {
+                _stats.TaskCreated();
+            }
+
             _channel.Writer.TryWrite(task);
         }
 
