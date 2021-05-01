@@ -11,8 +11,8 @@ HotChocolate.Utilities.Introspection.IntrospectionClient.GetSchemaFeaturesAsync(
 HotChocolate.Utilities.Introspection.IntrospectionClient.IntrospectionClient() -> void
 HotChocolate.Utilities.Introspection.IntrospectionException
 HotChocolate.Utilities.Introspection.IntrospectionException.IntrospectionException() -> void
-HotChocolate.Utilities.Introspection.IntrospectionException.IntrospectionException(string! message) -> void
 HotChocolate.Utilities.Introspection.IntrospectionException.IntrospectionException(string! message, System.Exception! inner) -> void
+HotChocolate.Utilities.Introspection.IntrospectionException.IntrospectionException(string! message) -> void
 HotChocolate.Utilities.Introspection.IntrospectionException.IntrospectionException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 HotChocolate.Utilities.Introspection.ISchemaFeatures
 HotChocolate.Utilities.Introspection.ISchemaFeatures.HasDirectiveLocations.get -> bool

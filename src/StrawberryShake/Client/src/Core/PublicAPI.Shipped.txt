@@ -35,8 +35,8 @@ override StrawberryShake.Serialization.TimeSpanSerializer.Parse(string! serializ
 override StrawberryShake.Serialization.UrlSerializer.Format(System.Uri! runtimeValue) -> string!
 override StrawberryShake.Serialization.UrlSerializer.Parse(string! serializedValue) -> System.Uri!
 static readonly StrawberryShake.Json.JsonOperationRequestSerializer.Default -> StrawberryShake.Json.JsonOperationRequestSerializer!
-static StrawberryShake.CachePolicy.Default(StrawberryShake.IStoreAccessor! storeAccessor) -> StrawberryShake.CachePolicy!
 static StrawberryShake.CachePolicy.Default(StrawberryShake.IStoreAccessor! storeAccessor, System.TimeSpan timeToLive) -> StrawberryShake.CachePolicy!
+static StrawberryShake.CachePolicy.Default(StrawberryShake.IStoreAccessor! storeAccessor) -> StrawberryShake.CachePolicy!
 static StrawberryShake.CachePolicy.NoCache(StrawberryShake.IStoreAccessor! storeAccessor) -> StrawberryShake.CachePolicy!
 static StrawberryShake.EntityId.operator !=(StrawberryShake.EntityId x, StrawberryShake.EntityId y) -> bool
 static StrawberryShake.EntityId.operator ==(StrawberryShake.EntityId x, StrawberryShake.EntityId y) -> bool
@@ -56,8 +56,8 @@ static StrawberryShake.Json.JsonSerializationHelper.ReadValue(string! json) -> o
 static StrawberryShake.Json.JsonSerializationHelper.ReadValue(System.Text.Json.JsonElement element) -> object?
 static StrawberryShake.Json.JsonSerializationHelper.WriteDictionary(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, object?>>! dictionary, System.Text.Json.Utf8JsonWriter! writer) -> void
 static StrawberryShake.Json.JsonSerializationHelper.WriteList(System.Collections.IList! list, System.Text.Json.Utf8JsonWriter! writer) -> void
-static StrawberryShake.Json.JsonSerializationHelper.WriteValue(object? value) -> string!
 static StrawberryShake.Json.JsonSerializationHelper.WriteValue(object? value, System.Text.Json.Utf8JsonWriter! writer) -> void
+static StrawberryShake.Json.JsonSerializationHelper.WriteValue(object? value) -> string!
 static StrawberryShake.OperationResult.Create(object? data, System.Type! dataType, StrawberryShake.IOperationResultDataInfo? dataInfo, StrawberryShake.IOperationResultDataFactory! dataFactory, System.Collections.Generic.IReadOnlyList<StrawberryShake.IClientError!>? errors, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? extensions = null, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? contextData = null) -> StrawberryShake.IOperationResult!
 static StrawberryShake.OperationResult.Create<TData>(TData? data, StrawberryShake.IOperationResultDataInfo? dataInfo, StrawberryShake.IOperationResultDataFactory<TData!>! dataFactory, System.Collections.Generic.IReadOnlyList<StrawberryShake.IClientError!>? errors, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? extensions = null, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? contextData = null) -> StrawberryShake.IOperationResult<TData!>!
 static StrawberryShake.OperationResultExtensions.EnsureNoErrors(this StrawberryShake.IOperationResult! result) -> void
@@ -257,8 +257,8 @@ StrawberryShake.OperationRequest.GetExtensionsOrNull() -> System.Collections.Gen
 StrawberryShake.OperationRequest.GetHash() -> string!
 StrawberryShake.OperationRequest.Id.get -> string?
 StrawberryShake.OperationRequest.Name.get -> string!
-StrawberryShake.OperationRequest.OperationRequest(string? id, string! name, StrawberryShake.IDocument! document, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? variables = null, StrawberryShake.RequestStrategy strategy = StrawberryShake.RequestStrategy.Default) -> void
 StrawberryShake.OperationRequest.OperationRequest(string! name, StrawberryShake.IDocument! document, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? variables = null, StrawberryShake.RequestStrategy strategy = StrawberryShake.RequestStrategy.Default) -> void
+StrawberryShake.OperationRequest.OperationRequest(string? id, string! name, StrawberryShake.IDocument! document, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? variables = null, StrawberryShake.RequestStrategy strategy = StrawberryShake.RequestStrategy.Default) -> void
 StrawberryShake.OperationRequest.Strategy.get -> StrawberryShake.RequestStrategy
 StrawberryShake.OperationRequest.Variables.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>!
 StrawberryShake.OperationResult

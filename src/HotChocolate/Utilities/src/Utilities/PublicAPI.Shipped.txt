@@ -27,8 +27,8 @@ HotChocolate.Utilities.IParameterHandler.CreateExpression(System.Reflection.Para
 HotChocolate.Utilities.QueueExtensions
 HotChocolate.Utilities.ServiceException
 HotChocolate.Utilities.ServiceException.ServiceException() -> void
-HotChocolate.Utilities.ServiceException.ServiceException(string! message) -> void
 HotChocolate.Utilities.ServiceException.ServiceException(string! message, System.Exception! inner) -> void
+HotChocolate.Utilities.ServiceException.ServiceException(string! message) -> void
 HotChocolate.Utilities.ServiceException.ServiceException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 HotChocolate.Utilities.ServiceFactory
 HotChocolate.Utilities.ServiceFactory.CreateInstance(System.Type! type) -> object?

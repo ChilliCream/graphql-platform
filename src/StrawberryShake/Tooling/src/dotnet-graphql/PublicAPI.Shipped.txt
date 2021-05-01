@@ -8,8 +8,8 @@ override StrawberryShake.Tools.UpdateCommandHandler.ExecuteAsync(StrawberryShake
 static StrawberryShake.Tools.CommandTools.AddHelp<T>(this McMaster.Extensions.CommandLineUtils.CommandLineApplication! app) -> void
 static StrawberryShake.Tools.CommandTools.CreateHandler<T>(bool jsonOutput) -> T!
 static StrawberryShake.Tools.CommandTools.CreateHandler<T>(McMaster.Extensions.CommandLineUtils.CommandOption! jsonArg) -> T!
-static StrawberryShake.Tools.CommandTools.Write(this HotChocolate.IError! error) -> void
 static StrawberryShake.Tools.CommandTools.Write(this HotChocolate.IError! error, System.Text.StringBuilder! message) -> void
+static StrawberryShake.Tools.CommandTools.Write(this HotChocolate.IError! error) -> void
 static StrawberryShake.Tools.CommandTools.Write(this System.Collections.Generic.IEnumerable<HotChocolate.IError!>! errors) -> void
 static StrawberryShake.Tools.DownloadCommand.Create() -> McMaster.Extensions.CommandLineUtils.CommandLineApplication!
 static StrawberryShake.Tools.InitCommand.Create() -> McMaster.Extensions.CommandLineUtils.CommandLineApplication!

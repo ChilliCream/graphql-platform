@@ -76,8 +76,8 @@ HotChocolate.Language.TokenKind.StartOfFile = 0 -> HotChocolate.Language.TokenKi
 HotChocolate.Language.TokenKind.String = 19 -> HotChocolate.Language.TokenKind
 HotChocolate.Language.Utf8EncodingException
 HotChocolate.Language.Utf8EncodingException.Utf8EncodingException() -> void
-HotChocolate.Language.Utf8EncodingException.Utf8EncodingException(string! message) -> void
 HotChocolate.Language.Utf8EncodingException.Utf8EncodingException(string! message, System.Exception! inner) -> void
+HotChocolate.Language.Utf8EncodingException.Utf8EncodingException(string! message) -> void
 HotChocolate.Language.Utf8GraphQLParser
 HotChocolate.Language.Utf8GraphQLParser.Parse() -> HotChocolate.Language.DocumentNode!
 HotChocolate.Language.Utf8GraphQLParser.Syntax
@@ -123,10 +123,10 @@ static HotChocolate.Language.NameUtils.IsValidGraphQLName(System.ReadOnlySpan<by
 static HotChocolate.Language.NameUtils.MakeValidGraphQLName(string! name) -> string?
 static HotChocolate.Language.ParserOptions.Default.get -> HotChocolate.Language.ParserOptions!
 static HotChocolate.Language.ParserOptions.NoLocation.get -> HotChocolate.Language.ParserOptions!
-static HotChocolate.Language.Utf8GraphQLParser.Parse(string! sourceText) -> HotChocolate.Language.DocumentNode!
 static HotChocolate.Language.Utf8GraphQLParser.Parse(string! sourceText, HotChocolate.Language.ParserOptions! options) -> HotChocolate.Language.DocumentNode!
-static HotChocolate.Language.Utf8GraphQLParser.Parse(System.ReadOnlySpan<byte> graphQLData) -> HotChocolate.Language.DocumentNode!
+static HotChocolate.Language.Utf8GraphQLParser.Parse(string! sourceText) -> HotChocolate.Language.DocumentNode!
 static HotChocolate.Language.Utf8GraphQLParser.Parse(System.ReadOnlySpan<byte> graphQLData, HotChocolate.Language.ParserOptions! options) -> HotChocolate.Language.DocumentNode!
+static HotChocolate.Language.Utf8GraphQLParser.Parse(System.ReadOnlySpan<byte> graphQLData) -> HotChocolate.Language.DocumentNode!
 static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseField(HotChocolate.Language.Utf8GraphQLReader reader) -> HotChocolate.Language.FieldNode!
 static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseField(string! sourceText) -> HotChocolate.Language.FieldNode!
 static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseField(System.ReadOnlySpan<byte> sourceText) -> HotChocolate.Language.FieldNode!

@@ -308,8 +308,8 @@ HotChocolate.Language.IntValueNode.WithValue(System.ReadOnlyMemory<byte> value) 
 HotChocolate.Language.INullableTypeNode
 HotChocolate.Language.InvalidFormatException
 HotChocolate.Language.InvalidFormatException.InvalidFormatException() -> void
-HotChocolate.Language.InvalidFormatException.InvalidFormatException(string! message) -> void
 HotChocolate.Language.InvalidFormatException.InvalidFormatException(string! message, System.Exception! innerException) -> void
+HotChocolate.Language.InvalidFormatException.InvalidFormatException(string! message) -> void
 HotChocolate.Language.InvalidFormatException.InvalidFormatException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 HotChocolate.Language.ISelectionNode
 HotChocolate.Language.ISyntaxNode
@@ -330,8 +330,8 @@ HotChocolate.Language.IValueNode<T>
 HotChocolate.Language.IValueNode<T>.Value.get -> T
 HotChocolate.Language.LanguageException
 HotChocolate.Language.LanguageException.LanguageException() -> void
-HotChocolate.Language.LanguageException.LanguageException(string! message) -> void
 HotChocolate.Language.LanguageException.LanguageException(string! message, System.Exception! inner) -> void
+HotChocolate.Language.LanguageException.LanguageException(string! message) -> void
 HotChocolate.Language.LanguageException.LanguageException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 HotChocolate.Language.ListTypeNode
 HotChocolate.Language.ListTypeNode.Equals(HotChocolate.Language.ListTypeNode? other) -> bool
@@ -557,8 +557,8 @@ HotChocolate.Language.StringValueNode.StringValueNode(string! value) -> void
 HotChocolate.Language.StringValueNode.ToString(bool indented) -> string!
 HotChocolate.Language.StringValueNode.Value.get -> string!
 HotChocolate.Language.StringValueNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.StringValueNode!
-HotChocolate.Language.StringValueNode.WithValue(string! value) -> HotChocolate.Language.StringValueNode!
 HotChocolate.Language.StringValueNode.WithValue(string! value, bool block) -> HotChocolate.Language.StringValueNode!
+HotChocolate.Language.StringValueNode.WithValue(string! value) -> HotChocolate.Language.StringValueNode!
 HotChocolate.Language.SyntaxKind
 HotChocolate.Language.SyntaxKind.Argument = 7 -> HotChocolate.Language.SyntaxKind
 HotChocolate.Language.SyntaxKind.BooleanValue = 13 -> HotChocolate.Language.SyntaxKind
@@ -855,9 +855,9 @@ static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteFloatValue(th
 static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteIntValue(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, HotChocolate.Language.IntValueNode! node) -> void
 static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteListType(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, HotChocolate.Language.ListTypeNode! node) -> void
 static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteListValue(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, HotChocolate.Language.ListValueNode! node) -> void
-static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteMany<T>(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, System.Collections.Generic.IReadOnlyList<T>! items, System.Action<T, HotChocolate.Language.Utilities.ISyntaxWriter!>! action) -> void
 static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteMany<T>(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, System.Collections.Generic.IReadOnlyList<T>! items, System.Action<T, HotChocolate.Language.Utilities.ISyntaxWriter!>! action, string! separator) -> void
 static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteMany<T>(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, System.Collections.Generic.IReadOnlyList<T>! items, System.Action<T, HotChocolate.Language.Utilities.ISyntaxWriter!>! action, System.Action<HotChocolate.Language.Utilities.ISyntaxWriter!>! separator) -> void
+static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteMany<T>(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, System.Collections.Generic.IReadOnlyList<T>! items, System.Action<T, HotChocolate.Language.Utilities.ISyntaxWriter!>! action) -> void
 static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteName(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, HotChocolate.Language.NameNode! nameNode) -> void
 static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteNamedType(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, HotChocolate.Language.NamedTypeNode! node) -> void
 static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteNonNullType(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, HotChocolate.Language.NonNullTypeNode! node) -> void

@@ -4,16 +4,15 @@ param ()
 Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
 
-function ShowUnshipped([string]$file) {
+function ShowUnshipped([string]$file, [string]$src_dir) {
     $unshipped = Get-Content $file
 
     if ([string]::IsNullOrWhiteSpace($unshipped)) {
         return
     }
 
-    $dir = Split-Path -parent $file
-    $project = Split-Path $dir -Leaf
-    Write-Host "## ${project}"
+    $dir = (Split-Path -parent $file) -replace [regex]::escape($src_dir + [IO.Path]::DirectorySeparatorChar), ""
+    Write-Host -Foreground green "## ${dir}"
 
     foreach ($item in $unshipped) {
         if ($item.Length -gt 0) {
@@ -23,8 +22,10 @@ function ShowUnshipped([string]$file) {
 }
 
 try {
-    foreach ($file in Get-ChildItem -Path "../src" -Recurse -Include "PublicApi.Unshipped.txt") {
-        ShowUnshipped $file
+    $src_dir = Resolve-Path -Path "../src"
+
+    foreach ($file in Get-ChildItem -Path "$src_dir" -Recurse -Include "PublicApi.Unshipped.txt") {
+        ShowUnshipped $file $src_dir
     }
 }
 catch {

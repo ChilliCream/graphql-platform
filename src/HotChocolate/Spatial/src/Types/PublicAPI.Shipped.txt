@@ -65,8 +65,8 @@ HotChocolate.Types.Spatial.GeoJsonPolygonType.GeoJsonPolygonType() -> void
 HotChocolate.Types.Spatial.GeoJsonPositionType
 HotChocolate.Types.Spatial.GeoJsonPositionType.GeoJsonPositionType() -> void
 HotChocolate.Types.Spatial.GeoJsonSerializationException
-HotChocolate.Types.Spatial.GeoJsonSerializationException.GeoJsonSerializationException(string! message) -> void
 HotChocolate.Types.Spatial.GeoJsonSerializationException.GeoJsonSerializationException(string! message, params object![]! args) -> void
+HotChocolate.Types.Spatial.GeoJsonSerializationException.GeoJsonSerializationException(string! message) -> void
 HotChocolate.Types.Spatial.GeometryType
 HotChocolate.Types.Spatial.GeometryType.GeometryType() -> void
 HotChocolate.Types.Spatial.GeometryType.GeometryType(HotChocolate.NameString name, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
@@ -100,16 +100,16 @@ override HotChocolate.Types.Spatial.GeometryType.ParseLiteral(HotChocolate.Langu
 override HotChocolate.Types.Spatial.GeometryType.ParseResult(object? resultValue) -> HotChocolate.Language.IValueNode!
 override HotChocolate.Types.Spatial.GeometryType.ParseValue(object? runtimeValue) -> HotChocolate.Language.IValueNode!
 override HotChocolate.Types.Spatial.GeometryType.Serialize(object? runtimeValue) -> object?
-static HotChocolate.SpatialSchemaBuilderExtensions.AddSpatialTypes(this HotChocolate.ISchemaBuilder! builder) -> HotChocolate.ISchemaBuilder!
 static HotChocolate.SpatialSchemaBuilderExtensions.AddSpatialTypes(this HotChocolate.ISchemaBuilder! builder, System.Action<HotChocolate.Types.Spatial.Configuration.ISpatialConventionDescriptor!>! descriptor) -> HotChocolate.ISchemaBuilder!
 static HotChocolate.SpatialSchemaBuilderExtensions.AddSpatialTypes(this HotChocolate.ISchemaBuilder! builder, System.Func<HotChocolate.Types.Spatial.Configuration.SpatialConvention!>! conventionFactory) -> HotChocolate.ISchemaBuilder!
+static HotChocolate.SpatialSchemaBuilderExtensions.AddSpatialTypes(this HotChocolate.ISchemaBuilder! builder) -> HotChocolate.ISchemaBuilder!
 static HotChocolate.Types.Spatial.Configuration.SpatialConventionDescriptor.New() -> HotChocolate.Types.Spatial.Configuration.SpatialConventionDescriptor!
 static HotChocolate.Types.Spatial.SpatialConventionDescriptorExtensions.AddCoordinateSystemFromString(this HotChocolate.Types.Spatial.Configuration.ISpatialConventionDescriptor! descriptor, int srid, string! wellKnownText) -> HotChocolate.Types.Spatial.Configuration.ISpatialConventionDescriptor!
 static HotChocolate.Types.Spatial.SpatialConventionDescriptorExtensions.AddWebMercator(this HotChocolate.Types.Spatial.Configuration.ISpatialConventionDescriptor! descriptor) -> HotChocolate.Types.Spatial.Configuration.ISpatialConventionDescriptor!
 static HotChocolate.Types.Spatial.SpatialConventionDescriptorExtensions.AddWGS84(this HotChocolate.Types.Spatial.Configuration.ISpatialConventionDescriptor! descriptor) -> HotChocolate.Types.Spatial.Configuration.ISpatialConventionDescriptor!
 static HotChocolate.Types.Spatial.SpatialDescriptorContextExtensions.GetSpatialConvention(this HotChocolate.Configuration.ITypeCompletionContext! context) -> HotChocolate.Types.Spatial.Configuration.ISpatialConvention!
 static HotChocolate.Types.Spatial.SpatialDescriptorContextExtensions.GetSpatialConvention(this HotChocolate.Types.Descriptors.IDescriptorContext! context) -> HotChocolate.Types.Spatial.Configuration.ISpatialConvention!
-static Microsoft.Extensions.DependencyInjection.HotChocolateSpatialRequestExecutorBuilderExtensions.AddSpatialTypes(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
 static Microsoft.Extensions.DependencyInjection.HotChocolateSpatialRequestExecutorBuilderExtensions.AddSpatialTypes(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, System.Action<HotChocolate.Types.Spatial.Configuration.ISpatialConventionDescriptor!>! descriptor) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
 static Microsoft.Extensions.DependencyInjection.HotChocolateSpatialRequestExecutorBuilderExtensions.AddSpatialTypes(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, System.Func<HotChocolate.Types.Spatial.Configuration.SpatialConvention!>! conventionFactory) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
+static Microsoft.Extensions.DependencyInjection.HotChocolateSpatialRequestExecutorBuilderExtensions.AddSpatialTypes(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
 virtual HotChocolate.Types.Spatial.Configuration.SpatialConvention.Configure(HotChocolate.Types.Spatial.Configuration.ISpatialConventionDescriptor! descriptor) -> void

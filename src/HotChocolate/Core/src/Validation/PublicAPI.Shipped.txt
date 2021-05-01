@@ -1,8 +1,8 @@
 #nullable enable
 HotChocolate.Validation.DocumentValidator
 HotChocolate.Validation.DocumentValidator.DocumentValidator(HotChocolate.Validation.DocumentValidatorContextPool! contextPool, System.Collections.Generic.IEnumerable<HotChocolate.Validation.IDocumentValidatorRule!>! rules) -> void
-HotChocolate.Validation.DocumentValidator.Validate(HotChocolate.ISchema! schema, HotChocolate.Language.DocumentNode! document) -> HotChocolate.Validation.DocumentValidatorResult!
 HotChocolate.Validation.DocumentValidator.Validate(HotChocolate.ISchema! schema, HotChocolate.Language.DocumentNode! document, System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, object?>>? contextData) -> HotChocolate.Validation.DocumentValidatorResult!
+HotChocolate.Validation.DocumentValidator.Validate(HotChocolate.ISchema! schema, HotChocolate.Language.DocumentNode! document) -> HotChocolate.Validation.DocumentValidatorResult!
 HotChocolate.Validation.DocumentValidatorContext
 HotChocolate.Validation.DocumentValidatorContext.Clear() -> void
 HotChocolate.Validation.DocumentValidatorContext.ContextData.get -> System.Collections.Generic.IDictionary<string!, object?>!
@@ -54,8 +54,8 @@ HotChocolate.Validation.FieldInfo.FieldInfo(HotChocolate.Types.IType! declaringT
 HotChocolate.Validation.FieldInfo.ResponseName.get -> string!
 HotChocolate.Validation.FieldInfo.Type.get -> HotChocolate.Types.IType!
 HotChocolate.Validation.IDocumentValidator
-HotChocolate.Validation.IDocumentValidator.Validate(HotChocolate.ISchema! schema, HotChocolate.Language.DocumentNode! document) -> HotChocolate.Validation.DocumentValidatorResult!
 HotChocolate.Validation.IDocumentValidator.Validate(HotChocolate.ISchema! schema, HotChocolate.Language.DocumentNode! document, System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, object?>>? contextData) -> HotChocolate.Validation.DocumentValidatorResult!
+HotChocolate.Validation.IDocumentValidator.Validate(HotChocolate.ISchema! schema, HotChocolate.Language.DocumentNode! document) -> HotChocolate.Validation.DocumentValidatorResult!
 HotChocolate.Validation.IDocumentValidatorContext
 HotChocolate.Validation.IDocumentValidatorContext.ContextData.get -> System.Collections.Generic.IDictionary<string!, object?>!
 HotChocolate.Validation.IDocumentValidatorContext.Count.get -> int
@@ -158,9 +158,9 @@ static Microsoft.Extensions.DependencyInjection.HotChocolateValidationBuilderExt
 static Microsoft.Extensions.DependencyInjection.HotChocolateValidationBuilderExtensions.ConfigureValidation(this HotChocolate.Validation.Options.IValidationBuilder! builder, System.Action<HotChocolate.Validation.Options.ValidationOptionsModifiers!>! configure) -> HotChocolate.Validation.Options.IValidationBuilder!
 static Microsoft.Extensions.DependencyInjection.HotChocolateValidationBuilderExtensions.ConfigureValidation(this HotChocolate.Validation.Options.IValidationBuilder! builder, System.Action<System.IServiceProvider!, HotChocolate.Validation.Options.ValidationOptionsModifiers!>! configureClient) -> HotChocolate.Validation.Options.IValidationBuilder!
 static Microsoft.Extensions.DependencyInjection.HotChocolateValidationBuilderExtensions.SetComplexityCalculation(this HotChocolate.Validation.Options.IValidationBuilder! builder, HotChocolate.Validation.Options.ComplexityCalculation! calculation) -> HotChocolate.Validation.Options.IValidationBuilder!
-static Microsoft.Extensions.DependencyInjection.HotChocolateValidationBuilderExtensions.TryAddValidationRule<T>(this HotChocolate.Validation.Options.IValidationBuilder! builder) -> HotChocolate.Validation.Options.IValidationBuilder!
 static Microsoft.Extensions.DependencyInjection.HotChocolateValidationBuilderExtensions.TryAddValidationRule<T>(this HotChocolate.Validation.Options.IValidationBuilder! builder, System.Func<System.IServiceProvider!, HotChocolate.Validation.Options.ValidationOptions!, T!>! factory) -> HotChocolate.Validation.Options.IValidationBuilder!
-static Microsoft.Extensions.DependencyInjection.HotChocolateValidationBuilderExtensions.TryAddValidationVisitor<T>(this HotChocolate.Validation.Options.IValidationBuilder! builder) -> HotChocolate.Validation.Options.IValidationBuilder!
+static Microsoft.Extensions.DependencyInjection.HotChocolateValidationBuilderExtensions.TryAddValidationRule<T>(this HotChocolate.Validation.Options.IValidationBuilder! builder) -> HotChocolate.Validation.Options.IValidationBuilder!
 static Microsoft.Extensions.DependencyInjection.HotChocolateValidationBuilderExtensions.TryAddValidationVisitor<T>(this HotChocolate.Validation.Options.IValidationBuilder! builder, System.Func<System.IServiceProvider!, HotChocolate.Validation.Options.ValidationOptions!, T!>! factory) -> HotChocolate.Validation.Options.IValidationBuilder!
+static Microsoft.Extensions.DependencyInjection.HotChocolateValidationBuilderExtensions.TryAddValidationVisitor<T>(this HotChocolate.Validation.Options.IValidationBuilder! builder) -> HotChocolate.Validation.Options.IValidationBuilder!
 static Microsoft.Extensions.DependencyInjection.HotChocolateValidationServiceCollectionExtensions.AddValidation(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, HotChocolate.NameString schemaName = default(HotChocolate.NameString)) -> HotChocolate.Validation.Options.IValidationBuilder!
 static Microsoft.Extensions.DependencyInjection.HotChocolateValidationServiceCollectionExtensions.AddValidationCore(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!

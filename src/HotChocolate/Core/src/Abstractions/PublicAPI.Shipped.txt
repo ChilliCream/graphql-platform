@@ -188,8 +188,8 @@ HotChocolate.Execution.IQuery
 HotChocolate.Execution.IQuery.AsSpan() -> System.ReadOnlySpan<byte>
 HotChocolate.Execution.IQuery.ToString() -> string!
 HotChocolate.Execution.IQuery.WriteTo(System.IO.Stream! output) -> void
-HotChocolate.Execution.IQuery.WriteToAsync(System.IO.Stream! output) -> System.Threading.Tasks.Task!
 HotChocolate.Execution.IQuery.WriteToAsync(System.IO.Stream! output, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+HotChocolate.Execution.IQuery.WriteToAsync(System.IO.Stream! output) -> System.Threading.Tasks.Task!
 HotChocolate.Execution.IQueryRequest
 HotChocolate.Execution.IQueryRequest.AllowedOperations.get -> HotChocolate.Language.OperationType[]?
 HotChocolate.Execution.IQueryRequest.ContextData.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
@@ -305,8 +305,8 @@ HotChocolate.Execution.QueryDocument.AsSpan() -> System.ReadOnlySpan<byte>
 HotChocolate.Execution.QueryDocument.Document.get -> HotChocolate.Language.DocumentNode!
 HotChocolate.Execution.QueryDocument.QueryDocument(HotChocolate.Language.DocumentNode! document) -> void
 HotChocolate.Execution.QueryDocument.WriteTo(System.IO.Stream! output) -> void
-HotChocolate.Execution.QueryDocument.WriteToAsync(System.IO.Stream! output) -> System.Threading.Tasks.Task!
 HotChocolate.Execution.QueryDocument.WriteToAsync(System.IO.Stream! output, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+HotChocolate.Execution.QueryDocument.WriteToAsync(System.IO.Stream! output) -> System.Threading.Tasks.Task!
 HotChocolate.Execution.QueryException
 HotChocolate.Execution.QueryException.QueryException(HotChocolate.IError! error) -> void
 HotChocolate.Execution.QueryException.QueryException(params HotChocolate.IError![]! errors) -> void
@@ -357,8 +357,8 @@ HotChocolate.Execution.QueryRequestBuilder.TryAddVariableValue(string! name, obj
 HotChocolate.Execution.QueryRequestBuilder.TrySetServices(System.IServiceProvider? services) -> HotChocolate.Execution.IQueryRequestBuilder!
 HotChocolate.Execution.QueryRequestBuilderException
 HotChocolate.Execution.QueryRequestBuilderException.QueryRequestBuilderException() -> void
-HotChocolate.Execution.QueryRequestBuilderException.QueryRequestBuilderException(string! message) -> void
 HotChocolate.Execution.QueryRequestBuilderException.QueryRequestBuilderException(string! message, System.Exception! inner) -> void
+HotChocolate.Execution.QueryRequestBuilderException.QueryRequestBuilderException(string! message) -> void
 HotChocolate.Execution.QueryRequestBuilderException.QueryRequestBuilderException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 HotChocolate.Execution.QueryResult
 HotChocolate.Execution.QueryResult.ContextData.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
@@ -393,8 +393,8 @@ HotChocolate.Execution.QuerySourceText.AsSpan() -> System.ReadOnlySpan<byte>
 HotChocolate.Execution.QuerySourceText.QuerySourceText(string! sourceText) -> void
 HotChocolate.Execution.QuerySourceText.Text.get -> string!
 HotChocolate.Execution.QuerySourceText.WriteTo(System.IO.Stream! output) -> void
-HotChocolate.Execution.QuerySourceText.WriteToAsync(System.IO.Stream! output) -> System.Threading.Tasks.Task!
 HotChocolate.Execution.QuerySourceText.WriteToAsync(System.IO.Stream! output, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+HotChocolate.Execution.QuerySourceText.WriteToAsync(System.IO.Stream! output) -> System.Threading.Tasks.Task!
 HotChocolate.Execution.ResultValue
 HotChocolate.Execution.ResultValue.Equals(HotChocolate.Execution.ResultValue? other) -> bool
 HotChocolate.Execution.ResultValue.HasValue.get -> bool
@@ -562,8 +562,8 @@ HotChocolate.NamePathSegment.Name.get -> HotChocolate.NameString
 HotChocolate.NameString
 HotChocolate.NameString.Add(HotChocolate.NameString other) -> HotChocolate.NameString
 HotChocolate.NameString.CompareTo(HotChocolate.NameString other) -> int
-HotChocolate.NameString.Equals(HotChocolate.NameString other) -> bool
 HotChocolate.NameString.Equals(HotChocolate.NameString other, System.StringComparison comparisonType) -> bool
+HotChocolate.NameString.Equals(HotChocolate.NameString other) -> bool
 HotChocolate.NameString.HasValue.get -> bool
 HotChocolate.NameString.IsEmpty.get -> bool
 HotChocolate.NameString.NameString() -> void

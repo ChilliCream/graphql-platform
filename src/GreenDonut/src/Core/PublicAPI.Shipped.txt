@@ -10,8 +10,8 @@ GreenDonut.Batch<TKey, TValue>.TryGetOrCreate(TKey key, out System.Threading.Tas
 GreenDonut.CacheKeyResolverDelegate<TKey>
 GreenDonut.DataLoaderBase<TKey, TValue>
 GreenDonut.DataLoaderBase<TKey, TValue>.Clear() -> void
-GreenDonut.DataLoaderBase<TKey, TValue>.DataLoaderBase(GreenDonut.IBatchScheduler! batchScheduler) -> void
 GreenDonut.DataLoaderBase<TKey, TValue>.DataLoaderBase(GreenDonut.IBatchScheduler! batchScheduler, GreenDonut.DataLoaderOptions<TKey>? options) -> void
+GreenDonut.DataLoaderBase<TKey, TValue>.DataLoaderBase(GreenDonut.IBatchScheduler! batchScheduler) -> void
 GreenDonut.DataLoaderBase<TKey, TValue>.Dispose() -> void
 GreenDonut.DataLoaderBase<TKey, TValue>.LoadAsync(System.Collections.Generic.IReadOnlyCollection<TKey>! keys, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<TValue>!>!
 GreenDonut.DataLoaderBase<TKey, TValue>.LoadAsync(System.Threading.CancellationToken cancellationToken, params TKey[]! keys) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<TValue>!>!

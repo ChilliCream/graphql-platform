@@ -251,9 +251,9 @@ HotChocolate.Data.Filters.FilterFieldDescriptor.Description(string! value) -> Ho
 HotChocolate.Data.Filters.FilterFieldDescriptor.Directive(HotChocolate.NameString name, params HotChocolate.Language.ArgumentNode![]! arguments) -> HotChocolate.Data.Filters.IFilterFieldDescriptor!
 HotChocolate.Data.Filters.FilterFieldDescriptor.Directive<TDirective>() -> HotChocolate.Data.Filters.IFilterFieldDescriptor!
 HotChocolate.Data.Filters.FilterFieldDescriptor.Directive<TDirective>(TDirective! directiveInstance) -> HotChocolate.Data.Filters.IFilterFieldDescriptor!
-HotChocolate.Data.Filters.FilterFieldDescriptor.FilterFieldDescriptor(HotChocolate.Types.Descriptors.IDescriptorContext! context, string? scope) -> void
 HotChocolate.Data.Filters.FilterFieldDescriptor.FilterFieldDescriptor(HotChocolate.Types.Descriptors.IDescriptorContext! context, string? scope, HotChocolate.NameString fieldName) -> void
 HotChocolate.Data.Filters.FilterFieldDescriptor.FilterFieldDescriptor(HotChocolate.Types.Descriptors.IDescriptorContext! context, string? scope, System.Reflection.MemberInfo! member) -> void
+HotChocolate.Data.Filters.FilterFieldDescriptor.FilterFieldDescriptor(HotChocolate.Types.Descriptors.IDescriptorContext! context, string? scope) -> void
 HotChocolate.Data.Filters.FilterFieldDescriptor.Ignore(bool ignore = true) -> HotChocolate.Data.Filters.IFilterFieldDescriptor!
 HotChocolate.Data.Filters.FilterFieldDescriptor.Name(HotChocolate.NameString value) -> HotChocolate.Data.Filters.IFilterFieldDescriptor!
 HotChocolate.Data.Filters.FilterFieldDescriptor.SyntaxNode(HotChocolate.Language.InputValueDefinitionNode! inputValueDefinition) -> HotChocolate.Data.Filters.IFilterFieldDescriptor!
@@ -1087,9 +1087,9 @@ HotChocolate.Data.Sorting.SortFieldDescriptor.Directive<TDirective>() -> HotChoc
 HotChocolate.Data.Sorting.SortFieldDescriptor.Directive<TDirective>(TDirective! directiveInstance) -> HotChocolate.Data.Sorting.ISortFieldDescriptor!
 HotChocolate.Data.Sorting.SortFieldDescriptor.Ignore(bool ignore = true) -> HotChocolate.Data.Sorting.ISortFieldDescriptor!
 HotChocolate.Data.Sorting.SortFieldDescriptor.Name(HotChocolate.NameString value) -> HotChocolate.Data.Sorting.ISortFieldDescriptor!
-HotChocolate.Data.Sorting.SortFieldDescriptor.SortFieldDescriptor(HotChocolate.Types.Descriptors.IDescriptorContext! context, string? scope) -> void
 HotChocolate.Data.Sorting.SortFieldDescriptor.SortFieldDescriptor(HotChocolate.Types.Descriptors.IDescriptorContext! context, string? scope, HotChocolate.NameString fieldName) -> void
 HotChocolate.Data.Sorting.SortFieldDescriptor.SortFieldDescriptor(HotChocolate.Types.Descriptors.IDescriptorContext! context, string? scope, System.Reflection.MemberInfo! member) -> void
+HotChocolate.Data.Sorting.SortFieldDescriptor.SortFieldDescriptor(HotChocolate.Types.Descriptors.IDescriptorContext! context, string? scope) -> void
 HotChocolate.Data.Sorting.SortFieldDescriptor.SyntaxNode(HotChocolate.Language.InputValueDefinitionNode! inputValueDefinition) -> HotChocolate.Data.Sorting.ISortFieldDescriptor!
 HotChocolate.Data.Sorting.SortFieldDescriptor.Type(HotChocolate.Language.ITypeNode! typeNode) -> HotChocolate.Data.Sorting.ISortFieldDescriptor!
 HotChocolate.Data.Sorting.SortFieldDescriptor.Type(System.Type! type) -> HotChocolate.Data.Sorting.ISortFieldDescriptor!
@@ -1454,9 +1454,9 @@ static HotChocolate.Data.FilterConventionDescriptorQueryableExtensions.UseQuerya
 static HotChocolate.Data.FilterDescriptorContextExtensions.GetFilterConvention(this HotChocolate.Configuration.ITypeSystemObjectContext! context, string? scope = null) -> HotChocolate.Data.Filters.IFilterConvention!
 static HotChocolate.Data.FilterDescriptorContextExtensions.GetFilterConvention(this HotChocolate.Types.Descriptors.IDescriptorContext! context, string? scope = null) -> HotChocolate.Data.Filters.IFilterConvention!
 static HotChocolate.Data.Filters.Expressions.FilterExpressionBuilder.All(System.Type! type, System.Linq.Expressions.Expression! property, System.Linq.Expressions.LambdaExpression! lambda) -> System.Linq.Expressions.Expression!
-static HotChocolate.Data.Filters.Expressions.FilterExpressionBuilder.Any(System.Type! type, System.Linq.Expressions.Expression! property) -> System.Linq.Expressions.Expression!
 static HotChocolate.Data.Filters.Expressions.FilterExpressionBuilder.Any(System.Type! type, System.Linq.Expressions.Expression! property, System.Linq.Expressions.Expression! body, params System.Linq.Expressions.ParameterExpression![]! parameterExpression) -> System.Linq.Expressions.Expression!
 static HotChocolate.Data.Filters.Expressions.FilterExpressionBuilder.Any(System.Type! type, System.Linq.Expressions.Expression! property, System.Linq.Expressions.LambdaExpression! lambda) -> System.Linq.Expressions.Expression!
+static HotChocolate.Data.Filters.Expressions.FilterExpressionBuilder.Any(System.Type! type, System.Linq.Expressions.Expression! property) -> System.Linq.Expressions.Expression!
 static HotChocolate.Data.Filters.Expressions.FilterExpressionBuilder.Contains(System.Linq.Expressions.Expression! property, object! value) -> System.Linq.Expressions.Expression!
 static HotChocolate.Data.Filters.Expressions.FilterExpressionBuilder.EndsWith(System.Linq.Expressions.Expression! property, object! value) -> System.Linq.Expressions.Expression!
 static HotChocolate.Data.Filters.Expressions.FilterExpressionBuilder.Equals(System.Linq.Expressions.Expression! property, object? value) -> System.Linq.Expressions.Expression!
@@ -1560,8 +1560,8 @@ static HotChocolate.Data.Sorting.SortVisitorContextExtensions.ReportError<T>(thi
 static HotChocolate.FilterSchemaBuilderExtensions.AddFiltering(this HotChocolate.ISchemaBuilder! builder, string? name = null) -> HotChocolate.ISchemaBuilder!
 static HotChocolate.FilterSchemaBuilderExtensions.AddFiltering(this HotChocolate.ISchemaBuilder! builder, System.Action<HotChocolate.Data.Filters.IFilterConventionDescriptor!>! configure, string? name = null) -> HotChocolate.ISchemaBuilder!
 static HotChocolate.FilterSchemaBuilderExtensions.AddFiltering<TConvention>(this HotChocolate.ISchemaBuilder! builder, string? name = null) -> HotChocolate.ISchemaBuilder!
-static HotChocolate.ProjectionsSchemaBuilderExtensions.AddProjections(this HotChocolate.ISchemaBuilder! builder) -> HotChocolate.ISchemaBuilder!
 static HotChocolate.ProjectionsSchemaBuilderExtensions.AddProjections(this HotChocolate.ISchemaBuilder! builder, System.Action<HotChocolate.Data.Projections.IProjectionConventionDescriptor!>! configure, string? name = null) -> HotChocolate.ISchemaBuilder!
+static HotChocolate.ProjectionsSchemaBuilderExtensions.AddProjections(this HotChocolate.ISchemaBuilder! builder) -> HotChocolate.ISchemaBuilder!
 static HotChocolate.ProjectionsSchemaBuilderExtensions.AddProjections<TConvention>(this HotChocolate.ISchemaBuilder! builder, string? name = null) -> HotChocolate.ISchemaBuilder!
 static HotChocolate.SortingSchemaBuilderExtensions.AddSorting(this HotChocolate.ISchemaBuilder! builder, string? name = null) -> HotChocolate.ISchemaBuilder!
 static HotChocolate.SortingSchemaBuilderExtensions.AddSorting(this HotChocolate.ISchemaBuilder! builder, System.Action<HotChocolate.Data.Sorting.ISortConventionDescriptor!>! configure, string? name = null) -> HotChocolate.ISchemaBuilder!
