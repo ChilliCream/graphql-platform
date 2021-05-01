@@ -34,7 +34,7 @@ function MarkShipped([string]$dir) {
 }
 
 try {
-    foreach ($file in Get-ChildItem -re -in "PublicApi.Shipped.txt") {
+    foreach ($file in Get-ChildItem -Path "../src" -Recurse -Include "PublicApi.Shipped.txt") {
         $dir = Split-Path -parent $file
         MarkShipped $dir
     }
@@ -43,7 +43,4 @@ catch {
     Write-Host $_
     Write-Host $_.Exception
     exit 1
-}
-finally {
-    Pop-Location
 }

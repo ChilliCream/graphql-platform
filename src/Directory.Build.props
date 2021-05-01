@@ -49,7 +49,8 @@
   <PropertyGroup>
     <AddPublicApiAnalyzers Condition=" '$(AddPublicApiAnalyzers)' == '' AND !$(MSBuildProjectName.Contains('.Tests')) AND !$(MSBuildProjectName.Contains('.Resources')) ">true</AddPublicApiAnalyzers>
     <AddPublicApiAnalyzers Condition=" '$(AddPublicApiAnalyzers)' == '' ">false</AddPublicApiAnalyzers>
-    <WarningsAsErrors>$(WarningsAsErrors);RS0016;RS0017;RS0024</WarningsAsErrors>
+    <!-- TODO: only include this when run in CI -->
+    <!-- <WarningsAsErrors>$(WarningsAsErrors);RS0016;RS0017;RS0024</WarningsAsErrors> -->
   </PropertyGroup>
 
   <ItemGroup Condition=" $(AddPublicApiAnalyzers) ">
