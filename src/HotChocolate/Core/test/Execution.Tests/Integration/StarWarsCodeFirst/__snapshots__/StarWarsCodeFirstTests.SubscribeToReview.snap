@@ -1,7 +1,17 @@
 ﻿{
-  "data": {
-    "onReview": {
-      "stars": 5
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 1,
+          "column": 46
+        }
+      ],
+      "path": [
+        "onReview",
+        "stars"
+      ]
     }
-  }
+  ]
 }

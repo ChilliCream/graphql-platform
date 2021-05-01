@@ -60,8 +60,8 @@ namespace HotChocolate.Resolvers.Expressions
             }
         }
 
-        public static SubscribeCompiler Subscribe { get; } = new SubscribeCompiler();
+        public static SubscribeCompiler Subscribe { get; } = new();
 
-        public static ResolveCompiler Resolve { get; } = new ResolveCompiler();
+        public static ResolveCompiler Resolve { get; } = new();
     }
 }

@@ -1,8 +1,21 @@
 ﻿{
-  "data": {
-    "hero": {
-      "id": "2001"
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 3,
+          "column": 33
+        }
+      ],
+      "path": [
+        "hero",
+        "id"
+      ]
     }
+  ],
+  "data": {
+    "hero": null
   },
   "hasNext": true
 }
@@ -11,9 +24,21 @@
   "path": [
     "hero"
   ],
-  "data": {
-    "name": "R2-D2"
-  },
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 5,
+          "column": 37
+        }
+      ],
+      "path": [
+        "hero",
+        "name"
+      ]
+    }
+  ],
   "hasNext": false
 }
 

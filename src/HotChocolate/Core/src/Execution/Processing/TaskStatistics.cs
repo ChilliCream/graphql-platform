@@ -45,6 +45,7 @@ namespace HotChocolate.Execution.Processing
         {
             var allTasks = _allTasks;
             var completedTasks = Interlocked.Increment(ref _completedTasks);
+            StateChanged?.Invoke(this, _empty);
 
             if (allTasks == completedTasks)
             {
@@ -63,7 +64,7 @@ namespace HotChocolate.Execution.Processing
     }
 
 
-    public class FooTaskScheduler : TaskScheduler
+    public class RequestTaskScheduler : TaskScheduler
     {
         private int _queuedTasks = 0;
 

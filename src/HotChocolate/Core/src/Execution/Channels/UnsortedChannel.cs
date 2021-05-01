@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Execution.Channels
 {
-    /// <summary>Provides a buffered channel of Unsorted capacity.</summary>    
+    /// <summary>Provides a buffered channel of Unsorted capacity.</summary>
     internal sealed partial class UnsortedChannel<T> : Channel<T>
     {
         /// <summary>Task that indicates the channel has completed.</summary>
-        private readonly TaskCompletionSource<bool> _completion;
+        private TaskCompletionSource<bool> _completion;
         /// <summary>The items in the channel.</summary>
-        private readonly BlockingStack<T> _items = new BlockingStack<T>();
+        private readonly BlockingStack<T> _items = new();
         /// <summary>Readers blocked reading from the channel.</summary>
-        private readonly Deque<AsyncOperation<T>> _blockedReaders = new Deque<AsyncOperation<T>>();
+        private readonly Deque<AsyncOperation<T>> _blockedReaders = new();
         /// <summary>Whether to force continuations to be executed asynchronously from producer writes.</summary>
         private readonly bool _runContinuationsAsynchronously;
 
@@ -22,6 +22,10 @@ namespace HotChocolate.Execution.Channels
         private AsyncOperation<bool>? _waitingReadersTail;
         /// <summary>Set to non-null once Complete has been called.</summary>
         private Exception? _doneWriting;
+        private int _count;
+
+
+        public event EventHandler<EventArgs>? NeedsMoreWorkers;
 
         /// <summary>Initialize the channel.</summary>
         internal UnsortedChannel(bool runContinuationsAsynchronously)
@@ -70,5 +74,26 @@ namespace HotChocolate.Execution.Channels
 
         /// <summary>Report if the channel is closed or not. This should only be used by the debugger.</summary>
         private bool ChannelIsClosedForDebugger => _doneWriting != null;
+
+        public void Reset()
+        {
+            _doneWriting = null;
+            _waitingReadersTail = null;
+            _count = 0;
+
+            while (_items.TryPop(out _))
+            {
+            }
+
+            while (_blockedReaders.Count > 0)
+            {
+                _blockedReaders.DequeueTail();
+            }
+
+            _completion = new TaskCompletionSource<bool>(
+                _runContinuationsAsynchronously
+                    ? TaskCreationOptions.RunContinuationsAsynchronously
+                    : TaskCreationOptions.None);
+        }
     }
 }

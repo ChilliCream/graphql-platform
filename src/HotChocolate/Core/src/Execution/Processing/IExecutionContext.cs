@@ -10,7 +10,10 @@ namespace HotChocolate.Execution.Processing
     /// </summary>
     internal interface IExecutionContext
     {
-        TaskScheduler Scheduler { get; }
+        /// <summary>
+        /// Gets the request task scheduler.
+        /// </summary>
+        TaskScheduler TaskScheduler { get; }
 
         /// <summary>
         /// Gets the backlog of the task that have to be processed.

@@ -4,17 +4,17 @@ namespace HotChocolate.Execution.Processing
 {
     internal sealed partial class OperationContext : IExecutionTaskContext
     {
-        void IExecutionTaskContext.ReportError(IAsyncExecutionTask task, IError error)
+        void IExecutionTaskContext.ReportError(IExecutionTask task, IError error)
         {
             ReportError(task, error);
         }
 
-        void IExecutionTaskContext.ReportError(IAsyncExecutionTask task, Exception exception)
+        void IExecutionTaskContext.ReportError(IExecutionTask task, Exception exception)
         {
             ReportError(task, ErrorHandler.CreateUnexpectedError(exception).Build());
         }
 
-        private void ReportError(IAsyncExecutionTask task, IError error)
+        private void ReportError(IExecutionTask task, IError error)
         {
             if (task is null)
             {
@@ -44,7 +44,7 @@ namespace HotChocolate.Execution.Processing
             Execution.TaskStats.TaskCompleted();
         }
 
-        IDisposable IExecutionTaskContext.Track(IAsyncExecutionTask task)
+        IDisposable IExecutionTaskContext.Track(IExecutionTask task)
         {
             AssertNotPooled();
             return DiagnosticEvents.RunTask(task);

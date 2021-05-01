@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -5,11 +6,13 @@ using System.Threading.Tasks;
 namespace HotChocolate.Execution.Processing
 {
     /// <summary>
-    /// The task backlog of the execution engine stores <see cref="IAsyncExecutionTask"/>
+    /// The task backlog of the execution engine stores <see cref="IExecutionTask"/>
     /// without any guaranteed order.
     /// </summary>
     internal interface ITaskBacklog
     {
+        event EventHandler<EventArgs>? NeedsMoreWorker;
+
         /// <summary>
         /// Defines if the backlog is empty and has no more tasks.
         /// </summary>
@@ -23,7 +26,7 @@ namespace HotChocolate.Execution.Processing
         /// The task is not null when the method returns<c>true</c>
         /// </param>
         /// <returns>Return <c>true</c> if there was a task on the backlog.</returns>
-        bool TryTake([NotNullWhen(true)] out IAsyncExecutionTask? task);
+        bool TryTake([NotNullWhen(true)] out IExecutionTask? task);
 
         /// <summary>
         /// Waits for either the <paramref name="cancellationToken" /> to raise or
@@ -43,6 +46,6 @@ namespace HotChocolate.Execution.Processing
         /// <summary>
         /// Registers work with the task backlog.
         /// </summary>
-        void Register(IAsyncExecutionTask task);
+        void Register(IExecutionTask task);
     }
 }

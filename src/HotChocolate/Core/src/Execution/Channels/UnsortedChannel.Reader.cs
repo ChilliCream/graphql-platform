@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Execution.Channels
 {
-    /// <summary>Provides a buffered channel of Unsorted capacity.</summary>    
-    internal sealed partial class UnsortedChannel<T> : Channel<T>
+    /// <summary>Provides a buffered channel of Unsorted capacity.</summary>
+    internal sealed partial class UnsortedChannel<T>
     {
         private sealed class UnsortedChannelReader : ChannelReader<T>
         {
-            internal readonly UnsortedChannel<T> _parent;
+            private readonly UnsortedChannel<T> _parent;
             private readonly AsyncOperation<T> _readerSingleton;
             private readonly AsyncOperation<bool> _waiterSingleton;
 

@@ -52,18 +52,18 @@ namespace HotChocolate.Fetching
                 _tasks = tasks;
             }
 
-            public IAsyncExecutionTask Create(IExecutionTaskContext context)
+            public IExecutionTask Create(IExecutionTaskContext context)
             {
-                return new BatchAsyncExecutionTask(context, _tasks);
+                return new BatchExecutionTask(context, _tasks);
             }
         }
 
-        private class BatchAsyncExecutionTask : IAsyncExecutionTask
+        private class BatchExecutionTask : IExecutionTask
         {
             private readonly IExecutionTaskContext _context;
             private readonly IReadOnlyList<Func<ValueTask>> _tasks;
 
-            public BatchAsyncExecutionTask(
+            public BatchExecutionTask(
                 IExecutionTaskContext context,
                 IReadOnlyList<Func<ValueTask>> tasks)
             {
@@ -75,9 +75,15 @@ namespace HotChocolate.Fetching
 
             public bool IsCanceled { get; private set; }
 
-            public async ValueTask ExecuteAsync(CancellationToken cancellationToken)
+            public void BeginExecute(CancellationToken cancellationToken)
             {
                 _context.Started();
+                ExecuteAsync(cancellationToken);
+            }
+
+            public async ValueTask ExecuteAsync(CancellationToken cancellationToken)
+            {
+                // _context.Started();
 
                 try
                 {

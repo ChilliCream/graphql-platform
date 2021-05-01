@@ -1,4 +1,7 @@
+using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.ObjectPool;
@@ -10,23 +13,32 @@ namespace HotChocolate.Execution.Processing
     internal class TaskBacklog : ITaskBacklog
     {
         private readonly ObjectPool<ResolverTask> _resolverTaskPool;
+        private readonly ObjectPool<PureResolverTask> _pureResolverTaskPool;
         private readonly ITaskStatistics _stats;
-        private UnsortedChannel<IAsyncExecutionTask> _channel =
-            new UnsortedChannel<IAsyncExecutionTask>(true);
+        private UnsortedChannel<IExecutionTask> _channel = new(true);
 
         internal TaskBacklog(
             ITaskStatistics stats,
-            ObjectPool<ResolverTask> resolverTaskPool)
+            ObjectPool<ResolverTask> resolverTaskPool,
+            ObjectPool<PureResolverTask> pureResolverTaskPool)
         {
             _resolverTaskPool = resolverTaskPool;
+            _pureResolverTaskPool = pureResolverTaskPool;
             _stats = stats;
+
+            _channel.NeedsMoreWorkers += (sender, args) =>
+            {
+                NeedsMoreWorker?.Invoke(sender, args);
+            };
         }
+
+        public event EventHandler<EventArgs>? NeedsMoreWorker;
 
         /// <inheritdoc/>
         public bool IsEmpty => _channel.IsEmpty;
 
         /// <inheritdoc/>
-        public bool TryTake([NotNullWhen(true)] out IAsyncExecutionTask? task) =>
+        public bool TryTake([NotNullWhen(true)] out IExecutionTask? task) =>
             _channel.Reader.TryRead(out task);
 
         /// <inheritdoc/>
@@ -36,7 +48,10 @@ namespace HotChocolate.Execution.Processing
         /// <inheritdoc/>
         public void Register(ResolverTaskDefinition taskDefinition)
         {
-            ResolverTask resolverTask = _resolverTaskPool.Get();
+            ResolverTaskBase resolverTask =
+                taskDefinition.Selection.PureResolver is null
+                    ? _resolverTaskPool.Get()
+                    : _pureResolverTaskPool.Get();
 
             resolverTask.Initialize(
                 taskDefinition.OperationContext,
@@ -47,20 +62,27 @@ namespace HotChocolate.Execution.Processing
                 taskDefinition.Path,
                 taskDefinition.ScopedContextData);
 
+
+
             Register(resolverTask);
         }
 
-        public void Register(IAsyncExecutionTask task)
+        public void Register(IExecutionTask task)
         {
             _stats.TaskCreated();
             _channel.Writer.TryWrite(task);
         }
 
-        public void Complete() => _channel.Writer.Complete();
+        public void Complete()
+        {
+            _channel.Writer.Complete();
+        }
 
         public void Clear()
         {
-            _channel = new UnsortedChannel<IAsyncExecutionTask>(true);
+            // _channel.NeedsMoreWorkers = null;
+            NeedsMoreWorker = null;
+            _channel = new UnsortedChannel<IExecutionTask>(true);
         }
     }
 }

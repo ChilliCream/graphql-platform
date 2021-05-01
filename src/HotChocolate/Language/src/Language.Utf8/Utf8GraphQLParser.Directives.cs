@@ -5,8 +5,7 @@ namespace HotChocolate.Language
 {
     public ref partial struct Utf8GraphQLParser
     {
-        private static readonly List<DirectiveNode> _emptyDirectives =
-            new List<DirectiveNode>();
+        private static readonly List<DirectiveNode> _emptyDirectives = new();
 
         private DirectiveDefinitionNode ParseDirectiveDefinition()
         {

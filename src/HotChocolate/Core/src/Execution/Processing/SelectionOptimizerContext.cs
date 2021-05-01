@@ -12,6 +12,7 @@ namespace HotChocolate.Execution.Processing
     public readonly ref struct SelectionOptimizerContext
     {
         private readonly CompileResolverPipeline _compileResolverPipeline;
+        private readonly TryCompilePureResolver _compilePureResolver;
 
         /// <summary>
         /// Initializes a new instance of <see cref="SelectionOptimizerContext"/>
@@ -34,13 +35,17 @@ namespace HotChocolate.Execution.Processing
         /// <param name="compileResolverPipeline">
         /// A helper to compile the resolver pipeline of a field.
         /// </param>
+        /// <param name="compilePureResolver">
+        /// A helper to compile the pure resolver of a field
+        /// </param>
         public SelectionOptimizerContext(
             ISchema schema,
             IImmutableStack<IObjectField> path,
             IObjectType type,
             SelectionSetNode selectionSet,
             IDictionary<string, Selection> fields,
-            CompileResolverPipeline compileResolverPipeline)
+            CompileResolverPipeline compileResolverPipeline,
+            TryCompilePureResolver compilePureResolver)
         {
             Schema = schema;
             Path = path;
@@ -48,6 +53,7 @@ namespace HotChocolate.Execution.Processing
             SelectionSet = selectionSet;
             Fields = fields;
             _compileResolverPipeline = compileResolverPipeline;
+            _compilePureResolver = compilePureResolver;
         }
 
         /// <summary>
@@ -84,7 +90,22 @@ namespace HotChocolate.Execution.Processing
         /// <returns>
         /// Returns a <see cref="FieldDelegate" /> representing the field resolver pipeline.
         /// </returns>
-        public FieldDelegate CompileResolverPipeline(IObjectField field, FieldNode selection) =>
+        public FieldDelegate CompileResolverPipeline(
+            IObjectField field,
+            FieldNode selection) =>
             _compileResolverPipeline(field, selection);
+
+        /// <summary>
+        /// Allows to compile the pure field resolver.
+        /// </summary>
+        /// <param name="field">The field.</param>
+        /// <param name="selection">The selection of the field.</param>
+        /// <returns>
+        /// Returns a <see cref="PureFieldDelegate" /> representing a pure field resolver.
+        /// </returns>
+        public PureFieldDelegate? TryCompilePureResolver(
+            IObjectField field,
+            FieldNode selection) =>
+            _compilePureResolver(field, selection);
     }
 }

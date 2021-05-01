@@ -22,6 +22,8 @@ namespace HotChocolate.Execution.Processing
 
         public int ResponseIndex { get; private set; }
 
-        public FieldDelegate ResolverPipeline => _selection.ResolverPipeline;
+        public FieldDelegate? ResolverPipeline => _selection.ResolverPipeline;
+
+        public PureFieldDelegate? PureResolver => _selection.PureResolver;
     }
 }

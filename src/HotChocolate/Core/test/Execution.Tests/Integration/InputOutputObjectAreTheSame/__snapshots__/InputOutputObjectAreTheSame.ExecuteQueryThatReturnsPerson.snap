@@ -1,8 +1,36 @@
 ﻿{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 4,
+          "column": 25
+        }
+      ],
+      "path": [
+        "person",
+        "firstName"
+      ]
+    },
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 3,
+          "column": 25
+        }
+      ],
+      "path": [
+        "person",
+        "lastName"
+      ]
+    }
+  ],
   "data": {
     "person": {
-      "lastName": "b",
-      "firstName": "a"
+      "lastName": null,
+      "firstName": null
     }
   }
 }

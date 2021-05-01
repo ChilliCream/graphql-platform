@@ -693,4 +693,7 @@ Type: `{0}`</value>
   <data name="Schema_GetDirectiveType_DoesNotExist" xml:space="preserve">
     <value>The specified type `{0}` does not exist.</value>
   </data>
+  <data name="ErrorHelper_ObjectField_HasNoResolver" xml:space="preserve">
+    <value>The field `{0}.{1}` has no resolver.</value>
+  </data>
 </root>

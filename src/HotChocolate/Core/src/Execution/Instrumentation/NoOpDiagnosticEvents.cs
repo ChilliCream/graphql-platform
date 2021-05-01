@@ -40,9 +40,9 @@ namespace HotChocolate.Execution.Instrumentation
             IError error)
         { }
 
-        public IActivityScope RunTask(IAsyncExecutionTask task) => this;
+        public IActivityScope RunTask(IExecutionTask task) => this;
 
-        public void TaskError(IAsyncExecutionTask task, IError error)
+        public void TaskError(IExecutionTask task, IError error)
         { }
         
         public void AddedDocumentToCache(

@@ -24,12 +24,13 @@ namespace HotChocolate.Types
 
             if (skipMiddleware
                 || (globalComponents.Count == 0
-                    && fieldComponents.Count == 0))
+                && fieldComponents.Count == 0))
             {
                 if (fieldResolver is null)
                 {
                     return null;
                 }
+
                 return CreateResolverMiddleware(fieldResolver);
             }
 

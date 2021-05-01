@@ -233,7 +233,8 @@ namespace HotChocolate.Execution.Processing
                                     selection.SelectionSet.Selections))
                             : selection,
                         responseName: responseName,
-                        resolverPipeline: CreateFieldMiddleware(field, selection),
+                        resolverPipeline: TryCreateFieldMiddleware(field, selection),
+                        pureResolver: TryCreatePureField(field, selection),
                         arguments: CoerceArgumentValues(field, selection, responseName),
                         includeCondition: includeCondition,
                         internalSelection: context.IsInternalSelection);
@@ -535,7 +536,21 @@ namespace HotChocolate.Execution.Processing
                 : runtimeValue;
         }
 
-        private FieldDelegate CreateFieldMiddleware(IObjectField field, FieldNode selection)
+        private FieldDelegate? TryCreateFieldMiddleware(
+            IObjectField field,
+            FieldNode selection)
+        {
+            if (field.PureResolver is not null && selection.Directives.Count == 0)
+            {
+                return null;
+            }
+
+            return CreateFieldMiddleware(field, selection);
+        }
+
+        private FieldDelegate CreateFieldMiddleware(
+            IObjectField field,
+            FieldNode selection)
         {
             FieldDelegate pipeline = field.Middleware;
 
@@ -550,6 +565,18 @@ namespace HotChocolate.Execution.Processing
             }
 
             return pipeline;
+        }
+
+        private PureFieldDelegate? TryCreatePureField(
+            IObjectField field,
+            FieldNode selection)
+        {
+            if (field.PureResolver is not null && selection.Directives.Count == 0)
+            {
+                return field.PureResolver;
+            }
+
+            return null;
         }
 
         private IReadOnlyList<IDirective> CollectDirectives(
@@ -631,15 +658,14 @@ namespace HotChocolate.Execution.Processing
                 return;
             }
 
-            var optimizerContext = new SelectionOptimizerContext
-            (
+            var optimizerContext = new SelectionOptimizerContext(
                 _schema,
                 context.Path,
                 context.Type,
                 context.SelectionSet,
                 context.Fields,
-                CreateFieldMiddleware
-            );
+                CreateFieldMiddleware,
+                TryCreatePureField);
 
             if (context.Optimizers.Count == 1)
             {
@@ -662,15 +688,14 @@ namespace HotChocolate.Execution.Processing
                 return true;
             }
 
-            var optimizerContext = new SelectionOptimizerContext
-            (
+            var optimizerContext = new SelectionOptimizerContext(
                 _schema,
                 context.Path,
                 context.Type,
                 context.SelectionSet,
                 context.Fields,
-                CreateFieldMiddleware
-            );
+                CreateFieldMiddleware,
+                TryCreatePureField);
 
             if (context.Optimizers.Count == 1)
             {
@@ -698,15 +723,14 @@ namespace HotChocolate.Execution.Processing
                 return true;
             }
 
-            var optimizerContext = new SelectionOptimizerContext
-            (
+            var optimizerContext = new SelectionOptimizerContext(
                 _schema,
                 context.Path,
                 context.Type,
                 context.SelectionSet,
                 context.Fields,
-                CreateFieldMiddleware
-            );
+                CreateFieldMiddleware,
+                TryCreatePureField);
 
             if (context.Optimizers.Count == 1)
             {

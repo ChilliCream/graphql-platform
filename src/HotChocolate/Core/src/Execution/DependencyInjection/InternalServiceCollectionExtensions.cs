@@ -55,7 +55,13 @@ namespace Microsoft.Extensions.DependencyInjection
             int maximumRetained = 256)
         {
             services.TryAddSingleton<ObjectPool<ResolverTask>>(
-                _ => new ResolverTaskPool(
+                _ => new ExecutionTaskPool<ResolverTask>(
+                    new ResolverTaskPoolPolicy(),
+                    maximumRetained / 2));
+
+            services.TryAddSingleton<ObjectPool<PureResolverTask>>(
+                _ => new ExecutionTaskPool<PureResolverTask>(
+                    new PureResolverTaskPoolPolicy(),
                     maximumRetained));
             return services;
         }

@@ -102,7 +102,7 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public IActivityScope RunTask(IAsyncExecutionTask task)
+        public IActivityScope RunTask(IExecutionTask task)
         {
             if (_listeners.Length == 0)
             {
@@ -119,7 +119,7 @@ namespace HotChocolate.Execution.Instrumentation
             return new AggregateActivityScope(scopes);
         }
 
-        public void TaskError(IAsyncExecutionTask task, IError error)
+        public void TaskError(IExecutionTask task, IError error)
         {
             for (var i = 0; i < _listeners.Length; i++)
             {

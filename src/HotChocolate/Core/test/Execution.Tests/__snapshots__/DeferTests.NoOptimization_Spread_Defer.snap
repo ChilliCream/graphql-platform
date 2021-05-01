@@ -1,8 +1,21 @@
 ﻿{
-  "data": {
-    "hero": {
-      "id": "2001"
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 3,
+          "column": 33
+        }
+      ],
+      "path": [
+        "hero",
+        "id"
+      ]
     }
+  ],
+  "data": {
+    "hero": null
   },
   "hasNext": true
 }
@@ -12,18 +25,62 @@
   "path": [
     "hero"
   ],
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 11,
+          "column": 37
+        }
+      ],
+      "path": [
+        "hero",
+        "friends",
+        "nodes",
+        2,
+        "id"
+      ]
+    },
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 11,
+          "column": 37
+        }
+      ],
+      "path": [
+        "hero",
+        "friends",
+        "nodes",
+        1,
+        "id"
+      ]
+    },
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 11,
+          "column": 37
+        }
+      ],
+      "path": [
+        "hero",
+        "friends",
+        "nodes",
+        0,
+        "id"
+      ]
+    }
+  ],
   "data": {
     "friends": {
       "nodes": [
-        {
-          "id": "1000"
-        },
-        {
-          "id": "1002"
-        },
-        {
-          "id": "1003"
-        }
+        null,
+        null,
+        null
       ]
     }
   },

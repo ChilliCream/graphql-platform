@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Execution.Channels
 {
-    /// <summary>Provides a buffered channel of Unsorted capacity.</summary>    
-    internal sealed partial class UnsortedChannel<T> : Channel<T>
+    /// <summary>Provides a buffered channel of Unsorted capacity.</summary>
+    internal sealed partial class UnsortedChannel<T>
     {
         private sealed class UnsortedChannelWriter : ChannelWriter<T>
         {
-            internal readonly UnsortedChannel<T> _parent;
+            private readonly UnsortedChannel<T> _parent;
             internal UnsortedChannelWriter(UnsortedChannel<T> parent) => _parent = parent;
 
             public override bool TryComplete(Exception? error)
@@ -60,6 +60,7 @@ namespace HotChocolate.Execution.Channels
                 {
                     AsyncOperation<T>? blockedReader = null;
                     AsyncOperation<bool>? waitingReadersTail = null;
+
                     lock (parent.SyncObj)
                     {
                         // If writing has already been marked as done, fail the write.
@@ -79,6 +80,13 @@ namespace HotChocolate.Execution.Channels
                         {
                             parent._items.Push(item);
                             waitingReadersTail = parent._waitingReadersTail;
+
+                            if (parent._items.Count > 4 && ++_parent._count > 4)
+                            {
+                                _parent._count = 0;
+                                parent.NeedsMoreWorkers?.Invoke(parent, EventArgs.Empty);
+                            }
+
                             if (waitingReadersTail is null)
                             {
                                 return true;

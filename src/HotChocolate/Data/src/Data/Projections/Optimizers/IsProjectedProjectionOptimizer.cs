@@ -18,7 +18,7 @@ namespace HotChocolate.Data.Projections.Handlers
             Selection selection)
         {
             if (context.Type is ObjectType type &&
-                type.ContextData.TryGetValue(AlwaysProjectedFieldsKey, out object? fieldsObj) &&
+                type.ContextData.TryGetValue(AlwaysProjectedFieldsKey, out var fieldsObj) &&
                 fieldsObj is string[] fields)
             {
                 for (var i = 0; i < fields.Length; i++)
@@ -34,14 +34,11 @@ namespace HotChocolate.Data.Projections.Handlers
                             Array.Empty<ArgumentNode>(),
                             null);
 
-                        FieldDelegate nodesPipeline =
-                            context.CompileResolverPipeline(nodesField, nodesFieldNode);
-
                         var compiledSelection = new Selection(
                             context.Type,
                             nodesField,
                             nodesFieldNode,
-                            nodesPipeline,
+                            context.CompileResolverPipeline(nodesField, nodesFieldNode),
                             arguments: selection.Arguments,
                             internalSelection: true);
 

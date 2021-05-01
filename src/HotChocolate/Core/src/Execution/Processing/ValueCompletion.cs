@@ -159,7 +159,7 @@ namespace HotChocolate.Execution.Processing
                         path.Append(i),
                         elementType,
                         array.GetValue(i),
-                        out object? completedElement) &&
+                        out var completedElement) &&
                         completedElement is ResultMap m)
                     {
                         m.Parent = completedResult;
@@ -192,7 +192,7 @@ namespace HotChocolate.Execution.Processing
                             path.Append(i),
                             elementType,
                             list[i],
-                            out object? completedElement) &&
+                            out var completedElement) &&
                         completedElement is ResultMap m)
                     {
                         m.Parent = completedResult;
@@ -226,7 +226,7 @@ namespace HotChocolate.Execution.Processing
                             path.Append(index++),
                             elementType,
                             element,
-                            out object? completedElement) &&
+                            out var completedElement) &&
                         completedElement is ResultMap m)
                     {
                         m.Parent = completedResult;
@@ -278,7 +278,7 @@ namespace HotChocolate.Execution.Processing
                         path.Append(i),
                         elementType,
                         array.GetValue(i),
-                        out object? completedElement) &&
+                        out var completedElement) &&
                         completedElement is { } m)
                     {
                         completedResult.Add(m);
@@ -314,7 +314,7 @@ namespace HotChocolate.Execution.Processing
                             path.Append(i),
                             elementType,
                             list[i],
-                            out object? completedElement) &&
+                            out var completedElement) &&
                         completedElement is { } m)
                     {
                         completedResult.Add(m);
@@ -351,7 +351,7 @@ namespace HotChocolate.Execution.Processing
                             path.Append(index++),
                             elementType,
                             element,
-                            out object? completedElement) &&
+                            out var completedElement) &&
                         completedElement is { } m)
                     {
                         completedResult.Add(m);

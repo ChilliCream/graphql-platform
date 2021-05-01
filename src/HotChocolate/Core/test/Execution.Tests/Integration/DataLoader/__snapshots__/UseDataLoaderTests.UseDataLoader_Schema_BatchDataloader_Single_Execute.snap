@@ -1,7 +1,20 @@
 ﻿{
-  "data": {
-    "single": {
-      "id": 1
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 1,
+          "column": 12
+        }
+      ],
+      "path": [
+        "single",
+        "id"
+      ]
     }
+  ],
+  "data": {
+    "single": null
   }
 }

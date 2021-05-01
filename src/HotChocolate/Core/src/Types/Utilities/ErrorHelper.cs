@@ -119,5 +119,20 @@ namespace HotChocolate.Utilities
                 .SetPath(Path.New(typeName).Append(field.Name))
                 .SetExtension(TypeErrorFields.Definition, field)
                 .Build();
+
+        public static ISchemaError ObjectField_HasNoResolver(
+            NameString typeName,
+            NameString fieldName,
+            ITypeSystemObject type,
+            ISyntaxNode? syntaxNode) =>
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.ErrorHelper_ObjectField_HasNoResolver,
+                    typeName,
+                    fieldName)
+                .SetCode(ErrorCodes.Schema.NoResolver)
+                .SetTypeSystemObject(type)
+                .AddSyntaxNode(syntaxNode)
+                .Build();
     }
 }

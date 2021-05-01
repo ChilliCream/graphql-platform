@@ -29,7 +29,12 @@ namespace HotChocolate.Execution.Processing
         /// <summary>
         /// The compiled resolver pipeline for this selection.
         /// </summary>
-        FieldDelegate ResolverPipeline { get; }
+        FieldDelegate? ResolverPipeline { get; }
+
+        /// <summary>
+        /// The compiled pure resolver.
+        /// </summary>
+        PureFieldDelegate? PureResolver { get; }
 
         /// <summary>
         /// The arguments that have been pre-coerced for this field selection.

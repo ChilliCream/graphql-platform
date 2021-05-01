@@ -8,7 +8,7 @@ namespace HotChocolate.Execution.Processing
 {
     internal partial class ExecutionContext : IExecutionContext
     {
-        public TaskScheduler Scheduler => _foo;
+        public TaskScheduler TaskScheduler => _taskScheduler;
 
         public ITaskBacklog TaskBacklog
         {
@@ -71,11 +71,11 @@ namespace HotChocolate.Execution.Processing
         {
             AssertNotPooled();
 
-            if (TaskBacklog.IsEmpty && _foo.HasEmptyQueue && BatchDispatcher.HasTasks)
+            if (TaskBacklog.IsEmpty && _taskScheduler.HasEmptyQueue && BatchDispatcher.HasTasks)
             {
-                await Task.Delay(1);
+                await Task.Yield();
 
-                if (TaskBacklog.IsEmpty && _foo.HasEmptyQueue && BatchDispatcher.HasTasks)
+                if (TaskBacklog.IsEmpty && _taskScheduler.HasEmptyQueue && BatchDispatcher.HasTasks)
                 {
                     BatchDispatcher.Dispatch(Register);
                 }
@@ -98,7 +98,7 @@ namespace HotChocolate.Execution.Processing
         private void OnCompleted(object? source, EventArgs args)
         {
             AssertNotPooled();
-            _taskBacklog.Complete();
+            // _taskBacklog.Complete();
         }
     }
 }
