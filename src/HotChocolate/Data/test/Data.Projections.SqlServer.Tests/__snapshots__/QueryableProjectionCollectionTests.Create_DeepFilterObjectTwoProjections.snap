@@ -1,0 +1,32 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barString": "testatest",
+          "collection": [
+            {
+              "foo": {
+                "barString": "a",
+                "barShort": 12
+              }
+            }
+          ]
+        }
+      },
+      {
+        "foo": {
+          "barString": "testbtest",
+          "collection": [
+            {
+              "foo": {
+                "barString": "d",
+                "barShort": 14
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

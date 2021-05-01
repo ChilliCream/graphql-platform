@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
+using HotChocolate.Types.Pagination;
 
 namespace HotChocolate.Data.Projections.Expressions.Handlers
 {
@@ -12,6 +13,7 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
     {
         public override bool CanHandle(ISelection selection) =>
             selection.Field.Member is { } &&
+            selection.Field.Type is IPageType ||
             selection.Field.Type is ListType ||
             selection.Field.Type is NonNullType nonNullType &&
             nonNullType.InnerType() is ListType;
@@ -49,9 +51,16 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
 
             IOutputType type = field.Type;
 
-            Type clrType = type.IsListType()
-                ? type.ElementType().ToRuntimeType()
-                : type.ToRuntimeType();
+            Type clrType = type.InnerType() switch
+            {
+                ListType e => e.ElementType().ToRuntimeType(),
+                IPageType e => e.ItemType.InnerType() switch
+                {
+                    IEdgeType it => it.EntityType.InnerType().ToRuntimeType(),
+                    _ => e.ItemType.InnerType().ToRuntimeType()
+                },
+                _ => type.InnerType().ToRuntimeType()
+            };
 
             // We add a new scope for the sub selection. This allows a new member initialization
             context.AddScope(clrType);

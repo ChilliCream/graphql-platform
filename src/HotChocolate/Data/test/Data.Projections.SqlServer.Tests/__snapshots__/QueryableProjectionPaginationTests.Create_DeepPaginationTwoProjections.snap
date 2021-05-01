@@ -1,0 +1,10 @@
+﻿{
+  "errors": [
+    {
+      "message": "The field Foo.collection declares pagination and is projected. This is not supported."
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}

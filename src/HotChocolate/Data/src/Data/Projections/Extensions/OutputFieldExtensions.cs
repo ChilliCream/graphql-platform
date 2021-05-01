@@ -9,11 +9,13 @@ namespace HotChocolate.Data.Projections
     {
         public static bool IsNotProjected(this IOutputField field) =>
             field.ContextData.TryGetValue(IsProjectedKey, out object? isProjectedObject) &&
-            isProjectedObject is bool isProjected && !isProjected;
+            isProjectedObject is false;
 
         public static bool HasProjectionMiddleware(this IOutputField field) =>
-            (field.Type is INullableType nt && nt.InnerType() is IPageType) ||
-            field.Type is IPageType ||
             field.ContextData.ContainsKey(ProjectionContextIdentifier);
+
+        public static bool IsPagination(this IOutputField field) =>
+            (field.Type is INullableType nt && nt.InnerType() is IPageType) ||
+            field.Type is IPageType;
     }
 }

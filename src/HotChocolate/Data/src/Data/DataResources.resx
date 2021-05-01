@@ -215,4 +215,7 @@
   <data name="FilterConvention_ProviderHasToBeInitializedByConvention" xml:space="preserve">
     <value>The filter provider {0} {1}was not initialized by a convention. It is only valid to register a provider over a FilterConvention</value>
   </data>
+  <data name="ProjectionConvention_PaginationInProjectionNotSupported" xml:space="preserve">
+    <value>The field {1}.{0} declares pagination and is projected. This is not supported.</value>
+  </data>
 </root>

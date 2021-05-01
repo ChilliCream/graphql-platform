@@ -89,8 +89,7 @@ namespace HotChocolate.Data
                         type.Name)
                     .Build());
 
-        public static GraphQLException FilterConvention_CouldNotConvertValue(
-            IValueNode node) =>
+        public static GraphQLException FilterConvention_CouldNotConvertValue(IValueNode node) =>
             new GraphQLException(
                 ErrorBuilder.New()
                     .SetMessage(DataResources.FilterConvention_CouldNotConvertValue)
@@ -175,8 +174,7 @@ namespace HotChocolate.Data
                     .SetExtension(nameof(sortProvider), sortProvider)
                     .Build());
 
-        public static SchemaException SortDescriptorContextExtensions_NoConvention(
-            string? scope) =>
+        public static SchemaException SortDescriptorContextExtensions_NoConvention(string? scope) =>
             new SchemaException(
                 SchemaErrorBuilder.New()
                     .SetMessage(
@@ -258,8 +256,7 @@ namespace HotChocolate.Data
                     .SetExtension(nameof(sortOperation), sortOperation)
                     .Build());
 
-        public static SchemaException Sorting_TypeOfInvalidFormat(
-            IType type) =>
+        public static SchemaException Sorting_TypeOfInvalidFormat(IType type) =>
             new SchemaException(
                 SchemaErrorBuilder.New()
                     .SetMessage(
@@ -293,6 +290,16 @@ namespace HotChocolate.Data
             new SchemaException(
                 SchemaErrorBuilder.New()
                     .SetMessage(DataResources.ProjectionConvention_CouldNotProject)
+                    .Build());
+
+        public static GraphQLException ProjectionConvention_PaginationInProjectionNotSupported(
+            IOutputField field) =>
+            new (
+                ErrorBuilder.New()
+                    .SetMessage(
+                        DataResources.ProjectionConvention_PaginationInProjectionNotSupported,
+                        field.Name,
+                        field.DeclaringType.Name)
                     .Build());
     }
 }

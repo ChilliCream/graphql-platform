@@ -122,9 +122,19 @@ namespace HotChocolate.Data.Projections
 
         protected override ISelectionVisitorAction Visit(IOutputField field, TContext context)
         {
-            if (context.SelectionSetNodes.Count > 1 && field.HasProjectionMiddleware())
+            if (context.SelectionSetNodes.Count > 1)
             {
-                return Skip;
+                if(field.IsNotProjected() ||
+                   field.HasProjectionMiddleware())
+                {
+                    return Skip;
+                }
+
+                if (field.IsPagination())
+                {
+                    throw ThrowHelper
+                        .ProjectionConvention_PaginationInProjectionNotSupported(field);
+                }
             }
 
             if (field.Type is IPageType and ObjectType pageType &&

@@ -45,17 +45,15 @@ namespace HotChocolate.Data.Projections
         internal new ProjectionProviderDefinition? Definition => base.Definition;
 
         /// <inheritdoc />
-        protected override ProjectionProviderDefinition CreateDefinition(
-            IConventionContext context)
+        protected override ProjectionProviderDefinition CreateDefinition(IConventionContext context)
         {
             if (_configure is null)
             {
                 throw new InvalidOperationException(ProjectionConvention_NoConfigurationSpecified);
             }
 
-            var descriptor = ProjectionProviderDescriptor.New(
-                context.DescriptorContext,
-                context.Scope);
+            var descriptor =
+                ProjectionProviderDescriptor.New(context.DescriptorContext, context.Scope);
 
             _configure(descriptor);
             _configure = null;
@@ -89,9 +87,9 @@ namespace HotChocolate.Data.Projections
             }
 
             IServiceProvider services = new DictionaryServiceProvider(
-                (typeof(IConventionContext), context),
-                (typeof(IDescriptorContext), context.DescriptorContext),
-                (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
+                    (typeof(IConventionContext), context),
+                    (typeof(IDescriptorContext), context.DescriptorContext),
+                    (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
                 .Include(context.Services);
 
             foreach ((Type type, IProjectionFieldHandler? instance) in Definition.Handlers)
@@ -181,9 +179,7 @@ namespace HotChocolate.Data.Projections
                         }
                     }
 
-                    return ProjectionSelection.From(
-                        selection,
-                        fieldHandler);
+                    return ProjectionSelection.From(selection, fieldHandler);
                 }
             }
 
