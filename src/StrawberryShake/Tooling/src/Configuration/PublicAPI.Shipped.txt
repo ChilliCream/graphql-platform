@@ -1,1 +1,78 @@
 #nullable enable
+const StrawberryShake.Tools.Configuration.FileContents.SchemaExtensionFileContent = "scalar _KeyFieldSet\r\n\r\ndirective @key(fields: _KeyFieldSet!) on SCHEMA | OBJECT\r\n\r\ndirective @serializationType(name: String!) on SCALAR\r\n\r\ndirective @runtimeType(name: String!) on SCALAR\r\n\r\ndirective @enumValue(value: String!) on ENUM_VALUE\r\n\r\ndirective @rename(name: String!) on INPUT_FIELD_DEFINITION | INPUT_OBJECT | ENUM | ENUM_VALUE\r\n\r\nextend schema @key(fields: \"id\")" -> string!
+const StrawberryShake.Tools.Configuration.FileNames.GraphQLConfigFile = ".graphqlrc.json" -> string!
+const StrawberryShake.Tools.Configuration.FileNames.SchemaExtensionFile = "schema.extensions.graphql" -> string!
+const StrawberryShake.Tools.Configuration.FileNames.SchemaFile = "schema.graphql" -> string!
+override StrawberryShake.Tools.Configuration.GraphQLConfig.ToString() -> string!
+static StrawberryShake.Tools.Configuration.GraphQLConfig.FromJson(string! json) -> StrawberryShake.Tools.Configuration.GraphQLConfig!
+StrawberryShake.Tools.Configuration.FileContents
+StrawberryShake.Tools.Configuration.FileNames
+StrawberryShake.Tools.Configuration.GraphQLConfig
+StrawberryShake.Tools.Configuration.GraphQLConfig.Documents.get -> string!
+StrawberryShake.Tools.Configuration.GraphQLConfig.Documents.set -> void
+StrawberryShake.Tools.Configuration.GraphQLConfig.Extensions.get -> StrawberryShake.Tools.Configuration.GraphQLConfigExtensions!
+StrawberryShake.Tools.Configuration.GraphQLConfig.GraphQLConfig() -> void
+StrawberryShake.Tools.Configuration.GraphQLConfig.Location.get -> string?
+StrawberryShake.Tools.Configuration.GraphQLConfig.Location.set -> void
+StrawberryShake.Tools.Configuration.GraphQLConfig.Schema.get -> string!
+StrawberryShake.Tools.Configuration.GraphQLConfig.Schema.set -> void
+StrawberryShake.Tools.Configuration.GraphQLConfigExtensions
+StrawberryShake.Tools.Configuration.GraphQLConfigExtensions.GraphQLConfigExtensions() -> void
+StrawberryShake.Tools.Configuration.GraphQLConfigExtensions.StrawberryShake.get -> StrawberryShake.Tools.Configuration.StrawberryShakeSettings!
+StrawberryShake.Tools.Configuration.RequestStrategy
+StrawberryShake.Tools.Configuration.RequestStrategy.AutomaticPersistedQuery = 2 -> StrawberryShake.Tools.Configuration.RequestStrategy
+StrawberryShake.Tools.Configuration.RequestStrategy.Default = 0 -> StrawberryShake.Tools.Configuration.RequestStrategy
+StrawberryShake.Tools.Configuration.RequestStrategy.PersistedQuery = 1 -> StrawberryShake.Tools.Configuration.RequestStrategy
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.DependencyInjection.get -> bool
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.DependencyInjection.set -> void
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.EmitGeneratedCode.get -> bool
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.EmitGeneratedCode.set -> void
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.HashAlgorithm.get -> string!
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.HashAlgorithm.set -> void
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.Name.get -> string!
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.Name.set -> void
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.Namespace.get -> string?
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.Namespace.set -> void
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.NoStore.get -> bool
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.NoStore.set -> void
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.OutputDirectoryName.get -> string!
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.OutputDirectoryName.set -> void
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.RazorComponents.get -> bool
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.RazorComponents.set -> void
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.Records.get -> StrawberryShake.Tools.Configuration.StrawberryShakeSettingsRecords!
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.RequestStrategy.get -> StrawberryShake.Tools.Configuration.RequestStrategy
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.RequestStrategy.set -> void
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.StrawberryShakeSettings() -> void
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.StrictSchemaValidation.get -> bool
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.StrictSchemaValidation.set -> void
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.TransportProfiles.get -> System.Collections.Generic.List<StrawberryShake.Tools.Configuration.StrawberryShakeSettingsTransportProfile!>!
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.Url.get -> string?
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.Url.set -> void
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.UseSingleFile.get -> bool
+StrawberryShake.Tools.Configuration.StrawberryShakeSettings.UseSingleFile.set -> void
+StrawberryShake.Tools.Configuration.StrawberryShakeSettingsRecords
+StrawberryShake.Tools.Configuration.StrawberryShakeSettingsRecords.Entities.get -> bool
+StrawberryShake.Tools.Configuration.StrawberryShakeSettingsRecords.Entities.set -> void
+StrawberryShake.Tools.Configuration.StrawberryShakeSettingsRecords.Inputs.get -> bool
+StrawberryShake.Tools.Configuration.StrawberryShakeSettingsRecords.Inputs.set -> void
+StrawberryShake.Tools.Configuration.StrawberryShakeSettingsRecords.StrawberryShakeSettingsRecords() -> void
+StrawberryShake.Tools.Configuration.StrawberryShakeSettingsTransportProfile
+StrawberryShake.Tools.Configuration.StrawberryShakeSettingsTransportProfile.Default.get -> StrawberryShake.Tools.Configuration.TransportType
+StrawberryShake.Tools.Configuration.StrawberryShakeSettingsTransportProfile.Default.set -> void
+StrawberryShake.Tools.Configuration.StrawberryShakeSettingsTransportProfile.GetUsedTransports() -> System.Collections.Generic.IEnumerable<StrawberryShake.Tools.Configuration.TransportType>!
+StrawberryShake.Tools.Configuration.StrawberryShakeSettingsTransportProfile.Mutation.get -> StrawberryShake.Tools.Configuration.TransportType?
+StrawberryShake.Tools.Configuration.StrawberryShakeSettingsTransportProfile.Mutation.set -> void
+StrawberryShake.Tools.Configuration.StrawberryShakeSettingsTransportProfile.Name.get -> string!
+StrawberryShake.Tools.Configuration.StrawberryShakeSettingsTransportProfile.Name.set -> void
+StrawberryShake.Tools.Configuration.StrawberryShakeSettingsTransportProfile.Query.get -> StrawberryShake.Tools.Configuration.TransportType?
+StrawberryShake.Tools.Configuration.StrawberryShakeSettingsTransportProfile.Query.set -> void
+StrawberryShake.Tools.Configuration.StrawberryShakeSettingsTransportProfile.StrawberryShakeSettingsTransportProfile() -> void
+StrawberryShake.Tools.Configuration.StrawberryShakeSettingsTransportProfile.Subscription.get -> StrawberryShake.Tools.Configuration.TransportType?
+StrawberryShake.Tools.Configuration.StrawberryShakeSettingsTransportProfile.Subscription.set -> void
+StrawberryShake.Tools.Configuration.TransportType
+StrawberryShake.Tools.Configuration.TransportType.Grpc = 4 -> StrawberryShake.Tools.Configuration.TransportType
+StrawberryShake.Tools.Configuration.TransportType.Http = 0 -> StrawberryShake.Tools.Configuration.TransportType
+StrawberryShake.Tools.Configuration.TransportType.InMemory = 2 -> StrawberryShake.Tools.Configuration.TransportType
+StrawberryShake.Tools.Configuration.TransportType.SignalR = 3 -> StrawberryShake.Tools.Configuration.TransportType
+StrawberryShake.Tools.Configuration.TransportType.WebSocket = 1 -> StrawberryShake.Tools.Configuration.TransportType

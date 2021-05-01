@@ -12,9 +12,14 @@ function MarkShipped([string]$dir) {
     }
 
     $unshippedFilePath = Join-Path $dir "PublicAPI.Unshipped.txt"
-    $unshipped = Get-Content $unshippedFilePath
+    [array]$unshipped = Get-Content $unshippedFilePath
+    if ($null -eq $unshipped || $unshipped.Length -lt 1) {
+        return
+    }
+
     $removed = @()
     $removedPrefix = "*REMOVED*";
+
     Write-Host "Processing $dir"
 
     foreach ($item in $unshipped) {

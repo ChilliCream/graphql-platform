@@ -1,1 +1,15 @@
 #nullable enable
+HotChocolate.Data.EntityFrameworkEnumerableExtensions
+HotChocolate.Data.EntityFrameworkExecutable<T>
+HotChocolate.Data.EntityFrameworkExecutable<T>.EntityFrameworkExecutable(System.Linq.IQueryable<T>! queryable) -> void
+HotChocolate.Data.UseDbContextAttribute
+HotChocolate.Data.UseDbContextAttribute.UseDbContextAttribute(System.Type! dbContext) -> void
+HotChocolate.Types.EntityFrameworkObjectFieldDescriptorExtensions
+override HotChocolate.Data.EntityFrameworkExecutable<T>.FirstOrDefaultAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<object?>
+override HotChocolate.Data.EntityFrameworkExecutable<T>.Print() -> string!
+override HotChocolate.Data.EntityFrameworkExecutable<T>.SingleOrDefaultAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<object?>
+override HotChocolate.Data.EntityFrameworkExecutable<T>.ToListAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.IList!>
+override HotChocolate.Data.UseDbContextAttribute.OnConfigure(HotChocolate.Types.Descriptors.IDescriptorContext! context, HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Reflection.MemberInfo! member) -> void
+static HotChocolate.Data.EntityFrameworkEnumerableExtensions.AsEntityFrameworkExecutable<T>(this System.Linq.IQueryable<T>! source) -> HotChocolate.IExecutable<T>!
+static HotChocolate.Data.EntityFrameworkEnumerableExtensions.AsExecutable<T>(this Microsoft.EntityFrameworkCore.DbSet<T!>! source) -> HotChocolate.IExecutable<T!>!
+static HotChocolate.Types.EntityFrameworkObjectFieldDescriptorExtensions.UseDbContext<TDbContext>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor) -> HotChocolate.Types.IObjectFieldDescriptor!
