@@ -4,7 +4,7 @@
 [![License](https://img.shields.io/github/license/ChilliCream/hotchocolate.svg)](https://github.com/ChilliCream/hotchocolate/blob/main/LICENSE) 
 [![Azure DevOps tests](https://img.shields.io/azure-devops/tests/chillicream/HotChocolate/70.svg)](https://chillicream.visualstudio.com/HotChocolate/_build?definitionId=70) 
 [![Coverage Status](https://sonarcloud.io/api/project_badges/measure?project=HotChocolate&metric=coverage)](https://sonarcloud.io/dashboard?id=HotChocolate) 
-[![Slack channel](https://img.shields.io/badge/join%20the%20community-on%20slack-blue.svg)](https://bit.ly/joinchilli) 
+[![Slack channel](https://img.shields.io/badge/join%20the%20community-on%20slack-blue.svg)](https://bit.ly/join-chillicream-slack) 
 [![Twitter](https://img.shields.io/badge/join%20us-on%20twitter-green.svg)](https://twitter.com/chilli_cream)
 
 ---
