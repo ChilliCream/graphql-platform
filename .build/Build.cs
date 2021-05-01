@@ -12,8 +12,8 @@ using static Helpers;
     AzurePipelinesImage.UbuntuLatest,
     InvokedTargets = new[] { nameof(Sonar) },
     PullRequestsAutoCancel = true,
-    PullRequestsBranchesInclude = new [] { "master" },
-    AutoGenerate =  false)]
+    PullRequestsBranchesInclude = new[] { "master" },
+    AutoGenerate = false)]
 [GitHubActions(
     "sonar-pr-hotchocolate",
     GitHubActionsImage.UbuntuLatest,
@@ -69,6 +69,7 @@ partial class Build : NukeBuild
                 .SetAssemblyVersion(GitVersion.AssemblySemVer)
                 .SetFileVersion(GitVersion.AssemblySemFileVer)
                 .SetInformationalVersion(GitVersion.InformationalVersion)
-                .SetVersion(GitVersion.SemVer));
+                .SetVersion(GitVersion.SemVer)
+                .SetProperty("RequireDocumentationOfPublicApiChanges", true));
         });
 }
