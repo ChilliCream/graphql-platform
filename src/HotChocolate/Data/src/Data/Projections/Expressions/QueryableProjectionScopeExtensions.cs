@@ -14,10 +14,30 @@ namespace HotChocolate.Data.Projections.Expressions
             return (Expression<Func<T, T>>)scope.CreateMemberInitLambda();
         }
 
-        public static MemberInitExpression CreateMemberInit(this QueryableProjectionScope scope)
+        public static Expression CreateMemberInit(this QueryableProjectionScope scope)
         {
-            NewExpression ctor = Expression.New(scope.RuntimeType);
-            return Expression.MemberInit(ctor, scope.Level.Peek());
+            if (scope.AbstractType.Count > 0)
+            {
+                Expression lastValue = Expression.Default(scope.RuntimeType);
+
+                foreach (KeyValuePair<Type, Queue<MemberAssignment>> val in scope.AbstractType)
+                {
+                    NewExpression ctor = Expression.New(val.Key);
+                    Expression memberInit = Expression.MemberInit(ctor, val.Value);
+
+                    lastValue = Expression.Condition(
+                        Expression.TypeIs(scope.Instance.Peek(), val.Key),
+                        Expression.Convert(memberInit, scope.RuntimeType),
+                        lastValue);
+                }
+
+                return lastValue;
+            }
+            else
+            {
+                NewExpression ctor = Expression.New(scope.RuntimeType);
+                return Expression.MemberInit(ctor, scope.Level.Peek());
+            }
         }
 
         public static Expression CreateMemberInitLambda(this QueryableProjectionScope scope)
@@ -33,7 +53,11 @@ namespace HotChocolate.Data.Projections.Expressions
             MethodCallExpression selection = Expression.Call(
                 typeof(Enumerable),
                 nameof(Enumerable.Select),
-                new[] { scope.RuntimeType, scope.RuntimeType },
+                new[]
+                {
+                    scope.RuntimeType,
+                    scope.RuntimeType
+                },
                 source,
                 scope.CreateMemberInitLambda());
 
@@ -55,7 +79,10 @@ namespace HotChocolate.Data.Projections.Expressions
             return Expression.Call(
                 typeof(Enumerable),
                 nameof(Enumerable.ToArray),
-                new[] { scope.RuntimeType },
+                new[]
+                {
+                    scope.RuntimeType
+                },
                 source);
         }
 
@@ -64,7 +91,10 @@ namespace HotChocolate.Data.Projections.Expressions
             return Expression.Call(
                 typeof(Enumerable),
                 nameof(Enumerable.ToList),
-                new[] { scope.RuntimeType },
+                new[]
+                {
+                    scope.RuntimeType
+                },
                 source);
         }
 
@@ -76,7 +106,10 @@ namespace HotChocolate.Data.Projections.Expressions
                 setType.MakeGenericType(source.Type.GetGenericArguments()[0]);
 
             ConstructorInfo? ctor =
-                typedGeneric.GetConstructor(new[] { source.Type });
+                typedGeneric.GetConstructor(new[]
+                {
+                    source.Type
+                });
 
             if (ctor is null)
             {

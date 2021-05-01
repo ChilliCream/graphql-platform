@@ -1,0 +1,4 @@
+﻿SELECT "d"."Id", "a"."d" = 'bar', "a"."Name", "a"."BarProp", "a"."d" = 'foo', "a"."FooProp", "a"."Id"
+FROM "Data" AS "d"
+LEFT JOIN "AbstractType" AS "a" ON "d"."Id" = "a"."NestedListId"
+ORDER BY "d"."Id", "a"."Id"

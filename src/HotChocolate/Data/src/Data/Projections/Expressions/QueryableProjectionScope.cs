@@ -17,6 +17,7 @@ namespace HotChocolate.Data.Projections.Expressions
             RuntimeType = type;
             Level = new Stack<Queue<MemberAssignment>>();
             Level.Push(new Queue<MemberAssignment>());
+            AbstractType = new Dictionary<Type, Queue<MemberAssignment>>();
         }
 
         public Type RuntimeType { get; }
@@ -28,5 +29,7 @@ namespace HotChocolate.Data.Projections.Expressions
         public Stack<Queue<MemberAssignment>> Level { get; }
 
         public ParameterExpression Parameter { get; }
+
+        public Dictionary<Type, Queue<MemberAssignment>> AbstractType { get; }
     }
 }

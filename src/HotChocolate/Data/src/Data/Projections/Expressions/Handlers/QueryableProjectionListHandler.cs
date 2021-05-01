@@ -67,8 +67,7 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
         {
             IObjectField field = selection.Field;
 
-            if (field.RuntimeType is null ||
-                field.Member is null)
+            if (field.RuntimeType is null || field.Member is null)
             {
                 action = null;
                 return false;
@@ -85,7 +84,8 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
 
             // in case the projection is empty we do not project. This can happen if the
             // field handler below skips fields
-            if (queryableScope.Level.Count == 0 || queryableScope.Level.Peek().Count == 0)
+            if (queryableScope.AbstractType.Count == 0 &&
+                (queryableScope.Level.Count == 0 || queryableScope.Level.Peek().Count == 0))
             {
                 action = SelectionVisitor.Continue;
                 return true;
@@ -93,13 +93,9 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
 
             Type type = field.Member.GetReturnType();
 
-            Expression select = queryableScope.CreateSelection(
-                context.PopInstance(),
-                type);
+            Expression select = queryableScope.CreateSelection(context.PopInstance(), type);
 
-            parentScope.Level.Peek()
-                .Enqueue(
-                    Expression.Bind(field.Member, select));
+            parentScope.Level.Peek().Enqueue(Expression.Bind(field.Member, select));
 
             action = SelectionVisitor.Continue;
             return true;

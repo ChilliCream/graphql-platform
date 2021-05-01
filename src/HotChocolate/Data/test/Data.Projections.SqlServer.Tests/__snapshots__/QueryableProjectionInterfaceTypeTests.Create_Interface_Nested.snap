@@ -1,0 +1,18 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "nested": {
+          "name": "Bar",
+          "barProp": "BarProp"
+        }
+      },
+      {
+        "nested": {
+          "name": "Foo",
+          "fooProp": "FooProp"
+        }
+      }
+    ]
+  }
+}

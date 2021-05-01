@@ -10,15 +10,15 @@ namespace HotChocolate.Data.Projections
         : ProjectionVisitorTestBase,
           IDisposable
     {
-        private readonly ConcurrentDictionary<(Type, object), IRequestExecutor> _cache =
-            new ConcurrentDictionary<(Type, object), IRequestExecutor>();
+        private readonly ConcurrentDictionary<(Type, object), IRequestExecutor> _cache = new();
 
         public IRequestExecutor CreateSchema<T>(
             T[] entities,
             Action<ModelBuilder>? onModelCreating = null,
             bool usePaging = false,
             bool useOffsetPaging = false,
-            ObjectType<T>? objectType = null)
+            INamedType? objectType = null,
+            Action<ISchemaBuilder>? configure = null)
             where T : class
         {
             (Type, T[] entites) key = (typeof(T), entities);
@@ -29,7 +29,8 @@ namespace HotChocolate.Data.Projections
                     usePaging: usePaging,
                     useOffsetPaging: useOffsetPaging,
                     onModelCreating: onModelCreating,
-                    objectType: objectType));
+                    objectType: objectType,
+                    configure: configure));
         }
 
         public void Dispose()

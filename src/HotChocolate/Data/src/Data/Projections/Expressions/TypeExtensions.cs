@@ -13,7 +13,7 @@ namespace HotChocolate.Data.Projections.Expressions
                 IPageType t => t.ItemType.UnwrapRuntimeType(),
                 IEdgeType t => t.EntityType.UnwrapRuntimeType(),
                 NonNullType t => t.InnerType().UnwrapRuntimeType(),
-                ObjectType t => t.ToRuntimeType(),
+                INamedType t => t.ToRuntimeType(),
                 _ => throw new InvalidOperationException()
             };
     }

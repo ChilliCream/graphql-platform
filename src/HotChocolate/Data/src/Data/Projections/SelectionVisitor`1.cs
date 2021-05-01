@@ -117,13 +117,43 @@ namespace HotChocolate.Data.Projections
             SelectionSetNode? selectionSet =
                 context.SelectionSetNodes.Peek();
 
-            if (TryGetObjectType(type, out ObjectType? objectType) &&
-                selectionSet is not null)
+            INamedType namedType = type.NamedType();
+            if (namedType.IsAbstractType())
             {
-                IReadOnlyList<IFieldSelection> selections = context.Context.GetSelections(
-                    objectType,
-                    selectionSet,
-                    true);
+                IReadOnlyList<ObjectType> possibleTypes =
+                    context.Context.Schema.GetPossibleTypes(field.Type.NamedType());
+
+                foreach (var possibleType in possibleTypes)
+                {
+                    ISelectionVisitorAction result =
+                        VisitObjectType(field, possibleType, selectionSet, context);
+
+                    if (result != Continue)
+                    {
+                        return result;
+                    }
+                }
+            }
+            else if (namedType is ObjectType a)
+            {
+                return VisitObjectType(field, a, selectionSet, context);
+            }
+
+            return DefaultAction;
+        }
+
+        protected virtual ISelectionVisitorAction VisitObjectType(
+            IOutputField field,
+            ObjectType objectType,
+            SelectionSetNode? selectionSet,
+            TContext context)
+        {
+            context.ResolvedType.Push(field.Type.NamedType().IsAbstractType() ? objectType : null);
+
+            try
+            {
+                IReadOnlyList<IFieldSelection> selections =
+                    context.Context.GetSelections(objectType, selectionSet, true);
 
                 for (var i = 0; i < selections.Count; i++)
                 {
@@ -136,27 +166,12 @@ namespace HotChocolate.Data.Projections
                     }
                 }
             }
+            finally
+            {
+                context.ResolvedType.Pop();
+            }
 
             return DefaultAction;
-        }
-
-        private bool TryGetObjectType(
-            IType type,
-            [NotNullWhen(true)] out ObjectType? objectType)
-        {
-            switch (type)
-            {
-                case NonNullType nonNullType:
-                    return TryGetObjectType(nonNullType.NamedType(), out objectType);
-                case ObjectType objType:
-                    objectType = objType;
-                    return true;
-                case ListType listType:
-                    return TryGetObjectType(listType.InnerType(), out objectType);
-                default:
-                    objectType = null;
-                    return false;
-            }
         }
 
         protected virtual ISelectionVisitorAction VisitChildren(

@@ -40,11 +40,13 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
                 context.Scopes.Peek() is QueryableProjectionScope closure &&
                 field.Member is PropertyInfo member)
             {
+                Expression instance = closure.Instance.Peek();
+
                 closure.Level.Peek()
                     .Enqueue(
                         Expression.Bind(
                             member,
-                            Expression.Property(closure.Instance.Peek(), member)));
+                            Expression.Property(instance, member)));
 
                 action = SelectionVisitor.Continue;
                 return true;
