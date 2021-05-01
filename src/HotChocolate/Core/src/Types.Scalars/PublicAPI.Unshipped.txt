@@ -1,1 +1,197 @@
 #nullable enable
+HotChocolate.Types.EmailAddressType
+HotChocolate.Types.EmailAddressType.EmailAddressType() -> void
+HotChocolate.Types.EmailAddressType.EmailAddressType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.HexColorType
+HotChocolate.Types.HexColorType.HexColorType() -> void
+HotChocolate.Types.HexColorType.HexColorType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.HslaType
+HotChocolate.Types.HslaType.HslaType() -> void
+HotChocolate.Types.HslaType.HslaType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.HslType
+HotChocolate.Types.HslType.HslType() -> void
+HotChocolate.Types.HslType.HslType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.IPv4Type
+HotChocolate.Types.IPv4Type.IPv4Type() -> void
+HotChocolate.Types.IPv4Type.IPv4Type(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.IPv6Type
+HotChocolate.Types.IPv6Type.IPv6Type() -> void
+HotChocolate.Types.IPv6Type.IPv6Type(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.IsbnType
+HotChocolate.Types.IsbnType.IsbnType() -> void
+HotChocolate.Types.IsbnType.IsbnType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.LocalCurrencyType
+HotChocolate.Types.LocalCurrencyType.LocalCurrencyType() -> void
+HotChocolate.Types.LocalCurrencyType.LocalCurrencyType(HotChocolate.NameString name, string! culture = "en-US", string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.LocalDateType
+HotChocolate.Types.LocalDateType.LocalDateType() -> void
+HotChocolate.Types.LocalDateType.LocalDateType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.LocalTimeType
+HotChocolate.Types.LocalTimeType.LocalTimeType() -> void
+HotChocolate.Types.LocalTimeType.LocalTimeType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.MacAddressType
+HotChocolate.Types.MacAddressType.MacAddressType() -> void
+HotChocolate.Types.MacAddressType.MacAddressType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.NegativeFloatType
+HotChocolate.Types.NegativeFloatType.NegativeFloatType() -> void
+HotChocolate.Types.NegativeFloatType.NegativeFloatType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.NegativeIntType
+HotChocolate.Types.NegativeIntType.NegativeIntType() -> void
+HotChocolate.Types.NegativeIntType.NegativeIntType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.NonEmptyStringType
+HotChocolate.Types.NonEmptyStringType.NonEmptyStringType() -> void
+HotChocolate.Types.NonEmptyStringType.NonEmptyStringType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.NonNegativeFloatType
+HotChocolate.Types.NonNegativeFloatType.NonNegativeFloatType() -> void
+HotChocolate.Types.NonNegativeFloatType.NonNegativeFloatType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.NonNegativeIntType
+HotChocolate.Types.NonNegativeIntType.NonNegativeIntType() -> void
+HotChocolate.Types.NonNegativeIntType.NonNegativeIntType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.NonPositiveFloatType
+HotChocolate.Types.NonPositiveFloatType.NonPositiveFloatType() -> void
+HotChocolate.Types.NonPositiveFloatType.NonPositiveFloatType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.NonPositiveIntType
+HotChocolate.Types.NonPositiveIntType.NonPositiveIntType() -> void
+HotChocolate.Types.NonPositiveIntType.NonPositiveIntType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.PhoneNumberType
+HotChocolate.Types.PhoneNumberType.PhoneNumberType() -> void
+HotChocolate.Types.PhoneNumberType.PhoneNumberType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.PortType
+HotChocolate.Types.PortType.PortType() -> void
+HotChocolate.Types.PortType.PortType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.PositiveIntType
+HotChocolate.Types.PositiveIntType.PositiveIntType() -> void
+HotChocolate.Types.PositiveIntType.PositiveIntType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.PostalCodeType
+HotChocolate.Types.PostalCodeType.PostalCodeType() -> void
+HotChocolate.Types.PostalCodeType.PostalCodeType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.RegexType
+HotChocolate.Types.RegexType.RegexType(HotChocolate.NameString name, string! pattern, string? description = null, System.Text.RegularExpressions.RegexOptions regexOptions = System.Text.RegularExpressions.RegexOptions.Compiled, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.RegexType.RegexType(HotChocolate.NameString name, System.Text.RegularExpressions.Regex! regex, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.RgbaType
+HotChocolate.Types.RgbaType.RgbaType() -> void
+HotChocolate.Types.RgbaType.RgbaType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.RgbType
+HotChocolate.Types.RgbType.RgbType() -> void
+HotChocolate.Types.RgbType.RgbType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.UnsignedIntType
+HotChocolate.Types.UnsignedIntType.UnsignedIntType() -> void
+HotChocolate.Types.UnsignedIntType.UnsignedIntType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.UnsignedLongType
+HotChocolate.Types.UnsignedLongType.UnsignedLongType() -> void
+HotChocolate.Types.UnsignedLongType.UnsignedLongType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.UtcOffsetType
+HotChocolate.Types.UtcOffsetType.UtcOffsetType() -> void
+HotChocolate.Types.UtcOffsetType.UtcOffsetType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Implicit) -> void
+override HotChocolate.Types.EmailAddressType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.EmailAddressType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.HexColorType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.HexColorType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.HslaType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.HslaType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.HslType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.HslType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.IPv4Type.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.IPv4Type.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.IPv6Type.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.IPv6Type.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.IsbnType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.IsbnType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.LocalCurrencyType.ParseLiteral(HotChocolate.Language.StringValueNode! valueSyntax) -> decimal
+override HotChocolate.Types.LocalCurrencyType.ParseResult(object? resultValue) -> HotChocolate.Language.IValueNode!
+override HotChocolate.Types.LocalCurrencyType.ParseValue(decimal runtimeValue) -> HotChocolate.Language.StringValueNode!
+override HotChocolate.Types.LocalCurrencyType.TryDeserialize(object? resultValue, out object? runtimeValue) -> bool
+override HotChocolate.Types.LocalCurrencyType.TrySerialize(object? runtimeValue, out object? resultValue) -> bool
+override HotChocolate.Types.LocalDateType.ParseLiteral(HotChocolate.Language.StringValueNode! valueSyntax) -> System.DateTime
+override HotChocolate.Types.LocalDateType.ParseResult(object? resultValue) -> HotChocolate.Language.IValueNode!
+override HotChocolate.Types.LocalDateType.ParseValue(System.DateTime runtimeValue) -> HotChocolate.Language.StringValueNode!
+override HotChocolate.Types.LocalDateType.TryDeserialize(object? resultValue, out object? runtimeValue) -> bool
+override HotChocolate.Types.LocalDateType.TrySerialize(object? runtimeValue, out object? resultValue) -> bool
+override HotChocolate.Types.LocalTimeType.ParseLiteral(HotChocolate.Language.StringValueNode! valueSyntax) -> System.DateTime
+override HotChocolate.Types.LocalTimeType.ParseResult(object? resultValue) -> HotChocolate.Language.IValueNode!
+override HotChocolate.Types.LocalTimeType.ParseValue(System.DateTime runtimeValue) -> HotChocolate.Language.StringValueNode!
+override HotChocolate.Types.LocalTimeType.TryDeserialize(object? resultValue, out object? runtimeValue) -> bool
+override HotChocolate.Types.LocalTimeType.TrySerialize(object? runtimeValue, out object? resultValue) -> bool
+override HotChocolate.Types.MacAddressType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.MacAddressType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.NegativeFloatType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.NegativeFloatType.CreateParseResultError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.NegativeFloatType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.NegativeFloatType.IsInstanceOfType(double runtimeValue) -> bool
+override HotChocolate.Types.NegativeFloatType.IsInstanceOfType(HotChocolate.Language.IFloatValueLiteral! valueSyntax) -> bool
+override HotChocolate.Types.NegativeIntType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.NegativeIntType.CreateParseResultError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.NegativeIntType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.NegativeIntType.IsInstanceOfType(HotChocolate.Language.IntValueNode! valueSyntax) -> bool
+override HotChocolate.Types.NegativeIntType.IsInstanceOfType(int runtimeValue) -> bool
+override HotChocolate.Types.NonEmptyStringType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.NonEmptyStringType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.NonEmptyStringType.IsInstanceOfType(HotChocolate.Language.StringValueNode! valueSyntax) -> bool
+override HotChocolate.Types.NonEmptyStringType.IsInstanceOfType(string! runtimeValue) -> bool
+override HotChocolate.Types.NonEmptyStringType.TryDeserialize(object? resultValue, out object? runtimeValue) -> bool
+override HotChocolate.Types.NonEmptyStringType.TrySerialize(object? runtimeValue, out object? resultValue) -> bool
+override HotChocolate.Types.NonNegativeFloatType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.NonNegativeFloatType.CreateParseResultError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.NonNegativeFloatType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.NonNegativeFloatType.IsInstanceOfType(double runtimeValue) -> bool
+override HotChocolate.Types.NonNegativeFloatType.IsInstanceOfType(HotChocolate.Language.IFloatValueLiteral! valueSyntax) -> bool
+override HotChocolate.Types.NonNegativeIntType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.NonNegativeIntType.CreateParseResultError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.NonNegativeIntType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.NonNegativeIntType.IsInstanceOfType(HotChocolate.Language.IntValueNode! valueSyntax) -> bool
+override HotChocolate.Types.NonNegativeIntType.IsInstanceOfType(int runtimeValue) -> bool
+override HotChocolate.Types.NonPositiveFloatType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.NonPositiveFloatType.CreateParseResultError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.NonPositiveFloatType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.NonPositiveFloatType.IsInstanceOfType(double runtimeValue) -> bool
+override HotChocolate.Types.NonPositiveFloatType.IsInstanceOfType(HotChocolate.Language.IFloatValueLiteral! valueSyntax) -> bool
+override HotChocolate.Types.NonPositiveIntType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.NonPositiveIntType.CreateParseResultError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.NonPositiveIntType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.NonPositiveIntType.IsInstanceOfType(HotChocolate.Language.IntValueNode! valueSyntax) -> bool
+override HotChocolate.Types.NonPositiveIntType.IsInstanceOfType(int runtimeValue) -> bool
+override HotChocolate.Types.PhoneNumberType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.PhoneNumberType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.PortType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.PortType.CreateParseResultError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.PortType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.PortType.IsInstanceOfType(HotChocolate.Language.IntValueNode! valueSyntax) -> bool
+override HotChocolate.Types.PortType.IsInstanceOfType(int runtimeValue) -> bool
+override HotChocolate.Types.PositiveIntType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.PositiveIntType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.PositiveIntType.IsInstanceOfType(HotChocolate.Language.IntValueNode! valueSyntax) -> bool
+override HotChocolate.Types.PostalCodeType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.PostalCodeType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.PostalCodeType.IsInstanceOfType(HotChocolate.Language.StringValueNode! valueSyntax) -> bool
+override HotChocolate.Types.PostalCodeType.IsInstanceOfType(string! runtimeValue) -> bool
+override HotChocolate.Types.PostalCodeType.TryDeserialize(object? resultValue, out object? runtimeValue) -> bool
+override HotChocolate.Types.PostalCodeType.TrySerialize(object? runtimeValue, out object? resultValue) -> bool
+override HotChocolate.Types.RegexType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.RegexType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.RegexType.IsInstanceOfType(HotChocolate.Language.StringValueNode! valueSyntax) -> bool
+override HotChocolate.Types.RegexType.IsInstanceOfType(string! runtimeValue) -> bool
+override HotChocolate.Types.RegexType.TryDeserialize(object? resultValue, out object? runtimeValue) -> bool
+override HotChocolate.Types.RegexType.TrySerialize(object? runtimeValue, out object? resultValue) -> bool
+override HotChocolate.Types.RgbaType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.RgbaType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.RgbType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.RgbType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.UnsignedIntType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.UnsignedIntType.CreateParseResultError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.UnsignedIntType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.UnsignedIntType.IsInstanceOfType(HotChocolate.Language.IntValueNode! valueSyntax) -> bool
+override HotChocolate.Types.UnsignedIntType.IsInstanceOfType(uint runtimeValue) -> bool
+override HotChocolate.Types.UnsignedIntType.ParseLiteral(HotChocolate.Language.IntValueNode! valueSyntax) -> uint
+override HotChocolate.Types.UnsignedIntType.ParseValue(uint runtimeValue) -> HotChocolate.Language.IntValueNode!
+override HotChocolate.Types.UnsignedLongType.CreateParseLiteralError(HotChocolate.Language.IValueNode! valueSyntax) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.UnsignedLongType.CreateParseResultError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.UnsignedLongType.CreateParseValueError(object! runtimeValue) -> HotChocolate.Types.SerializationException!
+override HotChocolate.Types.UnsignedLongType.IsInstanceOfType(HotChocolate.Language.IntValueNode! valueSyntax) -> bool
+override HotChocolate.Types.UnsignedLongType.IsInstanceOfType(ulong runtimeValue) -> bool
+override HotChocolate.Types.UnsignedLongType.ParseLiteral(HotChocolate.Language.IntValueNode! valueSyntax) -> ulong
+override HotChocolate.Types.UnsignedLongType.ParseValue(ulong runtimeValue) -> HotChocolate.Language.IntValueNode!
+override HotChocolate.Types.UtcOffsetType.ParseLiteral(HotChocolate.Language.StringValueNode! valueSyntax) -> System.TimeSpan
+override HotChocolate.Types.UtcOffsetType.ParseResult(object? resultValue) -> HotChocolate.Language.IValueNode!
+override HotChocolate.Types.UtcOffsetType.ParseValue(System.TimeSpan runtimeValue) -> HotChocolate.Language.StringValueNode!
+override HotChocolate.Types.UtcOffsetType.TryDeserialize(object? resultValue, out object? runtimeValue) -> bool
+override HotChocolate.Types.UtcOffsetType.TrySerialize(object? runtimeValue, out object? resultValue) -> bool

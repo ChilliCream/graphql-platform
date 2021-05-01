@@ -1,1 +1,32 @@
 #nullable enable
+HotChocolate.Types.FileValueNode
+HotChocolate.Types.FileValueNode.Equals(HotChocolate.Language.IValueNode? other) -> bool
+HotChocolate.Types.FileValueNode.Equals(HotChocolate.Types.FileValueNode? other) -> bool
+HotChocolate.Types.FileValueNode.FileValueNode(HotChocolate.Types.IFile! file) -> void
+HotChocolate.Types.FileValueNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
+HotChocolate.Types.FileValueNode.Kind.get -> HotChocolate.Language.SyntaxKind
+HotChocolate.Types.FileValueNode.Location.get -> HotChocolate.Language.Location?
+HotChocolate.Types.FileValueNode.ToString(bool indented) -> string!
+HotChocolate.Types.FileValueNode.Value.get -> HotChocolate.Types.IFile!
+HotChocolate.Types.IFile
+HotChocolate.Types.IFile.CopyToAsync(System.IO.Stream! target, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+HotChocolate.Types.IFile.Length.get -> long?
+HotChocolate.Types.IFile.Name.get -> string!
+HotChocolate.Types.IFile.OpenReadStream() -> System.IO.Stream!
+HotChocolate.Types.StreamFile
+HotChocolate.Types.StreamFile.Length.get -> long?
+HotChocolate.Types.StreamFile.Name.get -> string!
+HotChocolate.Types.StreamFile.StreamFile(string! name, System.Func<System.IO.Stream!>! openReadStream, long? length = null) -> void
+HotChocolate.Types.UploadType
+HotChocolate.Types.UploadType.UploadType() -> void
+HotChocolate.Types.UploadType.UploadType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+override HotChocolate.Types.FileValueNode.Equals(object? obj) -> bool
+override HotChocolate.Types.FileValueNode.GetHashCode() -> int
+override HotChocolate.Types.FileValueNode.ToString() -> string!
+override HotChocolate.Types.UploadType.ParseLiteral(HotChocolate.Types.FileValueNode! valueSyntax) -> HotChocolate.Types.IFile!
+override HotChocolate.Types.UploadType.ParseResult(object? resultValue) -> HotChocolate.Language.IValueNode!
+override HotChocolate.Types.UploadType.ParseValue(HotChocolate.Types.IFile! runtimeValue) -> HotChocolate.Types.FileValueNode!
+override HotChocolate.Types.UploadType.TryDeserialize(object? resultValue, out object? runtimeValue) -> bool
+override HotChocolate.Types.UploadType.TrySerialize(object? runtimeValue, out object? resultValue) -> bool
+virtual HotChocolate.Types.StreamFile.CopyToAsync(System.IO.Stream! target, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+virtual HotChocolate.Types.StreamFile.OpenReadStream() -> System.IO.Stream!

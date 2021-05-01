@@ -1,1 +1,8 @@
 #nullable enable
+Microsoft.Extensions.DependencyInjection.SQLiteClientBuilderExtensions
+static Microsoft.Extensions.DependencyInjection.SQLiteClientBuilderExtensions.AddSQLitePersistence<T>(this StrawberryShake.IClientBuilder<T>! builder, string! connectionString) -> StrawberryShake.IClientBuilder<T>!
+StrawberryShake.Persistence.SQLite.SQLitePersistence
+StrawberryShake.Persistence.SQLite.SQLitePersistence.BeginInitialize() -> void
+StrawberryShake.Persistence.SQLite.SQLitePersistence.Dispose() -> void
+StrawberryShake.Persistence.SQLite.SQLitePersistence.InitializeAsync() -> System.Threading.Tasks.Task!
+StrawberryShake.Persistence.SQLite.SQLitePersistence.SQLitePersistence(StrawberryShake.IStoreAccessor! storeAccessor, string! connectionString) -> void

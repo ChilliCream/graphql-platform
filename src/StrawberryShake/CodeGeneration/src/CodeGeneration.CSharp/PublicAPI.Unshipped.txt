@@ -1,1 +1,502 @@
 #nullable enable
+abstract StrawberryShake.CodeGeneration.CSharp.Builders.AbstractTypeBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+const StrawberryShake.CodeGeneration.CSharp.Generators.TypeMapperGenerator.entityStore = "entityStore" -> string!
+const StrawberryShake.CodeGeneration.CSharp.Generators.TypeMapperGenerator._entityStore = "_entityStore" -> string!
+override StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+override StrawberryShake.CodeGeneration.CSharp.Builders.InterfaceBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+override StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder.ToString() -> string!
+override StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator.Generate(StrawberryShake.CodeGeneration.Descriptors.ClientDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings, StrawberryShake.CodeGeneration.CodeWriter! writer, out string! fileName, out string? path, out string! ns) -> void
+override StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator.Generate(StrawberryShake.CodeGeneration.Descriptors.ClientDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings, StrawberryShake.CodeGeneration.CodeWriter! writer, out string! fileName, out string? path, out string! ns) -> void
+override StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator.Generate(StrawberryShake.CodeGeneration.Descriptors.DataTypeDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings) -> StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorResult!
+override StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator.Generate(StrawberryShake.CodeGeneration.Descriptors.DependencyInjectionDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings, StrawberryShake.CodeGeneration.CodeWriter! writer, out string! fileName, out string? path, out string! ns) -> void
+override StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator.CanHandle(StrawberryShake.CodeGeneration.Descriptors.EntityIdFactoryDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings) -> bool
+override StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator.Generate(StrawberryShake.CodeGeneration.Descriptors.EntityIdFactoryDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings, StrawberryShake.CodeGeneration.CodeWriter! writer, out string! fileName, out string? path, out string! ns) -> void
+override StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator.CanHandle(StrawberryShake.CodeGeneration.Descriptors.EntityTypeDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings) -> bool
+override StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator.Generate(StrawberryShake.CodeGeneration.Descriptors.EntityTypeDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings) -> StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorResult!
+override StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator.Generate(StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.EnumTypeDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings, StrawberryShake.CodeGeneration.CodeWriter! writer, out string! fileName, out string? path, out string! ns) -> void
+override StrawberryShake.CodeGeneration.CSharp.Generators.EnumParserGenerator.Generate(StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.EnumTypeDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings, StrawberryShake.CodeGeneration.CodeWriter! writer, out string! fileName, out string? path, out string! ns) -> void
+override StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator.Generate(StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.InputObjectTypeDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings) -> StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorResult!
+override StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator.Generate(StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.InputObjectTypeDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings) -> StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorResult!
+override StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator.Generate(StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.InputObjectTypeDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings, StrawberryShake.CodeGeneration.CodeWriter! writer, out string! fileName, out string? path, out string! ns) -> void
+override StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator.Generate(StrawberryShake.CodeGeneration.Descriptors.ResultBuilderDescriptor! resultBuilderDescriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings, StrawberryShake.CodeGeneration.CodeWriter! writer, out string! fileName, out string? path, out string! ns) -> void
+override StrawberryShake.CodeGeneration.CSharp.Generators.NoStoreAccessorGenerator.CanHandle(StrawberryShake.CodeGeneration.Descriptors.StoreAccessorDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings) -> bool
+override StrawberryShake.CodeGeneration.CSharp.Generators.NoStoreAccessorGenerator.Generate(StrawberryShake.CodeGeneration.Descriptors.StoreAccessorDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings, StrawberryShake.CodeGeneration.CodeWriter! writer, out string! fileName, out string? path, out string! ns) -> void
+override StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator.Generate(StrawberryShake.CodeGeneration.Descriptors.Operations.OperationDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings, StrawberryShake.CodeGeneration.CodeWriter! writer, out string! fileName, out string? path, out string! ns) -> void
+override StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator.Generate(StrawberryShake.CodeGeneration.Descriptors.Operations.OperationDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings, StrawberryShake.CodeGeneration.CodeWriter! writer, out string! fileName, out string? path, out string! ns) -> void
+override StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator.Generate(StrawberryShake.CodeGeneration.Descriptors.Operations.OperationDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings, StrawberryShake.CodeGeneration.CodeWriter! writer, out string! fileName, out string? path, out string! ns) -> void
+override StrawberryShake.CodeGeneration.CSharp.Generators.RazorQueryGenerator.CanHandle(StrawberryShake.CodeGeneration.Descriptors.Operations.OperationDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings) -> bool
+override StrawberryShake.CodeGeneration.CSharp.Generators.RazorQueryGenerator.Generate(StrawberryShake.CodeGeneration.Descriptors.Operations.OperationDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings) -> StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorResult!
+override StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator.CanHandle(StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.ITypeDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings) -> bool
+override StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator.Generate(StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.ITypeDescriptor! typeDescriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings, StrawberryShake.CodeGeneration.CodeWriter! writer, out string! fileName, out string? path, out string! ns) -> void
+override StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator.CanHandle(StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.ITypeDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings) -> bool
+override StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator.Generate(StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.ITypeDescriptor! typeDescriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings, StrawberryShake.CodeGeneration.CodeWriter! writer, out string! fileName, out string? path, out string! ns) -> void
+override StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator.CanHandle(StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.ITypeDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings) -> bool
+override StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator.Generate(StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.ITypeDescriptor! typeDescriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings, StrawberryShake.CodeGeneration.CodeWriter! writer, out string! fileName, out string? path, out string! ns) -> void
+override StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator.Generate(StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.InterfaceTypeDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings, StrawberryShake.CodeGeneration.CodeWriter! writer, out string! fileName, out string? path, out string! ns) -> void
+override StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator.Generate(StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.ObjectTypeDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings, StrawberryShake.CodeGeneration.CodeWriter! writer, out string! fileName, out string? path, out string! ns) -> void
+override StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator.CanHandle(StrawberryShake.CodeGeneration.Descriptors.StoreAccessorDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings) -> bool
+override StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator.Generate(StrawberryShake.CodeGeneration.Descriptors.StoreAccessorDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings, StrawberryShake.CodeGeneration.CodeWriter! writer, out string! fileName, out string? path, out string! ns) -> void
+override StrawberryShake.CodeGeneration.CSharp.Generators.TransportProfileEnumGenerator.CanHandle(StrawberryShake.CodeGeneration.Descriptors.DependencyInjectionDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings) -> bool
+override StrawberryShake.CodeGeneration.CSharp.Generators.TransportProfileEnumGenerator.Generate(StrawberryShake.CodeGeneration.Descriptors.DependencyInjectionDescriptor! descriptor, StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings, StrawberryShake.CodeGeneration.CodeWriter! writer, out string! fileName, out string? path, out string! ns) -> void
+static StrawberryShake.CodeGeneration.CSharp.Builders.ArrayBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.ArrayBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.AssignmentBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.AssignmentBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.CatchBlockBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.CatchBlockBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder.New(string! className) -> StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.CodeBlockBuilder.From(System.Text.StringBuilder! sourceText) -> StrawberryShake.CodeGeneration.CSharp.Builders.CodeBlockBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.CodeBlockBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.CodeBlockBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.CodeFileBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.CodeFileBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.CodeInlineBlockBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.CodeInlineBlockBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.CodeInlineBuilder.From(string! sourceText) -> StrawberryShake.CodeGeneration.CSharp.Builders.CodeInlineBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.CodeInlineBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.CodeInlineBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.CodeLineBuilder.From(string! line) -> StrawberryShake.CodeGeneration.CSharp.Builders.CodeLineBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.CodeLineBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.CodeLineBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.ConditionBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.ConditionBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.EnumBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.EnumBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.ExceptionBuilder.Inline(string! types) -> StrawberryShake.CodeGeneration.CSharp.Builders.ExceptionBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.ExceptionBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.ExceptionBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.ExceptionBuilder.New(string! types) -> StrawberryShake.CodeGeneration.CSharp.Builders.ExceptionBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.ForEachBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.ForEachBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.IfBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.IfBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.InterfaceBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.InterfaceBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.LambdaBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.LambdaBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder.Inline() -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.NullCheckBuilder.Inline() -> StrawberryShake.CodeGeneration.CSharp.Builders.NullCheckBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.NullCheckBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.NullCheckBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.ParameterBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.ParameterBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.SwitchExpressionBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.SwitchExpressionBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.TryCatchBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.TryCatchBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.TupleBuilder.Inline() -> StrawberryShake.CodeGeneration.CSharp.Builders.TupleBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.TupleBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.TupleBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.TupleBuilderExtensions.AddMemberRange(this StrawberryShake.CodeGeneration.CSharp.Builders.TupleBuilder! builder, System.Collections.Generic.IEnumerable<StrawberryShake.CodeGeneration.CSharp.Builders.ICode!>! range) -> StrawberryShake.CodeGeneration.CSharp.Builders.TupleBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.TupleBuilderExtensions.AddMemberRange(this StrawberryShake.CodeGeneration.CSharp.Builders.TupleBuilder! builder, System.Collections.Generic.IEnumerable<string!>! range) -> StrawberryShake.CodeGeneration.CSharp.Builders.TupleBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Builders.XmlCommentBuilder.New() -> StrawberryShake.CodeGeneration.CSharp.Builders.XmlCommentBuilder!
+static StrawberryShake.CodeGeneration.CSharp.CSharpGenerator.Generate(StrawberryShake.CodeGeneration.Analyzers.Models.ClientModel! clientModel, StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings! settings) -> StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorResult!
+static StrawberryShake.CodeGeneration.CSharp.CSharpGenerator.Generate(System.Collections.Generic.IEnumerable<string!>! fileNames, StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings? settings = null) -> StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorResult!
+static StrawberryShake.CodeGeneration.CSharp.Extensions.DescriptorExtensions.ExtractMapperName(this StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.INamedTypeDescriptor! descriptor) -> HotChocolate.NameString
+static StrawberryShake.CodeGeneration.CSharp.Extensions.DescriptorExtensions.ExtractType(this StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.INamedTypeDescriptor! descriptor) -> StrawberryShake.CodeGeneration.RuntimeTypeInfo!
+static StrawberryShake.CodeGeneration.CSharp.Extensions.DescriptorExtensions.ToStateTypeReference(this StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.ITypeDescriptor! typeDescriptor, StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder? builder = null) -> StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Extensions.DescriptorExtensions.ToStateTypeSyntax(this StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.ITypeDescriptor! typeDescriptor, StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder? builder = null) -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax!
+static StrawberryShake.CodeGeneration.CSharp.Extensions.DescriptorExtensions.ToTypeReference(this StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.ITypeDescriptor! typeReferenceDescriptor, StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder? builder = null) -> StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder!
+static StrawberryShake.CodeGeneration.CSharp.Extensions.DescriptorExtensions.ToTypeSyntax(this StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.ITypeDescriptor! typeReferenceDescriptor, StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder? builder = null) -> Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax!
+static StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator.GenerateSerializer(StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.ITypeDescriptor! typeDescriptor, string! variableName) -> StrawberryShake.CodeGeneration.CSharp.Builders.ICode!
+static StrawberryShake.CodeGeneration.CSharp.Generators.SyntaxExtensions.AddGeneratedAttribute<T>(this T! type) -> T!
+static StrawberryShake.CodeGeneration.CSharp.Generators.SyntaxExtensions.AddImplements<T>(this T! type, params string![]! implements) -> T!
+static StrawberryShake.CodeGeneration.CSharp.Generators.SyntaxExtensions.AddImplements<T>(this T! type, System.Collections.Generic.IReadOnlyList<string!>! implements) -> T!
+static StrawberryShake.CodeGeneration.CSharp.Generators.SyntaxExtensions.AddParameter(this Microsoft.CodeAnalysis.CSharp.Syntax.ConstructorDeclarationSyntax! constructor, string! name, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! typeSyntax, bool assertNotNull = false, bool withNullDefault = false) -> Microsoft.CodeAnalysis.CSharp.Syntax.ConstructorDeclarationSyntax!
+static StrawberryShake.CodeGeneration.CSharp.Generators.SyntaxExtensions.AddProperty<T>(this T! type, string! name, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! typeSyntax, string? description) -> T!
+static StrawberryShake.CodeGeneration.CSharp.Generators.SyntaxExtensions.AddStateParameter(this Microsoft.CodeAnalysis.CSharp.Syntax.ConstructorDeclarationSyntax! constructor, StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.PropertyDescriptor! property) -> Microsoft.CodeAnalysis.CSharp.Syntax.ConstructorDeclarationSyntax!
+static StrawberryShake.CodeGeneration.CSharp.Generators.SyntaxExtensions.AddStateProperty<T>(this T! type, StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.PropertyDescriptor! property) -> T!
+static StrawberryShake.CodeGeneration.CSharp.Generators.SyntaxExtensions.AddSummary<TMember>(this TMember! member, string? value) -> TMember!
+static StrawberryShake.CodeGeneration.CSharp.Generators.SyntaxExtensions.AddTypeParameter(this Microsoft.CodeAnalysis.CSharp.Syntax.ConstructorDeclarationSyntax! constructor) -> Microsoft.CodeAnalysis.CSharp.Syntax.ConstructorDeclarationSyntax!
+static StrawberryShake.CodeGeneration.CSharp.Generators.SyntaxExtensions.AddTypeProperty<T>(this T! type) -> T!
+static StrawberryShake.CodeGeneration.CSharp.Generators.SyntaxExtensions.AssignParameter(this Microsoft.CodeAnalysis.CSharp.Syntax.ConstructorDeclarationSyntax! constructor, string! propertyName, string! parameterName, bool assertNotNull = false) -> Microsoft.CodeAnalysis.CSharp.Syntax.ConstructorDeclarationSyntax!
+static StrawberryShake.CodeGeneration.CSharp.Generators.SyntaxExtensions.WithGetter(this Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax! property) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax!
+static StrawberryShake.CodeGeneration.CSharp.Generators.SyntaxExtensions.WithGetterAndInit(this Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax! property) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax!
+static StrawberryShake.CodeGeneration.CSharp.Generators.SyntaxExtensions.WithGetterAndSetter(this Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax! property) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax!
+static StrawberryShake.CodeGeneration.CSharp.Generators.SyntaxExtensions.WithSuppressNullableWarningExpression(this Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax! property) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyDeclarationSyntax!
+static StrawberryShake.CodeGeneration.CSharp.Generators.SyntaxExtensions.WithSuppressNullableWarningExpression(this Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclaratorSyntax! variable) -> Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclaratorSyntax!
+static StrawberryShake.CodeGeneration.CSharp.JsonUtils.GetParseMethod(StrawberryShake.CodeGeneration.RuntimeTypeInfo! serializationType) -> string!
+static StrawberryShake.CodeGeneration.CSharp.JsonUtils.GetWriteMethod(StrawberryShake.CodeGeneration.RuntimeTypeInfo! serializationType) -> string!
+static StrawberryShake.CodeGeneration.CSharp.ThrowHelper.DependencyInjection_InvalidOperationKind(StrawberryShake.CodeGeneration.Descriptors.Operations.OperationDescriptor! descriptor) -> System.Exception!
+static StrawberryShake.CodeGeneration.CSharp.ThrowHelper.DependencyInjection_InvalidTransportType(StrawberryShake.Tools.Configuration.TransportType type) -> System.Exception!
+StrawberryShake.CodeGeneration.CSharp.Builders.AbstractTypeBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.AbstractTypeBuilder.AbstractTypeBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.AbstractTypeBuilder.AddImplements(string! value) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.AbstractTypeBuilder.AddProperty(StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder! property) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.AbstractTypeBuilder.Implements.get -> System.Collections.Generic.List<string!>!
+StrawberryShake.CodeGeneration.CSharp.Builders.AbstractTypeBuilder.Name.get -> HotChocolate.NameString?
+StrawberryShake.CodeGeneration.CSharp.Builders.AbstractTypeBuilder.Properties.get -> System.Collections.Generic.List<StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder!>!
+StrawberryShake.CodeGeneration.CSharp.Builders.AbstractTypeBuilder.SetName(HotChocolate.NameString name) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.AccessModifier
+StrawberryShake.CodeGeneration.CSharp.Builders.AccessModifier.Internal = 1 -> StrawberryShake.CodeGeneration.CSharp.Builders.AccessModifier
+StrawberryShake.CodeGeneration.CSharp.Builders.AccessModifier.Private = 3 -> StrawberryShake.CodeGeneration.CSharp.Builders.AccessModifier
+StrawberryShake.CodeGeneration.CSharp.Builders.AccessModifier.Protected = 2 -> StrawberryShake.CodeGeneration.CSharp.Builders.AccessModifier
+StrawberryShake.CodeGeneration.CSharp.Builders.AccessModifier.Public = 0 -> StrawberryShake.CodeGeneration.CSharp.Builders.AccessModifier
+StrawberryShake.CodeGeneration.CSharp.Builders.ArrayBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.ArrayBuilder.AddAssignment(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! code) -> StrawberryShake.CodeGeneration.CSharp.Builders.ArrayBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ArrayBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.ArrayBuilder.SetDetermineStatement(bool value) -> StrawberryShake.CodeGeneration.CSharp.Builders.ArrayBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ArrayBuilder.SetPrefix(string! prefix) -> StrawberryShake.CodeGeneration.CSharp.Builders.ArrayBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ArrayBuilder.SetReturn(bool value = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.ArrayBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ArrayBuilder.SetType(string! type) -> StrawberryShake.CodeGeneration.CSharp.Builders.ArrayBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.AssignmentBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.AssignmentBuilder.AssertNonNull(string? nonNullAssertTypeNameOverride = null) -> StrawberryShake.CodeGeneration.CSharp.Builders.AssignmentBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.AssignmentBuilder.AssignmentBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.AssignmentBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.AssignmentBuilder.SetAssertException(StrawberryShake.CodeGeneration.CSharp.Builders.ExceptionBuilder! code) -> StrawberryShake.CodeGeneration.CSharp.Builders.AssignmentBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.AssignmentBuilder.SetAssertException(string! code) -> StrawberryShake.CodeGeneration.CSharp.Builders.AssignmentBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.AssignmentBuilder.SetAssertNonNull(bool value = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.AssignmentBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.AssignmentBuilder.SetLefthandSide(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.AssignmentBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.AssignmentBuilder.SetLefthandSide(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.AssignmentBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.AssignmentBuilder.SetOperator(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.AssignmentBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.AssignmentBuilder.SetRighthandSide(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.AssignmentBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.AssignmentBuilder.SetRighthandSide(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.AssignmentBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.CatchBlockBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.CatchBlockBuilder.AddCode(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! code) -> StrawberryShake.CodeGeneration.CSharp.Builders.CatchBlockBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.CatchBlockBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.CatchBlockBuilder.CatchBlockBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.CatchBlockBuilder.SetExceptionType(string! typeName) -> StrawberryShake.CodeGeneration.CSharp.Builders.CatchBlockBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.CatchBlockBuilder.SetExceptionVariable(HotChocolate.NameString name) -> StrawberryShake.CodeGeneration.CSharp.Builders.CatchBlockBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder.AddClass(StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder! classBuilder) -> StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder.AddClass(string! class) -> StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder.AddConstructor(StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder! constructor) -> StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder.AddField(StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder! field) -> StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder.AddImplements(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder.AddMethod(StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder! method) -> StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder.AddProperty(StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder! property) -> StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder.ClassBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder.SetAbstract() -> StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder.SetAccessModifier(StrawberryShake.CodeGeneration.CSharp.Builders.AccessModifier value) -> StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder.SetComment(StrawberryShake.CodeGeneration.CSharp.Builders.XmlCommentBuilder? xmlComment) -> StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder.SetComment(string? xmlComment) -> StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder.SetName(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder.SetSealed() -> StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder.SetStatic() -> StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeBlockBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeBlockBuilder.AddCode(StrawberryShake.CodeGeneration.CSharp.Builders.ICodeBuilder! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.CodeBlockBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeBlockBuilder.AddCode(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.CodeBlockBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeBlockBuilder.AddEmptyLine() -> StrawberryShake.CodeGeneration.CSharp.Builders.CodeBlockBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeBlockBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeBlockBuilder.CodeBlockBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeFileBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeFileBuilder.AddType(StrawberryShake.CodeGeneration.CSharp.Builders.ITypeBuilder! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.CodeFileBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeFileBuilder.AddUsing(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.CodeFileBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeFileBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeFileBuilder.CodeFileBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeFileBuilder.SetNamespace(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.CodeFileBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeInlineBlockBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeInlineBlockBuilder.AddCode(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.CodeInlineBlockBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeInlineBlockBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeInlineBlockBuilder.CodeInlineBlockBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeInlineBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeInlineBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeInlineBuilder.CodeInlineBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeInlineBuilder.SetText(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.CodeInlineBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeLineBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeLineBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeLineBuilder.CodeLineBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeLineBuilder.SetLine(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.CodeLineBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeLineBuilder.SetLine(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.CodeLineBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.CodeLineBuilder.SetWriteLine(bool writeLine) -> StrawberryShake.CodeGeneration.CSharp.Builders.CodeLineBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ConditionBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.ConditionBuilder.And(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! condition) -> StrawberryShake.CodeGeneration.CSharp.Builders.ConditionBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ConditionBuilder.And(string! condition, bool applyIf = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.ConditionBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ConditionBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.ConditionBuilder.ConditionBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.ConditionBuilder.Or(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! condition) -> StrawberryShake.CodeGeneration.CSharp.Builders.ConditionBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ConditionBuilder.Set(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! condition) -> StrawberryShake.CodeGeneration.CSharp.Builders.ConditionBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ConditionBuilder.Set(string! condition) -> StrawberryShake.CodeGeneration.CSharp.Builders.ConditionBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ConditionBuilder.SetDetermineStatement(bool value = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.ConditionBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ConditionBuilder.SetReturn(bool value = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.ConditionBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder.AddBase(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder.AddBase(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder.AddCode(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder.AddCode(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder.AddParameter(StrawberryShake.CodeGeneration.CSharp.Builders.ParameterBuilder! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder.ConstructorBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder.HasParameters() -> bool
+StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder.SetAccessModifier(StrawberryShake.CodeGeneration.CSharp.Builders.AccessModifier value) -> StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder.SetTypeName(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.EnumBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.EnumBuilder.AddElement(string! name, long? value = null, string? documentation = null) -> StrawberryShake.CodeGeneration.CSharp.Builders.EnumBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.EnumBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.EnumBuilder.EnumBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.EnumBuilder.SetComment(string? xmlComment) -> StrawberryShake.CodeGeneration.CSharp.Builders.EnumBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.EnumBuilder.SetName(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.EnumBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.EnumBuilder.SetUnderlyingType(StrawberryShake.CodeGeneration.RuntimeTypeInfo? value) -> StrawberryShake.CodeGeneration.CSharp.Builders.EnumBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.EnumBuilder.SetUnderlyingType(string? value) -> StrawberryShake.CodeGeneration.CSharp.Builders.EnumBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ExceptionBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.ExceptionBuilder.AddArgument(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.ExceptionBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ExceptionBuilder.AddArgument(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.ExceptionBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ExceptionBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.ExceptionBuilder.ExceptionBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.ExceptionBuilder.SetDetermineStatement(bool value) -> StrawberryShake.CodeGeneration.CSharp.Builders.ExceptionBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ExceptionBuilder.SetException(string! exception) -> StrawberryShake.CodeGeneration.CSharp.Builders.ExceptionBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ExceptionBuilder.SetWrapArguments(bool value = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.ExceptionBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder.FieldBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder.SetAccessModifier(StrawberryShake.CodeGeneration.CSharp.Builders.AccessModifier value) -> StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder.SetConst() -> StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder.SetName(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder.SetReadOnly() -> StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder.SetStatic() -> StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder.SetType(StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder! typeReference) -> StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder.SetType(string! value, bool condition = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder.SetValue(StrawberryShake.CodeGeneration.CSharp.Builders.ICode? value, bool beginValueWithNewline = false) -> StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder.SetValue(string? value, bool beginValueWithNewline = false) -> StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder.UseDefaultInitializer() -> StrawberryShake.CodeGeneration.CSharp.Builders.FieldBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ForEachBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.ForEachBuilder.AddCode(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! code, bool addIf = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.ForEachBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ForEachBuilder.AddCode(string! code, bool addIf = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.ForEachBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ForEachBuilder.AddEmptyLine() -> StrawberryShake.CodeGeneration.CSharp.Builders.ForEachBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ForEachBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.ForEachBuilder.ForEachBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.ForEachBuilder.SetLoopHeader(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! elementCode) -> StrawberryShake.CodeGeneration.CSharp.Builders.ForEachBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ForEachBuilder.SetLoopHeader(string! elementCode) -> StrawberryShake.CodeGeneration.CSharp.Builders.ForEachBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ICode
+StrawberryShake.CodeGeneration.CSharp.Builders.ICodeBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.ICodeBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.ICodeContainer<T>
+StrawberryShake.CodeGeneration.CSharp.Builders.ICodeContainer<T>.AddCode(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! code, bool addIf = true) -> T
+StrawberryShake.CodeGeneration.CSharp.Builders.ICodeContainer<T>.AddCode(string! code, bool addIf = true) -> T
+StrawberryShake.CodeGeneration.CSharp.Builders.ICodeContainer<T>.AddEmptyLine() -> T
+StrawberryShake.CodeGeneration.CSharp.Builders.IfBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.IfBuilder.AddCode(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! code, bool addIf = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.IfBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.IfBuilder.AddCode(string! code, bool addIf = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.IfBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.IfBuilder.AddElse(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! code) -> StrawberryShake.CodeGeneration.CSharp.Builders.IfBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.IfBuilder.AddEmptyLine() -> StrawberryShake.CodeGeneration.CSharp.Builders.IfBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.IfBuilder.AddIfElse(StrawberryShake.CodeGeneration.CSharp.Builders.IfBuilder! singleIf) -> StrawberryShake.CodeGeneration.CSharp.Builders.IfBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.IfBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.IfBuilder.IfBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.IfBuilder.SetCondition(StrawberryShake.CodeGeneration.CSharp.Builders.ConditionBuilder! condition) -> StrawberryShake.CodeGeneration.CSharp.Builders.IfBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.IfBuilder.SetCondition(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! condition) -> StrawberryShake.CodeGeneration.CSharp.Builders.IfBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.IfBuilder.SetCondition(string! condition) -> StrawberryShake.CodeGeneration.CSharp.Builders.IfBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.IfBuilder.SkipIndents() -> StrawberryShake.CodeGeneration.CSharp.Builders.IfBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.Inheritance
+StrawberryShake.CodeGeneration.CSharp.Builders.Inheritance.None = 0 -> StrawberryShake.CodeGeneration.CSharp.Builders.Inheritance
+StrawberryShake.CodeGeneration.CSharp.Builders.Inheritance.Override = 2 -> StrawberryShake.CodeGeneration.CSharp.Builders.Inheritance
+StrawberryShake.CodeGeneration.CSharp.Builders.Inheritance.Sealed = 1 -> StrawberryShake.CodeGeneration.CSharp.Builders.Inheritance
+StrawberryShake.CodeGeneration.CSharp.Builders.Inheritance.Virtual = 3 -> StrawberryShake.CodeGeneration.CSharp.Builders.Inheritance
+StrawberryShake.CodeGeneration.CSharp.Builders.InterfaceBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.InterfaceBuilder.AddImplements(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.InterfaceBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.InterfaceBuilder.AddMethod(StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder! method) -> StrawberryShake.CodeGeneration.CSharp.Builders.InterfaceBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.InterfaceBuilder.AddProperty(StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder! property) -> StrawberryShake.CodeGeneration.CSharp.Builders.InterfaceBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.InterfaceBuilder.InterfaceBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.InterfaceBuilder.SetComment(StrawberryShake.CodeGeneration.CSharp.Builders.XmlCommentBuilder? xmlComment) -> StrawberryShake.CodeGeneration.CSharp.Builders.InterfaceBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.InterfaceBuilder.SetComment(string? xmlComment) -> StrawberryShake.CodeGeneration.CSharp.Builders.InterfaceBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.InterfaceBuilder.SetName(HotChocolate.NameString name) -> StrawberryShake.CodeGeneration.CSharp.Builders.InterfaceBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ITypeBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.LambdaBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.LambdaBuilder.AddArgument(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.LambdaBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.LambdaBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.LambdaBuilder.LambdaBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.LambdaBuilder.SetAsync(bool value = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.LambdaBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.LambdaBuilder.SetBlock(bool block) -> StrawberryShake.CodeGeneration.CSharp.Builders.LambdaBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.LambdaBuilder.SetCode(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! code) -> StrawberryShake.CodeGeneration.CSharp.Builders.LambdaBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder.AddCode(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! code, bool addIf = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder.AddCode(string! code, bool addIf = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder.AddEmptyLine() -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder.AddInlineCode(string! code) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder.AddParameter(StrawberryShake.CodeGeneration.CSharp.Builders.ParameterBuilder! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder.MethodBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder.Set() -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder.SetAccessModifier(StrawberryShake.CodeGeneration.CSharp.Builders.AccessModifier value) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder.SetAsync() -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder.SetInheritance(StrawberryShake.CodeGeneration.CSharp.Builders.Inheritance value) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder.SetInterface(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder.SetName(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder.SetOnlyDeclaration(bool value = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder.SetOverride() -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder.SetReturnType(StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder! value, bool condition = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder.SetReturnType(string! value, bool condition = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder.SetStatic() -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder.AddArgument(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder.AddArgument(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder.AddChainedCode(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder.AddGeneric(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder.AddGeneric(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder.AddOutArgument(string! value, string! typeReference) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder.MethodCallBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder.SetAwait(bool value = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder.SetDetermineStatement(bool value) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder.SetMethodName(params string![]! methodName) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder.SetMethodName(string! methodName) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder.SetNew(bool value = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder.SetNullForgiving(bool value = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder.SetPrefix(string! prefix) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder.SetReturn(bool value = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder.SetWrapArguments(bool value = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.MethodCallBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.NullCheckBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.NullCheckBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.NullCheckBuilder.NullCheckBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.NullCheckBuilder.SetCode(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! code) -> StrawberryShake.CodeGeneration.CSharp.Builders.NullCheckBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.NullCheckBuilder.SetCode(string! code) -> StrawberryShake.CodeGeneration.CSharp.Builders.NullCheckBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.NullCheckBuilder.SetCondition(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! condition) -> StrawberryShake.CodeGeneration.CSharp.Builders.NullCheckBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.NullCheckBuilder.SetCondition(string! condition) -> StrawberryShake.CodeGeneration.CSharp.Builders.NullCheckBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.NullCheckBuilder.SetDetermineStatement(bool value) -> StrawberryShake.CodeGeneration.CSharp.Builders.NullCheckBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.NullCheckBuilder.SetSingleLine(bool value = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.NullCheckBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ParameterBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.ParameterBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.ParameterBuilder.ParameterBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.ParameterBuilder.SetDefault(string! value = "default", bool condition = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.ParameterBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ParameterBuilder.SetName(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.ParameterBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ParameterBuilder.SetThis(bool value = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.ParameterBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ParameterBuilder.SetType(StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder! value, bool condition = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.ParameterBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.ParameterBuilder.SetType(string! name) -> StrawberryShake.CodeGeneration.CSharp.Builders.ParameterBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder.AsLambda(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! resolveCode) -> StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder.AsLambda(string! resolveCode) -> StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder.MakeSettable() -> StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder.PropertyBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder.SetAccessModifier(StrawberryShake.CodeGeneration.CSharp.Builders.AccessModifier value) -> StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder.SetComment(string? xmlComment) -> StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder.SetInterface(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder.SetName(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder.SetOnlyDeclaration(bool value = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder.SetStatic() -> StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder.SetType(StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder.SetType(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder.SetValue(string? value) -> StrawberryShake.CodeGeneration.CSharp.Builders.PropertyBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.SwitchExpressionBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.SwitchExpressionBuilder.AddCase(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! type, StrawberryShake.CodeGeneration.CSharp.Builders.ICode! action) -> StrawberryShake.CodeGeneration.CSharp.Builders.SwitchExpressionBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.SwitchExpressionBuilder.AddCase(string! type, StrawberryShake.CodeGeneration.CSharp.Builders.ICode! action) -> StrawberryShake.CodeGeneration.CSharp.Builders.SwitchExpressionBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.SwitchExpressionBuilder.AddCase(string! type, string! action) -> StrawberryShake.CodeGeneration.CSharp.Builders.SwitchExpressionBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.SwitchExpressionBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.SwitchExpressionBuilder.SetDefaultCase(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! action) -> StrawberryShake.CodeGeneration.CSharp.Builders.SwitchExpressionBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.SwitchExpressionBuilder.SetDefaultCase(string! action) -> StrawberryShake.CodeGeneration.CSharp.Builders.SwitchExpressionBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.SwitchExpressionBuilder.SetDetermineStatement(bool value) -> StrawberryShake.CodeGeneration.CSharp.Builders.SwitchExpressionBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.SwitchExpressionBuilder.SetExpression(string! expression) -> StrawberryShake.CodeGeneration.CSharp.Builders.SwitchExpressionBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.SwitchExpressionBuilder.SetPrefix(string! prefix) -> StrawberryShake.CodeGeneration.CSharp.Builders.SwitchExpressionBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.SwitchExpressionBuilder.SetReturn(bool value = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.SwitchExpressionBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.SwitchExpressionBuilder.SwitchExpressionBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.TryCatchBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.TryCatchBuilder.AddCatchBlock(StrawberryShake.CodeGeneration.CSharp.Builders.CatchBlockBuilder! code) -> StrawberryShake.CodeGeneration.CSharp.Builders.TryCatchBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.TryCatchBuilder.AddTryCode(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! code) -> StrawberryShake.CodeGeneration.CSharp.Builders.TryCatchBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.TryCatchBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.TryCatchBuilder.TryCatchBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.TupleBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.TupleBuilder.AddMember(StrawberryShake.CodeGeneration.CSharp.Builders.ICode! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.TupleBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.TupleBuilder.AddMember(string! value) -> StrawberryShake.CodeGeneration.CSharp.Builders.TupleBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.TupleBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.TupleBuilder.SetDetermineStatement(bool value) -> StrawberryShake.CodeGeneration.CSharp.Builders.TupleBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.TupleBuilder.SetPrefix(string! prefix) -> StrawberryShake.CodeGeneration.CSharp.Builders.TupleBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.TupleBuilder.SetReturn(bool value = true) -> StrawberryShake.CodeGeneration.CSharp.Builders.TupleBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.TupleBuilder.TupleBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.TupleBuilderExtensions
+StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder.AddGeneric(string! name) -> StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder.SetIsNullable(bool isNullable) -> StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder.SetListType() -> StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder.SetName(string! name) -> StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder.SetNameSpace(string! namespace) -> StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder.SkipTrailingSpace() -> StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder.TypeReferenceBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.XmlCommentBuilder
+StrawberryShake.CodeGeneration.CSharp.Builders.XmlCommentBuilder.AddCode(string! code) -> StrawberryShake.CodeGeneration.CSharp.Builders.XmlCommentBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.XmlCommentBuilder.Build(StrawberryShake.CodeGeneration.CodeWriter! writer) -> void
+StrawberryShake.CodeGeneration.CSharp.Builders.XmlCommentBuilder.SetSummary(string! summary) -> StrawberryShake.CodeGeneration.CSharp.Builders.XmlCommentBuilder!
+StrawberryShake.CodeGeneration.CSharp.Builders.XmlCommentBuilder.XmlCommentBuilder() -> void
+StrawberryShake.CodeGeneration.CSharp.CSharpGenerator
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorResult
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorResult.CSharpGeneratorResult() -> void
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorResult.CSharpGeneratorResult(System.Collections.Generic.IReadOnlyList<HotChocolate.IError!>! errors) -> void
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorResult.CSharpGeneratorResult(System.Collections.Generic.IReadOnlyList<StrawberryShake.CodeGeneration.CSharp.SourceDocument!>! documents, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.OperationType>! operationTypes) -> void
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorResult.CSharpGeneratorResult(System.Collections.Generic.IReadOnlyList<StrawberryShake.CodeGeneration.CSharp.SourceDocument!>! documents, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.OperationType>! operationTypes, System.Collections.Generic.IReadOnlyList<HotChocolate.IError!>! errors) -> void
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorResult.Documents.get -> System.Collections.Generic.IReadOnlyList<StrawberryShake.CodeGeneration.CSharp.SourceDocument!>!
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorResult.Errors.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.IError!>!
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorResult.HasErrors() -> bool
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorResult.OperationTypes.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.OperationType>!
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings.ClientName.get -> string!
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings.ClientName.set -> void
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings.CSharpGeneratorSettings() -> void
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings.EntityRecords.get -> bool
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings.EntityRecords.set -> void
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings.HashProvider.get -> HotChocolate.Language.IDocumentHashProvider!
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings.HashProvider.set -> void
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings.InputRecords.get -> bool
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings.InputRecords.set -> void
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings.Namespace.get -> string!
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings.Namespace.set -> void
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings.NoStore.get -> bool
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings.NoStore.set -> void
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings.RazorComponents.get -> bool
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings.RazorComponents.set -> void
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings.RequestStrategy.get -> StrawberryShake.Tools.Configuration.RequestStrategy
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings.RequestStrategy.set -> void
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings.SingleCodeFile.get -> bool
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings.SingleCodeFile.set -> void
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings.StrictSchemaValidation.get -> bool
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings.StrictSchemaValidation.set -> void
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings.TransportProfiles.get -> System.Collections.Generic.List<StrawberryShake.CodeGeneration.TransportProfile!>!
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorSettings.TransportProfiles.set -> void
+StrawberryShake.CodeGeneration.CSharp.Extensions.DescriptorExtensions
+StrawberryShake.CodeGeneration.CSharp.Generators.ClassBaseGenerator<T>
+StrawberryShake.CodeGeneration.CSharp.Generators.ClassBaseGenerator<T>.AddConstructorAssignedField(StrawberryShake.CodeGeneration.CSharp.Builders.TypeReferenceBuilder! type, string! fieldName, string! paramName, StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder! classBuilder, StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder! constructorBuilder, bool skipNullCheck = false) -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.ClassBaseGenerator<T>.AddConstructorAssignedField(string! typename, string! fieldName, string! paramName, StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder! classBuilder, StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder! constructorBuilder, bool skipNullCheck = false) -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.ClassBaseGenerator<T>.ClassBaseGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.ClassBaseGenerator<T>.CreateClassBuilder(bool addConstructorToClass = true) -> (StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder!, StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder!)
+StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator.ClientGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator.ClientInterfaceGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator.DataTypeGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator.ForEachProperty(StrawberryShake.CodeGeneration.Descriptors.DataTypeDescriptor! descriptor, System.Action<StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.PropertyDescriptor!>! action) -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator.DependencyInjectionGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator.EntityIdFactoryGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator.EntityTypeGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.EnumGenerator.EnumGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.EnumParserGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.EnumParserGenerator.EnumParserGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator.InputTypeGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeStateInterfaceGenerator.InputTypeStateInterfaceGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator.InputValueFormatterGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator.JsonResultBuilderGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.NoStoreAccessorGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.NoStoreAccessorGenerator.NoStoreAccessorGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator.OperationDocumentGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator.OperationServiceGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator.OperationServiceInterfaceGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.RazorQueryGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.RazorQueryGenerator.RazorQueryGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator.ResultDataFactoryGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator.ResultFromEntityTypeMapperGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator.ResultInfoGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator.ResultInterfaceGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator.ResultTypeGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator.StoreAccessorGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.SyntaxExtensions
+StrawberryShake.CodeGeneration.CSharp.Generators.TransportProfileEnumGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.TransportProfileEnumGenerator.TransportProfileEnumGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.TypeMapperGenerator
+StrawberryShake.CodeGeneration.CSharp.Generators.TypeMapperGenerator.AddRequiredMapMethods(StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings, string! propAccess, StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.ComplexTypeDescriptor! typeDescriptor, StrawberryShake.CodeGeneration.CSharp.Builders.ClassBuilder! classBuilder, StrawberryShake.CodeGeneration.CSharp.Builders.ConstructorBuilder! constructorBuilder, System.Collections.Generic.HashSet<string!>! processed, bool stopAtEntityMappers = false) -> void
+StrawberryShake.CodeGeneration.CSharp.Generators.TypeMapperGenerator.BuildMapMethodCall(StrawberryShake.CodeGeneration.CSharpSyntaxGeneratorSettings! settings, string! objectName, StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.PropertyDescriptor! property, bool addNullCheck = false) -> StrawberryShake.CodeGeneration.CSharp.Builders.ICode!
+StrawberryShake.CodeGeneration.CSharp.Generators.TypeMapperGenerator.TypeMapperGenerator() -> void
+StrawberryShake.CodeGeneration.CSharp.JsonUtils
+StrawberryShake.CodeGeneration.CSharp.SourceDocument
+StrawberryShake.CodeGeneration.CSharp.SourceDocument.Hash.get -> string?
+StrawberryShake.CodeGeneration.CSharp.SourceDocument.Kind.get -> StrawberryShake.CodeGeneration.CSharp.SourceDocumentKind
+StrawberryShake.CodeGeneration.CSharp.SourceDocument.Name.get -> string!
+StrawberryShake.CodeGeneration.CSharp.SourceDocument.Path.get -> string?
+StrawberryShake.CodeGeneration.CSharp.SourceDocument.SourceDocument(string! name, string! sourceText, StrawberryShake.CodeGeneration.CSharp.SourceDocumentKind kind, string? hash = null, string? path = null) -> void
+StrawberryShake.CodeGeneration.CSharp.SourceDocument.SourceText.get -> string!
+StrawberryShake.CodeGeneration.CSharp.SourceDocumentKind
+StrawberryShake.CodeGeneration.CSharp.SourceDocumentKind.CSharp = 0 -> StrawberryShake.CodeGeneration.CSharp.SourceDocumentKind
+StrawberryShake.CodeGeneration.CSharp.SourceDocumentKind.GraphQL = 2 -> StrawberryShake.CodeGeneration.CSharp.SourceDocumentKind
+StrawberryShake.CodeGeneration.CSharp.SourceDocumentKind.Razor = 1 -> StrawberryShake.CodeGeneration.CSharp.SourceDocumentKind
+StrawberryShake.CodeGeneration.CSharp.ThrowHelper
