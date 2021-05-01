@@ -23,7 +23,7 @@
   <!--For Visual Studio for Mac Test Explorer we need this reference here-->
   <ItemGroup>
     <PackageReference Include="Squadron.Redis" Version="0.5.0" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
   </ItemGroup>
 
   <ItemGroup>
