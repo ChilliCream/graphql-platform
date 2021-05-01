@@ -20,8 +20,8 @@ HotChocolate.Language.IVisitationMap
 HotChocolate.Language.IVisitationMap.ResolveChildren(HotChocolate.Language.ISyntaxNode! node, System.Collections.Generic.IList<HotChocolate.Language.SyntaxNodeInfo>! children) -> void
 HotChocolate.Language.ListExtensions
 HotChocolate.Language.Parser
-HotChocolate.Language.Parser.Parse(HotChocolate.Language.ISource! source) -> HotChocolate.Language.DocumentNode!
 HotChocolate.Language.Parser.Parse(HotChocolate.Language.ISource! source, HotChocolate.Language.ParserOptions! options) -> HotChocolate.Language.DocumentNode!
+HotChocolate.Language.Parser.Parse(HotChocolate.Language.ISource! source) -> HotChocolate.Language.DocumentNode!
 HotChocolate.Language.Parser.Parser() -> void
 HotChocolate.Language.ParserExtensions
 HotChocolate.Language.QuerySyntaxRewriter<TContext>
@@ -47,16 +47,16 @@ HotChocolate.Language.SyntaxNodeInfo.Index.get -> int?
 HotChocolate.Language.SyntaxNodeInfo.Name.get -> string?
 HotChocolate.Language.SyntaxNodeInfo.Node.get -> HotChocolate.Language.ISyntaxNode!
 HotChocolate.Language.SyntaxNodeInfo.SyntaxNodeInfo() -> void
-HotChocolate.Language.SyntaxNodeInfo.SyntaxNodeInfo(HotChocolate.Language.ISyntaxNode! node, string? name) -> void
 HotChocolate.Language.SyntaxNodeInfo.SyntaxNodeInfo(HotChocolate.Language.ISyntaxNode! node, string? name, int? index) -> void
+HotChocolate.Language.SyntaxNodeInfo.SyntaxNodeInfo(HotChocolate.Language.ISyntaxNode! node, string? name) -> void
 HotChocolate.Language.SyntaxNodeVisitor
 HotChocolate.Language.SyntaxNodeVisitor.Enter(HotChocolate.Language.NameNode! node, HotChocolate.Language.ISyntaxNode! parent, System.Collections.Generic.IReadOnlyList<object!>! path, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ISyntaxNode!>! ancestors) -> HotChocolate.Language.VisitorAction
 HotChocolate.Language.SyntaxNodeVisitor.GetDefaultAction(HotChocolate.Language.SyntaxKind kind) -> HotChocolate.Language.VisitorAction
 HotChocolate.Language.SyntaxNodeVisitor.Leave(HotChocolate.Language.NameNode! node, HotChocolate.Language.ISyntaxNode! parent, System.Collections.Generic.IReadOnlyList<object!>! path, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ISyntaxNode!>! ancestors) -> HotChocolate.Language.VisitorAction
 HotChocolate.Language.SyntaxNodeVisitor.SyntaxNodeVisitor() -> void
 HotChocolate.Language.SyntaxNodeVisitor.SyntaxNodeVisitor(HotChocolate.Language.VisitorAction defaultAction) -> void
-HotChocolate.Language.SyntaxNodeVisitor.SyntaxNodeVisitor(System.Collections.Generic.IReadOnlyDictionary<HotChocolate.Language.SyntaxKind, HotChocolate.Language.VisitorAction>! actions) -> void
 HotChocolate.Language.SyntaxNodeVisitor.SyntaxNodeVisitor(System.Collections.Generic.IReadOnlyDictionary<HotChocolate.Language.SyntaxKind, HotChocolate.Language.VisitorAction>! actions, HotChocolate.Language.VisitorAction defaultAction) -> void
+HotChocolate.Language.SyntaxNodeVisitor.SyntaxNodeVisitor(System.Collections.Generic.IReadOnlyDictionary<HotChocolate.Language.SyntaxKind, HotChocolate.Language.VisitorAction>! actions) -> void
 HotChocolate.Language.SyntaxRewriter<TContext>
 HotChocolate.Language.SyntaxRewriter<TContext>.SyntaxRewriter() -> void
 HotChocolate.Language.SyntaxVisitor<TStart, TContext>
@@ -149,19 +149,19 @@ static HotChocolate.Language.ListExtensions.Push<T>(this System.Collections.Gene
 static HotChocolate.Language.ListExtensions.TryPeek<T>(this System.Collections.Generic.IList<T>! list, out T item) -> bool
 static HotChocolate.Language.ListExtensions.TryPop<T>(this System.Collections.Generic.IList<T>! list, out T item) -> bool
 static HotChocolate.Language.Parser.Default.get -> HotChocolate.Language.Parser!
-static HotChocolate.Language.ParserExtensions.Parse(this HotChocolate.Language.Parser! parser, string! sourceText) -> HotChocolate.Language.DocumentNode!
 static HotChocolate.Language.ParserExtensions.Parse(this HotChocolate.Language.Parser! parser, string! sourceText, HotChocolate.Language.ParserOptions! options) -> HotChocolate.Language.DocumentNode!
-static HotChocolate.Language.QuerySyntaxSerializer.Serialize(HotChocolate.Language.ISyntaxNode! node) -> string!
+static HotChocolate.Language.ParserExtensions.Parse(this HotChocolate.Language.Parser! parser, string! sourceText) -> HotChocolate.Language.DocumentNode!
 static HotChocolate.Language.QuerySyntaxSerializer.Serialize(HotChocolate.Language.ISyntaxNode! node, bool useIndentation) -> string!
 static HotChocolate.Language.QuerySyntaxSerializer.Serialize(HotChocolate.Language.ISyntaxNode! node, System.IO.Stream! stream, bool useIndentation) -> void
-static HotChocolate.Language.QuerySyntaxSerializer.Serialize(HotChocolate.Language.ISyntaxNode! node, System.IO.TextWriter! writer) -> void
 static HotChocolate.Language.QuerySyntaxSerializer.Serialize(HotChocolate.Language.ISyntaxNode! node, System.IO.TextWriter! writer, bool useIndentation) -> void
-static HotChocolate.Language.SchemaSyntaxSerializer.Serialize(HotChocolate.Language.DocumentNode! node) -> string!
+static HotChocolate.Language.QuerySyntaxSerializer.Serialize(HotChocolate.Language.ISyntaxNode! node, System.IO.TextWriter! writer) -> void
+static HotChocolate.Language.QuerySyntaxSerializer.Serialize(HotChocolate.Language.ISyntaxNode! node) -> string!
 static HotChocolate.Language.SchemaSyntaxSerializer.Serialize(HotChocolate.Language.DocumentNode! node, bool useIndentation) -> string!
-static HotChocolate.Language.SchemaSyntaxSerializer.Serialize(HotChocolate.Language.DocumentNode! node, System.IO.Stream! stream) -> void
 static HotChocolate.Language.SchemaSyntaxSerializer.Serialize(HotChocolate.Language.DocumentNode! node, System.IO.Stream! stream, bool useIndentation) -> void
-static HotChocolate.Language.SchemaSyntaxSerializer.Serialize(HotChocolate.Language.DocumentNode! node, System.IO.TextWriter! writer) -> void
+static HotChocolate.Language.SchemaSyntaxSerializer.Serialize(HotChocolate.Language.DocumentNode! node, System.IO.Stream! stream) -> void
 static HotChocolate.Language.SchemaSyntaxSerializer.Serialize(HotChocolate.Language.DocumentNode! node, System.IO.TextWriter! writer, bool useIndentation) -> void
+static HotChocolate.Language.SchemaSyntaxSerializer.Serialize(HotChocolate.Language.DocumentNode! node, System.IO.TextWriter! writer) -> void
+static HotChocolate.Language.SchemaSyntaxSerializer.Serialize(HotChocolate.Language.DocumentNode! node) -> string!
 static HotChocolate.Language.Source.FromFile(string! filePath) -> HotChocolate.Language.Source!
 static HotChocolate.Language.Source.FromFile(System.IO.FileInfo! file) -> HotChocolate.Language.Source!
 static HotChocolate.Language.Source.FromStream(System.IO.Stream! stream) -> HotChocolate.Language.Source!
@@ -169,14 +169,14 @@ static HotChocolate.Language.SyntaxRewriter<TContext>.Rewrite<TParent, TProperty
 static HotChocolate.Language.SyntaxRewriter<TContext>.RewriteMany<T>(System.Collections.Generic.IReadOnlyList<T>! items, TContext context, System.Func<T, TContext, T>! func) -> System.Collections.Generic.IReadOnlyList<T>!
 static HotChocolate.Language.SyntaxRewriter<TContext>.RewriteMany<TParent, TProperty>(TParent parent, System.Collections.Generic.IReadOnlyList<TProperty!>! property, TContext context, System.Func<TProperty!, TContext, TProperty!>! visit, System.Func<System.Collections.Generic.IReadOnlyList<TProperty!>!, TParent>! rewrite) -> TParent
 static HotChocolate.Language.SyntaxVisitor<TStart, TContext>.VisitMany<T>(System.Collections.Generic.IEnumerable<T>! items, TContext context, System.Action<T, TContext>! action) -> void
-static HotChocolate.Language.VisitorExtensions.Accept(this HotChocolate.Language.ISyntaxNode! node, HotChocolate.Language.ISyntaxNodeVisitor! visitor) -> void
-static HotChocolate.Language.VisitorExtensions.Accept(this HotChocolate.Language.ISyntaxNode! node, HotChocolate.Language.ISyntaxNodeVisitor! visitor, HotChocolate.Language.IVisitationMap! visitationMap) -> void
 static HotChocolate.Language.VisitorExtensions.Accept(this HotChocolate.Language.ISyntaxNode! node, HotChocolate.Language.ISyntaxNodeVisitor! visitor, HotChocolate.Language.IVisitationMap! visitationMap, System.Func<HotChocolate.Language.ISyntaxNode!, HotChocolate.Language.VisitorAction>? defaultAction) -> void
+static HotChocolate.Language.VisitorExtensions.Accept(this HotChocolate.Language.ISyntaxNode! node, HotChocolate.Language.ISyntaxNodeVisitor! visitor, HotChocolate.Language.IVisitationMap! visitationMap) -> void
 static HotChocolate.Language.VisitorExtensions.Accept(this HotChocolate.Language.ISyntaxNode! node, HotChocolate.Language.ISyntaxNodeVisitor! visitor, System.Func<HotChocolate.Language.ISyntaxNode!, HotChocolate.Language.VisitorAction>! defaultAction) -> void
-static HotChocolate.Language.VisitorExtensions.Accept<T>(this HotChocolate.Language.ISyntaxNode! node, HotChocolate.Language.VisitorFn<T>! enter, HotChocolate.Language.VisitorFn<T>! leave) -> void
-static HotChocolate.Language.VisitorExtensions.Accept<T>(this HotChocolate.Language.ISyntaxNode! node, HotChocolate.Language.VisitorFn<T>! enter, HotChocolate.Language.VisitorFn<T>! leave, HotChocolate.Language.IVisitationMap! visitationMap) -> void
+static HotChocolate.Language.VisitorExtensions.Accept(this HotChocolate.Language.ISyntaxNode! node, HotChocolate.Language.ISyntaxNodeVisitor! visitor) -> void
 static HotChocolate.Language.VisitorExtensions.Accept<T>(this HotChocolate.Language.ISyntaxNode! node, HotChocolate.Language.VisitorFn<T>! enter, HotChocolate.Language.VisitorFn<T>! leave, HotChocolate.Language.IVisitationMap! visitationMap, System.Func<HotChocolate.Language.ISyntaxNode!, HotChocolate.Language.VisitorAction>! defaultAction) -> void
+static HotChocolate.Language.VisitorExtensions.Accept<T>(this HotChocolate.Language.ISyntaxNode! node, HotChocolate.Language.VisitorFn<T>! enter, HotChocolate.Language.VisitorFn<T>! leave, HotChocolate.Language.IVisitationMap! visitationMap) -> void
 static HotChocolate.Language.VisitorExtensions.Accept<T>(this HotChocolate.Language.ISyntaxNode! node, HotChocolate.Language.VisitorFn<T>! enter, HotChocolate.Language.VisitorFn<T>! leave, System.Func<HotChocolate.Language.ISyntaxNode!, HotChocolate.Language.VisitorAction>! defaultAction) -> void
+static HotChocolate.Language.VisitorExtensions.Accept<T>(this HotChocolate.Language.ISyntaxNode! node, HotChocolate.Language.VisitorFn<T>! enter, HotChocolate.Language.VisitorFn<T>! leave) -> void
 virtual HotChocolate.Language.QuerySyntaxRewriter<TContext>.Rewrite(HotChocolate.Language.ISyntaxNode! node, TContext context) -> HotChocolate.Language.ISyntaxNode!
 virtual HotChocolate.Language.QuerySyntaxRewriter<TContext>.RewriteDefinition(HotChocolate.Language.IDefinitionNode! node, TContext context) -> HotChocolate.Language.IDefinitionNode!
 virtual HotChocolate.Language.QuerySyntaxRewriter<TContext>.RewriteDocument(HotChocolate.Language.DocumentNode! node, TContext context) -> HotChocolate.Language.DocumentNode!

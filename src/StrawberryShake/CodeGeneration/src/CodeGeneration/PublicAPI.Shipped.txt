@@ -299,8 +299,8 @@ StrawberryShake.CodeGeneration.Analyzers.DocumentAnalyzerContext.OperationType.g
 StrawberryShake.CodeGeneration.Analyzers.DocumentAnalyzerContext.RegisterModel(HotChocolate.NameString name, StrawberryShake.CodeGeneration.Analyzers.Models.ITypeModel! typeModel) -> void
 StrawberryShake.CodeGeneration.Analyzers.DocumentAnalyzerContext.RegisterSelectionSet(HotChocolate.Types.INamedType! namedType, HotChocolate.Language.SelectionSetNode! from, HotChocolate.Language.SelectionSetNode! to) -> void
 StrawberryShake.CodeGeneration.Analyzers.DocumentAnalyzerContext.RegisterType(HotChocolate.Types.INamedType! type) -> void
-StrawberryShake.CodeGeneration.Analyzers.DocumentAnalyzerContext.ResolveTypeName(HotChocolate.NameString proposedName) -> HotChocolate.NameString
 StrawberryShake.CodeGeneration.Analyzers.DocumentAnalyzerContext.ResolveTypeName(HotChocolate.NameString proposedName, HotChocolate.Language.ISyntaxNode! syntaxNode, System.Collections.Generic.IReadOnlyList<string!>? additionalNamePatterns = null) -> HotChocolate.NameString
+StrawberryShake.CodeGeneration.Analyzers.DocumentAnalyzerContext.ResolveTypeName(HotChocolate.NameString proposedName) -> HotChocolate.NameString
 StrawberryShake.CodeGeneration.Analyzers.DocumentAnalyzerContext.RootPath.get -> HotChocolate.Path!
 StrawberryShake.CodeGeneration.Analyzers.DocumentAnalyzerContext.Schema.get -> HotChocolate.ISchema!
 StrawberryShake.CodeGeneration.Analyzers.DocumentAnalyzerContext.SelectionSets.get -> System.Collections.Generic.IReadOnlyDictionary<StrawberryShake.CodeGeneration.Analyzers.SelectionSetInfo, HotChocolate.Language.SelectionSetNode!>!
@@ -343,8 +343,8 @@ StrawberryShake.CodeGeneration.Analyzers.IDocumentAnalyzerContext.OperationType.
 StrawberryShake.CodeGeneration.Analyzers.IDocumentAnalyzerContext.RegisterModel(HotChocolate.NameString name, StrawberryShake.CodeGeneration.Analyzers.Models.ITypeModel! typeModel) -> void
 StrawberryShake.CodeGeneration.Analyzers.IDocumentAnalyzerContext.RegisterSelectionSet(HotChocolate.Types.INamedType! namedType, HotChocolate.Language.SelectionSetNode! from, HotChocolate.Language.SelectionSetNode! to) -> void
 StrawberryShake.CodeGeneration.Analyzers.IDocumentAnalyzerContext.RegisterType(HotChocolate.Types.INamedType! type) -> void
-StrawberryShake.CodeGeneration.Analyzers.IDocumentAnalyzerContext.ResolveTypeName(HotChocolate.NameString proposedName) -> HotChocolate.NameString
 StrawberryShake.CodeGeneration.Analyzers.IDocumentAnalyzerContext.ResolveTypeName(HotChocolate.NameString proposedName, HotChocolate.Language.ISyntaxNode! syntaxNode, System.Collections.Generic.IReadOnlyList<string!>? additionalNamePatterns = null) -> HotChocolate.NameString
+StrawberryShake.CodeGeneration.Analyzers.IDocumentAnalyzerContext.ResolveTypeName(HotChocolate.NameString proposedName) -> HotChocolate.NameString
 StrawberryShake.CodeGeneration.Analyzers.IDocumentAnalyzerContext.RootPath.get -> HotChocolate.Path!
 StrawberryShake.CodeGeneration.Analyzers.IDocumentAnalyzerContext.Schema.get -> HotChocolate.ISchema!
 StrawberryShake.CodeGeneration.Analyzers.IDocumentAnalyzerContext.SelectionSets.get -> System.Collections.Generic.IReadOnlyDictionary<StrawberryShake.CodeGeneration.Analyzers.SelectionSetInfo, HotChocolate.Language.SelectionSetNode!>!

@@ -116,8 +116,8 @@ HotChocolate.Types.Sorting.SortObjectOperationDescriptor<TObject>.Type<TFilter>(
 HotChocolate.Types.Sorting.SortOperation
 HotChocolate.Types.Sorting.SortOperation.IsObject.get -> bool
 HotChocolate.Types.Sorting.SortOperation.Property.get -> System.Reflection.PropertyInfo!
-HotChocolate.Types.Sorting.SortOperation.SortOperation(System.Reflection.PropertyInfo! property) -> void
 HotChocolate.Types.Sorting.SortOperation.SortOperation(System.Reflection.PropertyInfo! property, bool isObject) -> void
+HotChocolate.Types.Sorting.SortOperation.SortOperation(System.Reflection.PropertyInfo! property) -> void
 HotChocolate.Types.Sorting.SortOperationDefintion
 HotChocolate.Types.Sorting.SortOperationDefintion.Operation.get -> HotChocolate.Types.Sorting.SortOperation?
 HotChocolate.Types.Sorting.SortOperationDefintion.Operation.set -> void
@@ -205,10 +205,10 @@ static HotChocolate.Types.Sorting.SortObjectOperationDescriptor<TObject>.New(Hot
 static HotChocolate.Types.Sorting.SortOperationDescriptor.CreateOperation(System.Reflection.PropertyInfo! property, HotChocolate.Types.Descriptors.IDescriptorContext! context) -> HotChocolate.Types.Sorting.SortOperationDescriptor!
 static HotChocolate.Types.Sorting.SortOperationDescriptor.New(HotChocolate.Types.Descriptors.IDescriptorContext! context, HotChocolate.NameString name, HotChocolate.Types.Descriptors.ITypeReference! type, HotChocolate.Types.Sorting.SortOperation! operation) -> HotChocolate.Types.Sorting.SortOperationDescriptor!
 static HotChocolate.Types.Sorting.SortTypeNameExtensions.Name<T>(this HotChocolate.Types.Sorting.ISortInputTypeDescriptor<T>! descriptor, System.Func<HotChocolate.Types.INamedType!, HotChocolate.NameString>! createName) -> HotChocolate.Types.Sorting.ISortInputTypeNameDependencyDescriptor<T>!
-static HotChocolate.Types.SortObjectFieldDescriptorExtensions.UseSorting(this HotChocolate.Types.IObjectFieldDescriptor! descriptor) -> HotChocolate.Types.IObjectFieldDescriptor!
 static HotChocolate.Types.SortObjectFieldDescriptorExtensions.UseSorting(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type? sortType, HotChocolate.Types.ITypeSystemMember? sortTypeInstance = null) -> HotChocolate.Types.IObjectFieldDescriptor!
-static HotChocolate.Types.SortObjectFieldDescriptorExtensions.UseSorting<T>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor) -> HotChocolate.Types.IObjectFieldDescriptor!
+static HotChocolate.Types.SortObjectFieldDescriptorExtensions.UseSorting(this HotChocolate.Types.IObjectFieldDescriptor! descriptor) -> HotChocolate.Types.IObjectFieldDescriptor!
 static HotChocolate.Types.SortObjectFieldDescriptorExtensions.UseSorting<T>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Action<HotChocolate.Types.Sorting.ISortInputTypeDescriptor<T>!>! configure) -> HotChocolate.Types.IObjectFieldDescriptor!
+static HotChocolate.Types.SortObjectFieldDescriptorExtensions.UseSorting<T>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor) -> HotChocolate.Types.IObjectFieldDescriptor!
 static readonly HotChocolate.Types.Sorting.QueryableSortVisitor.Default -> HotChocolate.Types.Sorting.QueryableSortVisitor!
 virtual HotChocolate.Types.Sorting.SortingNamingConventionBase.GetSortingOperationKindTypeName(HotChocolate.Types.Descriptors.IDescriptorContext! context, System.Type! entityType) -> HotChocolate.NameString
 virtual HotChocolate.Types.Sorting.SortingNamingConventionBase.GetSortingTypeName(HotChocolate.Types.Descriptors.IDescriptorContext! context, System.Type! entityType) -> HotChocolate.NameString

@@ -10,8 +10,8 @@ HotChocolate.Subscriptions.InMemory.InMemorySourceStream<TMessage>.InMemorySourc
 HotChocolate.Subscriptions.InMemory.InMemorySourceStream<TMessage>.ReadEventsAsync() -> System.Collections.Generic.IAsyncEnumerable<TMessage>!
 HotChocolate.Subscriptions.InMemory.InvalidMessageTypeException
 HotChocolate.Subscriptions.InMemory.InvalidMessageTypeException.InvalidMessageTypeException() -> void
-HotChocolate.Subscriptions.InMemory.InvalidMessageTypeException.InvalidMessageTypeException(string! message) -> void
 HotChocolate.Subscriptions.InMemory.InvalidMessageTypeException.InvalidMessageTypeException(string! message, System.Exception! inner) -> void
+HotChocolate.Subscriptions.InMemory.InvalidMessageTypeException.InvalidMessageTypeException(string! message) -> void
 HotChocolate.Subscriptions.InMemory.InvalidMessageTypeException.InvalidMessageTypeException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 Microsoft.Extensions.DependencyInjection.InMemorySubscriptionsServiceCollectionExtensions
 static Microsoft.Extensions.DependencyInjection.InMemorySubscriptionsServiceCollectionExtensions.AddInMemorySubscriptions(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!

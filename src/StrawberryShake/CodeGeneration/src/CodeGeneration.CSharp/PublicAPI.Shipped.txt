@@ -397,8 +397,8 @@ StrawberryShake.CodeGeneration.CSharp.CSharpGenerator
 StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorResult
 StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorResult.CSharpGeneratorResult() -> void
 StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorResult.CSharpGeneratorResult(System.Collections.Generic.IReadOnlyList<HotChocolate.IError!>! errors) -> void
-StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorResult.CSharpGeneratorResult(System.Collections.Generic.IReadOnlyList<StrawberryShake.CodeGeneration.CSharp.SourceDocument!>! documents, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.OperationType>! operationTypes) -> void
 StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorResult.CSharpGeneratorResult(System.Collections.Generic.IReadOnlyList<StrawberryShake.CodeGeneration.CSharp.SourceDocument!>! documents, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.OperationType>! operationTypes, System.Collections.Generic.IReadOnlyList<HotChocolate.IError!>! errors) -> void
+StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorResult.CSharpGeneratorResult(System.Collections.Generic.IReadOnlyList<StrawberryShake.CodeGeneration.CSharp.SourceDocument!>! documents, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.OperationType>! operationTypes) -> void
 StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorResult.Documents.get -> System.Collections.Generic.IReadOnlyList<StrawberryShake.CodeGeneration.CSharp.SourceDocument!>!
 StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorResult.Errors.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.IError!>!
 StrawberryShake.CodeGeneration.CSharp.CSharpGeneratorResult.HasErrors() -> bool
