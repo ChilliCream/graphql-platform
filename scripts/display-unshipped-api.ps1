@@ -5,7 +5,7 @@ Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
 
 function ShowUnshipped([string]$file, [string]$src_dir) {
-    [array]$unshipped = Get-Content $file
+    [string[]]$unshipped = Get-Content $file
 
     if ([string]::IsNullOrWhiteSpace($unshipped)) {
         return

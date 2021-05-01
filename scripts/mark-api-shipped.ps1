@@ -6,13 +6,13 @@ $ErrorActionPreference = "Stop"
 
 function MarkShipped([string]$dir) {
     $shippedFilePath = Join-Path $dir "PublicAPI.Shipped.txt"
-    $shipped = [string[]](Get-Content $shippedFilePath)
+    [string[]]$shipped = Get-Content $shippedFilePath
     if ($null -eq $shipped) {
         $shipped = @()
     }
 
     $unshippedFilePath = Join-Path $dir "PublicAPI.Unshipped.txt"
-    $unshipped = [string[]](Get-Content $unshippedFilePath | Where-Object { $_.trim() -ne "" })
+    [string[]]$unshipped = Get-Content $unshippedFilePath | Where-Object { $_.trim() -ne "" }
     if ($null -eq $unshipped || $unshipped.Length -lt 1) {
         return
     }
