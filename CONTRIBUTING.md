@@ -30,14 +30,15 @@ Before you spend time writing code, make sure of the following things:
 - You have commented on the related issue to let others know you are working on it
 - You have laid out your solution on a high level and received approval from the maintainers, if you are tackling a bigger change
 
-TODO: https://docs.github.com/github/getting-started-with-github/fork-a-repo
+After this you can fork our repository to implement your changes. If you are unfamiliar with forking, be sure to read [this guide](https://guides.github.com/activities/forking/) first.
 
 ### Before submitting a pull request
 
-Before submitting a pull request, make sure that it checks the following requirements:
+Before submitting a pull request containing your changes, make sure that it checks the following requirements:
 
 - You add test coverage following existing patterns within the codebase
 - Your code matches the existing syntax conventions within the codebase
+- You document any changes to the public API surface ([Learn more](./API-Baselines.md))
 - Your pull request is small, focused, and avoids making unrelated changes
 
 If your pull request contains any of the below, it's less likely to be merged.
@@ -49,7 +50,7 @@ If your pull request contains any of the below, it's less likely to be merged.
 
 ### Submitting a pull request
 
-TODO: https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork
+Follow [this guide](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork) to submit your pull request. Be sure to mark it as draft if it is in an early stage.
 
 ### During pull request review
 
