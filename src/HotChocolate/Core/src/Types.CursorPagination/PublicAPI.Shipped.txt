@@ -1,56 +1,56 @@
 #nullable enable
-abstract HotChocolate.Types.Pagination.CursorPagingHandler.SliceAsync(HotChocolate.Resolvers.IResolverContext context, object source, HotChocolate.Types.Pagination.CursorPagingArguments arguments) -> System.Threading.Tasks.ValueTask<HotChocolate.Types.Pagination.Connection>
-abstract HotChocolate.Types.Pagination.CursorPagingProvider.CanHandle(HotChocolate.Internal.IExtendedType source) -> bool
-abstract HotChocolate.Types.Pagination.CursorPagingProvider.CreateHandler(HotChocolate.Internal.IExtendedType source, HotChocolate.Types.Pagination.PagingOptions options) -> HotChocolate.Types.Pagination.CursorPagingHandler
+abstract HotChocolate.Types.Pagination.CursorPagingHandler.SliceAsync(HotChocolate.Resolvers.IResolverContext! context, object! source, HotChocolate.Types.Pagination.CursorPagingArguments arguments) -> System.Threading.Tasks.ValueTask<HotChocolate.Types.Pagination.Connection!>
+abstract HotChocolate.Types.Pagination.CursorPagingProvider.CanHandle(HotChocolate.Internal.IExtendedType! source) -> bool
+abstract HotChocolate.Types.Pagination.CursorPagingProvider.CreateHandler(HotChocolate.Internal.IExtendedType! source, HotChocolate.Types.Pagination.PagingOptions options) -> HotChocolate.Types.Pagination.CursorPagingHandler!
 HotChocolate.Types.GetCursorPagingProvider
 HotChocolate.Types.Pagination.Connection
-HotChocolate.Types.Pagination.Connection.Connection(System.Collections.Generic.IReadOnlyCollection<HotChocolate.Types.Pagination.IEdge> edges, HotChocolate.Types.Pagination.ConnectionPageInfo info, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<int>> getTotalCount) -> void
-HotChocolate.Types.Pagination.Connection.Edges.get -> System.Collections.Generic.IReadOnlyCollection<HotChocolate.Types.Pagination.IEdge>
+HotChocolate.Types.Pagination.Connection.Connection(System.Collections.Generic.IReadOnlyCollection<HotChocolate.Types.Pagination.IEdge!>! edges, HotChocolate.Types.Pagination.ConnectionPageInfo! info, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<int>>! getTotalCount) -> void
+HotChocolate.Types.Pagination.Connection.Edges.get -> System.Collections.Generic.IReadOnlyCollection<HotChocolate.Types.Pagination.IEdge!>!
 HotChocolate.Types.Pagination.Connection.GetTotalCountAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<int>
-HotChocolate.Types.Pagination.Connection.Info.get -> HotChocolate.Types.Pagination.ConnectionPageInfo
+HotChocolate.Types.Pagination.Connection.Info.get -> HotChocolate.Types.Pagination.ConnectionPageInfo!
 HotChocolate.Types.Pagination.Connection<T>
-HotChocolate.Types.Pagination.Connection<T>.Connection(System.Collections.Generic.IReadOnlyCollection<HotChocolate.Types.Pagination.Edge<T>> edges, HotChocolate.Types.Pagination.ConnectionPageInfo info, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<int>> getTotalCount) -> void
-HotChocolate.Types.Pagination.Connection<T>.Edges.get -> System.Collections.Generic.IReadOnlyCollection<HotChocolate.Types.Pagination.Edge<T>>
+HotChocolate.Types.Pagination.Connection<T>.Connection(System.Collections.Generic.IReadOnlyCollection<HotChocolate.Types.Pagination.Edge<T>!>! edges, HotChocolate.Types.Pagination.ConnectionPageInfo! info, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<int>>! getTotalCount) -> void
+HotChocolate.Types.Pagination.Connection<T>.Edges.get -> System.Collections.Generic.IReadOnlyCollection<HotChocolate.Types.Pagination.Edge<T>!>!
 HotChocolate.Types.Pagination.ConnectionCountType<T>
 HotChocolate.Types.Pagination.ConnectionCountType<T>.ConnectionCountType() -> void
-HotChocolate.Types.Pagination.ConnectionCountType<T>.ConnectionCountType(System.Action<HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.Connection>> configure) -> void
+HotChocolate.Types.Pagination.ConnectionCountType<T>.ConnectionCountType(System.Action<HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.Connection!>!>! configure) -> void
 HotChocolate.Types.Pagination.ConnectionPageInfo
-HotChocolate.Types.Pagination.ConnectionPageInfo.ConnectionPageInfo(bool hasNextPage, bool hasPreviousPage, string startCursor, string endCursor, int? totalCount = null) -> void
-HotChocolate.Types.Pagination.ConnectionPageInfo.EndCursor.get -> string
+HotChocolate.Types.Pagination.ConnectionPageInfo.ConnectionPageInfo(bool hasNextPage, bool hasPreviousPage, string? startCursor, string? endCursor, int? totalCount = null) -> void
+HotChocolate.Types.Pagination.ConnectionPageInfo.EndCursor.get -> string?
 HotChocolate.Types.Pagination.ConnectionPageInfo.HasNextPage.get -> bool
 HotChocolate.Types.Pagination.ConnectionPageInfo.HasPreviousPage.get -> bool
-HotChocolate.Types.Pagination.ConnectionPageInfo.StartCursor.get -> string
+HotChocolate.Types.Pagination.ConnectionPageInfo.StartCursor.get -> string?
 HotChocolate.Types.Pagination.ConnectionPageInfo.TotalCount.get -> int?
 HotChocolate.Types.Pagination.ConnectionType<T>
 HotChocolate.Types.Pagination.ConnectionType<T>.ConnectionType() -> void
-HotChocolate.Types.Pagination.ConnectionType<T>.ConnectionType(System.Action<HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.Connection>> configure) -> void
-HotChocolate.Types.Pagination.ConnectionType<T>.EdgeType.get -> HotChocolate.Types.Pagination.IEdgeType
+HotChocolate.Types.Pagination.ConnectionType<T>.ConnectionType(System.Action<HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.Connection!>!>! configure) -> void
+HotChocolate.Types.Pagination.ConnectionType<T>.EdgeType.get -> HotChocolate.Types.Pagination.IEdgeType!
 HotChocolate.Types.Pagination.CursorPagingArguments
-HotChocolate.Types.Pagination.CursorPagingArguments.After.get -> string
-HotChocolate.Types.Pagination.CursorPagingArguments.Before.get -> string
+HotChocolate.Types.Pagination.CursorPagingArguments.After.get -> string?
+HotChocolate.Types.Pagination.CursorPagingArguments.Before.get -> string?
 HotChocolate.Types.Pagination.CursorPagingArguments.CursorPagingArguments() -> void
-HotChocolate.Types.Pagination.CursorPagingArguments.CursorPagingArguments(int? first = null, int? last = null, string after = null, string before = null) -> void
+HotChocolate.Types.Pagination.CursorPagingArguments.CursorPagingArguments(int? first = null, int? last = null, string? after = null, string? before = null) -> void
 HotChocolate.Types.Pagination.CursorPagingArguments.First.get -> int?
 HotChocolate.Types.Pagination.CursorPagingArguments.Last.get -> int?
 HotChocolate.Types.Pagination.CursorPagingHandler
 HotChocolate.Types.Pagination.CursorPagingHandler.CursorPagingHandler(HotChocolate.Types.Pagination.PagingOptions options) -> void
 HotChocolate.Types.Pagination.CursorPagingHandler.DefaultPageSize.get -> int
 HotChocolate.Types.Pagination.CursorPagingHandler.MaxPageSize.get -> int
-HotChocolate.Types.Pagination.CursorPagingHandler.ValidateContext(HotChocolate.Resolvers.IResolverContext context) -> void
+HotChocolate.Types.Pagination.CursorPagingHandler.ValidateContext(HotChocolate.Resolvers.IResolverContext! context) -> void
 HotChocolate.Types.Pagination.CursorPagingProvider
 HotChocolate.Types.Pagination.CursorPagingProvider.CursorPagingProvider() -> void
 HotChocolate.Types.Pagination.Edge<T>
-HotChocolate.Types.Pagination.Edge<T>.Cursor.get -> string
-HotChocolate.Types.Pagination.Edge<T>.Edge(T node, string cursor) -> void
+HotChocolate.Types.Pagination.Edge<T>.Cursor.get -> string!
+HotChocolate.Types.Pagination.Edge<T>.Edge(T node, string! cursor) -> void
 HotChocolate.Types.Pagination.Edge<T>.Node.get -> T
 HotChocolate.Types.Pagination.EdgeType<T>
 HotChocolate.Types.Pagination.EdgeType<T>.EdgeType() -> void
-HotChocolate.Types.Pagination.EdgeType<T>.EntityType.get -> HotChocolate.Types.IOutputType
+HotChocolate.Types.Pagination.EdgeType<T>.EntityType.get -> HotChocolate.Types.IOutputType!
 HotChocolate.Types.Pagination.IEdge
-HotChocolate.Types.Pagination.IEdge.Cursor.get -> string
-HotChocolate.Types.Pagination.IEdge.Node.get -> object
+HotChocolate.Types.Pagination.IEdge.Cursor.get -> string!
+HotChocolate.Types.Pagination.IEdge.Node.get -> object?
 HotChocolate.Types.Pagination.IEdgeType
-HotChocolate.Types.Pagination.IEdgeType.EntityType.get -> HotChocolate.Types.IOutputType
+HotChocolate.Types.Pagination.IEdgeType.EntityType.get -> HotChocolate.Types.IOutputType!
 HotChocolate.Types.Pagination.IndexEdge<T>
 HotChocolate.Types.Pagination.IndexEdge<T>.Index.get -> int
 HotChocolate.Types.Pagination.PageInfoType
@@ -67,32 +67,32 @@ HotChocolate.Types.UsePagingAttribute.IncludeTotalCount.get -> bool
 HotChocolate.Types.UsePagingAttribute.IncludeTotalCount.set -> void
 HotChocolate.Types.UsePagingAttribute.MaxPageSize.get -> int
 HotChocolate.Types.UsePagingAttribute.MaxPageSize.set -> void
-HotChocolate.Types.UsePagingAttribute.SchemaType.get -> System.Type
+HotChocolate.Types.UsePagingAttribute.SchemaType.get -> System.Type?
 HotChocolate.Types.UsePagingAttribute.SchemaType.set -> void
-HotChocolate.Types.UsePagingAttribute.Type.get -> System.Type
-HotChocolate.Types.UsePagingAttribute.UsePagingAttribute(System.Type type = null) -> void
-override HotChocolate.Types.Pagination.ConnectionCountType<T>.Configure(HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.Connection> descriptor) -> void
-override HotChocolate.Types.Pagination.ConnectionType<T>.Configure(HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.Connection> descriptor) -> void
-override HotChocolate.Types.Pagination.ConnectionType<T>.OnCompleteType(HotChocolate.Configuration.ITypeCompletionContext context, HotChocolate.Types.Descriptors.Definitions.ObjectTypeDefinition definition) -> void
-override HotChocolate.Types.Pagination.ConnectionType<T>.OnRegisterDependencies(HotChocolate.Configuration.ITypeDiscoveryContext context, HotChocolate.Types.Descriptors.Definitions.ObjectTypeDefinition definition) -> void
-override HotChocolate.Types.Pagination.EdgeType<T>.Configure(HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.IEdge> descriptor) -> void
-override HotChocolate.Types.Pagination.EdgeType<T>.OnCompleteType(HotChocolate.Configuration.ITypeCompletionContext context, HotChocolate.Types.Descriptors.Definitions.ObjectTypeDefinition definition) -> void
-override HotChocolate.Types.Pagination.PageInfoType.Configure(HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.ConnectionPageInfo> descriptor) -> void
-override HotChocolate.Types.Pagination.QueryableCursorPagingHandler<TEntity>.SliceAsync(HotChocolate.Resolvers.IResolverContext context, object source, HotChocolate.Types.Pagination.CursorPagingArguments arguments) -> System.Threading.Tasks.ValueTask<HotChocolate.Types.Pagination.Connection>
-override HotChocolate.Types.Pagination.QueryableCursorPagingProvider.CanHandle(HotChocolate.Internal.IExtendedType source) -> bool
-override HotChocolate.Types.Pagination.QueryableCursorPagingProvider.CreateHandler(HotChocolate.Internal.IExtendedType source, HotChocolate.Types.Pagination.PagingOptions options) -> HotChocolate.Types.Pagination.CursorPagingHandler
-static HotChocolate.Types.Pagination.ConnectionCountType<T>.ApplyConfig(HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.Connection> descriptor) -> void
-static HotChocolate.Types.Pagination.ConnectionType<T>.ApplyConfig(HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.Connection> descriptor) -> void
-static HotChocolate.Types.Pagination.IndexEdge<T>.Create(T node, int index) -> HotChocolate.Types.Pagination.IndexEdge<T>
-static HotChocolate.Types.Pagination.IndexEdge<T>.DeserializeCursor(string cursor) -> int
-static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.AddPagingArguments(this HotChocolate.Types.IInterfaceFieldDescriptor descriptor) -> HotChocolate.Types.IInterfaceFieldDescriptor
-static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.AddPagingArguments(this HotChocolate.Types.IObjectFieldDescriptor descriptor) -> HotChocolate.Types.IObjectFieldDescriptor
-static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.UsePaging(this HotChocolate.Types.IInterfaceFieldDescriptor descriptor, System.Type type = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IInterfaceFieldDescriptor
-static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.UsePaging(this HotChocolate.Types.IObjectFieldDescriptor descriptor, System.Type type = null, System.Type entityType = null, HotChocolate.Types.GetCursorPagingProvider resolvePagingProvider = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor
-static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.UsePaging<TSchemaType, TEntity>(this HotChocolate.Types.IObjectFieldDescriptor descriptor, HotChocolate.Types.GetCursorPagingProvider resolvePagingProvider = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor
-static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.UsePaging<TSchemaType>(this HotChocolate.Types.IInterfaceFieldDescriptor descriptor, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IInterfaceFieldDescriptor
-static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.UsePaging<TSchemaType>(this HotChocolate.Types.IObjectFieldDescriptor descriptor, System.Type entityType = null, HotChocolate.Types.GetCursorPagingProvider resolvePagingProvider = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor
-virtual HotChocolate.Types.Pagination.QueryableCursorPagingHandler<TEntity>.ApplyCursorToEdges(System.Linq.IQueryable<TEntity> allEdges, int? after, int? before) -> System.Linq.IQueryable<TEntity>
-virtual HotChocolate.Types.Pagination.QueryableCursorPagingHandler<TEntity>.ExecuteQueryableAsync(System.Linq.IQueryable<TEntity> queryable, int offset, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<HotChocolate.Types.Pagination.IndexEdge<TEntity>>>
-virtual HotChocolate.Types.Pagination.QueryableCursorPagingHandler<TEntity>.GetFirstEdges(System.Linq.IQueryable<TEntity> edges, int first, ref int offset) -> System.Linq.IQueryable<TEntity>
-virtual HotChocolate.Types.Pagination.QueryableCursorPagingHandler<TEntity>.GetLastEdges(System.Linq.IQueryable<TEntity> edges, int last, ref int offset) -> System.Linq.IQueryable<TEntity>
+HotChocolate.Types.UsePagingAttribute.Type.get -> System.Type?
+HotChocolate.Types.UsePagingAttribute.UsePagingAttribute(System.Type? type = null) -> void
+override HotChocolate.Types.Pagination.ConnectionCountType<T>.Configure(HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.Connection!>! descriptor) -> void
+override HotChocolate.Types.Pagination.ConnectionType<T>.Configure(HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.Connection!>! descriptor) -> void
+override HotChocolate.Types.Pagination.ConnectionType<T>.OnCompleteType(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Types.Descriptors.Definitions.ObjectTypeDefinition! definition) -> void
+override HotChocolate.Types.Pagination.ConnectionType<T>.OnRegisterDependencies(HotChocolate.Configuration.ITypeDiscoveryContext! context, HotChocolate.Types.Descriptors.Definitions.ObjectTypeDefinition! definition) -> void
+override HotChocolate.Types.Pagination.EdgeType<T>.Configure(HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.IEdge!>! descriptor) -> void
+override HotChocolate.Types.Pagination.EdgeType<T>.OnCompleteType(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Types.Descriptors.Definitions.ObjectTypeDefinition! definition) -> void
+override HotChocolate.Types.Pagination.PageInfoType.Configure(HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.ConnectionPageInfo!>! descriptor) -> void
+override HotChocolate.Types.Pagination.QueryableCursorPagingHandler<TEntity>.SliceAsync(HotChocolate.Resolvers.IResolverContext! context, object! source, HotChocolate.Types.Pagination.CursorPagingArguments arguments) -> System.Threading.Tasks.ValueTask<HotChocolate.Types.Pagination.Connection!>
+override HotChocolate.Types.Pagination.QueryableCursorPagingProvider.CanHandle(HotChocolate.Internal.IExtendedType! source) -> bool
+override HotChocolate.Types.Pagination.QueryableCursorPagingProvider.CreateHandler(HotChocolate.Internal.IExtendedType! source, HotChocolate.Types.Pagination.PagingOptions options) -> HotChocolate.Types.Pagination.CursorPagingHandler!
+static HotChocolate.Types.Pagination.ConnectionCountType<T>.ApplyConfig(HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.Connection!>! descriptor) -> void
+static HotChocolate.Types.Pagination.ConnectionType<T>.ApplyConfig(HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.Connection!>! descriptor) -> void
+static HotChocolate.Types.Pagination.IndexEdge<T>.Create(T node, int index) -> HotChocolate.Types.Pagination.IndexEdge<T>!
+static HotChocolate.Types.Pagination.IndexEdge<T>.DeserializeCursor(string! cursor) -> int
+static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.AddPagingArguments(this HotChocolate.Types.IInterfaceFieldDescriptor! descriptor) -> HotChocolate.Types.IInterfaceFieldDescriptor!
+static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.AddPagingArguments(this HotChocolate.Types.IObjectFieldDescriptor! descriptor) -> HotChocolate.Types.IObjectFieldDescriptor!
+static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.UsePaging(this HotChocolate.Types.IInterfaceFieldDescriptor! descriptor, System.Type? type = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IInterfaceFieldDescriptor!
+static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.UsePaging(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type? type = null, System.Type? entityType = null, HotChocolate.Types.GetCursorPagingProvider? resolvePagingProvider = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
+static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.UsePaging<TSchemaType, TEntity>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, HotChocolate.Types.GetCursorPagingProvider? resolvePagingProvider = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
+static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.UsePaging<TSchemaType>(this HotChocolate.Types.IInterfaceFieldDescriptor! descriptor, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IInterfaceFieldDescriptor!
+static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.UsePaging<TSchemaType>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type? entityType = null, HotChocolate.Types.GetCursorPagingProvider? resolvePagingProvider = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
+virtual HotChocolate.Types.Pagination.QueryableCursorPagingHandler<TEntity>.ApplyCursorToEdges(System.Linq.IQueryable<TEntity>! allEdges, int? after, int? before) -> System.Linq.IQueryable<TEntity>!
+virtual HotChocolate.Types.Pagination.QueryableCursorPagingHandler<TEntity>.ExecuteQueryableAsync(System.Linq.IQueryable<TEntity>! queryable, int offset, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<HotChocolate.Types.Pagination.IndexEdge<TEntity>!>!>
+virtual HotChocolate.Types.Pagination.QueryableCursorPagingHandler<TEntity>.GetFirstEdges(System.Linq.IQueryable<TEntity>! edges, int first, ref int offset) -> System.Linq.IQueryable<TEntity>!
+virtual HotChocolate.Types.Pagination.QueryableCursorPagingHandler<TEntity>.GetLastEdges(System.Linq.IQueryable<TEntity>! edges, int last, ref int offset) -> System.Linq.IQueryable<TEntity>!

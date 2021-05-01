@@ -1,189 +1,189 @@
 #nullable enable
-abstract HotChocolate.Language.NamedSyntaxNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+abstract HotChocolate.Language.NamedSyntaxNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 abstract HotChocolate.Language.NamedSyntaxNode.Kind.get -> HotChocolate.Language.SyntaxKind
-abstract HotChocolate.Language.NamedSyntaxNode.ToString(bool indented) -> string
+abstract HotChocolate.Language.NamedSyntaxNode.ToString(bool indented) -> string!
 abstract HotChocolate.Language.SchemaDefinitionNodeBase.Kind.get -> HotChocolate.Language.SyntaxKind
 HotChocolate.Language.ArgumentNode
-HotChocolate.Language.ArgumentNode.ArgumentNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, HotChocolate.Language.IValueNode value) -> void
-HotChocolate.Language.ArgumentNode.ArgumentNode(HotChocolate.Language.NameNode name, HotChocolate.Language.IValueNode value) -> void
-HotChocolate.Language.ArgumentNode.ArgumentNode(string name, HotChocolate.Language.IValueNode value) -> void
-HotChocolate.Language.ArgumentNode.ArgumentNode(string name, string value) -> void
-HotChocolate.Language.ArgumentNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+HotChocolate.Language.ArgumentNode.ArgumentNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, HotChocolate.Language.IValueNode! value) -> void
+HotChocolate.Language.ArgumentNode.ArgumentNode(HotChocolate.Language.NameNode! name, HotChocolate.Language.IValueNode! value) -> void
+HotChocolate.Language.ArgumentNode.ArgumentNode(string! name, HotChocolate.Language.IValueNode! value) -> void
+HotChocolate.Language.ArgumentNode.ArgumentNode(string! name, string! value) -> void
+HotChocolate.Language.ArgumentNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 HotChocolate.Language.ArgumentNode.Kind.get -> HotChocolate.Language.SyntaxKind
-HotChocolate.Language.ArgumentNode.Location.get -> HotChocolate.Language.Location
-HotChocolate.Language.ArgumentNode.Name.get -> HotChocolate.Language.NameNode
-HotChocolate.Language.ArgumentNode.ToString(bool indented) -> string
-HotChocolate.Language.ArgumentNode.Value.get -> HotChocolate.Language.IValueNode
-HotChocolate.Language.ArgumentNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.ArgumentNode
-HotChocolate.Language.ArgumentNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.ArgumentNode
-HotChocolate.Language.ArgumentNode.WithValue(HotChocolate.Language.IValueNode value) -> HotChocolate.Language.ArgumentNode
+HotChocolate.Language.ArgumentNode.Location.get -> HotChocolate.Language.Location?
+HotChocolate.Language.ArgumentNode.Name.get -> HotChocolate.Language.NameNode!
+HotChocolate.Language.ArgumentNode.ToString(bool indented) -> string!
+HotChocolate.Language.ArgumentNode.Value.get -> HotChocolate.Language.IValueNode!
+HotChocolate.Language.ArgumentNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.ArgumentNode!
+HotChocolate.Language.ArgumentNode.WithName(HotChocolate.Language.NameNode! name) -> HotChocolate.Language.ArgumentNode!
+HotChocolate.Language.ArgumentNode.WithValue(HotChocolate.Language.IValueNode! value) -> HotChocolate.Language.ArgumentNode!
 HotChocolate.Language.BooleanValueNode
 HotChocolate.Language.BooleanValueNode.BooleanValueNode(bool value) -> void
-HotChocolate.Language.BooleanValueNode.BooleanValueNode(HotChocolate.Language.Location location, bool value) -> void
-HotChocolate.Language.BooleanValueNode.Equals(HotChocolate.Language.BooleanValueNode other) -> bool
-HotChocolate.Language.BooleanValueNode.Equals(HotChocolate.Language.IValueNode other) -> bool
-HotChocolate.Language.BooleanValueNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+HotChocolate.Language.BooleanValueNode.BooleanValueNode(HotChocolate.Language.Location? location, bool value) -> void
+HotChocolate.Language.BooleanValueNode.Equals(HotChocolate.Language.BooleanValueNode? other) -> bool
+HotChocolate.Language.BooleanValueNode.Equals(HotChocolate.Language.IValueNode? other) -> bool
+HotChocolate.Language.BooleanValueNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 HotChocolate.Language.BooleanValueNode.Kind.get -> HotChocolate.Language.SyntaxKind
-HotChocolate.Language.BooleanValueNode.Location.get -> HotChocolate.Language.Location
-HotChocolate.Language.BooleanValueNode.ToString(bool indented) -> string
+HotChocolate.Language.BooleanValueNode.Location.get -> HotChocolate.Language.Location?
+HotChocolate.Language.BooleanValueNode.ToString(bool indented) -> string!
 HotChocolate.Language.BooleanValueNode.Value.get -> bool
-HotChocolate.Language.BooleanValueNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.BooleanValueNode
-HotChocolate.Language.BooleanValueNode.WithValue(bool value) -> HotChocolate.Language.BooleanValueNode
+HotChocolate.Language.BooleanValueNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.BooleanValueNode!
+HotChocolate.Language.BooleanValueNode.WithValue(bool value) -> HotChocolate.Language.BooleanValueNode!
 HotChocolate.Language.ComplexTypeDefinitionNodeBase
-HotChocolate.Language.ComplexTypeDefinitionNodeBase.ComplexTypeDefinitionNodeBase(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode> interfaces, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldDefinitionNode> fields) -> void
-HotChocolate.Language.ComplexTypeDefinitionNodeBase.Fields.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldDefinitionNode>
-HotChocolate.Language.ComplexTypeDefinitionNodeBase.Interfaces.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode>
+HotChocolate.Language.ComplexTypeDefinitionNodeBase.ComplexTypeDefinitionNodeBase(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode!>! interfaces, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldDefinitionNode!>! fields) -> void
+HotChocolate.Language.ComplexTypeDefinitionNodeBase.Fields.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldDefinitionNode!>!
+HotChocolate.Language.ComplexTypeDefinitionNodeBase.Interfaces.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode!>!
 HotChocolate.Language.DirectiveDefinitionNode
-HotChocolate.Language.DirectiveDefinitionNode.Arguments.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.InputValueDefinitionNode>
-HotChocolate.Language.DirectiveDefinitionNode.AsRepeatable() -> HotChocolate.Language.DirectiveDefinitionNode
-HotChocolate.Language.DirectiveDefinitionNode.AsUnique() -> HotChocolate.Language.DirectiveDefinitionNode
-HotChocolate.Language.DirectiveDefinitionNode.Description.get -> HotChocolate.Language.StringValueNode
-HotChocolate.Language.DirectiveDefinitionNode.DirectiveDefinitionNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, HotChocolate.Language.StringValueNode description, bool isRepeatable, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.InputValueDefinitionNode> arguments, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NameNode> locations) -> void
-HotChocolate.Language.DirectiveDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+HotChocolate.Language.DirectiveDefinitionNode.Arguments.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.InputValueDefinitionNode!>!
+HotChocolate.Language.DirectiveDefinitionNode.AsRepeatable() -> HotChocolate.Language.DirectiveDefinitionNode!
+HotChocolate.Language.DirectiveDefinitionNode.AsUnique() -> HotChocolate.Language.DirectiveDefinitionNode!
+HotChocolate.Language.DirectiveDefinitionNode.Description.get -> HotChocolate.Language.StringValueNode?
+HotChocolate.Language.DirectiveDefinitionNode.DirectiveDefinitionNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, HotChocolate.Language.StringValueNode? description, bool isRepeatable, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.InputValueDefinitionNode!>! arguments, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NameNode!>! locations) -> void
+HotChocolate.Language.DirectiveDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 HotChocolate.Language.DirectiveDefinitionNode.IsRepeatable.get -> bool
 HotChocolate.Language.DirectiveDefinitionNode.IsUnique.get -> bool
 HotChocolate.Language.DirectiveDefinitionNode.Kind.get -> HotChocolate.Language.SyntaxKind
-HotChocolate.Language.DirectiveDefinitionNode.Location.get -> HotChocolate.Language.Location
-HotChocolate.Language.DirectiveDefinitionNode.Locations.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NameNode>
-HotChocolate.Language.DirectiveDefinitionNode.Name.get -> HotChocolate.Language.NameNode
-HotChocolate.Language.DirectiveDefinitionNode.ToString(bool indented) -> string
-HotChocolate.Language.DirectiveDefinitionNode.WithArguments(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.InputValueDefinitionNode> arguments) -> HotChocolate.Language.DirectiveDefinitionNode
-HotChocolate.Language.DirectiveDefinitionNode.WithDescription(HotChocolate.Language.StringValueNode description) -> HotChocolate.Language.DirectiveDefinitionNode
-HotChocolate.Language.DirectiveDefinitionNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.DirectiveDefinitionNode
-HotChocolate.Language.DirectiveDefinitionNode.WithLocations(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NameNode> locations) -> HotChocolate.Language.DirectiveDefinitionNode
-HotChocolate.Language.DirectiveDefinitionNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.DirectiveDefinitionNode
+HotChocolate.Language.DirectiveDefinitionNode.Location.get -> HotChocolate.Language.Location?
+HotChocolate.Language.DirectiveDefinitionNode.Locations.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NameNode!>!
+HotChocolate.Language.DirectiveDefinitionNode.Name.get -> HotChocolate.Language.NameNode!
+HotChocolate.Language.DirectiveDefinitionNode.ToString(bool indented) -> string!
+HotChocolate.Language.DirectiveDefinitionNode.WithArguments(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.InputValueDefinitionNode!>! arguments) -> HotChocolate.Language.DirectiveDefinitionNode!
+HotChocolate.Language.DirectiveDefinitionNode.WithDescription(HotChocolate.Language.StringValueNode? description) -> HotChocolate.Language.DirectiveDefinitionNode!
+HotChocolate.Language.DirectiveDefinitionNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.DirectiveDefinitionNode!
+HotChocolate.Language.DirectiveDefinitionNode.WithLocations(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NameNode!>! locations) -> HotChocolate.Language.DirectiveDefinitionNode!
+HotChocolate.Language.DirectiveDefinitionNode.WithName(HotChocolate.Language.NameNode! name) -> HotChocolate.Language.DirectiveDefinitionNode!
 HotChocolate.Language.DirectiveLocation
-HotChocolate.Language.DirectiveLocation.Equals(HotChocolate.Language.DirectiveLocation other) -> bool
-HotChocolate.Language.DirectiveLocation.Value.get -> string
+HotChocolate.Language.DirectiveLocation.Equals(HotChocolate.Language.DirectiveLocation? other) -> bool
+HotChocolate.Language.DirectiveLocation.Value.get -> string!
 HotChocolate.Language.DirectiveNode
-HotChocolate.Language.DirectiveNode.Arguments.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ArgumentNode>
-HotChocolate.Language.DirectiveNode.DirectiveNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ArgumentNode> arguments) -> void
-HotChocolate.Language.DirectiveNode.DirectiveNode(HotChocolate.Language.NameNode name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ArgumentNode> arguments) -> void
-HotChocolate.Language.DirectiveNode.DirectiveNode(string name, params HotChocolate.Language.ArgumentNode[] arguments) -> void
-HotChocolate.Language.DirectiveNode.DirectiveNode(string name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ArgumentNode> arguments) -> void
-HotChocolate.Language.DirectiveNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+HotChocolate.Language.DirectiveNode.Arguments.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ArgumentNode!>!
+HotChocolate.Language.DirectiveNode.DirectiveNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ArgumentNode!>! arguments) -> void
+HotChocolate.Language.DirectiveNode.DirectiveNode(HotChocolate.Language.NameNode! name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ArgumentNode!>! arguments) -> void
+HotChocolate.Language.DirectiveNode.DirectiveNode(string! name, params HotChocolate.Language.ArgumentNode![]! arguments) -> void
+HotChocolate.Language.DirectiveNode.DirectiveNode(string! name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ArgumentNode!>! arguments) -> void
+HotChocolate.Language.DirectiveNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 HotChocolate.Language.DirectiveNode.Kind.get -> HotChocolate.Language.SyntaxKind
-HotChocolate.Language.DirectiveNode.Location.get -> HotChocolate.Language.Location
-HotChocolate.Language.DirectiveNode.Name.get -> HotChocolate.Language.NameNode
-HotChocolate.Language.DirectiveNode.ToString(bool indented) -> string
-HotChocolate.Language.DirectiveNode.WithArguments(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ArgumentNode> arguments) -> HotChocolate.Language.DirectiveNode
-HotChocolate.Language.DirectiveNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.DirectiveNode
-HotChocolate.Language.DirectiveNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.DirectiveNode
+HotChocolate.Language.DirectiveNode.Location.get -> HotChocolate.Language.Location?
+HotChocolate.Language.DirectiveNode.Name.get -> HotChocolate.Language.NameNode!
+HotChocolate.Language.DirectiveNode.ToString(bool indented) -> string!
+HotChocolate.Language.DirectiveNode.WithArguments(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ArgumentNode!>! arguments) -> HotChocolate.Language.DirectiveNode!
+HotChocolate.Language.DirectiveNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.DirectiveNode!
+HotChocolate.Language.DirectiveNode.WithName(HotChocolate.Language.NameNode! name) -> HotChocolate.Language.DirectiveNode!
 HotChocolate.Language.DocumentNode
-HotChocolate.Language.DocumentNode.Definitions.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.IDefinitionNode>
-HotChocolate.Language.DocumentNode.DocumentNode(HotChocolate.Language.Location location, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.IDefinitionNode> definitions) -> void
-HotChocolate.Language.DocumentNode.DocumentNode(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.IDefinitionNode> definitions) -> void
-HotChocolate.Language.DocumentNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+HotChocolate.Language.DocumentNode.Definitions.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.IDefinitionNode!>!
+HotChocolate.Language.DocumentNode.DocumentNode(HotChocolate.Language.Location? location, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.IDefinitionNode!>! definitions) -> void
+HotChocolate.Language.DocumentNode.DocumentNode(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.IDefinitionNode!>! definitions) -> void
+HotChocolate.Language.DocumentNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 HotChocolate.Language.DocumentNode.Kind.get -> HotChocolate.Language.SyntaxKind
-HotChocolate.Language.DocumentNode.Location.get -> HotChocolate.Language.Location
-HotChocolate.Language.DocumentNode.ToString(bool indented) -> string
-HotChocolate.Language.DocumentNode.WithDefinitions(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.IDefinitionNode> definitions) -> HotChocolate.Language.DocumentNode
-HotChocolate.Language.DocumentNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.DocumentNode
+HotChocolate.Language.DocumentNode.Location.get -> HotChocolate.Language.Location?
+HotChocolate.Language.DocumentNode.ToString(bool indented) -> string!
+HotChocolate.Language.DocumentNode.WithDefinitions(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.IDefinitionNode!>! definitions) -> HotChocolate.Language.DocumentNode!
+HotChocolate.Language.DocumentNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.DocumentNode!
 HotChocolate.Language.EnumTypeDefinitionNode
-HotChocolate.Language.EnumTypeDefinitionNode.Description.get -> HotChocolate.Language.StringValueNode
-HotChocolate.Language.EnumTypeDefinitionNode.EnumTypeDefinitionNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, HotChocolate.Language.StringValueNode description, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.EnumValueDefinitionNode> values) -> void
-HotChocolate.Language.EnumTypeDefinitionNode.WithDescription(HotChocolate.Language.StringValueNode description) -> HotChocolate.Language.EnumTypeDefinitionNode
-HotChocolate.Language.EnumTypeDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> HotChocolate.Language.EnumTypeDefinitionNode
-HotChocolate.Language.EnumTypeDefinitionNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.EnumTypeDefinitionNode
-HotChocolate.Language.EnumTypeDefinitionNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.EnumTypeDefinitionNode
-HotChocolate.Language.EnumTypeDefinitionNode.WithValues(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.EnumValueDefinitionNode> values) -> HotChocolate.Language.EnumTypeDefinitionNode
+HotChocolate.Language.EnumTypeDefinitionNode.Description.get -> HotChocolate.Language.StringValueNode?
+HotChocolate.Language.EnumTypeDefinitionNode.EnumTypeDefinitionNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, HotChocolate.Language.StringValueNode? description, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.EnumValueDefinitionNode!>! values) -> void
+HotChocolate.Language.EnumTypeDefinitionNode.WithDescription(HotChocolate.Language.StringValueNode? description) -> HotChocolate.Language.EnumTypeDefinitionNode!
+HotChocolate.Language.EnumTypeDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> HotChocolate.Language.EnumTypeDefinitionNode!
+HotChocolate.Language.EnumTypeDefinitionNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.EnumTypeDefinitionNode!
+HotChocolate.Language.EnumTypeDefinitionNode.WithName(HotChocolate.Language.NameNode! name) -> HotChocolate.Language.EnumTypeDefinitionNode!
+HotChocolate.Language.EnumTypeDefinitionNode.WithValues(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.EnumValueDefinitionNode!>! values) -> HotChocolate.Language.EnumTypeDefinitionNode!
 HotChocolate.Language.EnumTypeDefinitionNodeBase
-HotChocolate.Language.EnumTypeDefinitionNodeBase.EnumTypeDefinitionNodeBase(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.EnumValueDefinitionNode> values) -> void
-HotChocolate.Language.EnumTypeDefinitionNodeBase.Values.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.EnumValueDefinitionNode>
+HotChocolate.Language.EnumTypeDefinitionNodeBase.EnumTypeDefinitionNodeBase(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.EnumValueDefinitionNode!>! values) -> void
+HotChocolate.Language.EnumTypeDefinitionNodeBase.Values.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.EnumValueDefinitionNode!>!
 HotChocolate.Language.EnumTypeExtensionNode
-HotChocolate.Language.EnumTypeExtensionNode.EnumTypeExtensionNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.EnumValueDefinitionNode> values) -> void
-HotChocolate.Language.EnumTypeExtensionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> HotChocolate.Language.EnumTypeExtensionNode
-HotChocolate.Language.EnumTypeExtensionNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.EnumTypeExtensionNode
-HotChocolate.Language.EnumTypeExtensionNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.EnumTypeExtensionNode
-HotChocolate.Language.EnumTypeExtensionNode.WithValues(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.EnumValueDefinitionNode> values) -> HotChocolate.Language.EnumTypeExtensionNode
+HotChocolate.Language.EnumTypeExtensionNode.EnumTypeExtensionNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.EnumValueDefinitionNode!>! values) -> void
+HotChocolate.Language.EnumTypeExtensionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> HotChocolate.Language.EnumTypeExtensionNode!
+HotChocolate.Language.EnumTypeExtensionNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.EnumTypeExtensionNode!
+HotChocolate.Language.EnumTypeExtensionNode.WithName(HotChocolate.Language.NameNode! name) -> HotChocolate.Language.EnumTypeExtensionNode!
+HotChocolate.Language.EnumTypeExtensionNode.WithValues(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.EnumValueDefinitionNode!>! values) -> HotChocolate.Language.EnumTypeExtensionNode!
 HotChocolate.Language.EnumValueDefinitionNode
-HotChocolate.Language.EnumValueDefinitionNode.Description.get -> HotChocolate.Language.StringValueNode
-HotChocolate.Language.EnumValueDefinitionNode.EnumValueDefinitionNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, HotChocolate.Language.StringValueNode description, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> void
-HotChocolate.Language.EnumValueDefinitionNode.WithDescription(HotChocolate.Language.StringValueNode description) -> HotChocolate.Language.EnumValueDefinitionNode
-HotChocolate.Language.EnumValueDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> HotChocolate.Language.EnumValueDefinitionNode
-HotChocolate.Language.EnumValueDefinitionNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.EnumValueDefinitionNode
-HotChocolate.Language.EnumValueDefinitionNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.EnumValueDefinitionNode
+HotChocolate.Language.EnumValueDefinitionNode.Description.get -> HotChocolate.Language.StringValueNode?
+HotChocolate.Language.EnumValueDefinitionNode.EnumValueDefinitionNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, HotChocolate.Language.StringValueNode? description, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> void
+HotChocolate.Language.EnumValueDefinitionNode.WithDescription(HotChocolate.Language.StringValueNode? description) -> HotChocolate.Language.EnumValueDefinitionNode!
+HotChocolate.Language.EnumValueDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> HotChocolate.Language.EnumValueDefinitionNode!
+HotChocolate.Language.EnumValueDefinitionNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.EnumValueDefinitionNode!
+HotChocolate.Language.EnumValueDefinitionNode.WithName(HotChocolate.Language.NameNode! name) -> HotChocolate.Language.EnumValueDefinitionNode!
 HotChocolate.Language.EnumValueNode
 HotChocolate.Language.EnumValueNode.AsSpan() -> System.ReadOnlySpan<byte>
-HotChocolate.Language.EnumValueNode.EnumValueNode(HotChocolate.Language.Location location, string value) -> void
-HotChocolate.Language.EnumValueNode.EnumValueNode(HotChocolate.Language.Location location, System.ReadOnlyMemory<byte> value) -> void
-HotChocolate.Language.EnumValueNode.EnumValueNode(object value) -> void
-HotChocolate.Language.EnumValueNode.EnumValueNode(string value) -> void
-HotChocolate.Language.EnumValueNode.Equals(HotChocolate.Language.EnumValueNode other) -> bool
-HotChocolate.Language.EnumValueNode.Equals(HotChocolate.Language.IValueNode other) -> bool
-HotChocolate.Language.EnumValueNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+HotChocolate.Language.EnumValueNode.EnumValueNode(HotChocolate.Language.Location? location, string! value) -> void
+HotChocolate.Language.EnumValueNode.EnumValueNode(HotChocolate.Language.Location? location, System.ReadOnlyMemory<byte> value) -> void
+HotChocolate.Language.EnumValueNode.EnumValueNode(object! value) -> void
+HotChocolate.Language.EnumValueNode.EnumValueNode(string! value) -> void
+HotChocolate.Language.EnumValueNode.Equals(HotChocolate.Language.EnumValueNode? other) -> bool
+HotChocolate.Language.EnumValueNode.Equals(HotChocolate.Language.IValueNode? other) -> bool
+HotChocolate.Language.EnumValueNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 HotChocolate.Language.EnumValueNode.Kind.get -> HotChocolate.Language.SyntaxKind
-HotChocolate.Language.EnumValueNode.Location.get -> HotChocolate.Language.Location
-HotChocolate.Language.EnumValueNode.ToString(bool indented) -> string
-HotChocolate.Language.EnumValueNode.Value.get -> string
-HotChocolate.Language.EnumValueNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.EnumValueNode
-HotChocolate.Language.EnumValueNode.WithValue(string value) -> HotChocolate.Language.EnumValueNode
-HotChocolate.Language.EnumValueNode.WithValue(System.Memory<byte> value) -> HotChocolate.Language.EnumValueNode
+HotChocolate.Language.EnumValueNode.Location.get -> HotChocolate.Language.Location?
+HotChocolate.Language.EnumValueNode.ToString(bool indented) -> string!
+HotChocolate.Language.EnumValueNode.Value.get -> string!
+HotChocolate.Language.EnumValueNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.EnumValueNode!
+HotChocolate.Language.EnumValueNode.WithValue(string! value) -> HotChocolate.Language.EnumValueNode!
+HotChocolate.Language.EnumValueNode.WithValue(System.Memory<byte> value) -> HotChocolate.Language.EnumValueNode!
 HotChocolate.Language.FieldDefinitionNode
-HotChocolate.Language.FieldDefinitionNode.Arguments.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.InputValueDefinitionNode>
-HotChocolate.Language.FieldDefinitionNode.Description.get -> HotChocolate.Language.StringValueNode
-HotChocolate.Language.FieldDefinitionNode.FieldDefinitionNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, HotChocolate.Language.StringValueNode description, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.InputValueDefinitionNode> arguments, HotChocolate.Language.ITypeNode type, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> void
-HotChocolate.Language.FieldDefinitionNode.Type.get -> HotChocolate.Language.ITypeNode
-HotChocolate.Language.FieldDefinitionNode.WithArguments(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.InputValueDefinitionNode> arguments) -> HotChocolate.Language.FieldDefinitionNode
-HotChocolate.Language.FieldDefinitionNode.WithDescription(HotChocolate.Language.StringValueNode description) -> HotChocolate.Language.FieldDefinitionNode
-HotChocolate.Language.FieldDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> HotChocolate.Language.FieldDefinitionNode
-HotChocolate.Language.FieldDefinitionNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.FieldDefinitionNode
-HotChocolate.Language.FieldDefinitionNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.FieldDefinitionNode
-HotChocolate.Language.FieldDefinitionNode.WithType(HotChocolate.Language.ITypeNode type) -> HotChocolate.Language.FieldDefinitionNode
+HotChocolate.Language.FieldDefinitionNode.Arguments.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.InputValueDefinitionNode!>!
+HotChocolate.Language.FieldDefinitionNode.Description.get -> HotChocolate.Language.StringValueNode?
+HotChocolate.Language.FieldDefinitionNode.FieldDefinitionNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, HotChocolate.Language.StringValueNode? description, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.InputValueDefinitionNode!>! arguments, HotChocolate.Language.ITypeNode! type, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> void
+HotChocolate.Language.FieldDefinitionNode.Type.get -> HotChocolate.Language.ITypeNode!
+HotChocolate.Language.FieldDefinitionNode.WithArguments(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.InputValueDefinitionNode!>! arguments) -> HotChocolate.Language.FieldDefinitionNode!
+HotChocolate.Language.FieldDefinitionNode.WithDescription(HotChocolate.Language.StringValueNode? description) -> HotChocolate.Language.FieldDefinitionNode!
+HotChocolate.Language.FieldDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> HotChocolate.Language.FieldDefinitionNode!
+HotChocolate.Language.FieldDefinitionNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.FieldDefinitionNode!
+HotChocolate.Language.FieldDefinitionNode.WithName(HotChocolate.Language.NameNode! name) -> HotChocolate.Language.FieldDefinitionNode!
+HotChocolate.Language.FieldDefinitionNode.WithType(HotChocolate.Language.ITypeNode! type) -> HotChocolate.Language.FieldDefinitionNode!
 HotChocolate.Language.FieldNode
-HotChocolate.Language.FieldNode.Alias.get -> HotChocolate.Language.NameNode
-HotChocolate.Language.FieldNode.Arguments.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ArgumentNode>
-HotChocolate.Language.FieldNode.FieldNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, HotChocolate.Language.NameNode alias, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ArgumentNode> arguments, HotChocolate.Language.SelectionSetNode selectionSet) -> void
-HotChocolate.Language.FieldNode.SelectionSet.get -> HotChocolate.Language.SelectionSetNode
-HotChocolate.Language.FieldNode.WithAlias(HotChocolate.Language.NameNode alias) -> HotChocolate.Language.FieldNode
-HotChocolate.Language.FieldNode.WithArguments(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ArgumentNode> arguments) -> HotChocolate.Language.FieldNode
-HotChocolate.Language.FieldNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> HotChocolate.Language.FieldNode
-HotChocolate.Language.FieldNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.FieldNode
-HotChocolate.Language.FieldNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.FieldNode
-HotChocolate.Language.FieldNode.WithSelectionSet(HotChocolate.Language.SelectionSetNode selectionSet) -> HotChocolate.Language.FieldNode
+HotChocolate.Language.FieldNode.Alias.get -> HotChocolate.Language.NameNode?
+HotChocolate.Language.FieldNode.Arguments.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ArgumentNode!>!
+HotChocolate.Language.FieldNode.FieldNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, HotChocolate.Language.NameNode? alias, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ArgumentNode!>! arguments, HotChocolate.Language.SelectionSetNode? selectionSet) -> void
+HotChocolate.Language.FieldNode.SelectionSet.get -> HotChocolate.Language.SelectionSetNode?
+HotChocolate.Language.FieldNode.WithAlias(HotChocolate.Language.NameNode? alias) -> HotChocolate.Language.FieldNode!
+HotChocolate.Language.FieldNode.WithArguments(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ArgumentNode!>! arguments) -> HotChocolate.Language.FieldNode!
+HotChocolate.Language.FieldNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> HotChocolate.Language.FieldNode!
+HotChocolate.Language.FieldNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.FieldNode!
+HotChocolate.Language.FieldNode.WithName(HotChocolate.Language.NameNode! name) -> HotChocolate.Language.FieldNode!
+HotChocolate.Language.FieldNode.WithSelectionSet(HotChocolate.Language.SelectionSetNode? selectionSet) -> HotChocolate.Language.FieldNode!
 HotChocolate.Language.FloatFormat
 HotChocolate.Language.FloatFormat.Exponential = 1 -> HotChocolate.Language.FloatFormat
 HotChocolate.Language.FloatFormat.FixedPoint = 0 -> HotChocolate.Language.FloatFormat
 HotChocolate.Language.FloatValueNode
 HotChocolate.Language.FloatValueNode.AsSpan() -> System.ReadOnlySpan<byte>
-HotChocolate.Language.FloatValueNode.Equals(HotChocolate.Language.FloatValueNode other) -> bool
-HotChocolate.Language.FloatValueNode.Equals(HotChocolate.Language.IValueNode other) -> bool
+HotChocolate.Language.FloatValueNode.Equals(HotChocolate.Language.FloatValueNode? other) -> bool
+HotChocolate.Language.FloatValueNode.Equals(HotChocolate.Language.IValueNode? other) -> bool
 HotChocolate.Language.FloatValueNode.FloatValueNode(decimal value) -> void
 HotChocolate.Language.FloatValueNode.FloatValueNode(double value) -> void
-HotChocolate.Language.FloatValueNode.FloatValueNode(HotChocolate.Language.Location location, decimal value) -> void
-HotChocolate.Language.FloatValueNode.FloatValueNode(HotChocolate.Language.Location location, double value) -> void
-HotChocolate.Language.FloatValueNode.FloatValueNode(HotChocolate.Language.Location location, System.ReadOnlyMemory<byte> value, HotChocolate.Language.FloatFormat format) -> void
+HotChocolate.Language.FloatValueNode.FloatValueNode(HotChocolate.Language.Location? location, decimal value) -> void
+HotChocolate.Language.FloatValueNode.FloatValueNode(HotChocolate.Language.Location? location, double value) -> void
+HotChocolate.Language.FloatValueNode.FloatValueNode(HotChocolate.Language.Location? location, System.ReadOnlyMemory<byte> value, HotChocolate.Language.FloatFormat format) -> void
 HotChocolate.Language.FloatValueNode.FloatValueNode(System.ReadOnlyMemory<byte> value, HotChocolate.Language.FloatFormat format) -> void
 HotChocolate.Language.FloatValueNode.Format.get -> HotChocolate.Language.FloatFormat
-HotChocolate.Language.FloatValueNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+HotChocolate.Language.FloatValueNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 HotChocolate.Language.FloatValueNode.Kind.get -> HotChocolate.Language.SyntaxKind
-HotChocolate.Language.FloatValueNode.Location.get -> HotChocolate.Language.Location
+HotChocolate.Language.FloatValueNode.Location.get -> HotChocolate.Language.Location?
 HotChocolate.Language.FloatValueNode.ToDecimal() -> decimal
 HotChocolate.Language.FloatValueNode.ToDouble() -> double
 HotChocolate.Language.FloatValueNode.ToSingle() -> float
-HotChocolate.Language.FloatValueNode.ToString(bool indented) -> string
-HotChocolate.Language.FloatValueNode.Value.get -> string
-HotChocolate.Language.FloatValueNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.FloatValueNode
-HotChocolate.Language.FloatValueNode.WithValue(decimal value) -> HotChocolate.Language.FloatValueNode
-HotChocolate.Language.FloatValueNode.WithValue(double value) -> HotChocolate.Language.FloatValueNode
-HotChocolate.Language.FloatValueNode.WithValue(System.ReadOnlyMemory<byte> value, HotChocolate.Language.FloatFormat format) -> HotChocolate.Language.FloatValueNode
-HotChocolate.Language.FloatValueNode.WithValue(System.ReadOnlySpan<byte> value, HotChocolate.Language.FloatFormat format) -> HotChocolate.Language.FloatValueNode
+HotChocolate.Language.FloatValueNode.ToString(bool indented) -> string!
+HotChocolate.Language.FloatValueNode.Value.get -> string!
+HotChocolate.Language.FloatValueNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.FloatValueNode!
+HotChocolate.Language.FloatValueNode.WithValue(decimal value) -> HotChocolate.Language.FloatValueNode!
+HotChocolate.Language.FloatValueNode.WithValue(double value) -> HotChocolate.Language.FloatValueNode!
+HotChocolate.Language.FloatValueNode.WithValue(System.ReadOnlyMemory<byte> value, HotChocolate.Language.FloatFormat format) -> HotChocolate.Language.FloatValueNode!
+HotChocolate.Language.FloatValueNode.WithValue(System.ReadOnlySpan<byte> value, HotChocolate.Language.FloatFormat format) -> HotChocolate.Language.FloatValueNode!
 HotChocolate.Language.FragmentDefinitionNode
-HotChocolate.Language.FragmentDefinitionNode.FragmentDefinitionNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.VariableDefinitionNode> variableDefinitions, HotChocolate.Language.NamedTypeNode typeCondition, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives, HotChocolate.Language.SelectionSetNode selectionSet) -> void
-HotChocolate.Language.FragmentDefinitionNode.SelectionSet.get -> HotChocolate.Language.SelectionSetNode
-HotChocolate.Language.FragmentDefinitionNode.TypeCondition.get -> HotChocolate.Language.NamedTypeNode
-HotChocolate.Language.FragmentDefinitionNode.VariableDefinitions.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.VariableDefinitionNode>
-HotChocolate.Language.FragmentDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> HotChocolate.Language.FragmentDefinitionNode
-HotChocolate.Language.FragmentDefinitionNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.FragmentDefinitionNode
-HotChocolate.Language.FragmentDefinitionNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.FragmentDefinitionNode
-HotChocolate.Language.FragmentDefinitionNode.WithSelectionSet(HotChocolate.Language.SelectionSetNode selectionSet) -> HotChocolate.Language.FragmentDefinitionNode
-HotChocolate.Language.FragmentDefinitionNode.WithTypeCondition(HotChocolate.Language.NamedTypeNode typeCondition) -> HotChocolate.Language.FragmentDefinitionNode
-HotChocolate.Language.FragmentDefinitionNode.WithVariableDefinitions(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.VariableDefinitionNode> variableDefinitions) -> HotChocolate.Language.FragmentDefinitionNode
+HotChocolate.Language.FragmentDefinitionNode.FragmentDefinitionNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.VariableDefinitionNode!>! variableDefinitions, HotChocolate.Language.NamedTypeNode! typeCondition, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives, HotChocolate.Language.SelectionSetNode! selectionSet) -> void
+HotChocolate.Language.FragmentDefinitionNode.SelectionSet.get -> HotChocolate.Language.SelectionSetNode!
+HotChocolate.Language.FragmentDefinitionNode.TypeCondition.get -> HotChocolate.Language.NamedTypeNode!
+HotChocolate.Language.FragmentDefinitionNode.VariableDefinitions.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.VariableDefinitionNode!>!
+HotChocolate.Language.FragmentDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> HotChocolate.Language.FragmentDefinitionNode!
+HotChocolate.Language.FragmentDefinitionNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.FragmentDefinitionNode!
+HotChocolate.Language.FragmentDefinitionNode.WithName(HotChocolate.Language.NameNode! name) -> HotChocolate.Language.FragmentDefinitionNode!
+HotChocolate.Language.FragmentDefinitionNode.WithSelectionSet(HotChocolate.Language.SelectionSetNode! selectionSet) -> HotChocolate.Language.FragmentDefinitionNode!
+HotChocolate.Language.FragmentDefinitionNode.WithTypeCondition(HotChocolate.Language.NamedTypeNode! typeCondition) -> HotChocolate.Language.FragmentDefinitionNode!
+HotChocolate.Language.FragmentDefinitionNode.WithVariableDefinitions(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.VariableDefinitionNode!>! variableDefinitions) -> HotChocolate.Language.FragmentDefinitionNode!
 HotChocolate.Language.FragmentSpreadNode
-HotChocolate.Language.FragmentSpreadNode.FragmentSpreadNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> void
-HotChocolate.Language.FragmentSpreadNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> HotChocolate.Language.FragmentSpreadNode
-HotChocolate.Language.FragmentSpreadNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.FragmentSpreadNode
-HotChocolate.Language.FragmentSpreadNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.FragmentSpreadNode
+HotChocolate.Language.FragmentSpreadNode.FragmentSpreadNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> void
+HotChocolate.Language.FragmentSpreadNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> HotChocolate.Language.FragmentSpreadNode!
+HotChocolate.Language.FragmentSpreadNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.FragmentSpreadNode!
+HotChocolate.Language.FragmentSpreadNode.WithName(HotChocolate.Language.NameNode! name) -> HotChocolate.Language.FragmentSpreadNode!
 HotChocolate.Language.IDefinitionNode
 HotChocolate.Language.IExecutableDefinitionNode
 HotChocolate.Language.IFloatValueLiteral
@@ -191,9 +191,9 @@ HotChocolate.Language.IFloatValueLiteral.ToDecimal() -> decimal
 HotChocolate.Language.IFloatValueLiteral.ToDouble() -> double
 HotChocolate.Language.IFloatValueLiteral.ToSingle() -> float
 HotChocolate.Language.IHasDirectives
-HotChocolate.Language.IHasDirectives.Directives.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode>
+HotChocolate.Language.IHasDirectives.Directives.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>!
 HotChocolate.Language.IHasName
-HotChocolate.Language.IHasName.Name.get -> HotChocolate.Language.NameNode
+HotChocolate.Language.IHasName.Name.get -> HotChocolate.Language.NameNode!
 HotChocolate.Language.IHasSpan
 HotChocolate.Language.IHasSpan.AsSpan() -> System.ReadOnlySpan<byte>
 HotChocolate.Language.IIntValueLiteral
@@ -206,78 +206,78 @@ HotChocolate.Language.IIntValueLiteral.ToUInt32() -> uint
 HotChocolate.Language.IIntValueLiteral.ToUInt64() -> ulong
 HotChocolate.Language.INamedSyntaxNode
 HotChocolate.Language.InlineFragmentNode
-HotChocolate.Language.InlineFragmentNode.Directives.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode>
-HotChocolate.Language.InlineFragmentNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
-HotChocolate.Language.InlineFragmentNode.InlineFragmentNode(HotChocolate.Language.Location location, HotChocolate.Language.NamedTypeNode typeCondition, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives, HotChocolate.Language.SelectionSetNode selectionSet) -> void
+HotChocolate.Language.InlineFragmentNode.Directives.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>!
+HotChocolate.Language.InlineFragmentNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
+HotChocolate.Language.InlineFragmentNode.InlineFragmentNode(HotChocolate.Language.Location? location, HotChocolate.Language.NamedTypeNode? typeCondition, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives, HotChocolate.Language.SelectionSetNode! selectionSet) -> void
 HotChocolate.Language.InlineFragmentNode.Kind.get -> HotChocolate.Language.SyntaxKind
-HotChocolate.Language.InlineFragmentNode.Location.get -> HotChocolate.Language.Location
-HotChocolate.Language.InlineFragmentNode.SelectionSet.get -> HotChocolate.Language.SelectionSetNode
-HotChocolate.Language.InlineFragmentNode.ToString(bool indented) -> string
-HotChocolate.Language.InlineFragmentNode.TypeCondition.get -> HotChocolate.Language.NamedTypeNode
-HotChocolate.Language.InlineFragmentNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> HotChocolate.Language.InlineFragmentNode
-HotChocolate.Language.InlineFragmentNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.InlineFragmentNode
-HotChocolate.Language.InlineFragmentNode.WithSelectionSet(HotChocolate.Language.SelectionSetNode selectionSet) -> HotChocolate.Language.InlineFragmentNode
-HotChocolate.Language.InlineFragmentNode.WithTypeCondition(HotChocolate.Language.NamedTypeNode typeCondition) -> HotChocolate.Language.InlineFragmentNode
+HotChocolate.Language.InlineFragmentNode.Location.get -> HotChocolate.Language.Location?
+HotChocolate.Language.InlineFragmentNode.SelectionSet.get -> HotChocolate.Language.SelectionSetNode!
+HotChocolate.Language.InlineFragmentNode.ToString(bool indented) -> string!
+HotChocolate.Language.InlineFragmentNode.TypeCondition.get -> HotChocolate.Language.NamedTypeNode?
+HotChocolate.Language.InlineFragmentNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> HotChocolate.Language.InlineFragmentNode!
+HotChocolate.Language.InlineFragmentNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.InlineFragmentNode!
+HotChocolate.Language.InlineFragmentNode.WithSelectionSet(HotChocolate.Language.SelectionSetNode! selectionSet) -> HotChocolate.Language.InlineFragmentNode!
+HotChocolate.Language.InlineFragmentNode.WithTypeCondition(HotChocolate.Language.NamedTypeNode? typeCondition) -> HotChocolate.Language.InlineFragmentNode!
 HotChocolate.Language.InputObjectTypeDefinitionNode
-HotChocolate.Language.InputObjectTypeDefinitionNode.Description.get -> HotChocolate.Language.StringValueNode
-HotChocolate.Language.InputObjectTypeDefinitionNode.InputObjectTypeDefinitionNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, HotChocolate.Language.StringValueNode description, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.InputValueDefinitionNode> fields) -> void
-HotChocolate.Language.InputObjectTypeDefinitionNode.WithDescription(HotChocolate.Language.StringValueNode description) -> HotChocolate.Language.InputObjectTypeDefinitionNode
-HotChocolate.Language.InputObjectTypeDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> HotChocolate.Language.InputObjectTypeDefinitionNode
-HotChocolate.Language.InputObjectTypeDefinitionNode.WithFields(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.InputValueDefinitionNode> fields) -> HotChocolate.Language.InputObjectTypeDefinitionNode
-HotChocolate.Language.InputObjectTypeDefinitionNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.InputObjectTypeDefinitionNode
-HotChocolate.Language.InputObjectTypeDefinitionNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.InputObjectTypeDefinitionNode
+HotChocolate.Language.InputObjectTypeDefinitionNode.Description.get -> HotChocolate.Language.StringValueNode?
+HotChocolate.Language.InputObjectTypeDefinitionNode.InputObjectTypeDefinitionNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, HotChocolate.Language.StringValueNode? description, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.InputValueDefinitionNode!>! fields) -> void
+HotChocolate.Language.InputObjectTypeDefinitionNode.WithDescription(HotChocolate.Language.StringValueNode? description) -> HotChocolate.Language.InputObjectTypeDefinitionNode!
+HotChocolate.Language.InputObjectTypeDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> HotChocolate.Language.InputObjectTypeDefinitionNode!
+HotChocolate.Language.InputObjectTypeDefinitionNode.WithFields(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.InputValueDefinitionNode!>! fields) -> HotChocolate.Language.InputObjectTypeDefinitionNode!
+HotChocolate.Language.InputObjectTypeDefinitionNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.InputObjectTypeDefinitionNode!
+HotChocolate.Language.InputObjectTypeDefinitionNode.WithName(HotChocolate.Language.NameNode! name) -> HotChocolate.Language.InputObjectTypeDefinitionNode!
 HotChocolate.Language.InputObjectTypeDefinitionNodeBase
-HotChocolate.Language.InputObjectTypeDefinitionNodeBase.Fields.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.InputValueDefinitionNode>
-HotChocolate.Language.InputObjectTypeDefinitionNodeBase.InputObjectTypeDefinitionNodeBase(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.InputValueDefinitionNode> fields) -> void
+HotChocolate.Language.InputObjectTypeDefinitionNodeBase.Fields.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.InputValueDefinitionNode!>!
+HotChocolate.Language.InputObjectTypeDefinitionNodeBase.InputObjectTypeDefinitionNodeBase(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.InputValueDefinitionNode!>! fields) -> void
 HotChocolate.Language.InputObjectTypeExtensionNode
-HotChocolate.Language.InputObjectTypeExtensionNode.InputObjectTypeExtensionNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.InputValueDefinitionNode> fields) -> void
-HotChocolate.Language.InputObjectTypeExtensionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> HotChocolate.Language.InputObjectTypeExtensionNode
-HotChocolate.Language.InputObjectTypeExtensionNode.WithFields(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.InputValueDefinitionNode> fields) -> HotChocolate.Language.InputObjectTypeExtensionNode
-HotChocolate.Language.InputObjectTypeExtensionNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.InputObjectTypeExtensionNode
-HotChocolate.Language.InputObjectTypeExtensionNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.InputObjectTypeExtensionNode
+HotChocolate.Language.InputObjectTypeExtensionNode.InputObjectTypeExtensionNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.InputValueDefinitionNode!>! fields) -> void
+HotChocolate.Language.InputObjectTypeExtensionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> HotChocolate.Language.InputObjectTypeExtensionNode!
+HotChocolate.Language.InputObjectTypeExtensionNode.WithFields(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.InputValueDefinitionNode!>! fields) -> HotChocolate.Language.InputObjectTypeExtensionNode!
+HotChocolate.Language.InputObjectTypeExtensionNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.InputObjectTypeExtensionNode!
+HotChocolate.Language.InputObjectTypeExtensionNode.WithName(HotChocolate.Language.NameNode! name) -> HotChocolate.Language.InputObjectTypeExtensionNode!
 HotChocolate.Language.InputValueDefinitionNode
-HotChocolate.Language.InputValueDefinitionNode.DefaultValue.get -> HotChocolate.Language.IValueNode
-HotChocolate.Language.InputValueDefinitionNode.Description.get -> HotChocolate.Language.StringValueNode
-HotChocolate.Language.InputValueDefinitionNode.InputValueDefinitionNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, HotChocolate.Language.StringValueNode description, HotChocolate.Language.ITypeNode type, HotChocolate.Language.IValueNode defaultValue, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> void
-HotChocolate.Language.InputValueDefinitionNode.Type.get -> HotChocolate.Language.ITypeNode
-HotChocolate.Language.InputValueDefinitionNode.WithDefaultValue(HotChocolate.Language.IValueNode defaultValue) -> HotChocolate.Language.InputValueDefinitionNode
-HotChocolate.Language.InputValueDefinitionNode.WithDescription(HotChocolate.Language.StringValueNode description) -> HotChocolate.Language.InputValueDefinitionNode
-HotChocolate.Language.InputValueDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> HotChocolate.Language.InputValueDefinitionNode
-HotChocolate.Language.InputValueDefinitionNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.InputValueDefinitionNode
-HotChocolate.Language.InputValueDefinitionNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.InputValueDefinitionNode
-HotChocolate.Language.InputValueDefinitionNode.WithType(HotChocolate.Language.ITypeNode type) -> HotChocolate.Language.InputValueDefinitionNode
+HotChocolate.Language.InputValueDefinitionNode.DefaultValue.get -> HotChocolate.Language.IValueNode?
+HotChocolate.Language.InputValueDefinitionNode.Description.get -> HotChocolate.Language.StringValueNode?
+HotChocolate.Language.InputValueDefinitionNode.InputValueDefinitionNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, HotChocolate.Language.StringValueNode? description, HotChocolate.Language.ITypeNode! type, HotChocolate.Language.IValueNode? defaultValue, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> void
+HotChocolate.Language.InputValueDefinitionNode.Type.get -> HotChocolate.Language.ITypeNode!
+HotChocolate.Language.InputValueDefinitionNode.WithDefaultValue(HotChocolate.Language.IValueNode! defaultValue) -> HotChocolate.Language.InputValueDefinitionNode!
+HotChocolate.Language.InputValueDefinitionNode.WithDescription(HotChocolate.Language.StringValueNode? description) -> HotChocolate.Language.InputValueDefinitionNode!
+HotChocolate.Language.InputValueDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> HotChocolate.Language.InputValueDefinitionNode!
+HotChocolate.Language.InputValueDefinitionNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.InputValueDefinitionNode!
+HotChocolate.Language.InputValueDefinitionNode.WithName(HotChocolate.Language.NameNode! name) -> HotChocolate.Language.InputValueDefinitionNode!
+HotChocolate.Language.InputValueDefinitionNode.WithType(HotChocolate.Language.ITypeNode! type) -> HotChocolate.Language.InputValueDefinitionNode!
 HotChocolate.Language.InterfaceTypeDefinitionNode
-HotChocolate.Language.InterfaceTypeDefinitionNode.Description.get -> HotChocolate.Language.StringValueNode
-HotChocolate.Language.InterfaceTypeDefinitionNode.InterfaceTypeDefinitionNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, HotChocolate.Language.StringValueNode description, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode> interfaces, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldDefinitionNode> fields) -> void
-HotChocolate.Language.InterfaceTypeDefinitionNode.WithDescription(HotChocolate.Language.StringValueNode description) -> HotChocolate.Language.InterfaceTypeDefinitionNode
-HotChocolate.Language.InterfaceTypeDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> HotChocolate.Language.InterfaceTypeDefinitionNode
-HotChocolate.Language.InterfaceTypeDefinitionNode.WithFields(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldDefinitionNode> fields) -> HotChocolate.Language.InterfaceTypeDefinitionNode
-HotChocolate.Language.InterfaceTypeDefinitionNode.WithInterfaces(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode> interfaces) -> HotChocolate.Language.InterfaceTypeDefinitionNode
-HotChocolate.Language.InterfaceTypeDefinitionNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.InterfaceTypeDefinitionNode
-HotChocolate.Language.InterfaceTypeDefinitionNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.InterfaceTypeDefinitionNode
+HotChocolate.Language.InterfaceTypeDefinitionNode.Description.get -> HotChocolate.Language.StringValueNode?
+HotChocolate.Language.InterfaceTypeDefinitionNode.InterfaceTypeDefinitionNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, HotChocolate.Language.StringValueNode? description, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode!>! interfaces, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldDefinitionNode!>! fields) -> void
+HotChocolate.Language.InterfaceTypeDefinitionNode.WithDescription(HotChocolate.Language.StringValueNode? description) -> HotChocolate.Language.InterfaceTypeDefinitionNode!
+HotChocolate.Language.InterfaceTypeDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> HotChocolate.Language.InterfaceTypeDefinitionNode!
+HotChocolate.Language.InterfaceTypeDefinitionNode.WithFields(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldDefinitionNode!>! fields) -> HotChocolate.Language.InterfaceTypeDefinitionNode!
+HotChocolate.Language.InterfaceTypeDefinitionNode.WithInterfaces(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode!>! interfaces) -> HotChocolate.Language.InterfaceTypeDefinitionNode!
+HotChocolate.Language.InterfaceTypeDefinitionNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.InterfaceTypeDefinitionNode!
+HotChocolate.Language.InterfaceTypeDefinitionNode.WithName(HotChocolate.Language.NameNode! name) -> HotChocolate.Language.InterfaceTypeDefinitionNode!
 HotChocolate.Language.InterfaceTypeDefinitionNodeBase
-HotChocolate.Language.InterfaceTypeDefinitionNodeBase.InterfaceTypeDefinitionNodeBase(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode> interfaces, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldDefinitionNode> fields) -> void
+HotChocolate.Language.InterfaceTypeDefinitionNodeBase.InterfaceTypeDefinitionNodeBase(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode!>! interfaces, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldDefinitionNode!>! fields) -> void
 HotChocolate.Language.InterfaceTypeExtensionNode
-HotChocolate.Language.InterfaceTypeExtensionNode.InterfaceTypeExtensionNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode> interfaces, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldDefinitionNode> fields) -> void
-HotChocolate.Language.InterfaceTypeExtensionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> HotChocolate.Language.InterfaceTypeExtensionNode
-HotChocolate.Language.InterfaceTypeExtensionNode.WithFields(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldDefinitionNode> fields) -> HotChocolate.Language.InterfaceTypeExtensionNode
-HotChocolate.Language.InterfaceTypeExtensionNode.WithInterfaces(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode> interfaces) -> HotChocolate.Language.InterfaceTypeExtensionNode
-HotChocolate.Language.InterfaceTypeExtensionNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.InterfaceTypeExtensionNode
-HotChocolate.Language.InterfaceTypeExtensionNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.InterfaceTypeExtensionNode
+HotChocolate.Language.InterfaceTypeExtensionNode.InterfaceTypeExtensionNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode!>! interfaces, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldDefinitionNode!>! fields) -> void
+HotChocolate.Language.InterfaceTypeExtensionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> HotChocolate.Language.InterfaceTypeExtensionNode!
+HotChocolate.Language.InterfaceTypeExtensionNode.WithFields(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldDefinitionNode!>! fields) -> HotChocolate.Language.InterfaceTypeExtensionNode!
+HotChocolate.Language.InterfaceTypeExtensionNode.WithInterfaces(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode!>! interfaces) -> HotChocolate.Language.InterfaceTypeExtensionNode!
+HotChocolate.Language.InterfaceTypeExtensionNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.InterfaceTypeExtensionNode!
+HotChocolate.Language.InterfaceTypeExtensionNode.WithName(HotChocolate.Language.NameNode! name) -> HotChocolate.Language.InterfaceTypeExtensionNode!
 HotChocolate.Language.IntValueNode
 HotChocolate.Language.IntValueNode.AsSpan() -> System.ReadOnlySpan<byte>
-HotChocolate.Language.IntValueNode.Equals(HotChocolate.Language.IntValueNode other) -> bool
-HotChocolate.Language.IntValueNode.Equals(HotChocolate.Language.IValueNode other) -> bool
-HotChocolate.Language.IntValueNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+HotChocolate.Language.IntValueNode.Equals(HotChocolate.Language.IntValueNode? other) -> bool
+HotChocolate.Language.IntValueNode.Equals(HotChocolate.Language.IValueNode? other) -> bool
+HotChocolate.Language.IntValueNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 HotChocolate.Language.IntValueNode.IntValueNode(byte value) -> void
-HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location location, byte value) -> void
-HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location location, int value) -> void
-HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location location, long value) -> void
-HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location location, short value) -> void
-HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location location, System.ReadOnlyMemory<byte> value) -> void
-HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location location, uint value) -> void
-HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location location, ulong value) -> void
-HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location location, ushort value) -> void
+HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location? location, byte value) -> void
+HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location? location, int value) -> void
+HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location? location, long value) -> void
+HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location? location, short value) -> void
+HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location? location, System.ReadOnlyMemory<byte> value) -> void
+HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location? location, uint value) -> void
+HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location? location, ulong value) -> void
+HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location? location, ushort value) -> void
 HotChocolate.Language.IntValueNode.IntValueNode(int value) -> void
 HotChocolate.Language.IntValueNode.IntValueNode(long value) -> void
 HotChocolate.Language.IntValueNode.IntValueNode(short value) -> void
@@ -286,7 +286,7 @@ HotChocolate.Language.IntValueNode.IntValueNode(uint value) -> void
 HotChocolate.Language.IntValueNode.IntValueNode(ulong value) -> void
 HotChocolate.Language.IntValueNode.IntValueNode(ushort value) -> void
 HotChocolate.Language.IntValueNode.Kind.get -> HotChocolate.Language.SyntaxKind
-HotChocolate.Language.IntValueNode.Location.get -> HotChocolate.Language.Location
+HotChocolate.Language.IntValueNode.Location.get -> HotChocolate.Language.Location?
 HotChocolate.Language.IntValueNode.ToByte() -> byte
 HotChocolate.Language.IntValueNode.ToDecimal() -> decimal
 HotChocolate.Language.IntValueNode.ToDouble() -> double
@@ -294,71 +294,71 @@ HotChocolate.Language.IntValueNode.ToInt16() -> short
 HotChocolate.Language.IntValueNode.ToInt32() -> int
 HotChocolate.Language.IntValueNode.ToInt64() -> long
 HotChocolate.Language.IntValueNode.ToSingle() -> float
-HotChocolate.Language.IntValueNode.ToString(bool indented) -> string
+HotChocolate.Language.IntValueNode.ToString(bool indented) -> string!
 HotChocolate.Language.IntValueNode.ToUInt16() -> ushort
 HotChocolate.Language.IntValueNode.ToUInt32() -> uint
 HotChocolate.Language.IntValueNode.ToUInt64() -> ulong
-HotChocolate.Language.IntValueNode.Value.get -> string
-HotChocolate.Language.IntValueNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.IntValueNode
-HotChocolate.Language.IntValueNode.WithValue(byte value) -> HotChocolate.Language.IntValueNode
-HotChocolate.Language.IntValueNode.WithValue(int value) -> HotChocolate.Language.IntValueNode
-HotChocolate.Language.IntValueNode.WithValue(long value) -> HotChocolate.Language.IntValueNode
-HotChocolate.Language.IntValueNode.WithValue(short value) -> HotChocolate.Language.IntValueNode
-HotChocolate.Language.IntValueNode.WithValue(System.ReadOnlyMemory<byte> value) -> HotChocolate.Language.IntValueNode
+HotChocolate.Language.IntValueNode.Value.get -> string!
+HotChocolate.Language.IntValueNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.IntValueNode!
+HotChocolate.Language.IntValueNode.WithValue(byte value) -> HotChocolate.Language.IntValueNode!
+HotChocolate.Language.IntValueNode.WithValue(int value) -> HotChocolate.Language.IntValueNode!
+HotChocolate.Language.IntValueNode.WithValue(long value) -> HotChocolate.Language.IntValueNode!
+HotChocolate.Language.IntValueNode.WithValue(short value) -> HotChocolate.Language.IntValueNode!
+HotChocolate.Language.IntValueNode.WithValue(System.ReadOnlyMemory<byte> value) -> HotChocolate.Language.IntValueNode!
 HotChocolate.Language.INullableTypeNode
 HotChocolate.Language.InvalidFormatException
 HotChocolate.Language.InvalidFormatException.InvalidFormatException() -> void
-HotChocolate.Language.InvalidFormatException.InvalidFormatException(string message) -> void
-HotChocolate.Language.InvalidFormatException.InvalidFormatException(string message, System.Exception innerException) -> void
-HotChocolate.Language.InvalidFormatException.InvalidFormatException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) -> void
+HotChocolate.Language.InvalidFormatException.InvalidFormatException(string! message) -> void
+HotChocolate.Language.InvalidFormatException.InvalidFormatException(string! message, System.Exception! innerException) -> void
+HotChocolate.Language.InvalidFormatException.InvalidFormatException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 HotChocolate.Language.ISelectionNode
 HotChocolate.Language.ISyntaxNode
-HotChocolate.Language.ISyntaxNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+HotChocolate.Language.ISyntaxNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 HotChocolate.Language.ISyntaxNode.Kind.get -> HotChocolate.Language.SyntaxKind
-HotChocolate.Language.ISyntaxNode.Location.get -> HotChocolate.Language.Location
-HotChocolate.Language.ISyntaxNode.ToString() -> string
-HotChocolate.Language.ISyntaxNode.ToString(bool indented) -> string
+HotChocolate.Language.ISyntaxNode.Location.get -> HotChocolate.Language.Location?
+HotChocolate.Language.ISyntaxNode.ToString() -> string!
+HotChocolate.Language.ISyntaxNode.ToString(bool indented) -> string!
 HotChocolate.Language.ITypeDefinitionNode
-HotChocolate.Language.ITypeDefinitionNode.Description.get -> HotChocolate.Language.StringValueNode
+HotChocolate.Language.ITypeDefinitionNode.Description.get -> HotChocolate.Language.StringValueNode?
 HotChocolate.Language.ITypeExtensionNode
 HotChocolate.Language.ITypeNode
 HotChocolate.Language.ITypeSystemDefinitionNode
 HotChocolate.Language.ITypeSystemExtensionNode
 HotChocolate.Language.IValueNode
-HotChocolate.Language.IValueNode.Value.get -> object
+HotChocolate.Language.IValueNode.Value.get -> object?
 HotChocolate.Language.IValueNode<T>
 HotChocolate.Language.IValueNode<T>.Value.get -> T
 HotChocolate.Language.LanguageException
 HotChocolate.Language.LanguageException.LanguageException() -> void
-HotChocolate.Language.LanguageException.LanguageException(string message) -> void
-HotChocolate.Language.LanguageException.LanguageException(string message, System.Exception inner) -> void
-HotChocolate.Language.LanguageException.LanguageException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) -> void
+HotChocolate.Language.LanguageException.LanguageException(string! message) -> void
+HotChocolate.Language.LanguageException.LanguageException(string! message, System.Exception! inner) -> void
+HotChocolate.Language.LanguageException.LanguageException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 HotChocolate.Language.ListTypeNode
-HotChocolate.Language.ListTypeNode.Equals(HotChocolate.Language.ListTypeNode other) -> bool
-HotChocolate.Language.ListTypeNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+HotChocolate.Language.ListTypeNode.Equals(HotChocolate.Language.ListTypeNode? other) -> bool
+HotChocolate.Language.ListTypeNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 HotChocolate.Language.ListTypeNode.Kind.get -> HotChocolate.Language.SyntaxKind
-HotChocolate.Language.ListTypeNode.ListTypeNode(HotChocolate.Language.ITypeNode type) -> void
-HotChocolate.Language.ListTypeNode.ListTypeNode(HotChocolate.Language.Location location, HotChocolate.Language.ITypeNode type) -> void
-HotChocolate.Language.ListTypeNode.Location.get -> HotChocolate.Language.Location
-HotChocolate.Language.ListTypeNode.ToString(bool indented) -> string
-HotChocolate.Language.ListTypeNode.Type.get -> HotChocolate.Language.ITypeNode
-HotChocolate.Language.ListTypeNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.ListTypeNode
-HotChocolate.Language.ListTypeNode.WithType(HotChocolate.Language.ITypeNode type) -> HotChocolate.Language.ListTypeNode
+HotChocolate.Language.ListTypeNode.ListTypeNode(HotChocolate.Language.ITypeNode! type) -> void
+HotChocolate.Language.ListTypeNode.ListTypeNode(HotChocolate.Language.Location? location, HotChocolate.Language.ITypeNode! type) -> void
+HotChocolate.Language.ListTypeNode.Location.get -> HotChocolate.Language.Location?
+HotChocolate.Language.ListTypeNode.ToString(bool indented) -> string!
+HotChocolate.Language.ListTypeNode.Type.get -> HotChocolate.Language.ITypeNode!
+HotChocolate.Language.ListTypeNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.ListTypeNode!
+HotChocolate.Language.ListTypeNode.WithType(HotChocolate.Language.ITypeNode! type) -> HotChocolate.Language.ListTypeNode!
 HotChocolate.Language.ListValueNode
-HotChocolate.Language.ListValueNode.Equals(HotChocolate.Language.IValueNode other) -> bool
-HotChocolate.Language.ListValueNode.Equals(HotChocolate.Language.ListValueNode other) -> bool
-HotChocolate.Language.ListValueNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
-HotChocolate.Language.ListValueNode.Items.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.IValueNode>
+HotChocolate.Language.ListValueNode.Equals(HotChocolate.Language.IValueNode? other) -> bool
+HotChocolate.Language.ListValueNode.Equals(HotChocolate.Language.ListValueNode? other) -> bool
+HotChocolate.Language.ListValueNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
+HotChocolate.Language.ListValueNode.Items.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.IValueNode!>!
 HotChocolate.Language.ListValueNode.Kind.get -> HotChocolate.Language.SyntaxKind
-HotChocolate.Language.ListValueNode.ListValueNode(HotChocolate.Language.IValueNode item) -> void
-HotChocolate.Language.ListValueNode.ListValueNode(HotChocolate.Language.Location location, HotChocolate.Language.IValueNode item) -> void
-HotChocolate.Language.ListValueNode.ListValueNode(HotChocolate.Language.Location location, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.IValueNode> items) -> void
-HotChocolate.Language.ListValueNode.ListValueNode(params HotChocolate.Language.IValueNode[] items) -> void
-HotChocolate.Language.ListValueNode.ListValueNode(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.IValueNode> items) -> void
-HotChocolate.Language.ListValueNode.Location.get -> HotChocolate.Language.Location
-HotChocolate.Language.ListValueNode.ToString(bool indented) -> string
-HotChocolate.Language.ListValueNode.WithItems(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.IValueNode> items) -> HotChocolate.Language.ListValueNode
-HotChocolate.Language.ListValueNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.ListValueNode
+HotChocolate.Language.ListValueNode.ListValueNode(HotChocolate.Language.IValueNode! item) -> void
+HotChocolate.Language.ListValueNode.ListValueNode(HotChocolate.Language.Location? location, HotChocolate.Language.IValueNode! item) -> void
+HotChocolate.Language.ListValueNode.ListValueNode(HotChocolate.Language.Location? location, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.IValueNode!>! items) -> void
+HotChocolate.Language.ListValueNode.ListValueNode(params HotChocolate.Language.IValueNode![]! items) -> void
+HotChocolate.Language.ListValueNode.ListValueNode(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.IValueNode!>! items) -> void
+HotChocolate.Language.ListValueNode.Location.get -> HotChocolate.Language.Location?
+HotChocolate.Language.ListValueNode.ToString(bool indented) -> string!
+HotChocolate.Language.ListValueNode.WithItems(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.IValueNode!>! items) -> HotChocolate.Language.ListValueNode!
+HotChocolate.Language.ListValueNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.ListValueNode!
 HotChocolate.Language.Location
 HotChocolate.Language.Location.Column.get -> int
 HotChocolate.Language.Location.End.get -> int
@@ -366,199 +366,199 @@ HotChocolate.Language.Location.Line.get -> int
 HotChocolate.Language.Location.Location(int start, int end, int line, int column) -> void
 HotChocolate.Language.Location.Start.get -> int
 HotChocolate.Language.NamedSyntaxNode
-HotChocolate.Language.NamedSyntaxNode.Directives.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode>
-HotChocolate.Language.NamedSyntaxNode.Location.get -> HotChocolate.Language.Location
-HotChocolate.Language.NamedSyntaxNode.Name.get -> HotChocolate.Language.NameNode
-HotChocolate.Language.NamedSyntaxNode.NamedSyntaxNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> void
+HotChocolate.Language.NamedSyntaxNode.Directives.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>!
+HotChocolate.Language.NamedSyntaxNode.Location.get -> HotChocolate.Language.Location?
+HotChocolate.Language.NamedSyntaxNode.Name.get -> HotChocolate.Language.NameNode!
+HotChocolate.Language.NamedSyntaxNode.NamedSyntaxNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> void
 HotChocolate.Language.NamedTypeNode
-HotChocolate.Language.NamedTypeNode.Equals(HotChocolate.Language.NamedTypeNode other) -> bool
-HotChocolate.Language.NamedTypeNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+HotChocolate.Language.NamedTypeNode.Equals(HotChocolate.Language.NamedTypeNode? other) -> bool
+HotChocolate.Language.NamedTypeNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 HotChocolate.Language.NamedTypeNode.Kind.get -> HotChocolate.Language.SyntaxKind
-HotChocolate.Language.NamedTypeNode.Location.get -> HotChocolate.Language.Location
-HotChocolate.Language.NamedTypeNode.Name.get -> HotChocolate.Language.NameNode
-HotChocolate.Language.NamedTypeNode.NamedTypeNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name) -> void
-HotChocolate.Language.NamedTypeNode.NamedTypeNode(HotChocolate.Language.NameNode name) -> void
-HotChocolate.Language.NamedTypeNode.NamedTypeNode(string name) -> void
-HotChocolate.Language.NamedTypeNode.ToString(bool indented) -> string
-HotChocolate.Language.NamedTypeNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.NamedTypeNode
-HotChocolate.Language.NamedTypeNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.NamedTypeNode
+HotChocolate.Language.NamedTypeNode.Location.get -> HotChocolate.Language.Location?
+HotChocolate.Language.NamedTypeNode.Name.get -> HotChocolate.Language.NameNode!
+HotChocolate.Language.NamedTypeNode.NamedTypeNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name) -> void
+HotChocolate.Language.NamedTypeNode.NamedTypeNode(HotChocolate.Language.NameNode! name) -> void
+HotChocolate.Language.NamedTypeNode.NamedTypeNode(string! name) -> void
+HotChocolate.Language.NamedTypeNode.ToString(bool indented) -> string!
+HotChocolate.Language.NamedTypeNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.NamedTypeNode!
+HotChocolate.Language.NamedTypeNode.WithName(HotChocolate.Language.NameNode! name) -> HotChocolate.Language.NamedTypeNode!
 HotChocolate.Language.NameNode
-HotChocolate.Language.NameNode.Equals(HotChocolate.Language.NameNode other) -> bool
-HotChocolate.Language.NameNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+HotChocolate.Language.NameNode.Equals(HotChocolate.Language.NameNode? other) -> bool
+HotChocolate.Language.NameNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 HotChocolate.Language.NameNode.Kind.get -> HotChocolate.Language.SyntaxKind
-HotChocolate.Language.NameNode.Location.get -> HotChocolate.Language.Location
-HotChocolate.Language.NameNode.NameNode(HotChocolate.Language.Location location, string value) -> void
-HotChocolate.Language.NameNode.NameNode(string value) -> void
-HotChocolate.Language.NameNode.ToString(bool indented) -> string
-HotChocolate.Language.NameNode.Value.get -> string
-HotChocolate.Language.NameNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.NameNode
-HotChocolate.Language.NameNode.WithValue(string value) -> HotChocolate.Language.NameNode
+HotChocolate.Language.NameNode.Location.get -> HotChocolate.Language.Location?
+HotChocolate.Language.NameNode.NameNode(HotChocolate.Language.Location? location, string! value) -> void
+HotChocolate.Language.NameNode.NameNode(string! value) -> void
+HotChocolate.Language.NameNode.ToString(bool indented) -> string!
+HotChocolate.Language.NameNode.Value.get -> string!
+HotChocolate.Language.NameNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.NameNode!
+HotChocolate.Language.NameNode.WithValue(string! value) -> HotChocolate.Language.NameNode!
 HotChocolate.Language.NonNullTypeNode
-HotChocolate.Language.NonNullTypeNode.Equals(HotChocolate.Language.NonNullTypeNode other) -> bool
-HotChocolate.Language.NonNullTypeNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+HotChocolate.Language.NonNullTypeNode.Equals(HotChocolate.Language.NonNullTypeNode? other) -> bool
+HotChocolate.Language.NonNullTypeNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 HotChocolate.Language.NonNullTypeNode.Kind.get -> HotChocolate.Language.SyntaxKind
-HotChocolate.Language.NonNullTypeNode.Location.get -> HotChocolate.Language.Location
-HotChocolate.Language.NonNullTypeNode.NonNullTypeNode(HotChocolate.Language.INullableTypeNode type) -> void
-HotChocolate.Language.NonNullTypeNode.NonNullTypeNode(HotChocolate.Language.Location location, HotChocolate.Language.INullableTypeNode type) -> void
-HotChocolate.Language.NonNullTypeNode.ToString(bool indented) -> string
-HotChocolate.Language.NonNullTypeNode.Type.get -> HotChocolate.Language.INullableTypeNode
-HotChocolate.Language.NonNullTypeNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.NonNullTypeNode
-HotChocolate.Language.NonNullTypeNode.WithType(HotChocolate.Language.INullableTypeNode type) -> HotChocolate.Language.NonNullTypeNode
+HotChocolate.Language.NonNullTypeNode.Location.get -> HotChocolate.Language.Location?
+HotChocolate.Language.NonNullTypeNode.NonNullTypeNode(HotChocolate.Language.INullableTypeNode! type) -> void
+HotChocolate.Language.NonNullTypeNode.NonNullTypeNode(HotChocolate.Language.Location? location, HotChocolate.Language.INullableTypeNode! type) -> void
+HotChocolate.Language.NonNullTypeNode.ToString(bool indented) -> string!
+HotChocolate.Language.NonNullTypeNode.Type.get -> HotChocolate.Language.INullableTypeNode!
+HotChocolate.Language.NonNullTypeNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.NonNullTypeNode!
+HotChocolate.Language.NonNullTypeNode.WithType(HotChocolate.Language.INullableTypeNode! type) -> HotChocolate.Language.NonNullTypeNode!
 HotChocolate.Language.NullValueNode
-HotChocolate.Language.NullValueNode.Equals(HotChocolate.Language.IValueNode other) -> bool
-HotChocolate.Language.NullValueNode.Equals(HotChocolate.Language.NullValueNode other) -> bool
-HotChocolate.Language.NullValueNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+HotChocolate.Language.NullValueNode.Equals(HotChocolate.Language.IValueNode? other) -> bool
+HotChocolate.Language.NullValueNode.Equals(HotChocolate.Language.NullValueNode? other) -> bool
+HotChocolate.Language.NullValueNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 HotChocolate.Language.NullValueNode.Kind.get -> HotChocolate.Language.SyntaxKind
-HotChocolate.Language.NullValueNode.Location.get -> HotChocolate.Language.Location
-HotChocolate.Language.NullValueNode.NullValueNode(HotChocolate.Language.Location location) -> void
-HotChocolate.Language.NullValueNode.ToString(bool indented) -> string
-HotChocolate.Language.NullValueNode.Value.get -> object
-HotChocolate.Language.NullValueNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.NullValueNode
+HotChocolate.Language.NullValueNode.Location.get -> HotChocolate.Language.Location?
+HotChocolate.Language.NullValueNode.NullValueNode(HotChocolate.Language.Location? location) -> void
+HotChocolate.Language.NullValueNode.ToString(bool indented) -> string!
+HotChocolate.Language.NullValueNode.Value.get -> object?
+HotChocolate.Language.NullValueNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.NullValueNode!
 HotChocolate.Language.ObjectFieldNode
-HotChocolate.Language.ObjectFieldNode.Equals(HotChocolate.Language.ObjectFieldNode other) -> bool
-HotChocolate.Language.ObjectFieldNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+HotChocolate.Language.ObjectFieldNode.Equals(HotChocolate.Language.ObjectFieldNode? other) -> bool
+HotChocolate.Language.ObjectFieldNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 HotChocolate.Language.ObjectFieldNode.Kind.get -> HotChocolate.Language.SyntaxKind
-HotChocolate.Language.ObjectFieldNode.Location.get -> HotChocolate.Language.Location
-HotChocolate.Language.ObjectFieldNode.Name.get -> HotChocolate.Language.NameNode
-HotChocolate.Language.ObjectFieldNode.ObjectFieldNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, HotChocolate.Language.IValueNode value) -> void
-HotChocolate.Language.ObjectFieldNode.ObjectFieldNode(string name, bool value) -> void
-HotChocolate.Language.ObjectFieldNode.ObjectFieldNode(string name, double value) -> void
-HotChocolate.Language.ObjectFieldNode.ObjectFieldNode(string name, HotChocolate.Language.IValueNode value) -> void
-HotChocolate.Language.ObjectFieldNode.ObjectFieldNode(string name, int value) -> void
-HotChocolate.Language.ObjectFieldNode.ObjectFieldNode(string name, string value) -> void
-HotChocolate.Language.ObjectFieldNode.ToString(bool indented) -> string
-HotChocolate.Language.ObjectFieldNode.Value.get -> HotChocolate.Language.IValueNode
-HotChocolate.Language.ObjectFieldNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.ObjectFieldNode
-HotChocolate.Language.ObjectFieldNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.ObjectFieldNode
-HotChocolate.Language.ObjectFieldNode.WithValue(HotChocolate.Language.IValueNode value) -> HotChocolate.Language.ObjectFieldNode
+HotChocolate.Language.ObjectFieldNode.Location.get -> HotChocolate.Language.Location?
+HotChocolate.Language.ObjectFieldNode.Name.get -> HotChocolate.Language.NameNode!
+HotChocolate.Language.ObjectFieldNode.ObjectFieldNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, HotChocolate.Language.IValueNode! value) -> void
+HotChocolate.Language.ObjectFieldNode.ObjectFieldNode(string! name, bool value) -> void
+HotChocolate.Language.ObjectFieldNode.ObjectFieldNode(string! name, double value) -> void
+HotChocolate.Language.ObjectFieldNode.ObjectFieldNode(string! name, HotChocolate.Language.IValueNode! value) -> void
+HotChocolate.Language.ObjectFieldNode.ObjectFieldNode(string! name, int value) -> void
+HotChocolate.Language.ObjectFieldNode.ObjectFieldNode(string! name, string! value) -> void
+HotChocolate.Language.ObjectFieldNode.ToString(bool indented) -> string!
+HotChocolate.Language.ObjectFieldNode.Value.get -> HotChocolate.Language.IValueNode!
+HotChocolate.Language.ObjectFieldNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.ObjectFieldNode!
+HotChocolate.Language.ObjectFieldNode.WithName(HotChocolate.Language.NameNode! name) -> HotChocolate.Language.ObjectFieldNode!
+HotChocolate.Language.ObjectFieldNode.WithValue(HotChocolate.Language.IValueNode! value) -> HotChocolate.Language.ObjectFieldNode!
 HotChocolate.Language.ObjectTypeDefinitionNode
-HotChocolate.Language.ObjectTypeDefinitionNode.Description.get -> HotChocolate.Language.StringValueNode
-HotChocolate.Language.ObjectTypeDefinitionNode.ObjectTypeDefinitionNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, HotChocolate.Language.StringValueNode description, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode> interfaces, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldDefinitionNode> fields) -> void
-HotChocolate.Language.ObjectTypeDefinitionNode.WithDescription(HotChocolate.Language.StringValueNode description) -> HotChocolate.Language.ObjectTypeDefinitionNode
-HotChocolate.Language.ObjectTypeDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> HotChocolate.Language.ObjectTypeDefinitionNode
-HotChocolate.Language.ObjectTypeDefinitionNode.WithFields(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldDefinitionNode> fields) -> HotChocolate.Language.ObjectTypeDefinitionNode
-HotChocolate.Language.ObjectTypeDefinitionNode.WithInterfaces(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode> interfaces) -> HotChocolate.Language.ObjectTypeDefinitionNode
-HotChocolate.Language.ObjectTypeDefinitionNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.ObjectTypeDefinitionNode
-HotChocolate.Language.ObjectTypeDefinitionNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.ObjectTypeDefinitionNode
+HotChocolate.Language.ObjectTypeDefinitionNode.Description.get -> HotChocolate.Language.StringValueNode?
+HotChocolate.Language.ObjectTypeDefinitionNode.ObjectTypeDefinitionNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, HotChocolate.Language.StringValueNode? description, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode!>! interfaces, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldDefinitionNode!>! fields) -> void
+HotChocolate.Language.ObjectTypeDefinitionNode.WithDescription(HotChocolate.Language.StringValueNode? description) -> HotChocolate.Language.ObjectTypeDefinitionNode!
+HotChocolate.Language.ObjectTypeDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> HotChocolate.Language.ObjectTypeDefinitionNode!
+HotChocolate.Language.ObjectTypeDefinitionNode.WithFields(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldDefinitionNode!>! fields) -> HotChocolate.Language.ObjectTypeDefinitionNode!
+HotChocolate.Language.ObjectTypeDefinitionNode.WithInterfaces(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode!>! interfaces) -> HotChocolate.Language.ObjectTypeDefinitionNode!
+HotChocolate.Language.ObjectTypeDefinitionNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.ObjectTypeDefinitionNode!
+HotChocolate.Language.ObjectTypeDefinitionNode.WithName(HotChocolate.Language.NameNode! name) -> HotChocolate.Language.ObjectTypeDefinitionNode!
 HotChocolate.Language.ObjectTypeDefinitionNodeBase
-HotChocolate.Language.ObjectTypeDefinitionNodeBase.ObjectTypeDefinitionNodeBase(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode> interfaces, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldDefinitionNode> fields) -> void
+HotChocolate.Language.ObjectTypeDefinitionNodeBase.ObjectTypeDefinitionNodeBase(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode!>! interfaces, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldDefinitionNode!>! fields) -> void
 HotChocolate.Language.ObjectTypeExtensionNode
-HotChocolate.Language.ObjectTypeExtensionNode.ObjectTypeExtensionNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode> interfaces, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldDefinitionNode> fields) -> void
-HotChocolate.Language.ObjectTypeExtensionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> HotChocolate.Language.ObjectTypeExtensionNode
-HotChocolate.Language.ObjectTypeExtensionNode.WithFields(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldDefinitionNode> fields) -> HotChocolate.Language.ObjectTypeExtensionNode
-HotChocolate.Language.ObjectTypeExtensionNode.WithInterfaces(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode> interfaces) -> HotChocolate.Language.ObjectTypeExtensionNode
-HotChocolate.Language.ObjectTypeExtensionNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.ObjectTypeExtensionNode
-HotChocolate.Language.ObjectTypeExtensionNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.ObjectTypeExtensionNode
+HotChocolate.Language.ObjectTypeExtensionNode.ObjectTypeExtensionNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode!>! interfaces, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldDefinitionNode!>! fields) -> void
+HotChocolate.Language.ObjectTypeExtensionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> HotChocolate.Language.ObjectTypeExtensionNode!
+HotChocolate.Language.ObjectTypeExtensionNode.WithFields(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldDefinitionNode!>! fields) -> HotChocolate.Language.ObjectTypeExtensionNode!
+HotChocolate.Language.ObjectTypeExtensionNode.WithInterfaces(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode!>! interfaces) -> HotChocolate.Language.ObjectTypeExtensionNode!
+HotChocolate.Language.ObjectTypeExtensionNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.ObjectTypeExtensionNode!
+HotChocolate.Language.ObjectTypeExtensionNode.WithName(HotChocolate.Language.NameNode! name) -> HotChocolate.Language.ObjectTypeExtensionNode!
 HotChocolate.Language.ObjectValueNode
-HotChocolate.Language.ObjectValueNode.Equals(HotChocolate.Language.IValueNode other) -> bool
-HotChocolate.Language.ObjectValueNode.Equals(HotChocolate.Language.ObjectValueNode other) -> bool
-HotChocolate.Language.ObjectValueNode.Fields.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ObjectFieldNode>
-HotChocolate.Language.ObjectValueNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+HotChocolate.Language.ObjectValueNode.Equals(HotChocolate.Language.IValueNode? other) -> bool
+HotChocolate.Language.ObjectValueNode.Equals(HotChocolate.Language.ObjectValueNode? other) -> bool
+HotChocolate.Language.ObjectValueNode.Fields.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ObjectFieldNode!>!
+HotChocolate.Language.ObjectValueNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 HotChocolate.Language.ObjectValueNode.Kind.get -> HotChocolate.Language.SyntaxKind
-HotChocolate.Language.ObjectValueNode.Location.get -> HotChocolate.Language.Location
-HotChocolate.Language.ObjectValueNode.ObjectValueNode(HotChocolate.Language.Location location, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ObjectFieldNode> fields) -> void
-HotChocolate.Language.ObjectValueNode.ObjectValueNode(params HotChocolate.Language.ObjectFieldNode[] fields) -> void
-HotChocolate.Language.ObjectValueNode.ObjectValueNode(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ObjectFieldNode> fields) -> void
-HotChocolate.Language.ObjectValueNode.ToString(bool indented) -> string
-HotChocolate.Language.ObjectValueNode.WithFields(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ObjectFieldNode> fields) -> HotChocolate.Language.ObjectValueNode
-HotChocolate.Language.ObjectValueNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.ObjectValueNode
+HotChocolate.Language.ObjectValueNode.Location.get -> HotChocolate.Language.Location?
+HotChocolate.Language.ObjectValueNode.ObjectValueNode(HotChocolate.Language.Location? location, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ObjectFieldNode!>! fields) -> void
+HotChocolate.Language.ObjectValueNode.ObjectValueNode(params HotChocolate.Language.ObjectFieldNode![]! fields) -> void
+HotChocolate.Language.ObjectValueNode.ObjectValueNode(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ObjectFieldNode!>! fields) -> void
+HotChocolate.Language.ObjectValueNode.ToString(bool indented) -> string!
+HotChocolate.Language.ObjectValueNode.WithFields(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ObjectFieldNode!>! fields) -> HotChocolate.Language.ObjectValueNode!
+HotChocolate.Language.ObjectValueNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.ObjectValueNode!
 HotChocolate.Language.OperationDefinitionNode
-HotChocolate.Language.OperationDefinitionNode.Directives.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode>
-HotChocolate.Language.OperationDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+HotChocolate.Language.OperationDefinitionNode.Directives.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>!
+HotChocolate.Language.OperationDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 HotChocolate.Language.OperationDefinitionNode.Kind.get -> HotChocolate.Language.SyntaxKind
-HotChocolate.Language.OperationDefinitionNode.Location.get -> HotChocolate.Language.Location
-HotChocolate.Language.OperationDefinitionNode.Name.get -> HotChocolate.Language.NameNode
+HotChocolate.Language.OperationDefinitionNode.Location.get -> HotChocolate.Language.Location?
+HotChocolate.Language.OperationDefinitionNode.Name.get -> HotChocolate.Language.NameNode?
 HotChocolate.Language.OperationDefinitionNode.Operation.get -> HotChocolate.Language.OperationType
-HotChocolate.Language.OperationDefinitionNode.OperationDefinitionNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, HotChocolate.Language.OperationType operation, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.VariableDefinitionNode> variableDefinitions, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives, HotChocolate.Language.SelectionSetNode selectionSet) -> void
-HotChocolate.Language.OperationDefinitionNode.SelectionSet.get -> HotChocolate.Language.SelectionSetNode
-HotChocolate.Language.OperationDefinitionNode.ToString(bool indented) -> string
-HotChocolate.Language.OperationDefinitionNode.VariableDefinitions.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.VariableDefinitionNode>
-HotChocolate.Language.OperationDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> HotChocolate.Language.OperationDefinitionNode
-HotChocolate.Language.OperationDefinitionNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.OperationDefinitionNode
-HotChocolate.Language.OperationDefinitionNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.OperationDefinitionNode
-HotChocolate.Language.OperationDefinitionNode.WithOperation(HotChocolate.Language.OperationType operation) -> HotChocolate.Language.OperationDefinitionNode
-HotChocolate.Language.OperationDefinitionNode.WithSelectionSet(HotChocolate.Language.SelectionSetNode selectionSet) -> HotChocolate.Language.OperationDefinitionNode
-HotChocolate.Language.OperationDefinitionNode.WithVariableDefinitions(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.VariableDefinitionNode> variableDefinitions) -> HotChocolate.Language.OperationDefinitionNode
+HotChocolate.Language.OperationDefinitionNode.OperationDefinitionNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode? name, HotChocolate.Language.OperationType operation, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.VariableDefinitionNode!>! variableDefinitions, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives, HotChocolate.Language.SelectionSetNode! selectionSet) -> void
+HotChocolate.Language.OperationDefinitionNode.SelectionSet.get -> HotChocolate.Language.SelectionSetNode!
+HotChocolate.Language.OperationDefinitionNode.ToString(bool indented) -> string!
+HotChocolate.Language.OperationDefinitionNode.VariableDefinitions.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.VariableDefinitionNode!>!
+HotChocolate.Language.OperationDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> HotChocolate.Language.OperationDefinitionNode!
+HotChocolate.Language.OperationDefinitionNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.OperationDefinitionNode!
+HotChocolate.Language.OperationDefinitionNode.WithName(HotChocolate.Language.NameNode? name) -> HotChocolate.Language.OperationDefinitionNode!
+HotChocolate.Language.OperationDefinitionNode.WithOperation(HotChocolate.Language.OperationType operation) -> HotChocolate.Language.OperationDefinitionNode!
+HotChocolate.Language.OperationDefinitionNode.WithSelectionSet(HotChocolate.Language.SelectionSetNode! selectionSet) -> HotChocolate.Language.OperationDefinitionNode!
+HotChocolate.Language.OperationDefinitionNode.WithVariableDefinitions(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.VariableDefinitionNode!>! variableDefinitions) -> HotChocolate.Language.OperationDefinitionNode!
 HotChocolate.Language.OperationType
 HotChocolate.Language.OperationType.Mutation = 1 -> HotChocolate.Language.OperationType
 HotChocolate.Language.OperationType.Query = 0 -> HotChocolate.Language.OperationType
 HotChocolate.Language.OperationType.Subscription = 2 -> HotChocolate.Language.OperationType
 HotChocolate.Language.OperationTypeDefinitionNode
-HotChocolate.Language.OperationTypeDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+HotChocolate.Language.OperationTypeDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 HotChocolate.Language.OperationTypeDefinitionNode.Kind.get -> HotChocolate.Language.SyntaxKind
-HotChocolate.Language.OperationTypeDefinitionNode.Location.get -> HotChocolate.Language.Location
+HotChocolate.Language.OperationTypeDefinitionNode.Location.get -> HotChocolate.Language.Location?
 HotChocolate.Language.OperationTypeDefinitionNode.Operation.get -> HotChocolate.Language.OperationType
-HotChocolate.Language.OperationTypeDefinitionNode.OperationTypeDefinitionNode(HotChocolate.Language.Location location, HotChocolate.Language.OperationType operation, HotChocolate.Language.NamedTypeNode type) -> void
-HotChocolate.Language.OperationTypeDefinitionNode.ToString(bool indented) -> string
-HotChocolate.Language.OperationTypeDefinitionNode.Type.get -> HotChocolate.Language.NamedTypeNode
-HotChocolate.Language.OperationTypeDefinitionNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.OperationTypeDefinitionNode
-HotChocolate.Language.OperationTypeDefinitionNode.WithOperation(HotChocolate.Language.OperationType operation) -> HotChocolate.Language.OperationTypeDefinitionNode
-HotChocolate.Language.OperationTypeDefinitionNode.WithType(HotChocolate.Language.NamedTypeNode type) -> HotChocolate.Language.OperationTypeDefinitionNode
+HotChocolate.Language.OperationTypeDefinitionNode.OperationTypeDefinitionNode(HotChocolate.Language.Location? location, HotChocolate.Language.OperationType operation, HotChocolate.Language.NamedTypeNode! type) -> void
+HotChocolate.Language.OperationTypeDefinitionNode.ToString(bool indented) -> string!
+HotChocolate.Language.OperationTypeDefinitionNode.Type.get -> HotChocolate.Language.NamedTypeNode!
+HotChocolate.Language.OperationTypeDefinitionNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.OperationTypeDefinitionNode!
+HotChocolate.Language.OperationTypeDefinitionNode.WithOperation(HotChocolate.Language.OperationType operation) -> HotChocolate.Language.OperationTypeDefinitionNode!
+HotChocolate.Language.OperationTypeDefinitionNode.WithType(HotChocolate.Language.NamedTypeNode! type) -> HotChocolate.Language.OperationTypeDefinitionNode!
 HotChocolate.Language.ScalarTypeDefinitionNode
-HotChocolate.Language.ScalarTypeDefinitionNode.Description.get -> HotChocolate.Language.StringValueNode
-HotChocolate.Language.ScalarTypeDefinitionNode.ScalarTypeDefinitionNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, HotChocolate.Language.StringValueNode description, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> void
-HotChocolate.Language.ScalarTypeDefinitionNode.WithDescription(HotChocolate.Language.StringValueNode description) -> HotChocolate.Language.ScalarTypeDefinitionNode
-HotChocolate.Language.ScalarTypeDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> HotChocolate.Language.ScalarTypeDefinitionNode
-HotChocolate.Language.ScalarTypeDefinitionNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.ScalarTypeDefinitionNode
-HotChocolate.Language.ScalarTypeDefinitionNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.ScalarTypeDefinitionNode
+HotChocolate.Language.ScalarTypeDefinitionNode.Description.get -> HotChocolate.Language.StringValueNode?
+HotChocolate.Language.ScalarTypeDefinitionNode.ScalarTypeDefinitionNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, HotChocolate.Language.StringValueNode? description, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> void
+HotChocolate.Language.ScalarTypeDefinitionNode.WithDescription(HotChocolate.Language.StringValueNode? description) -> HotChocolate.Language.ScalarTypeDefinitionNode!
+HotChocolate.Language.ScalarTypeDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> HotChocolate.Language.ScalarTypeDefinitionNode!
+HotChocolate.Language.ScalarTypeDefinitionNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.ScalarTypeDefinitionNode!
+HotChocolate.Language.ScalarTypeDefinitionNode.WithName(HotChocolate.Language.NameNode! name) -> HotChocolate.Language.ScalarTypeDefinitionNode!
 HotChocolate.Language.ScalarTypeDefinitionNodeBase
-HotChocolate.Language.ScalarTypeDefinitionNodeBase.ScalarTypeDefinitionNodeBase(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> void
+HotChocolate.Language.ScalarTypeDefinitionNodeBase.ScalarTypeDefinitionNodeBase(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> void
 HotChocolate.Language.ScalarTypeExtensionNode
-HotChocolate.Language.ScalarTypeExtensionNode.ScalarTypeExtensionNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> void
-HotChocolate.Language.ScalarTypeExtensionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> HotChocolate.Language.ScalarTypeExtensionNode
-HotChocolate.Language.ScalarTypeExtensionNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.ScalarTypeExtensionNode
-HotChocolate.Language.ScalarTypeExtensionNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.ScalarTypeExtensionNode
+HotChocolate.Language.ScalarTypeExtensionNode.ScalarTypeExtensionNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> void
+HotChocolate.Language.ScalarTypeExtensionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> HotChocolate.Language.ScalarTypeExtensionNode!
+HotChocolate.Language.ScalarTypeExtensionNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.ScalarTypeExtensionNode!
+HotChocolate.Language.ScalarTypeExtensionNode.WithName(HotChocolate.Language.NameNode! name) -> HotChocolate.Language.ScalarTypeExtensionNode!
 HotChocolate.Language.SchemaDefinitionNode
-HotChocolate.Language.SchemaDefinitionNode.Description.get -> HotChocolate.Language.StringValueNode
-HotChocolate.Language.SchemaDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
-HotChocolate.Language.SchemaDefinitionNode.SchemaDefinitionNode(HotChocolate.Language.Location location, HotChocolate.Language.StringValueNode description, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.OperationTypeDefinitionNode> operationTypes) -> void
-HotChocolate.Language.SchemaDefinitionNode.ToString(bool indented) -> string
-HotChocolate.Language.SchemaDefinitionNode.WithDescription(HotChocolate.Language.StringValueNode description) -> HotChocolate.Language.SchemaDefinitionNode
-HotChocolate.Language.SchemaDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> HotChocolate.Language.SchemaDefinitionNode
-HotChocolate.Language.SchemaDefinitionNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.SchemaDefinitionNode
-HotChocolate.Language.SchemaDefinitionNode.WithOperationTypes(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.OperationTypeDefinitionNode> operationTypes) -> HotChocolate.Language.SchemaDefinitionNode
+HotChocolate.Language.SchemaDefinitionNode.Description.get -> HotChocolate.Language.StringValueNode?
+HotChocolate.Language.SchemaDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
+HotChocolate.Language.SchemaDefinitionNode.SchemaDefinitionNode(HotChocolate.Language.Location? location, HotChocolate.Language.StringValueNode? description, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.OperationTypeDefinitionNode!>! operationTypes) -> void
+HotChocolate.Language.SchemaDefinitionNode.ToString(bool indented) -> string!
+HotChocolate.Language.SchemaDefinitionNode.WithDescription(HotChocolate.Language.StringValueNode? description) -> HotChocolate.Language.SchemaDefinitionNode!
+HotChocolate.Language.SchemaDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> HotChocolate.Language.SchemaDefinitionNode!
+HotChocolate.Language.SchemaDefinitionNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.SchemaDefinitionNode!
+HotChocolate.Language.SchemaDefinitionNode.WithOperationTypes(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.OperationTypeDefinitionNode!>! operationTypes) -> HotChocolate.Language.SchemaDefinitionNode!
 HotChocolate.Language.SchemaDefinitionNodeBase
-HotChocolate.Language.SchemaDefinitionNodeBase.Directives.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode>
-HotChocolate.Language.SchemaDefinitionNodeBase.Location.get -> HotChocolate.Language.Location
-HotChocolate.Language.SchemaDefinitionNodeBase.OperationTypes.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.OperationTypeDefinitionNode>
-HotChocolate.Language.SchemaDefinitionNodeBase.SchemaDefinitionNodeBase(HotChocolate.Language.Location location, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.OperationTypeDefinitionNode> operationTypes) -> void
+HotChocolate.Language.SchemaDefinitionNodeBase.Directives.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>!
+HotChocolate.Language.SchemaDefinitionNodeBase.Location.get -> HotChocolate.Language.Location?
+HotChocolate.Language.SchemaDefinitionNodeBase.OperationTypes.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.OperationTypeDefinitionNode!>!
+HotChocolate.Language.SchemaDefinitionNodeBase.SchemaDefinitionNodeBase(HotChocolate.Language.Location? location, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.OperationTypeDefinitionNode!>! operationTypes) -> void
 HotChocolate.Language.SchemaExtensionNode
-HotChocolate.Language.SchemaExtensionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
-HotChocolate.Language.SchemaExtensionNode.SchemaExtensionNode(HotChocolate.Language.Location location, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.OperationTypeDefinitionNode> operationTypes) -> void
-HotChocolate.Language.SchemaExtensionNode.ToString(bool indented) -> string
-HotChocolate.Language.SchemaExtensionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> HotChocolate.Language.SchemaExtensionNode
-HotChocolate.Language.SchemaExtensionNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.SchemaExtensionNode
-HotChocolate.Language.SchemaExtensionNode.WithOperationTypes(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.OperationTypeDefinitionNode> operationTypes) -> HotChocolate.Language.SchemaExtensionNode
+HotChocolate.Language.SchemaExtensionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
+HotChocolate.Language.SchemaExtensionNode.SchemaExtensionNode(HotChocolate.Language.Location? location, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.OperationTypeDefinitionNode!>! operationTypes) -> void
+HotChocolate.Language.SchemaExtensionNode.ToString(bool indented) -> string!
+HotChocolate.Language.SchemaExtensionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> HotChocolate.Language.SchemaExtensionNode!
+HotChocolate.Language.SchemaExtensionNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.SchemaExtensionNode!
+HotChocolate.Language.SchemaExtensionNode.WithOperationTypes(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.OperationTypeDefinitionNode!>! operationTypes) -> HotChocolate.Language.SchemaExtensionNode!
 HotChocolate.Language.SelectionSetNode
-HotChocolate.Language.SelectionSetNode.AddSelection(HotChocolate.Language.ISelectionNode selection) -> HotChocolate.Language.SelectionSetNode
-HotChocolate.Language.SelectionSetNode.AddSelections(params HotChocolate.Language.ISelectionNode[] selection) -> HotChocolate.Language.SelectionSetNode
-HotChocolate.Language.SelectionSetNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+HotChocolate.Language.SelectionSetNode.AddSelection(HotChocolate.Language.ISelectionNode! selection) -> HotChocolate.Language.SelectionSetNode!
+HotChocolate.Language.SelectionSetNode.AddSelections(params HotChocolate.Language.ISelectionNode![]! selection) -> HotChocolate.Language.SelectionSetNode!
+HotChocolate.Language.SelectionSetNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 HotChocolate.Language.SelectionSetNode.Kind.get -> HotChocolate.Language.SyntaxKind
-HotChocolate.Language.SelectionSetNode.Location.get -> HotChocolate.Language.Location
-HotChocolate.Language.SelectionSetNode.RemoveSelection(HotChocolate.Language.ISelectionNode selection) -> HotChocolate.Language.SelectionSetNode
-HotChocolate.Language.SelectionSetNode.RemoveSelections(params HotChocolate.Language.ISelectionNode[] selection) -> HotChocolate.Language.SelectionSetNode
-HotChocolate.Language.SelectionSetNode.Selections.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ISelectionNode>
-HotChocolate.Language.SelectionSetNode.SelectionSetNode(HotChocolate.Language.Location location, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ISelectionNode> selections) -> void
-HotChocolate.Language.SelectionSetNode.SelectionSetNode(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ISelectionNode> selections) -> void
-HotChocolate.Language.SelectionSetNode.ToString(bool indented) -> string
-HotChocolate.Language.SelectionSetNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.SelectionSetNode
-HotChocolate.Language.SelectionSetNode.WithSelections(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ISelectionNode> selections) -> HotChocolate.Language.SelectionSetNode
+HotChocolate.Language.SelectionSetNode.Location.get -> HotChocolate.Language.Location?
+HotChocolate.Language.SelectionSetNode.RemoveSelection(HotChocolate.Language.ISelectionNode! selection) -> HotChocolate.Language.SelectionSetNode!
+HotChocolate.Language.SelectionSetNode.RemoveSelections(params HotChocolate.Language.ISelectionNode![]! selection) -> HotChocolate.Language.SelectionSetNode!
+HotChocolate.Language.SelectionSetNode.Selections.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ISelectionNode!>!
+HotChocolate.Language.SelectionSetNode.SelectionSetNode(HotChocolate.Language.Location? location, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ISelectionNode!>! selections) -> void
+HotChocolate.Language.SelectionSetNode.SelectionSetNode(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ISelectionNode!>! selections) -> void
+HotChocolate.Language.SelectionSetNode.ToString(bool indented) -> string!
+HotChocolate.Language.SelectionSetNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.SelectionSetNode!
+HotChocolate.Language.SelectionSetNode.WithSelections(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.ISelectionNode!>! selections) -> HotChocolate.Language.SelectionSetNode!
 HotChocolate.Language.StringValueNode
 HotChocolate.Language.StringValueNode.AsSpan() -> System.ReadOnlySpan<byte>
 HotChocolate.Language.StringValueNode.Block.get -> bool
-HotChocolate.Language.StringValueNode.Equals(HotChocolate.Language.IValueNode other) -> bool
-HotChocolate.Language.StringValueNode.Equals(HotChocolate.Language.StringValueNode other) -> bool
-HotChocolate.Language.StringValueNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+HotChocolate.Language.StringValueNode.Equals(HotChocolate.Language.IValueNode? other) -> bool
+HotChocolate.Language.StringValueNode.Equals(HotChocolate.Language.StringValueNode? other) -> bool
+HotChocolate.Language.StringValueNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 HotChocolate.Language.StringValueNode.Kind.get -> HotChocolate.Language.SyntaxKind
-HotChocolate.Language.StringValueNode.Location.get -> HotChocolate.Language.Location
-HotChocolate.Language.StringValueNode.StringValueNode(HotChocolate.Language.Location location, string value, bool block) -> void
-HotChocolate.Language.StringValueNode.StringValueNode(HotChocolate.Language.Location location, System.ReadOnlyMemory<byte> value, bool block) -> void
-HotChocolate.Language.StringValueNode.StringValueNode(string value) -> void
-HotChocolate.Language.StringValueNode.ToString(bool indented) -> string
-HotChocolate.Language.StringValueNode.Value.get -> string
-HotChocolate.Language.StringValueNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.StringValueNode
-HotChocolate.Language.StringValueNode.WithValue(string value) -> HotChocolate.Language.StringValueNode
-HotChocolate.Language.StringValueNode.WithValue(string value, bool block) -> HotChocolate.Language.StringValueNode
+HotChocolate.Language.StringValueNode.Location.get -> HotChocolate.Language.Location?
+HotChocolate.Language.StringValueNode.StringValueNode(HotChocolate.Language.Location? location, string! value, bool block) -> void
+HotChocolate.Language.StringValueNode.StringValueNode(HotChocolate.Language.Location? location, System.ReadOnlyMemory<byte> value, bool block) -> void
+HotChocolate.Language.StringValueNode.StringValueNode(string! value) -> void
+HotChocolate.Language.StringValueNode.ToString(bool indented) -> string!
+HotChocolate.Language.StringValueNode.Value.get -> string!
+HotChocolate.Language.StringValueNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.StringValueNode!
+HotChocolate.Language.StringValueNode.WithValue(string! value) -> HotChocolate.Language.StringValueNode!
+HotChocolate.Language.StringValueNode.WithValue(string! value, bool block) -> HotChocolate.Language.StringValueNode!
 HotChocolate.Language.SyntaxKind
 HotChocolate.Language.SyntaxKind.Argument = 7 -> HotChocolate.Language.SyntaxKind
 HotChocolate.Language.SyntaxKind.BooleanValue = 13 -> HotChocolate.Language.SyntaxKind
@@ -606,27 +606,27 @@ HotChocolate.Language.SyntaxKind.Variable = 4 -> HotChocolate.Language.SyntaxKin
 HotChocolate.Language.SyntaxKind.VariableDefinition = 3 -> HotChocolate.Language.SyntaxKind
 HotChocolate.Language.TypeNodeExtensions
 HotChocolate.Language.UnionTypeDefinitionNode
-HotChocolate.Language.UnionTypeDefinitionNode.Description.get -> HotChocolate.Language.StringValueNode
-HotChocolate.Language.UnionTypeDefinitionNode.UnionTypeDefinitionNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, HotChocolate.Language.StringValueNode description, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode> types) -> void
-HotChocolate.Language.UnionTypeDefinitionNode.WithDescription(HotChocolate.Language.StringValueNode description) -> HotChocolate.Language.UnionTypeDefinitionNode
-HotChocolate.Language.UnionTypeDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> HotChocolate.Language.UnionTypeDefinitionNode
-HotChocolate.Language.UnionTypeDefinitionNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.UnionTypeDefinitionNode
-HotChocolate.Language.UnionTypeDefinitionNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.UnionTypeDefinitionNode
-HotChocolate.Language.UnionTypeDefinitionNode.WithTypes(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode> types) -> HotChocolate.Language.UnionTypeDefinitionNode
+HotChocolate.Language.UnionTypeDefinitionNode.Description.get -> HotChocolate.Language.StringValueNode?
+HotChocolate.Language.UnionTypeDefinitionNode.UnionTypeDefinitionNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, HotChocolate.Language.StringValueNode? description, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode!>! types) -> void
+HotChocolate.Language.UnionTypeDefinitionNode.WithDescription(HotChocolate.Language.StringValueNode? description) -> HotChocolate.Language.UnionTypeDefinitionNode!
+HotChocolate.Language.UnionTypeDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> HotChocolate.Language.UnionTypeDefinitionNode!
+HotChocolate.Language.UnionTypeDefinitionNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.UnionTypeDefinitionNode!
+HotChocolate.Language.UnionTypeDefinitionNode.WithName(HotChocolate.Language.NameNode! name) -> HotChocolate.Language.UnionTypeDefinitionNode!
+HotChocolate.Language.UnionTypeDefinitionNode.WithTypes(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode!>! types) -> HotChocolate.Language.UnionTypeDefinitionNode!
 HotChocolate.Language.UnionTypeDefinitionNodeBase
-HotChocolate.Language.UnionTypeDefinitionNodeBase.Types.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode>
-HotChocolate.Language.UnionTypeDefinitionNodeBase.UnionTypeDefinitionNodeBase(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode> types) -> void
+HotChocolate.Language.UnionTypeDefinitionNodeBase.Types.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode!>!
+HotChocolate.Language.UnionTypeDefinitionNodeBase.UnionTypeDefinitionNodeBase(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode!>! types) -> void
 HotChocolate.Language.UnionTypeExtensionNode
-HotChocolate.Language.UnionTypeExtensionNode.UnionTypeExtensionNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode> types) -> void
-HotChocolate.Language.UnionTypeExtensionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> HotChocolate.Language.UnionTypeExtensionNode
-HotChocolate.Language.UnionTypeExtensionNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.UnionTypeExtensionNode
-HotChocolate.Language.UnionTypeExtensionNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.UnionTypeExtensionNode
-HotChocolate.Language.UnionTypeExtensionNode.WithTypes(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode> types) -> HotChocolate.Language.UnionTypeExtensionNode
+HotChocolate.Language.UnionTypeExtensionNode.UnionTypeExtensionNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode!>! types) -> void
+HotChocolate.Language.UnionTypeExtensionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> HotChocolate.Language.UnionTypeExtensionNode!
+HotChocolate.Language.UnionTypeExtensionNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.UnionTypeExtensionNode!
+HotChocolate.Language.UnionTypeExtensionNode.WithName(HotChocolate.Language.NameNode! name) -> HotChocolate.Language.UnionTypeExtensionNode!
+HotChocolate.Language.UnionTypeExtensionNode.WithTypes(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.NamedTypeNode!>! types) -> HotChocolate.Language.UnionTypeExtensionNode!
 HotChocolate.Language.Utilities.ISyntaxWriter
 HotChocolate.Language.Utilities.ISyntaxWriter.Indent() -> void
 HotChocolate.Language.Utilities.ISyntaxWriter.Unindent() -> void
 HotChocolate.Language.Utilities.ISyntaxWriter.Write(char c) -> void
-HotChocolate.Language.Utilities.ISyntaxWriter.Write(string s) -> void
+HotChocolate.Language.Utilities.ISyntaxWriter.Write(string! s) -> void
 HotChocolate.Language.Utilities.ISyntaxWriter.WriteIndent(bool condition = true) -> void
 HotChocolate.Language.Utilities.ISyntaxWriter.WriteLine(bool condition = true) -> void
 HotChocolate.Language.Utilities.ISyntaxWriter.WriteSpace(bool condition = true) -> void
@@ -636,13 +636,13 @@ HotChocolate.Language.Utilities.StringSyntaxWriter.Indent() -> void
 HotChocolate.Language.Utilities.StringSyntaxWriter.StringSyntaxWriter() -> void
 HotChocolate.Language.Utilities.StringSyntaxWriter.Unindent() -> void
 HotChocolate.Language.Utilities.StringSyntaxWriter.Write(char c) -> void
-HotChocolate.Language.Utilities.StringSyntaxWriter.Write(string s) -> void
+HotChocolate.Language.Utilities.StringSyntaxWriter.Write(string! s) -> void
 HotChocolate.Language.Utilities.StringSyntaxWriter.WriteIndent(bool condition = true) -> void
 HotChocolate.Language.Utilities.StringSyntaxWriter.WriteLine(bool condition = true) -> void
 HotChocolate.Language.Utilities.StringSyntaxWriter.WriteSpace(bool condition = true) -> void
 HotChocolate.Language.Utilities.SyntaxPrinter
 HotChocolate.Language.Utilities.SyntaxSerializer
-HotChocolate.Language.Utilities.SyntaxSerializer.Serialize(HotChocolate.Language.ISyntaxNode node, HotChocolate.Language.Utilities.ISyntaxWriter writer) -> void
+HotChocolate.Language.Utilities.SyntaxSerializer.Serialize(HotChocolate.Language.ISyntaxNode! node, HotChocolate.Language.Utilities.ISyntaxWriter! writer) -> void
 HotChocolate.Language.Utilities.SyntaxSerializer.SyntaxSerializer(HotChocolate.Language.Utilities.SyntaxSerializerOptions options = default(HotChocolate.Language.Utilities.SyntaxSerializerOptions)) -> void
 HotChocolate.Language.Utilities.SyntaxSerializerOptions
 HotChocolate.Language.Utilities.SyntaxSerializerOptions.Indented.get -> bool
@@ -651,222 +651,222 @@ HotChocolate.Language.Utilities.SyntaxSerializerOptions.SyntaxSerializerOptions(
 HotChocolate.Language.Utilities.SyntaxWriterExtensions
 HotChocolate.Language.ValueNodeExtensions
 HotChocolate.Language.VariableDefinitionNode
-HotChocolate.Language.VariableDefinitionNode.DefaultValue.get -> HotChocolate.Language.IValueNode
-HotChocolate.Language.VariableDefinitionNode.Directives.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode>
-HotChocolate.Language.VariableDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+HotChocolate.Language.VariableDefinitionNode.DefaultValue.get -> HotChocolate.Language.IValueNode?
+HotChocolate.Language.VariableDefinitionNode.Directives.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>!
+HotChocolate.Language.VariableDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 HotChocolate.Language.VariableDefinitionNode.Kind.get -> HotChocolate.Language.SyntaxKind
-HotChocolate.Language.VariableDefinitionNode.Location.get -> HotChocolate.Language.Location
-HotChocolate.Language.VariableDefinitionNode.ToString(bool indented) -> string
-HotChocolate.Language.VariableDefinitionNode.Type.get -> HotChocolate.Language.ITypeNode
-HotChocolate.Language.VariableDefinitionNode.Variable.get -> HotChocolate.Language.VariableNode
-HotChocolate.Language.VariableDefinitionNode.VariableDefinitionNode(HotChocolate.Language.Location location, HotChocolate.Language.VariableNode variable, HotChocolate.Language.ITypeNode type, HotChocolate.Language.IValueNode defaultValue, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> void
-HotChocolate.Language.VariableDefinitionNode.WithDefaultValue(HotChocolate.Language.IValueNode defaultValue) -> HotChocolate.Language.VariableDefinitionNode
-HotChocolate.Language.VariableDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode> directives) -> HotChocolate.Language.VariableDefinitionNode
-HotChocolate.Language.VariableDefinitionNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.VariableDefinitionNode
-HotChocolate.Language.VariableDefinitionNode.WithType(HotChocolate.Language.ITypeNode type) -> HotChocolate.Language.VariableDefinitionNode
-HotChocolate.Language.VariableDefinitionNode.WithVariable(HotChocolate.Language.VariableNode variable) -> HotChocolate.Language.VariableDefinitionNode
+HotChocolate.Language.VariableDefinitionNode.Location.get -> HotChocolate.Language.Location?
+HotChocolate.Language.VariableDefinitionNode.ToString(bool indented) -> string!
+HotChocolate.Language.VariableDefinitionNode.Type.get -> HotChocolate.Language.ITypeNode!
+HotChocolate.Language.VariableDefinitionNode.Variable.get -> HotChocolate.Language.VariableNode!
+HotChocolate.Language.VariableDefinitionNode.VariableDefinitionNode(HotChocolate.Language.Location? location, HotChocolate.Language.VariableNode! variable, HotChocolate.Language.ITypeNode! type, HotChocolate.Language.IValueNode? defaultValue, System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> void
+HotChocolate.Language.VariableDefinitionNode.WithDefaultValue(HotChocolate.Language.IValueNode? defaultValue) -> HotChocolate.Language.VariableDefinitionNode!
+HotChocolate.Language.VariableDefinitionNode.WithDirectives(System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>! directives) -> HotChocolate.Language.VariableDefinitionNode!
+HotChocolate.Language.VariableDefinitionNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.VariableDefinitionNode!
+HotChocolate.Language.VariableDefinitionNode.WithType(HotChocolate.Language.ITypeNode! type) -> HotChocolate.Language.VariableDefinitionNode!
+HotChocolate.Language.VariableDefinitionNode.WithVariable(HotChocolate.Language.VariableNode! variable) -> HotChocolate.Language.VariableDefinitionNode!
 HotChocolate.Language.VariableNode
 HotChocolate.Language.VariableNode.AsSpan() -> System.ReadOnlySpan<byte>
-HotChocolate.Language.VariableNode.Equals(HotChocolate.Language.IValueNode other) -> bool
-HotChocolate.Language.VariableNode.Equals(HotChocolate.Language.VariableNode other) -> bool
-HotChocolate.Language.VariableNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+HotChocolate.Language.VariableNode.Equals(HotChocolate.Language.IValueNode? other) -> bool
+HotChocolate.Language.VariableNode.Equals(HotChocolate.Language.VariableNode? other) -> bool
+HotChocolate.Language.VariableNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 HotChocolate.Language.VariableNode.Kind.get -> HotChocolate.Language.SyntaxKind
-HotChocolate.Language.VariableNode.Location.get -> HotChocolate.Language.Location
-HotChocolate.Language.VariableNode.Name.get -> HotChocolate.Language.NameNode
-HotChocolate.Language.VariableNode.ToString(bool indented) -> string
-HotChocolate.Language.VariableNode.Value.get -> string
-HotChocolate.Language.VariableNode.VariableNode(HotChocolate.Language.Location location, HotChocolate.Language.NameNode name) -> void
-HotChocolate.Language.VariableNode.VariableNode(HotChocolate.Language.NameNode name) -> void
-HotChocolate.Language.VariableNode.VariableNode(string name) -> void
-HotChocolate.Language.VariableNode.WithLocation(HotChocolate.Language.Location location) -> HotChocolate.Language.VariableNode
-HotChocolate.Language.VariableNode.WithName(HotChocolate.Language.NameNode name) -> HotChocolate.Language.VariableNode
-override HotChocolate.Language.ArgumentNode.ToString() -> string
-override HotChocolate.Language.BooleanValueNode.Equals(object obj) -> bool
+HotChocolate.Language.VariableNode.Location.get -> HotChocolate.Language.Location?
+HotChocolate.Language.VariableNode.Name.get -> HotChocolate.Language.NameNode!
+HotChocolate.Language.VariableNode.ToString(bool indented) -> string!
+HotChocolate.Language.VariableNode.Value.get -> string!
+HotChocolate.Language.VariableNode.VariableNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name) -> void
+HotChocolate.Language.VariableNode.VariableNode(HotChocolate.Language.NameNode! name) -> void
+HotChocolate.Language.VariableNode.VariableNode(string! name) -> void
+HotChocolate.Language.VariableNode.WithLocation(HotChocolate.Language.Location? location) -> HotChocolate.Language.VariableNode!
+HotChocolate.Language.VariableNode.WithName(HotChocolate.Language.NameNode! name) -> HotChocolate.Language.VariableNode!
+override HotChocolate.Language.ArgumentNode.ToString() -> string!
+override HotChocolate.Language.BooleanValueNode.Equals(object? obj) -> bool
 override HotChocolate.Language.BooleanValueNode.GetHashCode() -> int
-override HotChocolate.Language.BooleanValueNode.ToString() -> string
-override HotChocolate.Language.DirectiveDefinitionNode.ToString() -> string
-override HotChocolate.Language.DirectiveLocation.Equals(object obj) -> bool
+override HotChocolate.Language.BooleanValueNode.ToString() -> string!
+override HotChocolate.Language.DirectiveDefinitionNode.ToString() -> string!
+override HotChocolate.Language.DirectiveLocation.Equals(object? obj) -> bool
 override HotChocolate.Language.DirectiveLocation.GetHashCode() -> int
-override HotChocolate.Language.DirectiveLocation.ToString() -> string
-override HotChocolate.Language.DirectiveNode.ToString() -> string
-override HotChocolate.Language.DocumentNode.ToString() -> string
-override HotChocolate.Language.EnumTypeDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+override HotChocolate.Language.DirectiveLocation.ToString() -> string!
+override HotChocolate.Language.DirectiveNode.ToString() -> string!
+override HotChocolate.Language.DocumentNode.ToString() -> string!
+override HotChocolate.Language.EnumTypeDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 override HotChocolate.Language.EnumTypeDefinitionNode.Kind.get -> HotChocolate.Language.SyntaxKind
-override HotChocolate.Language.EnumTypeDefinitionNode.ToString() -> string
-override HotChocolate.Language.EnumTypeDefinitionNode.ToString(bool indented) -> string
-override HotChocolate.Language.EnumTypeExtensionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+override HotChocolate.Language.EnumTypeDefinitionNode.ToString() -> string!
+override HotChocolate.Language.EnumTypeDefinitionNode.ToString(bool indented) -> string!
+override HotChocolate.Language.EnumTypeExtensionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 override HotChocolate.Language.EnumTypeExtensionNode.Kind.get -> HotChocolate.Language.SyntaxKind
-override HotChocolate.Language.EnumTypeExtensionNode.ToString() -> string
-override HotChocolate.Language.EnumTypeExtensionNode.ToString(bool indented) -> string
-override HotChocolate.Language.EnumValueDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+override HotChocolate.Language.EnumTypeExtensionNode.ToString() -> string!
+override HotChocolate.Language.EnumTypeExtensionNode.ToString(bool indented) -> string!
+override HotChocolate.Language.EnumValueDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 override HotChocolate.Language.EnumValueDefinitionNode.Kind.get -> HotChocolate.Language.SyntaxKind
-override HotChocolate.Language.EnumValueDefinitionNode.ToString() -> string
-override HotChocolate.Language.EnumValueDefinitionNode.ToString(bool indented) -> string
-override HotChocolate.Language.EnumValueNode.Equals(object obj) -> bool
+override HotChocolate.Language.EnumValueDefinitionNode.ToString() -> string!
+override HotChocolate.Language.EnumValueDefinitionNode.ToString(bool indented) -> string!
+override HotChocolate.Language.EnumValueNode.Equals(object? obj) -> bool
 override HotChocolate.Language.EnumValueNode.GetHashCode() -> int
-override HotChocolate.Language.EnumValueNode.ToString() -> string
-override HotChocolate.Language.FieldDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+override HotChocolate.Language.EnumValueNode.ToString() -> string!
+override HotChocolate.Language.FieldDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 override HotChocolate.Language.FieldDefinitionNode.Kind.get -> HotChocolate.Language.SyntaxKind
-override HotChocolate.Language.FieldDefinitionNode.ToString() -> string
-override HotChocolate.Language.FieldDefinitionNode.ToString(bool indented) -> string
-override HotChocolate.Language.FieldNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+override HotChocolate.Language.FieldDefinitionNode.ToString() -> string!
+override HotChocolate.Language.FieldDefinitionNode.ToString(bool indented) -> string!
+override HotChocolate.Language.FieldNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 override HotChocolate.Language.FieldNode.Kind.get -> HotChocolate.Language.SyntaxKind
-override HotChocolate.Language.FieldNode.ToString() -> string
-override HotChocolate.Language.FieldNode.ToString(bool indented) -> string
-override HotChocolate.Language.FloatValueNode.Equals(object obj) -> bool
+override HotChocolate.Language.FieldNode.ToString() -> string!
+override HotChocolate.Language.FieldNode.ToString(bool indented) -> string!
+override HotChocolate.Language.FloatValueNode.Equals(object? obj) -> bool
 override HotChocolate.Language.FloatValueNode.GetHashCode() -> int
-override HotChocolate.Language.FloatValueNode.ToString() -> string
-override HotChocolate.Language.FragmentDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+override HotChocolate.Language.FloatValueNode.ToString() -> string!
+override HotChocolate.Language.FragmentDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 override HotChocolate.Language.FragmentDefinitionNode.Kind.get -> HotChocolate.Language.SyntaxKind
-override HotChocolate.Language.FragmentDefinitionNode.ToString() -> string
-override HotChocolate.Language.FragmentDefinitionNode.ToString(bool indented) -> string
-override HotChocolate.Language.FragmentSpreadNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+override HotChocolate.Language.FragmentDefinitionNode.ToString() -> string!
+override HotChocolate.Language.FragmentDefinitionNode.ToString(bool indented) -> string!
+override HotChocolate.Language.FragmentSpreadNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 override HotChocolate.Language.FragmentSpreadNode.Kind.get -> HotChocolate.Language.SyntaxKind
-override HotChocolate.Language.FragmentSpreadNode.ToString() -> string
-override HotChocolate.Language.FragmentSpreadNode.ToString(bool indented) -> string
-override HotChocolate.Language.InlineFragmentNode.ToString() -> string
-override HotChocolate.Language.InputObjectTypeDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+override HotChocolate.Language.FragmentSpreadNode.ToString() -> string!
+override HotChocolate.Language.FragmentSpreadNode.ToString(bool indented) -> string!
+override HotChocolate.Language.InlineFragmentNode.ToString() -> string!
+override HotChocolate.Language.InputObjectTypeDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 override HotChocolate.Language.InputObjectTypeDefinitionNode.Kind.get -> HotChocolate.Language.SyntaxKind
-override HotChocolate.Language.InputObjectTypeDefinitionNode.ToString() -> string
-override HotChocolate.Language.InputObjectTypeDefinitionNode.ToString(bool indented) -> string
-override HotChocolate.Language.InputObjectTypeExtensionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+override HotChocolate.Language.InputObjectTypeDefinitionNode.ToString() -> string!
+override HotChocolate.Language.InputObjectTypeDefinitionNode.ToString(bool indented) -> string!
+override HotChocolate.Language.InputObjectTypeExtensionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 override HotChocolate.Language.InputObjectTypeExtensionNode.Kind.get -> HotChocolate.Language.SyntaxKind
-override HotChocolate.Language.InputObjectTypeExtensionNode.ToString() -> string
-override HotChocolate.Language.InputObjectTypeExtensionNode.ToString(bool indented) -> string
-override HotChocolate.Language.InputValueDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+override HotChocolate.Language.InputObjectTypeExtensionNode.ToString() -> string!
+override HotChocolate.Language.InputObjectTypeExtensionNode.ToString(bool indented) -> string!
+override HotChocolate.Language.InputValueDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 override HotChocolate.Language.InputValueDefinitionNode.Kind.get -> HotChocolate.Language.SyntaxKind
-override HotChocolate.Language.InputValueDefinitionNode.ToString() -> string
-override HotChocolate.Language.InputValueDefinitionNode.ToString(bool indented) -> string
-override HotChocolate.Language.InterfaceTypeDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+override HotChocolate.Language.InputValueDefinitionNode.ToString() -> string!
+override HotChocolate.Language.InputValueDefinitionNode.ToString(bool indented) -> string!
+override HotChocolate.Language.InterfaceTypeDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 override HotChocolate.Language.InterfaceTypeDefinitionNode.Kind.get -> HotChocolate.Language.SyntaxKind
-override HotChocolate.Language.InterfaceTypeDefinitionNode.ToString() -> string
-override HotChocolate.Language.InterfaceTypeDefinitionNode.ToString(bool indented) -> string
-override HotChocolate.Language.InterfaceTypeExtensionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+override HotChocolate.Language.InterfaceTypeDefinitionNode.ToString() -> string!
+override HotChocolate.Language.InterfaceTypeDefinitionNode.ToString(bool indented) -> string!
+override HotChocolate.Language.InterfaceTypeExtensionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 override HotChocolate.Language.InterfaceTypeExtensionNode.Kind.get -> HotChocolate.Language.SyntaxKind
-override HotChocolate.Language.InterfaceTypeExtensionNode.ToString() -> string
-override HotChocolate.Language.InterfaceTypeExtensionNode.ToString(bool indented) -> string
-override HotChocolate.Language.IntValueNode.Equals(object obj) -> bool
+override HotChocolate.Language.InterfaceTypeExtensionNode.ToString() -> string!
+override HotChocolate.Language.InterfaceTypeExtensionNode.ToString(bool indented) -> string!
+override HotChocolate.Language.IntValueNode.Equals(object? obj) -> bool
 override HotChocolate.Language.IntValueNode.GetHashCode() -> int
-override HotChocolate.Language.IntValueNode.ToString() -> string
-override HotChocolate.Language.ListTypeNode.Equals(object obj) -> bool
+override HotChocolate.Language.IntValueNode.ToString() -> string!
+override HotChocolate.Language.ListTypeNode.Equals(object? obj) -> bool
 override HotChocolate.Language.ListTypeNode.GetHashCode() -> int
-override HotChocolate.Language.ListTypeNode.ToString() -> string
-override HotChocolate.Language.ListValueNode.Equals(object obj) -> bool
+override HotChocolate.Language.ListTypeNode.ToString() -> string!
+override HotChocolate.Language.ListValueNode.Equals(object? obj) -> bool
 override HotChocolate.Language.ListValueNode.GetHashCode() -> int
-override HotChocolate.Language.ListValueNode.ToString() -> string
-override HotChocolate.Language.NamedTypeNode.Equals(object obj) -> bool
+override HotChocolate.Language.ListValueNode.ToString() -> string!
+override HotChocolate.Language.NamedTypeNode.Equals(object? obj) -> bool
 override HotChocolate.Language.NamedTypeNode.GetHashCode() -> int
-override HotChocolate.Language.NamedTypeNode.ToString() -> string
-override HotChocolate.Language.NameNode.Equals(object obj) -> bool
+override HotChocolate.Language.NamedTypeNode.ToString() -> string!
+override HotChocolate.Language.NameNode.Equals(object? obj) -> bool
 override HotChocolate.Language.NameNode.GetHashCode() -> int
-override HotChocolate.Language.NameNode.ToString() -> string
-override HotChocolate.Language.NonNullTypeNode.Equals(object obj) -> bool
+override HotChocolate.Language.NameNode.ToString() -> string!
+override HotChocolate.Language.NonNullTypeNode.Equals(object? obj) -> bool
 override HotChocolate.Language.NonNullTypeNode.GetHashCode() -> int
-override HotChocolate.Language.NonNullTypeNode.ToString() -> string
-override HotChocolate.Language.NullValueNode.Equals(object obj) -> bool
+override HotChocolate.Language.NonNullTypeNode.ToString() -> string!
+override HotChocolate.Language.NullValueNode.Equals(object? obj) -> bool
 override HotChocolate.Language.NullValueNode.GetHashCode() -> int
-override HotChocolate.Language.NullValueNode.ToString() -> string
-override HotChocolate.Language.ObjectFieldNode.Equals(object obj) -> bool
+override HotChocolate.Language.NullValueNode.ToString() -> string!
+override HotChocolate.Language.ObjectFieldNode.Equals(object? obj) -> bool
 override HotChocolate.Language.ObjectFieldNode.GetHashCode() -> int
-override HotChocolate.Language.ObjectFieldNode.ToString() -> string
-override HotChocolate.Language.ObjectTypeDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+override HotChocolate.Language.ObjectFieldNode.ToString() -> string!
+override HotChocolate.Language.ObjectTypeDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 override HotChocolate.Language.ObjectTypeDefinitionNode.Kind.get -> HotChocolate.Language.SyntaxKind
-override HotChocolate.Language.ObjectTypeDefinitionNode.ToString() -> string
-override HotChocolate.Language.ObjectTypeDefinitionNode.ToString(bool indented) -> string
-override HotChocolate.Language.ObjectTypeExtensionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+override HotChocolate.Language.ObjectTypeDefinitionNode.ToString() -> string!
+override HotChocolate.Language.ObjectTypeDefinitionNode.ToString(bool indented) -> string!
+override HotChocolate.Language.ObjectTypeExtensionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 override HotChocolate.Language.ObjectTypeExtensionNode.Kind.get -> HotChocolate.Language.SyntaxKind
-override HotChocolate.Language.ObjectTypeExtensionNode.ToString() -> string
-override HotChocolate.Language.ObjectTypeExtensionNode.ToString(bool indented) -> string
-override HotChocolate.Language.ObjectValueNode.Equals(object obj) -> bool
+override HotChocolate.Language.ObjectTypeExtensionNode.ToString() -> string!
+override HotChocolate.Language.ObjectTypeExtensionNode.ToString(bool indented) -> string!
+override HotChocolate.Language.ObjectValueNode.Equals(object? obj) -> bool
 override HotChocolate.Language.ObjectValueNode.GetHashCode() -> int
-override HotChocolate.Language.ObjectValueNode.ToString() -> string
-override HotChocolate.Language.OperationDefinitionNode.ToString() -> string
-override HotChocolate.Language.OperationTypeDefinitionNode.ToString() -> string
-override HotChocolate.Language.ScalarTypeDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+override HotChocolate.Language.ObjectValueNode.ToString() -> string!
+override HotChocolate.Language.OperationDefinitionNode.ToString() -> string!
+override HotChocolate.Language.OperationTypeDefinitionNode.ToString() -> string!
+override HotChocolate.Language.ScalarTypeDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 override HotChocolate.Language.ScalarTypeDefinitionNode.Kind.get -> HotChocolate.Language.SyntaxKind
-override HotChocolate.Language.ScalarTypeDefinitionNode.ToString() -> string
-override HotChocolate.Language.ScalarTypeDefinitionNode.ToString(bool indented) -> string
-override HotChocolate.Language.ScalarTypeExtensionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+override HotChocolate.Language.ScalarTypeDefinitionNode.ToString() -> string!
+override HotChocolate.Language.ScalarTypeDefinitionNode.ToString(bool indented) -> string!
+override HotChocolate.Language.ScalarTypeExtensionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 override HotChocolate.Language.ScalarTypeExtensionNode.Kind.get -> HotChocolate.Language.SyntaxKind
-override HotChocolate.Language.ScalarTypeExtensionNode.ToString() -> string
-override HotChocolate.Language.ScalarTypeExtensionNode.ToString(bool indented) -> string
+override HotChocolate.Language.ScalarTypeExtensionNode.ToString() -> string!
+override HotChocolate.Language.ScalarTypeExtensionNode.ToString(bool indented) -> string!
 override HotChocolate.Language.SchemaDefinitionNode.Kind.get -> HotChocolate.Language.SyntaxKind
-override HotChocolate.Language.SchemaDefinitionNode.ToString() -> string
+override HotChocolate.Language.SchemaDefinitionNode.ToString() -> string!
 override HotChocolate.Language.SchemaExtensionNode.Kind.get -> HotChocolate.Language.SyntaxKind
-override HotChocolate.Language.SchemaExtensionNode.ToString() -> string
-override HotChocolate.Language.SelectionSetNode.ToString() -> string
-override HotChocolate.Language.StringValueNode.Equals(object obj) -> bool
+override HotChocolate.Language.SchemaExtensionNode.ToString() -> string!
+override HotChocolate.Language.SelectionSetNode.ToString() -> string!
+override HotChocolate.Language.StringValueNode.Equals(object? obj) -> bool
 override HotChocolate.Language.StringValueNode.GetHashCode() -> int
-override HotChocolate.Language.StringValueNode.ToString() -> string
-override HotChocolate.Language.UnionTypeDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+override HotChocolate.Language.StringValueNode.ToString() -> string!
+override HotChocolate.Language.UnionTypeDefinitionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 override HotChocolate.Language.UnionTypeDefinitionNode.Kind.get -> HotChocolate.Language.SyntaxKind
-override HotChocolate.Language.UnionTypeDefinitionNode.ToString() -> string
-override HotChocolate.Language.UnionTypeDefinitionNode.ToString(bool indented) -> string
-override HotChocolate.Language.UnionTypeExtensionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode>
+override HotChocolate.Language.UnionTypeDefinitionNode.ToString() -> string!
+override HotChocolate.Language.UnionTypeDefinitionNode.ToString(bool indented) -> string!
+override HotChocolate.Language.UnionTypeExtensionNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 override HotChocolate.Language.UnionTypeExtensionNode.Kind.get -> HotChocolate.Language.SyntaxKind
-override HotChocolate.Language.UnionTypeExtensionNode.ToString() -> string
-override HotChocolate.Language.UnionTypeExtensionNode.ToString(bool indented) -> string
-override HotChocolate.Language.Utilities.StringSyntaxWriter.ToString() -> string
-override HotChocolate.Language.VariableDefinitionNode.ToString() -> string
-override HotChocolate.Language.VariableNode.Equals(object obj) -> bool
+override HotChocolate.Language.UnionTypeExtensionNode.ToString() -> string!
+override HotChocolate.Language.UnionTypeExtensionNode.ToString(bool indented) -> string!
+override HotChocolate.Language.Utilities.StringSyntaxWriter.ToString() -> string!
+override HotChocolate.Language.VariableDefinitionNode.ToString() -> string!
+override HotChocolate.Language.VariableNode.Equals(object? obj) -> bool
 override HotChocolate.Language.VariableNode.GetHashCode() -> int
-override HotChocolate.Language.VariableNode.ToString() -> string
-static HotChocolate.Language.BooleanValueNode.False.get -> HotChocolate.Language.BooleanValueNode
-static HotChocolate.Language.BooleanValueNode.True.get -> HotChocolate.Language.BooleanValueNode
-static HotChocolate.Language.DirectiveLocation.ArgumentDefinition.get -> HotChocolate.Language.DirectiveLocation
-static HotChocolate.Language.DirectiveLocation.Enum.get -> HotChocolate.Language.DirectiveLocation
-static HotChocolate.Language.DirectiveLocation.EnumValue.get -> HotChocolate.Language.DirectiveLocation
-static HotChocolate.Language.DirectiveLocation.Field.get -> HotChocolate.Language.DirectiveLocation
-static HotChocolate.Language.DirectiveLocation.FieldDefinition.get -> HotChocolate.Language.DirectiveLocation
-static HotChocolate.Language.DirectiveLocation.FragmentDefinition.get -> HotChocolate.Language.DirectiveLocation
-static HotChocolate.Language.DirectiveLocation.FragmentSpread.get -> HotChocolate.Language.DirectiveLocation
-static HotChocolate.Language.DirectiveLocation.InlineFragment.get -> HotChocolate.Language.DirectiveLocation
-static HotChocolate.Language.DirectiveLocation.InputFieldDefinition.get -> HotChocolate.Language.DirectiveLocation
-static HotChocolate.Language.DirectiveLocation.InputObject.get -> HotChocolate.Language.DirectiveLocation
-static HotChocolate.Language.DirectiveLocation.Interface.get -> HotChocolate.Language.DirectiveLocation
-static HotChocolate.Language.DirectiveLocation.IsValidName(string value) -> bool
-static HotChocolate.Language.DirectiveLocation.Mutation.get -> HotChocolate.Language.DirectiveLocation
-static HotChocolate.Language.DirectiveLocation.Object.get -> HotChocolate.Language.DirectiveLocation
-static HotChocolate.Language.DirectiveLocation.Query.get -> HotChocolate.Language.DirectiveLocation
-static HotChocolate.Language.DirectiveLocation.Scalar.get -> HotChocolate.Language.DirectiveLocation
-static HotChocolate.Language.DirectiveLocation.Schema.get -> HotChocolate.Language.DirectiveLocation
-static HotChocolate.Language.DirectiveLocation.Subscription.get -> HotChocolate.Language.DirectiveLocation
-static HotChocolate.Language.DirectiveLocation.TryParse(string value, out HotChocolate.Language.DirectiveLocation location) -> bool
-static HotChocolate.Language.DirectiveLocation.Union.get -> HotChocolate.Language.DirectiveLocation
-static HotChocolate.Language.DirectiveLocation.VariableDefinition.get -> HotChocolate.Language.DirectiveLocation
-static HotChocolate.Language.DocumentNode.Empty.get -> HotChocolate.Language.DocumentNode
-static HotChocolate.Language.NullValueNode.Default.get -> HotChocolate.Language.NullValueNode
-static HotChocolate.Language.TypeNodeExtensions.InnerType(this HotChocolate.Language.ITypeNode type) -> HotChocolate.Language.ITypeNode
-static HotChocolate.Language.TypeNodeExtensions.IsEqualTo(this HotChocolate.Language.ITypeNode x, HotChocolate.Language.ITypeNode y) -> bool
-static HotChocolate.Language.TypeNodeExtensions.IsListType(this HotChocolate.Language.ITypeNode type) -> bool
-static HotChocolate.Language.TypeNodeExtensions.IsNonNullType(this HotChocolate.Language.ITypeNode type) -> bool
-static HotChocolate.Language.TypeNodeExtensions.NamedType(this HotChocolate.Language.ITypeNode type) -> HotChocolate.Language.NamedTypeNode
-static HotChocolate.Language.TypeNodeExtensions.NullableType(this HotChocolate.Language.ITypeNode type) -> HotChocolate.Language.ITypeNode
-static HotChocolate.Language.Utilities.StringSyntaxWriter.Rent() -> HotChocolate.Language.Utilities.StringSyntaxWriter
-static HotChocolate.Language.Utilities.StringSyntaxWriter.Return(HotChocolate.Language.Utilities.StringSyntaxWriter writer) -> void
-static HotChocolate.Language.Utilities.SyntaxPrinter.Print(this HotChocolate.Language.ISyntaxNode node, bool indented = true) -> string
-static HotChocolate.Language.Utilities.SyntaxPrinter.PrintToAsync(this HotChocolate.Language.ISyntaxNode node, System.IO.Stream stream, bool indented = true, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
-static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteArgument(this HotChocolate.Language.Utilities.ISyntaxWriter writer, HotChocolate.Language.ArgumentNode node) -> void
-static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteBooleanValue(this HotChocolate.Language.Utilities.ISyntaxWriter writer, HotChocolate.Language.BooleanValueNode node) -> void
-static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteDirective(this HotChocolate.Language.Utilities.ISyntaxWriter writer, HotChocolate.Language.DirectiveNode node) -> void
-static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteEnumValue(this HotChocolate.Language.Utilities.ISyntaxWriter writer, HotChocolate.Language.EnumValueNode node) -> void
-static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteField(this HotChocolate.Language.Utilities.ISyntaxWriter writer, HotChocolate.Language.NameNode name, HotChocolate.Language.IValueNode value) -> void
-static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteFloatValue(this HotChocolate.Language.Utilities.ISyntaxWriter writer, HotChocolate.Language.FloatValueNode node) -> void
-static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteIntValue(this HotChocolate.Language.Utilities.ISyntaxWriter writer, HotChocolate.Language.IntValueNode node) -> void
-static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteListType(this HotChocolate.Language.Utilities.ISyntaxWriter writer, HotChocolate.Language.ListTypeNode node) -> void
-static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteListValue(this HotChocolate.Language.Utilities.ISyntaxWriter writer, HotChocolate.Language.ListValueNode node) -> void
-static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteMany<T>(this HotChocolate.Language.Utilities.ISyntaxWriter writer, System.Collections.Generic.IReadOnlyList<T> items, System.Action<T, HotChocolate.Language.Utilities.ISyntaxWriter> action) -> void
-static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteMany<T>(this HotChocolate.Language.Utilities.ISyntaxWriter writer, System.Collections.Generic.IReadOnlyList<T> items, System.Action<T, HotChocolate.Language.Utilities.ISyntaxWriter> action, string separator) -> void
-static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteMany<T>(this HotChocolate.Language.Utilities.ISyntaxWriter writer, System.Collections.Generic.IReadOnlyList<T> items, System.Action<T, HotChocolate.Language.Utilities.ISyntaxWriter> action, System.Action<HotChocolate.Language.Utilities.ISyntaxWriter> separator) -> void
-static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteName(this HotChocolate.Language.Utilities.ISyntaxWriter writer, HotChocolate.Language.NameNode nameNode) -> void
-static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteNamedType(this HotChocolate.Language.Utilities.ISyntaxWriter writer, HotChocolate.Language.NamedTypeNode node) -> void
-static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteNonNullType(this HotChocolate.Language.Utilities.ISyntaxWriter writer, HotChocolate.Language.NonNullTypeNode node) -> void
-static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteNullValue(this HotChocolate.Language.Utilities.ISyntaxWriter writer) -> void
-static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteObjectField(this HotChocolate.Language.Utilities.ISyntaxWriter writer, HotChocolate.Language.ObjectFieldNode node) -> void
-static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteObjectValue(this HotChocolate.Language.Utilities.ISyntaxWriter writer, HotChocolate.Language.ObjectValueNode node) -> void
-static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteStringValue(this HotChocolate.Language.Utilities.ISyntaxWriter writer, HotChocolate.Language.StringValueNode node) -> void
-static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteType(this HotChocolate.Language.Utilities.ISyntaxWriter writer, HotChocolate.Language.ITypeNode node) -> void
-static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteValue(this HotChocolate.Language.Utilities.ISyntaxWriter writer, HotChocolate.Language.IValueNode node) -> void
-static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteVariable(this HotChocolate.Language.Utilities.ISyntaxWriter writer, HotChocolate.Language.VariableNode node) -> void
-static HotChocolate.Language.ValueNodeExtensions.HasNull(this HotChocolate.Language.IValueNode value) -> bool
-static HotChocolate.Language.ValueNodeExtensions.IsNull(this HotChocolate.Language.IValueNode value) -> bool
+override HotChocolate.Language.VariableNode.ToString() -> string!
+static HotChocolate.Language.BooleanValueNode.False.get -> HotChocolate.Language.BooleanValueNode!
+static HotChocolate.Language.BooleanValueNode.True.get -> HotChocolate.Language.BooleanValueNode!
+static HotChocolate.Language.DirectiveLocation.ArgumentDefinition.get -> HotChocolate.Language.DirectiveLocation!
+static HotChocolate.Language.DirectiveLocation.Enum.get -> HotChocolate.Language.DirectiveLocation!
+static HotChocolate.Language.DirectiveLocation.EnumValue.get -> HotChocolate.Language.DirectiveLocation!
+static HotChocolate.Language.DirectiveLocation.Field.get -> HotChocolate.Language.DirectiveLocation!
+static HotChocolate.Language.DirectiveLocation.FieldDefinition.get -> HotChocolate.Language.DirectiveLocation!
+static HotChocolate.Language.DirectiveLocation.FragmentDefinition.get -> HotChocolate.Language.DirectiveLocation!
+static HotChocolate.Language.DirectiveLocation.FragmentSpread.get -> HotChocolate.Language.DirectiveLocation!
+static HotChocolate.Language.DirectiveLocation.InlineFragment.get -> HotChocolate.Language.DirectiveLocation!
+static HotChocolate.Language.DirectiveLocation.InputFieldDefinition.get -> HotChocolate.Language.DirectiveLocation!
+static HotChocolate.Language.DirectiveLocation.InputObject.get -> HotChocolate.Language.DirectiveLocation!
+static HotChocolate.Language.DirectiveLocation.Interface.get -> HotChocolate.Language.DirectiveLocation!
+static HotChocolate.Language.DirectiveLocation.IsValidName(string! value) -> bool
+static HotChocolate.Language.DirectiveLocation.Mutation.get -> HotChocolate.Language.DirectiveLocation!
+static HotChocolate.Language.DirectiveLocation.Object.get -> HotChocolate.Language.DirectiveLocation!
+static HotChocolate.Language.DirectiveLocation.Query.get -> HotChocolate.Language.DirectiveLocation!
+static HotChocolate.Language.DirectiveLocation.Scalar.get -> HotChocolate.Language.DirectiveLocation!
+static HotChocolate.Language.DirectiveLocation.Schema.get -> HotChocolate.Language.DirectiveLocation!
+static HotChocolate.Language.DirectiveLocation.Subscription.get -> HotChocolate.Language.DirectiveLocation!
+static HotChocolate.Language.DirectiveLocation.TryParse(string! value, out HotChocolate.Language.DirectiveLocation? location) -> bool
+static HotChocolate.Language.DirectiveLocation.Union.get -> HotChocolate.Language.DirectiveLocation!
+static HotChocolate.Language.DirectiveLocation.VariableDefinition.get -> HotChocolate.Language.DirectiveLocation!
+static HotChocolate.Language.DocumentNode.Empty.get -> HotChocolate.Language.DocumentNode!
+static HotChocolate.Language.NullValueNode.Default.get -> HotChocolate.Language.NullValueNode!
+static HotChocolate.Language.TypeNodeExtensions.InnerType(this HotChocolate.Language.ITypeNode! type) -> HotChocolate.Language.ITypeNode!
+static HotChocolate.Language.TypeNodeExtensions.IsEqualTo(this HotChocolate.Language.ITypeNode! x, HotChocolate.Language.ITypeNode! y) -> bool
+static HotChocolate.Language.TypeNodeExtensions.IsListType(this HotChocolate.Language.ITypeNode! type) -> bool
+static HotChocolate.Language.TypeNodeExtensions.IsNonNullType(this HotChocolate.Language.ITypeNode! type) -> bool
+static HotChocolate.Language.TypeNodeExtensions.NamedType(this HotChocolate.Language.ITypeNode! type) -> HotChocolate.Language.NamedTypeNode!
+static HotChocolate.Language.TypeNodeExtensions.NullableType(this HotChocolate.Language.ITypeNode! type) -> HotChocolate.Language.ITypeNode!
+static HotChocolate.Language.Utilities.StringSyntaxWriter.Rent() -> HotChocolate.Language.Utilities.StringSyntaxWriter!
+static HotChocolate.Language.Utilities.StringSyntaxWriter.Return(HotChocolate.Language.Utilities.StringSyntaxWriter! writer) -> void
+static HotChocolate.Language.Utilities.SyntaxPrinter.Print(this HotChocolate.Language.ISyntaxNode! node, bool indented = true) -> string!
+static HotChocolate.Language.Utilities.SyntaxPrinter.PrintToAsync(this HotChocolate.Language.ISyntaxNode! node, System.IO.Stream! stream, bool indented = true, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteArgument(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, HotChocolate.Language.ArgumentNode! node) -> void
+static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteBooleanValue(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, HotChocolate.Language.BooleanValueNode! node) -> void
+static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteDirective(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, HotChocolate.Language.DirectiveNode! node) -> void
+static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteEnumValue(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, HotChocolate.Language.EnumValueNode! node) -> void
+static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteField(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, HotChocolate.Language.NameNode! name, HotChocolate.Language.IValueNode! value) -> void
+static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteFloatValue(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, HotChocolate.Language.FloatValueNode! node) -> void
+static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteIntValue(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, HotChocolate.Language.IntValueNode! node) -> void
+static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteListType(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, HotChocolate.Language.ListTypeNode! node) -> void
+static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteListValue(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, HotChocolate.Language.ListValueNode! node) -> void
+static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteMany<T>(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, System.Collections.Generic.IReadOnlyList<T>! items, System.Action<T, HotChocolate.Language.Utilities.ISyntaxWriter!>! action) -> void
+static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteMany<T>(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, System.Collections.Generic.IReadOnlyList<T>! items, System.Action<T, HotChocolate.Language.Utilities.ISyntaxWriter!>! action, string! separator) -> void
+static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteMany<T>(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, System.Collections.Generic.IReadOnlyList<T>! items, System.Action<T, HotChocolate.Language.Utilities.ISyntaxWriter!>! action, System.Action<HotChocolate.Language.Utilities.ISyntaxWriter!>! separator) -> void
+static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteName(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, HotChocolate.Language.NameNode! nameNode) -> void
+static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteNamedType(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, HotChocolate.Language.NamedTypeNode! node) -> void
+static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteNonNullType(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, HotChocolate.Language.NonNullTypeNode! node) -> void
+static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteNullValue(this HotChocolate.Language.Utilities.ISyntaxWriter! writer) -> void
+static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteObjectField(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, HotChocolate.Language.ObjectFieldNode! node) -> void
+static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteObjectValue(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, HotChocolate.Language.ObjectValueNode! node) -> void
+static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteStringValue(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, HotChocolate.Language.StringValueNode! node) -> void
+static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteType(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, HotChocolate.Language.ITypeNode! node) -> void
+static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteValue(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, HotChocolate.Language.IValueNode? node) -> void
+static HotChocolate.Language.Utilities.SyntaxWriterExtensions.WriteVariable(this HotChocolate.Language.Utilities.ISyntaxWriter! writer, HotChocolate.Language.VariableNode! node) -> void
+static HotChocolate.Language.ValueNodeExtensions.HasNull(this HotChocolate.Language.IValueNode? value) -> bool
+static HotChocolate.Language.ValueNodeExtensions.IsNull(this HotChocolate.Language.IValueNode? value) -> bool

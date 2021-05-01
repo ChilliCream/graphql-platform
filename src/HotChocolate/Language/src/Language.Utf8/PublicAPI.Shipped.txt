@@ -1,22 +1,22 @@
 #nullable enable
-abstract HotChocolate.Language.DocumentHashProviderBase.Name.get -> string
+abstract HotChocolate.Language.DocumentHashProviderBase.Name.get -> string!
 HotChocolate.Language.DocumentHashProviderBase
-HotChocolate.Language.DocumentHashProviderBase.ComputeHash(System.ReadOnlySpan<byte> document) -> string
+HotChocolate.Language.DocumentHashProviderBase.ComputeHash(System.ReadOnlySpan<byte> document) -> string!
 HotChocolate.Language.DocumentHashProviderBase.Format.get -> HotChocolate.Language.HashFormat
 HotChocolate.Language.GraphQLRequest
-HotChocolate.Language.GraphQLRequest.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
-HotChocolate.Language.GraphQLRequest.GraphQLRequest(HotChocolate.Language.DocumentNode query, string queryId = null, string queryHash = null, string operationName = null, System.Collections.Generic.IReadOnlyDictionary<string, object> variables = null, System.Collections.Generic.IReadOnlyDictionary<string, object> extensions = null) -> void
-HotChocolate.Language.GraphQLRequest.OperationName.get -> string
-HotChocolate.Language.GraphQLRequest.Query.get -> HotChocolate.Language.DocumentNode
-HotChocolate.Language.GraphQLRequest.QueryHash.get -> string
-HotChocolate.Language.GraphQLRequest.QueryId.get -> string
-HotChocolate.Language.GraphQLRequest.Variables.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
+HotChocolate.Language.GraphQLRequest.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
+HotChocolate.Language.GraphQLRequest.GraphQLRequest(HotChocolate.Language.DocumentNode? query, string? queryId = null, string? queryHash = null, string? operationName = null, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? variables = null, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? extensions = null) -> void
+HotChocolate.Language.GraphQLRequest.OperationName.get -> string?
+HotChocolate.Language.GraphQLRequest.Query.get -> HotChocolate.Language.DocumentNode?
+HotChocolate.Language.GraphQLRequest.QueryHash.get -> string?
+HotChocolate.Language.GraphQLRequest.QueryId.get -> string?
+HotChocolate.Language.GraphQLRequest.Variables.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
 HotChocolate.Language.GraphQLSocketMessage
 HotChocolate.Language.GraphQLSocketMessage.GraphQLSocketMessage() -> void
-HotChocolate.Language.GraphQLSocketMessage.GraphQLSocketMessage(string type, string id, System.ReadOnlySpan<byte> payload) -> void
-HotChocolate.Language.GraphQLSocketMessage.Id.get -> string
+HotChocolate.Language.GraphQLSocketMessage.GraphQLSocketMessage(string! type, string? id, System.ReadOnlySpan<byte> payload) -> void
+HotChocolate.Language.GraphQLSocketMessage.Id.get -> string?
 HotChocolate.Language.GraphQLSocketMessage.Payload.get -> System.ReadOnlySpan<byte>
-HotChocolate.Language.GraphQLSocketMessage.Type.get -> string
+HotChocolate.Language.GraphQLSocketMessage.Type.get -> string!
 HotChocolate.Language.HashFormat
 HotChocolate.Language.HashFormat.Base64 = 0 -> HotChocolate.Language.HashFormat
 HotChocolate.Language.HashFormat.Hex = 1 -> HotChocolate.Language.HashFormat
@@ -24,18 +24,18 @@ HotChocolate.Language.IDocumentCache
 HotChocolate.Language.IDocumentCache.Capacity.get -> int
 HotChocolate.Language.IDocumentCache.Clear() -> void
 HotChocolate.Language.IDocumentCache.Count.get -> int
-HotChocolate.Language.IDocumentCache.TryAddDocument(string documentId, HotChocolate.Language.DocumentNode document) -> void
-HotChocolate.Language.IDocumentCache.TryGetDocument(string documentId, out HotChocolate.Language.DocumentNode document) -> bool
+HotChocolate.Language.IDocumentCache.TryAddDocument(string! documentId, HotChocolate.Language.DocumentNode! document) -> void
+HotChocolate.Language.IDocumentCache.TryGetDocument(string! documentId, out HotChocolate.Language.DocumentNode! document) -> bool
 HotChocolate.Language.IDocumentHashProvider
-HotChocolate.Language.IDocumentHashProvider.ComputeHash(System.ReadOnlySpan<byte> document) -> string
+HotChocolate.Language.IDocumentHashProvider.ComputeHash(System.ReadOnlySpan<byte> document) -> string!
 HotChocolate.Language.IDocumentHashProvider.Format.get -> HotChocolate.Language.HashFormat
-HotChocolate.Language.IDocumentHashProvider.Name.get -> string
+HotChocolate.Language.IDocumentHashProvider.Name.get -> string!
 HotChocolate.Language.MD5DocumentHashProvider
 HotChocolate.Language.MD5DocumentHashProvider.MD5DocumentHashProvider() -> void
 HotChocolate.Language.MD5DocumentHashProvider.MD5DocumentHashProvider(HotChocolate.Language.HashFormat format) -> void
 HotChocolate.Language.NameUtils
 HotChocolate.Language.ParserOptions
-HotChocolate.Language.ParserOptions.Experimental.get -> HotChocolate.Language.ParserOptionsExperimental
+HotChocolate.Language.ParserOptions.Experimental.get -> HotChocolate.Language.ParserOptionsExperimental!
 HotChocolate.Language.ParserOptions.NoLocations.get -> bool
 HotChocolate.Language.ParserOptions.ParserOptions(bool noLocations = false, bool allowFragmentVariables = false) -> void
 HotChocolate.Language.ParserOptionsExperimental
@@ -50,7 +50,7 @@ HotChocolate.Language.SyntaxException
 HotChocolate.Language.SyntaxException.Column.get -> int
 HotChocolate.Language.SyntaxException.Line.get -> int
 HotChocolate.Language.SyntaxException.Position.get -> int
-HotChocolate.Language.SyntaxException.SourceText.get -> string
+HotChocolate.Language.SyntaxException.SourceText.get -> string!
 HotChocolate.Language.TokenKind
 HotChocolate.Language.TokenKind.Ampersand = 4 -> HotChocolate.Language.TokenKind
 HotChocolate.Language.TokenKind.At = 10 -> HotChocolate.Language.TokenKind
@@ -76,21 +76,21 @@ HotChocolate.Language.TokenKind.StartOfFile = 0 -> HotChocolate.Language.TokenKi
 HotChocolate.Language.TokenKind.String = 19 -> HotChocolate.Language.TokenKind
 HotChocolate.Language.Utf8EncodingException
 HotChocolate.Language.Utf8EncodingException.Utf8EncodingException() -> void
-HotChocolate.Language.Utf8EncodingException.Utf8EncodingException(string message) -> void
-HotChocolate.Language.Utf8EncodingException.Utf8EncodingException(string message, System.Exception inner) -> void
+HotChocolate.Language.Utf8EncodingException.Utf8EncodingException(string! message) -> void
+HotChocolate.Language.Utf8EncodingException.Utf8EncodingException(string! message, System.Exception! inner) -> void
 HotChocolate.Language.Utf8GraphQLParser
-HotChocolate.Language.Utf8GraphQLParser.Parse() -> HotChocolate.Language.DocumentNode
+HotChocolate.Language.Utf8GraphQLParser.Parse() -> HotChocolate.Language.DocumentNode!
 HotChocolate.Language.Utf8GraphQLParser.Syntax
 HotChocolate.Language.Utf8GraphQLParser.Utf8GraphQLParser() -> void
-HotChocolate.Language.Utf8GraphQLParser.Utf8GraphQLParser(System.ReadOnlySpan<byte> graphQLData, HotChocolate.Language.ParserOptions options = null) -> void
+HotChocolate.Language.Utf8GraphQLParser.Utf8GraphQLParser(System.ReadOnlySpan<byte> graphQLData, HotChocolate.Language.ParserOptions? options = null) -> void
 HotChocolate.Language.Utf8GraphQLReader
 HotChocolate.Language.Utf8GraphQLReader.Column.get -> int
 HotChocolate.Language.Utf8GraphQLReader.End.get -> int
 HotChocolate.Language.Utf8GraphQLReader.FloatFormat.get -> HotChocolate.Language.FloatFormat?
-HotChocolate.Language.Utf8GraphQLReader.GetComment() -> string
-HotChocolate.Language.Utf8GraphQLReader.GetName() -> string
-HotChocolate.Language.Utf8GraphQLReader.GetScalarValue() -> string
-HotChocolate.Language.Utf8GraphQLReader.GetString() -> string
+HotChocolate.Language.Utf8GraphQLReader.GetComment() -> string!
+HotChocolate.Language.Utf8GraphQLReader.GetName() -> string!
+HotChocolate.Language.Utf8GraphQLReader.GetScalarValue() -> string!
+HotChocolate.Language.Utf8GraphQLReader.GetString() -> string!
 HotChocolate.Language.Utf8GraphQLReader.GraphQLData.get -> System.ReadOnlySpan<byte>
 HotChocolate.Language.Utf8GraphQLReader.IsEndOfStream() -> bool
 HotChocolate.Language.Utf8GraphQLReader.Kind.get -> HotChocolate.Language.TokenKind
@@ -107,52 +107,52 @@ HotChocolate.Language.Utf8GraphQLReader.Utf8GraphQLReader() -> void
 HotChocolate.Language.Utf8GraphQLReader.Utf8GraphQLReader(System.ReadOnlySpan<byte> graphQLData) -> void
 HotChocolate.Language.Utf8GraphQLReader.Value.get -> System.ReadOnlySpan<byte>
 HotChocolate.Language.Utf8GraphQLRequestParser
-HotChocolate.Language.Utf8GraphQLRequestParser.Parse() -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.GraphQLRequest>
-HotChocolate.Language.Utf8GraphQLRequestParser.ParseJson() -> object
+HotChocolate.Language.Utf8GraphQLRequestParser.Parse() -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.GraphQLRequest!>!
+HotChocolate.Language.Utf8GraphQLRequestParser.ParseJson() -> object?
 HotChocolate.Language.Utf8GraphQLRequestParser.ParseMessage() -> HotChocolate.Language.GraphQLSocketMessage
 HotChocolate.Language.Utf8GraphQLRequestParser.Utf8GraphQLRequestParser() -> void
-HotChocolate.Language.Utf8GraphQLRequestParser.Utf8GraphQLRequestParser(System.ReadOnlySpan<byte> requestData, HotChocolate.Language.ParserOptions options = null, HotChocolate.Language.IDocumentCache cache = null, HotChocolate.Language.IDocumentHashProvider hashProvider = null) -> void
-override HotChocolate.Language.MD5DocumentHashProvider.ComputeHash(byte[] document, int length) -> byte[]
-override HotChocolate.Language.MD5DocumentHashProvider.Name.get -> string
-override HotChocolate.Language.Sha1DocumentHashProvider.ComputeHash(byte[] document, int length) -> byte[]
-override HotChocolate.Language.Sha1DocumentHashProvider.Name.get -> string
-override HotChocolate.Language.Sha256DocumentHashProvider.ComputeHash(byte[] document, int length) -> byte[]
-override HotChocolate.Language.Sha256DocumentHashProvider.Name.get -> string
-static HotChocolate.Language.NameUtils.IsValidGraphQLName(string name) -> bool
+HotChocolate.Language.Utf8GraphQLRequestParser.Utf8GraphQLRequestParser(System.ReadOnlySpan<byte> requestData, HotChocolate.Language.ParserOptions? options = null, HotChocolate.Language.IDocumentCache? cache = null, HotChocolate.Language.IDocumentHashProvider? hashProvider = null) -> void
+override HotChocolate.Language.MD5DocumentHashProvider.ComputeHash(byte[]! document, int length) -> byte[]!
+override HotChocolate.Language.MD5DocumentHashProvider.Name.get -> string!
+override HotChocolate.Language.Sha1DocumentHashProvider.ComputeHash(byte[]! document, int length) -> byte[]!
+override HotChocolate.Language.Sha1DocumentHashProvider.Name.get -> string!
+override HotChocolate.Language.Sha256DocumentHashProvider.ComputeHash(byte[]! document, int length) -> byte[]!
+override HotChocolate.Language.Sha256DocumentHashProvider.Name.get -> string!
+static HotChocolate.Language.NameUtils.IsValidGraphQLName(string! name) -> bool
 static HotChocolate.Language.NameUtils.IsValidGraphQLName(System.ReadOnlySpan<byte> name) -> bool
-static HotChocolate.Language.NameUtils.MakeValidGraphQLName(string name) -> string
-static HotChocolate.Language.ParserOptions.Default.get -> HotChocolate.Language.ParserOptions
-static HotChocolate.Language.ParserOptions.NoLocation.get -> HotChocolate.Language.ParserOptions
-static HotChocolate.Language.Utf8GraphQLParser.Parse(string sourceText) -> HotChocolate.Language.DocumentNode
-static HotChocolate.Language.Utf8GraphQLParser.Parse(string sourceText, HotChocolate.Language.ParserOptions options) -> HotChocolate.Language.DocumentNode
-static HotChocolate.Language.Utf8GraphQLParser.Parse(System.ReadOnlySpan<byte> graphQLData) -> HotChocolate.Language.DocumentNode
-static HotChocolate.Language.Utf8GraphQLParser.Parse(System.ReadOnlySpan<byte> graphQLData, HotChocolate.Language.ParserOptions options) -> HotChocolate.Language.DocumentNode
-static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseField(HotChocolate.Language.Utf8GraphQLReader reader) -> HotChocolate.Language.FieldNode
-static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseField(string sourceText) -> HotChocolate.Language.FieldNode
-static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseField(System.ReadOnlySpan<byte> sourceText) -> HotChocolate.Language.FieldNode
-static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseObjectLiteral(HotChocolate.Language.Utf8GraphQLReader reader, bool constant = true) -> HotChocolate.Language.ObjectValueNode
-static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseObjectLiteral(string sourceText, bool constant = true) -> HotChocolate.Language.ObjectValueNode
-static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseObjectLiteral(System.ReadOnlySpan<byte> sourceText, bool constant = true) -> HotChocolate.Language.ObjectValueNode
-static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseSelectionSet(HotChocolate.Language.Utf8GraphQLReader reader) -> HotChocolate.Language.SelectionSetNode
-static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseSelectionSet(string sourceText) -> HotChocolate.Language.SelectionSetNode
-static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseSelectionSet(System.ReadOnlySpan<byte> sourceText) -> HotChocolate.Language.SelectionSetNode
-static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseTypeReference(HotChocolate.Language.Utf8GraphQLReader reader) -> HotChocolate.Language.ITypeNode
-static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseTypeReference(string sourceText) -> HotChocolate.Language.ITypeNode
-static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseTypeReference(System.ReadOnlySpan<byte> sourceText) -> HotChocolate.Language.ITypeNode
-static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseValueLiteral(HotChocolate.Language.Utf8GraphQLReader reader, bool constant = true) -> HotChocolate.Language.IValueNode
-static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseValueLiteral(string sourceText, bool constant = true) -> HotChocolate.Language.IValueNode
-static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseValueLiteral(System.ReadOnlySpan<byte> sourceText, bool constant = true) -> HotChocolate.Language.IValueNode
-static HotChocolate.Language.Utf8GraphQLReader.GetString(System.ReadOnlySpan<byte> escapedValue, bool isBlockString) -> string
-static HotChocolate.Language.Utf8GraphQLReader.GetString(System.ReadOnlySpan<byte> unescapedValue) -> string
-static HotChocolate.Language.Utf8GraphQLRequestParser.Parse(string sourceText, HotChocolate.Language.ParserOptions options = null, HotChocolate.Language.IDocumentCache cache = null, HotChocolate.Language.IDocumentHashProvider hashProvider = null) -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.GraphQLRequest>
-static HotChocolate.Language.Utf8GraphQLRequestParser.Parse(System.ReadOnlySpan<byte> requestData, HotChocolate.Language.ParserOptions options = null, HotChocolate.Language.IDocumentCache cache = null, HotChocolate.Language.IDocumentHashProvider hashProvider = null) -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.GraphQLRequest>
-static HotChocolate.Language.Utf8GraphQLRequestParser.ParseJson(string sourceText, HotChocolate.Language.ParserOptions options = null) -> object
-static HotChocolate.Language.Utf8GraphQLRequestParser.ParseJson(System.ReadOnlySpan<byte> sourceText, HotChocolate.Language.ParserOptions options = null) -> object
-static HotChocolate.Language.Utf8GraphQLRequestParser.ParseJsonObject(string sourceText, HotChocolate.Language.ParserOptions options = null) -> System.Collections.Generic.IReadOnlyDictionary<string, object>
-static HotChocolate.Language.Utf8GraphQLRequestParser.ParseJsonObject(System.ReadOnlySpan<byte> sourceText, HotChocolate.Language.ParserOptions options = null) -> System.Collections.Generic.IReadOnlyDictionary<string, object>
+static HotChocolate.Language.NameUtils.MakeValidGraphQLName(string! name) -> string?
+static HotChocolate.Language.ParserOptions.Default.get -> HotChocolate.Language.ParserOptions!
+static HotChocolate.Language.ParserOptions.NoLocation.get -> HotChocolate.Language.ParserOptions!
+static HotChocolate.Language.Utf8GraphQLParser.Parse(string! sourceText) -> HotChocolate.Language.DocumentNode!
+static HotChocolate.Language.Utf8GraphQLParser.Parse(string! sourceText, HotChocolate.Language.ParserOptions! options) -> HotChocolate.Language.DocumentNode!
+static HotChocolate.Language.Utf8GraphQLParser.Parse(System.ReadOnlySpan<byte> graphQLData) -> HotChocolate.Language.DocumentNode!
+static HotChocolate.Language.Utf8GraphQLParser.Parse(System.ReadOnlySpan<byte> graphQLData, HotChocolate.Language.ParserOptions! options) -> HotChocolate.Language.DocumentNode!
+static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseField(HotChocolate.Language.Utf8GraphQLReader reader) -> HotChocolate.Language.FieldNode!
+static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseField(string! sourceText) -> HotChocolate.Language.FieldNode!
+static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseField(System.ReadOnlySpan<byte> sourceText) -> HotChocolate.Language.FieldNode!
+static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseObjectLiteral(HotChocolate.Language.Utf8GraphQLReader reader, bool constant = true) -> HotChocolate.Language.ObjectValueNode!
+static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseObjectLiteral(string! sourceText, bool constant = true) -> HotChocolate.Language.ObjectValueNode!
+static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseObjectLiteral(System.ReadOnlySpan<byte> sourceText, bool constant = true) -> HotChocolate.Language.ObjectValueNode!
+static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseSelectionSet(HotChocolate.Language.Utf8GraphQLReader reader) -> HotChocolate.Language.SelectionSetNode!
+static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseSelectionSet(string! sourceText) -> HotChocolate.Language.SelectionSetNode!
+static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseSelectionSet(System.ReadOnlySpan<byte> sourceText) -> HotChocolate.Language.SelectionSetNode!
+static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseTypeReference(HotChocolate.Language.Utf8GraphQLReader reader) -> HotChocolate.Language.ITypeNode!
+static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseTypeReference(string! sourceText) -> HotChocolate.Language.ITypeNode!
+static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseTypeReference(System.ReadOnlySpan<byte> sourceText) -> HotChocolate.Language.ITypeNode!
+static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseValueLiteral(HotChocolate.Language.Utf8GraphQLReader reader, bool constant = true) -> HotChocolate.Language.IValueNode!
+static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseValueLiteral(string! sourceText, bool constant = true) -> HotChocolate.Language.IValueNode!
+static HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseValueLiteral(System.ReadOnlySpan<byte> sourceText, bool constant = true) -> HotChocolate.Language.IValueNode!
+static HotChocolate.Language.Utf8GraphQLReader.GetString(System.ReadOnlySpan<byte> escapedValue, bool isBlockString) -> string!
+static HotChocolate.Language.Utf8GraphQLReader.GetString(System.ReadOnlySpan<byte> unescapedValue) -> string!
+static HotChocolate.Language.Utf8GraphQLRequestParser.Parse(string! sourceText, HotChocolate.Language.ParserOptions? options = null, HotChocolate.Language.IDocumentCache? cache = null, HotChocolate.Language.IDocumentHashProvider? hashProvider = null) -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.GraphQLRequest!>!
+static HotChocolate.Language.Utf8GraphQLRequestParser.Parse(System.ReadOnlySpan<byte> requestData, HotChocolate.Language.ParserOptions? options = null, HotChocolate.Language.IDocumentCache? cache = null, HotChocolate.Language.IDocumentHashProvider? hashProvider = null) -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.GraphQLRequest!>!
+static HotChocolate.Language.Utf8GraphQLRequestParser.ParseJson(string! sourceText, HotChocolate.Language.ParserOptions? options = null) -> object?
+static HotChocolate.Language.Utf8GraphQLRequestParser.ParseJson(System.ReadOnlySpan<byte> sourceText, HotChocolate.Language.ParserOptions? options = null) -> object?
+static HotChocolate.Language.Utf8GraphQLRequestParser.ParseJsonObject(string! sourceText, HotChocolate.Language.ParserOptions? options = null) -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
+static HotChocolate.Language.Utf8GraphQLRequestParser.ParseJsonObject(System.ReadOnlySpan<byte> sourceText, HotChocolate.Language.ParserOptions? options = null) -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
 static HotChocolate.Language.Utf8GraphQLRequestParser.ParseMessage(System.ReadOnlySpan<byte> messageData) -> HotChocolate.Language.GraphQLSocketMessage
-static HotChocolate.Language.Utf8GraphQLRequestParser.ParseResponse(string sourceText, HotChocolate.Language.ParserOptions options = null) -> System.Collections.Generic.IReadOnlyDictionary<string, object>
-static HotChocolate.Language.Utf8GraphQLRequestParser.ParseResponse(System.ReadOnlySpan<byte> sourceText, HotChocolate.Language.ParserOptions options = null) -> System.Collections.Generic.IReadOnlyDictionary<string, object>
-static HotChocolate.Language.Utf8GraphQLRequestParser.ParseVariables(string sourceText, HotChocolate.Language.ParserOptions options = null) -> System.Collections.Generic.IReadOnlyDictionary<string, object>
-static HotChocolate.Language.Utf8GraphQLRequestParser.ParseVariables(System.ReadOnlySpan<byte> sourceText, HotChocolate.Language.ParserOptions options = null) -> System.Collections.Generic.IReadOnlyDictionary<string, object>
-static HotChocolate.Language.Utf8GraphQLRequestParser.TryExtractHash(System.Collections.Generic.IReadOnlyDictionary<string, object> extensions, HotChocolate.Language.IDocumentHashProvider hashProvider, out string hash) -> bool
+static HotChocolate.Language.Utf8GraphQLRequestParser.ParseResponse(string! sourceText, HotChocolate.Language.ParserOptions? options = null) -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
+static HotChocolate.Language.Utf8GraphQLRequestParser.ParseResponse(System.ReadOnlySpan<byte> sourceText, HotChocolate.Language.ParserOptions? options = null) -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
+static HotChocolate.Language.Utf8GraphQLRequestParser.ParseVariables(string! sourceText, HotChocolate.Language.ParserOptions? options = null) -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
+static HotChocolate.Language.Utf8GraphQLRequestParser.ParseVariables(System.ReadOnlySpan<byte> sourceText, HotChocolate.Language.ParserOptions? options = null) -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
+static HotChocolate.Language.Utf8GraphQLRequestParser.TryExtractHash(System.Collections.Generic.IReadOnlyDictionary<string!, object?>? extensions, HotChocolate.Language.IDocumentHashProvider? hashProvider, out string? hash) -> bool

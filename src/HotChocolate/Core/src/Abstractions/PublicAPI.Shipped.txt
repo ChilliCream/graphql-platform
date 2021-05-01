@@ -1,140 +1,140 @@
 #nullable enable
 abstract HotChocolate.Path.Depth.get -> int
-abstract HotChocolate.Path.Equals(HotChocolate.Path other) -> bool
-abstract HotChocolate.Path.Parent.get -> HotChocolate.Path
-abstract HotChocolate.Path.Print() -> string
-const HotChocolate.ErrorCodes.Authentication.NoDefaultPolicy = "AUTH_NO_DEFAULT_POLICY" -> string
-const HotChocolate.ErrorCodes.Authentication.NotAuthenticated = "AUTH_NOT_AUTHENTICATED" -> string
-const HotChocolate.ErrorCodes.Authentication.NotAuthorized = "AUTH_NOT_AUTHORIZED" -> string
-const HotChocolate.ErrorCodes.Authentication.PolicyNotFound = "AUTH_POLICY_NOT_FOUND" -> string
-const HotChocolate.ErrorCodes.Data.FilteringProjectionFailed = "HC0023" -> string
-const HotChocolate.ErrorCodes.Data.ListNotSupported = "HC0021" -> string
-const HotChocolate.ErrorCodes.Data.MoreThanOneElement = "HC0022" -> string
-const HotChocolate.ErrorCodes.Data.NodeFieldWasNotFound = "HC0028" -> string
-const HotChocolate.ErrorCodes.Data.NonNullError = "HC0026" -> string
-const HotChocolate.ErrorCodes.Data.NoPagingationProviderFound = "HC0025" -> string
-const HotChocolate.ErrorCodes.Data.SortingProjectionFailed = "HC0024" -> string
-const HotChocolate.ErrorCodes.Execution.AutoMapVarError = "EXEC_BATCH_AUTO_MAP_VAR_TYPE" -> string
-const HotChocolate.ErrorCodes.Execution.CannotCreateRootValue = "HC0019" -> string
-const HotChocolate.ErrorCodes.Execution.CannotResolveAbstractType = "EXEC_UNABLE_TO_RESOLVE_ABSTRACT_TYPE" -> string
-const HotChocolate.ErrorCodes.Execution.CannotSerialize = "EXEC_BATCH_VAR_SERIALIZE" -> string
-const HotChocolate.ErrorCodes.Execution.CannotSerializeLeafValue = "EXEC_INVALID_LEAF_VALUE" -> string
-const HotChocolate.ErrorCodes.Execution.InvalidType = "HC0016" -> string
-const HotChocolate.ErrorCodes.Execution.ListTypeNotSupported = "EXEC_LIST_TYPE_NOT_SUPPORTED" -> string
-const HotChocolate.ErrorCodes.Execution.MustBeInputType = "HC0017" -> string
-const HotChocolate.ErrorCodes.Execution.NonNullViolation = "HC0018" -> string
-const HotChocolate.ErrorCodes.Execution.PersistedQueryNotFound = "HC0020" -> string
-const HotChocolate.ErrorCodes.Execution.QueryNotFound = "HC0015" -> string
-const HotChocolate.ErrorCodes.Execution.SyntaxError = "HC0014" -> string
-const HotChocolate.ErrorCodes.Execution.TaskProcessingError = "HC0008" -> string
-const HotChocolate.ErrorCodes.Execution.Timeout = "HC0045" -> string
-const HotChocolate.ErrorCodes.Filtering.FilterFieldDescriptorType = "FILTER_FIELD_DESCRIPTOR_TYPE" -> string
-const HotChocolate.ErrorCodes.Filtering.FilterObjectType = "FILTER_OBJECT_TYPE" -> string
-const HotChocolate.ErrorCodes.Scalars.InvalidRuntimeType = "HC0001" -> string
-const HotChocolate.ErrorCodes.Scalars.InvalidSyntaxFormat = "HC0002" -> string
-const HotChocolate.ErrorCodes.Schema.ArgumentValueTypeWrong = "TS_ARG_VALUE_TYPE_WRONG" -> string
-const HotChocolate.ErrorCodes.Schema.InterfaceNotImplemented = "SCHEMA_INTERFACE_NO_IMPL" -> string
-const HotChocolate.ErrorCodes.Schema.InvalidArgument = "TS_INVALID_ARG" -> string
-const HotChocolate.ErrorCodes.Schema.MissingType = "TS_MISSING_TYPE" -> string
-const HotChocolate.ErrorCodes.Schema.NoEnumValues = "TS_NO_ENUM_VALUES" -> string
-const HotChocolate.ErrorCodes.Schema.NoFieldType = "TS_NO_FIELD_TYPE" -> string
-const HotChocolate.ErrorCodes.Schema.NoName = "TS_NO_NAME_DEFINED" -> string
-const HotChocolate.ErrorCodes.Schema.NonNullArgument = "TS_ARG_NON_NULL" -> string
-const HotChocolate.ErrorCodes.Schema.NoResolver = "TS_NO_FIELD_RESOLVER" -> string
-const HotChocolate.ErrorCodes.Schema.UnresolvedTypes = "TS_UNRESOLVED_TYPES" -> string
-const HotChocolate.ErrorCodes.Server.MaxRequestSize = "HC0010" -> string
-const HotChocolate.ErrorCodes.Server.MultiPartFieldsMisordered = "HC0035" -> string
-const HotChocolate.ErrorCodes.Server.MultiPartFileMissing = "HC00038" -> string
-const HotChocolate.ErrorCodes.Server.MultiPartInvalidForm = "HC0033" -> string
-const HotChocolate.ErrorCodes.Server.MultiPartInvalidMapJson = "HC0043" -> string
-const HotChocolate.ErrorCodes.Server.MultiPartInvalidPath = "HC0041" -> string
-const HotChocolate.ErrorCodes.Server.MultiPartMapNotSpecified = "HC0044" -> string
-const HotChocolate.ErrorCodes.Server.MultiPartNoObjectPath = "HC0037" -> string
-const HotChocolate.ErrorCodes.Server.MultiPartNoOperationsSpecified = "HC0034" -> string
-const HotChocolate.ErrorCodes.Server.MultiPartPathMustStartWithVariable = "HC0042" -> string
-const HotChocolate.ErrorCodes.Server.MultiPartVariableNotFound = "HC0039" -> string
-const HotChocolate.ErrorCodes.Server.MultiPartVariableStructureInvalid = "HC0040" -> string
-const HotChocolate.ErrorCodes.Server.QueryAndIdMissing = "HC0013" -> string
-const HotChocolate.ErrorCodes.Server.RequestInvalid = "HC0009" -> string
-const HotChocolate.ErrorCodes.Server.SyntaxError = "HC0011" -> string
-const HotChocolate.ErrorCodes.Server.UnexpectedRequestParserError = "HC0012" -> string
-const HotChocolate.ErrorCodes.Spatial.CoordinateMNotSupported = "HC0030" -> string
-const HotChocolate.ErrorCodes.Spatial.UnknowCrs = "HC0029" -> string
-const HotChocolate.ErrorCodes.Stitching.ArgumentNotDefined = "STITCHING_ARG_NOT_DEFINED" -> string
-const HotChocolate.ErrorCodes.Stitching.ArgumentNotFound = "STITCHING_DEL_ARGUMENT_NOT_FOUND" -> string
-const HotChocolate.ErrorCodes.Stitching.FieldNotDefined = "STITCHING_FLD_NOT_DEFINED" -> string
-const HotChocolate.ErrorCodes.Stitching.HttpRequestException = "HC0006" -> string
-const HotChocolate.ErrorCodes.Stitching.ScopeNotDefined = "STITCHING_SCOPE_NOT_DEFINED" -> string
-const HotChocolate.ErrorCodes.Stitching.TypeNotDefined = "STITCHING_TYPE_NOT_DEFINED" -> string
-const HotChocolate.ErrorCodes.Stitching.UnknownRequestException = "HC0007" -> string
-const HotChocolate.ErrorCodes.Stitching.VariableNotDefined = "STITCHING_VAR_NOT_DEFINED" -> string
-const HotChocolate.ErrorCodes.Types.NodeTypeUnkown = "HC0031" -> string
-const HotChocolate.ErrorCodes.Types.SchemaTypeInvalid = "HC0032" -> string
-const HotChocolate.ErrorCodes.Validation.IntrospectionNotAllowed = "HC0046" -> string
-const HotChocolate.WellKnownContextData.DocumentSaved = "HotChocolate.Execution.DocumentSaved" -> string
-const HotChocolate.WellKnownContextData.EnableTracing = "HotChocolate.Execution.EnableTracing" -> string
-const HotChocolate.WellKnownContextData.EventMessage = "HotChocolate.Execution.EventMessage" -> string
-const HotChocolate.WellKnownContextData.IntrospectionAllowed = "HotChocolate.Execution.Introspection.Allowed" -> string
-const HotChocolate.WellKnownContextData.IntrospectionMessage = "HotChocolate.Execution.Introspection.Message" -> string
-const HotChocolate.WellKnownContextData.OperationNotAllowed = "HotChocolate.Execution.OperationNotAllowed" -> string
-const HotChocolate.WellKnownContextData.Subscription = "HotChocolate.Execution.Subscription" -> string
-const HotChocolate.WellKnownContextData.ValidationErrors = "HotChocolate.Execution.ValidationErrors" -> string
-const HotChocolate.WellKnownDirectives.Defer = "defer" -> string
-const HotChocolate.WellKnownDirectives.Deprecated = "deprecated" -> string
-const HotChocolate.WellKnownDirectives.DeprecationDefaultReason = "No longer supported" -> string
-const HotChocolate.WellKnownDirectives.DeprecationReasonArgument = "reason" -> string
-const HotChocolate.WellKnownDirectives.IfArgument = "if" -> string
-const HotChocolate.WellKnownDirectives.Include = "include" -> string
-const HotChocolate.WellKnownDirectives.LabelArgument = "label" -> string
-const HotChocolate.WellKnownDirectives.Skip = "skip" -> string
-const HotChocolate.WellKnownDirectives.Stream = "stream" -> string
+abstract HotChocolate.Path.Equals(HotChocolate.Path? other) -> bool
+abstract HotChocolate.Path.Parent.get -> HotChocolate.Path?
+abstract HotChocolate.Path.Print() -> string!
+const HotChocolate.ErrorCodes.Authentication.NoDefaultPolicy = "AUTH_NO_DEFAULT_POLICY" -> string!
+const HotChocolate.ErrorCodes.Authentication.NotAuthenticated = "AUTH_NOT_AUTHENTICATED" -> string!
+const HotChocolate.ErrorCodes.Authentication.NotAuthorized = "AUTH_NOT_AUTHORIZED" -> string!
+const HotChocolate.ErrorCodes.Authentication.PolicyNotFound = "AUTH_POLICY_NOT_FOUND" -> string!
+const HotChocolate.ErrorCodes.Data.FilteringProjectionFailed = "HC0023" -> string!
+const HotChocolate.ErrorCodes.Data.ListNotSupported = "HC0021" -> string!
+const HotChocolate.ErrorCodes.Data.MoreThanOneElement = "HC0022" -> string!
+const HotChocolate.ErrorCodes.Data.NodeFieldWasNotFound = "HC0028" -> string!
+const HotChocolate.ErrorCodes.Data.NonNullError = "HC0026" -> string!
+const HotChocolate.ErrorCodes.Data.NoPagingationProviderFound = "HC0025" -> string!
+const HotChocolate.ErrorCodes.Data.SortingProjectionFailed = "HC0024" -> string!
+const HotChocolate.ErrorCodes.Execution.AutoMapVarError = "EXEC_BATCH_AUTO_MAP_VAR_TYPE" -> string!
+const HotChocolate.ErrorCodes.Execution.CannotCreateRootValue = "HC0019" -> string!
+const HotChocolate.ErrorCodes.Execution.CannotResolveAbstractType = "EXEC_UNABLE_TO_RESOLVE_ABSTRACT_TYPE" -> string!
+const HotChocolate.ErrorCodes.Execution.CannotSerialize = "EXEC_BATCH_VAR_SERIALIZE" -> string!
+const HotChocolate.ErrorCodes.Execution.CannotSerializeLeafValue = "EXEC_INVALID_LEAF_VALUE" -> string!
+const HotChocolate.ErrorCodes.Execution.InvalidType = "HC0016" -> string!
+const HotChocolate.ErrorCodes.Execution.ListTypeNotSupported = "EXEC_LIST_TYPE_NOT_SUPPORTED" -> string!
+const HotChocolate.ErrorCodes.Execution.MustBeInputType = "HC0017" -> string!
+const HotChocolate.ErrorCodes.Execution.NonNullViolation = "HC0018" -> string!
+const HotChocolate.ErrorCodes.Execution.PersistedQueryNotFound = "HC0020" -> string!
+const HotChocolate.ErrorCodes.Execution.QueryNotFound = "HC0015" -> string!
+const HotChocolate.ErrorCodes.Execution.SyntaxError = "HC0014" -> string!
+const HotChocolate.ErrorCodes.Execution.TaskProcessingError = "HC0008" -> string!
+const HotChocolate.ErrorCodes.Execution.Timeout = "HC0045" -> string!
+const HotChocolate.ErrorCodes.Filtering.FilterFieldDescriptorType = "FILTER_FIELD_DESCRIPTOR_TYPE" -> string!
+const HotChocolate.ErrorCodes.Filtering.FilterObjectType = "FILTER_OBJECT_TYPE" -> string!
+const HotChocolate.ErrorCodes.Scalars.InvalidRuntimeType = "HC0001" -> string!
+const HotChocolate.ErrorCodes.Scalars.InvalidSyntaxFormat = "HC0002" -> string!
+const HotChocolate.ErrorCodes.Schema.ArgumentValueTypeWrong = "TS_ARG_VALUE_TYPE_WRONG" -> string!
+const HotChocolate.ErrorCodes.Schema.InterfaceNotImplemented = "SCHEMA_INTERFACE_NO_IMPL" -> string!
+const HotChocolate.ErrorCodes.Schema.InvalidArgument = "TS_INVALID_ARG" -> string!
+const HotChocolate.ErrorCodes.Schema.MissingType = "TS_MISSING_TYPE" -> string!
+const HotChocolate.ErrorCodes.Schema.NoEnumValues = "TS_NO_ENUM_VALUES" -> string!
+const HotChocolate.ErrorCodes.Schema.NoFieldType = "TS_NO_FIELD_TYPE" -> string!
+const HotChocolate.ErrorCodes.Schema.NoName = "TS_NO_NAME_DEFINED" -> string!
+const HotChocolate.ErrorCodes.Schema.NonNullArgument = "TS_ARG_NON_NULL" -> string!
+const HotChocolate.ErrorCodes.Schema.NoResolver = "TS_NO_FIELD_RESOLVER" -> string!
+const HotChocolate.ErrorCodes.Schema.UnresolvedTypes = "TS_UNRESOLVED_TYPES" -> string!
+const HotChocolate.ErrorCodes.Server.MaxRequestSize = "HC0010" -> string!
+const HotChocolate.ErrorCodes.Server.MultiPartFieldsMisordered = "HC0035" -> string!
+const HotChocolate.ErrorCodes.Server.MultiPartFileMissing = "HC00038" -> string!
+const HotChocolate.ErrorCodes.Server.MultiPartInvalidForm = "HC0033" -> string!
+const HotChocolate.ErrorCodes.Server.MultiPartInvalidMapJson = "HC0043" -> string!
+const HotChocolate.ErrorCodes.Server.MultiPartInvalidPath = "HC0041" -> string!
+const HotChocolate.ErrorCodes.Server.MultiPartMapNotSpecified = "HC0044" -> string!
+const HotChocolate.ErrorCodes.Server.MultiPartNoObjectPath = "HC0037" -> string!
+const HotChocolate.ErrorCodes.Server.MultiPartNoOperationsSpecified = "HC0034" -> string!
+const HotChocolate.ErrorCodes.Server.MultiPartPathMustStartWithVariable = "HC0042" -> string!
+const HotChocolate.ErrorCodes.Server.MultiPartVariableNotFound = "HC0039" -> string!
+const HotChocolate.ErrorCodes.Server.MultiPartVariableStructureInvalid = "HC0040" -> string!
+const HotChocolate.ErrorCodes.Server.QueryAndIdMissing = "HC0013" -> string!
+const HotChocolate.ErrorCodes.Server.RequestInvalid = "HC0009" -> string!
+const HotChocolate.ErrorCodes.Server.SyntaxError = "HC0011" -> string!
+const HotChocolate.ErrorCodes.Server.UnexpectedRequestParserError = "HC0012" -> string!
+const HotChocolate.ErrorCodes.Spatial.CoordinateMNotSupported = "HC0030" -> string!
+const HotChocolate.ErrorCodes.Spatial.UnknowCrs = "HC0029" -> string!
+const HotChocolate.ErrorCodes.Stitching.ArgumentNotDefined = "STITCHING_ARG_NOT_DEFINED" -> string!
+const HotChocolate.ErrorCodes.Stitching.ArgumentNotFound = "STITCHING_DEL_ARGUMENT_NOT_FOUND" -> string!
+const HotChocolate.ErrorCodes.Stitching.FieldNotDefined = "STITCHING_FLD_NOT_DEFINED" -> string!
+const HotChocolate.ErrorCodes.Stitching.HttpRequestException = "HC0006" -> string!
+const HotChocolate.ErrorCodes.Stitching.ScopeNotDefined = "STITCHING_SCOPE_NOT_DEFINED" -> string!
+const HotChocolate.ErrorCodes.Stitching.TypeNotDefined = "STITCHING_TYPE_NOT_DEFINED" -> string!
+const HotChocolate.ErrorCodes.Stitching.UnknownRequestException = "HC0007" -> string!
+const HotChocolate.ErrorCodes.Stitching.VariableNotDefined = "STITCHING_VAR_NOT_DEFINED" -> string!
+const HotChocolate.ErrorCodes.Types.NodeTypeUnkown = "HC0031" -> string!
+const HotChocolate.ErrorCodes.Types.SchemaTypeInvalid = "HC0032" -> string!
+const HotChocolate.ErrorCodes.Validation.IntrospectionNotAllowed = "HC0046" -> string!
+const HotChocolate.WellKnownContextData.DocumentSaved = "HotChocolate.Execution.DocumentSaved" -> string!
+const HotChocolate.WellKnownContextData.EnableTracing = "HotChocolate.Execution.EnableTracing" -> string!
+const HotChocolate.WellKnownContextData.EventMessage = "HotChocolate.Execution.EventMessage" -> string!
+const HotChocolate.WellKnownContextData.IntrospectionAllowed = "HotChocolate.Execution.Introspection.Allowed" -> string!
+const HotChocolate.WellKnownContextData.IntrospectionMessage = "HotChocolate.Execution.Introspection.Message" -> string!
+const HotChocolate.WellKnownContextData.OperationNotAllowed = "HotChocolate.Execution.OperationNotAllowed" -> string!
+const HotChocolate.WellKnownContextData.Subscription = "HotChocolate.Execution.Subscription" -> string!
+const HotChocolate.WellKnownContextData.ValidationErrors = "HotChocolate.Execution.ValidationErrors" -> string!
+const HotChocolate.WellKnownDirectives.Defer = "defer" -> string!
+const HotChocolate.WellKnownDirectives.Deprecated = "deprecated" -> string!
+const HotChocolate.WellKnownDirectives.DeprecationDefaultReason = "No longer supported" -> string!
+const HotChocolate.WellKnownDirectives.DeprecationReasonArgument = "reason" -> string!
+const HotChocolate.WellKnownDirectives.IfArgument = "if" -> string!
+const HotChocolate.WellKnownDirectives.Include = "include" -> string!
+const HotChocolate.WellKnownDirectives.LabelArgument = "label" -> string!
+const HotChocolate.WellKnownDirectives.Skip = "skip" -> string!
+const HotChocolate.WellKnownDirectives.Stream = "stream" -> string!
 HotChocolate.DataLoaderAttribute
 HotChocolate.DataLoaderAttribute.DataLoaderAttribute() -> void
-HotChocolate.DataLoaderAttribute.DataLoaderAttribute(string key) -> void
-HotChocolate.DataLoaderAttribute.Key.get -> string
+HotChocolate.DataLoaderAttribute.DataLoaderAttribute(string! key) -> void
+HotChocolate.DataLoaderAttribute.Key.get -> string!
 HotChocolate.DirectiveAttribute
 HotChocolate.DirectiveAttribute.DirectiveAttribute() -> void
 HotChocolate.Error
-HotChocolate.Error.Code.get -> string
-HotChocolate.Error.Error(string message, string code = null, HotChocolate.Path path = null, System.Collections.Generic.IReadOnlyList<HotChocolate.Location> locations = null, System.Collections.Generic.IReadOnlyDictionary<string, object> extensions = null, System.Exception exception = null, HotChocolate.Language.ISyntaxNode syntaxNode = null) -> void
-HotChocolate.Error.Exception.get -> System.Exception
-HotChocolate.Error.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
-HotChocolate.Error.Locations.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Location>
-HotChocolate.Error.Message.get -> string
-HotChocolate.Error.Path.get -> HotChocolate.Path
-HotChocolate.Error.RemoveCode() -> HotChocolate.IError
-HotChocolate.Error.RemoveException() -> HotChocolate.IError
-HotChocolate.Error.RemoveExtension(string key) -> HotChocolate.IError
-HotChocolate.Error.RemoveExtensions() -> HotChocolate.IError
-HotChocolate.Error.RemoveLocations() -> HotChocolate.IError
-HotChocolate.Error.RemovePath() -> HotChocolate.IError
-HotChocolate.Error.SetExtension(string key, object value) -> HotChocolate.IError
-HotChocolate.Error.SyntaxNode.get -> HotChocolate.Language.ISyntaxNode
-HotChocolate.Error.WithCode(string code) -> HotChocolate.IError
-HotChocolate.Error.WithException(System.Exception exception) -> HotChocolate.IError
-HotChocolate.Error.WithExtensions(System.Collections.Generic.IReadOnlyDictionary<string, object> extensions) -> HotChocolate.IError
-HotChocolate.Error.WithLocations(System.Collections.Generic.IReadOnlyList<HotChocolate.Location> locations) -> HotChocolate.IError
-HotChocolate.Error.WithMessage(string message) -> HotChocolate.IError
-HotChocolate.Error.WithPath(HotChocolate.Path path) -> HotChocolate.IError
-HotChocolate.Error.WithPath(System.Collections.Generic.IReadOnlyList<object> path) -> HotChocolate.IError
+HotChocolate.Error.Code.get -> string?
+HotChocolate.Error.Error(string! message, string? code = null, HotChocolate.Path? path = null, System.Collections.Generic.IReadOnlyList<HotChocolate.Location>? locations = null, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? extensions = null, System.Exception? exception = null, HotChocolate.Language.ISyntaxNode? syntaxNode = null) -> void
+HotChocolate.Error.Exception.get -> System.Exception?
+HotChocolate.Error.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
+HotChocolate.Error.Locations.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Location>?
+HotChocolate.Error.Message.get -> string!
+HotChocolate.Error.Path.get -> HotChocolate.Path?
+HotChocolate.Error.RemoveCode() -> HotChocolate.IError!
+HotChocolate.Error.RemoveException() -> HotChocolate.IError!
+HotChocolate.Error.RemoveExtension(string! key) -> HotChocolate.IError!
+HotChocolate.Error.RemoveExtensions() -> HotChocolate.IError!
+HotChocolate.Error.RemoveLocations() -> HotChocolate.IError!
+HotChocolate.Error.RemovePath() -> HotChocolate.IError!
+HotChocolate.Error.SetExtension(string! key, object? value) -> HotChocolate.IError!
+HotChocolate.Error.SyntaxNode.get -> HotChocolate.Language.ISyntaxNode?
+HotChocolate.Error.WithCode(string? code) -> HotChocolate.IError!
+HotChocolate.Error.WithException(System.Exception? exception) -> HotChocolate.IError!
+HotChocolate.Error.WithExtensions(System.Collections.Generic.IReadOnlyDictionary<string!, object?>! extensions) -> HotChocolate.IError!
+HotChocolate.Error.WithLocations(System.Collections.Generic.IReadOnlyList<HotChocolate.Location>? locations) -> HotChocolate.IError!
+HotChocolate.Error.WithMessage(string! message) -> HotChocolate.IError!
+HotChocolate.Error.WithPath(HotChocolate.Path? path) -> HotChocolate.IError!
+HotChocolate.Error.WithPath(System.Collections.Generic.IReadOnlyList<object!>? path) -> HotChocolate.IError!
 HotChocolate.ErrorBuilder
-HotChocolate.ErrorBuilder.AddLocation(HotChocolate.Location location) -> HotChocolate.IErrorBuilder
-HotChocolate.ErrorBuilder.AddLocation(int line, int column) -> HotChocolate.IErrorBuilder
-HotChocolate.ErrorBuilder.Build() -> HotChocolate.IError
-HotChocolate.ErrorBuilder.ClearExtensions() -> HotChocolate.IErrorBuilder
-HotChocolate.ErrorBuilder.ClearLocations() -> HotChocolate.IErrorBuilder
+HotChocolate.ErrorBuilder.AddLocation(HotChocolate.Location location) -> HotChocolate.IErrorBuilder!
+HotChocolate.ErrorBuilder.AddLocation(int line, int column) -> HotChocolate.IErrorBuilder!
+HotChocolate.ErrorBuilder.Build() -> HotChocolate.IError!
+HotChocolate.ErrorBuilder.ClearExtensions() -> HotChocolate.IErrorBuilder!
+HotChocolate.ErrorBuilder.ClearLocations() -> HotChocolate.IErrorBuilder!
 HotChocolate.ErrorBuilder.ErrorBuilder() -> void
-HotChocolate.ErrorBuilder.RemoveCode() -> HotChocolate.IErrorBuilder
-HotChocolate.ErrorBuilder.RemoveException() -> HotChocolate.IErrorBuilder
-HotChocolate.ErrorBuilder.RemoveExtension(string key) -> HotChocolate.IErrorBuilder
-HotChocolate.ErrorBuilder.RemovePath() -> HotChocolate.IErrorBuilder
-HotChocolate.ErrorBuilder.SetCode(string code) -> HotChocolate.IErrorBuilder
-HotChocolate.ErrorBuilder.SetException(System.Exception exception) -> HotChocolate.IErrorBuilder
-HotChocolate.ErrorBuilder.SetExtension(string key, object value) -> HotChocolate.IErrorBuilder
-HotChocolate.ErrorBuilder.SetMessage(string message) -> HotChocolate.IErrorBuilder
-HotChocolate.ErrorBuilder.SetPath(HotChocolate.Path path) -> HotChocolate.IErrorBuilder
-HotChocolate.ErrorBuilder.SetPath(System.Collections.Generic.IReadOnlyList<object> path) -> HotChocolate.IErrorBuilder
-HotChocolate.ErrorBuilder.SetSyntaxNode(HotChocolate.Language.ISyntaxNode syntaxNode) -> HotChocolate.IErrorBuilder
+HotChocolate.ErrorBuilder.RemoveCode() -> HotChocolate.IErrorBuilder!
+HotChocolate.ErrorBuilder.RemoveException() -> HotChocolate.IErrorBuilder!
+HotChocolate.ErrorBuilder.RemoveExtension(string! key) -> HotChocolate.IErrorBuilder!
+HotChocolate.ErrorBuilder.RemovePath() -> HotChocolate.IErrorBuilder!
+HotChocolate.ErrorBuilder.SetCode(string? code) -> HotChocolate.IErrorBuilder!
+HotChocolate.ErrorBuilder.SetException(System.Exception? exception) -> HotChocolate.IErrorBuilder!
+HotChocolate.ErrorBuilder.SetExtension(string! key, object? value) -> HotChocolate.IErrorBuilder!
+HotChocolate.ErrorBuilder.SetMessage(string! message) -> HotChocolate.IErrorBuilder!
+HotChocolate.ErrorBuilder.SetPath(HotChocolate.Path? path) -> HotChocolate.IErrorBuilder!
+HotChocolate.ErrorBuilder.SetPath(System.Collections.Generic.IReadOnlyList<object!>? path) -> HotChocolate.IErrorBuilder!
+HotChocolate.ErrorBuilder.SetSyntaxNode(HotChocolate.Language.ISyntaxNode? syntaxNode) -> HotChocolate.IErrorBuilder!
 HotChocolate.ErrorBuilderExtensions
 HotChocolate.ErrorCodes
 HotChocolate.ErrorCodes.Authentication
@@ -153,292 +153,292 @@ HotChocolate.ErrorHandlerExtensions
 HotChocolate.EventMessageAttribute
 HotChocolate.EventMessageAttribute.EventMessageAttribute() -> void
 HotChocolate.Execution.BatchQueryResult
-HotChocolate.Execution.BatchQueryResult.BatchQueryResult(System.Func<System.Collections.Generic.IAsyncEnumerable<HotChocolate.Execution.IQueryResult>> resultStreamFactory, System.Collections.Generic.IReadOnlyList<HotChocolate.IError> errors, System.Collections.Generic.IReadOnlyDictionary<string, object> extensions = null, System.Collections.Generic.IReadOnlyDictionary<string, object> contextData = null, System.IAsyncDisposable session = null) -> void
-HotChocolate.Execution.BatchQueryResult.ContextData.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
+HotChocolate.Execution.BatchQueryResult.BatchQueryResult(System.Func<System.Collections.Generic.IAsyncEnumerable<HotChocolate.Execution.IQueryResult!>!>? resultStreamFactory, System.Collections.Generic.IReadOnlyList<HotChocolate.IError!>? errors, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? extensions = null, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? contextData = null, System.IAsyncDisposable? session = null) -> void
+HotChocolate.Execution.BatchQueryResult.ContextData.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
 HotChocolate.Execution.BatchQueryResult.DisposeAsync() -> System.Threading.Tasks.ValueTask
-HotChocolate.Execution.BatchQueryResult.Errors.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.IError>
-HotChocolate.Execution.BatchQueryResult.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
-HotChocolate.Execution.BatchQueryResult.ReadResultsAsync() -> System.Collections.Generic.IAsyncEnumerable<HotChocolate.Execution.IQueryResult>
+HotChocolate.Execution.BatchQueryResult.Errors.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.IError!>?
+HotChocolate.Execution.BatchQueryResult.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
+HotChocolate.Execution.BatchQueryResult.ReadResultsAsync() -> System.Collections.Generic.IAsyncEnumerable<HotChocolate.Execution.IQueryResult!>!
 HotChocolate.Execution.DeferredQueryResult
-HotChocolate.Execution.DeferredQueryResult.ContextData.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
-HotChocolate.Execution.DeferredQueryResult.DeferredQueryResult(HotChocolate.Execution.DeferredQueryResult queryResult, System.IDisposable session) -> void
-HotChocolate.Execution.DeferredQueryResult.DeferredQueryResult(HotChocolate.Execution.IQueryResult initialResult, System.Collections.Generic.IAsyncEnumerable<HotChocolate.Execution.IQueryResult> deferredResults, System.Collections.Generic.IReadOnlyDictionary<string, object> extensions = null, System.Collections.Generic.IReadOnlyDictionary<string, object> contextData = null, System.IDisposable session = null) -> void
+HotChocolate.Execution.DeferredQueryResult.ContextData.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
+HotChocolate.Execution.DeferredQueryResult.DeferredQueryResult(HotChocolate.Execution.DeferredQueryResult! queryResult, System.IDisposable! session) -> void
+HotChocolate.Execution.DeferredQueryResult.DeferredQueryResult(HotChocolate.Execution.IQueryResult! initialResult, System.Collections.Generic.IAsyncEnumerable<HotChocolate.Execution.IQueryResult!>! deferredResults, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? extensions = null, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? contextData = null, System.IDisposable? session = null) -> void
 HotChocolate.Execution.DeferredQueryResult.DisposeAsync() -> System.Threading.Tasks.ValueTask
-HotChocolate.Execution.DeferredQueryResult.Errors.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.IError>
-HotChocolate.Execution.DeferredQueryResult.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
-HotChocolate.Execution.DeferredQueryResult.ReadResultsAsync() -> System.Collections.Generic.IAsyncEnumerable<HotChocolate.Execution.IQueryResult>
+HotChocolate.Execution.DeferredQueryResult.Errors.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.IError!>?
+HotChocolate.Execution.DeferredQueryResult.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
+HotChocolate.Execution.DeferredQueryResult.ReadResultsAsync() -> System.Collections.Generic.IAsyncEnumerable<HotChocolate.Execution.IQueryResult!>!
 HotChocolate.Execution.IBatchQueryResult
 HotChocolate.Execution.IExecutionResult
-HotChocolate.Execution.IExecutionResult.ContextData.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
-HotChocolate.Execution.IExecutionResult.Errors.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.IError>
-HotChocolate.Execution.IExecutionResult.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
+HotChocolate.Execution.IExecutionResult.ContextData.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
+HotChocolate.Execution.IExecutionResult.Errors.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.IError!>?
+HotChocolate.Execution.IExecutionResult.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
 HotChocolate.Execution.IExecutionTask
 HotChocolate.Execution.IExecutionTask.BeginExecute(System.Threading.CancellationToken cancellationToken) -> void
 HotChocolate.Execution.IExecutionTask.IsCanceled.get -> bool
 HotChocolate.Execution.IExecutionTask.IsCompleted.get -> bool
 HotChocolate.Execution.IExecutionTaskContext
 HotChocolate.Execution.IExecutionTaskContext.Completed() -> void
-HotChocolate.Execution.IExecutionTaskContext.ReportError(HotChocolate.Execution.IExecutionTask task, HotChocolate.IError error) -> void
-HotChocolate.Execution.IExecutionTaskContext.ReportError(HotChocolate.Execution.IExecutionTask task, System.Exception exception) -> void
+HotChocolate.Execution.IExecutionTaskContext.ReportError(HotChocolate.Execution.IExecutionTask! task, HotChocolate.IError! error) -> void
+HotChocolate.Execution.IExecutionTaskContext.ReportError(HotChocolate.Execution.IExecutionTask! task, System.Exception! exception) -> void
 HotChocolate.Execution.IExecutionTaskContext.Started() -> void
-HotChocolate.Execution.IExecutionTaskContext.Track(HotChocolate.Execution.IExecutionTask task) -> System.IDisposable
+HotChocolate.Execution.IExecutionTaskContext.Track(HotChocolate.Execution.IExecutionTask! task) -> System.IDisposable!
 HotChocolate.Execution.IExecutionTaskDefinition
-HotChocolate.Execution.IExecutionTaskDefinition.Create(HotChocolate.Execution.IExecutionTaskContext context) -> HotChocolate.Execution.IExecutionTask
+HotChocolate.Execution.IExecutionTaskDefinition.Create(HotChocolate.Execution.IExecutionTaskContext! context) -> HotChocolate.Execution.IExecutionTask!
 HotChocolate.Execution.IQuery
 HotChocolate.Execution.IQuery.AsSpan() -> System.ReadOnlySpan<byte>
-HotChocolate.Execution.IQuery.ToString() -> string
-HotChocolate.Execution.IQuery.WriteTo(System.IO.Stream output) -> void
-HotChocolate.Execution.IQuery.WriteToAsync(System.IO.Stream output) -> System.Threading.Tasks.Task
-HotChocolate.Execution.IQuery.WriteToAsync(System.IO.Stream output, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+HotChocolate.Execution.IQuery.ToString() -> string!
+HotChocolate.Execution.IQuery.WriteTo(System.IO.Stream! output) -> void
+HotChocolate.Execution.IQuery.WriteToAsync(System.IO.Stream! output) -> System.Threading.Tasks.Task!
+HotChocolate.Execution.IQuery.WriteToAsync(System.IO.Stream! output, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 HotChocolate.Execution.IQueryRequest
-HotChocolate.Execution.IQueryRequest.AllowedOperations.get -> HotChocolate.Language.OperationType[]
-HotChocolate.Execution.IQueryRequest.ContextData.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
-HotChocolate.Execution.IQueryRequest.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
-HotChocolate.Execution.IQueryRequest.InitialValue.get -> object
-HotChocolate.Execution.IQueryRequest.OperationName.get -> string
-HotChocolate.Execution.IQueryRequest.Query.get -> HotChocolate.Execution.IQuery
-HotChocolate.Execution.IQueryRequest.QueryHash.get -> string
-HotChocolate.Execution.IQueryRequest.QueryId.get -> string
-HotChocolate.Execution.IQueryRequest.Services.get -> System.IServiceProvider
-HotChocolate.Execution.IQueryRequest.VariableValues.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
+HotChocolate.Execution.IQueryRequest.AllowedOperations.get -> HotChocolate.Language.OperationType[]?
+HotChocolate.Execution.IQueryRequest.ContextData.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
+HotChocolate.Execution.IQueryRequest.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
+HotChocolate.Execution.IQueryRequest.InitialValue.get -> object?
+HotChocolate.Execution.IQueryRequest.OperationName.get -> string?
+HotChocolate.Execution.IQueryRequest.Query.get -> HotChocolate.Execution.IQuery?
+HotChocolate.Execution.IQueryRequest.QueryHash.get -> string?
+HotChocolate.Execution.IQueryRequest.QueryId.get -> string?
+HotChocolate.Execution.IQueryRequest.Services.get -> System.IServiceProvider?
+HotChocolate.Execution.IQueryRequest.VariableValues.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
 HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.AddExtension(string name, object value) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.AddProperty(string name, object value) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.AddVariableValue(string name, object value) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.Create() -> HotChocolate.Execution.IReadOnlyQueryRequest
-HotChocolate.Execution.IQueryRequestBuilder.SetAllowedOperations(HotChocolate.Language.OperationType[] allowedOperations) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.SetExtension(string name, object value) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.SetExtensions(System.Collections.Generic.Dictionary<string, object> extensions) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.SetExtensions(System.Collections.Generic.IDictionary<string, object> extensions) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.SetExtensions(System.Collections.Generic.IReadOnlyDictionary<string, object> extensions) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.SetInitialValue(object initialValue) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.SetOperation(string operationName) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.SetProperties(System.Collections.Generic.Dictionary<string, object> properties) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.SetProperties(System.Collections.Generic.IDictionary<string, object> properties) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.SetProperties(System.Collections.Generic.IReadOnlyDictionary<string, object> properties) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.SetProperty(string name, object value) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.SetQuery(HotChocolate.Language.DocumentNode document) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.SetQuery(string sourceText) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.SetQueryHash(string queryHash) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.SetQueryId(string queryName) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.SetServices(System.IServiceProvider services) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.SetVariableValue(string name, object value) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.SetVariableValues(System.Collections.Generic.Dictionary<string, object> variableValues) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.SetVariableValues(System.Collections.Generic.IDictionary<string, object> variableValues) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.SetVariableValues(System.Collections.Generic.IReadOnlyDictionary<string, object> variableValues) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.TryAddExtension(string name, object value) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.TryAddProperty(string name, object value) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.TryAddVariableValue(string name, object value) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.IQueryRequestBuilder.TrySetServices(System.IServiceProvider services) -> HotChocolate.Execution.IQueryRequestBuilder
+HotChocolate.Execution.IQueryRequestBuilder.AddExtension(string! name, object? value) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.AddProperty(string! name, object? value) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.AddVariableValue(string! name, object? value) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.Create() -> HotChocolate.Execution.IReadOnlyQueryRequest!
+HotChocolate.Execution.IQueryRequestBuilder.SetAllowedOperations(HotChocolate.Language.OperationType[]? allowedOperations) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.SetExtension(string! name, object? value) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.SetExtensions(System.Collections.Generic.Dictionary<string!, object?>? extensions) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.SetExtensions(System.Collections.Generic.IDictionary<string!, object?>? extensions) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.SetExtensions(System.Collections.Generic.IReadOnlyDictionary<string!, object?>? extensions) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.SetInitialValue(object? initialValue) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.SetOperation(string? operationName) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.SetProperties(System.Collections.Generic.Dictionary<string!, object?>? properties) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.SetProperties(System.Collections.Generic.IDictionary<string!, object?>? properties) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.SetProperties(System.Collections.Generic.IReadOnlyDictionary<string!, object?>? properties) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.SetProperty(string! name, object? value) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.SetQuery(HotChocolate.Language.DocumentNode! document) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.SetQuery(string! sourceText) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.SetQueryHash(string? queryHash) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.SetQueryId(string? queryName) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.SetServices(System.IServiceProvider? services) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.SetVariableValue(string! name, object? value) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.SetVariableValues(System.Collections.Generic.Dictionary<string!, object?>? variableValues) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.SetVariableValues(System.Collections.Generic.IDictionary<string!, object?>? variableValues) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.SetVariableValues(System.Collections.Generic.IReadOnlyDictionary<string!, object?>? variableValues) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.TryAddExtension(string! name, object? value) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.TryAddProperty(string! name, object? value) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.TryAddVariableValue(string! name, object? value) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.IQueryRequestBuilder.TrySetServices(System.IServiceProvider? services) -> HotChocolate.Execution.IQueryRequestBuilder!
 HotChocolate.Execution.IQueryResult
-HotChocolate.Execution.IQueryResult.Data.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
+HotChocolate.Execution.IQueryResult.Data.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
 HotChocolate.Execution.IQueryResult.HasNext.get -> bool?
-HotChocolate.Execution.IQueryResult.Label.get -> string
-HotChocolate.Execution.IQueryResult.Path.get -> HotChocolate.Path
-HotChocolate.Execution.IQueryResult.ToDictionary() -> System.Collections.Generic.IReadOnlyDictionary<string, object>
+HotChocolate.Execution.IQueryResult.Label.get -> string?
+HotChocolate.Execution.IQueryResult.Path.get -> HotChocolate.Path?
+HotChocolate.Execution.IQueryResult.ToDictionary() -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>!
 HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.IQueryResultBuilder.AddContextData(string key, object data) -> HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.IQueryResultBuilder.AddError(HotChocolate.IError error) -> HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.IQueryResultBuilder.AddErrors(System.Collections.Generic.IEnumerable<HotChocolate.IError> errors) -> HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.IQueryResultBuilder.AddExtension(string key, object data) -> HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.IQueryResultBuilder.ClearContextData() -> HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.IQueryResultBuilder.Create() -> HotChocolate.Execution.IQueryResult
-HotChocolate.Execution.IQueryResultBuilder.SetContextData(string key, object data) -> HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.IQueryResultBuilder.SetData(System.Collections.Generic.IReadOnlyDictionary<string, object> data, System.IDisposable disposable = null) -> HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.IQueryResultBuilder.SetExtension(string key, object data) -> HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.IQueryResultBuilder.SetExtensions(System.Collections.Generic.IReadOnlyDictionary<string, object> extensions) -> HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.IQueryResultBuilder.SetHasNext(bool? hasNext) -> HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.IQueryResultBuilder.SetLabel(string label) -> HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.IQueryResultBuilder.SetPath(HotChocolate.Path path) -> HotChocolate.Execution.IQueryResultBuilder
+HotChocolate.Execution.IQueryResultBuilder.AddContextData(string! key, object? data) -> HotChocolate.Execution.IQueryResultBuilder!
+HotChocolate.Execution.IQueryResultBuilder.AddError(HotChocolate.IError! error) -> HotChocolate.Execution.IQueryResultBuilder!
+HotChocolate.Execution.IQueryResultBuilder.AddErrors(System.Collections.Generic.IEnumerable<HotChocolate.IError!>! errors) -> HotChocolate.Execution.IQueryResultBuilder!
+HotChocolate.Execution.IQueryResultBuilder.AddExtension(string! key, object? data) -> HotChocolate.Execution.IQueryResultBuilder!
+HotChocolate.Execution.IQueryResultBuilder.ClearContextData() -> HotChocolate.Execution.IQueryResultBuilder!
+HotChocolate.Execution.IQueryResultBuilder.Create() -> HotChocolate.Execution.IQueryResult!
+HotChocolate.Execution.IQueryResultBuilder.SetContextData(string! key, object? data) -> HotChocolate.Execution.IQueryResultBuilder!
+HotChocolate.Execution.IQueryResultBuilder.SetData(System.Collections.Generic.IReadOnlyDictionary<string!, object?>? data, System.IDisposable? disposable = null) -> HotChocolate.Execution.IQueryResultBuilder!
+HotChocolate.Execution.IQueryResultBuilder.SetExtension(string! key, object? data) -> HotChocolate.Execution.IQueryResultBuilder!
+HotChocolate.Execution.IQueryResultBuilder.SetExtensions(System.Collections.Generic.IReadOnlyDictionary<string!, object?>? extensions) -> HotChocolate.Execution.IQueryResultBuilder!
+HotChocolate.Execution.IQueryResultBuilder.SetHasNext(bool? hasNext) -> HotChocolate.Execution.IQueryResultBuilder!
+HotChocolate.Execution.IQueryResultBuilder.SetLabel(string? label) -> HotChocolate.Execution.IQueryResultBuilder!
+HotChocolate.Execution.IQueryResultBuilder.SetPath(HotChocolate.Path? path) -> HotChocolate.Execution.IQueryResultBuilder!
 HotChocolate.Execution.IQueryResultSerializer
-HotChocolate.Execution.IQueryResultSerializer.SerializeAsync(HotChocolate.Execution.IQueryResult result, System.IO.Stream stream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
+HotChocolate.Execution.IQueryResultSerializer.SerializeAsync(HotChocolate.Execution.IQueryResult! result, System.IO.Stream! stream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 HotChocolate.Execution.IReadOnlyQueryRequest
 HotChocolate.Execution.IReadOnlyQueryResult
 HotChocolate.Execution.IReadStoredQueries
-HotChocolate.Execution.IReadStoredQueries.TryReadQueryAsync(string queryId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<HotChocolate.Execution.QueryDocument>
+HotChocolate.Execution.IReadStoredQueries.TryReadQueryAsync(string! queryId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<HotChocolate.Execution.QueryDocument?>!
 HotChocolate.Execution.IResponseStream
-HotChocolate.Execution.IResponseStream.ReadResultsAsync() -> System.Collections.Generic.IAsyncEnumerable<HotChocolate.Execution.IQueryResult>
+HotChocolate.Execution.IResponseStream.ReadResultsAsync() -> System.Collections.Generic.IAsyncEnumerable<HotChocolate.Execution.IQueryResult!>!
 HotChocolate.Execution.IResponseStreamSerializer
-HotChocolate.Execution.IResponseStreamSerializer.SerializeAsync(HotChocolate.Execution.IResponseStream responseStream, System.IO.Stream outputStream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
+HotChocolate.Execution.IResponseStreamSerializer.SerializeAsync(HotChocolate.Execution.IResponseStream! responseStream, System.IO.Stream! outputStream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 HotChocolate.Execution.IResultData
-HotChocolate.Execution.IResultData.Parent.get -> HotChocolate.Execution.IResultData
+HotChocolate.Execution.IResultData.Parent.get -> HotChocolate.Execution.IResultData?
 HotChocolate.Execution.IResultList
 HotChocolate.Execution.IResultMap
 HotChocolate.Execution.IResultMapList
 HotChocolate.Execution.IResultMemoryOwner
-HotChocolate.Execution.IResultMemoryOwner.Data.get -> HotChocolate.Execution.IResultMap
+HotChocolate.Execution.IResultMemoryOwner.Data.get -> HotChocolate.Execution.IResultMap?
 HotChocolate.Execution.ISourceStream
-HotChocolate.Execution.ISourceStream.ReadEventsAsync() -> System.Collections.Generic.IAsyncEnumerable<object>
+HotChocolate.Execution.ISourceStream.ReadEventsAsync() -> System.Collections.Generic.IAsyncEnumerable<object!>!
 HotChocolate.Execution.ISourceStream<TMessage>
-HotChocolate.Execution.ISourceStream<TMessage>.ReadEventsAsync() -> System.Collections.Generic.IAsyncEnumerable<TMessage>
+HotChocolate.Execution.ISourceStream<TMessage>.ReadEventsAsync() -> System.Collections.Generic.IAsyncEnumerable<TMessage>!
 HotChocolate.Execution.ISubscriptionResult
 HotChocolate.Execution.IVariableValueCollection
 HotChocolate.Execution.IVariableValueCollection.GetVariable<T>(HotChocolate.NameString name) -> T
 HotChocolate.Execution.IVariableValueCollection.TryGetVariable<T>(HotChocolate.NameString name, out T value) -> bool
 HotChocolate.Execution.IWriteStoredQueries
-HotChocolate.Execution.IWriteStoredQueries.WriteQueryAsync(string queryId, HotChocolate.Execution.IQuery query, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
+HotChocolate.Execution.IWriteStoredQueries.WriteQueryAsync(string! queryId, HotChocolate.Execution.IQuery! query, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 HotChocolate.Execution.OrderedDictionary
 HotChocolate.Execution.OrderedDictionary.OrderedDictionary() -> void
 HotChocolate.Execution.OrderedDictionary<TKey, TValue>
 HotChocolate.Execution.OrderedDictionary<TKey, TValue>.Add(System.Collections.Generic.KeyValuePair<TKey, TValue> item) -> void
 HotChocolate.Execution.OrderedDictionary<TKey, TValue>.Add(TKey key, TValue value) -> void
 HotChocolate.Execution.OrderedDictionary<TKey, TValue>.Clear() -> void
-HotChocolate.Execution.OrderedDictionary<TKey, TValue>.Clone() -> HotChocolate.Execution.OrderedDictionary<TKey, TValue>
+HotChocolate.Execution.OrderedDictionary<TKey, TValue>.Clone() -> HotChocolate.Execution.OrderedDictionary<TKey, TValue>!
 HotChocolate.Execution.OrderedDictionary<TKey, TValue>.Contains(System.Collections.Generic.KeyValuePair<TKey, TValue> item) -> bool
 HotChocolate.Execution.OrderedDictionary<TKey, TValue>.ContainsKey(TKey key) -> bool
-HotChocolate.Execution.OrderedDictionary<TKey, TValue>.CopyTo(System.Collections.Generic.KeyValuePair<TKey, TValue>[] array, int arrayIndex) -> void
+HotChocolate.Execution.OrderedDictionary<TKey, TValue>.CopyTo(System.Collections.Generic.KeyValuePair<TKey, TValue>[]! array, int arrayIndex) -> void
 HotChocolate.Execution.OrderedDictionary<TKey, TValue>.Count.get -> int
-HotChocolate.Execution.OrderedDictionary<TKey, TValue>.GetEnumerator() -> System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<TKey, TValue>>
+HotChocolate.Execution.OrderedDictionary<TKey, TValue>.GetEnumerator() -> System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<TKey, TValue>>!
 HotChocolate.Execution.OrderedDictionary<TKey, TValue>.IsReadOnly.get -> bool
-HotChocolate.Execution.OrderedDictionary<TKey, TValue>.Keys.get -> System.Collections.Generic.ICollection<TKey>
+HotChocolate.Execution.OrderedDictionary<TKey, TValue>.Keys.get -> System.Collections.Generic.ICollection<TKey>!
 HotChocolate.Execution.OrderedDictionary<TKey, TValue>.OrderedDictionary() -> void
-HotChocolate.Execution.OrderedDictionary<TKey, TValue>.OrderedDictionary(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<TKey, TValue>> values) -> void
+HotChocolate.Execution.OrderedDictionary<TKey, TValue>.OrderedDictionary(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<TKey, TValue>>! values) -> void
 HotChocolate.Execution.OrderedDictionary<TKey, TValue>.Remove(System.Collections.Generic.KeyValuePair<TKey, TValue> item) -> bool
 HotChocolate.Execution.OrderedDictionary<TKey, TValue>.Remove(TKey key) -> bool
 HotChocolate.Execution.OrderedDictionary<TKey, TValue>.this[TKey key].get -> TValue
 HotChocolate.Execution.OrderedDictionary<TKey, TValue>.this[TKey key].set -> void
 HotChocolate.Execution.OrderedDictionary<TKey, TValue>.TryGetValue(TKey key, out TValue value) -> bool
-HotChocolate.Execution.OrderedDictionary<TKey, TValue>.Values.get -> System.Collections.Generic.ICollection<TValue>
+HotChocolate.Execution.OrderedDictionary<TKey, TValue>.Values.get -> System.Collections.Generic.ICollection<TValue>!
 HotChocolate.Execution.QueryBuilderExtensions
 HotChocolate.Execution.QueryDocument
 HotChocolate.Execution.QueryDocument.AsSpan() -> System.ReadOnlySpan<byte>
-HotChocolate.Execution.QueryDocument.Document.get -> HotChocolate.Language.DocumentNode
-HotChocolate.Execution.QueryDocument.QueryDocument(HotChocolate.Language.DocumentNode document) -> void
-HotChocolate.Execution.QueryDocument.WriteTo(System.IO.Stream output) -> void
-HotChocolate.Execution.QueryDocument.WriteToAsync(System.IO.Stream output) -> System.Threading.Tasks.Task
-HotChocolate.Execution.QueryDocument.WriteToAsync(System.IO.Stream output, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+HotChocolate.Execution.QueryDocument.Document.get -> HotChocolate.Language.DocumentNode!
+HotChocolate.Execution.QueryDocument.QueryDocument(HotChocolate.Language.DocumentNode! document) -> void
+HotChocolate.Execution.QueryDocument.WriteTo(System.IO.Stream! output) -> void
+HotChocolate.Execution.QueryDocument.WriteToAsync(System.IO.Stream! output) -> System.Threading.Tasks.Task!
+HotChocolate.Execution.QueryDocument.WriteToAsync(System.IO.Stream! output, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 HotChocolate.Execution.QueryException
-HotChocolate.Execution.QueryException.QueryException(HotChocolate.IError error) -> void
-HotChocolate.Execution.QueryException.QueryException(params HotChocolate.IError[] errors) -> void
-HotChocolate.Execution.QueryException.QueryException(string message) -> void
-HotChocolate.Execution.QueryException.QueryException(System.Collections.Generic.IEnumerable<HotChocolate.IError> errors) -> void
-HotChocolate.Execution.QueryException.QueryException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) -> void
+HotChocolate.Execution.QueryException.QueryException(HotChocolate.IError! error) -> void
+HotChocolate.Execution.QueryException.QueryException(params HotChocolate.IError![]! errors) -> void
+HotChocolate.Execution.QueryException.QueryException(string! message) -> void
+HotChocolate.Execution.QueryException.QueryException(System.Collections.Generic.IEnumerable<HotChocolate.IError!>! errors) -> void
+HotChocolate.Execution.QueryException.QueryException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 HotChocolate.Execution.QueryRequest
-HotChocolate.Execution.QueryRequest.AllowedOperations.get -> HotChocolate.Language.OperationType[]
-HotChocolate.Execution.QueryRequest.ContextData.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
-HotChocolate.Execution.QueryRequest.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
-HotChocolate.Execution.QueryRequest.InitialValue.get -> object
-HotChocolate.Execution.QueryRequest.OperationName.get -> string
-HotChocolate.Execution.QueryRequest.Query.get -> HotChocolate.Execution.IQuery
-HotChocolate.Execution.QueryRequest.QueryHash.get -> string
-HotChocolate.Execution.QueryRequest.QueryId.get -> string
-HotChocolate.Execution.QueryRequest.QueryRequest(HotChocolate.Execution.IQuery query = null, string queryId = null, string queryHash = null, string operationName = null, System.Collections.Generic.IReadOnlyDictionary<string, object> variableValues = null, System.Collections.Generic.IReadOnlyDictionary<string, object> contextData = null, System.Collections.Generic.IReadOnlyDictionary<string, object> extensions = null, System.IServiceProvider services = null, object initialValue = null, HotChocolate.Language.OperationType[] allowedOperations = null) -> void
-HotChocolate.Execution.QueryRequest.Services.get -> System.IServiceProvider
-HotChocolate.Execution.QueryRequest.VariableValues.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
+HotChocolate.Execution.QueryRequest.AllowedOperations.get -> HotChocolate.Language.OperationType[]?
+HotChocolate.Execution.QueryRequest.ContextData.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
+HotChocolate.Execution.QueryRequest.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
+HotChocolate.Execution.QueryRequest.InitialValue.get -> object?
+HotChocolate.Execution.QueryRequest.OperationName.get -> string?
+HotChocolate.Execution.QueryRequest.Query.get -> HotChocolate.Execution.IQuery?
+HotChocolate.Execution.QueryRequest.QueryHash.get -> string?
+HotChocolate.Execution.QueryRequest.QueryId.get -> string?
+HotChocolate.Execution.QueryRequest.QueryRequest(HotChocolate.Execution.IQuery? query = null, string? queryId = null, string? queryHash = null, string? operationName = null, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? variableValues = null, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? contextData = null, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? extensions = null, System.IServiceProvider? services = null, object? initialValue = null, HotChocolate.Language.OperationType[]? allowedOperations = null) -> void
+HotChocolate.Execution.QueryRequest.Services.get -> System.IServiceProvider?
+HotChocolate.Execution.QueryRequest.VariableValues.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
 HotChocolate.Execution.QueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.AddExtension(string name, object value) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.AddProperty(string name, object value) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.AddVariableValue(string name, object value) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.Create() -> HotChocolate.Execution.IReadOnlyQueryRequest
+HotChocolate.Execution.QueryRequestBuilder.AddExtension(string! name, object? value) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.AddProperty(string! name, object? value) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.AddVariableValue(string! name, object? value) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.Create() -> HotChocolate.Execution.IReadOnlyQueryRequest!
 HotChocolate.Execution.QueryRequestBuilder.QueryRequestBuilder() -> void
-HotChocolate.Execution.QueryRequestBuilder.SetAllowedOperations(HotChocolate.Language.OperationType[] allowedOperations) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.SetExtension(string name, object value) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.SetExtensions(System.Collections.Generic.Dictionary<string, object> extensions) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.SetExtensions(System.Collections.Generic.IDictionary<string, object> extensions) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.SetExtensions(System.Collections.Generic.IReadOnlyDictionary<string, object> extensions) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.SetInitialValue(object initialValue) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.SetOperation(string operationName) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.SetProperties(System.Collections.Generic.Dictionary<string, object> properties) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.SetProperties(System.Collections.Generic.IDictionary<string, object> properties) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.SetProperties(System.Collections.Generic.IReadOnlyDictionary<string, object> properties) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.SetProperty(string name, object value) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.SetQuery(HotChocolate.Language.DocumentNode document) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.SetQuery(string sourceText) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.SetQueryHash(string queryHash) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.SetQueryId(string queryName) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.SetServices(System.IServiceProvider services) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.SetVariableValue(string name, object value) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.SetVariableValues(System.Collections.Generic.Dictionary<string, object> variableValues) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.SetVariableValues(System.Collections.Generic.IDictionary<string, object> variableValues) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.SetVariableValues(System.Collections.Generic.IReadOnlyDictionary<string, object> variableValues) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.TryAddExtension(string name, object value) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.TryAddProperty(string name, object value) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.TryAddVariableValue(string name, object value) -> HotChocolate.Execution.IQueryRequestBuilder
-HotChocolate.Execution.QueryRequestBuilder.TrySetServices(System.IServiceProvider services) -> HotChocolate.Execution.IQueryRequestBuilder
+HotChocolate.Execution.QueryRequestBuilder.SetAllowedOperations(HotChocolate.Language.OperationType[]? allowedOperations) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.SetExtension(string! name, object? value) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.SetExtensions(System.Collections.Generic.Dictionary<string!, object?>? extensions) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.SetExtensions(System.Collections.Generic.IDictionary<string!, object?>? extensions) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.SetExtensions(System.Collections.Generic.IReadOnlyDictionary<string!, object?>? extensions) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.SetInitialValue(object? initialValue) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.SetOperation(string? operationName) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.SetProperties(System.Collections.Generic.Dictionary<string!, object?>? properties) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.SetProperties(System.Collections.Generic.IDictionary<string!, object?>? properties) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.SetProperties(System.Collections.Generic.IReadOnlyDictionary<string!, object?>? properties) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.SetProperty(string! name, object? value) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.SetQuery(HotChocolate.Language.DocumentNode! document) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.SetQuery(string! sourceText) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.SetQueryHash(string? queryHash) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.SetQueryId(string? queryName) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.SetServices(System.IServiceProvider? services) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.SetVariableValue(string! name, object? value) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.SetVariableValues(System.Collections.Generic.Dictionary<string!, object?>? variableValues) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.SetVariableValues(System.Collections.Generic.IDictionary<string!, object?>? variableValues) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.SetVariableValues(System.Collections.Generic.IReadOnlyDictionary<string!, object?>? variableValues) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.TryAddExtension(string! name, object? value) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.TryAddProperty(string! name, object? value) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.TryAddVariableValue(string! name, object? value) -> HotChocolate.Execution.IQueryRequestBuilder!
+HotChocolate.Execution.QueryRequestBuilder.TrySetServices(System.IServiceProvider? services) -> HotChocolate.Execution.IQueryRequestBuilder!
 HotChocolate.Execution.QueryRequestBuilderException
 HotChocolate.Execution.QueryRequestBuilderException.QueryRequestBuilderException() -> void
-HotChocolate.Execution.QueryRequestBuilderException.QueryRequestBuilderException(string message) -> void
-HotChocolate.Execution.QueryRequestBuilderException.QueryRequestBuilderException(string message, System.Exception inner) -> void
-HotChocolate.Execution.QueryRequestBuilderException.QueryRequestBuilderException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) -> void
+HotChocolate.Execution.QueryRequestBuilderException.QueryRequestBuilderException(string! message) -> void
+HotChocolate.Execution.QueryRequestBuilderException.QueryRequestBuilderException(string! message, System.Exception! inner) -> void
+HotChocolate.Execution.QueryRequestBuilderException.QueryRequestBuilderException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 HotChocolate.Execution.QueryResult
-HotChocolate.Execution.QueryResult.ContextData.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
-HotChocolate.Execution.QueryResult.Data.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
+HotChocolate.Execution.QueryResult.ContextData.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
+HotChocolate.Execution.QueryResult.Data.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
 HotChocolate.Execution.QueryResult.Dispose() -> void
-HotChocolate.Execution.QueryResult.Errors.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.IError>
-HotChocolate.Execution.QueryResult.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
+HotChocolate.Execution.QueryResult.Errors.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.IError!>?
+HotChocolate.Execution.QueryResult.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
 HotChocolate.Execution.QueryResult.HasNext.get -> bool?
-HotChocolate.Execution.QueryResult.Label.get -> string
-HotChocolate.Execution.QueryResult.Path.get -> HotChocolate.Path
-HotChocolate.Execution.QueryResult.QueryResult(System.Collections.Generic.IReadOnlyDictionary<string, object> data, System.Collections.Generic.IReadOnlyList<HotChocolate.IError> errors, System.Collections.Generic.IReadOnlyDictionary<string, object> extension = null, System.Collections.Generic.IReadOnlyDictionary<string, object> contextData = null, string label = null, HotChocolate.Path path = null, bool? hasNext = null, System.IDisposable resultMemoryOwner = null) -> void
-HotChocolate.Execution.QueryResult.ToDictionary() -> System.Collections.Generic.IReadOnlyDictionary<string, object>
+HotChocolate.Execution.QueryResult.Label.get -> string?
+HotChocolate.Execution.QueryResult.Path.get -> HotChocolate.Path?
+HotChocolate.Execution.QueryResult.QueryResult(System.Collections.Generic.IReadOnlyDictionary<string!, object?>? data, System.Collections.Generic.IReadOnlyList<HotChocolate.IError!>? errors, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? extension = null, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? contextData = null, string? label = null, HotChocolate.Path? path = null, bool? hasNext = null, System.IDisposable? resultMemoryOwner = null) -> void
+HotChocolate.Execution.QueryResult.ToDictionary() -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>!
 HotChocolate.Execution.QueryResultBuilder
-HotChocolate.Execution.QueryResultBuilder.AddContextData(string key, object data) -> HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.QueryResultBuilder.AddError(HotChocolate.IError error) -> HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.QueryResultBuilder.AddErrors(System.Collections.Generic.IEnumerable<HotChocolate.IError> errors) -> HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.QueryResultBuilder.AddExtension(string key, object data) -> HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.QueryResultBuilder.ClearContextData() -> HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.QueryResultBuilder.ClearErrors() -> HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.QueryResultBuilder.ClearExtensions() -> HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.QueryResultBuilder.Create() -> HotChocolate.Execution.IQueryResult
+HotChocolate.Execution.QueryResultBuilder.AddContextData(string! key, object? data) -> HotChocolate.Execution.IQueryResultBuilder!
+HotChocolate.Execution.QueryResultBuilder.AddError(HotChocolate.IError! error) -> HotChocolate.Execution.IQueryResultBuilder!
+HotChocolate.Execution.QueryResultBuilder.AddErrors(System.Collections.Generic.IEnumerable<HotChocolate.IError!>! errors) -> HotChocolate.Execution.IQueryResultBuilder!
+HotChocolate.Execution.QueryResultBuilder.AddExtension(string! key, object? data) -> HotChocolate.Execution.IQueryResultBuilder!
+HotChocolate.Execution.QueryResultBuilder.ClearContextData() -> HotChocolate.Execution.IQueryResultBuilder!
+HotChocolate.Execution.QueryResultBuilder.ClearErrors() -> HotChocolate.Execution.IQueryResultBuilder!
+HotChocolate.Execution.QueryResultBuilder.ClearExtensions() -> HotChocolate.Execution.IQueryResultBuilder!
+HotChocolate.Execution.QueryResultBuilder.Create() -> HotChocolate.Execution.IQueryResult!
 HotChocolate.Execution.QueryResultBuilder.QueryResultBuilder() -> void
-HotChocolate.Execution.QueryResultBuilder.SetContextData(string key, object data) -> HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.QueryResultBuilder.SetData(System.Collections.Generic.IReadOnlyDictionary<string, object> data, System.IDisposable disposable = null) -> HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.QueryResultBuilder.SetExtension(string key, object data) -> HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.QueryResultBuilder.SetExtensions(System.Collections.Generic.IReadOnlyDictionary<string, object> extensions) -> HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.QueryResultBuilder.SetHasNext(bool? hasNext) -> HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.QueryResultBuilder.SetLabel(string label) -> HotChocolate.Execution.IQueryResultBuilder
-HotChocolate.Execution.QueryResultBuilder.SetPath(HotChocolate.Path path) -> HotChocolate.Execution.IQueryResultBuilder
+HotChocolate.Execution.QueryResultBuilder.SetContextData(string! key, object? data) -> HotChocolate.Execution.IQueryResultBuilder!
+HotChocolate.Execution.QueryResultBuilder.SetData(System.Collections.Generic.IReadOnlyDictionary<string!, object?>? data, System.IDisposable? disposable = null) -> HotChocolate.Execution.IQueryResultBuilder!
+HotChocolate.Execution.QueryResultBuilder.SetExtension(string! key, object? data) -> HotChocolate.Execution.IQueryResultBuilder!
+HotChocolate.Execution.QueryResultBuilder.SetExtensions(System.Collections.Generic.IReadOnlyDictionary<string!, object?>? extensions) -> HotChocolate.Execution.IQueryResultBuilder!
+HotChocolate.Execution.QueryResultBuilder.SetHasNext(bool? hasNext) -> HotChocolate.Execution.IQueryResultBuilder!
+HotChocolate.Execution.QueryResultBuilder.SetLabel(string? label) -> HotChocolate.Execution.IQueryResultBuilder!
+HotChocolate.Execution.QueryResultBuilder.SetPath(HotChocolate.Path? path) -> HotChocolate.Execution.IQueryResultBuilder!
 HotChocolate.Execution.QuerySourceText
 HotChocolate.Execution.QuerySourceText.AsSpan() -> System.ReadOnlySpan<byte>
-HotChocolate.Execution.QuerySourceText.QuerySourceText(string sourceText) -> void
-HotChocolate.Execution.QuerySourceText.Text.get -> string
-HotChocolate.Execution.QuerySourceText.WriteTo(System.IO.Stream output) -> void
-HotChocolate.Execution.QuerySourceText.WriteToAsync(System.IO.Stream output) -> System.Threading.Tasks.Task
-HotChocolate.Execution.QuerySourceText.WriteToAsync(System.IO.Stream output, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+HotChocolate.Execution.QuerySourceText.QuerySourceText(string! sourceText) -> void
+HotChocolate.Execution.QuerySourceText.Text.get -> string!
+HotChocolate.Execution.QuerySourceText.WriteTo(System.IO.Stream! output) -> void
+HotChocolate.Execution.QuerySourceText.WriteToAsync(System.IO.Stream! output) -> System.Threading.Tasks.Task!
+HotChocolate.Execution.QuerySourceText.WriteToAsync(System.IO.Stream! output, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 HotChocolate.Execution.ResultValue
 HotChocolate.Execution.ResultValue.Equals(HotChocolate.Execution.ResultValue? other) -> bool
 HotChocolate.Execution.ResultValue.HasValue.get -> bool
 HotChocolate.Execution.ResultValue.IsNullable.get -> bool
-HotChocolate.Execution.ResultValue.Name.get -> string
+HotChocolate.Execution.ResultValue.Name.get -> string!
 HotChocolate.Execution.ResultValue.ResultValue() -> void
-HotChocolate.Execution.ResultValue.ResultValue(string name, object value, bool isNullable) -> void
-HotChocolate.Execution.ResultValue.Value.get -> object
+HotChocolate.Execution.ResultValue.ResultValue(string! name, object? value, bool isNullable) -> void
+HotChocolate.Execution.ResultValue.Value.get -> object?
 HotChocolate.Execution.SubscriptionResult
-HotChocolate.Execution.SubscriptionResult.ContextData.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
+HotChocolate.Execution.SubscriptionResult.ContextData.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
 HotChocolate.Execution.SubscriptionResult.DisposeAsync() -> System.Threading.Tasks.ValueTask
-HotChocolate.Execution.SubscriptionResult.Errors.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.IError>
-HotChocolate.Execution.SubscriptionResult.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
-HotChocolate.Execution.SubscriptionResult.ReadResultsAsync() -> System.Collections.Generic.IAsyncEnumerable<HotChocolate.Execution.IQueryResult>
-HotChocolate.Execution.SubscriptionResult.SubscriptionResult(HotChocolate.Execution.SubscriptionResult subscriptionResult, System.IAsyncDisposable session = null) -> void
-HotChocolate.Execution.SubscriptionResult.SubscriptionResult(HotChocolate.Execution.SubscriptionResult subscriptionResult, System.IDisposable session = null) -> void
-HotChocolate.Execution.SubscriptionResult.SubscriptionResult(System.Func<System.Collections.Generic.IAsyncEnumerable<HotChocolate.Execution.IQueryResult>> resultStreamFactory, System.Collections.Generic.IReadOnlyList<HotChocolate.IError> errors, System.Collections.Generic.IReadOnlyDictionary<string, object> extensions = null, System.Collections.Generic.IReadOnlyDictionary<string, object> contextData = null, System.IAsyncDisposable session = null) -> void
+HotChocolate.Execution.SubscriptionResult.Errors.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.IError!>?
+HotChocolate.Execution.SubscriptionResult.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
+HotChocolate.Execution.SubscriptionResult.ReadResultsAsync() -> System.Collections.Generic.IAsyncEnumerable<HotChocolate.Execution.IQueryResult!>!
+HotChocolate.Execution.SubscriptionResult.SubscriptionResult(HotChocolate.Execution.SubscriptionResult! subscriptionResult, System.IAsyncDisposable? session = null) -> void
+HotChocolate.Execution.SubscriptionResult.SubscriptionResult(HotChocolate.Execution.SubscriptionResult! subscriptionResult, System.IDisposable? session = null) -> void
+HotChocolate.Execution.SubscriptionResult.SubscriptionResult(System.Func<System.Collections.Generic.IAsyncEnumerable<HotChocolate.Execution.IQueryResult!>!>? resultStreamFactory, System.Collections.Generic.IReadOnlyList<HotChocolate.IError!>? errors, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? extensions = null, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? contextData = null, System.IAsyncDisposable? session = null) -> void
 HotChocolate.Execution.VariableValue
 HotChocolate.Execution.VariableValue.Name.get -> HotChocolate.NameString
-HotChocolate.Execution.VariableValue.Type.get -> HotChocolate.Types.IInputType
-HotChocolate.Execution.VariableValue.Value.get -> HotChocolate.Language.IValueNode
+HotChocolate.Execution.VariableValue.Type.get -> HotChocolate.Types.IInputType!
+HotChocolate.Execution.VariableValue.Value.get -> HotChocolate.Language.IValueNode!
 HotChocolate.Execution.VariableValue.VariableValue() -> void
-HotChocolate.Execution.VariableValue.VariableValue(HotChocolate.NameString name, HotChocolate.Types.IInputType type, HotChocolate.Language.IValueNode value) -> void
+HotChocolate.Execution.VariableValue.VariableValue(HotChocolate.NameString name, HotChocolate.Types.IInputType! type, HotChocolate.Language.IValueNode! value) -> void
 HotChocolate.ExtensionData
-HotChocolate.ExtensionData.Add(string key, object value) -> void
-HotChocolate.ExtensionData.Add(System.Collections.Generic.KeyValuePair<string, object> item) -> void
-HotChocolate.ExtensionData.AddRange(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, object>> pairs) -> void
+HotChocolate.ExtensionData.Add(string! key, object? value) -> void
+HotChocolate.ExtensionData.Add(System.Collections.Generic.KeyValuePair<string!, object?> item) -> void
+HotChocolate.ExtensionData.AddRange(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, object?>>! pairs) -> void
 HotChocolate.ExtensionData.Clear() -> void
-HotChocolate.ExtensionData.Contains(System.Collections.Generic.KeyValuePair<string, object> item) -> bool
-HotChocolate.ExtensionData.ContainsKey(string key) -> bool
-HotChocolate.ExtensionData.CopyTo(System.Collections.Generic.KeyValuePair<string, object>[] array, int arrayIndex) -> void
+HotChocolate.ExtensionData.Contains(System.Collections.Generic.KeyValuePair<string!, object?> item) -> bool
+HotChocolate.ExtensionData.ContainsKey(string! key) -> bool
+HotChocolate.ExtensionData.CopyTo(System.Collections.Generic.KeyValuePair<string!, object?>[]! array, int arrayIndex) -> void
 HotChocolate.ExtensionData.Count.get -> int
 HotChocolate.ExtensionData.ExtensionData() -> void
-HotChocolate.ExtensionData.ExtensionData(HotChocolate.ExtensionData extensionData) -> void
-HotChocolate.ExtensionData.ExtensionData(System.Collections.Generic.IReadOnlyDictionary<string, object> extensionData) -> void
-HotChocolate.ExtensionData.GetEnumerator() -> System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<string, object>>
+HotChocolate.ExtensionData.ExtensionData(HotChocolate.ExtensionData! extensionData) -> void
+HotChocolate.ExtensionData.ExtensionData(System.Collections.Generic.IReadOnlyDictionary<string!, object?>! extensionData) -> void
+HotChocolate.ExtensionData.GetEnumerator() -> System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<string!, object?>>!
 HotChocolate.ExtensionData.IsReadOnly.get -> bool
-HotChocolate.ExtensionData.Keys.get -> System.Collections.Generic.ICollection<string>
-HotChocolate.ExtensionData.Remove(string key) -> bool
-HotChocolate.ExtensionData.Remove(System.Collections.Generic.KeyValuePair<string, object> item) -> bool
-HotChocolate.ExtensionData.this[string key].get -> object
-HotChocolate.ExtensionData.this[string key].set -> void
-HotChocolate.ExtensionData.TryGetValue(string key, out object value) -> bool
-HotChocolate.ExtensionData.Values.get -> System.Collections.Generic.ICollection<object>
+HotChocolate.ExtensionData.Keys.get -> System.Collections.Generic.ICollection<string!>!
+HotChocolate.ExtensionData.Remove(string! key) -> bool
+HotChocolate.ExtensionData.Remove(System.Collections.Generic.KeyValuePair<string!, object?> item) -> bool
+HotChocolate.ExtensionData.this[string! key].get -> object?
+HotChocolate.ExtensionData.this[string! key].set -> void
+HotChocolate.ExtensionData.TryGetValue(string! key, out object? value) -> bool
+HotChocolate.ExtensionData.Values.get -> System.Collections.Generic.ICollection<object?>!
 HotChocolate.FieldCoordinate
 HotChocolate.FieldCoordinate.ArgumentName.get -> HotChocolate.NameString?
 HotChocolate.FieldCoordinate.Deconstruct(out HotChocolate.NameString typeName, out HotChocolate.NameString fieldName, out HotChocolate.NameString? argumentName) -> void
@@ -451,107 +451,107 @@ HotChocolate.FieldCoordinate.TypeName.get -> HotChocolate.NameString
 HotChocolate.FieldCoordinate.With(HotChocolate.Optional<HotChocolate.NameString> typeName = default(HotChocolate.Optional<HotChocolate.NameString>), HotChocolate.Optional<HotChocolate.NameString> fieldName = default(HotChocolate.Optional<HotChocolate.NameString>), HotChocolate.Optional<HotChocolate.NameString?> argumentName = default(HotChocolate.Optional<HotChocolate.NameString?>)) -> HotChocolate.FieldCoordinate
 HotChocolate.GlobalStateAttribute
 HotChocolate.GlobalStateAttribute.GlobalStateAttribute() -> void
-HotChocolate.GlobalStateAttribute.GlobalStateAttribute(string key) -> void
-HotChocolate.GlobalStateAttribute.Key.get -> string
+HotChocolate.GlobalStateAttribute.GlobalStateAttribute(string! key) -> void
+HotChocolate.GlobalStateAttribute.Key.get -> string!
 HotChocolate.GraphQLDeprecatedAttribute
-HotChocolate.GraphQLDeprecatedAttribute.DeprecationReason.get -> string
-HotChocolate.GraphQLDeprecatedAttribute.GraphQLDeprecatedAttribute(string deprecationReason) -> void
+HotChocolate.GraphQLDeprecatedAttribute.DeprecationReason.get -> string!
+HotChocolate.GraphQLDeprecatedAttribute.GraphQLDeprecatedAttribute(string! deprecationReason) -> void
 HotChocolate.GraphQLDescriptionAttribute
-HotChocolate.GraphQLDescriptionAttribute.Description.get -> string
-HotChocolate.GraphQLDescriptionAttribute.GraphQLDescriptionAttribute(string description) -> void
+HotChocolate.GraphQLDescriptionAttribute.Description.get -> string!
+HotChocolate.GraphQLDescriptionAttribute.GraphQLDescriptionAttribute(string! description) -> void
 HotChocolate.GraphQLException
-HotChocolate.GraphQLException.Errors.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.IError>
-HotChocolate.GraphQLException.GraphQLException(HotChocolate.IError error) -> void
-HotChocolate.GraphQLException.GraphQLException(params HotChocolate.IError[] errors) -> void
-HotChocolate.GraphQLException.GraphQLException(string message) -> void
-HotChocolate.GraphQLException.GraphQLException(System.Collections.Generic.IEnumerable<HotChocolate.IError> errors) -> void
-HotChocolate.GraphQLException.GraphQLException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) -> void
+HotChocolate.GraphQLException.Errors.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.IError!>!
+HotChocolate.GraphQLException.GraphQLException(HotChocolate.IError! error) -> void
+HotChocolate.GraphQLException.GraphQLException(params HotChocolate.IError![]! errors) -> void
+HotChocolate.GraphQLException.GraphQLException(string! message) -> void
+HotChocolate.GraphQLException.GraphQLException(System.Collections.Generic.IEnumerable<HotChocolate.IError!>! errors) -> void
+HotChocolate.GraphQLException.GraphQLException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 HotChocolate.GraphQLIgnoreAttribute
 HotChocolate.GraphQLIgnoreAttribute.GraphQLIgnoreAttribute() -> void
 HotChocolate.GraphQLNameAttribute
-HotChocolate.GraphQLNameAttribute.GraphQLNameAttribute(string name) -> void
-HotChocolate.GraphQLNameAttribute.Name.get -> string
+HotChocolate.GraphQLNameAttribute.GraphQLNameAttribute(string! name) -> void
+HotChocolate.GraphQLNameAttribute.Name.get -> string!
 HotChocolate.GraphQLNonNullTypeAttribute
 HotChocolate.GraphQLNonNullTypeAttribute.GraphQLNonNullTypeAttribute() -> void
-HotChocolate.GraphQLNonNullTypeAttribute.GraphQLNonNullTypeAttribute(params bool[] nullable) -> void
-HotChocolate.GraphQLNonNullTypeAttribute.Nullable.get -> bool[]
+HotChocolate.GraphQLNonNullTypeAttribute.GraphQLNonNullTypeAttribute(params bool[]! nullable) -> void
+HotChocolate.GraphQLNonNullTypeAttribute.Nullable.get -> bool[]!
 HotChocolate.GraphQLResolverAttribute
-HotChocolate.GraphQLResolverAttribute.GraphQLResolverAttribute(params System.Type[] resolverTypes) -> void
-HotChocolate.GraphQLResolverAttribute.GraphQLResolverAttribute(System.Type resolverType) -> void
-HotChocolate.GraphQLResolverAttribute.ResolverTypes.get -> System.Collections.Generic.IReadOnlyCollection<System.Type>
+HotChocolate.GraphQLResolverAttribute.GraphQLResolverAttribute(params System.Type![]! resolverTypes) -> void
+HotChocolate.GraphQLResolverAttribute.GraphQLResolverAttribute(System.Type! resolverType) -> void
+HotChocolate.GraphQLResolverAttribute.ResolverTypes.get -> System.Collections.Generic.IReadOnlyCollection<System.Type!>!
 HotChocolate.GraphQLResolverOfAttribute
-HotChocolate.GraphQLResolverOfAttribute.GraphQLResolverOfAttribute(params string[] typeNames) -> void
-HotChocolate.GraphQLResolverOfAttribute.GraphQLResolverOfAttribute(params System.Type[] types) -> void
-HotChocolate.GraphQLResolverOfAttribute.GraphQLResolverOfAttribute(string typeName) -> void
-HotChocolate.GraphQLResolverOfAttribute.GraphQLResolverOfAttribute(System.Type type) -> void
-HotChocolate.GraphQLResolverOfAttribute.TypeNames.get -> System.Collections.Generic.IReadOnlyCollection<string>
-HotChocolate.GraphQLResolverOfAttribute.Types.get -> System.Collections.Generic.IReadOnlyCollection<System.Type>
+HotChocolate.GraphQLResolverOfAttribute.GraphQLResolverOfAttribute(params string![]! typeNames) -> void
+HotChocolate.GraphQLResolverOfAttribute.GraphQLResolverOfAttribute(params System.Type![]! types) -> void
+HotChocolate.GraphQLResolverOfAttribute.GraphQLResolverOfAttribute(string! typeName) -> void
+HotChocolate.GraphQLResolverOfAttribute.GraphQLResolverOfAttribute(System.Type! type) -> void
+HotChocolate.GraphQLResolverOfAttribute.TypeNames.get -> System.Collections.Generic.IReadOnlyCollection<string!>!
+HotChocolate.GraphQLResolverOfAttribute.Types.get -> System.Collections.Generic.IReadOnlyCollection<System.Type!>!
 HotChocolate.GraphQLTypeAttribute
-HotChocolate.GraphQLTypeAttribute.GraphQLTypeAttribute(System.Type type) -> void
-HotChocolate.GraphQLTypeAttribute.Type.get -> System.Type
+HotChocolate.GraphQLTypeAttribute.GraphQLTypeAttribute(System.Type! type) -> void
+HotChocolate.GraphQLTypeAttribute.Type.get -> System.Type!
 HotChocolate.IError
-HotChocolate.IError.Code.get -> string
-HotChocolate.IError.Exception.get -> System.Exception
-HotChocolate.IError.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
-HotChocolate.IError.Locations.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Location>
-HotChocolate.IError.Message.get -> string
-HotChocolate.IError.Path.get -> HotChocolate.Path
-HotChocolate.IError.RemoveCode() -> HotChocolate.IError
-HotChocolate.IError.RemoveException() -> HotChocolate.IError
-HotChocolate.IError.RemoveExtension(string key) -> HotChocolate.IError
-HotChocolate.IError.RemoveExtensions() -> HotChocolate.IError
-HotChocolate.IError.RemoveLocations() -> HotChocolate.IError
-HotChocolate.IError.RemovePath() -> HotChocolate.IError
-HotChocolate.IError.SetExtension(string key, object value) -> HotChocolate.IError
-HotChocolate.IError.WithCode(string code) -> HotChocolate.IError
-HotChocolate.IError.WithException(System.Exception exception) -> HotChocolate.IError
-HotChocolate.IError.WithExtensions(System.Collections.Generic.IReadOnlyDictionary<string, object> extensions) -> HotChocolate.IError
-HotChocolate.IError.WithLocations(System.Collections.Generic.IReadOnlyList<HotChocolate.Location> locations) -> HotChocolate.IError
-HotChocolate.IError.WithMessage(string message) -> HotChocolate.IError
-HotChocolate.IError.WithPath(HotChocolate.Path path) -> HotChocolate.IError
-HotChocolate.IError.WithPath(System.Collections.Generic.IReadOnlyList<object> path) -> HotChocolate.IError
+HotChocolate.IError.Code.get -> string?
+HotChocolate.IError.Exception.get -> System.Exception?
+HotChocolate.IError.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
+HotChocolate.IError.Locations.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Location>?
+HotChocolate.IError.Message.get -> string!
+HotChocolate.IError.Path.get -> HotChocolate.Path?
+HotChocolate.IError.RemoveCode() -> HotChocolate.IError!
+HotChocolate.IError.RemoveException() -> HotChocolate.IError!
+HotChocolate.IError.RemoveExtension(string! key) -> HotChocolate.IError!
+HotChocolate.IError.RemoveExtensions() -> HotChocolate.IError!
+HotChocolate.IError.RemoveLocations() -> HotChocolate.IError!
+HotChocolate.IError.RemovePath() -> HotChocolate.IError!
+HotChocolate.IError.SetExtension(string! key, object? value) -> HotChocolate.IError!
+HotChocolate.IError.WithCode(string? code) -> HotChocolate.IError!
+HotChocolate.IError.WithException(System.Exception? exception) -> HotChocolate.IError!
+HotChocolate.IError.WithExtensions(System.Collections.Generic.IReadOnlyDictionary<string!, object?>! extensions) -> HotChocolate.IError!
+HotChocolate.IError.WithLocations(System.Collections.Generic.IReadOnlyList<HotChocolate.Location>? locations) -> HotChocolate.IError!
+HotChocolate.IError.WithMessage(string! message) -> HotChocolate.IError!
+HotChocolate.IError.WithPath(HotChocolate.Path? path) -> HotChocolate.IError!
+HotChocolate.IError.WithPath(System.Collections.Generic.IReadOnlyList<object!>? path) -> HotChocolate.IError!
 HotChocolate.IErrorBuilder
-HotChocolate.IErrorBuilder.AddLocation(HotChocolate.Location location) -> HotChocolate.IErrorBuilder
-HotChocolate.IErrorBuilder.AddLocation(int line, int column) -> HotChocolate.IErrorBuilder
-HotChocolate.IErrorBuilder.Build() -> HotChocolate.IError
-HotChocolate.IErrorBuilder.ClearExtensions() -> HotChocolate.IErrorBuilder
-HotChocolate.IErrorBuilder.ClearLocations() -> HotChocolate.IErrorBuilder
-HotChocolate.IErrorBuilder.RemoveCode() -> HotChocolate.IErrorBuilder
-HotChocolate.IErrorBuilder.RemoveException() -> HotChocolate.IErrorBuilder
-HotChocolate.IErrorBuilder.RemoveExtension(string key) -> HotChocolate.IErrorBuilder
-HotChocolate.IErrorBuilder.RemovePath() -> HotChocolate.IErrorBuilder
-HotChocolate.IErrorBuilder.SetCode(string code) -> HotChocolate.IErrorBuilder
-HotChocolate.IErrorBuilder.SetException(System.Exception exception) -> HotChocolate.IErrorBuilder
-HotChocolate.IErrorBuilder.SetExtension(string key, object value) -> HotChocolate.IErrorBuilder
-HotChocolate.IErrorBuilder.SetMessage(string message) -> HotChocolate.IErrorBuilder
-HotChocolate.IErrorBuilder.SetPath(HotChocolate.Path path) -> HotChocolate.IErrorBuilder
-HotChocolate.IErrorBuilder.SetPath(System.Collections.Generic.IReadOnlyList<object> path) -> HotChocolate.IErrorBuilder
-HotChocolate.IErrorBuilder.SetSyntaxNode(HotChocolate.Language.ISyntaxNode syntaxNode) -> HotChocolate.IErrorBuilder
+HotChocolate.IErrorBuilder.AddLocation(HotChocolate.Location location) -> HotChocolate.IErrorBuilder!
+HotChocolate.IErrorBuilder.AddLocation(int line, int column) -> HotChocolate.IErrorBuilder!
+HotChocolate.IErrorBuilder.Build() -> HotChocolate.IError!
+HotChocolate.IErrorBuilder.ClearExtensions() -> HotChocolate.IErrorBuilder!
+HotChocolate.IErrorBuilder.ClearLocations() -> HotChocolate.IErrorBuilder!
+HotChocolate.IErrorBuilder.RemoveCode() -> HotChocolate.IErrorBuilder!
+HotChocolate.IErrorBuilder.RemoveException() -> HotChocolate.IErrorBuilder!
+HotChocolate.IErrorBuilder.RemoveExtension(string! key) -> HotChocolate.IErrorBuilder!
+HotChocolate.IErrorBuilder.RemovePath() -> HotChocolate.IErrorBuilder!
+HotChocolate.IErrorBuilder.SetCode(string? code) -> HotChocolate.IErrorBuilder!
+HotChocolate.IErrorBuilder.SetException(System.Exception? exception) -> HotChocolate.IErrorBuilder!
+HotChocolate.IErrorBuilder.SetExtension(string! key, object? value) -> HotChocolate.IErrorBuilder!
+HotChocolate.IErrorBuilder.SetMessage(string! message) -> HotChocolate.IErrorBuilder!
+HotChocolate.IErrorBuilder.SetPath(HotChocolate.Path? path) -> HotChocolate.IErrorBuilder!
+HotChocolate.IErrorBuilder.SetPath(System.Collections.Generic.IReadOnlyList<object!>? path) -> HotChocolate.IErrorBuilder!
+HotChocolate.IErrorBuilder.SetSyntaxNode(HotChocolate.Language.ISyntaxNode? syntaxNode) -> HotChocolate.IErrorBuilder!
 HotChocolate.IErrorFilter
-HotChocolate.IErrorFilter.OnError(HotChocolate.IError error) -> HotChocolate.IError
+HotChocolate.IErrorFilter.OnError(HotChocolate.IError! error) -> HotChocolate.IError!
 HotChocolate.IErrorHandler
-HotChocolate.IErrorHandler.CreateUnexpectedError(System.Exception exception) -> HotChocolate.IErrorBuilder
-HotChocolate.IErrorHandler.Handle(HotChocolate.IError error) -> HotChocolate.IError
+HotChocolate.IErrorHandler.CreateUnexpectedError(System.Exception! exception) -> HotChocolate.IErrorBuilder!
+HotChocolate.IErrorHandler.Handle(HotChocolate.IError! error) -> HotChocolate.IError!
 HotChocolate.IExecutable
-HotChocolate.IExecutable.FirstOrDefaultAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<object>
-HotChocolate.IExecutable.Print() -> string
-HotChocolate.IExecutable.SingleOrDefaultAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<object>
-HotChocolate.IExecutable.Source.get -> object
-HotChocolate.IExecutable.ToListAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.IList>
+HotChocolate.IExecutable.FirstOrDefaultAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<object?>
+HotChocolate.IExecutable.Print() -> string!
+HotChocolate.IExecutable.SingleOrDefaultAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<object?>
+HotChocolate.IExecutable.Source.get -> object!
+HotChocolate.IExecutable.ToListAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.IList!>
 HotChocolate.IExecutable<T>
 HotChocolate.IHasContextData
-HotChocolate.IHasContextData.ContextData.get -> System.Collections.Generic.IDictionary<string, object>
+HotChocolate.IHasContextData.ContextData.get -> System.Collections.Generic.IDictionary<string!, object?>!
 HotChocolate.IHasReadOnlyContextData
-HotChocolate.IHasReadOnlyContextData.ContextData.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
+HotChocolate.IHasReadOnlyContextData.ContextData.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>!
 HotChocolate.IndexerPathSegment
 HotChocolate.IndexerPathSegment.Index.get -> int
 HotChocolate.IOptional
 HotChocolate.IOptional.HasValue.get -> bool
-HotChocolate.IOptional.Value.get -> object
+HotChocolate.IOptional.Value.get -> object?
 HotChocolate.LocalStateAttribute
-HotChocolate.LocalStateAttribute.Key.get -> string
+HotChocolate.LocalStateAttribute.Key.get -> string!
 HotChocolate.LocalStateAttribute.LocalStateAttribute() -> void
-HotChocolate.LocalStateAttribute.LocalStateAttribute(string key) -> void
+HotChocolate.LocalStateAttribute.LocalStateAttribute(string! key) -> void
 HotChocolate.Location
 HotChocolate.Location.Column.get -> int
 HotChocolate.Location.Line.get -> int
@@ -567,8 +567,8 @@ HotChocolate.NameString.Equals(HotChocolate.NameString other, System.StringCompa
 HotChocolate.NameString.HasValue.get -> bool
 HotChocolate.NameString.IsEmpty.get -> bool
 HotChocolate.NameString.NameString() -> void
-HotChocolate.NameString.NameString(string value) -> void
-HotChocolate.NameString.Value.get -> string
+HotChocolate.NameString.NameString(string! value) -> void
+HotChocolate.NameString.Value.get -> string!
 HotChocolate.NameStringExtensions
 HotChocolate.Optional<T>
 HotChocolate.Optional<T>.Equals(HotChocolate.Optional<T> other) -> bool
@@ -580,7 +580,7 @@ HotChocolate.Optional<T>.Value.get -> T
 HotChocolate.ParentAttribute
 HotChocolate.ParentAttribute.ParentAttribute() -> void
 HotChocolate.Path
-HotChocolate.Path.ToList() -> System.Collections.Generic.IReadOnlyList<object>
+HotChocolate.Path.ToList() -> System.Collections.Generic.IReadOnlyList<object!>!
 HotChocolate.RootPathSegment
 HotChocolate.RootPathSegment.Name.get -> HotChocolate.NameString
 HotChocolate.SchemaServiceAttribute
@@ -588,43 +588,43 @@ HotChocolate.SchemaServiceAttribute.SchemaServiceAttribute() -> void
 HotChocolate.ScopedServiceAttribute
 HotChocolate.ScopedServiceAttribute.ScopedServiceAttribute() -> void
 HotChocolate.ScopedStateAttribute
-HotChocolate.ScopedStateAttribute.Key.get -> string
+HotChocolate.ScopedStateAttribute.Key.get -> string?
 HotChocolate.ScopedStateAttribute.ScopedStateAttribute() -> void
-HotChocolate.ScopedStateAttribute.ScopedStateAttribute(string key) -> void
+HotChocolate.ScopedStateAttribute.ScopedStateAttribute(string! key) -> void
 HotChocolate.ServiceAttribute
 HotChocolate.ServiceAttribute.ServiceAttribute() -> void
 HotChocolate.SetState
 HotChocolate.SetState<T>
 HotChocolate.SingleValueExtensionData
-HotChocolate.SingleValueExtensionData.ContainsKey(string key) -> bool
+HotChocolate.SingleValueExtensionData.ContainsKey(string! key) -> bool
 HotChocolate.SingleValueExtensionData.Count.get -> int
-HotChocolate.SingleValueExtensionData.GetEnumerator() -> System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<string, object>>
-HotChocolate.SingleValueExtensionData.Keys.get -> System.Collections.Generic.IEnumerable<string>
-HotChocolate.SingleValueExtensionData.SingleValueExtensionData(string key, object value) -> void
-HotChocolate.SingleValueExtensionData.this[string key].get -> object
-HotChocolate.SingleValueExtensionData.TryGetValue(string key, out object value) -> bool
-HotChocolate.SingleValueExtensionData.Values.get -> System.Collections.Generic.IEnumerable<object>
+HotChocolate.SingleValueExtensionData.GetEnumerator() -> System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<string!, object?>>!
+HotChocolate.SingleValueExtensionData.Keys.get -> System.Collections.Generic.IEnumerable<string!>!
+HotChocolate.SingleValueExtensionData.SingleValueExtensionData(string! key, object? value) -> void
+HotChocolate.SingleValueExtensionData.this[string! key].get -> object?
+HotChocolate.SingleValueExtensionData.TryGetValue(string! key, out object? value) -> bool
+HotChocolate.SingleValueExtensionData.Values.get -> System.Collections.Generic.IEnumerable<object?>!
 HotChocolate.StateAttribute
 HotChocolate.StateAttribute.DefaultIfNotExists.get -> bool
 HotChocolate.StateAttribute.DefaultIfNotExists.set -> void
 HotChocolate.StateAttribute.IsScoped.get -> bool
 HotChocolate.StateAttribute.IsScoped.set -> void
-HotChocolate.StateAttribute.Key.get -> string
-HotChocolate.StateAttribute.StateAttribute(string key) -> void
+HotChocolate.StateAttribute.Key.get -> string!
+HotChocolate.StateAttribute.StateAttribute(string! key) -> void
 HotChocolate.Types.IHasRuntimeType
-HotChocolate.Types.IHasRuntimeType.RuntimeType.get -> System.Type
+HotChocolate.Types.IHasRuntimeType.RuntimeType.get -> System.Type!
 HotChocolate.Types.IInputType
 HotChocolate.Types.IOutputType
 HotChocolate.Types.IParsableType
-HotChocolate.Types.IParsableType.IsInstanceOfType(HotChocolate.Language.IValueNode valueSyntax) -> bool
-HotChocolate.Types.IParsableType.IsInstanceOfType(object runtimeValue) -> bool
-HotChocolate.Types.IParsableType.ParseLiteral(HotChocolate.Language.IValueNode valueSyntax, bool withDefaults = true) -> object
-HotChocolate.Types.IParsableType.ParseResult(object resultValue) -> HotChocolate.Language.IValueNode
-HotChocolate.Types.IParsableType.ParseValue(object runtimeValue) -> HotChocolate.Language.IValueNode
+HotChocolate.Types.IParsableType.IsInstanceOfType(HotChocolate.Language.IValueNode! valueSyntax) -> bool
+HotChocolate.Types.IParsableType.IsInstanceOfType(object? runtimeValue) -> bool
+HotChocolate.Types.IParsableType.ParseLiteral(HotChocolate.Language.IValueNode! valueSyntax, bool withDefaults = true) -> object?
+HotChocolate.Types.IParsableType.ParseResult(object? resultValue) -> HotChocolate.Language.IValueNode!
+HotChocolate.Types.IParsableType.ParseValue(object? runtimeValue) -> HotChocolate.Language.IValueNode!
 HotChocolate.Types.ISerializableType
-HotChocolate.Types.ISerializableType.Deserialize(object resultValue) -> object
-HotChocolate.Types.ISerializableType.Serialize(object runtimeValue) -> object
-HotChocolate.Types.ISerializableType.TryDeserialize(object resultValue, out object runtimeValue) -> bool
+HotChocolate.Types.ISerializableType.Deserialize(object? resultValue) -> object?
+HotChocolate.Types.ISerializableType.Serialize(object? runtimeValue) -> object?
+HotChocolate.Types.ISerializableType.TryDeserialize(object? resultValue, out object? runtimeValue) -> bool
 HotChocolate.Types.IType
 HotChocolate.Types.IType.Kind.get -> HotChocolate.Types.TypeKind
 HotChocolate.Types.ITypeSystemMember
@@ -652,76 +652,76 @@ HotChocolate.Types.ValueKind.Unknown = 8 -> HotChocolate.Types.ValueKind
 HotChocolate.WellKnownContextData
 HotChocolate.WellKnownDirectives
 override abstract HotChocolate.Path.GetHashCode() -> int
-override HotChocolate.Execution.QueryDocument.ToString() -> string
-override HotChocolate.Execution.QuerySourceText.ToString() -> string
-override HotChocolate.Execution.ResultValue.Equals(object obj) -> bool
+override HotChocolate.Execution.QueryDocument.ToString() -> string!
+override HotChocolate.Execution.QuerySourceText.ToString() -> string!
+override HotChocolate.Execution.ResultValue.Equals(object? obj) -> bool
 override HotChocolate.Execution.ResultValue.GetHashCode() -> int
-override HotChocolate.FieldCoordinate.Equals(object obj) -> bool
+override HotChocolate.FieldCoordinate.Equals(object! obj) -> bool
 override HotChocolate.FieldCoordinate.GetHashCode() -> int
-override HotChocolate.FieldCoordinate.ToString() -> string
+override HotChocolate.FieldCoordinate.ToString() -> string!
 override HotChocolate.IndexerPathSegment.Depth.get -> int
-override HotChocolate.IndexerPathSegment.Equals(HotChocolate.Path other) -> bool
+override HotChocolate.IndexerPathSegment.Equals(HotChocolate.Path? other) -> bool
 override HotChocolate.IndexerPathSegment.GetHashCode() -> int
-override HotChocolate.IndexerPathSegment.Parent.get -> HotChocolate.Path
-override HotChocolate.IndexerPathSegment.Print() -> string
+override HotChocolate.IndexerPathSegment.Parent.get -> HotChocolate.Path!
+override HotChocolate.IndexerPathSegment.Print() -> string!
 override HotChocolate.NamePathSegment.Depth.get -> int
-override HotChocolate.NamePathSegment.Equals(HotChocolate.Path other) -> bool
+override HotChocolate.NamePathSegment.Equals(HotChocolate.Path? other) -> bool
 override HotChocolate.NamePathSegment.GetHashCode() -> int
-override HotChocolate.NamePathSegment.Parent.get -> HotChocolate.Path
-override HotChocolate.NamePathSegment.Print() -> string
-override HotChocolate.NameString.Equals(object obj) -> bool
+override HotChocolate.NamePathSegment.Parent.get -> HotChocolate.Path?
+override HotChocolate.NamePathSegment.Print() -> string!
+override HotChocolate.NameString.Equals(object! obj) -> bool
 override HotChocolate.NameString.GetHashCode() -> int
-override HotChocolate.NameString.ToString() -> string
-override HotChocolate.Optional<T>.Equals(object obj) -> bool
+override HotChocolate.NameString.ToString() -> string!
+override HotChocolate.Optional<T>.Equals(object? obj) -> bool
 override HotChocolate.Optional<T>.GetHashCode() -> int
-override HotChocolate.Optional<T>.ToString() -> string
-override HotChocolate.Path.ToString() -> string
-override HotChocolate.RootPathSegment.Append(HotChocolate.NameString name) -> HotChocolate.NamePathSegment
-override HotChocolate.RootPathSegment.Append(int index) -> HotChocolate.IndexerPathSegment
+override HotChocolate.Optional<T>.ToString() -> string?
+override HotChocolate.Path.ToString() -> string!
+override HotChocolate.RootPathSegment.Append(HotChocolate.NameString name) -> HotChocolate.NamePathSegment!
+override HotChocolate.RootPathSegment.Append(int index) -> HotChocolate.IndexerPathSegment!
 override HotChocolate.RootPathSegment.Depth.get -> int
-override HotChocolate.RootPathSegment.Equals(HotChocolate.Path other) -> bool
+override HotChocolate.RootPathSegment.Equals(HotChocolate.Path? other) -> bool
 override HotChocolate.RootPathSegment.GetHashCode() -> int
-override HotChocolate.RootPathSegment.Parent.get -> HotChocolate.Path
-override HotChocolate.RootPathSegment.Print() -> string
-override sealed HotChocolate.Path.Equals(object obj) -> bool
-static HotChocolate.ErrorBuilder.FromDictionary(System.Collections.Generic.IReadOnlyDictionary<string, object> dict) -> HotChocolate.ErrorBuilder
-static HotChocolate.ErrorBuilder.FromError(HotChocolate.IError error) -> HotChocolate.ErrorBuilder
-static HotChocolate.ErrorBuilder.New() -> HotChocolate.ErrorBuilder
-static HotChocolate.ErrorBuilderExtensions.AddLocation(this HotChocolate.IErrorBuilder builder, HotChocolate.Language.ISyntaxNode syntaxNode) -> HotChocolate.IErrorBuilder
-static HotChocolate.ErrorBuilderExtensions.SetMessage(this HotChocolate.IErrorBuilder builder, string format, params object[] args) -> HotChocolate.IErrorBuilder
-static HotChocolate.ErrorExtensions.RemoveSyntaxNode(this HotChocolate.IError error) -> HotChocolate.IError
-static HotChocolate.ErrorExtensions.WithSyntaxNode(this HotChocolate.IError error, HotChocolate.Language.ISyntaxNode syntaxNode) -> HotChocolate.IError
-static HotChocolate.ErrorHandlerExtensions.Handle(this HotChocolate.IErrorHandler errorHandler, System.Collections.Generic.IEnumerable<HotChocolate.IError> errors) -> System.Collections.Generic.IReadOnlyList<HotChocolate.IError>
-static HotChocolate.Execution.QueryBuilderExtensions.AllowIntrospection(this HotChocolate.Execution.IQueryRequestBuilder builder) -> HotChocolate.Execution.IQueryRequestBuilder
-static HotChocolate.Execution.QueryBuilderExtensions.SetIntrospectionNotAllowedMessage(this HotChocolate.Execution.IQueryRequestBuilder builder, string message) -> HotChocolate.Execution.IQueryRequestBuilder
-static HotChocolate.Execution.QueryBuilderExtensions.SetIntrospectionNotAllowedMessage(this HotChocolate.Execution.IQueryRequestBuilder builder, System.Func<string> messageFactory) -> HotChocolate.Execution.IQueryRequestBuilder
-static HotChocolate.Execution.QueryRequestBuilder.Create(string query) -> HotChocolate.Execution.IReadOnlyQueryRequest
-static HotChocolate.Execution.QueryRequestBuilder.From(HotChocolate.Execution.IQueryRequest request) -> HotChocolate.Execution.QueryRequestBuilder
-static HotChocolate.Execution.QueryRequestBuilder.From(HotChocolate.Language.GraphQLRequest request) -> HotChocolate.Execution.QueryRequestBuilder
-static HotChocolate.Execution.QueryRequestBuilder.New() -> HotChocolate.Execution.QueryRequestBuilder
-static HotChocolate.Execution.QueryResultBuilder.CreateError(HotChocolate.IError error, System.Collections.Generic.IReadOnlyDictionary<string, object> contextData = null) -> HotChocolate.Execution.IQueryResult
-static HotChocolate.Execution.QueryResultBuilder.CreateError(System.Collections.Generic.IReadOnlyList<HotChocolate.IError> errors, System.Collections.Generic.IReadOnlyDictionary<string, object> contextData = null) -> HotChocolate.Execution.IQueryResult
-static HotChocolate.Execution.QueryResultBuilder.FromResult(HotChocolate.Execution.IQueryResult result) -> HotChocolate.Execution.QueryResultBuilder
-static HotChocolate.Execution.QueryResultBuilder.New() -> HotChocolate.Execution.QueryResultBuilder
+override HotChocolate.RootPathSegment.Parent.get -> HotChocolate.Path?
+override HotChocolate.RootPathSegment.Print() -> string!
+override sealed HotChocolate.Path.Equals(object? obj) -> bool
+static HotChocolate.ErrorBuilder.FromDictionary(System.Collections.Generic.IReadOnlyDictionary<string!, object?>! dict) -> HotChocolate.ErrorBuilder!
+static HotChocolate.ErrorBuilder.FromError(HotChocolate.IError! error) -> HotChocolate.ErrorBuilder!
+static HotChocolate.ErrorBuilder.New() -> HotChocolate.ErrorBuilder!
+static HotChocolate.ErrorBuilderExtensions.AddLocation(this HotChocolate.IErrorBuilder! builder, HotChocolate.Language.ISyntaxNode? syntaxNode) -> HotChocolate.IErrorBuilder!
+static HotChocolate.ErrorBuilderExtensions.SetMessage(this HotChocolate.IErrorBuilder! builder, string! format, params object![]! args) -> HotChocolate.IErrorBuilder!
+static HotChocolate.ErrorExtensions.RemoveSyntaxNode(this HotChocolate.IError! error) -> HotChocolate.IError!
+static HotChocolate.ErrorExtensions.WithSyntaxNode(this HotChocolate.IError! error, HotChocolate.Language.ISyntaxNode? syntaxNode) -> HotChocolate.IError!
+static HotChocolate.ErrorHandlerExtensions.Handle(this HotChocolate.IErrorHandler! errorHandler, System.Collections.Generic.IEnumerable<HotChocolate.IError!>! errors) -> System.Collections.Generic.IReadOnlyList<HotChocolate.IError!>!
+static HotChocolate.Execution.QueryBuilderExtensions.AllowIntrospection(this HotChocolate.Execution.IQueryRequestBuilder! builder) -> HotChocolate.Execution.IQueryRequestBuilder!
+static HotChocolate.Execution.QueryBuilderExtensions.SetIntrospectionNotAllowedMessage(this HotChocolate.Execution.IQueryRequestBuilder! builder, string! message) -> HotChocolate.Execution.IQueryRequestBuilder!
+static HotChocolate.Execution.QueryBuilderExtensions.SetIntrospectionNotAllowedMessage(this HotChocolate.Execution.IQueryRequestBuilder! builder, System.Func<string!>! messageFactory) -> HotChocolate.Execution.IQueryRequestBuilder!
+static HotChocolate.Execution.QueryRequestBuilder.Create(string! query) -> HotChocolate.Execution.IReadOnlyQueryRequest!
+static HotChocolate.Execution.QueryRequestBuilder.From(HotChocolate.Execution.IQueryRequest! request) -> HotChocolate.Execution.QueryRequestBuilder!
+static HotChocolate.Execution.QueryRequestBuilder.From(HotChocolate.Language.GraphQLRequest! request) -> HotChocolate.Execution.QueryRequestBuilder!
+static HotChocolate.Execution.QueryRequestBuilder.New() -> HotChocolate.Execution.QueryRequestBuilder!
+static HotChocolate.Execution.QueryResultBuilder.CreateError(HotChocolate.IError! error, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? contextData = null) -> HotChocolate.Execution.IQueryResult!
+static HotChocolate.Execution.QueryResultBuilder.CreateError(System.Collections.Generic.IReadOnlyList<HotChocolate.IError!>! errors, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? contextData = null) -> HotChocolate.Execution.IQueryResult!
+static HotChocolate.Execution.QueryResultBuilder.FromResult(HotChocolate.Execution.IQueryResult! result) -> HotChocolate.Execution.QueryResultBuilder!
+static HotChocolate.Execution.QueryResultBuilder.New() -> HotChocolate.Execution.QueryResultBuilder!
 static HotChocolate.FieldCoordinate.CreateWithoutType(HotChocolate.NameString fieldName, HotChocolate.NameString? argumentName = null) -> HotChocolate.FieldCoordinate
-static HotChocolate.NameString.implicit operator HotChocolate.NameString(string s) -> HotChocolate.NameString
-static HotChocolate.NameString.implicit operator string(HotChocolate.NameString name) -> string
+static HotChocolate.NameString.implicit operator HotChocolate.NameString(string! s) -> HotChocolate.NameString
+static HotChocolate.NameString.implicit operator string!(HotChocolate.NameString name) -> string!
 static HotChocolate.NameString.operator !=(HotChocolate.NameString left, HotChocolate.NameString right) -> bool
 static HotChocolate.NameString.operator +(HotChocolate.NameString left, HotChocolate.NameString right) -> HotChocolate.NameString
-static HotChocolate.NameString.operator +(HotChocolate.NameString left, string right) -> string
-static HotChocolate.NameString.operator +(string left, HotChocolate.NameString right) -> string
+static HotChocolate.NameString.operator +(HotChocolate.NameString left, string! right) -> string!
+static HotChocolate.NameString.operator +(string! left, HotChocolate.NameString right) -> string!
 static HotChocolate.NameString.operator ==(HotChocolate.NameString left, HotChocolate.NameString right) -> bool
-static HotChocolate.NameStringExtensions.EnsureNotEmpty(this in HotChocolate.NameString name, string argumentName) -> HotChocolate.NameString
+static HotChocolate.NameStringExtensions.EnsureNotEmpty(this in HotChocolate.NameString name, string! argumentName) -> HotChocolate.NameString
 static HotChocolate.Optional<T>.Empty(T defaultValue = default(T)) -> HotChocolate.Optional<T>
 static HotChocolate.Optional<T>.implicit operator HotChocolate.Optional<T>(T value) -> HotChocolate.Optional<T>
 static HotChocolate.Optional<T>.implicit operator T(HotChocolate.Optional<T> optional) -> T
 static HotChocolate.Optional<T>.operator !=(HotChocolate.Optional<T> left, HotChocolate.Optional<T> right) -> bool
 static HotChocolate.Optional<T>.operator ==(HotChocolate.Optional<T> left, HotChocolate.Optional<T> right) -> bool
-static HotChocolate.Path.New(HotChocolate.NameString name) -> HotChocolate.NamePathSegment
-static HotChocolate.Path.Root.get -> HotChocolate.RootPathSegment
-static HotChocolate.RootPathSegment.Instance.get -> HotChocolate.RootPathSegment
-static HotChocolate.Types.LiteralExtensions.GetValueKind(this HotChocolate.Language.IValueNode literal) -> HotChocolate.Types.ValueKind
-static HotChocolate.Types.LiteralExtensions.TryGetValueKind(this HotChocolate.Language.IValueNode literal, out HotChocolate.Types.ValueKind kind) -> bool
-static readonly HotChocolate.ExtensionData.Empty -> HotChocolate.ExtensionData
-virtual HotChocolate.Path.Append(HotChocolate.NameString name) -> HotChocolate.NamePathSegment
-virtual HotChocolate.Path.Append(int index) -> HotChocolate.IndexerPathSegment
+static HotChocolate.Path.New(HotChocolate.NameString name) -> HotChocolate.NamePathSegment!
+static HotChocolate.Path.Root.get -> HotChocolate.RootPathSegment!
+static HotChocolate.RootPathSegment.Instance.get -> HotChocolate.RootPathSegment!
+static HotChocolate.Types.LiteralExtensions.GetValueKind(this HotChocolate.Language.IValueNode! literal) -> HotChocolate.Types.ValueKind
+static HotChocolate.Types.LiteralExtensions.TryGetValueKind(this HotChocolate.Language.IValueNode! literal, out HotChocolate.Types.ValueKind kind) -> bool
+static readonly HotChocolate.ExtensionData.Empty -> HotChocolate.ExtensionData!
+virtual HotChocolate.Path.Append(HotChocolate.NameString name) -> HotChocolate.NamePathSegment!
+virtual HotChocolate.Path.Append(int index) -> HotChocolate.IndexerPathSegment!

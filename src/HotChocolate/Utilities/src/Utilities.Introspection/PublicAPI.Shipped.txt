@@ -1,19 +1,19 @@
 #nullable enable
 HotChocolate.Utilities.Introspection.BuiltInTypes
 HotChocolate.Utilities.Introspection.IIntrospectionClient
-HotChocolate.Utilities.Introspection.IIntrospectionClient.DownloadSchemaAsync(System.Net.Http.HttpClient client, System.IO.Stream stream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
-HotChocolate.Utilities.Introspection.IIntrospectionClient.DownloadSchemaAsync(System.Net.Http.HttpClient client, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<HotChocolate.Language.DocumentNode>
-HotChocolate.Utilities.Introspection.IIntrospectionClient.GetSchemaFeaturesAsync(System.Net.Http.HttpClient client, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<HotChocolate.Utilities.Introspection.ISchemaFeatures>
+HotChocolate.Utilities.Introspection.IIntrospectionClient.DownloadSchemaAsync(System.Net.Http.HttpClient! client, System.IO.Stream! stream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+HotChocolate.Utilities.Introspection.IIntrospectionClient.DownloadSchemaAsync(System.Net.Http.HttpClient! client, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<HotChocolate.Language.DocumentNode!>!
+HotChocolate.Utilities.Introspection.IIntrospectionClient.GetSchemaFeaturesAsync(System.Net.Http.HttpClient! client, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<HotChocolate.Utilities.Introspection.ISchemaFeatures!>!
 HotChocolate.Utilities.Introspection.IntrospectionClient
-HotChocolate.Utilities.Introspection.IntrospectionClient.DownloadSchemaAsync(System.Net.Http.HttpClient client, System.IO.Stream stream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task
-HotChocolate.Utilities.Introspection.IntrospectionClient.DownloadSchemaAsync(System.Net.Http.HttpClient client, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<HotChocolate.Language.DocumentNode>
-HotChocolate.Utilities.Introspection.IntrospectionClient.GetSchemaFeaturesAsync(System.Net.Http.HttpClient client, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<HotChocolate.Utilities.Introspection.ISchemaFeatures>
+HotChocolate.Utilities.Introspection.IntrospectionClient.DownloadSchemaAsync(System.Net.Http.HttpClient! client, System.IO.Stream! stream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+HotChocolate.Utilities.Introspection.IntrospectionClient.DownloadSchemaAsync(System.Net.Http.HttpClient! client, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<HotChocolate.Language.DocumentNode!>!
+HotChocolate.Utilities.Introspection.IntrospectionClient.GetSchemaFeaturesAsync(System.Net.Http.HttpClient! client, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<HotChocolate.Utilities.Introspection.ISchemaFeatures!>!
 HotChocolate.Utilities.Introspection.IntrospectionClient.IntrospectionClient() -> void
 HotChocolate.Utilities.Introspection.IntrospectionException
 HotChocolate.Utilities.Introspection.IntrospectionException.IntrospectionException() -> void
-HotChocolate.Utilities.Introspection.IntrospectionException.IntrospectionException(string message) -> void
-HotChocolate.Utilities.Introspection.IntrospectionException.IntrospectionException(string message, System.Exception inner) -> void
-HotChocolate.Utilities.Introspection.IntrospectionException.IntrospectionException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) -> void
+HotChocolate.Utilities.Introspection.IntrospectionException.IntrospectionException(string! message) -> void
+HotChocolate.Utilities.Introspection.IntrospectionException.IntrospectionException(string! message, System.Exception! inner) -> void
+HotChocolate.Utilities.Introspection.IntrospectionException.IntrospectionException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 HotChocolate.Utilities.Introspection.ISchemaFeatures
 HotChocolate.Utilities.Introspection.ISchemaFeatures.HasDirectiveLocations.get -> bool
 HotChocolate.Utilities.Introspection.ISchemaFeatures.HasRepeatableDirectives.get -> bool
@@ -27,6 +27,6 @@ HotChocolate.Utilities.Introspection.TypeKind.NON_NULL = 64 -> HotChocolate.Util
 HotChocolate.Utilities.Introspection.TypeKind.OBJECT = 1 -> HotChocolate.Utilities.Introspection.TypeKind
 HotChocolate.Utilities.Introspection.TypeKind.SCALAR = 16 -> HotChocolate.Utilities.Introspection.TypeKind
 HotChocolate.Utilities.Introspection.TypeKind.UNION = 2 -> HotChocolate.Utilities.Introspection.TypeKind
-static HotChocolate.Utilities.Introspection.BuiltInTypes.IsBuiltInType(string name) -> bool
-static HotChocolate.Utilities.Introspection.BuiltInTypes.RemoveBuiltInTypes(this HotChocolate.Language.DocumentNode schema) -> HotChocolate.Language.DocumentNode
-static HotChocolate.Utilities.Introspection.IntrospectionClient.Default.get -> HotChocolate.Utilities.Introspection.IntrospectionClient
+static HotChocolate.Utilities.Introspection.BuiltInTypes.IsBuiltInType(string! name) -> bool
+static HotChocolate.Utilities.Introspection.BuiltInTypes.RemoveBuiltInTypes(this HotChocolate.Language.DocumentNode! schema) -> HotChocolate.Language.DocumentNode!
+static HotChocolate.Utilities.Introspection.IntrospectionClient.Default.get -> HotChocolate.Utilities.Introspection.IntrospectionClient!
