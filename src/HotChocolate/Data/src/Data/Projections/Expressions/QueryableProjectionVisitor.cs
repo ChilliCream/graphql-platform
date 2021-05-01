@@ -26,7 +26,7 @@ namespace HotChocolate.Data.Projections.Expressions
                     base.VisitObjectType(field, objectType, selectionSet, context);
 
                 context.PopInstance();
-                scope.AbstractType[objectType.RuntimeType] = scope.Level.Pop();
+                scope.AddAbstractType(objectType.RuntimeType, scope.Level.Pop());
 
                 return res;
             }

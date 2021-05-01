@@ -16,11 +16,12 @@ namespace HotChocolate.Data.Projections.Expressions
 
         public static Expression CreateMemberInit(this QueryableProjectionScope scope)
         {
-            if (scope.AbstractType.Count > 0)
+            if (scope.HasAbstractTypes())
             {
                 Expression lastValue = Expression.Default(scope.RuntimeType);
 
-                foreach (KeyValuePair<Type, Queue<MemberAssignment>> val in scope.AbstractType)
+                foreach (KeyValuePair<Type, Queue<MemberAssignment>> val in
+                    scope.GetAbstractTypes())
                 {
                     NewExpression ctor = Expression.New(val.Key);
                     Expression memberInit = Expression.MemberInit(ctor, val.Value);

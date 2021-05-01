@@ -84,7 +84,7 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
 
             // in case the projection is empty we do not project. This can happen if the
             // field handler below skips fields
-            if (queryableScope.AbstractType.Count == 0 &&
+            if (!queryableScope.HasAbstractTypes() &&
                 (queryableScope.Level.Count == 0 || queryableScope.Level.Peek().Count == 0))
             {
                 action = SelectionVisitor.Continue;
