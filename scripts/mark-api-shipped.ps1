@@ -13,7 +13,7 @@ function MarkShipped([string]$dir) {
 
     $unshippedFilePath = Join-Path $dir "PublicAPI.Unshipped.txt"
     [string[]]$unshipped = Get-Content $unshippedFilePath | Where-Object { $_.trim() -ne "" }
-    if ($null -eq $unshipped || $unshipped.Length -lt 1) {
+    if ($null -eq $unshipped -or $unshipped.Length -lt 1) {
         return
     }
 
