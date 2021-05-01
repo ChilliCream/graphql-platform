@@ -4,24 +4,21 @@ This document contains information regarding API baseline files and how to work 
 
 ## Files
 
-Each project contains two files that track the public API surface that has been previously shipped and the currently un-shipped changes to this API surface.
+Each project contains two files tracking the public API surface of this project.
 
 ### PublicAPI.Shipped.txt
 
 This file contains APIs that were released in the last major version.
-This file should only be modified after a major release by the maintainers and should never be modified otherwise.
+
+This file should only be modified after a major release by the maintainers and should never be modified otherwise. There is a [script](#scripts) to perform this automatically.
 
 ### PublicAPI.Unshipped.txt
 
-This file contains new APIs since the last major version. Steps for updating this file are found in [Steps for adding and updating APIs](#steps-for-adding-and-updating-apis).
-
-### Scripts
-
-TODO
+This file contains API changes since the last major version.
 
 ## Scenarios
 
-There are three scenarios related to public API changes that need to be documented.
+There are three types of public API changes that need to be documented.
 
 ### New APIs
 
@@ -51,10 +48,22 @@ Two new entries need to be added to the `PublicAPI.Unshipped.txt` file for an up
 Microsoft.AspNetCore.DataProtection.Infrastructure.IApplicationDiscriminator.Discriminator.get -> string?
 ```
 
-## Steps for adding and updating APIs
-
-TODO
-
 ## New projects
 
 TODO
+
+## Scripts
+
+There are three scripts to help you manage the `PublicAPI.*.txt` files. They can be found [here](./scripts).
+
+### mark-api-shipped.ps1
+
+This transfers all changes in the `PublicAPI.Unshipped.txt` to the `PublicAPI.Shipped.txt` files. It also takes care of removing lines marked with `*REMOVE*` (removals of APIs).
+
+### display-unshipped-api.ps1
+
+This will output the contents of all `PublicAPI.Unshipped.txt` files throughout the project.
+
+### diff-shipped-api.ps1
+
+This shows all changes of `PublicAPI.Shipped.txt` files between git refs. Example: `diff-shipped-api.ps1 -from 11.0.0 -to 12.0.0`
