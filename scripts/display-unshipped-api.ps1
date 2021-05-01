@@ -1,11 +1,11 @@
-[CmdletBinding(PositionalBinding=$false)]
+[CmdletBinding(PositionalBinding = $false)]
 param ()
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
 
 function ShowUnshipped([string]$file, [string]$src_dir) {
-    $unshipped = Get-Content $file
+    [array]$unshipped = Get-Content $file
 
     if ([string]::IsNullOrWhiteSpace($unshipped)) {
         return

@@ -1,4 +1,4 @@
-[CmdletBinding(PositionalBinding=$false)]
+[CmdletBinding(PositionalBinding = $false)]
 param ()
 
 Set-StrictMode -version 2.0
@@ -6,7 +6,7 @@ $ErrorActionPreference = "Stop"
 
 function MarkShipped([string]$dir) {
     $shippedFilePath = Join-Path $dir "PublicAPI.Shipped.txt"
-    $shipped = Get-Content $shippedFilePath
+    [array]$shipped = Get-Content $shippedFilePath
     if ($null -eq $shipped) {
         $shipped = @()
     }
@@ -29,7 +29,7 @@ function MarkShipped([string]$dir) {
         }
     }
 
-    $shipped | Sort-Object | ?{ -not $removed.Contains($_) } | Out-File $shippedFilePath -Encoding Ascii
+    $shipped | Get-Unique | Sort-Object | Where-Object { -not $removed.Contains($_) } | Out-File $shippedFilePath -Encoding Ascii
     "" | Out-File $unshippedFilePath -Encoding Ascii
 }
 
