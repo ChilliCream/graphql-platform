@@ -49,7 +49,7 @@
     <AddPublicApiAnalyzers Condition=" '$(AddPublicApiAnalyzers)' == '' AND !$(MSBuildProjectName.Contains('.Tests')) AND !$(MSBuildProjectName.Contains('.Resources')) ">true</AddPublicApiAnalyzers>
     <AddPublicApiAnalyzers Condition=" '$(AddPublicApiAnalyzers)' == '' ">false</AddPublicApiAnalyzers>
     
-    <WarningsAsErrors Condition=" '$(RequireDocumentationOfPublicApiChanges)' != '' ">$(WarningsAsErrors);RS0016;RS0017;RS0024</WarningsAsErrors>
+    <WarningsAsErrors Condition=" '$(RequireDocumentationOfPublicApiChanges)' != '' ">$(WarningsAsErrors);RS0016;RS0024</WarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup Condition=" $(AddPublicApiAnalyzers) ">
