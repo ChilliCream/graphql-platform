@@ -81,4 +81,3 @@ static GreenDonut.Result<TValue>.implicit operator System.Exception?(GreenDonut.
 static GreenDonut.Result<TValue>.implicit operator TValue(GreenDonut.Result<TValue> result) -> TValue
 static GreenDonut.Result<TValue>.Reject(System.Exception! error) -> GreenDonut.Result<TValue>
 static GreenDonut.Result<TValue>.Resolve(TValue value) -> GreenDonut.Result<TValue>
-virtual GreenDonut.DataLoaderBase<TKey, TValue>.Dispose(bool disposing) -> void
