@@ -1,9 +1,1 @@
 #nullable enable
-Microsoft.Extensions.DependencyInjection.HttpClientBuilderExtensions
-static Microsoft.Extensions.DependencyInjection.HttpClientBuilderExtensions.ConfigureHttpClient<T>(this StrawberryShake.IClientBuilder<T>! clientBuilder, System.Action<System.IServiceProvider!, System.Net.Http.HttpClient!>! configureClient, System.Action<Microsoft.Extensions.DependencyInjection.IHttpClientBuilder!>? configureClientBuilder = null) -> StrawberryShake.IClientBuilder<T>!
-static Microsoft.Extensions.DependencyInjection.HttpClientBuilderExtensions.ConfigureHttpClient<T>(this StrawberryShake.IClientBuilder<T>! clientBuilder, System.Action<System.Net.Http.HttpClient!>! configureClient, System.Action<Microsoft.Extensions.DependencyInjection.IHttpClientBuilder!>? configureClientBuilder = null) -> StrawberryShake.IClientBuilder<T>!
-StrawberryShake.Transport.Http.HttpConnection
-StrawberryShake.Transport.Http.HttpConnection.ExecuteAsync(StrawberryShake.OperationRequest! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<StrawberryShake.Response<System.Text.Json.JsonDocument!>!>!
-StrawberryShake.Transport.Http.HttpConnection.HttpConnection(System.Func<System.Net.Http.HttpClient!>! createClient) -> void
-StrawberryShake.Transport.Http.IHttpConnection
-virtual StrawberryShake.Transport.Http.HttpConnection.CreateRequestMessage(StrawberryShake.OperationRequest! request, System.Uri! baseAddress) -> System.Net.Http.HttpRequestMessage!
