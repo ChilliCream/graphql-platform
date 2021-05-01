@@ -12,7 +12,7 @@ function MarkShipped([string]$dir) {
     }
 
     $unshippedFilePath = Join-Path $dir "PublicAPI.Unshipped.txt"
-    [array]$unshipped = Get-Content $unshippedFilePath
+    [array]$unshipped = Get-Content $unshippedFilePath | Where-Object { $_.trim() -ne "" }
     if ($null -eq $unshipped || $unshipped.Length -lt 1) {
         return
     }
@@ -34,6 +34,7 @@ function MarkShipped([string]$dir) {
         }
     }
 
+    # todo: sort sometimes produces a different result!?!?
     $shipped | Get-Unique | Sort-Object | Where-Object { -not $removed.Contains($_) } | Out-File $shippedFilePath -Encoding Ascii
     "" | Out-File $unshippedFilePath -Encoding Ascii
 }
