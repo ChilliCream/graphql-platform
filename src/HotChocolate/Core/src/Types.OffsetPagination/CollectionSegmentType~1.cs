@@ -76,8 +76,7 @@ namespace HotChocolate.Types.Pagination
         {
             base.OnCompleteType(context, definition);
 
-            ItemType = context.GetType<IOutputType>(
-                context.TypeInspector.GetTypeRef(typeof(T)));
+            ItemType = context.GetType<IOutputType>(context.TypeInspector.GetTypeRef(typeof(T)));
         }
     }
 }
