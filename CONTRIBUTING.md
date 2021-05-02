@@ -4,7 +4,7 @@ One of the easiest ways to contribute is to participate in discussions on GitHub
 
 ## General feedback and discussions?
 
-Start a discussion on the [repository issue tracker](https://github.com/ChilliCream/hotchocolate/issues) or [join us on slack](https://bit.ly/joinchilli).
+Start a discussion on the [repository issue tracker](https://github.com/ChilliCream/hotchocolate/issues) or [join us on slack](https://bit.ly/join-chillicream-slack).
 
 ## Bugs and feature requests?
 
