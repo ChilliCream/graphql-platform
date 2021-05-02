@@ -1,16 +1,7 @@
 ﻿{
   "errors": [
     {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 3
-        }
-      ],
-      "path": [
-        "error10"
-      ]
+      "message": "query error 10"
     }
   ],
   "data": {

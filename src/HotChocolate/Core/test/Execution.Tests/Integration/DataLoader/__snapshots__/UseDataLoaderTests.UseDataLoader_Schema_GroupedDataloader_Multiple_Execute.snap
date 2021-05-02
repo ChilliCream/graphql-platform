@@ -1,68 +1,18 @@
 ﻿{
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 14
-        }
-      ],
-      "path": [
-        "multiple",
-        3,
-        "id"
-      ]
-    },
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 14
-        }
-      ],
-      "path": [
-        "multiple",
-        2,
-        "id"
-      ]
-    },
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 14
-        }
-      ],
-      "path": [
-        "multiple",
-        1,
-        "id"
-      ]
-    },
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 14
-        }
-      ],
-      "path": [
-        "multiple",
-        0,
-        "id"
-      ]
-    }
-  ],
   "data": {
     "multiple": [
-      null,
-      null,
-      null,
-      null
+      {
+        "id": 1
+      },
+      {
+        "id": 2
+      },
+      {
+        "id": 3
+      },
+      {
+        "id": 4
+      }
     ]
   }
 }

@@ -5,141 +5,17 @@
     "Data": {
       "a": "a",
       "b": "b",
-      "bar": null
-    },
-    "Errors": [
-      {
-        "Message": "Unexpected Execution Error",
-        "Code": null,
-        "Path": {
-          "Parent": null,
-          "Depth": 0,
-          "Name": "bar"
-        },
-        "Locations": [
-          {
-            "Line": 4,
-            "Column": 29
-          }
-        ],
-        "Extensions": null,
-        "Exception": {
-          "ClassName": "System.NullReferenceException",
-          "Message": "Object reference not set to an instance of an object.",
-          "Data": null,
-          "InnerException": null,
-          "HelpURL": null,
-          "StackTraceString": "   at HotChocolate.Execution.Processing.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in /Users/michael/local/hc-1/src/HotChocolate/Core/src/Execution/Processing/ResolverTask.cs:line 85\n   at HotChocolate.Execution.Processing.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in /Users/michael/local/hc-1/src/HotChocolate/Core/src/Execution/Processing/ResolverTask.cs:line 67",
-          "RemoteStackTraceString": null,
-          "RemoteStackIndex": 0,
-          "ExceptionMethod": null,
-          "HResult": -2147467261,
-          "Source": "HotChocolate.Execution",
-          "WatsonBuckets": null
-        },
-        "SyntaxNode": {
-          "Kind": "Field",
-          "Alias": null,
-          "Arguments": [],
-          "SelectionSet": {
-            "Kind": "SelectionSet",
-            "Location": {
-              "Start": 146,
-              "End": 263,
-              "Line": 4,
-              "Column": 33
-            },
-            "Selections": [
-              {
-                "Kind": "Field",
-                "Alias": {
-                  "Kind": "Name",
-                  "Location": {
-                    "Start": 180,
-                    "End": 182,
-                    "Line": 5,
-                    "Column": 33
-                  },
-                  "Value": "c"
-                },
-                "Arguments": [
-                  {
-                    "Kind": "Argument",
-                    "Location": {
-                      "Start": 198,
-                      "End": 207,
-                      "Line": 5,
-                      "Column": 51
-                    },
-                    "Name": {
-                      "Kind": "Name",
-                      "Location": {
-                        "Start": 198,
-                        "End": 202,
-                        "Line": 5,
-                        "Column": 51
-                      },
-                      "Value": "key"
-                    },
-                    "Value": {
-                      "Kind": "StringValue",
-                      "Location": {
-                        "Start": 203,
-                        "End": 207,
-                        "Line": 5,
-                        "Column": 56
-                      },
-                      "Value": "c",
-                      "Block": false
-                    }
-                  }
-                ],
-                "SelectionSet": null,
-                "Location": {
-                  "Start": 180,
-                  "End": 237,
-                  "Line": 5,
-                  "Column": 33
-                },
-                "Name": {
-                  "Kind": "Name",
-                  "Location": {
-                    "Start": 183,
-                    "End": 198,
-                    "Line": 5,
-                    "Column": 36
-                  },
-                  "Value": "withDataLoader"
-                },
-                "Directives": []
-              }
-            ]
-          },
-          "Location": {
-            "Start": 142,
-            "End": 263,
-            "Line": 4,
-            "Column": 29
-          },
-          "Name": {
-            "Kind": "Name",
-            "Location": {
-              "Start": 142,
-              "End": 147,
-              "Line": 4,
-              "Column": 29
-            },
-            "Value": "bar"
-          },
-          "Directives": []
-        }
+      "bar": {
+        "c": "c"
       }
-    ],
+    },
+    "Errors": null,
     "Extensions": {
       "loads": [
         [
           "a",
-          "b"
+          "b",
+          "c"
         ]
       ]
     },

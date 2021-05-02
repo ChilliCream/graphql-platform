@@ -83,8 +83,6 @@ namespace HotChocolate.Fetching
 
             public async ValueTask ExecuteAsync(CancellationToken cancellationToken)
             {
-                // _context.Started();
-
                 try
                 {
                     using (_context.Track(this))

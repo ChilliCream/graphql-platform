@@ -2,35 +2,41 @@
   "Label": null,
   "Path": null,
   "Data": {
-    "foo": null
+    "foo": {
+      "qux": null
+    }
   },
   "Errors": [
     {
       "Message": "Unexpected Execution Error",
       "Code": null,
       "Path": {
-        "Parent": null,
-        "Depth": 0,
-        "Name": "foo"
+        "Parent": {
+          "Parent": null,
+          "Depth": 0,
+          "Name": "foo"
+        },
+        "Depth": 1,
+        "Name": "qux"
       },
       "Locations": [
         {
           "Line": 1,
-          "Column": 3
+          "Column": 9
         }
       ],
       "Extensions": null,
       "Exception": {
-        "ClassName": "System.NullReferenceException",
-        "Message": "Object reference not set to an instance of an object.",
+        "ClassName": "System.InvalidCastException",
+        "Message": "The parent cannot be cast to HotChocolate.Execution.SourceObjectConversionTests+Baz.",
         "Data": null,
         "InnerException": null,
         "HelpURL": null,
-        "StackTraceString": "   at HotChocolate.Execution.Processing.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in /Users/michael/local/hc-1/src/HotChocolate/Core/src/Execution/Processing/ResolverTask.cs:line 85\n   at HotChocolate.Execution.Processing.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in /Users/michael/local/hc-1/src/HotChocolate/Core/src/Execution/Processing/ResolverTask.cs:line 67",
+        "StackTraceString": "   at HotChocolate.Execution.Processing.MiddlewareContext.Source[T]() in /Users/pascalsenn/kot/support/hcreview/hotchocolate/src/HotChocolate/Core/src/Execution/Processing/MiddlewareContext.State.cs:line 54\n   at HotChocolate.Execution.Processing.MiddlewareContext.Parent[T]() in /Users/pascalsenn/kot/support/hcreview/hotchocolate/src/HotChocolate/Core/src/Execution/Processing/MiddlewareContext.State.cs:line 58\n   at lambda_method7623(Closure , IResolverContext )\n   at HotChocolate.Types.ObjectField.<>c__DisplayClass36_0.<CompleteResolver>b__1(IMiddlewareContext c) in /Users/pascalsenn/kot/support/hcreview/hotchocolate/src/HotChocolate/Core/src/Types/Types/ObjectField.cs:line 173\n   at HotChocolate.Execution.Processing.PureResolverTask.TryExecute(CancellationToken cancellationToken) in /Users/pascalsenn/kot/support/hcreview/hotchocolate/src/HotChocolate/Core/src/Execution/Processing/ResolverTask.cs:line 174",
         "RemoteStackTraceString": null,
         "RemoteStackIndex": 0,
         "ExceptionMethod": null,
-        "HResult": -2147467261,
+        "HResult": -2147467262,
         "Source": "HotChocolate.Execution",
         "WatsonBuckets": null
       },
@@ -38,55 +44,22 @@
         "Kind": "Field",
         "Alias": null,
         "Arguments": [],
-        "SelectionSet": {
-          "Kind": "SelectionSet",
-          "Location": {
-            "Start": 6,
-            "End": 15,
-            "Line": 1,
-            "Column": 7
-          },
-          "Selections": [
-            {
-              "Kind": "Field",
-              "Alias": null,
-              "Arguments": [],
-              "SelectionSet": null,
-              "Location": {
-                "Start": 8,
-                "End": 13,
-                "Line": 1,
-                "Column": 9
-              },
-              "Name": {
-                "Kind": "Name",
-                "Location": {
-                  "Start": 8,
-                  "End": 13,
-                  "Line": 1,
-                  "Column": 9
-                },
-                "Value": "qux"
-              },
-              "Directives": []
-            }
-          ]
-        },
+        "SelectionSet": null,
         "Location": {
-          "Start": 2,
-          "End": 15,
+          "Start": 8,
+          "End": 13,
           "Line": 1,
-          "Column": 3
+          "Column": 9
         },
         "Name": {
           "Kind": "Name",
           "Location": {
-            "Start": 2,
-            "End": 7,
+            "Start": 8,
+            "End": 13,
             "Line": 1,
-            "Column": 3
+            "Column": 9
           },
-          "Value": "foo"
+          "Value": "qux"
         },
         "Directives": []
       }

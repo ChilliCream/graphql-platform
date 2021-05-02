@@ -26,7 +26,7 @@ namespace HotChocolate.Execution.Processing
 
         public int CompletedTasks => _completedTasks;
 
-        public bool IsCompleted { get; private set; }
+        public bool IsCompleted { get; private set; } = true;
 
         public void TaskCreated()
         {
@@ -60,7 +60,7 @@ namespace HotChocolate.Execution.Processing
             _newTasks = 0;
             _allTasks = 0;
             _completedTasks = 0;
-            IsCompleted = false;
+            IsCompleted = true;
         }
     }
 

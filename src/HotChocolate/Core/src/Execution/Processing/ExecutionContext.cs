@@ -98,7 +98,7 @@ namespace HotChocolate.Execution.Processing
         private void OnCompleted(object? source, EventArgs args)
         {
             AssertNotPooled();
-            // _taskBacklog.Complete();
+            _taskBacklog.Register(new NoOpTask());
         }
     }
 }

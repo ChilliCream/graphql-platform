@@ -6,8 +6,7 @@ namespace HotChocolate.Execution.Processing
 {
     internal static class ResolverExecutionHelper
     {
-        public static Task ExecuteTasksAsync(
-            IOperationContext operationContext)
+        public static Task ExecuteTasksAsync(IOperationContext operationContext)
         {
             if (operationContext.Execution.TaskBacklog.IsEmpty)
             {
@@ -29,16 +28,26 @@ namespace HotChocolate.Execution.Processing
 
                 context.Execution.TaskBacklog.NeedsMoreWorker += (_, _) =>
                 {
-                    if (Interlocked.Increment(ref _tasks) < 5)
+                    var taskCount = _tasks;
+                    while (taskCount < 5)
                     {
-#pragma warning disable 4014
-                        // ExecuteResolversAsync(
-                        //    context.Execution,
-                        //    HandleError,
-                        //    context.RequestAborted,
-                        //    false);
-#pragma warning restore 4014
+                        var lastTaskCount =
+                            Interlocked.CompareExchange(ref _tasks, taskCount + 1, taskCount);
 
+                        if (taskCount == lastTaskCount)
+                        {
+#pragma warning disable 4014
+                            ExecuteResolversAsync(
+                                context.Execution,
+                                HandleError,
+                                context.RequestAborted,
+                                false);
+#pragma warning restore 4014
+                        }
+                        else
+                        {
+                            taskCount = _tasks;
+                        }
                     }
                 };
             }
@@ -89,9 +98,9 @@ namespace HotChocolate.Execution.Processing
                                     break;
                                 }
 
-                                // await executionContext.TaskBacklog
-                                //    .WaitForTaskAsync(cancellationToken)
-                                //    .ConfigureAwait(false);
+                                await executionContext.TaskBacklog
+                                    .WaitForTaskAsync(cancellationToken)
+                                    .ConfigureAwait(false);
                             }
                         }
                         catch (Exception ex)
@@ -106,10 +115,10 @@ namespace HotChocolate.Execution.Processing
                     // if this is not the main processing task we will only do one iteration and
                     // then finish since there is not anymore enough work for multiple tasks.
                     while (!cancellationToken.IsCancellationRequested &&
-                           mainProcessor &&
-                        (!executionContext.IsCompleted ||
-                        !executionContext.TaskBacklog.IsEmpty ||
-                         _tasks != 0));
+                            mainProcessor &&
+                            (!executionContext.IsCompleted ||
+                            !executionContext.TaskBacklog.IsEmpty ||
+                            _tasks != 0));
                 }
                 finally
                 {

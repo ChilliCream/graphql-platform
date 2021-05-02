@@ -1,21 +1,8 @@
 ﻿{
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 3,
-          "column": 33
-        }
-      ],
-      "path": [
-        "hero",
-        "id"
-      ]
-    }
-  ],
   "data": {
-    "hero": null
+    "hero": {
+      "id": "2001"
+    }
   },
   "hasNext": true
 }
@@ -25,62 +12,18 @@
   "path": [
     "hero"
   ],
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 7,
-          "column": 45
-        }
-      ],
-      "path": [
-        "hero",
-        "friends",
-        "nodes",
-        2,
-        "id"
-      ]
-    },
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 7,
-          "column": 45
-        }
-      ],
-      "path": [
-        "hero",
-        "friends",
-        "nodes",
-        1,
-        "id"
-      ]
-    },
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 7,
-          "column": 45
-        }
-      ],
-      "path": [
-        "hero",
-        "friends",
-        "nodes",
-        0,
-        "id"
-      ]
-    }
-  ],
   "data": {
     "friends": {
       "nodes": [
-        null,
-        null,
-        null
+        {
+          "id": "1000"
+        },
+        {
+          "id": "1002"
+        },
+        {
+          "id": "1003"
+        }
       ]
     }
   },
@@ -94,24 +37,9 @@
     "nodes",
     2
   ],
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 9,
-          "column": 49
-        }
-      ],
-      "path": [
-        "hero",
-        "friends",
-        "nodes",
-        2,
-        "name"
-      ]
-    }
-  ],
+  "data": {
+    "name": "Leia Organa"
+  },
   "hasNext": true
 }
 
@@ -122,24 +50,9 @@
     "nodes",
     1
   ],
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 9,
-          "column": 49
-        }
-      ],
-      "path": [
-        "hero",
-        "friends",
-        "nodes",
-        1,
-        "name"
-      ]
-    }
-  ],
+  "data": {
+    "name": "Han Solo"
+  },
   "hasNext": true
 }
 
@@ -150,24 +63,9 @@
     "nodes",
     0
   ],
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 9,
-          "column": 49
-        }
-      ],
-      "path": [
-        "hero",
-        "friends",
-        "nodes",
-        0,
-        "name"
-      ]
-    }
-  ],
+  "data": {
+    "name": "Luke Skywalker"
+  },
   "hasNext": false
 }
 

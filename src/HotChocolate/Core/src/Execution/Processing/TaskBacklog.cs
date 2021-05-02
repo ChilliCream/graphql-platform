@@ -67,7 +67,7 @@ namespace HotChocolate.Execution.Processing
 
         public void Register(IExecutionTask task)
         {
-            if (task is not PureResolverTask or PureExecutionTask)
+            if (task is not PureResolverTask and not PureExecutionTask)
             {
                 _stats.TaskCreated();
             }
