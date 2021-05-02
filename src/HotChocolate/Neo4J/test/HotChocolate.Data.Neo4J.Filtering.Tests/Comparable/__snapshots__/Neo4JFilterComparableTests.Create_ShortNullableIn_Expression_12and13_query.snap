@@ -1,0 +1,1 @@
+﻿MATCH (foo:Foo) WHERE foo.BarShort IN 'System.Collections.Generic.List`1[System.Int16]' RETURN foo {.BarShort}

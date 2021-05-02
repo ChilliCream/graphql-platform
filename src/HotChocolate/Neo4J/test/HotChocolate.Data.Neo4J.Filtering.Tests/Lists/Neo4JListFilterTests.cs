@@ -9,7 +9,7 @@ namespace HotChocolate.Data.Neo4J.Filtering.Lists
 {
     public class Neo4JListFilterTests
         : SchemaCache
-        , IClassFixture<Neo4jResource>
+        , IClassFixture<Neo4jResource<Neo4JConfig>>
     {
         private readonly string _fooEntities = @"
             CREATE (a:Foo {BarString: 'a'})-[:RELATED_FOO]->(:FooNested {Bar: 'a'})-[:RELATED_BAR]->(:BarNested {Foo: 'a'}),
@@ -56,7 +56,7 @@ namespace HotChocolate.Data.Neo4J.Filtering.Lists
 
         }
 
-        public Neo4JListFilterTests(Neo4jResource neo4JResource)
+        public Neo4JListFilterTests(Neo4jResource<Neo4JConfig> neo4JResource)
         {
             Init(neo4JResource);
         }

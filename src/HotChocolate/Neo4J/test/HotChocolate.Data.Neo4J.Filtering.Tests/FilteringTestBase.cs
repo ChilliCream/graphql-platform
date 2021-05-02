@@ -12,7 +12,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
     public class FilteringTestBase
     {
         protected async Task<IRequestExecutor> CreateSchema<TEntity, T>(
-            Neo4jResource neo4JResource,
+            Neo4jResource<Neo4JConfig> neo4JResource,
             string query,
             bool withPaging = false)
             where TEntity : class

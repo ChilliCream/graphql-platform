@@ -22,7 +22,6 @@ namespace HotChocolate.Data.Neo4J.Language
         public static SymbolicName Of(string name)
         {
             Ensure.HasText(name, "Name must not be empty.");
-            //Ensure.IsTrue();
             return new SymbolicName(name);
         }
 
@@ -35,7 +34,5 @@ namespace HotChocolate.Data.Neo4J.Language
         }
 
         public MapProjection Project(params object[] entries) => MapProjection.Create(this, entries);
-
-        public override int GetHashCode() => _value.GetHashCode();
     }
 }

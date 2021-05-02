@@ -7,8 +7,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Data.Neo4J.Filtering
 {
     /// <summary>
-    /// This filter operation handler maps a In operation field to a
-    /// <see cref="FilterDefinition{TDocument}"/>
+    /// This filter operation handler maps a In operation field to Cypher.
     /// </summary>
     public class Neo4JInOperationHandler
         : Neo4JFilterOperationHandlerBase
@@ -30,9 +29,9 @@ namespace HotChocolate.Data.Neo4J.Filtering
             IValueNode value,
             object? parsedValue)
         {
-            Condition? expression = context
+            Condition expression = context
                 .GetNode()
-                .Property(context.GetNeo4JFilterScope().GetPath()).In(Cypher.LiteralOf(parsedValue?.ToString()));
+                .Property(context.GetNeo4JFilterScope().GetPath()).In());
 
             return expression;
         }

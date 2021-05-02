@@ -8,7 +8,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
 {
     public class Neo4JStringFilterTests
         : SchemaCache
-        , IClassFixture<Neo4jResource>
+        , IClassFixture<Neo4jResource<Neo4JConfig>>
     {
         public class Foo
         {
@@ -40,7 +40,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
             }
         }
 
-        public Neo4JStringFilterTests(Neo4jResource neo4JResource)
+        public Neo4JStringFilterTests(Neo4jResource<Neo4JConfig> neo4JResource)
         {
             Init(neo4JResource);
         }

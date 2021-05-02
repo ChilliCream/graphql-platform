@@ -10,9 +10,9 @@ namespace HotChocolate.Data.Neo4J.Filtering
     public class SchemaCache
         : FilteringTestBase, IDisposable
     {
-        private Neo4jResource _resource = null!;
+        private Neo4jResource<Neo4JConfig> _resource = null!;
 
-        protected void Init(Neo4jResource resource)
+        protected void Init(Neo4jResource<Neo4JConfig> resource)
         {
             _resource = resource;
         }

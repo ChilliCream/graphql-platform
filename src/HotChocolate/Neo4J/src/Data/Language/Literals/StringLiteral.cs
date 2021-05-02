@@ -6,9 +6,8 @@
     /// </summary>
     public class StringLiteral : Literal<string>
     {
-        //public override ClauseKind Kind => ClauseKind.StringLiteral;
         public StringLiteral(string content) : base(content) { }
 
-        public override string AsString() => $"'{GetContent()}'";
+        public override string AsString() => $"{GetContent()}";
     }
 }
