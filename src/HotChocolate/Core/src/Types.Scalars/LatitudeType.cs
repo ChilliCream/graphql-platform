@@ -156,13 +156,13 @@ namespace HotChocolate.Types
             {
                 if (runtimeValue is > Min and < Max)
                 {
-                    var degree =  runtimeValue > 0
+                    var degree =  runtimeValue >= 0
                         ? Math.Floor(runtimeValue)
                         : Math.Ceiling(runtimeValue);
                     var degreeDecimals = runtimeValue - degree;
 
                     var minutesWhole = degreeDecimals * 60;
-                    var minutes = minutesWhole > 0
+                    var minutes = minutesWhole >= 0
                         ? Math.Floor(minutesWhole)
                         : Math.Ceiling(minutesWhole);
                     var minutesDecimal = minutesWhole - minutes;
