@@ -82,7 +82,7 @@ namespace HotChocolate.Execution.Processing
 
                                 if (_tasks == 0 &&
                                     executionContext.TaskBacklog.IsEmpty &&
-                                    executionContext.IsCompleted)
+                                    (executionContext.IsCompleted || executionContext.TaskStats.AllTasks == 0))
                                 {
                                     // disable tasks
                                     // enqueue noop
