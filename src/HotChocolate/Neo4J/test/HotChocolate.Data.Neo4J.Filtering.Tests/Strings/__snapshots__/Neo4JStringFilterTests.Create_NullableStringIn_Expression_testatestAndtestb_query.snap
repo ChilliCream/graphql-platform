@@ -1,1 +1,1 @@
-﻿MATCH (foo:Foo) WHERE foo.Bar IN 'System.Collections.Generic.List`1[System.String]' RETURN foo {.Bar}
+﻿MATCH (foo:Foo) WHERE foo.Bar IN [ "testatest", "testbtest" ] RETURN foo {.Bar}

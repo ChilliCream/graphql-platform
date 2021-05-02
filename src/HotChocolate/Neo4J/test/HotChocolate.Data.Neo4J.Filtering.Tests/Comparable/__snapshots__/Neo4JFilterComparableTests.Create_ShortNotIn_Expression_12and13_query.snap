@@ -1,1 +1,1 @@
-﻿MATCH (foo:Foo) WHERE NOT (foo.BarShort IN 'System.Collections.Generic.List`1[System.Int16]') RETURN foo {.BarShort}
+﻿MATCH (foo:Foo) WHERE NOT (foo.BarShort IN [ 12, 13 ]) RETURN foo {.BarShort}

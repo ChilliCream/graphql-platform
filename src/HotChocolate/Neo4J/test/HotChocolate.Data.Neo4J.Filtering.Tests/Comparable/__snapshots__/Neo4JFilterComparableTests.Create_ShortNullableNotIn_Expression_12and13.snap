@@ -1,19 +1,21 @@
 ﻿{
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 1,
-          "column": 3
-        }
-      ],
-      "path": [
-        "root"
-      ]
-    }
-  ],
   "data": {
-    "root": null
+    "root": [
+      {
+        "barShort": 14
+      },
+      {
+        "barShort": 14
+      },
+      {
+        "barShort": 14
+      },
+      {
+        "barShort": 14
+      },
+      {
+        "barShort": 14
+      }
+    ]
   }
 }

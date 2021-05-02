@@ -13,8 +13,4 @@
     <ProjectReference Include="..\..\..\Core\src\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Strings\__snapshots__" />
-  </ItemGroup>
 </Project>

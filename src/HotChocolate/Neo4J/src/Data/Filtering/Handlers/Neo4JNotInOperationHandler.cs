@@ -19,8 +19,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
             IFilterInputTypeDefinition typeDefinition,
             IFilterFieldDefinition fieldDefinition)
         {
-            return fieldDefinition is FilterOperationFieldDefinition operationField &&
-                   operationField.Id is DefaultFilterOperations.NotIn;
+            return fieldDefinition is FilterOperationFieldDefinition {Id: DefaultFilterOperations.NotIn};
         }
 
         /// <inheritdoc />
@@ -32,7 +31,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
         {
             Condition? expression = context
                 .GetNode()
-                .Property(context.GetNeo4JFilterScope().GetPath()).In(Cypher.LiteralOf(parsedValue?.ToString()))
+                .Property(context.GetNeo4JFilterScope().GetPath()).In(new PlainStringLiteral(value.ToString()))
                 .Not();
 
             return expression;
