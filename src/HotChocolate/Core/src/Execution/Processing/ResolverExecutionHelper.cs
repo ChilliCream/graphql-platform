@@ -14,111 +14,53 @@ namespace HotChocolate.Execution.Processing
                 return Task.CompletedTask;
             }
 
-            var taskContext = new TaskContext(operationContext);
+            var taskContext = new ExecutionTaskProcessor(operationContext);
             return taskContext.ExecuteAsync();
         }
 
-        private sealed class TaskContext
+        private sealed class ExecutionTaskProcessor
         {
             private readonly IOperationContext _context;
             private int _tasks;
 
-            public TaskContext(IOperationContext context)
+            public ExecutionTaskProcessor(IOperationContext context)
             {
                 _context = context;
-
-                context.Execution.TaskBacklog.NeedsMoreWorker += (_, _) =>
-                {
-                    if (Interlocked.Increment(ref _tasks) < 5)
-                    {
-#pragma warning disable 4014
-                        // ExecuteResolversAsync(
-                        //    context.Execution,
-                        //    HandleError,
-                        //    context.RequestAborted,
-                        //    false);
-#pragma warning restore 4014
-
-                    }
-                };
             }
 
             public Task ExecuteAsync()
             {
-                return ExecuteResolversAsync(
-                    _context.Execution,
-                    HandleError,
-                    _context.RequestAborted,
-                    true);
+                return ExecuteMainProcessorAsync(_context.Execution, _context.RequestAborted);
             }
 
-            private async Task ExecuteResolversAsync(
+            private async Task ExecuteMainProcessorAsync(
                 IExecutionContext executionContext,
-                Action<Exception> handleError,
-                CancellationToken cancellationToken,
-                bool mainProcessor)
+                CancellationToken cancellationToken)
             {
-                if (!mainProcessor)
+                do
                 {
-                    await Task.Yield();
-                }
-
-                try
-                {
-                    do
+                    try
                     {
-                        try
+                        while (!cancellationToken.IsCancellationRequested &&
+                            executionContext.TaskBacklog.TryTake(out IExecutionTask? task))
                         {
-                            while (!cancellationToken.IsCancellationRequested &&
-                                executionContext.TaskBacklog.TryTake(out IExecutionTask? task))
-                            {
-                                task.BeginExecute(cancellationToken);
-                            }
-
-                            if (mainProcessor)
-                            {
-                                // sync processing
-
-
-                                if (_tasks == 0 &&
-                                    executionContext.TaskBacklog.IsEmpty &&
-                                    (executionContext.IsCompleted || executionContext.TaskStats.AllTasks == 0))
-                                {
-                                    // disable tasks
-                                    // enqueue noop
-                                    break;
-                                }
-
-                                // await executionContext.TaskBacklog
-                                //    .WaitForTaskAsync(cancellationToken)
-                                //    .ConfigureAwait(false);
-                            }
+                            task.BeginExecute(cancellationToken);
                         }
-                        catch (Exception ex)
+
+                        await executionContext.TaskBacklog
+                            .WaitForWorkAsync(cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (!cancellationToken.IsCancellationRequested)
                         {
-                            if (!cancellationToken.IsCancellationRequested)
-                            {
-                                handleError(ex);
-                            }
+                            HandleError(ex);
                         }
                     }
-
-                    // if this is not the main processing task we will only do one iteration and
-                    // then finish since there is not anymore enough work for multiple tasks.
-                    while (!cancellationToken.IsCancellationRequested &&
-                           mainProcessor &&
-                        (!executionContext.IsCompleted ||
-                        !executionContext.TaskBacklog.IsEmpty ||
-                         _tasks != 0));
                 }
-                finally
-                {
-                    if (!mainProcessor)
-                    {
-                        Interlocked.Decrement(ref _tasks);
-                        _context.Execution.TaskBacklog.Register(new NoOpTask());
-                    }
-                }
+                while (!cancellationToken.IsCancellationRequested &&
+                    executionContext.IsCompleted);
             }
 
             private void HandleError(Exception exception)
@@ -134,13 +76,6 @@ namespace HotChocolate.Execution.Processing
                 // TODO : this error needs to be reported!
                 _context.Result.AddError(error);
             }
-        }
-    }
-
-    internal sealed class NoOpTask : PureExecutionTask
-    {
-        protected override void Execute(CancellationToken cancellationToken)
-        {
         }
     }
 }

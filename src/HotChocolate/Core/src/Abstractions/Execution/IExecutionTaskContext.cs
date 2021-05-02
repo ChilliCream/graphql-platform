@@ -10,8 +10,8 @@ namespace HotChocolate.Execution
 
         IDisposable Track(IExecutionTask task);
 
-        void Started();
+        void Started(IExecutionTask task);
 
-        void Completed();
+        void Completed(IExecutionTask task);
     }
 }

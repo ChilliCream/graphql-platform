@@ -11,7 +11,10 @@ namespace HotChocolate.Execution.Processing
     /// </summary>
     internal interface ITaskBacklog
     {
-        event EventHandler<EventArgs>? NeedsMoreWorker;
+        /// <summary>
+        /// Signals that the work queue is filling up more quickly than work is dequeued.
+        /// </summary>
+        event EventHandler<EventArgs>? BackPressureLimitExceeded;
 
         /// <summary>
         /// Defines if the backlog is empty and has no more tasks.
@@ -36,12 +39,7 @@ namespace HotChocolate.Execution.Processing
         /// <returns>
         /// Returns a boolean indicating if there is something new to read on this queue.
         /// </returns>
-        ValueTask<bool> WaitForTaskAsync(CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Registers work with the task backlog.
-        /// </summary>
-        void Register(ResolverTaskDefinition taskDefinition);
+        Task WaitForWorkAsync(CancellationToken cancellationToken);
 
         /// <summary>
         /// Registers work with the task backlog.

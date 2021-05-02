@@ -14,19 +14,23 @@ namespace HotChocolate.Execution.Processing
     internal sealed class ResolverTask : ResolverTaskBase
     {
         private readonly ObjectPool<ResolverTask> _objectPool;
+        private Task? _task;
 
         public ResolverTask(ObjectPool<ResolverTask> objectPool)
         {
             _objectPool = objectPool ?? throw new ArgumentNullException(nameof(objectPool));
         }
 
+        public override ExecutionTaskKind Kind => ExecutionTaskKind.Parallel;
+
         public override void BeginExecute(CancellationToken cancellationToken)
         {
             OperationContext.Execution.TaskStats.TaskStarted();
-#pragma warning disable 4014
-            ExecuteAsync(cancellationToken);
-#pragma warning restore 4014
+            _task = ExecuteAsync(cancellationToken).AsTask();
         }
+
+        public override Task WaitForCompletionAsync(CancellationToken cancellationToken) =>
+            _task ?? Task.CompletedTask;
 
         private async ValueTask ExecuteAsync(CancellationToken cancellationToken)
         {
@@ -134,10 +138,15 @@ namespace HotChocolate.Execution.Processing
             _objectPool = objectPool ?? throw new ArgumentNullException(nameof(objectPool));
         }
 
+        public override ExecutionTaskKind Kind => ExecutionTaskKind.Pure;
+
         public override void BeginExecute(CancellationToken cancellationToken)
         {
             Execute(cancellationToken);
         }
+
+        public override Task WaitForCompletionAsync(CancellationToken cancellationToken) =>
+            Task.CompletedTask;
 
         private void Execute(CancellationToken cancellationToken)
         {
@@ -202,7 +211,15 @@ namespace HotChocolate.Execution.Processing
 
         protected ISelection Selection => _selection;
 
+        public abstract ExecutionTaskKind Kind { get; }
+
+        public IExecutionTask? Next { get; set; }
+
+        public IExecutionTask? Previous { get; set; }
+
         public abstract void BeginExecute(CancellationToken cancellationToken);
+
+        public abstract Task WaitForCompletionAsync(CancellationToken cancellationToken);
 
         public void Initialize(
             IOperationContext operationContext,
@@ -230,6 +247,8 @@ namespace HotChocolate.Execution.Processing
             _operationContext = default!;
             _selection = default!;
             _resolverContext.Clean();
+            Next = null;
+            Previous = null;
             return true;
         }
 
@@ -292,6 +311,49 @@ namespace HotChocolate.Execution.Processing
                     completedValue,
                     _resolverContext.Field.Type.IsNullableType());
             }
+        }
+    }
+
+    internal abstract class BatchExecutionTask : IExecutionTask
+    {
+        private readonly List<IExecutionTask> _tasks = new();
+
+        protected abstract IExecutionTaskContext Context { get; }
+
+        public ExecutionTaskKind Kind => ExecutionTaskKind.Pure;
+
+        public ICollection<IExecutionTask> Tasks => _tasks;
+
+        public IExecutionTask? Next { get; set; }
+
+        public IExecutionTask? Previous { get; set; }
+
+        public void BeginExecute(CancellationToken cancellationToken)
+        {
+            foreach (var task in _tasks)
+            {
+                task.BeginExecute(cancellationToken);
+            }
+        }
+
+        public async Task WaitForCompletionAsync(CancellationToken cancellationToken)
+        {
+            foreach (var task in _tasks)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    break;
+                }
+
+                await task.WaitForCompletionAsync(cancellationToken);
+            }
+        }
+
+        public void Reset()
+        {
+            _tasks.Clear();
+            Next = null;
+            Previous = null;
         }
     }
 }

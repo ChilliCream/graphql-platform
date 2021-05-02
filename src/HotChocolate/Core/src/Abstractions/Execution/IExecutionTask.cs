@@ -1,6 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 
+#nullable enable
+
 namespace HotChocolate.Execution
 {
     /*
@@ -19,23 +21,47 @@ namespace HotChocolate.Execution
 
     public interface IExecutionTask
     {
+        ExecutionTaskKind Kind { get; }
+
         /// <summary>
         /// Begins executing this task.
         /// </summary>
         void BeginExecute(CancellationToken cancellationToken);
+
+        Task WaitForCompletionAsync(CancellationToken cancellationToken);
+
+        IExecutionTask? Next { get; set; }
+
+        IExecutionTask? Previous { get; set; }
+    }
+
+    public enum ExecutionTaskKind
+    {
+        Parallel,
+        Serial,
+        Pure
     }
 
     public abstract class ExecutionTask : IExecutionTask
     {
+        private Task? _task;
+
         protected abstract IExecutionTaskContext Context { get; }
+
+        public ExecutionTaskKind Kind => ExecutionTaskKind.Parallel;
+
+        public IExecutionTask? Next { get; set; }
+
+        public IExecutionTask? Previous { get; set; }
 
         public void BeginExecute(CancellationToken cancellationToken)
         {
-            Context.Started();
-#pragma warning disable 4014
-            ExecuteInternalAsync(cancellationToken);
-#pragma warning restore 4014
+            Context.Started(this);
+            _task = ExecuteInternalAsync(cancellationToken).AsTask();
         }
+
+        public Task WaitForCompletionAsync(CancellationToken cancellationToken) =>
+            _task ?? Task.CompletedTask;
 
         private async ValueTask ExecuteInternalAsync(CancellationToken cancellationToken)
         {
@@ -48,20 +74,31 @@ namespace HotChocolate.Execution
             }
             finally
             {
-                Context.Completed();
+                Context.Completed(this);
             }
         }
 
         protected abstract ValueTask ExecuteAsync(CancellationToken cancellationToken);
+
+
     }
 
     public abstract class PureExecutionTask : IExecutionTask
     {
+        public ExecutionTaskKind Kind => ExecutionTaskKind.Pure;
+
+        public IExecutionTask? Next { get; set; }
+
+        public IExecutionTask? Previous { get; set; }
+
         public void BeginExecute(CancellationToken cancellationToken)
         {
             Execute(cancellationToken);
         }
 
         protected abstract void Execute(CancellationToken cancellationToken);
+
+        public Task WaitForCompletionAsync(CancellationToken cancellationToken) =>
+            Task.CompletedTask;
     }
 }
