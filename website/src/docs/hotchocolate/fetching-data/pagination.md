@@ -73,16 +73,21 @@ After receiving the first page, we create a combined _cursor_, like `"1435+2020-
 
 ```sql
 SELECT * FROM Users
-WHERE Id >= %cursorId AND Birthday >= %cursorBirthday
+WHERE (Birthday >= %cursorBirthday
+OR (Birthday = %cursorBirthday AND Id >= %cursorId))
 ORDER BY Birthday, Id
 LIMIT %limit
 ```
 
 ### Problems
 
-Even though _cursor-based_ pagination is more performant than _offset-based_ pagination, it comes with a big downside.
+Even though _cursor-based_ pagination can be more performant than _offset-based_ pagination, it comes with some downsides as well:
 
-Since we now only know of the next entry, there is no more concept of pages. If we have a feed or only _Next_ and _Previous_ buttons, this works great, but if we depend on page numbers, we are in a tight spot.
+- When using `WHERE` and `ORDER BY` on a field without an index, it can be slower than using `ORDER BY` with `OFFSET`.
+
+- Since we now only know of the next entry, there is no more concept of pages. If we have a feed or only _Next_ and _Previous_ buttons, this works great, but if we depend on page numbers, we are in a tight spot.
+
+In the next segment we will look at _Connections_ and how they are implemented in HotChocolate.
 
 # Connections
 
