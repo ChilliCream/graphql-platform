@@ -17,12 +17,13 @@ namespace HotChocolate.Execution.Processing
             IReadOnlyList<ISelection> selections = selectionSet.Selections;
             ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
 
+            BatchResolverTask? batchExecutionTask = null;
             for (var i = 0; i < selections.Count; i++)
             {
                 ISelection selection = selections[i];
                 if (selection.IsIncluded(operationContext.Variables))
                 {
-                    operationContext.Execution.TaskBacklog.Register(
+                    IExecutionTask task = operationContext.Execution.CreateTask(
                         new ResolverTaskDefinition(
                             operationContext,
                             selection,
@@ -31,7 +32,22 @@ namespace HotChocolate.Execution.Processing
                             parent,
                             path.Append(selection.ResponseName),
                             scopedContext));
+
+                    if (selection.PureResolver is not null)
+                    {
+                        batchExecutionTask ??= new BatchResolverTask(operationContext);
+                        batchExecutionTask.Tasks.Add(task);
+                    }
+                    else
+                    {
+                        operationContext.Execution.TaskBacklog.Register(task);
+                    }
                 }
+            }
+
+            if (batchExecutionTask is not null)
+            {
+                operationContext.Execution.TaskBacklog.Register(batchExecutionTask);
             }
 
             if (selectionSet.Fragments.Count > 0)

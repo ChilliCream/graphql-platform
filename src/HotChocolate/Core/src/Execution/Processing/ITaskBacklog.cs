@@ -17,9 +17,19 @@ namespace HotChocolate.Execution.Processing
         event EventHandler<EventArgs>? BackPressureLimitExceeded;
 
         /// <summary>
+        /// Signals that all tasks have been dispatched and the backlog is empty
+        /// </summary>
+        event EventHandler<EventArgs>? BacklogEmpty;
+
+        /// <summary>
         /// Defines if the backlog is empty and has no more tasks.
         /// </summary>
         bool IsEmpty { get; }
+
+        /// <summary>
+        /// Defines if the backlog has running tasks.
+        /// </summary>
+        bool IsRunning { get; }
 
         /// <summary>
         /// Try to take a task from the backlog.
@@ -45,5 +55,15 @@ namespace HotChocolate.Execution.Processing
         /// Registers work with the task backlog.
         /// </summary>
         void Register(IExecutionTask task);
+
+        /// <summary>
+        /// Complete a task
+        /// </summary>
+        void Complete(IExecutionTask task);
+
+        /// <summary>
+        /// Clears the task backlog
+        /// </summary>
+        void Clear();
     }
 }

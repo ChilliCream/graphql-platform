@@ -22,7 +22,7 @@ namespace HotChocolate.Execution.Processing
                 return true;
             }
 
-            if (obj.Execution.TaskStats.IsCompleted)
+            if (obj.Execution.IsCompleted)
             {
                 obj.Clean();
                 return true;

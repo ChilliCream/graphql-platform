@@ -38,5 +38,7 @@ namespace HotChocolate.Execution.Processing
         bool IsCompleted { get; }
 
         void Reset();
+
+        IExecutionTask CreateTask(ResolverTaskDefinition taskDefinition);
     }
 }

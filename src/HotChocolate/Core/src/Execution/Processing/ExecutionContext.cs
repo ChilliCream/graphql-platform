@@ -42,7 +42,7 @@ namespace HotChocolate.Execution.Processing
             get
             {
                 AssertNotPooled();
-                return TaskStats.IsCompleted;
+                return TaskBacklog.IsEmpty && !TaskBacklog.IsRunning;
             }
         }
 
