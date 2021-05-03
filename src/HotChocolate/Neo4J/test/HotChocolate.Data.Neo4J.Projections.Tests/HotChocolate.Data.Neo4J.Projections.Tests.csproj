@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Relationship\__snapshots__" />
     <Folder Include="Scalar\__snapshots__" />
   </ItemGroup>
 

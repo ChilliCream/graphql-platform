@@ -7,7 +7,6 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public override void Configure(ContainerResourceBuilder builder)
         {
             builder
-                .WaitTimeout(120)
                 .Name("neo4j")
                 .Image("neo4j:4.2.0")
                 .InternalPort(7687)

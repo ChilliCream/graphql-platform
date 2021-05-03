@@ -1,1 +1,1 @@
-﻿MATCH (foo:Foo) WHERE NOT (foo.Bar IN [ "testatest", "testbtest" ]) RETURN foo {.Bar}
+﻿MATCH (fooNullable:FooNullable) WHERE NOT (fooNullable.Bar IN [ "testatest", "testbtest" ]) RETURN fooNullable {.Bar}

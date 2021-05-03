@@ -1,1 +1,1 @@
-﻿MATCH (foo:Foo) WHERE foo.Bar IN [ "testbtest", null ] RETURN foo {.Bar}
+﻿MATCH (fooNullable:FooNullable) WHERE fooNullable.Bar IN [ "testbtest", null ] RETURN fooNullable {.Bar}

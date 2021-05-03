@@ -1,1 +1,1 @@
-﻿MATCH (foo:Foo) WHERE foo.Bar CONTAINS 'a' RETURN foo {.Bar}
+﻿MATCH (fooNullable:FooNullable) WHERE fooNullable.Bar CONTAINS 'a' RETURN fooNullable {.Bar}

@@ -1,79 +1,63 @@
 ﻿using System.Threading.Tasks;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
-using Squadron;
 using Xunit;
 
 namespace HotChocolate.Data.Neo4J.Filtering
 {
     public class Neo4JStringFilterTests
-        : SchemaCache
-        , IClassFixture<Neo4jResource<Neo4JConfig>>
+        : IClassFixture<Neo4JFixture>
     {
+        private readonly Neo4JFixture _fixture;
+
+        public Neo4JStringFilterTests(Neo4JFixture fixture)
+        {
+            _fixture = fixture;
+        }
+
         public class Foo
         {
-            public string Bar { get; set; } = null!;
+            public string Bar { get; set; }
         }
+
+        public class FooFilterType : FilterInputType<Foo> { }
+
+        private string _fooEntitiesCypher = @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})";
+
+        private string _fooNullableEntitiesCypher = @"CREATE (:FooNullable {Bar: 'testatest'}), (:FooNullable {Bar: 'testbtest'}), (:FooNullable {Bar: NULL})";
 
         public class FooNullable
         {
             public string? Bar { get; set; }
         }
 
-        public class FooFilterType
-            : FilterInputType<Foo>
-        {
-            protected override void Configure(
-                IFilterInputTypeDescriptor<Foo> descriptor)
-            {
-                descriptor.Field(t => t.Bar);
-            }
-        }
-
-        public class FooNullableFilterType
-            : FilterInputType<FooNullable>
-        {
-            protected override void Configure(
-                IFilterInputTypeDescriptor<FooNullable> descriptor)
-            {
-                descriptor.Field(t => t.Bar);
-            }
-        }
-
-        public Neo4JStringFilterTests(Neo4jResource<Neo4JConfig> neo4JResource)
-        {
-            Init(neo4JResource);
-        }
+        public class FooNullableFilterType : FilterInputType<FooNullable> { }
 
         [Fact]
         public async Task Create_StringEqual_Expression()
         {
             // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
-                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
-                false);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { eq: \"testatest\"}}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { eq: \"testatest\"}}){ bar }}")
                     .Create());
-
-            res1.MatchDocumentSnapshot("testatest");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { eq: \"testbtest\"}}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { eq: \"testbtest\"}}){ bar }}")
                     .Create());
-
-            res2.MatchDocumentSnapshot("testbtest");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { eq: null}}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { eq: null}}){ bar }}")
                     .Create());
 
+            // assert
+            res1.MatchDocumentSnapshot("testatest");
+            res2.MatchDocumentSnapshot("testbtest");
             res3.MatchDocumentSnapshot("null");
         }
 
@@ -81,31 +65,27 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_StringNotEqual_Expression()
         {
             // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
-                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
-                false);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { neq: \"testatest\"}}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { neq: \"testatest\"}}){ bar }}")
                     .Create());
-
-            res1.MatchDocumentSnapshot("testatest");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { neq: \"testbtest\"}}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { neq: \"testbtest\"}}){ bar }}")
                     .Create());
-
-            res2.MatchDocumentSnapshot("testbtest");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { neq: null}}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { neq: null}}){ bar }}")
                     .Create());
 
+            // assert
+            res1.MatchDocumentSnapshot("testatest");
+            res2.MatchDocumentSnapshot("testbtest");
             res3.MatchDocumentSnapshot("null");
         }
 
@@ -113,31 +93,55 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_StringStartsWith_Expression()
         {
             // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
-                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
-                false);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { startsWith: \"testa\" }}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { startsWith: \"testa\" }}){ bar }}")
                     .Create());
-
-            res1.MatchDocumentSnapshot("testa");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { startsWith: \"testb\" }}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { startsWith: \"testb\" }}){ bar }}")
                     .Create());
-
-            res2.MatchDocumentSnapshot("testb");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { startsWith: null }}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { startsWith: null }}){ bar }}")
                     .Create());
 
+            // assert
+            res1.MatchDocumentSnapshot("testa");
+            res2.MatchDocumentSnapshot("testb");
+            res3.MatchDocumentSnapshot("null");
+        }
+
+        [Fact]
+        public async Task Create_StringNotStartsWith_Expression()
+        {
+            // arrange
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
+
+            // act
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root(where: { bar: { nstartsWith: \"testa\" }}){ bar}}")
+                    .Create());
+
+            IExecutionResult res2 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root(where: { bar: { nstartsWith: \"testb\" }}){ bar}}")
+                    .Create());
+
+            IExecutionResult res3 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root(where: { bar: { nstartsWith: null }}){ bar}}")
+                    .Create());
+
+            // assert
+            res1.MatchDocumentSnapshot("testa");
+            res2.MatchDocumentSnapshot("testb");
             res3.MatchDocumentSnapshot("null");
         }
 
@@ -145,97 +149,57 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_StringIn_Expression()
         {
             // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
-                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
-                false);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery(
-                        "{ root(where: { bar: { in: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
+                        "{ root(where: { bar: { in: [ \"testatest\"  \"testbtest\" ]}}){ bar }}")
                     .Create());
-
-            res1.MatchDocumentSnapshot("testatestAndtestb");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { in: [\"testbtest\" null]}}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { in: [\"testbtest\" null]}}){ bar }}")
                     .Create());
-
-            res2.MatchDocumentSnapshot("testbtestAndNull");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { in: [ \"testatest\" ]}}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { in: [ \"testatest\" ]}}){ bar }}")
                     .Create());
 
-            res3.MatchDocumentSnapshot("testatest");
-        }
-
-        [Fact]
-        public async Task Create_StringNotStartsWith_Expression()
-        {
-            // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
-                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
-                false);
-
-            // act
             // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { nstartsWith: \"testa\" }}){ bar}}")
-                    .Create());
-
-            res1.MatchDocumentSnapshot("testa");
-
-            IExecutionResult res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { nstartsWith: \"testb\" }}){ bar}}")
-                    .Create());
-
-            res2.MatchDocumentSnapshot("testb");
-
-            IExecutionResult res3 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { nstartsWith: null }}){ bar}}")
-                    .Create());
-
-            res3.MatchDocumentSnapshot("null");
+            res1.MatchDocumentSnapshot("testatestAndtestb");
+            res2.MatchDocumentSnapshot("testbtestAndNull");
+            res3.MatchDocumentSnapshot("testatest");
         }
 
         [Fact]
         public async Task Create_StringNotIn_Expression()
         {
             // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
-                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
-                false);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery(
-                        "{ root(where: { bar: { nin: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
+                        "{ root(where: { bar: { nin: [ \"testatest\"  \"testbtest\" ]}}){ bar }}")
                     .Create());
-
-            res1.MatchDocumentSnapshot("testatestAndtestb");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { nin: [\"testbtest\" null]}}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { nin: [\"testbtest\" null]}}){ bar }}")
                     .Create());
-
-            res2.MatchDocumentSnapshot("testbtestAndNull");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { nin: [ \"testatest\" ]}}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { nin: [ \"testatest\" ]}}){ bar }}")
                     .Create());
 
+            // assert
+            res1.MatchDocumentSnapshot("testatestAndtestb");
+            res2.MatchDocumentSnapshot("testbtestAndNull");
             res3.MatchDocumentSnapshot("testatest");
         }
 
@@ -243,63 +207,55 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_StringContains_Expression()
         {
             // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
-                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
-                false);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { bar: { contains: \"a\" }}){ bar}}")
                     .Create());
-
-            res1.MatchDocumentSnapshot("a");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { bar: { contains: \"b\" }}){ bar}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("b");
-
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { bar: { contains: null }}){ bar}}")
                     .Create());
 
+            // assert
+            res1.MatchDocumentSnapshot("a");
+            res2.MatchDocumentSnapshot("b");
             res3.MatchDocumentSnapshot("null");
         }
 
         [Fact]
-        public async Task Create_StringNoContains_Expression()
+        public async Task Create_StringNotContains_Expression()
         {
             // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
-                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
-                false);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { bar: { ncontains: \"a\" }}){ bar}}")
                     .Create());
-
-            res1.MatchDocumentSnapshot("a");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { bar: { ncontains: \"b\" }}){ bar}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("b");
-
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { bar: { ncontains: null }}){ bar}}")
                     .Create());
 
+            // assert
+            res1.MatchDocumentSnapshot("a");
+            res2.MatchDocumentSnapshot("b");
             res3.MatchDocumentSnapshot("null");
         }
 
@@ -307,31 +263,27 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_StringEndsWith_Expression()
         {
             // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
-                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
-                false);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { endsWith: \"atest\" }}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { endsWith: \"atest\" }}){ bar }}")
                     .Create());
-
-            res1.MatchDocumentSnapshot("atest");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { endsWith: \"btest\" }}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { endsWith: \"btest\" }}){ bar }}")
                     .Create());
-
-            res2.MatchDocumentSnapshot("btest");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { endsWith: null }}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { endsWith: null }}){ bar }}")
                     .Create());
 
+            // assert
+            res1.MatchDocumentSnapshot("atest");
+            res2.MatchDocumentSnapshot("btest");
             res3.MatchDocumentSnapshot("null");
         }
 
@@ -339,31 +291,27 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_StringNotEndsWith_Expression()
         {
             // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
-                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
-                false);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { nendsWith: \"atest\" }}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { nendsWith: \"atest\" }}){ bar }}")
                     .Create());
-
-            res1.MatchDocumentSnapshot("atest");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { nendsWith: \"btest\" }}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { nendsWith: \"btest\" }}){ bar }}")
                     .Create());
-
-            res2.MatchDocumentSnapshot("btest");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { nendsWith: null }}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { nendsWith: null }}){ bar }}")
                     .Create());
 
+            // assert
+            res1.MatchDocumentSnapshot("atest");
+            res2.MatchDocumentSnapshot("btest");
             res3.MatchDocumentSnapshot("null");
         }
 
@@ -371,31 +319,27 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_NullableStringEqual_Expression()
         {
             // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
-                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
-                false);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntitiesCypher);
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { eq: \"testatest\"}}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { eq: \"testatest\"}}){ bar }}")
                     .Create());
-
-            res1.MatchDocumentSnapshot("testatest");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { eq: \"testbtest\"}}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { eq: \"testbtest\"}}){ bar }}")
                     .Create());
-
-            res2.MatchDocumentSnapshot("testbtest");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { bar: { eq: null}}){ bar}}")
                     .Create());
 
+            // assert
+            res1.MatchDocumentSnapshot("testatest");
+            res2.MatchDocumentSnapshot("testbtest");
             res3.MatchDocumentSnapshot("null");
         }
 
@@ -403,31 +347,27 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_NullableStringNotEqual_Expression()
         {
             // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
-                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
-                false);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntitiesCypher);
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { neq: \"testatest\"}}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { neq: \"testatest\"}}){ bar }}")
                     .Create());
-
-            res1.MatchDocumentSnapshot("testatest");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { neq: \"testbtest\"}}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { neq: \"testbtest\"}}){ bar }}")
                     .Create());
-
-            res2.MatchDocumentSnapshot("testbtest");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { bar: { neq: null}}){ bar}}")
                     .Create());
 
+            // assert
+            res1.MatchDocumentSnapshot("testatest");
+            res2.MatchDocumentSnapshot("testbtest");
             res3.MatchDocumentSnapshot("null");
         }
 
@@ -435,32 +375,28 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_NullableStringIn_Expression()
         {
             // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
-                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
-                false);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntitiesCypher);
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery(
-                        "{ root(where: { bar: { in: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
+                        "{ root(where: { bar: { in: [ \"testatest\"  \"testbtest\" ]}}){ bar }}")
                     .Create());
-
-            res1.MatchDocumentSnapshot("testatestAndtestb");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { in: [\"testbtest\" null]}}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { in: [\"testbtest\" null]}}){ bar }}")
                     .Create());
-
-            res2.MatchDocumentSnapshot("testbtestAndNull");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { in: [ \"testatest\" ]}}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { in: [ \"testatest\" ]}}){ bar }}")
                     .Create());
 
+            // assert
+            res1.MatchDocumentSnapshot("testatestAndtestb");
+            res2.MatchDocumentSnapshot("testbtestAndNull");
             res3.MatchDocumentSnapshot("testatest");
         }
 
@@ -468,32 +404,28 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_NullableStringNotIn_Expression()
         {
             // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
-                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
-                false);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntitiesCypher);
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery(
-                        "{ root(where: { bar: { nin: [ \"testatest\"  \"testbtest\" ]}}){ bar}}")
+                        "{ root(where: { bar: { nin: [ \"testatest\"  \"testbtest\" ]}}){ bar }}")
                     .Create());
-
-            res1.MatchDocumentSnapshot("testatestAndtestb");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { nin: [\"testbtest\" null]}}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { nin: [\"testbtest\" null]}}){ bar }}")
                     .Create());
-
-            res2.MatchDocumentSnapshot("testbtestAndNull");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { nin: [ \"testatest\" ]}}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { nin: [ \"testatest\" ]}}){ bar }}")
                     .Create());
 
+            // assert
+            res1.MatchDocumentSnapshot("testatestAndtestb");
+            res2.MatchDocumentSnapshot("testbtestAndNull");
             res3.MatchDocumentSnapshot("testatest");
         }
 
@@ -501,63 +433,55 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_NullableStringContains_Expression()
         {
             // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
-                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
-                false);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntitiesCypher);
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { bar: { contains: \"a\" }}){ bar}}")
                     .Create());
-
-            res1.MatchDocumentSnapshot("a");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { bar: { contains: \"b\" }}){ bar}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("b");
-
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { bar: { contains: null }}){ bar}}")
                     .Create());
 
+            // assert
+            res1.MatchDocumentSnapshot("a");
+            res2.MatchDocumentSnapshot("b");
             res3.MatchDocumentSnapshot("null");
         }
 
         [Fact]
-        public async Task Create_NullableStringNoContains_Expression()
+        public async Task Create_NullableStringNotContains_Expression()
         {
             // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
-                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
-                false);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntitiesCypher);
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { ncontains: \"a\" }}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { ncontains: \"a\" }}){ bar }}")
                     .Create());
-
-            res1.MatchDocumentSnapshot("a");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { ncontains: \"b\" }}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { ncontains: \"b\" }}){ bar }}")
                     .Create());
-
-            res2.MatchDocumentSnapshot("b");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { ncontains: null }}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { ncontains: null }}){ bar }}")
                     .Create());
 
+            // assert
+            res1.MatchDocumentSnapshot("a");
+            res2.MatchDocumentSnapshot("b");
             res3.MatchDocumentSnapshot("null");
         }
 
@@ -565,31 +489,27 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_NullableStringStartsWith_Expression()
         {
             // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
-                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
-                false);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntitiesCypher);
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { startsWith: \"testa\" }}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { startsWith: \"testa\" }}){ bar }}")
                     .Create());
-
-            res1.MatchDocumentSnapshot("testa");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { startsWith: \"testb\" }}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { startsWith: \"testb\" }}){ bar }}")
                     .Create());
-
-            res2.MatchDocumentSnapshot("testb");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { startsWith: null }}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { startsWith: null }}){ bar }}")
                     .Create());
 
+            // assert
+            res1.MatchDocumentSnapshot("testa");
+            res2.MatchDocumentSnapshot("testb");
             res3.MatchDocumentSnapshot("null");
         }
 
@@ -597,31 +517,27 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_NullableStringNotStartsWith_Expression()
         {
             // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
-                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
-                false);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntitiesCypher);
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { bar: { nstartsWith: \"testa\" }}){ bar}}")
                     .Create());
-
-            res1.MatchDocumentSnapshot("testa");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { bar: { nstartsWith: \"testb\" }}){ bar}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("testb");
-
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { bar: { nstartsWith: null }}){ bar}}")
                     .Create());
 
+            // assert
+            res1.MatchDocumentSnapshot("testa");
+            res2.MatchDocumentSnapshot("testb");
             res3.MatchDocumentSnapshot("null");
         }
 
@@ -629,31 +545,27 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_NullableStringEndsWith_Expression()
         {
             // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
-                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
-                false);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntitiesCypher);
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { endsWith: \"atest\" }}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { endsWith: \"atest\" }}){ bar }}")
                     .Create());
-
-            res1.MatchDocumentSnapshot("atest");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { endsWith: \"btest\" }}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { endsWith: \"btest\" }}){ bar }}")
                     .Create());
-
-            res2.MatchDocumentSnapshot("btest");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { endsWith: null }}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { endsWith: null }}){ bar }}")
                     .Create());
 
+            // assert
+            res1.MatchDocumentSnapshot("atest");
+            res2.MatchDocumentSnapshot("btest");
             res3.MatchDocumentSnapshot("null");
         }
 
@@ -661,31 +573,27 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_NullableStringNotEndsWith_Expression()
         {
             // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(
-                @"CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})",
-                false);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntitiesCypher);
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { nendsWith: \"atest\" }}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { nendsWith: \"atest\" }}){ bar }}")
                     .Create());
-
-            res1.MatchDocumentSnapshot("atest");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { nendsWith: \"btest\" }}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { nendsWith: \"btest\" }}){ bar }}")
                     .Create());
-
-            res2.MatchDocumentSnapshot("btest");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { nendsWith: null }}){ bar}}")
+                    .SetQuery("{ root(where: { bar: { nendsWith: null }}){ bar }}")
                     .Create());
 
+            // assert
+            res1.MatchDocumentSnapshot("atest");
+            res2.MatchDocumentSnapshot("btest");
             res3.MatchDocumentSnapshot("null");
         }
     }

@@ -1,1 +1,1 @@
-﻿MATCH (foo:Foo) WHERE foo.Bar = 'testatest' RETURN foo {.Bar}
+﻿MATCH (fooNullable:FooNullable) WHERE fooNullable.Bar = 'testatest' RETURN fooNullable {.Bar}

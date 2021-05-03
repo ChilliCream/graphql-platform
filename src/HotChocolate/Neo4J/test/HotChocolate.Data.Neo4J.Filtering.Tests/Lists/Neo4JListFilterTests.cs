@@ -2,16 +2,21 @@
 using System.Threading.Tasks;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
-using Squadron;
 using Xunit;
 
 namespace HotChocolate.Data.Neo4J.Filtering.Lists
 {
     public class Neo4JListFilterTests
-        : SchemaCache
-        , IClassFixture<Neo4jResource<Neo4JConfig>>
+        : IClassFixture<Neo4JFixture>
     {
-        private readonly string _fooEntities = @"
+        private readonly Neo4JFixture _fixture;
+
+        public Neo4JListFilterTests(Neo4JFixture fixture)
+        {
+            _fixture = fixture;
+        }
+
+        private readonly string _fooEntitiesCypher = @"
             CREATE (a:Foo {BarString: 'a'})-[:RELATED_FOO]->(:FooNested {Bar: 'a'})-[:RELATED_BAR]->(:BarNested {Foo: 'a'}),
                     (a)-[:RELATED_FOO]->(:FooNested {Bar: 'a'})-[:RELATED_BAR]->(:BarNested {Foo: 'a'}),
                     (a)-[:RELATED_FOO]->(:FooNested {Bar: 'a'})-[:RELATED_BAR]->(:BarNested {Foo: 'a'}),
@@ -56,16 +61,13 @@ namespace HotChocolate.Data.Neo4J.Filtering.Lists
 
         }
 
-        public Neo4JListFilterTests(Neo4jResource<Neo4JConfig> neo4JResource)
-        {
-            Init(neo4JResource);
-        }
+
 
         [Fact]
         public async Task Create_ArrayAllObjectStringEqual_Expression()
         {
             // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooFilterType>(_fooEntities,false);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
 
             // act
             // assert

@@ -47,7 +47,35 @@ namespace HotChocolate.Data.Neo4J.Projections.Relationship
         }
 
         [Fact]
-        public async Task RelationshipReturnOneProperty()
+        public async Task OneRelationshipReturnOneProperty()
+        {
+            // arrange
+            IRequestExecutor tester = await _cache.CreateSchema<Foo>(_fooEntities);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"
+                        {
+                            root {
+                                barBool
+                                barString
+                                bars
+                                {
+                                    name
+                                }
+                            }
+                        }
+                        ")
+                    .Create());
+
+            res1.MatchDocumentSnapshot();
+        }
+
+        [Fact]
+        public async Task TwoRelationshipReturnOneProperty()
         {
             // arrange
             IRequestExecutor tester = await _cache.CreateSchema<Foo>(_fooEntities);

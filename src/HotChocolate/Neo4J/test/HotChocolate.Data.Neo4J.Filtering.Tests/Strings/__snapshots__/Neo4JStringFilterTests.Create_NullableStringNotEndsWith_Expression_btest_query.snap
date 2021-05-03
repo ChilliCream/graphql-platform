@@ -1,1 +1,1 @@
-﻿MATCH (foo:Foo) WHERE NOT (foo.Bar ENDS WITH 'btest') RETURN foo {.Bar}
+﻿MATCH (fooNullable:FooNullable) WHERE NOT (fooNullable.Bar ENDS WITH 'btest') RETURN fooNullable {.Bar}

@@ -13,7 +13,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
             if (result is null) return;
             result.ToJson().MatchSnapshot(new SnapshotNameExtension(snapshotName));
             if (result.ContextData is { } &&
-                result.ContextData.TryGetValue("query", out object? queryResult) &&
+                result.ContextData.TryGetValue("query", out var queryResult) &&
                 queryResult is string queryString &&
                 !string.IsNullOrWhiteSpace(queryString))
             {

@@ -1,1 +1,1 @@
-﻿MATCH (foo:Foo) WHERE foo.Bar STARTS WITH 'testb' RETURN foo {.Bar}
+﻿MATCH (fooNullable:FooNullable) WHERE fooNullable.Bar STARTS WITH 'testb' RETURN fooNullable {.Bar}
