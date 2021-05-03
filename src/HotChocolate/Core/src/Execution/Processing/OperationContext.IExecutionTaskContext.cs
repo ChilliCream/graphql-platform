@@ -34,7 +34,7 @@ namespace HotChocolate.Execution.Processing
 
         void IExecutionTaskContext.Completed(IExecutionTask task)
         {
-            AssertNotPooled();
+            AssertInitialized();
             Execution.Work.Complete(task);
         }
 
