@@ -43,9 +43,6 @@ namespace HotChocolate.Execution.Processing
                         executionContext.Work.TryTakeSerial(out IExecutionTask? task))
                     {
                         task.BeginExecute(cancellationToken);
-
-
-
                         await task.WaitForCompletionAsync(cancellationToken).ConfigureAwait(false);
                     }
 

@@ -87,7 +87,6 @@ namespace HotChocolate.Fetching
 
             public void BeginExecute(CancellationToken cancellationToken)
             {
-                _context.Started(this);
                 _task = ExecuteAsync(cancellationToken).AsTask();
             }
 

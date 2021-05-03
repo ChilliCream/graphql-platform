@@ -41,6 +41,12 @@ namespace HotChocolate.Execution.Processing
         public bool TryTake([NotNullWhen(true)] out IExecutionTask? task) =>
             _work.TryTake(out task);
 
+        public bool TryTakeSerial([NotNullWhen(true)] out IExecutionTask? task)
+        {
+            task = null;
+            return false;
+        }
+
         /// <inheritdoc/>
         public async Task WaitForWorkAsync(CancellationToken cancellationToken)
         {
