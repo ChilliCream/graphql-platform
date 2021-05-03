@@ -25,7 +25,7 @@ namespace HotChocolate.Execution.Processing
                 ISelection selection = selections[i];
                 if (selection.IsIncluded(operationContext.Variables))
                 {
-                    IExecutionTask task = operationContext.Execution.CreateTask(
+                    IExecutionTask task = operationContext.CreateTask(
                         new ResolverTaskDefinition(
                             operationContext,
                             selection,
@@ -45,7 +45,7 @@ namespace HotChocolate.Execution.Processing
                     }
                     else
                     {
-                        batchExecutionTask = operationContext.Execution.CreateBatchTask(operationContext);
+                        batchExecutionTask = operationContext.CreateBatchTask();
                         batchExecutionTask.AddExecutionTask(single);
                         batchExecutionTask.AddExecutionTask(task);
                         single = null;
@@ -55,7 +55,7 @@ namespace HotChocolate.Execution.Processing
 
             if (single is not null || batchExecutionTask is not null)
             {
-                operationContext.Execution.TaskBacklog.Register(single ?? batchExecutionTask!);
+                operationContext.Execution.Work.Register(single ?? batchExecutionTask!);
             }
 
             if (selectionSet.Fragments.Count > 0)
@@ -66,7 +66,7 @@ namespace HotChocolate.Execution.Processing
                     IFragment fragment = fragments[i];
                     if (!fragment.IsConditional)
                     {
-                        operationContext.Execution.DeferredTaskBacklog.Register(
+                        operationContext.Execution.DeferredWork.Register(
                             new DeferredFragment(
                                 fragment,
                                 fragment.GetLabel(operationContext.Variables),

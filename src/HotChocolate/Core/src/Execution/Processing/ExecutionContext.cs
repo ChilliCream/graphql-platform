@@ -9,18 +9,18 @@ namespace HotChocolate.Execution.Processing
 {
     internal partial class ExecutionContext : IExecutionContext
     {
-        public TaskScheduler TaskScheduler => _taskScheduler;
-
-        public ITaskBacklog TaskBacklog
+        /// <inheritdoc />
+        public IWorkBacklog Work
         {
             get
             {
                 AssertNotPooled();
-                return _taskBacklog;
+                return _workBacklog;
             }
         }
 
-        public IDeferredTaskBacklog DeferredTaskBacklog
+        /// <inheritdoc />
+        public IDeferredTaskBacklog DeferredWork
         {
             get
             {
@@ -29,59 +29,7 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        public ITaskStatistics TaskStats
-        {
-            get
-            {
-                AssertNotPooled();
-                return _taskStatistics;
-            }
-        }
-
-        public bool IsCompleted
-        {
-            get
-            {
-                AssertNotPooled();
-                return TaskBacklog.IsEmpty && !TaskBacklog.IsRunning;
-            }
-        }
-
-        public IExecutionTask CreateTask(ResolverTaskDefinition taskDefinition)
-        {
-            ResolverTaskBase resolverTask =
-                taskDefinition.Selection.PureResolver is null
-                    ? _taskPool.Get()
-                    : _pureTaskPool.Get();
-
-            resolverTask.Initialize(
-                taskDefinition.OperationContext,
-                taskDefinition.Selection,
-                taskDefinition.ResultMap,
-                taskDefinition.ResponseIndex,
-                taskDefinition.Parent,
-                taskDefinition.Path,
-                taskDefinition.ScopedContextData);
-
-            return resolverTask;
-        }
-
-        public BatchExecutionTask CreateBatchTask(IOperationContext operationContext)
-        {
-            var batch = _batchTaskPool.Get();
-            batch.Initialize(operationContext);
-            return batch;
-        }
-
-        public ObjectPool<ResolverTask> TaskPool
-        {
-            get
-            {
-                AssertNotPooled();
-                return _taskPool;
-            }
-        }
-
+        /// <inheritdoc />
         public IBatchDispatcher BatchDispatcher
         {
             get
@@ -91,18 +39,59 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        private void BeginTryDispatchBatches() =>
-            TryDispatchBatches();
+        /// <inheritdoc />
+        public bool IsCompleted
+        {
+            get
+            {
+                AssertNotPooled();
+                return Work.IsEmpty && !Work.IsRunning;
+            }
+        }
+
+        /// <inheritdoc />
+        public ObjectPool<ResolverTask> ResolverTasks
+        {
+            get
+            {
+                AssertNotPooled();
+                return _resolverTasks;
+            }
+        }
+
+        /// <inheritdoc />
+        public ObjectPool<PureResolverTask> PureResolverTasks
+        {
+            get
+            {
+                AssertNotPooled();
+                return _pureResolverTasks;
+            }
+        }
+
+        /// <inheritdoc />
+        public ObjectPool<BatchExecutionTask> BatchTasks
+        {
+            get
+            {
+                AssertNotPooled();
+                return _batchTasks;
+            }
+        }
+
+#pragma warning disable 4014
+        private void BeginTryDispatchBatches() => TryDispatchBatches();
+#pragma warning restore 4014
 
         private async ValueTask TryDispatchBatches()
         {
             AssertNotPooled();
 
-            if (TaskBacklog.IsEmpty && _taskScheduler.HasEmptyQueue && BatchDispatcher.HasTasks)
+            if (Work.IsEmpty && BatchDispatcher.HasTasks)
             {
                 await Task.Yield();
 
-                if (TaskBacklog.IsEmpty && _taskScheduler.HasEmptyQueue && BatchDispatcher.HasTasks)
+                if (Work.IsEmpty && BatchDispatcher.HasTasks)
                 {
                     BatchDispatcher.Dispatch(Register);
                 }
@@ -110,22 +99,12 @@ namespace HotChocolate.Execution.Processing
 
             void Register(IExecutionTaskDefinition taskDefinition)
             {
-                TaskBacklog.Register(taskDefinition.Create(_taskContext));
+                Work.Register(taskDefinition.Create(_operationContext));
             }
         }
 
         private void BatchDispatcherEventHandler(
             object? source, EventArgs args) =>
             BeginTryDispatchBatches();
-
-        private void TaskStatisticsEventHandler(
-            object? source, EventArgs args) =>
-            BeginTryDispatchBatches();
-
-        private void OnCompleted(object? source, EventArgs args)
-        {
-            AssertNotPooled();
-            // _taskBacklog.Complete();
-        }
     }
 }

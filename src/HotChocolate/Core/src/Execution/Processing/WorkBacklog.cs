@@ -7,12 +7,17 @@ using HotChocolate.Execution.Channels;
 namespace HotChocolate.Execution.Processing
 {
     /// <inheritdoc/>
-    internal class TaskBacklog : ITaskBacklog
+    internal class WorkBacklog : IWorkBacklog
     {
         private readonly object _sync = new();
         private readonly WorkQueue _work = new();
         private int _processors = 1;
         private bool _mainIsWaiting;
+
+        public WorkBacklog()
+        {
+            _work.BacklogEmpty += (sender, args) => BacklogEmpty?.Invoke(sender, args);
+        }
 
         /// <inheritdoc/>
         public event EventHandler<EventArgs>? BackPressureLimitExceeded;
@@ -30,11 +35,6 @@ namespace HotChocolate.Execution.Processing
             {
                 return _work.IsRunning || _processors > 1;
             }
-        }
-
-        public TaskBacklog()
-        {
-            _work.BacklogEmpty += (sender, args) => BacklogEmpty?.Invoke(sender, args);
         }
 
         /// <inheritdoc/>
@@ -87,7 +87,8 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        public bool ProcessorCompleted()
+        /// <inheritdoc/>
+        public bool TryCompleteProcessor()
         {
             lock (_sync)
             {

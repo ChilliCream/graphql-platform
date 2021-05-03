@@ -141,10 +141,7 @@ namespace HotChocolate.Execution.Processing
 
         public T Resolver<T>() => _operationContext.Activator.GetOrCreate<T>();
 
-        public T Service<T>()
-        {
-            return Services.GetRequiredService<T>();
-        }
+        public T Service<T>() => Services.GetRequiredService<T>();
 
         public object Service(Type service)
         {

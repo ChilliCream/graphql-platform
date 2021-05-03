@@ -97,7 +97,7 @@ namespace HotChocolate.Execution.Pipeline
                         context, batchDispatcher, operation, operationContext)
                         .ConfigureAwait(false);
 
-                    if(!operationContext.Execution.DeferredTaskBacklog.IsEmpty &&
+                    if(!operationContext.Execution.DeferredWork.IsEmpty &&
                        context.Result is IQueryResult result)
                     {
                         // if we have deferred query task we will take ownership

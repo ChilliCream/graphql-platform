@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -11,12 +12,12 @@ namespace HotChocolate.Execution.Processing
         private ExecutionTaskProcessor(IOperationContext context)
         {
             _context = context;
-            context.Execution.TaskBacklog.BackPressureLimitExceeded += ScaleProcessors;
+            context.Execution.Work.BackPressureLimitExceeded += ScaleProcessors;
         }
 
         public static Task ExecuteAsync(IOperationContext operationContext)
         {
-            if (operationContext.Execution.TaskBacklog.IsEmpty)
+            if (operationContext.Execution.Work.IsEmpty)
             {
                 return Task.CompletedTask;
             }
@@ -33,12 +34,22 @@ namespace HotChocolate.Execution.Processing
                 try
                 {
                     while (!cancellationToken.IsCancellationRequested &&
-                           executionContext.TaskBacklog.TryTake(out IExecutionTask? task))
+                        executionContext.Work.TryTake(out IExecutionTask? task))
                     {
                         task.BeginExecute(cancellationToken);
                     }
 
-                    await executionContext.TaskBacklog
+                    while (!cancellationToken.IsCancellationRequested &&
+                        executionContext.Work.TryTakeSerial(out IExecutionTask? task))
+                    {
+                        task.BeginExecute(cancellationToken);
+
+
+
+                        await task.WaitForCompletionAsync(cancellationToken).ConfigureAwait(false);
+                    }
+
+                    await executionContext.Work
                         .WaitForWorkAsync(cancellationToken)
                         .ConfigureAwait(false);
                 }
@@ -65,7 +76,7 @@ namespace HotChocolate.Execution.Processing
             try
             {
                 while (!cancellationToken.IsCancellationRequested &&
-                       executionContext.TaskBacklog.TryTake(out IExecutionTask? task))
+                       executionContext.Work.TryTake(out IExecutionTask? task))
                 {
                     task.BeginExecute(cancellationToken);
                 }
@@ -79,7 +90,7 @@ namespace HotChocolate.Execution.Processing
             }
             finally
             {
-                completed = executionContext.TaskBacklog.ProcessorCompleted();
+                completed = executionContext.Work.TryCompleteProcessor();
             }
 
             if (!completed)

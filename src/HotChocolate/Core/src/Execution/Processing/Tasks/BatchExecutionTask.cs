@@ -29,7 +29,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             }
             finally
             {
-                _operationContext.Execution.TaskBacklog.Complete(this);
+                _operationContext.Execution.Work.Complete(this);
             }
         }
 

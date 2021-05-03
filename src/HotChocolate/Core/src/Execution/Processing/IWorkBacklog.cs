@@ -9,7 +9,7 @@ namespace HotChocolate.Execution.Processing
     /// The task backlog of the execution engine stores <see cref="IExecutionTask"/>
     /// without any guaranteed order.
     /// </summary>
-    internal interface ITaskBacklog
+    internal interface IWorkBacklog
     {
         /// <summary>
         /// Signals that the work queue is filling up more quickly than work is dequeued.
@@ -42,6 +42,16 @@ namespace HotChocolate.Execution.Processing
         bool TryTake([NotNullWhen(true)] out IExecutionTask? task);
 
         /// <summary>
+        /// Try to take a task from the backlog.
+        /// </summary>
+        /// <param name="task">
+        /// The task that was acquired from the backlog.
+        /// The task is not null when the method returns<c>true</c>
+        /// </param>
+        /// <returns>Return <c>true</c> if there was a task on the backlog.</returns>
+        bool TryTakeSerial([NotNullWhen(true)] out IExecutionTask? task);
+
+        /// <summary>
         /// Waits for either the <paramref name="cancellationToken" /> to raise or
         /// for a task to be added to the backlog.
         /// </summary>
@@ -61,11 +71,13 @@ namespace HotChocolate.Execution.Processing
         /// </summary>
         void Complete(IExecutionTask task);
 
-        bool ProcessorCompleted();
-
         /// <summary>
-        /// Clears the task backlog
+        /// Signal that a processor wants to complete.
+        /// Depending on the state the <see cref="IWorkBacklog"/> might deny closing the processor.
         /// </summary>
-        void Clear();
+        /// <returns>
+        /// Returns a boolean indicating if a processor can close.
+        /// </returns>
+        bool TryCompleteProcessor();
     }
 }

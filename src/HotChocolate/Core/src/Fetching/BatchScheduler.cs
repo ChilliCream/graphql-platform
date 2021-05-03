@@ -77,7 +77,6 @@ namespace HotChocolate.Fetching
 
             public bool IsCanceled { get; private set; }
 
-
             public ExecutionTaskKind Kind { get; }
 
             public IExecutionTask? Parent { get; set; }
