@@ -267,7 +267,7 @@ type PageInfo {
 
 # Offset Pagination
 
-> Note: While we support _offset-based_ pagination, we highly encourage the use of [_Connections_](/docs/hotchocolate/fetching-data/pagination/#connections) instead. _Connections_ provide an abstraction which makes it easier to switch to another pagination mechanism later on.
+> Note: While we support _offset-based_ pagination, we highly encourage the use of [_Connections_](#connections) instead. _Connections_ provide an abstraction which makes it easier to switch to another pagination mechanism later on.
 
 Besides _Connections_ we can also expose a more traditional _offset-based_ pagination.
 
@@ -289,7 +289,7 @@ type CollectionSegmentInfo {
 
 ## Usage
 
-Adding pagination capabilties to our fields is a breeze. All we have to do is add the `UseOffsetPaging` middleware.
+To add _offset-based_ pagination capabilties to our fields we have to add the `UseOffsetPaging` middleware.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
