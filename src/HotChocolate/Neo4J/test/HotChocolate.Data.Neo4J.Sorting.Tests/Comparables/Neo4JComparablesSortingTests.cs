@@ -34,7 +34,7 @@ namespace HotChocolate.Data.Neo4J.Sorting.Boolean
         public async Task Create_Short_OrderBy()
         {
             // arrange
-            IRequestExecutor tester = await _fixture.CreateSchema<Foo, FooSortType>(_fooEntitiesCypher);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo, FooSortType>(_fooEntitiesCypher);
 
             // act
             IExecutionResult res1 = await tester.ExecuteAsync(
