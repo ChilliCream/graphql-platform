@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using static HotChocolate.Execution.Processing.ResolverExecutionHelper;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -52,7 +51,7 @@ namespace HotChocolate.Execution.Processing
                             scopedContext));
                             */
 
-                    await ExecuteTasksAsync(operationContext).ConfigureAwait(false);
+                    await ExecutionTaskProcessor.ExecuteAsync(operationContext).ConfigureAwait(false);
 
                     if (i + 1 < selections.Count)
                     {

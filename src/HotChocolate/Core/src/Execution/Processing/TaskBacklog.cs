@@ -9,7 +9,10 @@ namespace HotChocolate.Execution.Processing
     /// <inheritdoc/>
     internal class TaskBacklog : ITaskBacklog
     {
+        private readonly object _sync = new();
         private readonly WorkQueue _work = new();
+        private int _processors = 1;
+        private bool _mainIsWaiting;
 
         /// <inheritdoc/>
         public event EventHandler<EventArgs>? BackPressureLimitExceeded;
@@ -20,7 +23,14 @@ namespace HotChocolate.Execution.Processing
         /// <inheritdoc/>
         public bool IsEmpty => _work.IsEmpty;
 
-        public bool IsRunning => _work.IsRunning;
+        /// <inheritdoc/>
+        public bool IsRunning
+        {
+            get
+            {
+                return _work.IsRunning || _processors > 1;
+            }
+        }
 
         public TaskBacklog()
         {
@@ -32,14 +42,27 @@ namespace HotChocolate.Execution.Processing
             _work.TryTake(out task);
 
         /// <inheritdoc/>
-        public Task WaitForWorkAsync(CancellationToken cancellationToken)
+        public async Task WaitForWorkAsync(CancellationToken cancellationToken)
         {
-            if (_work.TryPeekInProgress(out IExecutionTask? executionTask))
-            {
-                return executionTask.WaitForCompletionAsync(cancellationToken);
-            }
+            _mainIsWaiting = true;
 
-            return Task.CompletedTask;
+            try
+            {
+                if (_work.TryPeekInProgress(out IExecutionTask? executionTask))
+                {
+                    await executionTask
+                        .WaitForCompletionAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                else
+                {
+                    await Task.Yield();
+                }
+            }
+            finally
+            {
+                _mainIsWaiting = false;
+            }
         }
 
         /// <inheritdoc/>
@@ -50,11 +73,31 @@ namespace HotChocolate.Execution.Processing
                 throw new ArgumentNullException(nameof(task));
             }
 
-            //TODO: This does obviously not work, we overcommit massively because we do not give the
-            //      tasks a chance to process
-            if (_work.Push(task) > 15)
+            var backlogSize = _work.Push(task);
+
+            if (backlogSize > _processors * 2 || _mainIsWaiting && _processors == 1)
             {
-                BackPressureLimitExceeded?.Invoke(null, EventArgs.Empty);
+                lock (_sync)
+                {
+                    if (backlogSize > _processors * 2 || _mainIsWaiting && _processors == 1)
+                    {
+                        TryScale();
+                    }
+                }
+            }
+        }
+
+        public bool ProcessorCompleted()
+        {
+            lock (_sync)
+            {
+                if (_mainIsWaiting && _processors == 1 && !_work.IsEmpty)
+                {
+                    return false;
+                }
+
+                _processors--;
+                return true;
             }
         }
 
@@ -65,13 +108,28 @@ namespace HotChocolate.Execution.Processing
             {
                 throw new ArgumentNullException(nameof(task));
             }
-            _work.Complete(task);
+
+            if (task.Parent is null)
+            {
+                _work.Complete(task);
+            }
         }
 
         public void Clear()
         {
             _work.ClearUnsafe();
+            _processors = 1;
             BackPressureLimitExceeded = null;
+        }
+
+        private void TryScale()
+        {
+            if (_processors < 4)
+            {
+                _processors++;
+                BackPressureLimitExceeded?.Invoke(null, EventArgs.Empty);
+            }
+
         }
     }
 }

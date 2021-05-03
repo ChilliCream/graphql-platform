@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,17 +8,11 @@ namespace HotChocolate.Execution.Processing.Tasks
     internal class BatchExecutionTask : IExecutionTask
     {
         private readonly List<IExecutionTask> _tasks = new();
-
-        public BatchExecutionTask(IOperationContext context)
-        {
-            Context = context;
-        }
-
-        protected IOperationContext Context { get; }
+        private IOperationContext _operationContext = default!;
 
         public ExecutionTaskKind Kind => ExecutionTaskKind.Pure;
 
-        public ICollection<IExecutionTask> Tasks => _tasks;
+        public IExecutionTask? Parent { get; set; }
 
         public IExecutionTask? Next { get; set; }
 
@@ -25,11 +20,17 @@ namespace HotChocolate.Execution.Processing.Tasks
 
         public void BeginExecute(CancellationToken cancellationToken)
         {
-            foreach (var task in _tasks)
+            try
             {
-                task.BeginExecute(cancellationToken);
+                foreach (var task in _tasks)
+                {
+                    task.BeginExecute(cancellationToken);
+                }
             }
-            Context.Execution.TaskBacklog.Complete(this);
+            finally
+            {
+                _operationContext.Execution.TaskBacklog.Complete(this);
+            }
         }
 
         public async Task WaitForCompletionAsync(CancellationToken cancellationToken)
@@ -45,9 +46,26 @@ namespace HotChocolate.Execution.Processing.Tasks
             }
         }
 
+        public void AddExecutionTask(IExecutionTask executionTask)
+        {
+            if (executionTask is null)
+            {
+                throw new ArgumentNullException(nameof(executionTask));
+            }
+
+            executionTask.Parent = this;
+            _tasks.Add(executionTask);
+        }
+
+        public void Initialize(IOperationContext operationContext)
+        {
+            _operationContext = operationContext;
+        }
+
         public void Reset()
         {
             _tasks.Clear();
+            Parent = null;
             Next = null;
             Previous = null;
         }

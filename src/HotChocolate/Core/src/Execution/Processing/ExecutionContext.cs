@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
 
@@ -44,6 +45,32 @@ namespace HotChocolate.Execution.Processing
                 AssertNotPooled();
                 return TaskBacklog.IsEmpty && !TaskBacklog.IsRunning;
             }
+        }
+
+        public IExecutionTask CreateTask(ResolverTaskDefinition taskDefinition)
+        {
+            ResolverTaskBase resolverTask =
+                taskDefinition.Selection.PureResolver is null
+                    ? _taskPool.Get()
+                    : _pureTaskPool.Get();
+
+            resolverTask.Initialize(
+                taskDefinition.OperationContext,
+                taskDefinition.Selection,
+                taskDefinition.ResultMap,
+                taskDefinition.ResponseIndex,
+                taskDefinition.Parent,
+                taskDefinition.Path,
+                taskDefinition.ScopedContextData);
+
+            return resolverTask;
+        }
+
+        public BatchExecutionTask CreateBatchTask(IOperationContext operationContext)
+        {
+            var batch = _batchTaskPool.Get();
+            batch.Initialize(operationContext);
+            return batch;
         }
 
         public ObjectPool<ResolverTask> TaskPool

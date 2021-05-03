@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,35 +6,28 @@ namespace HotChocolate.Execution.Processing
 {
     internal sealed class ExecutionTaskProcessor
     {
+        private readonly IOperationContext _context;
+
         private ExecutionTaskProcessor(IOperationContext context)
         {
-            context.Execution.TaskBacklog.BackPressureLimitExceeded +=
-                OnBackPressureLimitExceeded;
-
-            void OnBackPressureLimitExceeded(object? o, EventArgs eventArgs)
-            {
-#pragma warning disable 4014
-                ExecuteSecondaryProcessorAsync(context.Execution, context.RequestAborted);
-#pragma warning restore 4014
-            }
+            _context = context;
+            context.Execution.TaskBacklog.BackPressureLimitExceeded += ScaleProcessors;
         }
 
-        public static Task ExecuteTasksAsync(IOperationContext operationContext)
+        public static Task ExecuteAsync(IOperationContext operationContext)
         {
             if (operationContext.Execution.TaskBacklog.IsEmpty)
             {
                 return Task.CompletedTask;
             }
 
-            return new ExecutionTaskProcessor(operationContext)
-                .ExecuteMainProcessorAsync(
-                    operationContext.Execution,
-                    operationContext.RequestAborted);
+            return new ExecutionTaskProcessor(operationContext).ExecuteMainProcessorAsync();
         }
-        private async Task ExecuteMainProcessorAsync(
-            IExecutionContext executionContext,
-            CancellationToken cancellationToken)
+        private async Task ExecuteMainProcessorAsync()
         {
+            IExecutionContext executionContext = _context.Execution;
+            CancellationToken cancellationToken = _context.RequestAborted;
+
             do
             {
                 try
@@ -59,21 +51,12 @@ namespace HotChocolate.Execution.Processing
                 }
             } while (!cancellationToken.IsCancellationRequested &&
                      !executionContext.IsCompleted);
-
-
-            _isComplete = true;
-
-            if (_processors > 0)
-            {
-
-            }
         }
 
-        private async Task ExecuteSecondaryProcessorAsync(
-            IExecutionContext executionContext,
-            CancellationToken cancellationToken)
+        private async Task ExecuteSecondaryProcessorAsync()
         {
-            Interlocked.Increment(ref _processors);
+            IExecutionContext executionContext = _context.Execution;
+            CancellationToken cancellationToken = _context.RequestAborted;
 
             await Task.Yield();
             bool completed;
@@ -96,7 +79,6 @@ namespace HotChocolate.Execution.Processing
             }
             finally
             {
-                Interlocked.Decrement(ref _processors);
                 completed = executionContext.TaskBacklog.ProcessorCompleted();
             }
 
@@ -118,6 +100,13 @@ namespace HotChocolate.Execution.Processing
 
             // TODO : this error needs to be reported!
             _context.Result.AddError(error);
+        }
+
+        private void ScaleProcessors(object? sender, EventArgs eventArgs)
+        {
+#pragma warning disable 4014
+            ExecuteSecondaryProcessorAsync();
+#pragma warning restore 4014
         }
     }
 }

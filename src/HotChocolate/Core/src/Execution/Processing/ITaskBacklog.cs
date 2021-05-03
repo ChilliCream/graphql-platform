@@ -61,6 +61,8 @@ namespace HotChocolate.Execution.Processing
         /// </summary>
         void Complete(IExecutionTask task);
 
+        bool ProcessorCompleted();
+
         /// <summary>
         /// Clears the task backlog
         /// </summary>

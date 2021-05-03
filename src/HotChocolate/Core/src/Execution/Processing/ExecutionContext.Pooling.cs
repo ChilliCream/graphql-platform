@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
@@ -14,6 +15,7 @@ namespace HotChocolate.Execution.Processing
         private readonly IDeferredTaskBacklog _deferredTaskBacklog;
         private readonly ObjectPool<ResolverTask> _taskPool;
         private readonly ObjectPool<PureResolverTask> _pureTaskPool;
+        private readonly ObjectPool<BatchExecutionTask> _batchTaskPool;
         private readonly RequestTaskScheduler _taskScheduler = new();
         private CancellationTokenSource _completed = default!;
         private IBatchDispatcher _batchDispatcher = default!;
@@ -23,7 +25,8 @@ namespace HotChocolate.Execution.Processing
         public ExecutionContext(
             IExecutionTaskContext taskContext,
             ObjectPool<ResolverTask> resolverTaskPool,
-            ObjectPool<PureResolverTask> pureResolverTaskPool)
+            ObjectPool<PureResolverTask> pureResolverTaskPool,
+            ObjectPool<BatchExecutionTask> batchTaskPool)
         {
             _taskContext = taskContext;
             _taskStatistics = new TaskStatistics();
@@ -31,9 +34,10 @@ namespace HotChocolate.Execution.Processing
             _deferredTaskBacklog = new DeferredTaskBacklog();
             _taskPool = resolverTaskPool;
             _pureTaskPool = pureResolverTaskPool;
+            _batchTaskPool = batchTaskPool;
             _taskStatistics.StateChanged += TaskStatisticsEventHandler;
             _taskStatistics.AllTasksCompleted += OnCompleted;
-            _taskBacklog.BacklogEmpty += (sender, args) => BeginTryDispatchBatches();
+            _taskBacklog.BacklogEmpty += (_, _) => BeginTryDispatchBatches();
         }
 
         public void Initialize(
@@ -110,25 +114,6 @@ namespace HotChocolate.Execution.Processing
             {
                 throw Object_Returned_To_Pool();
             }
-        }
-
-        public IExecutionTask CreateTask(ResolverTaskDefinition taskDefinition)
-        {
-            ResolverTaskBase resolverTask =
-                taskDefinition.Selection.PureResolver is null
-                    ? _taskPool.Get()
-                    : _pureTaskPool.Get();
-
-            resolverTask.Initialize(
-                taskDefinition.OperationContext,
-                taskDefinition.Selection,
-                taskDefinition.ResultMap,
-                taskDefinition.ResponseIndex,
-                taskDefinition.Parent,
-                taskDefinition.Path,
-                taskDefinition.ScopedContextData);
-
-            return resolverTask;
         }
     }
 }

@@ -77,7 +77,14 @@ namespace HotChocolate.Fetching
 
             public bool IsCanceled { get; private set; }
 
+
             public ExecutionTaskKind Kind { get; }
+
+            public IExecutionTask? Parent { get; set; }
+
+            public IExecutionTask? Next { get; set; }
+
+            public IExecutionTask? Previous { get; set; }
 
             public void BeginExecute(CancellationToken cancellationToken)
             {
@@ -89,9 +96,6 @@ namespace HotChocolate.Fetching
             {
                 return _task ?? Task.CompletedTask;
             }
-
-            public IExecutionTask? Next { get; set; }
-            public IExecutionTask? Previous { get; set; }
 
             public async ValueTask ExecuteAsync(CancellationToken cancellationToken)
             {

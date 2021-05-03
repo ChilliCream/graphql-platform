@@ -63,8 +63,8 @@ namespace HotChocolate.Execution.Processing
                 ScopedContextData,
                 Value);
 
-            await ResolverExecutionHelper
-                .ExecuteTasksAsync(operationContext)
+            await ExecutionTaskProcessor
+                .ExecuteAsync(operationContext)
                 .ConfigureAwait(false);
 
             return operationContext

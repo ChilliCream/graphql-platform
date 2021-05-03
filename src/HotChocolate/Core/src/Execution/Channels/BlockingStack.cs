@@ -88,11 +88,14 @@ namespace HotChocolate.Execution.Channels
 
                 if (previous is null)
                 {
-                    _head = next;
-
-                    if (next is not null)
+                    if (ReferenceEquals(_head, executionTask))
                     {
-                        next.Previous = null;
+                        _head = next;
+
+                        if (next is not null)
+                        {
+                            next.Previous = null;
+                        }
                     }
                 }
                 else

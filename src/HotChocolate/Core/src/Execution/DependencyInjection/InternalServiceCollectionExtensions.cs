@@ -10,6 +10,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Pipeline;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using HotChocolate.Types.Relay;
@@ -54,6 +55,11 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services,
             int maximumRetained = 256)
         {
+            services.TryAddSingleton<ObjectPool<BatchExecutionTask>>(
+                _ => new ExecutionTaskPool<BatchExecutionTask>(
+                    new BatchExecutionTaskPoolPolicy(),
+                    maximumRetained / 4));
+
             services.TryAddSingleton<ObjectPool<ResolverTask>>(
                 _ => new ExecutionTaskPool<ResolverTask>(
                     new ResolverTaskPoolPolicy(),
@@ -63,6 +69,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 _ => new ExecutionTaskPool<PureResolverTask>(
                     new PureResolverTaskPoolPolicy(),
                     maximumRetained));
+            
             return services;
         }
 

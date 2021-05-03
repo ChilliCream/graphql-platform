@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using HotChocolate.Execution.Processing.Tasks;
 using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Fetching;
 
@@ -40,5 +41,7 @@ namespace HotChocolate.Execution.Processing
         void Reset();
 
         IExecutionTask CreateTask(ResolverTaskDefinition taskDefinition);
+
+        BatchExecutionTask CreateBatchTask(IOperationContext operationContext);
     }
 }

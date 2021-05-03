@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using HotChocolate.Execution.Processing.Tasks;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -17,7 +17,9 @@ namespace HotChocolate.Execution.Processing
             IReadOnlyList<ISelection> selections = selectionSet.Selections;
             ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
 
-            BatchResolverTask? batchExecutionTask = null;
+            BatchExecutionTask? batchExecutionTask = null;
+            IExecutionTask? single = null;
+
             for (var i = 0; i < selections.Count; i++)
             {
                 ISelection selection = selections[i];
@@ -33,21 +35,27 @@ namespace HotChocolate.Execution.Processing
                             path.Append(selection.ResponseName),
                             scopedContext));
 
-                    if (selection.PureResolver is not null)
+                    if (batchExecutionTask is not null)
                     {
-                        batchExecutionTask ??= new BatchResolverTask(operationContext);
-                        batchExecutionTask.Tasks.Add(task);
+                        batchExecutionTask.AddExecutionTask(task);
+                    }
+                    else if (single is null)
+                    {
+                        single = task;
                     }
                     else
                     {
-                        operationContext.Execution.TaskBacklog.Register(task);
+                        batchExecutionTask = operationContext.Execution.CreateBatchTask(operationContext);
+                        batchExecutionTask.AddExecutionTask(single);
+                        batchExecutionTask.AddExecutionTask(task);
+                        single = null;
                     }
                 }
             }
 
-            if (batchExecutionTask is not null)
+            if (single is not null || batchExecutionTask is not null)
             {
-                operationContext.Execution.TaskBacklog.Register(batchExecutionTask);
+                operationContext.Execution.TaskBacklog.Register(single ?? batchExecutionTask!);
             }
 
             if (selectionSet.Fragments.Count > 0)

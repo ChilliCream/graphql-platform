@@ -30,6 +30,8 @@ namespace HotChocolate.Execution
 
         Task WaitForCompletionAsync(CancellationToken cancellationToken);
 
+        IExecutionTask? Parent { get; set; }
+
         IExecutionTask? Next { get; set; }
 
         IExecutionTask? Previous { get; set; }
@@ -50,6 +52,8 @@ namespace HotChocolate.Execution
 
         public ExecutionTaskKind Kind => ExecutionTaskKind.Parallel;
 
+        public IExecutionTask? Parent { get; set; }
+
         public IExecutionTask? Next { get; set; }
 
         public IExecutionTask? Previous { get; set; }
@@ -62,6 +66,7 @@ namespace HotChocolate.Execution
 
         public Task WaitForCompletionAsync(CancellationToken cancellationToken) =>
             _task ?? Task.CompletedTask;
+
 
         private async ValueTask ExecuteInternalAsync(CancellationToken cancellationToken)
         {
@@ -90,6 +95,8 @@ namespace HotChocolate.Execution
         public IExecutionTask? Next { get; set; }
 
         public IExecutionTask? Previous { get; set; }
+
+        public IExecutionTask? Parent { get; set; }
 
         public void BeginExecute(CancellationToken cancellationToken)
         {

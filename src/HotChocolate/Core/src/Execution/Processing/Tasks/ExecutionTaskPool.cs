@@ -1,8 +1,7 @@
 using System.Threading;
-using HotChocolate.Execution.Processing.Tasks;
 using Microsoft.Extensions.ObjectPool;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing.Tasks
 {
     /// <summary>
     ///  A pool of objects. Buffers a set of objects to ensure fast, thread safe object pooling
