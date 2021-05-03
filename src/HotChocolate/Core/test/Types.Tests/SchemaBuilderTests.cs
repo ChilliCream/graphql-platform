@@ -1557,7 +1557,7 @@ namespace HotChocolate
                         {
                             ObjectTypeDescriptor
                                 .From(c.DescriptorContext, def)
-                                .Name(c.ContextData["name"].ToString());
+                                .Name(c.ContextData["name"]?.ToString());
                         }
                     }))
                 .Create()

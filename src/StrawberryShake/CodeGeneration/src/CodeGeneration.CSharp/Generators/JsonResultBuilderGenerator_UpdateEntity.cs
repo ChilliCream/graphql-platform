@@ -40,31 +40,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 // If the type is an interface
                 foreach (ObjectTypeDescriptor concreteType in interfaceTypeDescriptor.ImplementedBy)
                 {
-                    IfBuilder ifStatement = IfBuilder
-                        .New()
-                        .SetCondition(
-                            MethodCallBuilder
-                                .Inline()
-                                .SetMethodName(_entityId, "Name", nameof(string.Equals))
-                                .AddArgument(concreteType.Name.AsStringToken())
-                                .AddArgument(TypeNames.OrdinalStringComparison));
-
-                    var entityTypeName = CreateEntityType(
-                        concreteType.Name,
-                        concreteType.RuntimeType.NamespaceWithoutGlobal);
-
-                    IfBuilder ifBuilder = BuildTryGetEntityIf(entityTypeName)
-                        .AddCode(CreateEntityConstructorCall(concreteType, false))
-                        .AddElse(CreateEntityConstructorCall(concreteType, true));
-
-                    ifStatement
-                        .AddCode(ifBuilder)
-                        .AddEmptyLine()
-                        .AddCode($"return {_entityId};");
-
                     methodBuilder
                         .AddEmptyLine()
-                        .AddCode(ifStatement);
+                        .AddCode(CreateUpdateEntityStatement(concreteType)
+                            .AddCode($"return {_entityId};"));
                 }
 
                 methodBuilder.AddEmptyLine();
@@ -84,6 +63,31 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             }
 
             AddRequiredDeserializeMethods(namedTypeDescriptor, classBuilder, processed);
+        }
+
+        private IfBuilder CreateUpdateEntityStatement(
+            ObjectTypeDescriptor concreteType)
+        {
+            IfBuilder ifStatement = IfBuilder
+                .New()
+                .SetCondition(
+                    MethodCallBuilder
+                        .Inline()
+                        .SetMethodName(_entityId, "Name", nameof(string.Equals))
+                        .AddArgument(concreteType.Name.AsStringToken())
+                        .AddArgument(TypeNames.OrdinalStringComparison));
+
+            RuntimeTypeInfo entityTypeName = CreateEntityType(
+                concreteType.Name,
+                concreteType.RuntimeType.NamespaceWithoutGlobal);
+
+            IfBuilder ifBuilder = BuildTryGetEntityIf(entityTypeName)
+                .AddCode(CreateEntityConstructorCall(concreteType, false))
+                .AddElse(CreateEntityConstructorCall(concreteType, true));
+
+            return ifStatement
+                .AddCode(ifBuilder)
+                .AddEmptyLine();
         }
 
         private ICode CreateEntityConstructorCall(

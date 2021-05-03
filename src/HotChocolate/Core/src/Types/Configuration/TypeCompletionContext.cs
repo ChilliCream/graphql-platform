@@ -44,6 +44,8 @@ namespace HotChocolate.Configuration
 
         public bool? IsMutationType { get; set; }
 
+        public bool? IsSubscriptionType { get; set; }
+
         public IReadOnlyList<FieldMiddleware> GlobalComponents { get; }
 
         public IsOfTypeFallback IsOfType { get; }

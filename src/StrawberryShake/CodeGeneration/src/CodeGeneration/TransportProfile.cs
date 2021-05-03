@@ -1,3 +1,5 @@
+using StrawberryShake.Tools.Configuration;
+
 namespace StrawberryShake.CodeGeneration
 {
     public class TransportProfile

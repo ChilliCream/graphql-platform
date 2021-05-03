@@ -1,4 +1,5 @@
 ﻿{
-  "result": "{\n  \"data\": {\n    \"foo\": {\n      \"someId\": \"QmFyCmQx\",\n      \"someIds\": null\n    }\n  }\n}",
-  "someId": "U29tZQpkMQ=="
+  "result": "{\n  \"data\": {\n    \"foo\": {\n      \"someId\": \"QmFyCmQx\",\n      \"someNullableId\": \"QmFyCmQx\",\n      \"someIds\": [\n        \"QmFyCmkx\"\n      ],\n      \"someNullableIds\": [\n        \"QmFyCmkx\"\n      ]\n    }\n  }\n}",
+  "someId": "U29tZQpkMQ==",
+  "someIntId": "U29tZQppMQ=="
 }

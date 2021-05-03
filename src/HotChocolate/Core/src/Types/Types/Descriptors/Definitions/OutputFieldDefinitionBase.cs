@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 
-#nullable  enable
+#nullable enable
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {
@@ -33,7 +34,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         {
             base.CopyTo(target);
 
-            if (_arguments is not null)
+            if (_arguments is { Count: > 0 })
             {
                 target._arguments = new List<ArgumentDefinition>();
 
@@ -43,6 +44,41 @@ namespace HotChocolate.Types.Descriptors.Definitions
                     argument.CopyTo(newArgument);
                     target._arguments.Add(newArgument);
                 }
+            }
+
+            target.DeprecationReason = DeprecationReason;
+        }
+
+        protected void MergeInto(OutputFieldDefinitionBase target)
+        {
+            base.MergeInto(target);
+
+            if (_arguments is { Count: > 0 })
+            {
+                target._arguments ??= new List<ArgumentDefinition>();
+
+                foreach (ArgumentDefinition argument in _arguments)
+                {
+                    ArgumentDefinition? targetArgument =
+                        target._arguments.FirstOrDefault(t => t.Name.Equals(argument.Name));
+
+                    if (targetArgument is null)
+                    {
+                        targetArgument = new ArgumentDefinition();
+                        argument.CopyTo(targetArgument);
+                        target._arguments.Add(targetArgument);
+                    }
+                    else
+                    {
+                        argument.MergeInto(targetArgument);
+                    }
+
+                }
+            }
+
+            if (DeprecationReason is not null)
+            {
+                target.DeprecationReason = DeprecationReason;
             }
         }
     }

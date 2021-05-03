@@ -57,9 +57,10 @@ namespace HotChocolate.Data.Sorting
         protected override void OnCreateDefinition(
             SortFieldDefinition definition)
         {
-            if (Definition.Member is { })
+            if (!Definition.AttributesAreApplied && Definition.Member is not null)
             {
                 Context.TypeInspector.ApplyAttributes(Context, this, Definition.Member);
+                Definition.AttributesAreApplied = true;
             }
 
             base.OnCreateDefinition(definition);

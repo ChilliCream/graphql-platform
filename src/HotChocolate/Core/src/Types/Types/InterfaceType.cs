@@ -125,7 +125,7 @@ namespace HotChocolate.Types
             var sortFieldsByName = context.DescriptorContext.Options.SortFieldsByName;
 
             Fields = FieldCollection<InterfaceField>.From(
-                definition.Fields.Select(
+                definition.Fields.Where(t => !t.Ignore).Select(
                     t => new InterfaceField(
                         t,
                         new FieldCoordinate(Name, t.Name),

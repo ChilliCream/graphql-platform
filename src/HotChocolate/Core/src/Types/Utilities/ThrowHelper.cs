@@ -3,6 +3,7 @@ using System.Reflection;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Utilities
 {
@@ -191,6 +192,13 @@ namespace HotChocolate.Utilities
                     .SetMessage(
                         "The provided type {0} is not a dataloader",
                         dataLoaderType.FullName ?? dataLoaderType.Name)
+                    .Build());
+
+        public static SchemaException NonGenericExecutableNotAllowed() =>
+            new SchemaException(
+                SchemaErrorBuilder
+                    .New()
+                    .SetMessage(ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed)
                     .Build());
     }
 }

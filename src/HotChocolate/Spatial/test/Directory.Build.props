@@ -5,6 +5,7 @@
     <TargetFrameworks>$(TestTargetFrameworks)</TargetFrameworks>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <Warn>0</Warn>
   </PropertyGroup>
 
   <ItemGroup>

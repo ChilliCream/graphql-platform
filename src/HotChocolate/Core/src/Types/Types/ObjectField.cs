@@ -28,10 +28,11 @@ namespace HotChocolate.Types
             bool sortArgumentsByName = false)
             : base(definition, fieldCoordinate, sortArgumentsByName)
         {
-            Member = definition.Member ?? definition.ResolverMember;
+            Member = definition.Member;
+            ResolverMember = definition.ResolverMember ?? definition.Member;
             Middleware = _empty;
             Resolver = definition.Resolver!;
-            Expression = definition.Expression;
+            ResolverExpression = definition.Expression;
             SubscribeResolver = definition.SubscribeResolver;
             IsIntrospectionField = definition.IsIntrospectionField;
         }
@@ -72,16 +73,31 @@ namespace HotChocolate.Types
         public IReadOnlyList<IDirective> ExecutableDirectives => _executableDirectives;
 
         /// <summary>
-        /// Gets the associated .net type member of this field.
-        /// This member can be <c>null</c>.
+        /// Gets the associated member of the runtime type for this field.
+        /// This property can be <c>null</c> if this field is not associated to
+        /// a concrete member on the runtime type.
         /// </summary>
         public MemberInfo? Member { get; }
+
+        /// <summary>
+        /// Gets the resolver member of this filed.
+        /// If this field has no explicit resolver member
+        /// this property will return <see cref="Member"/>.
+        /// </summary>
+        public MemberInfo? ResolverMember { get; }
 
         /// <summary>
         /// Gets the associated resolver expression.
         /// This expression can be <c>null</c>.
         /// </summary>
-        public Expression? Expression { get; }
+        [Obsolete("Use resolver expression.")]
+        public Expression? Expression => ResolverExpression;
+
+        /// <summary>
+        /// Gets the associated resolver expression.
+        /// This expression can be <c>null</c>.
+        /// </summary>
+        public Expression? ResolverExpression { get; }
 
         /// <summary>
         /// Defines if this field as a introspection field.

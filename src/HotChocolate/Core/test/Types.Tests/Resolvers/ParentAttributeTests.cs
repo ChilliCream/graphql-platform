@@ -58,7 +58,7 @@ namespace HotChocolate.Resolvers
         [Fact]
         public async Task ExternalResolver_ParentProperty_BindsPropertyCorrectly()
         {
-            // arrange  
+            // arrange
             var schema = Schema.Create(
                 t => t.RegisterQueryType<Foo>().RegisterType<FooWorkingResolvers>());
             IRequestExecutor executor = schema.MakeExecutable();
@@ -106,7 +106,7 @@ namespace HotChocolate.Resolvers
             public string GetPure() => "foo";
         }
 
-        [ExtendObjectType(Name = "Foo")]
+        [ExtendObjectType("Foo")]
         public class FooExtension
         {
             public string GetPure() => "foo";

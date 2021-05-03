@@ -2,7 +2,7 @@ using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The Regular Expression scalar type represents textual data, represented as UTF‐8 character
@@ -44,7 +44,6 @@ namespace HotChocolate.Types.Scalars
             BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, description, bind)
         {
-            Description = description;
             _validationRegex = regex;
         }
 

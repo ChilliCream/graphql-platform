@@ -1,0 +1,71 @@
+name-template: '$RESOLVED_VERSION'
+tag-template: '$RESOLVED_VERSION'
+change-template: '- $TITLE by @$AUTHOR (#$NUMBER)'
+no-changes-template: '- No changes'
+categories:
+  - title: '📚 Documentation'
+    labels:
+      - '📚 documentation'
+  - title: '🌶️ Banana Cake Pop'
+    labels:
+      - '🌶️ banana cake pop'
+  - title: '🌶️ Green Donut'
+    labels:
+      - '🌶️ green donut'
+  - title: '🌶️ Hot Chocolate'
+    labels:
+      - '🌶️ hot chocolate'
+  - title: '🌶️ Marshmallow Pie'
+    labels:
+      - '🌶️ marshmallow pie'
+  - title: '🌶️ Strawberry Shake'
+    labels:
+      - '🌶️ strawberry shake'
+  - title: '🌶️ Website'
+    labels:
+      - '🌶️ website'
+  - title: '🧰 Maintenance'
+    labels:
+      - '🧰 maintenance'
+version-resolver:
+  major:
+    labels:
+      - 'major'
+  minor:
+    labels:
+      - 'minor'
+  patch:
+    labels:
+      - 'patch'
+  default: patch
+template: |
+  $CHANGES
+
+  ## 👨🏼‍💻 Contributors
+
+  $CONTRIBUTORS
+autolabeler:
+  - label: '🌶️ banana cake pop'
+    files:
+      - 'src/BananaCakePop'
+  - label: '🌶️ green donut'
+    files:
+      - 'src/GreenDonut'
+  - label: '🌶️ hot chocolate'
+    files:
+      - 'src/HotChocolate'
+  - label: '🌶️ marshmallow pie'
+    files:
+      - 'src/MarshmallowPie'
+  - label: '🌶️ strawberry shake'
+    files:
+      - 'src/StrawberryShake'
+  - label: '🌶️ website'
+    files:
+      - 'website'
+  - label: '🧰 maintenance'
+    files:
+      - '.build/**/*'
+      - '.github/**/*'
+      - '.devops/**/*'
+      - '.vscode/**/*'

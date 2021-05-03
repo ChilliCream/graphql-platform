@@ -51,12 +51,13 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             InterfaceTypeDefinition definition)
         {
-            if (Definition.RuntimeType is { })
+            if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
             {
                 Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.RuntimeType);
+                Definition.AttributesAreApplied = true;
             }
 
             var fields = new Dictionary<NameString, InterfaceFieldDefinition>();

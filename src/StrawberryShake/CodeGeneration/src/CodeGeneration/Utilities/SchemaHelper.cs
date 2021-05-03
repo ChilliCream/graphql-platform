@@ -6,23 +6,28 @@ using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Analyzers;
+using StrawberryShake.CodeGeneration.Analyzers.Types;
 using static StrawberryShake.CodeGeneration.Utilities.DocumentHelper;
 
 namespace StrawberryShake.CodeGeneration.Utilities
 {
     public static class SchemaHelper
     {
+        private static string _typeInfosKey = "StrawberryShake.CodeGeneration.Utilities.TypeInfos";
+
         public static ISchema Load(
-            IEnumerable<GraphQLFile> files,
-            bool strictValidation = true)
+            IReadOnlyCollection<GraphQLFile> schemaFiles,
+            bool strictValidation = true,
+            bool noStore = false)
         {
-            if (files is null)
+            if (schemaFiles is null)
             {
-                throw new ArgumentNullException(nameof(files));
+                throw new ArgumentNullException(nameof(schemaFiles));
             }
 
+            var typeInfos = new TypeInfos();
             var lookup = new Dictionary<ISyntaxNode, string>();
-            IndexSyntaxNodes(files, lookup);
+            IndexSyntaxNodes(schemaFiles, lookup);
 
             var builder = SchemaBuilder.New();
 
@@ -32,27 +37,30 @@ namespace StrawberryShake.CodeGeneration.Utilities
             var globalEntityPatterns = new List<SelectionSetNode>();
             var typeEntityPatterns = new Dictionary<NameString, SelectionSetNode>();
 
-            foreach (DocumentNode document in files.Select(f => f.Document))
+            foreach (DocumentNode document in schemaFiles.Select(f => f.Document))
             {
                 if (document.Definitions.Any(t => t is ITypeSystemExtensionNode))
                 {
                     CollectScalarInfos(
                         document.Definitions.OfType<ScalarTypeExtensionNode>(),
-                        leafTypes);
+                        leafTypes,
+                        typeInfos);
 
                     CollectEnumInfos(
                         document.Definitions.OfType<EnumTypeExtensionNode>(),
-                        leafTypes);
+                        leafTypes,
+                        typeInfos);
 
-                    CollectGlobalEntityPatterns(
-                        document.Definitions.OfType<SchemaExtensionNode>(),
-                        globalEntityPatterns);
+                    if (!noStore)
+                    {
+                        CollectGlobalEntityPatterns(
+                            document.Definitions.OfType<SchemaExtensionNode>(),
+                            globalEntityPatterns);
 
-                    CollectTypeEntityPatterns(
-                        document.Definitions.OfType<ObjectTypeExtensionNode>(),
-                        typeEntityPatterns);
-
-                    AddDefaultScalarInfos(leafTypes);
+                        CollectTypeEntityPatterns(
+                            document.Definitions.OfType<ObjectTypeExtensionNode>(),
+                            typeEntityPatterns);
+                    }
                 }
                 else
                 {
@@ -70,7 +78,11 @@ namespace StrawberryShake.CodeGeneration.Utilities
                 }
             }
 
+            AddDefaultScalarInfos(leafTypes);
+
             return builder
+                .SetSchema(d => d.Extend().OnBeforeCreate(
+                    c => c.ContextData.Add(_typeInfosKey, typeInfos)))
                 .TryAddTypeInterceptor(
                     new LeafTypeInterceptor(leafTypes))
                 .TryAddTypeInterceptor(
@@ -79,9 +91,16 @@ namespace StrawberryShake.CodeGeneration.Utilities
                 .Create();
         }
 
+        public static RuntimeTypeInfo GetOrCreateTypeInfo(
+            this ISchema schema,
+            string typeName,
+            bool valueType = false) =>
+            ((TypeInfos)schema.ContextData[_typeInfosKey]!).GetOrCreate(typeName, valueType);
+
         private static void CollectScalarInfos(
             IEnumerable<ScalarTypeExtensionNode> scalarTypeExtensions,
-            Dictionary<NameString, LeafTypeInfo> leafTypes)
+            Dictionary<NameString, LeafTypeInfo> leafTypes,
+            TypeInfos typeInfos)
         {
             foreach (ScalarTypeExtensionNode scalarTypeExtension in scalarTypeExtensions)
             {
@@ -89,10 +108,17 @@ namespace StrawberryShake.CodeGeneration.Utilities
                     scalarTypeExtension.Name.Value,
                     out LeafTypeInfo scalarInfo))
                 {
+                    var runtimeType = GetRuntimeType(scalarTypeExtension);
+                    var serializationType = GetSerializationType(scalarTypeExtension);
+
+                    TryRegister(typeInfos, runtimeType);
+                    TryRegister(typeInfos, serializationType);
+
                     scalarInfo = new LeafTypeInfo(
                         scalarTypeExtension.Name.Value,
-                        GetDirectiveValue(scalarTypeExtension, "runtimeType"),
-                        GetDirectiveValue(scalarTypeExtension, "serializationType"));
+                        runtimeType?.Name,
+                        serializationType?.Name);
+
                     leafTypes.Add(scalarInfo.TypeName, scalarInfo);
                 }
             }
@@ -100,7 +126,8 @@ namespace StrawberryShake.CodeGeneration.Utilities
 
         private static void CollectEnumInfos(
             IEnumerable<EnumTypeExtensionNode> enumTypeExtensions,
-            Dictionary<NameString, LeafTypeInfo> leafTypes)
+            Dictionary<NameString, LeafTypeInfo> leafTypes,
+            TypeInfos typeInfos)
         {
             foreach (EnumTypeExtensionNode scalarTypeExtension in enumTypeExtensions)
             {
@@ -108,16 +135,30 @@ namespace StrawberryShake.CodeGeneration.Utilities
                     scalarTypeExtension.Name.Value,
                     out LeafTypeInfo scalarInfo))
                 {
+                    var runtimeType = GetRuntimeType(scalarTypeExtension);
+                    var serializationType = GetSerializationType(scalarTypeExtension);
+
+                    TryRegister(typeInfos, runtimeType);
+                    TryRegister(typeInfos, serializationType);
+
                     scalarInfo = new LeafTypeInfo(
                         scalarTypeExtension.Name.Value,
-                        GetDirectiveValue(scalarTypeExtension, "runtimeType"),
-                        GetDirectiveValue(scalarTypeExtension, "serializationType"));
+                        runtimeType?.Name,
+                        serializationType?.Name);
                     leafTypes.Add(scalarInfo.TypeName, scalarInfo);
                 }
             }
         }
 
-        private static string? GetDirectiveValue(
+        private static RuntimeTypeDirective? GetRuntimeType(
+            HotChocolate.Language.IHasDirectives hasDirectives) =>
+            GetDirectiveValue(hasDirectives, "runtimeType");
+
+        private static RuntimeTypeDirective? GetSerializationType(
+            HotChocolate.Language.IHasDirectives hasDirectives) =>
+            GetDirectiveValue(hasDirectives, "serializationType");
+
+        private static RuntimeTypeDirective? GetDirectiveValue(
             HotChocolate.Language.IHasDirectives hasDirectives,
             NameString directiveName)
         {
@@ -126,12 +167,15 @@ namespace StrawberryShake.CodeGeneration.Utilities
 
             if (directive is { Arguments: { Count: > 0 } })
             {
-                ArgumentNode? argument = directive.Arguments.FirstOrDefault(
+                ArgumentNode? name = directive.Arguments.FirstOrDefault(
                     t => t.Name.Value.Equals("name"));
+                ArgumentNode? valueType = directive.Arguments.FirstOrDefault(
+                    t => t.Name.Value.Equals("valueType"));
 
-                if (argument is { Value: StringValueNode stringValue })
+                if (name is { Value: StringValueNode stringValue })
                 {
-                    return stringValue.Value;
+                    BooleanValueNode? valueTypeValue = valueType?.Value as BooleanValueNode;
+                    return new(stringValue.Value, valueTypeValue?.Value);
                 }
             }
 
@@ -234,6 +278,14 @@ namespace StrawberryShake.CodeGeneration.Utilities
             {
                 leafType = new LeafTypeInfo(typeName, runtimeType, serializationType);
                 leafTypes.Add(typeName, leafType);
+            }
+        }
+
+        private static void TryRegister(TypeInfos typeInfos, RuntimeTypeDirective? runtimeType)
+        {
+            if (runtimeType is not null)
+            {
+                typeInfos.TryCreate(runtimeType);
             }
         }
     }

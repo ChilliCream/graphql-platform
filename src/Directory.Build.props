@@ -29,8 +29,10 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <LibraryTargetFrameworks>net6.0; net5.0; netcoreapp3.1; netstandard2.0</LibraryTargetFrameworks>
-    <TestTargetFrameworks>net6.0; net5.0; netcoreapp3.1</TestTargetFrameworks>
+    <LibraryTargetFrameworks>net5.0; netcoreapp3.1; netstandard2.0</LibraryTargetFrameworks>
+    <!--LibraryTargetFrameworks>net6.0; net5.0; netcoreapp3.1; netstandard2.0</LibraryTargetFrameworks-->
+    <TestTargetFrameworks>net5.0; netcoreapp3.1</TestTargetFrameworks>
+    <!--TestTargetFrameworks>net6.0; net5.0; netcoreapp3.1</TestTargetFrameworks-->
   </PropertyGroup>
 
   <PropertyGroup>

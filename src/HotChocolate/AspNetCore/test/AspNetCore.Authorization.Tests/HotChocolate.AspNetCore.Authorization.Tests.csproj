@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\test\Utilities\HotChocolate.Tests.Utilities.csproj" />
     <ProjectReference Include="..\AspNetCore.Tests\HotChocolate.AspNetCore.Tests.csproj" />
     <ProjectReference Include="..\..\..\Core\test\StarWars\HotChocolate.StarWars.csproj" />
     <ProjectReference Include="..\..\src\AspNetCore.Authorization\HotChocolate.AspNetCore.Authorization.csproj" />

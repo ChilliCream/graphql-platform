@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
@@ -14,11 +15,11 @@ namespace HotChocolate.Execution.Pipeline
         public async Task DocumentIsValidated_SkipValidation()
         {
             // arrange
-            var cache = new Caching.DefaultDocumentCache();
-            var hashProvider = new MD5DocumentHashProvider();
-
             var validator = new Mock<IDocumentValidator>();
-            validator.Setup(t => t.Validate(It.IsAny<ISchema>(), It.IsAny<DocumentNode>()))
+            validator.Setup(t => t.Validate(
+                It.IsAny<ISchema>(),
+                It.IsAny<DocumentNode>(),
+                It.IsAny<IEnumerable<KeyValuePair<string, object>>>()))
                 .Returns(DocumentValidatorResult.Ok);
 
             var middleware = new DocumentValidationMiddleware(
@@ -51,11 +52,11 @@ namespace HotChocolate.Execution.Pipeline
         public async Task DocumentNeedsValidation_DocumentIsValid()
         {
             // arrange
-            var cache = new Caching.DefaultDocumentCache();
-            var hashProvider = new MD5DocumentHashProvider();
-
             var validator = new Mock<IDocumentValidator>();
-            validator.Setup(t => t.Validate(It.IsAny<ISchema>(), It.IsAny<DocumentNode>()))
+            validator.Setup(t => t.Validate(
+                It.IsAny<ISchema>(),
+                It.IsAny<DocumentNode>(),
+                It.IsAny<IEnumerable<KeyValuePair<string, object>>>()))
                 .Returns(DocumentValidatorResult.Ok);
 
             var middleware = new DocumentValidationMiddleware(
@@ -73,6 +74,7 @@ namespace HotChocolate.Execution.Pipeline
             var requestContext = new Mock<IRequestContext>();
             requestContext.SetupGet(t => t.Request).Returns(request);
             requestContext.SetupGet(t => t.Schema).Returns(default(ISchema));
+            requestContext.SetupGet(t => t.ContextData).Returns(new Dictionary<string, object>());
             requestContext.SetupProperty(t => t.Document, document);
             requestContext.SetupProperty(t => t.ValidationResult);
 
@@ -87,14 +89,14 @@ namespace HotChocolate.Execution.Pipeline
         public async Task DocumentNeedsValidation_DocumentInvalid()
         {
             // arrange
-            var cache = new Caching.DefaultDocumentCache();
-            var hashProvider = new MD5DocumentHashProvider();
-
             var validationResult = new DocumentValidatorResult(
                new[] { ErrorBuilder.New().SetMessage("Foo").Build() });
 
             var validator = new Mock<IDocumentValidator>();
-            validator.Setup(t => t.Validate(It.IsAny<ISchema>(), It.IsAny<DocumentNode>()))
+            validator.Setup(t => t.Validate(
+                    It.IsAny<ISchema>(),
+                    It.IsAny<DocumentNode>(),
+                    It.IsAny<IEnumerable<KeyValuePair<string, object>>>()))
                 .Returns(validationResult);
 
             var middleware = new DocumentValidationMiddleware(
@@ -112,6 +114,7 @@ namespace HotChocolate.Execution.Pipeline
             var requestContext = new Mock<IRequestContext>();
             requestContext.SetupGet(t => t.Request).Returns(request);
             requestContext.SetupGet(t => t.Schema).Returns(default(ISchema));
+            requestContext.SetupGet(t => t.ContextData).Returns(new Dictionary<string, object>());
             requestContext.SetupProperty(t => t.Document, document);
             requestContext.SetupProperty(t => t.ValidationResult);
             requestContext.SetupProperty(t => t.Result);
@@ -128,11 +131,11 @@ namespace HotChocolate.Execution.Pipeline
         public async Task NoDocument_MiddlewareWillFail()
         {
             // arrange
-            var cache = new Caching.DefaultDocumentCache();
-            var hashProvider = new MD5DocumentHashProvider();
-
             var validator = new Mock<IDocumentValidator>();
-            validator.Setup(t => t.Validate(It.IsAny<ISchema>(), It.IsAny<DocumentNode>()))
+            validator.Setup(t => t.Validate(
+                It.IsAny<ISchema>(),
+                It.IsAny<DocumentNode>(),
+                It.IsAny<IEnumerable<KeyValuePair<string, object>>>()))
                 .Returns(DocumentValidatorResult.Ok);
 
             var middleware = new DocumentValidationMiddleware(

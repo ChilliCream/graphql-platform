@@ -2,7 +2,7 @@
 title: Filtering
 ---
 
-# What is filtering
+import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
 With Hot Chocolate filters, you can expose complex filter objects through your GraphQL API that translates to native database queries. The default filter implementation translates filters to expression trees that are applied to `IQueryable`.
 Hot Chocolate by default will inspect your .NET model and infer the possible filter operations from it.
@@ -45,7 +45,7 @@ input StringOperationFilterInput {
 Filtering is part of the `HotChocolate.Data` package. You can add the dependency with the `dotnet` cli
 
 ```bash
-  dotnet add package HotChocolate.Data
+dotnet add package HotChocolate.Data
 ```
 
 To use filtering you need to register it on the schema:
@@ -58,43 +58,49 @@ services.AddGraphQLServer()
 
 Hot Chocolate will infer the filters directly from your .Net Model and then use a Middleware to apply filters to `IQueryable<T>` or `IEnumerable<T>` on execution.
 
-> ⚠️ **Note:** If you use more than middleware, keep in mind that **ORDER MATTERS**. The correct order is UsePaging > UseProjections > UseFiltering > UseSorting
-
-**Code First**
-
-```csharp
-public class QueryType
-    : ObjectType<Query>
-{
-    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
-    {
-        descriptor.Field(t => t.GetPersons(default))
-            .Type<ListType<NonNullType<PersonType>>>()
-            .UseFiltering();
-    }
-}
-
-public class Query
-{
-    public IQueryable<Person> GetPersons([Service]IPersonRepository repository) =>
-        repository.GetPersons();
-}
-```
-
-**Pure Code First**
-
-The field descriptor attribute `[UseFiltering]` does apply the extension method `UseFiltering()` on the field descriptor.
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
 ```csharp
 public class Query
 {
     [UseFiltering]
-    public IQueryable<Person> GetPersons([Service]IPersonRepository repository)
+    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+        => repository.GetUsers();
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class Query
+{
+    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+        => repository.GetUsers();
+}
+
+public class QueryType : ObjectType<Query>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
     {
-        repository.GetPersons();
+        descriptor
+            .Field(f => f.GetUsers(default))
+            .Type<ListType<NonNullType<UserType>>>()
+            .UseFiltering();
     }
 }
 ```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+⚠️ Schema-first does currently not support filtering!
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+> ⚠️ **Note:** If you use more than one middleware, keep in mind that **ORDER MATTERS**. The correct order is UsePaging > UseProjections > UseFiltering > UseSorting
 
 # Customization
 
@@ -106,13 +112,13 @@ When fields are bound implicitly, meaning filters are added for all properties, 
 It is also possible to customize the GraphQL field of the operation further. You can change the name, add a description or directive.
 
 ```csharp
-public class PersonFilterType
-    : FilterInputType<Person>
+public class UserFilterType : FilterInputType<User>
 {
-    protected override void Configure(IFilterInputTypeDescriptor<Person> descriptor)
+    protected override void Configure(
+        IFilterInputTypeDescriptor<User> descriptor)
     {
         descriptor.BindFieldsExplicitly();
-        descriptor.Field(x => x.Name).Name("custom_name");
+        descriptor.Field(f => f.Name).Name("custom_name");
     }
 }
 ```
@@ -121,13 +127,13 @@ If you want to limit the operations on a field, you need to declare you own oper
 Given you want to only allow `eq` and `neq` on a string field, this could look like this
 
 ```csharp {7}
-public class PersonFilterType
-    : FilterInputType<Person>
+public class UserFilterType : FilterInputType<User>
 {
-    protected override void Configure(IFilterInputTypeDescriptor<Person> descriptor)
+    protected override void Configure(
+        IFilterInputTypeDescriptor<User> descriptor)
     {
         descriptor.BindFieldsExplicitly();
-        descriptor.Field(x => x.Name).Type<CustomStringFilterType>();
+        descriptor.Field(f => f.Name).Type<CustomStringFilterType>();
     }
 }
 
@@ -142,9 +148,9 @@ public class CustomerOperationFilterInput : StringOperationFilterInput
 ```
 
 ```sdl
-input PersonFilterInput {
-  and: [PersonFilterInput!]
-  or: [PersonFilterInput!]
+input UserFilterInput {
+  and: [UserFilterInput!]
+  or: [UserFilterInput!]
   name: CustomerOperationFilterInput
 }
 
@@ -158,33 +164,40 @@ input CustomerOperationFilterInput {
 
 To apply this filter type we just have to provide it to the `UseFiltering` extension method with as the generic type argument.
 
-**Code First**
-
-```csharp
-public class QueryType
-    : ObjectType<Query>
-{
-    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
-    {
-        descriptor.Field(t => t.GetPerson(default))
-            .Type<ListType<NonNullType<PersonType>>>();
-            .UseFiltering<PersonFilterType>()
-    }
-}
-```
-
-**Pure Code First**
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
 ```csharp
 public class Query
 {
-    [UseFiltering(typeof(PersonFilterType))]
-    public IQueryable<Person> GetPersons([Service]IPersonRepository repository)
+    [UseFiltering(typeof(UserFilterType))]
+    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+        => repository.GetUsers();
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class QueryType : ObjectType<Query>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
     {
-        repository.GetPersons();
+        descriptor.Field(f => f.GetUsers(default))
+            .Type<ListType<NonNullType<UserType>>>();
+            .UseFiltering<UserFilterType>()
     }
 }
 ```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+⚠️ Schema-first does currently not support filtering!
+
+</ExampleTabs.Schema>
+</ExampleTabs>
 
 # AND / OR Filter
 
@@ -238,10 +251,10 @@ In this case the filters are applied like `title.Contains("John") && title.Conta
 If you do not want to expose `AND` and `OR` you can remove these fields with the descriptor API:
 
 ```csharp
-public class PersonFilterType
-    : FilterInputType<Person>
+public class UserFilterType : FilterInputType<User>
 {
-    protected override void Configure(IFilterInputTypeDescriptor<Person> descriptor)
+    protected override void Configure(
+        IFilterInputTypeDescriptor<User> descriptor)
     {
         descriptor.AllowAnd(false).AllowOr(false);
     }
@@ -257,14 +270,14 @@ Defined the filter operations of a `bool` field.
 ```csharp
 public class User
 {
-    public bool IsOnline {get;set;}
+    public bool IsOnline { get; set; }
 }
 
-public class Query : ObjectType
+public class Query
 {
     [UseFiltering]
-    public IQueryable<User> GetUsers([Service]UserService users) =>
-      users.AsQueryable();
+    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+        => repository.GetUsers();
 }
 
 ```
@@ -293,14 +306,14 @@ Defines filters for `IComparables` like: `bool`, `byte`, `shot`, `int`, `long`, 
 ```csharp
 public class User
 {
-    public int LoggingCount { get; set;}
+    public int LoginAttempts { get; set; }
 }
 
-public class Query : ObjectType
+public class Query
 {
     [UseFiltering]
-    public IQueryable<User> GetUsers([Service]UserService users) =>
-      users.AsQueryable();
+    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+        => repository.GetUsers();
 }
 
 ```
@@ -328,7 +341,7 @@ input ComparableOperationInt32FilterInput {
 input UserFilterInput {
   and: [UserFilterInput!]
   or: [UserFilterInput!]
-  loggingCount: ComparableOperationInt32FilterInput
+  loginAttempts: ComparableOperationInt32FilterInput
 }
 ```
 
@@ -339,14 +352,14 @@ Defines filters for `string`
 ```csharp
 public class User
 {
-    public string Name {get;set;}
+    public string Name { get; set; }
 }
 
-public class Query : ObjectType
+public class Query
 {
     [UseFiltering]
-    public IQueryable<User> GetUsers([Service]UserService users) =>
-      users.AsQueryable();
+    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+        => repository.GetUsers();
 }
 
 ```
@@ -354,10 +367,6 @@ public class Query : ObjectType
 ```sdl
 type Query {
   users(where: UserFilterInput): [User]
-}
-
-type User {
-  name: String!
 }
 
 input StringOperationFilterInput {
@@ -387,22 +396,22 @@ input UserFilterInput {
 Defines filters for C# enums
 
 ```csharp
-public enum UserKind {
-  Admin,
+public enum Role {
+  Default,
   Moderator,
-  NormalUser
+  Admin
 }
 
 public class User
 {
-    public UserKind kind {get;set;}
+    public Role Role { get; set; }
 }
 
-public class Query : ObjectType
+public class Query
 {
     [UseFiltering]
-    public IQueryable<User> GetUsers([Service]UserService users) =>
-      users.AsQueryable();
+    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+        => repository.GetUsers();
 }
 
 ```
@@ -412,17 +421,17 @@ type Query {
   users(where: UserFilterInput): [User]
 }
 
-input UserKindOperationFilterInput {
-  eq: UserKind
-  neq: UserKind
-  in: [UserKind!]
-  nin: [UserKind!]
+input RoleOperationFilterInput {
+  eq: Role
+  neq: Role
+  in: [Role!]
+  nin: [Role!]
 }
 
 input UserFilterInput {
   and: [UserFilterInput!]
   or: [UserFilterInput!]
-  kind: UserKindOperationFilterInput
+  kind: RoleOperationFilterInput
 }
 ```
 
@@ -434,21 +443,21 @@ For each nested object, filters are generated.
 ```csharp
 public class User
 {
-    public Address Address {get;set;}
+    public Address Address { get; set; }
 }
 
 public class Address
 {
-    public string Street {get;set;}
+    public string Street { get; set; }
 
-    public bool IsPrimary {get;set;}
+    public bool IsPrimary { get; set; }
 }
 
-public class Query : ObjectType
+public class Query
 {
     [UseFiltering]
-    public IQueryable<User> GetUsers([Service]UserService users) =>
-      users.AsQueryable();
+    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+        => repository.GetUsers();
 }
 
 ```
@@ -499,23 +508,23 @@ List filters are generated for all nested enumerations.
 ```csharp
 public class User
 {
-    public string[] Roles {get;set;}
+    public string[] Roles { get; set; }
 
-    public IEnumerable<Address> Addresses {get;set;}
+    public IEnumerable<Address> Addresses { get; set; }
 }
 
 public class Address
 {
-    public string Street {get;set;}
+    public string Street { get; set; }
 
-    public bool IsPrimary {get;set;}
+    public bool IsPrimary { get; set; }
 }
 
-public class Query : ObjectType
+public class Query
 {
     [UseFiltering]
-    public IQueryable<User> GetUsers([Service]UserService users) =>
-      users.AsQueryable();
+    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+        => repository.GetUsers();
 }
 
 ```
@@ -585,8 +594,7 @@ You then have to register your custom convention on the schema builder with `Add
 By default a new convention is empty. To add the default behaviour you have to add `AddDefaults`.
 
 ```csharp
-public class CustomConvention
-    : FilterConvention
+public class CustomConvention : FilterConvention
 {
     protected override void Configure(IFilterConventionDescriptor descriptor)
     {
@@ -595,29 +603,32 @@ public class CustomConvention
 }
 
 services.AddGraphQLServer()
-  .AddConvention<IFilterConvention, CustomConvention>();
+    .AddConvention<IFilterConvention, CustomConvention>();
 // or
 services.AddGraphQLServer()
-  .AddConvention<IFilterConvention>(new FilterConvention(x => x.AddDefaults()))
+    .AddConvention<IFilterConvention>(new FilterConvention(x =>
+        x.AddDefaults()))
 ```
 
 Often you just want to extend the default behaviour of filtering. If this is the case, you can also use `FilterConventionExtension`
 
 ```csharp
-public class CustomConventionExtension
-    : FilterConventionExtension
+public class CustomConventionExtension : FilterConventionExtension
 {
     protected override void Configure(IFilterConventionDescriptor descriptor)
     {
-      // config
+        // config
     }
 }
 
 services.AddGraphQLServer()
-  .AddConvention<IFilterConvention, CustomConventionExtension>();
+    .AddConvention<IFilterConvention, CustomConventionExtension>();
 // or
 services.AddGraphQLServer()
-  .AddConvention<IFilterConvention>(new FilterConventionExtension(x => /*config*/))
+    .AddConvention<IFilterConvention>(new FilterConventionExtension(x =>
+    {
+        // config
+    }));
 ```
 
 ## Argument Name
@@ -647,7 +658,8 @@ type Query {
 ```csharp
 public class UserFilterInput : FilterInputType<User>
 {
-    protected override void Configure(IFilterInputTypeDescriptor<User> descriptor)
+    protected override void Configure(
+        IFilterInputTypeDescriptor<User> descriptor)
     {
         descriptor.Field(x => x.Name).Description("This is the name");
     }
@@ -657,8 +669,12 @@ public class CustomStringOperationFilterInput : StringOperationFilterInput
 {
     protected override void Configure(IFilterInputTypeDescriptor descriptor)
     {
-        descriptor.Operation(DefaultFilterOperations.Equals).Type<StringType>();
-        descriptor.Operation(DefaultFilterOperations.NotEquals).Type<StringType>();
+        descriptor
+            .Operation(DefaultFilterOperations.Equals)
+            .Type<StringType>();
+        descriptor
+            .Operation(DefaultFilterOperations.NotEquals)
+            .Type<StringType>();
     }
 }
 

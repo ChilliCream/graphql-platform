@@ -1,3 +1,4 @@
+using StrawberryShake.Tools.Configuration;
 using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 

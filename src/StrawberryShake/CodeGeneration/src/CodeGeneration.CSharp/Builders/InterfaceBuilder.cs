@@ -1,11 +1,15 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class InterfaceBuilder : AbstractTypeBuilder
     {
+        private readonly List<MethodBuilder> _methods = new();
+
         private XmlCommentBuilder? _xmlComment;
+
         public static InterfaceBuilder New() => new();
 
         public new InterfaceBuilder SetName(NameString name)
@@ -33,6 +37,27 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 _xmlComment = XmlCommentBuilder.New().SetSummary(xmlComment);
             }
 
+            return this;
+        }
+
+        public InterfaceBuilder SetComment(XmlCommentBuilder? xmlComment)
+        {
+            if (xmlComment is not null)
+            {
+                _xmlComment = xmlComment;
+            }
+
+            return this;
+        }
+
+        public InterfaceBuilder AddMethod(MethodBuilder method)
+        {
+            if (method is null)
+            {
+                throw new ArgumentNullException(nameof(method));
+            }
+
+            _methods.Add(method);
             return this;
         }
 
@@ -85,6 +110,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                     }
 
                     writeLine = true;
+                }
+
+                if (_methods.Count > 0)
+                {
+                    for (var i = 0; i < _methods.Count; i++)
+                    {
+                        if (writeLine || i > 0)
+                        {
+                            writer.WriteLine();
+                        }
+
+                        _methods[i].Build(writer);
+                    }
                 }
             }
 

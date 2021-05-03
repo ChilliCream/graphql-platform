@@ -28,9 +28,16 @@ namespace StrawberryShake
                 _strategy = strategy;
             }
 
-            public IDisposable Subscribe(
-                IObserver<IOperationResult<TResult>> observer)
+            public IDisposable Subscribe(IObserver<IOperationResult<TResult>> observer)
             {
+                if (_strategy == ExecutionStrategy.NetworkOnly ||
+                    _request.Document.Kind == OperationKind.Subscription)
+                {
+                    var observerSession = new ObserverSession();
+                    BeginExecute(observer, observerSession);
+                    return observerSession;
+                }
+
                 var hasResultInStore = false;
 
                 if ((_strategy == ExecutionStrategy.CacheFirst ||
@@ -41,110 +48,75 @@ namespace StrawberryShake
                     observer.OnNext(result);
                 }
 
-                IDisposable session =
-                    _operationStore.Watch<TResult>(_request).Subscribe(observer);
+                IDisposable session = _operationStore.Watch<TResult>(_request).Subscribe(observer);
 
-                if (_request.Document.Kind == OperationKind.Subscription ||
-                    _strategy != ExecutionStrategy.CacheFirst ||
+                if (_strategy != ExecutionStrategy.CacheFirst ||
                     !hasResultInStore)
                 {
-                    var requestSession = new RequestSession();
-                    BeginExecute(requestSession);
-                    return new ObserverSession(session, requestSession);
+                    var observerSession = new ObserverSession();
+                    observerSession.SetStoreSession(session);
+                    BeginExecute(observer, observerSession);
+                    return observerSession;
                 }
 
                 return session;
             }
 
-            private void BeginExecute(RequestSession session) =>
-                Task.Run(() => ExecuteAsync(session));
+            private void BeginExecute(
+                IObserver<IOperationResult<TResult>> observer,
+                ObserverSession session) =>
+                Task.Run(() => ExecuteAsync(observer, session));
 
-            private async Task ExecuteAsync(RequestSession session)
+            private async Task ExecuteAsync(
+                IObserver<IOperationResult<TResult>> observer,
+                ObserverSession session)
             {
                 try
                 {
+                    CancellationToken token = session.RequestSession.Token;
                     IOperationResultBuilder<TData, TResult> resultBuilder = _resultBuilder();
 
                     await foreach (var response in
-                        _connection.ExecuteAsync(_request, session.Token).ConfigureAwait(false))
+                        _connection.ExecuteAsync(_request, token).ConfigureAwait(false))
                     {
-                        if (session.Token.IsCancellationRequested)
+                        if (token.IsCancellationRequested)
                         {
                             return;
                         }
 
-                        _operationStore.Set(_request, resultBuilder.Build(response));
+                        IOperationResult<TResult> result = resultBuilder.Build(response);
+                        _operationStore.Set(_request, result);
 
-                        if (_request.Document.Kind == OperationKind.Subscription)
+                        if (!session.HasStoreSession)
                         {
-                            _operationStore.Reset(_request);
+                            observer.OnNext(result);
+
+                            IDisposable storeSession =
+                                _operationStore
+                                    .Watch<TResult>(_request)
+                                    .Subscribe(observer);
+
+                            try
+                            {
+                                session.SetStoreSession(storeSession);
+                            }
+                            catch (ObjectDisposedException)
+                            {
+                                storeSession.Dispose();
+                                throw;
+                            }
                         }
                     }
+                }
+                catch (Exception ex)
+                {
+                    observer.OnError(ex);
                 }
                 finally
                 {
-                    session.Dispose();
-                }
-            }
-
-            private class ObserverSession : IDisposable
-            {
-                private readonly IDisposable _storeSession;
-                private readonly RequestSession _requestSession;
-                private bool _disposed;
-
-                public ObserverSession(IDisposable storeSession, RequestSession requestSession)
-                {
-                    _storeSession = storeSession;
-                    _requestSession = requestSession;
-                }
-
-                public void Dispose()
-                {
-                    if (!_disposed)
-                    {
-                        _requestSession.Dispose();
-                        _storeSession.Dispose();
-                        _disposed = true;
-                    }
-                }
-            }
-
-            private class RequestSession : IDisposable
-            {
-                private readonly CancellationTokenSource _cts;
-                private bool _disposed;
-
-                public RequestSession()
-                {
-                    _cts = new CancellationTokenSource();
-                }
-
-                public CancellationToken Token => _cts.Token;
-
-                public void Cancel()
-                {
-                    try
-                    {
-                        if (!_disposed)
-                        {
-                            _cts.Cancel();
-                        }
-                    }
-                    catch(ObjectDisposedException)
-                    {
-                        // we do not care if this happens.
-                    }
-                }
-
-                public void Dispose()
-                {
-                    if (!_disposed)
-                    {
-                        Cancel();
-                        _cts.Dispose();
-                        _disposed = true;
-                    }
+                    // after all the transport logic is finished we will dispose
+                    // the request session.
+                    session.RequestSession.Dispose();
                 }
             }
         }

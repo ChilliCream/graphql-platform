@@ -577,6 +577,96 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
         }
 
         [Fact]
+        public async Task SubscribeToReview_WithInlineFragment()
+        {
+            // arrange
+            IRequestExecutor executor = await CreateExecutorAsync();
+
+            // act
+            var subscriptionResult =
+                (ISubscriptionResult)await executor.ExecuteAsync(
+                    @"subscription {
+                        onReview(episode: NEW_HOPE) {
+                            ... on Review {
+                                stars
+                            }
+                        }
+                    }");
+
+            // assert
+            IExecutionResult result =
+                await executor.ExecuteAsync(@"
+                    mutation {
+                        createReview(episode: NEW_HOPE,
+                            review: { stars: 5 commentary: ""foo"" }) {
+                            stars
+                            commentary
+                        }
+                    }");
+
+            IReadOnlyQueryResult eventResult = null;
+
+            using (var cts = new CancellationTokenSource(2000))
+            {
+                await foreach (IQueryResult queryResult in
+                    subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
+                {
+                    var item = (IReadOnlyQueryResult) queryResult;
+                    eventResult = item;
+                    break;
+                }
+            }
+
+            eventResult?.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SubscribeToReview_FragmentDefinition()
+        {
+            // arrange
+            IRequestExecutor executor = await CreateExecutorAsync();
+
+            // act
+            var subscriptionResult =
+                (ISubscriptionResult)await executor.ExecuteAsync(
+                    @"subscription {
+                        onReview(episode: NEW_HOPE) {
+                            ... SomeFrag
+                        }
+                    }
+
+                    fragment SomeFrag on Review {
+                        stars
+                    }");
+
+            // assert
+            IExecutionResult result =
+                await executor.ExecuteAsync(@"
+                    mutation {
+                        createReview(episode: NEW_HOPE,
+                            review: { stars: 5 commentary: ""foo"" }) {
+                            stars
+                            commentary
+                        }
+                    }");
+
+            IReadOnlyQueryResult eventResult = null;
+
+            using (var cts = new CancellationTokenSource(2000))
+            {
+                await foreach (IQueryResult queryResult in
+                    subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
+                {
+                    var item = (IReadOnlyQueryResult) queryResult;
+                    eventResult = item;
+                    break;
+                }
+            }
+
+            eventResult?.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task SubscribeToReview_With_Variables()
         {
             // arrange

@@ -102,6 +102,12 @@ namespace HotChocolate.Types
                 return true;
             }
 
+            if (runtimeValue is DateTime d)
+            {
+                resultValue = Serialize(new DateTimeOffset(d.ToUniversalTime(), TimeSpan.Zero));
+                return true;
+            }
+
             resultValue = null;
             return false;
         }
@@ -154,7 +160,7 @@ namespace HotChocolate.Types
 
         private static bool TryDeserializeFromString(
             string? serialized,
-            [NotNullWhen(true)]out DateTimeOffset? value)
+            [NotNullWhen(true)] out DateTimeOffset? value)
         {
             if (serialized is not null
                 && serialized.EndsWith("Z")

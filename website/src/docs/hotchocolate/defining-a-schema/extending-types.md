@@ -4,6 +4,8 @@ title: "Extending Types"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
+> We are still working on the documentation for Hot Chocolate 11.1 so help us by finding typos, missing things or write some additional docs with us.
+
 In GraphQL we only have one query, mutation, and subscription type. These types can become huge, which makes them hard to maintain. To divide types into separate definitions, GraphQL allows to extend types.
 
 ```graphql
@@ -77,6 +79,15 @@ extend type Query {
 </ExampleTabs.Schema>
 </ExampleTabs>
 
+> Note: Type extensions need to be registered with the GraphQL configuration. If you are using ASP.NET core head over to your `Startup.cs` and add the type extension with `AddTypeExtension` to your schema.
+>
+> ```csharp
+> services
+>    .AddGraphQLServer()
+>    .AddQueryType<Query>()
+>    .AddTypeExtension<QueryExtensions>();
+> ```
+
 # Extending types with the annotation-based approach
 
 Extending types can be beneficial even with non-root types. Let's say we are building a schema with the annotation-based approach where we use pure C# to describe our types.
@@ -109,7 +120,7 @@ To replace the `TrackId` with a field `Track` that returns the `Tack` object we 
 [ExtendObjectType(typeof(Session))]
 public class SessionResolvers
 {
-    [BindProperty(nameof(Session.TrackId))]
+    [BindMember(nameof(Session.TrackId))]
     public async Task<Track> GetTrackAsync([Parent] Session session) => ...
 }
 ```

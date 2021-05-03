@@ -8,18 +8,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     public class ClientGenerator : ClassBaseGenerator<ClientDescriptor>
     {
         protected override void Generate(
-            CodeWriter writer,
             ClientDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings,
+            CodeWriter writer,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             fileName = descriptor.Name;
             path = null;
+            ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
                 .SetName(fileName)
-                .SetComment(descriptor.Documentation);
+                .SetComment(descriptor.Documentation)
+                .AddImplements(descriptor.InterfaceType.ToString());
 
             ConstructorBuilder constructorBuilder = classBuilder
                 .AddConstructor()
@@ -35,23 +39,20 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             foreach (OperationDescriptor operation in descriptor.Operations)
             {
                 AddConstructorAssignedField(
-                    operation.RuntimeType.ToString(),
+                    operation.InterfaceType.ToString(),
                     GetFieldName(operation.Name),
+                    GetParameterName(operation.Name),
                     classBuilder,
                     constructorBuilder);
 
                 classBuilder
                     .AddProperty(GetPropertyName(operation.Name))
                     .SetPublic()
-                    .SetType(operation.RuntimeType.ToString())
+                    .SetType(operation.InterfaceType.ToString())
                     .AsLambda(GetFieldName(operation.Name));
             }
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
-                .AddType(classBuilder)
-                .Build(writer);
+            classBuilder.Build(writer);
         }
     }
 }

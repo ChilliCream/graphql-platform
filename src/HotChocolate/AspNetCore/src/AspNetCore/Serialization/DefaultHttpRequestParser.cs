@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -81,9 +82,16 @@ namespace HotChocolate.AspNetCore.Serialization
 
             try
             {
-                DocumentNode? document = string.IsNullOrEmpty(query)
-                    ? null
-                    : Utf8GraphQLParser.Parse(query);
+                string? queryHash = null;
+                DocumentNode? document = null;
+
+
+                if (query is { Length: > 0 })
+                {
+                    byte[] buffer = Encoding.UTF8.GetBytes(query);
+                    document = Utf8GraphQLParser.Parse(buffer);
+                    queryHash = _documentHashProvider.ComputeHash(buffer);
+                }
 
                 IReadOnlyDictionary<string, object?>? variables = null;
 
@@ -102,7 +110,7 @@ namespace HotChocolate.AspNetCore.Serialization
                 return new GraphQLRequest(
                     document,
                     queryId,
-                    null,
+                    queryHash,
                     operationName,
                     variables,
                     extensions);

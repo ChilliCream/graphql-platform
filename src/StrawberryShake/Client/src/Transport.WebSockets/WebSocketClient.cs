@@ -14,7 +14,7 @@ namespace StrawberryShake.Transport.WebSockets
     /// identified by a URI and name.
     /// </summary>
     public sealed class WebSocketClient
-        : ISocketClient
+        : IWebSocketClient
     {
         private readonly IReadOnlyList<ISocketProtocolFactory> _protocolFactories;
         private readonly ClientWebSocket _socket;
@@ -59,6 +59,9 @@ namespace StrawberryShake.Transport.WebSockets
         public bool IsClosed =>
             _disposed
             || _socket.CloseStatus.HasValue;
+
+        /// <inheritdoc />
+        public ClientWebSocket Socket => _socket;
 
         /// <inheritdoc />
         public async Task<ISocketProtocol> OpenAsync(CancellationToken cancellationToken = default)

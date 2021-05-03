@@ -130,11 +130,15 @@ namespace HotChocolate.Types.Relay
                         break;
                 }
 
-                if (Base64.EncodeToUtf8InPlace(
-                    serialized, position, out bytesWritten) != OperationStatus.Done)
+                OperationStatus operationStatus =
+                    Base64.EncodeToUtf8InPlace(serialized, position, out bytesWritten);
+
+                if (operationStatus != OperationStatus.Done)
                 {
                     throw new IdSerializationException(
-                        TypeResources.IdSerializer_UnableToEncode);
+                        TypeResources.IdSerializer_UnableToEncode,
+                        operationStatus,
+                        idString);
                 }
 
                 serialized = serialized.Slice(0, bytesWritten);
@@ -192,11 +196,15 @@ namespace HotChocolate.Types.Relay
                 var bytesWritten = CopyString(serializedId, serialized);
                 serialized = serialized.Slice(0, bytesWritten);
 
-                if (Base64.DecodeFromUtf8InPlace(
-                    serialized, out bytesWritten) != OperationStatus.Done)
+                OperationStatus operationStatus =
+                    Base64.DecodeFromUtf8InPlace(serialized, out bytesWritten);
+
+                if (operationStatus != OperationStatus.Done)
                 {
                     throw new IdSerializationException(
-                        TypeResources.IdSerializer_UnableToDecode);
+                        TypeResources.IdSerializer_UnableToDecode,
+                        operationStatus,
+                        serializedId);
                 }
 
                 int nextSeparator;

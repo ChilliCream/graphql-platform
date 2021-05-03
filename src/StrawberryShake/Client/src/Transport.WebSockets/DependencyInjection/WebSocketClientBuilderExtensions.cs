@@ -21,9 +21,14 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="configureClient">
         /// A delegate that is used to configure an <see cref="WebSocketClient"/>.
         /// </param>
+        /// <param name="configureClientBuilder">
+        /// A delegate that is used to additionally configure the <see cref="IWebSocketClient"/>
+        /// with a <see cref="IWebSocketClientBuilder"/>
+        /// </param>
         public static IClientBuilder<T> ConfigureWebSocketClient<T>(
             this IClientBuilder<T> clientBuilder,
-            Action<ISocketClient> configureClient)
+            Action<IWebSocketClient> configureClient,
+            Action<IWebSocketClientBuilder>? configureClientBuilder = null)
             where T : IStoreAccessor
         {
             if (clientBuilder == null)
@@ -36,7 +41,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(configureClient));
             }
 
-            clientBuilder.Services.AddWebSocketClient(clientBuilder.ClientName, configureClient);
+            IWebSocketClientBuilder builder = clientBuilder.Services
+                .AddWebSocketClient(clientBuilder.ClientName, configureClient);
+
+            configureClientBuilder?.Invoke(builder);
+
             return clientBuilder;
         }
 
@@ -51,9 +60,14 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="configureClient">
         /// A delegate that is used to configure an <see cref="WebSocketClient"/>.
         /// </param>
+        /// <param name="configureClientBuilder">
+        /// A delegate that is used to additionally configure the <see cref="IWebSocketClient"/>
+        /// with a <see cref="IWebSocketClientBuilder"/>
+        /// </param>
         public static IClientBuilder<T> ConfigureWebSocketClient<T>(
             this IClientBuilder<T> clientBuilder,
-            Action<IServiceProvider, ISocketClient> configureClient)
+            Action<IServiceProvider, IWebSocketClient> configureClient,
+            Action<IWebSocketClientBuilder>? configureClientBuilder = null)
             where T : IStoreAccessor
         {
             if (clientBuilder == null)
@@ -66,7 +80,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(configureClient));
             }
 
-            clientBuilder.Services.AddWebSocketClient(clientBuilder.ClientName, configureClient);
+            IWebSocketClientBuilder builder = clientBuilder.Services
+                .AddWebSocketClient(clientBuilder.ClientName, configureClient);
+
+            configureClientBuilder?.Invoke(builder);
+
             return clientBuilder;
         }
 
@@ -84,7 +102,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </returns>
         public static IWebSocketClientBuilder ConfigureWebSocketClient(
             this IWebSocketClientBuilder builder,
-            Action<ISocketClient> configureClient)
+            Action<IWebSocketClient> configureClient)
         {
             if (builder == null)
             {
@@ -98,7 +116,14 @@ namespace Microsoft.Extensions.DependencyInjection
 
             builder.Services.Configure<SocketClientFactoryOptions>(
                 builder.Name,
-                options => options.SocketClientActions.Add(configureClient));
+                options => options.SocketClientActions.Add(
+                    socketClient =>
+                    {
+                        if (socketClient is IWebSocketClient webSocketClient)
+                        {
+                            configureClient(webSocketClient);
+                        }
+                    }));
 
             return builder;
         }
@@ -121,7 +146,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </remarks>
         public static IWebSocketClientBuilder ConfigureWebSocketClient(
             this IWebSocketClientBuilder builder,
-            Action<IServiceProvider, ISocketClient> configureClient)
+            Action<IServiceProvider, IWebSocketClient> configureClient)
         {
             if (builder == null)
             {
@@ -137,7 +162,13 @@ namespace Microsoft.Extensions.DependencyInjection
                 new ConfigureNamedOptions<SocketClientFactoryOptions>(
                     builder.Name,
                     options => options.SocketClientActions.Add(
-                        client => configureClient(sp, client))));
+                        socketClient =>
+                        {
+                            if (socketClient is IWebSocketClient webSocketClient)
+                            {
+                                configureClient(sp, webSocketClient);
+                            }
+                        })));
 
             return builder;
         }

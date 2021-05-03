@@ -5,6 +5,7 @@ using HotChocolate.Language;
 using StrawberryShake.CodeGeneration.Descriptors;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
@@ -58,13 +59,13 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public IReadOnlyCollection<ResultBuilderDescriptor> ResultBuilders => _resultBuilder.Values;
 
         public ClientDescriptor Client =>
-            _client ?? throw new NotImplementedException();
+            _client ?? throw new InvalidOperationException();
 
         public EntityIdFactoryDescriptor EntityIdFactory =>
-            _entityIdFactory ?? throw new NotImplementedException();
+            _entityIdFactory ?? throw new InvalidOperationException();
 
         public DependencyInjectionDescriptor DependencyInjection =>
-            _dependencyInjectionDescriptor ?? throw new NotImplementedException();
+            _dependencyInjectionDescriptor ?? throw new InvalidOperationException();
 
         public StoreAccessorDescriptor StoreAccessor =>
             _storeAccessorDescriptor ?? throw new NotImplementedException();
