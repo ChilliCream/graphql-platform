@@ -182,7 +182,7 @@ descriptor.UsePaging(options: new PagingOptions
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-TODO
+⚠️ Schema-first does currently not support pagination!
 
 </ExampleTabs.Schema>
 </ExampleTabs>
@@ -256,7 +256,7 @@ If we need to work on an even lower level, we could also use `descriptor.AddPagi
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-TODO
+⚠️ Schema-first does currently not support pagination!
 
 </ExampleTabs.Schema>
 </ExampleTabs>
@@ -287,7 +287,7 @@ descriptor.UsePaging(options: new PagingOptions
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-TODO
+⚠️ Schema-first does currently not support pagination!
 
 </ExampleTabs.Schema>
 </ExampleTabs>
@@ -314,7 +314,7 @@ var connection = new Connection<User>(
     getTotalCount: cancellationToken => ValueTask.FromResult(0));
 ```
 
-## Custom Edges
+<!-- ## Custom Edges
 
 _Edges_ are not only there to hold the _cusor_, they can also be used to include information about the relation between the parent and one of the _nodes_.
 
@@ -344,9 +344,7 @@ type PageInfo {
   startCursor: String
   endCursor: String
 }
-```
-
-TODO: Code Example
+``` -->
 
 # Offset Pagination
 
@@ -429,7 +427,7 @@ descriptor.UseOffsetPaging(options: new PagingOptions
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-TODO
+⚠️ Schema-first does currently not support pagination!
 
 </ExampleTabs.Schema>
 </ExampleTabs>
@@ -503,7 +501,7 @@ If we need to work on an even lower level, we could also use `descriptor.AddOffs
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-TODO
+⚠️ Schema-first does currently not support pagination!
 
 </ExampleTabs.Schema>
 </ExampleTabs>
@@ -534,7 +532,7 @@ descriptor.UseOffsetPaging(options: new PagingOptions
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-TODO
+⚠️ Schema-first does currently not support pagination!
 
 </ExampleTabs.Schema>
 </ExampleTabs>
