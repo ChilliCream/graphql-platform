@@ -1,4 +1,5 @@
 using System.Threading;
+using HotChocolate.Execution.Processing.Tasks;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing
@@ -87,32 +88,5 @@ namespace HotChocolate.Execution.Processing
                 }
             }
         }
-    }
-
-    internal abstract class ExecutionTaskPoolPolicy<T> where T : class, IExecutionTask
-    {
-        public abstract T Create(ObjectPool<T> executionTaskPool);
-
-        public virtual bool Reset(T executionTask) => true;
-    }
-
-    internal sealed class ResolverTaskPoolPolicy : ExecutionTaskPoolPolicy<ResolverTask>
-    {
-        public override ResolverTask Create(
-            ObjectPool<ResolverTask> executionTaskPool) =>
-            new(executionTaskPool);
-
-        public override bool Reset(ResolverTask executionTask) =>
-            executionTask.Reset();
-    }
-
-    internal sealed class PureResolverTaskPoolPolicy : ExecutionTaskPoolPolicy<PureResolverTask>
-    {
-        public override PureResolverTask Create(
-            ObjectPool<PureResolverTask> executionTaskPool) =>
-            new(executionTaskPool);
-
-        public override bool Reset(PureResolverTask executionTask) =>
-            executionTask.Reset();
     }
 }
