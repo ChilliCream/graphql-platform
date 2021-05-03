@@ -7,17 +7,18 @@ using Xunit;
 namespace HotChocolate.Data.Neo4J.Sorting.Boolean
 {
     public class Neo4JComparablesSortingTests
-        : SchemaCache,
-        IClassFixture<Neo4jResource>
+        : IClassFixture<Neo4JFixture>
     {
-        private string _fooEntities = @"
+        private readonly Neo4JFixture _fixture;
+
+        public Neo4JComparablesSortingTests(Neo4JFixture fixture)
+        {
+            _fixture = fixture;
+        }
+
+        private string _fooEntitiesCypher = @"
             CREATE (:Foo {Bar: 12}), (:Foo {Bar: 14}), (:Foo {Bar: 13})
         ";
-
-        public Neo4JComparablesSortingTests(Neo4jResource resource)
-        {
-            Init(resource);
-        }
 
         public class Foo
         {
@@ -33,7 +34,7 @@ namespace HotChocolate.Data.Neo4J.Sorting.Boolean
         public async Task Create_Short_OrderBy()
         {
             // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooSortType>(_fooEntities);
+            IRequestExecutor tester = await _fixture.CreateSchema<Foo, FooSortType>(_fooEntitiesCypher);
 
             // act
             IExecutionResult res1 = await tester.ExecuteAsync(

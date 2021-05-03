@@ -1,4 +1,7 @@
-﻿using System.Threading.Tasks;
+using System;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
+using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Execution;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
@@ -9,16 +12,26 @@ using Squadron;
 
 namespace HotChocolate.Data.Neo4J.Sorting
 {
-    public class SortingTestBase
+    public class Neo4JFixture : Neo4jResource<Neo4JConfig>
     {
-        protected async Task<IRequestExecutor> CreateSchema<TEntity, T>(
-            Neo4jResource neo4JResource,
-            string query)
+        private readonly ConcurrentDictionary<(Type, object), Task<IRequestExecutor>> _cache = new();
+
+        public Task<IRequestExecutor> GetOrCreateSchema<T, TType>(string cypher)
+            where T : class
+            where TType : SortInputType<T>
+        {
+            (Type, Type) key = (typeof(T), typeof(TType));
+            return _cache.GetOrAdd(
+                key,
+                k => CreateSchema<T, TType>(cypher));
+        }
+
+        public async Task<IRequestExecutor> CreateSchema<TEntity, T>(string cypher)
             where TEntity : class
             where T : SortInputType<TEntity>
         {
-            IAsyncSession session = neo4JResource.GetAsyncSession();
-            IResultCursor cursor = await session.RunAsync(query);
+            IAsyncSession session = GetAsyncSession();
+            IResultCursor cursor = await session.RunAsync(cypher);
             await cursor.ConsumeAsync();
 
             return new ServiceCollection()
@@ -28,7 +41,7 @@ namespace HotChocolate.Data.Neo4J.Sorting
                     c => c
                         .Name("Query")
                         .Field("root")
-                        .Resolver(new Neo4JExecutable<TEntity>(neo4JResource.GetAsyncSession()))
+                        .Resolver(new Neo4JExecutable<TEntity>(GetAsyncSession()))
                         .Use(
                             next => async context =>
                             {

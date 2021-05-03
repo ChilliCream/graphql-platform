@@ -1,15 +1,21 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using Squadron;
 using Xunit;
 
 namespace HotChocolate.Data.Neo4J.Projections.Relationship
 {
     public class Neo4JRelationshipProjectionTests
-        : IClassFixture<Neo4jResource>
+        : IClassFixture<Neo4JFixture>
     {
-        private readonly string _fooEntities = @"
+        private readonly Neo4JFixture _fixture;
+
+        public Neo4JRelationshipProjectionTests(Neo4JFixture fixture)
+        {
+            _fixture = fixture;
+        }
+
+        private readonly string _fooEntitiesCypher = @"
             CREATE (:Foo {BarBool: true, BarString: 'a', BarInt: 1, BarDouble: 1.5})-[:RELATED_TO]->(:Bar {Name: 'b', Number: 2})<-[:RELATED_FROM]-(:Baz {Name: 'c', Number: 3})
         ";
 
@@ -39,21 +45,13 @@ namespace HotChocolate.Data.Neo4J.Projections.Relationship
             public int Number { get; set; }
         }
 
-        private readonly SchemaCache _cache;
-
-        public Neo4JRelationshipProjectionTests(Neo4jResource resource)
-        {
-            _cache = new SchemaCache(resource);
-        }
-
         [Fact]
         public async Task OneRelationshipReturnOneProperty()
         {
             // arrange
-            IRequestExecutor tester = await _cache.CreateSchema<Foo>(_fooEntities);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo>(_fooEntitiesCypher);
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery(
@@ -71,6 +69,7 @@ namespace HotChocolate.Data.Neo4J.Projections.Relationship
                         ")
                     .Create());
 
+            // assert
             res1.MatchDocumentSnapshot();
         }
 
@@ -78,10 +77,10 @@ namespace HotChocolate.Data.Neo4J.Projections.Relationship
         public async Task TwoRelationshipReturnOneProperty()
         {
             // arrange
-            IRequestExecutor tester = await _cache.CreateSchema<Foo>(_fooEntities);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo>(_fooEntitiesCypher);
 
             // act
-            // assert
+
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery(
@@ -104,6 +103,7 @@ namespace HotChocolate.Data.Neo4J.Projections.Relationship
                         ")
                     .Create());
 
+            // assert
             res1.MatchDocumentSnapshot();
         }
     }

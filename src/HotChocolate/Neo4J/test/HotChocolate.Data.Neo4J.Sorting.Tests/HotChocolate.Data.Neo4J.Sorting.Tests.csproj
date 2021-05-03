@@ -16,4 +16,9 @@
     <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Boolean\__snapshots__" />
+    <Folder Include="Comparables\__snapshots__" />
+  </ItemGroup>
+
 </Project>

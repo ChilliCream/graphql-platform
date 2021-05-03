@@ -13,7 +13,7 @@ namespace HotChocolate.Data.Neo4J.Sorting
             if (result is null) return;
 
             if (result.ContextData is { } &&
-                result.ContextData.TryGetValue("query", out object? queryResult))
+                result.ContextData.TryGetValue("query", out var queryResult))
             {
                 queryResult.MatchSnapshot(new SnapshotNameExtension(snapshotName + "_query"));
             }

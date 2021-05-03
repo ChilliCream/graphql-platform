@@ -1,6 +1,7 @@
-﻿using System.Threading.Tasks;
+using System;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using HotChocolate.Data.Neo4J.Execution;
-using HotChocolate.Data.Neo4J.Paging;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
@@ -10,38 +11,41 @@ using Squadron;
 
 namespace HotChocolate.Data.Neo4J.Projections
 {
-    public class ProjectionsTestBase
+    public class Neo4JFixture : Neo4jResource<Neo4JConfig>
     {
-        protected async Task<IRequestExecutor> CreateSchema<TEntity>(
-            Neo4jResource neo4JResource,
-            string query,
-            bool useOffsetPaging = false,
-            ObjectType<TEntity>? objectType = null)
+
+        private readonly ConcurrentDictionary<(Type, object), Task<IRequestExecutor>> _cache = new();
+
+        public Task<IRequestExecutor> GetOrCreateSchema<T>(string cypher)
+            where T : class
+        {
+            (Type, string) key = (typeof(T), cypher);
+
+            return _cache.GetOrAdd(
+                key,
+                k => CreateSchema<T>(cypher));
+        }
+
+        protected async Task<IRequestExecutor> CreateSchema<TEntity>(string cypher)
             where TEntity : class
         {
-            IAsyncSession session = neo4JResource.GetAsyncSession();
-            IResultCursor cursor = await session.RunAsync(query);
+            IAsyncSession session = GetAsyncSession();
+            IResultCursor cursor = await session.RunAsync(cypher);
             await cursor.ConsumeAsync();
 
             IRequestExecutorBuilder builder = new ServiceCollection().AddGraphQL();
 
-            if (objectType is {})
-            {
-                builder.AddType(objectType);
-            }
-
             return builder
                 .AddNeo4JProjections()
-                //.AddNeo4JFiltering()
-                //.AddNeo4JSorting()
+                .AddNeo4JFiltering()
+                .AddNeo4JSorting()
                 .AddQueryType(
                     new ObjectType<StubObject<TEntity>>(
                         c =>
                         {
                             c.Name("Query");
-                            ApplyConfigurationToFieldDescriptor<TEntity>(
-                                c.Field(x => x.Root).Resolver(new Neo4JExecutable<TEntity>(neo4JResource.GetAsyncSession())),
-                                useOffsetPaging);
+                            ApplyConfigurationToFieldDescriptor(
+                                c.Field(x => x.Root).Resolver(new Neo4JExecutable<TEntity>(GetAsyncSession())));
                         }))
                 .UseRequest(
                     next => async context =>
@@ -66,15 +70,8 @@ namespace HotChocolate.Data.Neo4J.Projections
                 .Result;
         }
 
-        private static void ApplyConfigurationToFieldDescriptor<TEntity>(
-            IObjectFieldDescriptor descriptor,
-            bool useOffsetPaging = false)
+        private static void ApplyConfigurationToFieldDescriptor(IObjectFieldDescriptor descriptor)
         {
-            if (useOffsetPaging)
-            {
-                descriptor.UseNeo4JOffsetPaging<ObjectType<TEntity>>();
-            }
-
             descriptor
                 .Use(
                     next => async context =>
@@ -85,9 +82,9 @@ namespace HotChocolate.Data.Neo4J.Projections
                             context.ContextData["query"] = executable.Print();
                         }
                     })
-                .UseProjection();
-            //.UseFiltering()
-            //.UseSorting();
+                .UseProjection()
+                .UseFiltering()
+                .UseSorting();
         }
 
         public class StubObject<T>

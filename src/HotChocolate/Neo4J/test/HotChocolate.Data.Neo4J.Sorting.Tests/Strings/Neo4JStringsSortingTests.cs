@@ -1,23 +1,23 @@
 ﻿using System.Threading.Tasks;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
-using Squadron;
 using Xunit;
 
 namespace HotChocolate.Data.Neo4J.Sorting.Boolean
 {
     public class Neo4JStringsSortingTests
-        : SchemaCache,
-        IClassFixture<Neo4jResource>
+        : IClassFixture<Neo4JFixture>
     {
-        private string _fooEntities = @"
+        private readonly Neo4JFixture _fixture;
+
+        public Neo4JStringsSortingTests(Neo4JFixture fixture)
+        {
+            _fixture = fixture;
+        }
+
+        private string _fooEntitiesCypher = @"
             CREATE (:Foo {Bar: 'testatest'}), (:Foo {Bar: 'testbtest'})
         ";
-
-        public Neo4JStringsSortingTests(Neo4jResource resource)
-        {
-            Init(resource);
-        }
 
         public class Foo
         {
@@ -33,17 +33,17 @@ namespace HotChocolate.Data.Neo4J.Sorting.Boolean
         public async Task Create_String_OrderBy()
         {
             // arrange
-            IRequestExecutor tester = await CreateSchema<Foo, FooSortType>(_fooEntities);
+            IRequestExecutor tester = await _fixture.CreateSchema<Foo, FooSortType>(_fooEntitiesCypher);
 
             // act
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(order: { bar: ASC}){ bar}}")
+                    .SetQuery("{ root(order: { bar: ASC}){ bar }}")
                     .Create());
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(order: { bar: DESC}){ bar}}")
+                    .SetQuery("{ root(order: { bar: DESC}){ bar }}")
                     .Create());
 
             // assert
