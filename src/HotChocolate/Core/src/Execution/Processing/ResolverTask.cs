@@ -25,7 +25,6 @@ namespace HotChocolate.Execution.Processing
 
         public override void BeginExecute(CancellationToken cancellationToken)
         {
-            OperationContext.Execution.TaskStats.TaskStarted();
             _task = ExecuteAsync(cancellationToken).AsTask();
         }
 
@@ -52,7 +51,7 @@ namespace HotChocolate.Execution.Processing
             }
             finally
             {
-                OperationContext.Execution.TaskStats.TaskCompleted();
+                OperationContext.Execution.TaskBacklog.Complete(this);
                 _objectPool.Return(this);
             }
         }
@@ -168,6 +167,7 @@ namespace HotChocolate.Execution.Processing
             }
             finally
             {
+                OperationContext.Execution.TaskBacklog.Complete(this);
                 _objectPool.Return(this);
             }
         }
@@ -334,6 +334,48 @@ namespace HotChocolate.Execution.Processing
             {
                 task.BeginExecute(cancellationToken);
             }
+        }
+
+        public async Task WaitForCompletionAsync(CancellationToken cancellationToken)
+        {
+            foreach (var task in _tasks)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    break;
+                }
+
+                await task.WaitForCompletionAsync(cancellationToken);
+            }
+        }
+    }
+
+    internal class BatchResolverTask : IExecutionTask
+    {
+        private readonly List<IExecutionTask> _tasks = new();
+
+        public BatchResolverTask(IOperationContext context)
+        {
+            Context = context;
+        }
+
+        protected IOperationContext Context { get; }
+
+        public ExecutionTaskKind Kind => ExecutionTaskKind.Pure;
+
+        public ICollection<IExecutionTask> Tasks => _tasks;
+
+        public IExecutionTask? Next { get; set; }
+
+        public IExecutionTask? Previous { get; set; }
+
+        public void BeginExecute(CancellationToken cancellationToken)
+        {
+            foreach (var task in _tasks)
+            {
+                task.BeginExecute(cancellationToken);
+            }
+            Context.Execution.TaskBacklog.Complete(this);
         }
 
         public async Task WaitForCompletionAsync(CancellationToken cancellationToken)

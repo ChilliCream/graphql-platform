@@ -32,16 +32,16 @@ namespace HotChocolate.Execution.Processing
             DiagnosticEvents.TaskError(task, error);
         }
 
-        void IExecutionTaskContext.Started()
+        void IExecutionTaskContext.Started(IExecutionTask task)
         {
             AssertNotPooled();
-            Execution.TaskStats.TaskStarted();
+            //Execution.TaskBacklog..TaskStarted();
         }
 
-        void IExecutionTaskContext.Completed()
+        void IExecutionTaskContext.Completed(IExecutionTask task)
         {
             AssertNotPooled();
-            Execution.TaskStats.TaskCompleted();
+            Execution.TaskBacklog.Complete(task);
         }
 
         IDisposable IExecutionTaskContext.Track(IExecutionTask task)

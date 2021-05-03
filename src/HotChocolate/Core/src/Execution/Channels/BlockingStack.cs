@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -11,7 +12,7 @@ namespace HotChocolate.Execution.Channels
         private readonly Stack<T> _stack = new();
         private SpinLock _lock = new(Debugger.IsAttached);
 
-        public bool TryPop([MaybeNullWhen(false)]out T item)
+        public bool TryPop([MaybeNullWhen(false)] out T item)
         {
             var lockTaken = false;
             try
@@ -72,6 +73,8 @@ namespace HotChocolate.Execution.Channels
         private readonly Stack<IExecutionTask> _stack = new();
         private IExecutionTask? _head;
 
+        public event EventHandler<EventArgs>? BacklogEmpty;
+
         public void Complete(IExecutionTask executionTask)
         {
             var lockTaken = false;
@@ -108,13 +111,13 @@ namespace HotChocolate.Execution.Channels
             }
         }
 
-        public bool TryPeekInProgress([MaybeNullWhen(false)]out IExecutionTask executionTask)
+        public bool TryPeekInProgress([MaybeNullWhen(false)] out IExecutionTask executionTask)
         {
             executionTask = _head;
             return executionTask is not null;
         }
 
-        public bool TryTake([MaybeNullWhen(false)]out IExecutionTask executionTask)
+        public bool TryTake([MaybeNullWhen(false)] out IExecutionTask executionTask)
         {
             var lockTaken = false;
             try
@@ -126,6 +129,12 @@ namespace HotChocolate.Execution.Channels
                     executionTask = _stack.Pop();
                     MarkInProgress(executionTask);
                     IsEmpty = _stack.Count == 0;
+
+                    if (IsEmpty)
+                    {
+                        BacklogEmpty?.Invoke(this, EventArgs.Empty);
+                    }
+
                     return true;
                 }
 
@@ -135,6 +144,12 @@ namespace HotChocolate.Execution.Channels
                 {
                     MarkInProgress(executionTask);
                     IsEmpty = _stack.Count == 0;
+
+                    if (IsEmpty)
+                    {
+                        BacklogEmpty?.Invoke(this, EventArgs.Empty);
+                    }
+
                     return true;
                 }
 #endif
@@ -146,7 +161,7 @@ namespace HotChocolate.Execution.Channels
             }
         }
 
-        public void Push(IExecutionTask executionTask)
+        public int Push(IExecutionTask executionTask)
         {
             var lockTaken = false;
 
@@ -155,6 +170,7 @@ namespace HotChocolate.Execution.Channels
                 _lock.Enter(ref lockTaken);
                 _stack.Push(executionTask);
                 IsEmpty = false;
+                return _stack.Count;
             }
             finally
             {
@@ -175,9 +191,14 @@ namespace HotChocolate.Execution.Channels
             _head = executionTask;
         }
 
-        public void ClearUnsafe() =>
+        public void ClearUnsafe()
+        {
             _stack.Clear();
+            _head = null;
+        }
 
         public bool IsEmpty { get; private set; } = true;
+
+        public bool IsRunning => _head is not null;
     }
 }
