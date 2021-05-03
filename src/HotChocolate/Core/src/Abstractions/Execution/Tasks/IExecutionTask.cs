@@ -17,6 +17,11 @@ namespace HotChocolate.Execution
         ExecutionTaskKind Kind { get; }
 
         /// <summary>
+        /// Defines if this task is completed.
+        /// </summary>
+        bool IsCompleted { get; }
+
+        /// <summary>
         /// Begins executing this task.
         /// </summary>
         /// <param name="cancellationToken">

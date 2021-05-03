@@ -23,6 +23,8 @@ namespace HotChocolate.Execution.Processing.Tasks
 
         public abstract ExecutionTaskKind Kind { get; }
 
+        public bool IsCompleted { get; protected set; }
+
         public IExecutionTask? Parent { get; set; }
 
         public IExecutionTask? Next { get; set; }
@@ -59,6 +61,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             _operationContext = default!;
             _selection = default!;
             _resolverContext.Clean();
+            IsCompleted = false;
             Parent = null;
             Next = null;
             Previous = null;

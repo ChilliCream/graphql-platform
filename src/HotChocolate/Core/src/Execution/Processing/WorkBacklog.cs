@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Channels;
+using HotChocolate.Execution.Processing.Internal;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -88,7 +88,7 @@ namespace HotChocolate.Execution.Processing
                 {
                     if (backlogSize > _processors * 2 || _mainIsWaiting && _processors == 1)
                     {
-                        TryScale();
+                        TryScaleUnsafe();
                     }
                 }
             }
@@ -130,7 +130,7 @@ namespace HotChocolate.Execution.Processing
             BackPressureLimitExceeded = null;
         }
 
-        private void TryScale()
+        private void TryScaleUnsafe()
         {
             if (_processors < 4)
             {

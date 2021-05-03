@@ -21,6 +21,9 @@ namespace HotChocolate.Execution
         public ExecutionTaskKind Kind => ExecutionTaskKind.Parallel;
 
         /// <inheritdoc />
+        public bool IsCompleted => _task?.IsCompleted ?? false;
+
+        /// <inheritdoc />
         public IExecutionTask? Parent { get; set; }
 
         /// <inheritdoc />

@@ -11,8 +11,16 @@ namespace HotChocolate.Execution
     /// </summary>
     public abstract class PureExecutionTask : IExecutionTask
     {
+        /// <summary>
+        /// Gets the execution engine task context.
+        /// </summary>
+        protected abstract IExecutionTaskContext Context { get; }
+
         /// <inheritdoc />
         public ExecutionTaskKind Kind => ExecutionTaskKind.Pure;
+
+        /// <inheritdoc />
+        public bool IsCompleted { get; private set; }
 
         /// <inheritdoc />
         public IExecutionTask? Next { get; set; }
@@ -27,6 +35,8 @@ namespace HotChocolate.Execution
         public void BeginExecute(CancellationToken cancellationToken)
         {
             Execute(cancellationToken);
+            IsCompleted = true;
+            Context.Completed(this);
         }
 
         /// <inheritdoc />

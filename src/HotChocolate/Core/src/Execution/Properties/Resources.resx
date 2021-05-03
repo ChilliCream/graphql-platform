@@ -255,4 +255,8 @@
   <data name="ResultHelper_BuildResult_InvalidResult" xml:space="preserve">
     <value>A GraphQL result must have data, errors or both.</value>
   </data>
+  <data name="BatchExecutionTask_AddExecutionTask_SerialTasksNotAllowed" xml:space="preserve">
+    <value>Serial execution tasks cannot be batched.</value>
+  </data>
+  
 </root>

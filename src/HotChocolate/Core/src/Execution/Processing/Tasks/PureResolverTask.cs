@@ -45,6 +45,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             }
             finally
             {
+                IsCompleted = true;
                 OperationContext.Execution.Work.Complete(this);
                 _objectPool.Return(this);
             }

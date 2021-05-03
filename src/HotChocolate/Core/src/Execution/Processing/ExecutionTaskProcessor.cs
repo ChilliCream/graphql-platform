@@ -58,7 +58,7 @@ namespace HotChocolate.Execution.Processing
                     }
                 }
             } while (!cancellationToken.IsCancellationRequested &&
-                     !executionContext.IsCompleted);
+                !executionContext.IsCompleted);
         }
 
         private async Task ExecuteSecondaryProcessorAsync()
@@ -68,7 +68,7 @@ namespace HotChocolate.Execution.Processing
 
             await Task.Yield();
             bool completed;
-            RESTART:
+RESTART:
 
             try
             {
