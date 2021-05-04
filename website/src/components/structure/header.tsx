@@ -1,20 +1,19 @@
 import { graphql, useStaticQuery } from "gatsby";
 import React, { FunctionComponent, useState } from "react";
+import { useSelector } from "react-redux";
 import styled, { createGlobalStyle } from "styled-components";
 import { GetHeaderDataQuery } from "../../../graphql-types";
-import { IconContainer } from "../misc/icon-container";
-import { Link } from "../misc/link";
-import { Search } from "../misc/search";
-
 import BarsIconSvg from "../../images/bars.svg";
-import GithubIconSvg from "../../images/github.svg";
-import LogoIconSvg from "../../images/chillicream-winking.svg";
 import LogoTextSvg from "../../images/chillicream-text.svg";
+import LogoIconSvg from "../../images/chillicream-winking.svg";
+import GithubIconSvg from "../../images/github.svg";
 import SlackIconSvg from "../../images/slack.svg";
 import TimesIconSvg from "../../images/times.svg";
 import TwitterIconSvg from "../../images/twitter.svg";
-import { useSelector } from "react-redux";
 import { State } from "../../state";
+import { IconContainer } from "../misc/icon-container";
+import { Link } from "../misc/link";
+import { Search } from "../misc/search";
 
 export const Header: FunctionComponent = () => {
   const showShadow = useSelector<State, boolean>(

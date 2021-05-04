@@ -1,8 +1,7 @@
 import React, { createRef, FunctionComponent } from "react";
-import styled from "styled-components";
-
-import ArrowUpIconSvg from "../../images/arrow-up.svg";
 import { useSelector } from "react-redux";
+import styled from "styled-components";
+import ArrowUpIconSvg from "../../images/arrow-up.svg";
 import { State } from "../../state";
 
 export const PageTop: FunctionComponent<{ onTopScroll: () => void }> = ({
@@ -32,7 +31,7 @@ const JumpToTop = styled.button`
   position: fixed;
   right: 50px;
   bottom: 50px;
-  z-index: 20;
+  z-index: 29;
   display: none;
   border-radius: 50%;
   padding: 8px;

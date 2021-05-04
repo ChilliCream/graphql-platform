@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { IsPhablet, IsSmallDesktop } from "../../shared-style";
+import { IsSmallDesktop } from "../../shared-style";
 
 export const ArticleHeader = styled.header<{ readonly kind: "blog" | "doc" }>`
   position: relative;
@@ -7,14 +7,7 @@ export const ArticleHeader = styled.header<{ readonly kind: "blog" | "doc" }>`
   ${({ kind }) =>
     kind === "doc"
       ? IsSmallDesktop(`
-    padding-top: 54px;
-  `)
-      : ""}
-
-  ${({ kind }) =>
-    kind === "doc"
-      ? IsPhablet(`
-    padding-top: 20px;
+    padding-top: 60px;
   `)
       : ""}
 
