@@ -59,20 +59,20 @@ namespace HotChocolate.Data.Neo4J.Integration
                 await cursor.ConsumeAsync();
 
                 return new ServiceCollection()
-                .AddSingleton(Driver)
-                .AddGraphQL()
-                .AddQueryType(d => d.Name("Query"))
-                    .AddType<Queries>()
-                .AddNeo4JProjections()
-                .AddNeo4JFiltering()
-                .AddNeo4JSorting()
-                .UseDefaultPipeline()
-                .Services
-                .BuildServiceProvider()
-                .GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync()
-                .GetAwaiter()
-                .GetResult();
+                    .AddSingleton(Driver)
+                    .AddGraphQL()
+                        .AddQueryType(d => d.Name("Query"))
+                            .AddType<Queries>()
+                        .AddNeo4JProjections()
+                        .AddNeo4JFiltering()
+                        .AddNeo4JSorting()
+                    .UseDefaultPipeline()
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync()
+                    .GetAwaiter()
+                    .GetResult();
         }
     }
 }

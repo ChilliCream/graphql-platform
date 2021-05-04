@@ -13,6 +13,7 @@ type Movie {
 
 type Query {
   actors(where: ActorFilterInput order: [ActorSortInput!]): [Actor!]!
+  movies(where: MovieFilterInput order: [MovieSortInput!]): [Movie!]!
 }
 
 input ActorFilterInput {
@@ -37,6 +38,10 @@ input MovieFilterInput {
   and: [MovieFilterInput!]
   or: [MovieFilterInput!]
   title: StringOperationFilterInput
+}
+
+input MovieSortInput {
+  title: SortEnumType
 }
 
 input StringOperationFilterInput {

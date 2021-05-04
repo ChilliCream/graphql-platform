@@ -16,9 +16,10 @@ namespace HotChocolate.Data.Neo4J.Integration
         }
 
         [Fact]
-        public async Task Integration_ActorsQuery()
+        public async Task MoviesSchemaIntegrationTests()
         {
             IRequestExecutor tester = await _fixture.CreateSchema();
+            tester.Schema.Print().MatchSnapshot("MoviesSchema_Snapshot");
 
             IExecutionResult res1 = await tester.ExecuteAsync(
                 @"{
@@ -29,8 +30,39 @@ namespace HotChocolate.Data.Neo4J.Integration
                             }
                         }
                     }");
-            tester.Schema.Print().MatchSnapshot("Integration_ActorsQuery_SchemaSnapshot");
-            res1.MatchSnapshot("Integration_ActorsQuery");
+
+            res1.MatchSnapshot("MoviesSchema_Actors_Query");
+
+            IExecutionResult res2 = await tester.ExecuteAsync(
+                @"{
+                        actors (where : {name : { startsWith : ""Keanu"" }}) {
+                            name
+                            actedIn {
+                                title
+                            }
+                        }
+                    }");
+
+            res2.MatchSnapshot("MoviesSchema_Name_StartsWith_Actors_Query");
+
+            IExecutionResult res3 = await tester.ExecuteAsync(
+                @"{
+                        movies {
+                            title
+                        }
+                    }");
+            res3.MatchSnapshot("MoviesSchema_Movies_Query");
+
+            IExecutionResult res4 = await tester.ExecuteAsync(
+                @"{
+                        actors(order: [{ name : ASC }]) {
+                            name
+                            actedIn {
+                                title
+                            }
+                        }
+                    }");
+            res4.MatchSnapshot("MoviesSchema_Name_Desc_Sort_Actors_Query");
         }
     }
 }
