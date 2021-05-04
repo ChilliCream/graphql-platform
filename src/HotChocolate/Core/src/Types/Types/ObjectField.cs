@@ -63,6 +63,13 @@ namespace HotChocolate.Types
         public PureFieldDelegate? PureResolver { get; private set; }
 
         /// <summary>
+        /// Gets a field resolver that can be used to inline the resolver execution into the parent
+        /// resolver. Resolvers can only be inlined if they abide to the rules of the pure-resolver.
+        /// Further inline resolvers cannot have arguments and do not have access to context data.
+        /// </summary>
+        public InlineFieldDelegate? InlineResolver { get; private set; }
+
+        /// <summary>
         /// Gets the subscription resolver.
         /// </summary>
         public SubscribeResolverDelegate? SubscribeResolver { get; }
@@ -164,6 +171,17 @@ namespace HotChocolate.Types
 
             Resolver = definition.Resolver!;
 
+            if (definition.PureResolver is not null)
+            {
+                PureFieldResolverDelegate pure = definition.PureResolver;
+                PureResolver = c => c.Result = pure(c);
+            }
+
+            if (definition.InlineResolver is not null)
+            {
+                InlineResolver = definition.InlineResolver;
+            }
+
             if (!isIntrospectionField || Resolver is null!)
             {
                 // gets resolvers that were provided via type extensions,
@@ -176,6 +194,7 @@ namespace HotChocolate.Types
                 // middleware components than we will make the pure resolver variant
                 // available on this field.
                 PureFieldResolverDelegate? pureResolver =
+                    definition.PureResolver is null &&
                     external &&
                     (skipMiddleware ||
                         (context.GlobalComponents.Count == 0 &&
@@ -187,6 +206,15 @@ namespace HotChocolate.Types
                 if (pureResolver is not null)
                 {
                     PureResolver = c => c.Result = pureResolver(c);
+
+                    if (context.DescriptorContext.Options.AllowInlining &&
+                        InlineResolver is null &&
+                        (definition.ResolverMember is null ||
+                         ReferenceEquals(definition.Member, definition.ResolverMember)) &&
+                        definition.Member is PropertyInfo property)
+                    {
+                        InlineResolver = CompileInlineResolver(property);
+                    }
                 }
             }
 
@@ -243,6 +271,19 @@ namespace HotChocolate.Types
             // in all other cases we will pick the internal resolver delegate.
             externalResolver = false;
             return currentResolver;
+        }
+
+        /// <summary>
+        /// This helper method can compile a inline resolver from a property.
+        /// </summary>
+        private static InlineFieldDelegate CompileInlineResolver(PropertyInfo property)
+        {
+            const string parent = nameof(parent);
+            ParameterExpression parentParam = Expression.Parameter(typeof(object), parent);
+            Expression castParent = Expression.Convert(parentParam, property.DeclaringType!);
+            MemberExpression propertyAccessor = Expression.Property(castParent, property);
+            Expression result = Expression.Convert(propertyAccessor, typeof(object));
+            return Expression.Lambda<InlineFieldDelegate>(result, parentParam).Compile();
         }
 
         public override string ToString() => $"{Name}:{Type.Visualize()}";

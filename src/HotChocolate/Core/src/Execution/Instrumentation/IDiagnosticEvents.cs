@@ -140,6 +140,21 @@ namespace HotChocolate.Execution.Instrumentation
         void TaskError(IExecutionTask task, IError error);
 
         /// <summary>
+        /// This event is called when the request execution pipeline scales
+        /// the task processors up or down.
+        /// </summary>
+        /// <param name="context">
+        /// The request that is being executed.
+        /// </param>
+        /// <param name="backlogSize">
+        /// The current backlog size.
+        /// </param>
+        /// <param name="processors">
+        /// The new processor count.
+        /// </param>
+        void ScaleTaskProcessors(IRequestContext context, int backlogSize, int processors);
+
+        /// <summary>
         /// Called when a subscription was created.
         /// </summary>
         /// <param name="subscription">

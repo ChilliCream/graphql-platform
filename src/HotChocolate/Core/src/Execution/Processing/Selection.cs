@@ -47,7 +47,7 @@ namespace HotChocolate.Execution.Processing
             FieldNode selection,
             FieldDelegate? resolverPipeline,
             PureFieldDelegate? pureResolver,
-            Func<object?, object?>? inlineResolver,
+            InlineFieldDelegate? inlineResolver,
             NameString? responseName = null,
             IReadOnlyDictionary<NameString, ArgumentValue>? arguments = null,
             SelectionIncludeCondition? includeCondition = null,
@@ -138,7 +138,7 @@ namespace HotChocolate.Execution.Processing
         public PureFieldDelegate? PureResolver { get; }
 
         /// <inheritdoc />
-        public Func<object?, object?>? InlineResolver { get; }
+        public InlineFieldDelegate? InlineResolver { get; }
 
         /// <inheritdoc />
         public IArgumentMap Arguments { get; }

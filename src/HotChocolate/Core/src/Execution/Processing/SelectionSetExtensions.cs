@@ -284,17 +284,5 @@ namespace HotChocolate.Execution.Processing
             operationContext.Result.AddError(error, selection.SyntaxNode);
             operationContext.DiagnosticEvents.ResolverError(middlewareContext, error);
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void TrySetValue(
-            IOperationContext operationContext,
-            ISelection selection,
-            int responseIndex,
-            Path path,
-            ResultMap resultMap,
-            object? completedValue)
-        {
-
-        }
     }
 }

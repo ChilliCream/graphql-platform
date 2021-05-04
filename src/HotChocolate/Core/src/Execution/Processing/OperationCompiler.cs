@@ -19,9 +19,6 @@ namespace HotChocolate.Execution.Processing
         private readonly ISchema _schema;
         private readonly FragmentCollection _fragments;
 
-        private static readonly ConcurrentDictionary<IObjectField, Func<object?, object?>> _cache =
-            new();
-
         private OperationCompiler(
             ISchema schema,
             FragmentCollection fragments)
@@ -252,7 +249,7 @@ namespace HotChocolate.Execution.Processing
 
                 if (includeCondition is not null && selection.SelectionSet is not null)
                 {
-                    var selectionPath = context.SelectionPath.Append(responseName);
+                    SelectionPath selectionPath = context.SelectionPath.Append(responseName);
 
                     for (var i = 0; i < selection.SelectionSet.Selections.Count; i++)
                     {
@@ -537,7 +534,7 @@ namespace HotChocolate.Execution.Processing
                 ? (IInputType)argument.Type.InnerType()
                 : argument.Type;
 
-            object? runtimeValue = type.ParseLiteral(value);
+            var runtimeValue = type.ParseLiteral(value);
 
             return argument.Formatter is not null
                 ? argument.Formatter.OnAfterDeserialize(runtimeValue)
@@ -587,25 +584,13 @@ namespace HotChocolate.Execution.Processing
             return null;
         }
 
-        private Func<object?, object?>? TryCreateInlineField(
+        private InlineFieldDelegate? TryCreateInlineField(
             IObjectField field,
             FieldNode selection)
         {
-            if (field.PureResolver is not null &&
-                selection.Directives.Count == 0 &&
-                field.Member is PropertyInfo property)
+            if (field.InlineResolver is not null && selection.Directives.Count == 0)
             {
-                if (!_cache.TryGetValue(field, out var resolver))
-                {
-                    ParameterExpression parameter = Expression.Parameter(typeof(object), "parent");
-                    Expression parent = Expression.Convert(parameter, property.DeclaringType!);
-                    MemberExpression propertyAccessor = Expression.Property(parent, property);
-                    Expression result = Expression.Convert(propertyAccessor, typeof(object));
-                    resolver = Expression.Lambda<Func<object?, object?>>(result, parameter).Compile();
-                    _cache.TryAdd(field, resolver);
-                }
-
-                return resolver;
+                return field.InlineResolver;
             }
 
             return null;

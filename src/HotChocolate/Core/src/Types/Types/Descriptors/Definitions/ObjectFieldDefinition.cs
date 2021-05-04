@@ -57,6 +57,16 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public FieldResolverDelegate? Resolver { get; set; }
 
         /// <summary>
+        /// The delegate that represents an optional pure resolver.
+        /// </summary>
+        public PureFieldResolverDelegate? PureResolver { get; set; }
+
+        /// <summary>
+        /// The delegate that represents an optional inline resolver.
+        /// </summary>
+        public InlineFieldDelegate? InlineResolver { get; set; }
+
+        /// <summary>
         /// The delegate that represents the pub-/sub-system subscribe delegate to open an
         /// event stream in case this field represents a subscription.
         /// </summary>

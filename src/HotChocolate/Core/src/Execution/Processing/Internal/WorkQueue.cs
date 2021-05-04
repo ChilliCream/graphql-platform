@@ -12,12 +12,15 @@ namespace HotChocolate.Execution.Processing.Internal
         private SpinLock _lock = new(Debugger.IsAttached);
         private readonly Stack<IExecutionTask> _stack = new();
         private IExecutionTask? _head;
+        private int _count;
 
         public event EventHandler<EventArgs>? BacklogEmpty;
 
         public bool IsEmpty { get; private set; } = true;
 
         public bool IsRunning => _head is not null;
+
+        public int Count => _count;
 
         public void Complete(IExecutionTask executionTask)
         {
@@ -81,6 +84,7 @@ namespace HotChocolate.Execution.Processing.Internal
                     executionTask = _stack.Pop();
                     MarkInProgress(executionTask);
                     IsEmpty = _stack.Count == 0;
+                    _count = _stack.Count;
 
                     if (IsEmpty)
                     {
@@ -96,6 +100,7 @@ namespace HotChocolate.Execution.Processing.Internal
                 {
                     MarkInProgress(executionTask);
                     IsEmpty = _stack.Count == 0;
+                    _count = _stack.Count;
 
                     if (IsEmpty)
                     {
@@ -119,7 +124,7 @@ namespace HotChocolate.Execution.Processing.Internal
             {
                 throw new ArgumentNullException(nameof(executionTask));
             }
-            
+
             var lockTaken = false;
 
             try
@@ -127,7 +132,7 @@ namespace HotChocolate.Execution.Processing.Internal
                 _lock.Enter(ref lockTaken);
                 _stack.Push(executionTask);
                 IsEmpty = false;
-                return _stack.Count;
+                return _count = _stack.Count;
             }
             finally
             {
@@ -151,6 +156,8 @@ namespace HotChocolate.Execution.Processing.Internal
         public void ClearUnsafe()
         {
             _stack.Clear();
+            IsEmpty = true;
+            _count = 0;
             _head = null;
         }
     }

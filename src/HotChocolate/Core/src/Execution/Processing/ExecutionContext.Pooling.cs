@@ -44,6 +44,8 @@ namespace HotChocolate.Execution.Processing
             _batchDispatcher = batchDispatcher;
             _batchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
 
+            _workBacklog.RequestContext = _operationContext.RequestContext;
+
             _isInitialized = true;
         }
 

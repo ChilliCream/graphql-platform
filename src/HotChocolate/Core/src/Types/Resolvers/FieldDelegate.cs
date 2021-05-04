@@ -16,4 +16,9 @@ namespace HotChocolate.Resolvers
     /// </summary>
     /// <param name="context">The middleware context.</param>
     public delegate void PureFieldDelegate(IMiddlewareContext context);
+
+    /// <summary>
+    /// This delegate represents a field resolver that can be inlined when executing.
+    /// </summary>
+    public delegate object? InlineFieldDelegate(object? parent);
 }
