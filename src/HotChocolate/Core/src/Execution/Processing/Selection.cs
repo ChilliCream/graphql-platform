@@ -34,6 +34,7 @@ namespace HotChocolate.Execution.Processing
                 selection,
                 resolverPipeline,
                 pureResolver: null,
+                inlineResolver: null,
                 responseName,
                 arguments,
                 includeCondition,
@@ -46,6 +47,7 @@ namespace HotChocolate.Execution.Processing
             FieldNode selection,
             FieldDelegate? resolverPipeline,
             PureFieldDelegate? pureResolver,
+            Func<object?, object?>? inlineResolver,
             NameString? responseName = null,
             IReadOnlyDictionary<NameString, ArgumentValue>? arguments = null,
             SelectionIncludeCondition? includeCondition = null,
@@ -67,6 +69,7 @@ namespace HotChocolate.Execution.Processing
                 selection.Name.Value;
             ResolverPipeline = resolverPipeline;
             PureResolver = pureResolver;
+            InlineResolver = inlineResolver;
             Arguments = arguments is null
                 ? _emptyArguments
                 : new ArgumentMap(arguments);
@@ -94,6 +97,7 @@ namespace HotChocolate.Execution.Processing
             ResponseName = selection.ResponseName;
             ResolverPipeline = selection.ResolverPipeline;
             PureResolver = selection.PureResolver;
+            InlineResolver = selection.InlineResolver;
             Arguments = selection.Arguments;
             InclusionKind = selection.InclusionKind;
         }
@@ -132,6 +136,9 @@ namespace HotChocolate.Execution.Processing
 
         /// <inheritdoc />
         public PureFieldDelegate? PureResolver { get; }
+
+        /// <inheritdoc />
+        public Func<object?, object?>? InlineResolver { get; }
 
         /// <inheritdoc />
         public IArgumentMap Arguments { get; }

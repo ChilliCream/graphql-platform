@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,9 +58,23 @@ namespace HotChocolate.Execution.Processing.Tasks
         {
             try
             {
-                if (!cancellationToken.IsCancellationRequested)
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return false;
+                }
+
+                if (Selection.Arguments.IsFinalNoErrors)
                 {
                     ResolverContext.Arguments = Selection.Arguments;
+                    ResolverContext.PureResolver!(ResolverContext);
+                    return true;
+                }
+
+                if (Selection.Arguments.TryCoerceArguments(
+                    ResolverContext,
+                    out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs))
+                {
+                    ResolverContext.Arguments = coercedArgs;
                     ResolverContext.PureResolver!(ResolverContext);
                     return true;
                 }

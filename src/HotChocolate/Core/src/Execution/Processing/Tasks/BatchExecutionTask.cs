@@ -8,8 +8,7 @@ namespace HotChocolate.Execution.Processing.Tasks
 {
     internal class BatchExecutionTask : IExecutionTask
     {
-        private readonly List<IExecutionTask> _pure = new();
-        private readonly List<IExecutionTask> _parallel = new();
+        private readonly List<IExecutionTask> _tasks = new();
         private IOperationContext _operationContext = default!;
         private Task _task = Task.CompletedTask;
 
@@ -27,14 +26,19 @@ namespace HotChocolate.Execution.Processing.Tasks
         {
             try
             {
-                if (_pure.Count > 0)
+                for (var i = 0; i < _tasks.Count; i++)
                 {
-                    ExecutePure(cancellationToken);
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
+                    _tasks[i].BeginExecute(cancellationToken);
                 }
 
-                if (_parallel.Count > 0)
+                if (Kind == ExecutionTaskKind.Parallel)
                 {
-                    _task = ExecuteParallelAsync(cancellationToken);
+                    _task = CompleteParallelTasksAsync(cancellationToken).AsTask();
                 }
             }
             finally
@@ -47,41 +51,18 @@ namespace HotChocolate.Execution.Processing.Tasks
             }
         }
 
-        private void ExecutePure(CancellationToken cancellationToken)
-        {
-            for (var i = 0; i < _pure.Count; i++)
-            {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    break;
-                }
-
-                _pure[i].BeginExecute(cancellationToken);
-            }
-        }
-
-        private async Task ExecuteParallelAsync(CancellationToken cancellationToken)
+        private async ValueTask CompleteParallelTasksAsync(CancellationToken cancellationToken)
         {
             try
             {
-                for (var i = 0; i < _parallel.Count; i++)
+                for (var i = 0; i < _tasks.Count; i++)
                 {
                     if (cancellationToken.IsCancellationRequested)
                     {
                         break;
                     }
 
-                    _parallel[i].BeginExecute(cancellationToken);
-                }
-
-                for (var i = 0; i < _parallel.Count; i++)
-                {
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        break;
-                    }
-
-                    IExecutionTask task = _parallel[i];
+                    IExecutionTask task = _tasks[i];
 
                     if (!task.IsCompleted)
                     {
@@ -116,11 +97,11 @@ namespace HotChocolate.Execution.Processing.Tasks
             if (executionTask.Kind == ExecutionTaskKind.Parallel)
             {
                 Kind = ExecutionTaskKind.Parallel;
-                _parallel.Add(executionTask);
+                _tasks.Add(executionTask);
             }
             else
             {
-                _pure.Add(executionTask);
+                _tasks.Add(executionTask);
             }
         }
 
@@ -131,8 +112,7 @@ namespace HotChocolate.Execution.Processing.Tasks
 
         public void Reset()
         {
-            _parallel.Clear();
-            _pure.Clear();
+            _tasks.Clear();
             _task = Task.CompletedTask;
             Kind = ExecutionTaskKind.Pure;
             IsCompleted = false;

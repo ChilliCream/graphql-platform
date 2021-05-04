@@ -36,11 +36,7 @@ namespace HotChocolate.Execution.Processing
                 ISelection selection = selections[i];
                 if (selection.IsIncluded(operationContext.Variables))
                 {
-                    // TODO: Implement Mutation Executor
-                    throw new NotImplementedException();
-
-                    /*
-                    operationContext.Execution.TaskBacklog.Register(
+                    IExecutionTask task = operationContext.CreateTask(
                         new ResolverTaskDefinition(
                             operationContext,
                             selection,
@@ -49,7 +45,8 @@ namespace HotChocolate.Execution.Processing
                             operationContext.RootValue,
                             Path.New(selection.ResponseName),
                             scopedContext));
-                            */
+
+                    operationContext.Execution.Work.Register(task);
 
                     await ExecutionTaskProcessor.ExecuteAsync(operationContext).ConfigureAwait(false);
 

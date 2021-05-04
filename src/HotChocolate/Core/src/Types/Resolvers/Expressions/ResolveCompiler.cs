@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+using HotChocolate.Resolvers.CodeGeneration;
 using HotChocolate.Resolvers.Expressions.Parameters;
 
 #nullable enable
@@ -18,16 +20,6 @@ namespace HotChocolate.Resolvers.Expressions
             typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.AwaitValueTaskHelper))!;
         private static readonly MethodInfo _wrapResultHelper =
             typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.WrapResultHelper))!;
-
-        public ResolveCompiler()
-        {
-        }
-
-        public ResolveCompiler(
-            IEnumerable<IResolverParameterCompiler> compilers)
-            : base(compilers)
-        {
-        }
 
         public FieldResolver Compile(ResolverDescriptor descriptor)
         {
@@ -53,7 +45,9 @@ namespace HotChocolate.Resolvers.Expressions
 
                     pureResolver = CreatePureResolver(
                         resolverInstance,
-                        descriptor.Field.Member);
+                        descriptor.Field.Member,
+                        descriptor.SourceType,
+                        descriptor.ResolverType ?? descriptor.SourceType);
                 }
 
                 return new FieldResolver(
@@ -132,12 +126,27 @@ namespace HotChocolate.Resolvers.Expressions
 
         private PureFieldResolverDelegate? CreatePureResolver(
             Expression resolverInstance,
-            MemberInfo member)
+            MemberInfo member,
+            Type sourceType,
+            Type resolverType)
         {
             if (member is PropertyInfo property && IsPureResult(property.PropertyType))
             {
                 MemberExpression propertyAccessor = Expression.Property(resolverInstance, property);
                 Expression result = Expression.Convert(propertyAccessor, typeof(object));
+                return Expression.Lambda<PureFieldResolverDelegate>(result, Context).Compile();
+            }
+
+            if (member is MethodInfo method &&
+                IsPureMethod(method, resolverType) &&
+                IsPureResult(method.ReturnType) &&
+                method.GetParameters().All(p => ArgumentHelper.IsPure(p, sourceType)))
+            {
+                IEnumerable<Expression> parameters =
+                    CreateParameters(method.GetParameters(), sourceType);
+                MethodCallExpression resolverCall =
+                    Expression.Call(resolverInstance, method, parameters);
+                Expression result = Expression.Convert(resolverCall, typeof(object));
                 return Expression.Lambda<PureFieldResolverDelegate>(result, Context).Compile();
             }
 
@@ -170,6 +179,22 @@ namespace HotChocolate.Resolvers.Expressions
             }
 
             return WrapResult(resolverExpression, resultType);
+        }
+
+        private static bool IsPureMethod(MethodInfo methodInfo, Type resolverType)
+        {
+            if (methodInfo.IsDefined(typeof(PureAttribute)))
+            {
+                return true;
+            }
+
+            ConstructorInfo[] constructors = resolverType.GetConstructors();
+            if (constructors.Length == 1 && constructors[0].GetParameters().Length == 0)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private static bool IsPureResult(Type resultType)

@@ -8,6 +8,7 @@ namespace HotChocolate.Execution.Benchmarks
     class Program
     {
         static void Main(string[] args)
+        /*
         {
             var bench = new DefaultExecutionPipelineBenchmark();
 
@@ -17,8 +18,9 @@ namespace HotChocolate.Execution.Benchmarks
                 bench.GetHeroWithFriends();
             }
         }
-        // {
-        //    BenchmarkRunner.Run<DefaultExecutionPipelineBenchmark>();
-        // }
+        */
+        {
+            BenchmarkRunner.Run<DefaultExecutionPipelineBenchmark>();
+        }
     }
 }

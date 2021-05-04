@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -35,6 +36,8 @@ namespace HotChocolate.Execution.Processing
         /// The compiled pure resolver.
         /// </summary>
         PureFieldDelegate? PureResolver { get; }
+
+        Func<object?, object?>? InlineResolver { get; }
 
         /// <summary>
         /// The arguments that have been pre-coerced for this field selection.

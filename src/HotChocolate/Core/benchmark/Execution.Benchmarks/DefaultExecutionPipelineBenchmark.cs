@@ -38,6 +38,8 @@ namespace HotChocolate.Execution.Benchmarks
             _getTwoHerosWithFriendsRequest = CreateRequest(md5, resources, "GetTwoHerosWithFriendsQuery.graphql");
             _largeQuery = CreateRequest(md5, resources, "LargeQuery.graphql");
             _introspectionRequest = CreateRequest(md5, resources, "IntrospectionQuery.graphql");
+
+            SchemaIntrospection().Wait();
         }
 
         private static IReadOnlyQueryRequest CreateRequest(
@@ -115,7 +117,7 @@ namespace HotChocolate.Execution.Benchmarks
             return OneRequest(_executor, _largeQuery);
         }
 
-        // [Benchmark]
+        [Benchmark]
         public Task LargeQueryFiveParallelRequests()
         {
             return FiveRequestsInParallel(_executor, _largeQuery);

@@ -57,10 +57,20 @@ namespace HotChocolate.Execution.Processing.Tasks
         {
             try
             {
-                if (!cancellationToken.IsCancellationRequested &&
-                    Selection.Arguments.TryCoerceArguments(
-                    ResolverContext.Variables,
-                    ResolverContext.ReportError,
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return false;
+                }
+
+                if (Selection.Arguments.IsFinalNoErrors)
+                {
+                    ResolverContext.Arguments = Selection.Arguments;
+                    await ExecuteResolverPipelineAsync(cancellationToken).ConfigureAwait(false);
+                    return true;
+                }
+
+                if (Selection.Arguments.TryCoerceArguments(
+                    ResolverContext,
                     out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs))
                 {
                     ResolverContext.Arguments = coercedArgs;

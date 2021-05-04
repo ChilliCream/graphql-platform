@@ -21,11 +21,9 @@ namespace HotChocolate.Execution.Processing
                 return true;
             }
 
-            // if work related to the operation context has completed or if it never started
-            // we can reuse the operation context.
-            if (obj.Execution.IsCompleted ||
-                (obj.Execution.Work.IsEmpty &&
-                    !obj.Execution.Work.IsRunning))
+            // if work related to the operation context has completed can
+            // reuse the operation context.
+            if (obj.Execution.IsCompleted)
             {
                 obj.Clean();
                 return true;

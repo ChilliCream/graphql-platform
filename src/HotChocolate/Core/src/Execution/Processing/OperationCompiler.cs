@@ -1,11 +1,15 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing
@@ -14,6 +18,9 @@ namespace HotChocolate.Execution.Processing
     {
         private readonly ISchema _schema;
         private readonly FragmentCollection _fragments;
+
+        private static readonly ConcurrentDictionary<IObjectField, Func<object?, object?>> _cache =
+            new();
 
         private OperationCompiler(
             ISchema schema,
@@ -235,6 +242,7 @@ namespace HotChocolate.Execution.Processing
                         responseName: responseName,
                         resolverPipeline: TryCreateFieldMiddleware(field, selection),
                         pureResolver: TryCreatePureField(field, selection),
+                        inlineResolver: TryCreateInlineField(field, selection),
                         arguments: CoerceArgumentValues(field, selection, responseName),
                         includeCondition: includeCondition,
                         internalSelection: context.IsInternalSelection);
@@ -574,6 +582,30 @@ namespace HotChocolate.Execution.Processing
             if (field.PureResolver is not null && selection.Directives.Count == 0)
             {
                 return field.PureResolver;
+            }
+
+            return null;
+        }
+
+        private Func<object?, object?>? TryCreateInlineField(
+            IObjectField field,
+            FieldNode selection)
+        {
+            if (field.PureResolver is not null &&
+                selection.Directives.Count == 0 &&
+                field.Member is PropertyInfo property)
+            {
+                if (!_cache.TryGetValue(field, out var resolver))
+                {
+                    ParameterExpression parameter = Expression.Parameter(typeof(object), "parent");
+                    Expression parent = Expression.Convert(parameter, property.DeclaringType!);
+                    MemberExpression propertyAccessor = Expression.Property(parent, property);
+                    Expression result = Expression.Convert(propertyAccessor, typeof(object));
+                    resolver = Expression.Lambda<Func<object?, object?>>(result, parameter).Compile();
+                    _cache.TryAdd(field, resolver);
+                }
+
+                return resolver;
             }
 
             return null;

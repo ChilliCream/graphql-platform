@@ -1,1 +1,1 @@
-﻿[{"data":{"hero":{"id":"1000"}}},{"errors":[{"message":"Unexpected Execution Error","locations":[{"line":4,"column":33}],"path":["human","name"]}],"data":{"human":null}}]
+﻿[{"data":{"hero":{"id":"1000"}}},{"data":{"human":{"name":"Luke Skywalker"}}}]
