@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +11,7 @@ namespace HotChocolate.Execution.Processing
     internal class WorkBacklog : IWorkBacklog
     {
         private readonly object _sync = new();
-        private readonly WorkQueue _work = new();
+        private readonly MonitorWorkQueue _work = new();
         private int _processors = 1;
         private bool _mainIsWaiting;
 
