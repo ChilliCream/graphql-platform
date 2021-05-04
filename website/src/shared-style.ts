@@ -47,5 +47,9 @@ export function IsDesktop(innerStyle: SimpleInterpolation) {
   `;
 }
 
-export const DocPageDesktopGridColumns = `grid-template-columns: 1fr 250px 820px 250px 1fr;`;
-export const BoxShadow = `box-shadow: rgba(0, 0, 0, 0.25) 0px 3px 6px 0px;`;
+export const DocPageDesktopGridColumns = css`
+  grid-template-columns: 1fr 250px 820px 250px 1fr;
+`;
+export const BoxShadow = css`
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 3px 6px 0px;
+`;
