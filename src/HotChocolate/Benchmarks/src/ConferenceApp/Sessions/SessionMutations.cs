@@ -1,12 +1,12 @@
 using System.Threading;
 using System.Threading.Tasks;
-using ConferencePlanner.GraphQL.Common;
-using ConferencePlanner.GraphQL.Data;
+using HotChocolate.ConferencePlanner.Common;
+using HotChocolate.ConferencePlanner.Data;
 using HotChocolate;
 using HotChocolate.Subscriptions;
 using HotChocolate.Types;
 
-namespace ConferencePlanner.GraphQL.Sessions
+namespace HotChocolate.ConferencePlanner.Sessions
 {
     [ExtendObjectType(OperationTypeNames.Mutation)]
     public class SessionMutations

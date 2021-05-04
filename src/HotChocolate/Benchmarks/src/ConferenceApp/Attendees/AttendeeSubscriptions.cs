@@ -1,14 +1,14 @@
 using System.Threading;
 using System.Threading.Tasks;
-using ConferencePlanner.GraphQL.Data;
-using ConferencePlanner.GraphQL.DataLoader;
+using HotChocolate.ConferencePlanner.Data;
+using HotChocolate.ConferencePlanner.DataLoader;
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Subscriptions;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 
-namespace ConferencePlanner.GraphQL.Attendees
+namespace HotChocolate.ConferencePlanner.Attendees
 {
     [ExtendObjectType(OperationTypeNames.Subscription)]
     public class AttendeeSubscriptions

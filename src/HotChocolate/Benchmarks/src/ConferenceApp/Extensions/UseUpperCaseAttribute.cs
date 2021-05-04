@@ -2,7 +2,7 @@ using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
-namespace ConferencePlanner.GraphQL
+namespace HotChocolate.ConferencePlanner
 {
     public class UseUpperCaseAttribute : ObjectFieldDescriptorAttribute
     {

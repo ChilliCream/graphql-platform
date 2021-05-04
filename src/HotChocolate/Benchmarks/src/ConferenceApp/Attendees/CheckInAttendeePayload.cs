@@ -1,10 +1,10 @@
 using System.Threading;
 using System.Threading.Tasks;
-using ConferencePlanner.GraphQL.Common;
-using ConferencePlanner.GraphQL.Data;
-using ConferencePlanner.GraphQL.DataLoader;
+using HotChocolate.ConferencePlanner.Common;
+using HotChocolate.ConferencePlanner.Data;
+using HotChocolate.ConferencePlanner.DataLoader;
 
-namespace ConferencePlanner.GraphQL.Attendees
+namespace HotChocolate.ConferencePlanner.Attendees
 {
     public class CheckInAttendeePayload : AttendeePayloadBase
     {

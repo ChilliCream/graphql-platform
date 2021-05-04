@@ -1,4 +1,4 @@
-namespace ConferencePlanner.GraphQL.Data
+namespace HotChocolate.ConferencePlanner.Data
 {
     public class SessionAttendee
     {

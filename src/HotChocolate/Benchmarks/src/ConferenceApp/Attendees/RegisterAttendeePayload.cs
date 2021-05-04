@@ -1,7 +1,7 @@
-using ConferencePlanner.GraphQL.Common;
-using ConferencePlanner.GraphQL.Data;
+using HotChocolate.ConferencePlanner.Common;
+using HotChocolate.ConferencePlanner.Data;
 
-namespace ConferencePlanner.GraphQL.Attendees
+namespace HotChocolate.ConferencePlanner.Attendees
 {
     public class RegisterAttendeePayload : AttendeePayloadBase
     {

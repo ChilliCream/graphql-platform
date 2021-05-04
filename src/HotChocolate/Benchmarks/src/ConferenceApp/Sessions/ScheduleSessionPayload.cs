@@ -3,12 +3,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using ConferencePlanner.GraphQL.Common;
-using ConferencePlanner.GraphQL.Data;
-using ConferencePlanner.GraphQL.DataLoader;
+using HotChocolate.ConferencePlanner.Common;
+using HotChocolate.ConferencePlanner.Data;
+using HotChocolate.ConferencePlanner.DataLoader;
 using HotChocolate;
 
-namespace ConferencePlanner.GraphQL.Sessions
+namespace HotChocolate.ConferencePlanner.Sessions
 {
     public class ScheduleSessionPayload : SessionPayloadBase
     {

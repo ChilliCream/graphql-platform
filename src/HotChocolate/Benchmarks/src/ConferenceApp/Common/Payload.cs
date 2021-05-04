@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace ConferencePlanner.GraphQL.Common
+namespace HotChocolate.ConferencePlanner.Common
 {
     public abstract class Payload
     {

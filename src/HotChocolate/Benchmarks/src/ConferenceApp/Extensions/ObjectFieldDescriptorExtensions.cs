@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Types;
 
-namespace ConferencePlanner.GraphQL
+namespace HotChocolate.ConferencePlanner
 {
     public static class ObjectFieldDescriptorExtensions
     {

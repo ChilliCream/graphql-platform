@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace ConferencePlanner.GraphQL.Migrations
+namespace HotChocolate.ConferencePlanner.Migrations
 {
     public partial class Initial : Migration
     {

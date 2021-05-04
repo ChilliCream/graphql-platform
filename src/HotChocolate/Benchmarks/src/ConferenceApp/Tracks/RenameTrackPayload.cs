@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using ConferencePlanner.GraphQL.Common;
-using ConferencePlanner.GraphQL.Data;
+using HotChocolate.ConferencePlanner.Common;
+using HotChocolate.ConferencePlanner.Data;
 
-namespace ConferencePlanner.GraphQL.Tracks
+namespace HotChocolate.ConferencePlanner.Tracks
 {
     public class RenameTrackPayload : TrackPayloadBase
     {

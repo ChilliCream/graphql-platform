@@ -1,9 +1,9 @@
 using System.Reflection;
-using ConferencePlanner.GraphQL.Data;
+using HotChocolate.ConferencePlanner.Data;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
-namespace ConferencePlanner.GraphQL
+namespace HotChocolate.ConferencePlanner
 {
     public class UseApplicationDbContextAttribute : ObjectFieldDescriptorAttribute
     {

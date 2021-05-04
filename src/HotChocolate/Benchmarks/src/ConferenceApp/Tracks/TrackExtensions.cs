@@ -2,14 +2,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ConferencePlanner.GraphQL.Data;
-using ConferencePlanner.GraphQL.DataLoader;
+using HotChocolate.ConferencePlanner.Data;
+using HotChocolate.ConferencePlanner.DataLoader;
 using HotChocolate;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 using Microsoft.EntityFrameworkCore;
 
-namespace ConferencePlanner.GraphQL.Tracks
+namespace HotChocolate.ConferencePlanner.Tracks
 {
     [Node]
     [ExtendObjectType(typeof(Track))]

@@ -1,8 +1,8 @@
-using ConferencePlanner.GraphQL.Data;
+using HotChocolate.ConferencePlanner.Data;
 using HotChocolate;
 using HotChocolate.Types.Relay;
 
-namespace ConferencePlanner.GraphQL.Speakers
+namespace HotChocolate.ConferencePlanner.Speakers
 {
     public record ModifySpeakerInput(
         [ID(nameof(Speaker))] 

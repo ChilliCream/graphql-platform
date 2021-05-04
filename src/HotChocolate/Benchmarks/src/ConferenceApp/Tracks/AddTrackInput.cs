@@ -1,4 +1,4 @@
-namespace ConferencePlanner.GraphQL.Tracks
+namespace HotChocolate.ConferencePlanner.Tracks
 {
     public record AddTrackInput(string Name);
 }

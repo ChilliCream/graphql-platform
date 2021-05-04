@@ -1,7 +1,7 @@
-using ConferencePlanner.GraphQL.Common;
-using ConferencePlanner.GraphQL.Data;
+using HotChocolate.ConferencePlanner.Common;
+using HotChocolate.ConferencePlanner.Data;
 
-namespace ConferencePlanner.GraphQL.Sessions
+namespace HotChocolate.ConferencePlanner.Sessions
 {
     public class RenameSessionPayload : Payload
     {

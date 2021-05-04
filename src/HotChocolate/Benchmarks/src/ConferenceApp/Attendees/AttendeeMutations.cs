@@ -1,13 +1,13 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using ConferencePlanner.GraphQL.Common;
-using ConferencePlanner.GraphQL.Data;
+using HotChocolate.ConferencePlanner.Common;
+using HotChocolate.ConferencePlanner.Data;
 using HotChocolate;
 using HotChocolate.Subscriptions;
 using HotChocolate.Types;
 
-namespace ConferencePlanner.GraphQL.Attendees
+namespace HotChocolate.ConferencePlanner.Attendees
 {
     [ExtendObjectType(OperationTypeNames.Mutation)]
     public class AttendeeMutations

@@ -1,4 +1,4 @@
-namespace ConferencePlanner.GraphQL.Attendees
+namespace HotChocolate.ConferencePlanner.Attendees
 {
     public record RegisterAttendeeInput(
         string FirstName,

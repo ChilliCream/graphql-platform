@@ -2,15 +2,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ConferencePlanner.GraphQL.Data;
-using ConferencePlanner.GraphQL.DataLoader;
-using ConferencePlanner.GraphQL.Types;
+using HotChocolate.ConferencePlanner.Data;
+using HotChocolate.ConferencePlanner.DataLoader;
+using HotChocolate.ConferencePlanner.Types;
 using HotChocolate;
 using HotChocolate.Data;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 
-namespace ConferencePlanner.GraphQL.Sessions
+namespace HotChocolate.ConferencePlanner.Sessions
 {
     [ExtendObjectType(OperationTypeNames.Query)]
     public class SessionQueries

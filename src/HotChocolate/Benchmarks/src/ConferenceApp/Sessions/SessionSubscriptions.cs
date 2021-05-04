@@ -1,11 +1,11 @@
 using System.Threading;
 using System.Threading.Tasks;
-using ConferencePlanner.GraphQL.Data;
-using ConferencePlanner.GraphQL.DataLoader;
+using HotChocolate.ConferencePlanner.Data;
+using HotChocolate.ConferencePlanner.DataLoader;
 using HotChocolate;
 using HotChocolate.Types;
 
-namespace ConferencePlanner.GraphQL.Sessions
+namespace HotChocolate.ConferencePlanner.Sessions
 {
     [ExtendObjectType(OperationTypeNames.Subscription)]
     public class SessionSubscriptions

@@ -1,10 +1,10 @@
 using System.Threading;
 using System.Threading.Tasks;
-using ConferencePlanner.GraphQL.Data;
+using HotChocolate.ConferencePlanner.Data;
 using HotChocolate;
 using HotChocolate.Types;
 
-namespace ConferencePlanner.GraphQL.Tracks
+namespace HotChocolate.ConferencePlanner.Tracks
 {
     [ExtendObjectType(OperationTypeNames.Mutation)]
     public class TrackMutations

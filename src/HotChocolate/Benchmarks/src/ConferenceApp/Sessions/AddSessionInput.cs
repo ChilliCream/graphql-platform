@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using ConferencePlanner.GraphQL.Data;
+using HotChocolate.ConferencePlanner.Data;
 using HotChocolate.Types.Relay;
 
-namespace ConferencePlanner.GraphQL.Sessions
+namespace HotChocolate.ConferencePlanner.Sessions
 {
     public record AddSessionInput(
         string Title,
