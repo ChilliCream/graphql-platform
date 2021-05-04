@@ -13,7 +13,10 @@ export default function createStore(preloadedState: State) {
   return createReduxStore(
     rootReducer,
     preloadedState,
-    (window as any).__REDUX_DEVTOOLS_EXTENSION__ &&
-      (window as any).__REDUX_DEVTOOLS_EXTENSION__()
+    process.env.development &&
+      typeof window === "object" &&
+      (window as any).__REDUX_DEVTOOLS_EXTENSION__
+      ? (window as any).__REDUX_DEVTOOLS_EXTENSION__()
+      : undefined
   );
 }
