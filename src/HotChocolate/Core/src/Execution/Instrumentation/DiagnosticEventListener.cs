@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Instrumentation
@@ -61,6 +62,37 @@ namespace HotChocolate.Execution.Instrumentation
 
         /// <inheritdoc />
         public virtual void TaskError(IExecutionTask task, IError error)
+        {
+        }
+
+        /// <inheritdoc />
+        public virtual IActivityScope ExecuteSubscription(
+            ISubscription subscription) =>
+            EmptyScope;
+
+        /// <inheritdoc />
+        public virtual IActivityScope OnSubscriptionEvent(
+            SubscriptionEventContext context) =>
+            EmptyScope;
+
+        /// <inheritdoc />
+        public virtual void SubscriptionEventResult(
+            SubscriptionEventContext context,
+            IQueryResult result)
+        {
+        }
+
+        /// <inheritdoc />
+        public virtual void SubscriptionEventError(
+            SubscriptionEventContext context,
+            Exception exception)
+        {
+        }
+
+        /// <inheritdoc />
+        public virtual void SubscriptionTransportError(
+            ISubscription subscription,
+            Exception exception)
         {
         }
 

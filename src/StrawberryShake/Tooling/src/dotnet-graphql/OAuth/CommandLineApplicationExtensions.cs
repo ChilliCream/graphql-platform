@@ -38,13 +38,19 @@ namespace StrawberryShake.Tools.OAuth
                 "The token scheme (default: bearer).",
                 CommandOptionType.SingleValue);
 
+            CommandOption noScheme = app.Option(
+                "--no-scheme",
+                "The token will be send without a scheme.",
+                CommandOptionType.NoValue);
+
             return new AuthArguments(
                 token,
                 scheme,
                 tokenEndpoint,
                 clientId,
                 clientSecret,
-                scopes);
+                scopes,
+                noScheme);
         }
     }
 }

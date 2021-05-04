@@ -2,6 +2,8 @@
 title: Entity Framework
 ---
 
+import { ExampleTabs } from "../../../components/mdx/example-tabs"
+
 The execution engine of HotChocolate executes resolvers in parallel. This can lead to exceptions because
 the database context of Entity Framework cannot handle more than one request in parallel.
 So if you are seeing exceptions like `A second operation started on this context before a previous operation completed.`
@@ -15,7 +17,7 @@ The package was build on the foundation of EntityFramework Core v5.0.0.
 You first need to add the package reference to your project. You can do this with the `dotnet` cli:
 
 ```bash
-  dotnet add package HotChocolate.Data.EntityFramework
+dotnet add package HotChocolate.Data.EntityFramework
 ```
 
 The execution engine needs more than one database context. You should register the database context
@@ -35,9 +37,21 @@ A resolver has to get a database context from the pool, execute the query and th
 pool.
 If you annotate a field with `UseDbContext()` all of this is handled for you
 
-> ⚠️ **Note:** If you use more than middleware, keep in mind that **ORDER MATTERS**. The correct order is UseDbContext > UsePaging > UseProjections > UseFiltering > UseSorting
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
-**Code First**
+```csharp
+public class Query
+{
+    [UseDbContext(typeof(SomeDbContext))]
+    public IQueryable<User> GetUsers(
+        [ScopedService] SomeDbContext someDbContext)
+        => someDbContext.Users;
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
 
 ```csharp
 public class QueryType : ObjectType
@@ -47,23 +61,20 @@ public class QueryType : ObjectType
         descriptor
             .Field("users")
             .UseDbContext<SomeDbContext>()
-            .Resolver((ctx, ct) =>
-                {
-                    return ctx.Service<SomeDbContext>().Users;
-                })
+            .Resolver((ctx) =>
+            {
+                return ctx.Service<SomeDbContext>().Users;
+            })
     }
 }
 ```
 
-**Pure Code First**
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
 
-```csharp
-public class Query
-{
-    [UseDbContext(typeof(SomeDbContext))]
-    public IQueryable<User> GetUsers([ScopedService] SomeDbContext someDbContext)
-    {
-        return someDbContext.Users;
-    }
-}
-```
+⚠️ Schema-first does currently not support DbContext integration!
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+> ⚠️ **Note:** If you use more than one middleware, keep in mind that **ORDER MATTERS**. The correct order is UseDbContext > UsePaging > UseProjections > UseFiltering > UseSorting

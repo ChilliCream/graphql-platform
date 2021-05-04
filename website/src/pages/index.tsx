@@ -21,7 +21,6 @@ import {
 import { Hero, Intro } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
-
 // Logos
 import AeiLogoSvg from "../images/companies/aei.svg";
 import AtminaLogoSvg from "../images/companies/atmina.svg";
@@ -44,7 +43,6 @@ import SweetGeeksLogoSvg from "../images/companies/sweetgeeks.svg";
 import SwissLifeLogoSvg from "../images/companies/swiss-life.svg";
 import SytadelleLogoSvg from "../images/companies/sytadelle.svg";
 import ZioskLogoSvg from "../images/companies/ziosk.svg";
-
 // Images
 import ContactUsSvg from "../images/contact-us.svg";
 import DashboardSvg from "../images/dashboard.svg";
@@ -172,7 +170,7 @@ const IndexPage: FunctionComponent = () => {
               our startup guide and see how simple it is to create your first
               API.
             </p>
-            <Link to="/docs/hotchocolate/v10/">Learn more</Link>
+            <Link to="/docs/hotchocolate">Learn more</Link>
           </ContentContainer>
         </SectionRow>
       </Section>
@@ -448,13 +446,15 @@ const SlideContent = styled.div`
   @media only screen and (min-width: 992px) {
     right: 25%;
     left: 25%;
+    margin: 0 auto;
+    max-width: 600px;
   }
 
   @media only screen and (min-width: 1200px) {
     right: 30%;
     left: 30%;
     margin: 0 auto;
-    max-width: 700px;
+    max-width: 800px;
   }
 `;
 

@@ -4,13 +4,13 @@ title: "Get started with Hot Chocolate"
 
 > We are still working on the documentation for Hot Chocolate 11.1 so help us by finding typos, missing things or write some additional docs with us.
 
-In this tutorial, we will walk you through the basics of creating a GraphQL server with Hot Chocolate. If you want to dig deeper into Hot Chocolate, we have our GraphQL workshop, which touches on topics like schema design, DataLoader, and many more things.
+In this tutorial, we will walk you through the basics of creating a GraphQL server with Hot Chocolate. If you want to dig deeper into Hot Chocolate, we have our [GraphQL workshop](https://github.com/ChilliCream/graphql-workshop), which touches on topics like schema design, DataLoader, and many more things.
 
-In this tutorial, we will teach you:
+In this tutorial, we will teach you how to:
 
-- To set up a GraphQL Server.
-- To define a GraphQL schema.
-- To query your GraphQL server.
+- Set up a GraphQL server.
+- Define a GraphQL schema.
+- Query your GraphQL server.
 
 # Step 1: Create a GraphQL server project
 
@@ -20,14 +20,12 @@ Open your preferred terminal and select a directory where you want to add the co
 
 ```bash
 dotnet new web -n Demo
-dotnet new sln -n Demo
-dotnet sln add ./Demo
 ```
 
 2. Add the `HotChocolate.AspNetCore` package.
 
 ```bash
-dotnet add ./Demo package HotChocolate.AspNetCore --version 11.1.0
+dotnet add ./Demo package HotChocolate.AspNetCore
 ```
 
 # Step 2: Create a GraphQL schema
@@ -60,7 +58,7 @@ namespace Demo
 }
 ```
 
-We have a nice and simple model with these two classes that we can use to build our GraphQL schema. We now need to define a query root type. The query root type exposes all the possible queries that a user can drill into. A query root type can be defined as our models just with C#.
+With these two classes we have a nice and simple model that we can use to build our GraphQL schema. We now need to define a query root type. The query root type exposes all the possible queries that a user can drill into. A query root type can be defined in the same way we defined our models.
 
 3. Add a new class `Query`.
 
@@ -109,6 +107,8 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 }
 ```
 
+> Note: We also have a template, which includes the configurations we have just made. Just install the template using `dotnet new -i HotChocolate.Templates.Server` and now you can use `dotnet new graphql` to bootstrap your future GraphQL servers!
+
 # Step 3: Execute a GraphQL query
 
 Now that your server is finished let us try it out by executing a simple GraphQL query.
@@ -119,11 +119,11 @@ Now that your server is finished let us try it out by executing a simple GraphQL
 dotnet run --project ./Demo
 ```
 
-2. Open Chrome, Edge or Firefox and head over to `http://localhost:5000/graphql` to open the built-in GraphQL IDE Banana Cake Pop.
+2. Open your browser and head over to `http://localhost:5000/graphql` to open our built-in GraphQL IDE [Banana Cake Pop](/docs/bananacakepop/).
 
 ![GraphQL IDE](../../images/get-started-bcp.png)
 
-3. Next, click on the `Book` icon on the left-hand navigation bar to explore the server GraphQL schema. If this is the first time you are running the demo, you will need to enter `http://localhost:5000/graphql` as the schema endpoint URI. In the schema explorer, we can see that we have one query root field exposed. By clicking on the field, we can drill into the schema structure.
+3. Next, click on the `Book` icon in the left-hand navigation bar to explore the server's GraphQL schema. If this is the first time you are running the demo, you will need to enter `http://localhost:5000/graphql` as the schema endpoint URI. In the schema explorer, we can see that we have one query root field exposed. By clicking on the field, we can drill into the schema structure.
 
 ![GraphQL IDE Schema Explorer](../../images/get-started-bcp-schema-explorer.png)
 

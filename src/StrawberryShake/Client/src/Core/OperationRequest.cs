@@ -264,14 +264,15 @@ namespace StrawberryShake
 
         private int GetHashCodeFromList(IEnumerable enumerable)
         {
-            int hash = 17;
+            var hash = 17;
+
             foreach (var element in enumerable)
             {
                 if (element is IEnumerable inner)
                 {
                     hash ^= GetHashCodeFromList(inner) * 397;
                 }
-                else
+                else if(element is not null)
                 {
                     hash ^= element.GetHashCode() * 397;
                 }

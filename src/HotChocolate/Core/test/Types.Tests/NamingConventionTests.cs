@@ -1,7 +1,11 @@
 using System;
 using System.Reflection;
+using System.Threading.Tasks;
+using HotChocolate.Execution;
+using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -19,6 +23,18 @@ namespace HotChocolate
                 .Create()
                 .Print()
                 .MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task PureCodeFirst_NamingConvention_RenameArgument_RequestBuilder()
+        {
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryNamingConvention>()
+                .AddMutationType<MutationNamingConvention>()
+                .AddConvention<INamingConventions, CustomNamingConvention>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
         }
 
         public class CustomNamingConvention : DefaultNamingConventions
