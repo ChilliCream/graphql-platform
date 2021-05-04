@@ -50,8 +50,8 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
       ?.id;
     window.history.pushState(
       undefined,
-      activeHeading || "ChilliCream Docs",
-      "./" + (activeHeading || "")
+      activeHeading ?? "ChilliCream Docs",
+      "./" + (activeHeading ?? "")
     );
     setActiveHeadingId(activeHeading);
   }, [headings, yScrollPosition]);

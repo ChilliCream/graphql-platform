@@ -264,9 +264,7 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
                   : undefined,
               })),
             `/docs/${activeProduct!.path!}${
-              activeVersion?.path?.length && activeVersion.path.length > 0
-                ? "/" + activeVersion.path!
-                : ""
+              !!activeVersion?.path?.length ? "/" + activeVersion.path! : ""
             }`
           )}
         </MostProminentSection>
