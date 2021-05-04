@@ -61,7 +61,6 @@
     "react-redux": "^7.2.1",
     "react-responsive-carousel": "^3.2.11",
     "react-share": "^4.2.1",
-    "redux-devtools-extension": "^2.13.9",
     "styled-components": "^5.2.3"
   },
   "devDependencies": {
