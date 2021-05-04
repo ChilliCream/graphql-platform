@@ -10,7 +10,7 @@ namespace HotChocolate.Execution.Processing
     {
         private readonly OperationContext _operationContext;
         private readonly WorkBacklog _workBacklog;
-        private readonly IDeferredTaskBacklog _deferredTaskBacklog;
+        private readonly DeferredWorkBacklog _deferredWorkBacklog;
         private readonly ObjectPool<ResolverTask> _resolverTasks;
         private readonly ObjectPool<PureResolverTask> _pureResolverTasks;
         private readonly ObjectPool<BatchExecutionTask> _batchTasks;
@@ -27,7 +27,7 @@ namespace HotChocolate.Execution.Processing
         {
             _operationContext = operationContext;
             _workBacklog = new WorkBacklog();
-            _deferredTaskBacklog = new DeferredTaskBacklog();
+            _deferredWorkBacklog = new DeferredWorkBacklog();
             _resolverTasks = resolverTasks;
             _pureResolverTasks = pureResolverTasks;
             _batchTasks = batchTasks;
@@ -74,7 +74,7 @@ namespace HotChocolate.Execution.Processing
             }
 
             _workBacklog.Clear();
-            _deferredTaskBacklog.Clear();
+            _deferredWorkBacklog.Clear();
 
             if (_completed is not null!)
             {

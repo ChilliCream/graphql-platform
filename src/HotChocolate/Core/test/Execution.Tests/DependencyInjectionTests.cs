@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
+using Snapshooter;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -34,6 +36,8 @@ namespace HotChocolate.Execution
         [Fact]
         public async Task Extension_With_Scoped_Constructor_Injection()
         {
+            Snapshot.FullName();
+
             IServiceProvider services =
                 new ServiceCollection()
                     .AddScoped<SomeService>()
@@ -74,6 +78,8 @@ namespace HotChocolate.Execution
         [Fact]
         public async Task Type_With_Constructor_Injection()
         {
+            Snapshot.FullName();
+
             // this test ensures that we inject services into type instances without the need of
             // registering the type into the dependency container.
             IRequestExecutor executor =
@@ -95,6 +101,8 @@ namespace HotChocolate.Execution
         [Fact]
         public async Task Type_With_Scoped_Constructor_Injection()
         {
+            Snapshot.FullName();
+
             IServiceProvider services =
                 new ServiceCollection()
                     .AddScoped<SomeService>()

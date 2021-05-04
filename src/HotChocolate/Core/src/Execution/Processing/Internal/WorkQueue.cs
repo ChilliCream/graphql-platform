@@ -15,8 +15,17 @@ namespace HotChocolate.Execution.Processing.Internal
 
         public event EventHandler<EventArgs>? BacklogEmpty;
 
+        public bool IsEmpty { get; private set; } = true;
+
+        public bool IsRunning => _head is not null;
+
         public void Complete(IExecutionTask executionTask)
         {
+            if (executionTask is null)
+            {
+                throw new ArgumentNullException(nameof(executionTask));
+            }
+
             var lockTaken = false;
 
             try
@@ -106,6 +115,11 @@ namespace HotChocolate.Execution.Processing.Internal
 
         public int Push(IExecutionTask executionTask)
         {
+            if (executionTask is null)
+            {
+                throw new ArgumentNullException(nameof(executionTask));
+            }
+            
             var lockTaken = false;
 
             try
@@ -139,9 +153,5 @@ namespace HotChocolate.Execution.Processing.Internal
             _stack.Clear();
             _head = null;
         }
-
-        public bool IsEmpty { get; private set; } = true;
-
-        public bool IsRunning => _head is not null;
     }
 }

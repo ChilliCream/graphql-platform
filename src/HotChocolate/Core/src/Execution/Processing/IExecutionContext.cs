@@ -20,7 +20,7 @@ namespace HotChocolate.Execution.Processing
         /// Gets the backlog of the task that shall be processed after
         /// all the main tasks have been executed.
         /// </summary>
-        IDeferredTaskBacklog DeferredWork { get; }
+        IDeferredWorkBacklog DeferredWork { get; }
 
         /// <summary>
         /// Gets the batch dispatcher.

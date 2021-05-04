@@ -5,7 +5,7 @@ namespace HotChocolate.Execution.Processing
     /// <summary>
     /// Represents a backlog for deferred work.
     /// </summary>
-    internal interface IDeferredTaskBacklog
+    internal interface IDeferredWorkBacklog
     {
         /// <summary>
         /// <c>true</c> if there are no more deferred tasks in the backlog.
@@ -16,16 +16,11 @@ namespace HotChocolate.Execution.Processing
         /// <summary>
         /// Tries to take the next task from the backlog.
         /// </summary>
-        bool TryTake([NotNullWhen(true)] out IDeferredExecutionTask? task);
+        bool TryTake([NotNullWhen(true)] out IDeferredExecutionTask? executionTask);
 
         /// <summary>
         /// Adds new work to the backlog.
         /// </summary>
-        void Register(IDeferredExecutionTask deferredTask);
-
-        /// <summary>
-        /// Clears the backlog.
-        /// </summary>
-        void Clear();
+        void Register(IDeferredExecutionTask executionTask);
     }
 }

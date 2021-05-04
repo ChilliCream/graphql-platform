@@ -20,12 +20,12 @@ namespace HotChocolate.Execution.Processing
         }
 
         /// <inheritdoc />
-        public IDeferredTaskBacklog DeferredWork
+        public IDeferredWorkBacklog DeferredWork
         {
             get
             {
                 AssertNotPooled();
-                return _deferredTaskBacklog;
+                return _deferredWorkBacklog;
             }
         }
 

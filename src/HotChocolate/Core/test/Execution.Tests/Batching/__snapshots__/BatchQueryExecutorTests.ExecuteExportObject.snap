@@ -1,1 +1,1 @@
-﻿[{"errors":[{"message":"Unexpected Execution Error","locations":[{"line":8,"column":33}],"path":["createReview","stars"]},{"message":"Unexpected Execution Error","locations":[{"line":7,"column":33}],"path":["createReview","commentary"]}]}]
+﻿[{"data":{"createReview":{"commentary":"foo","stars":4}}},{"data":{"createReview":{"commentary":"foo","stars":4}}}]
