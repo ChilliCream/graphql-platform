@@ -76,7 +76,7 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
         <ArticleContainer>
           <Article>
             {false && <DocPageLegacy />}
-            <ArticleHeader>
+            <ArticleHeader kind="doc">
               <ResponsiveMenuWrapper>
                 <ResponsiveMenuBackground
                   hasScrolled={hasScrolled}

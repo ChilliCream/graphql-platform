@@ -1,16 +1,22 @@
 import styled from "styled-components";
 import { IsPhablet, IsSmallDesktop } from "../../shared-style";
 
-export const ArticleHeader = styled.header`
+export const ArticleHeader = styled.header<{ readonly kind: "blog" | "doc" }>`
   position: relative;
 
-  ${IsSmallDesktop(`
+  ${({ kind }) =>
+    kind === "doc"
+      ? IsSmallDesktop(`
     padding-top: 54px;
-  `)}
+  `)
+      : ""}
 
-  ${IsPhablet(`
+  ${({ kind }) =>
+    kind === "doc"
+      ? IsPhablet(`
     padding-top: 20px;
-  `)}
+  `)
+      : ""}
 
   @media only screen and (min-width: 820px) {
     > .gatsby-image-wrapper {
