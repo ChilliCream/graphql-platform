@@ -16,25 +16,21 @@ namespace HotChocolate.Data.Neo4J.Integration
         }
 
         [Fact]
-        public void Integration_SchemaSnapshot()
+        public async Task Integration_ActorsQuery()
         {
-            IRequestExecutor tester = _fixture.CreateSchema();
-            tester.Schema.Print().MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task Integration_Query_SchemaSnapshot()
-        {
-            IRequestExecutor tester = _fixture.CreateSchema();
+            IRequestExecutor tester = await _fixture.CreateSchema();
 
             IExecutionResult res1 = await tester.ExecuteAsync(
                 @"{
                         actors {
                             name
+                            actedIn {
+                                title
+                            }
                         }
                     }");
-
-            res1.MatchSnapshot();
+            tester.Schema.Print().MatchSnapshot("Integration_ActorsQuery_SchemaSnapshot");
+            res1.MatchSnapshot("Integration_ActorsQuery");
         }
     }
 }

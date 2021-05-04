@@ -7,6 +7,7 @@ namespace HotChocolate.Data.Neo4J.Integration
     [ExtendObjectType(Name = "Query")]
     public class Queries
     {
+        [UseNeo4JDatabase("neo4j")]
         [UseProjection]
         [UseFiltering]
         [UseSorting]

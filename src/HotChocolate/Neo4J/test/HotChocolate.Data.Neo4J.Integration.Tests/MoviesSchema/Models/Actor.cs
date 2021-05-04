@@ -9,7 +9,7 @@ namespace HotChocolate.Data.Neo4J.Integration
     {
         public string Name { get; set; }
 
-        [Neo4JRelationship("ACTED_IN", RelationshipDirection.Incoming)]
+        [Neo4JRelationship("ACTED_IN")]
         public List<Movie> ActedIn { get; set; }
     }
 }
