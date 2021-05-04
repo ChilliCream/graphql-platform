@@ -201,7 +201,7 @@ const Container = styled.div`
   }
 `;
 
-const ResponsiveMenu = styled.div<{ hasScrolled: boolean }>`
+const ResponsiveMenu = styled.div<{ readonly hasScrolled: boolean }>`
   position: fixed;
   transition: all 100ms linear 0s;
   top: 100px;
@@ -217,7 +217,7 @@ const ResponsiveMenu = styled.div<{ hasScrolled: boolean }>`
     rgba(255, 255, 255, 0.75) 100%
   );
 
-  width: 800px;
+  width: 820px;
   margin-left: auto;
   margin-right: auto;
   padding: 20px;
@@ -248,7 +248,7 @@ const ResponsiveMenu = styled.div<{ hasScrolled: boolean }>`
   `)}
 `;
 
-const ResponsiveMenuBackground = styled.div<{ hasScrolled: boolean }>`
+const ResponsiveMenuBackground = styled.div<{ readonly hasScrolled: boolean }>`
   display: ${(state) => (state.hasScrolled ? "initial" : "none")};
   position: fixed;
   height: 60px;
@@ -261,7 +261,7 @@ const ResponsiveMenuBackground = styled.div<{ hasScrolled: boolean }>`
     rgba(255, 255, 255, 0.75) 100%
   );
 
-  width: 800px;
+  width: 820px;
   margin-left: auto;
   margin-right: auto;
   padding: 20px;
