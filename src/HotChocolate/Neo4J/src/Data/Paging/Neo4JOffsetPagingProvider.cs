@@ -87,22 +87,11 @@ namespace HotChocolate.Data.Neo4J.Paging
                     .ToListAsync(context.RequestAborted)
                     .ConfigureAwait(false);
 
-                var pageInfo = new CollectionSegmentInfo(
-                    items.Count == arguments.Take + 1,
-                    (arguments.Skip ?? 0) > 0);
-
-                if (items.Count > arguments.Take)
-                {
-                    items.RemoveAt(arguments.Take);
-                }
-
-                Func<CancellationToken, ValueTask<int>> getTotalCount =
-                    ct => throw new InvalidOperationException();
 
                 return new CollectionSegment(
                     (IReadOnlyCollection<object>)items,
-                    pageInfo,
-                    getTotalCount);
+                    null,
+                    null);
             }
         }
     }

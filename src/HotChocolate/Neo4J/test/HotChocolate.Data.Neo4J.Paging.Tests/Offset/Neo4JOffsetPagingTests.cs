@@ -9,11 +9,12 @@ namespace HotChocolate.Data.Neo4J.Paging
         : IClassFixture<Neo4JFixture>
     {
         private readonly Neo4JFixture _fixture;
-        private string _fooEntitiesCypher = @"
+
+        private const string FooEntitiesCypher = @"
             CREATE (:Foo {Bar: 'a'}), (:Foo {Bar: 'b'}), (:Foo {Bar: 'd'}), (:Foo {Bar: 'e'}), (:Foo {Bar: 'f'})
         ";
 
-        public class Foo
+        private class Foo
         {
             public string Bar { get; set; } = default!;
         }
@@ -27,7 +28,7 @@ namespace HotChocolate.Data.Neo4J.Paging
         public async Task OffsetPaging_SchemaSnapshot()
         {
             // arrange
-            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo>(_fooEntitiesCypher);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo>(FooEntitiesCypher);
             tester.Schema.Print().MatchSnapshot();
         }
 
@@ -35,7 +36,7 @@ namespace HotChocolate.Data.Neo4J.Paging
         public async Task Simple_StringList_Default_Items()
         {
             // arrange
-            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo>(_fooEntitiesCypher);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo>(FooEntitiesCypher);
 
             // act
             // assert
@@ -59,7 +60,7 @@ namespace HotChocolate.Data.Neo4J.Paging
         public async Task Simple_StringList_Take_2()
         {
             // arrange
-            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo>(_fooEntitiesCypher);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo>(FooEntitiesCypher);
 
             //act
             IExecutionResult result = await tester.ExecuteAsync(
@@ -83,7 +84,7 @@ namespace HotChocolate.Data.Neo4J.Paging
         public async Task Simple_StringList_Take_2_After()
         {
             // arrange
-            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo>(_fooEntitiesCypher);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo>(FooEntitiesCypher);
 
             // act
             IExecutionResult result = await tester.ExecuteAsync(

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using HotChocolate.Data.Neo4J;
 
-namespace HotChocolate.Data.Integration.Tests
+namespace HotChocolate.Data.Neo4J.Integration
 {
 
     [Neo4JNode("Actor")]
