@@ -46,7 +46,7 @@ namespace HotChocolate.Execution.Options
         /// <c>10</c>.
         /// </summary>
         [Obsolete(
-            "Use AddDocumentCache or AddOperationCache on the IRequestExecutorBuilder.",
+            "Use AddDocumentCache or AddOperationCache on the IServiceCollection.",
             true)]
         public int QueryCacheSize
         {

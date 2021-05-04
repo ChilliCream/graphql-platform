@@ -39,7 +39,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public bool IsExtension { get; set; }
 
         public IList<ITypeReference> Interfaces =>
-            _interfaces ??=new List<ITypeReference>();
+            _interfaces ??= new List<ITypeReference>();
 
         public IBindableList<ObjectFieldDefinition> Fields { get; } =
             new BindableList<ObjectFieldDefinition>();
@@ -123,17 +123,20 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
             if (_knownClrTypes is { Count: > 0 })
             {
-                target._knownClrTypes = new List<Type>(_knownClrTypes);
+                target._knownClrTypes ??= new List<Type>();
+                target._knownClrTypes.AddRange(_knownClrTypes);
             }
 
             if (_interfaces is { Count: > 0 })
             {
-                target._interfaces = new List<ITypeReference>(_interfaces);
+                target._interfaces ??= new List<ITypeReference>();
+                target._interfaces.AddRange(_interfaces);
             }
 
             if (_fieldIgnores is { Count: > 0 })
             {
-                target._fieldIgnores = new List<ObjectFieldBinding>(_fieldIgnores);
+                target._fieldIgnores ??= new List<ObjectFieldBinding>();
+                target._fieldIgnores.AddRange(_fieldIgnores);
             }
 
             foreach (var field in Fields)
@@ -165,14 +168,14 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
                 if (removeField)
                 {
-                    if(targetField is not null)
+                    if (targetField is not null)
                     {
                         target.Fields.Remove(targetField);
                     }
                 }
                 else if (targetField is null || replaceField)
                 {
-                    if(targetField is not null)
+                    if (targetField is not null)
                     {
                         target.Fields.Remove(targetField);
                     }
@@ -180,15 +183,34 @@ namespace HotChocolate.Types.Descriptors.Definitions
                     var newField = new ObjectFieldDefinition();
                     field.CopyTo(newField);
                     newField.SourceType = target.RuntimeType;
+
+                    SetResolverMember(newField, targetField);
+
                     target.Fields.Add(newField);
                 }
                 else
                 {
+                    SetResolverMember(field, targetField);
                     field.MergeInto(targetField);
                 }
             }
 
             target.IsOfType ??= IsOfType;
+        }
+
+        private static void SetResolverMember(
+            ObjectFieldDefinition sourceField,
+            ObjectFieldDefinition? targetField)
+        {
+            // we prepare the field that is merged in to use the resolver member instead of member.
+            // this will ensure that the original source type member is preserved after we have
+            // merged the type extensions.
+
+            if (sourceField.Member is not null && sourceField.ResolverMember is null)
+            {
+                sourceField.ResolverMember = sourceField.Member;
+                sourceField.Member = targetField?.Member;
+            }
         }
     }
 }

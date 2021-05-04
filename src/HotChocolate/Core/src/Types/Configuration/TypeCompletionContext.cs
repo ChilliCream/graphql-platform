@@ -11,7 +11,7 @@ namespace HotChocolate.Configuration
 {
     internal sealed class TypeCompletionContext : ITypeCompletionContext
     {
-        private readonly HashSet<NameString> _alternateNames = new HashSet<NameString>();
+        private readonly HashSet<NameString> _alternateNames = new();
         private readonly TypeDiscoveryContext _initializationContext;
         private readonly TypeReferenceResolver _typeReferenceResolver;
         private readonly IDictionary<FieldReference, RegisteredResolver> _resolvers;

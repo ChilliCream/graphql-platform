@@ -335,5 +335,111 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }",
                 "extend schema @key(fields: \"id\")");
         }
+
+        [Fact]
+        public void Full_Extension_File()
+        {
+            AssertResult(
+                strictValidation: false,
+                @"
+                    query getListingsCount {
+                        listings {
+                        ... ListingsPayload
+                        }
+                    }
+                    fragment ListingsPayload on ListingsPayload{
+                        count
+                    }
+                ",
+                FileResource.Open("BridgeClientDemo.graphql"),
+                @"scalar _KeyFieldSet
+
+                directive @key(fields: _KeyFieldSet!) on SCHEMA | OBJECT
+
+                directive @serializationType(name: String!) on SCALAR
+
+                directive @runtimeType(name: String!) on SCALAR
+
+                directive @enumValue(value: String!) on ENUM_VALUE
+
+                directive @rename(name: String!) on INPUT_FIELD_DEFINITION | INPUT_OBJECT | ENUM | ENUM_VALUE
+
+                extend schema @key(fields: ""id"")");
+        }
+
+        [Fact]
+        public void NonNullLists()
+        {
+            AssertResult(
+                @"
+                query getAll {
+                  listings {
+                    ...Offer
+                  }
+                }
+                fragment Offer on Offer {
+                   amenities1
+                   amenities2
+                   amenities3
+                   amenities4
+                   amenities5
+                   amenities6
+                   amenities7
+                }
+                ",
+                @"
+                schema {
+                  query: Query
+                  mutation: null
+                  subscription: null
+                }
+                type Query {
+                  listings: [Listing!]!
+                }
+                interface Listing{
+                  listingId: ID!
+                }
+                type Offer implements Listing{
+                  listingId: ID!
+                  amenities1: [Amenity!]!
+                  amenities2: [Amenity!]
+                  amenities3: [Amenity]!
+                  amenities4: [Amenity]
+                  amenities5: [[Amenity!]!]!
+                  amenities6: [[Amenity!]!]
+                  amenities7: [[Amenity!]]!
+                }
+                enum Amenity {
+                  ITEM1
+                  ITEM2
+                }",
+                "extend schema @key(fields: \"id\")");
+        }
+
+        [Fact]
+        public void MultiLineDocumentation()
+        {
+            AssertResult(
+                @"query Foo {
+                    abc
+                }",
+                @"type Query {
+                    """"""
+                    ABC
+                    DEF
+                    """"""
+                    abc: String
+                }");
+        }
+
+        [Fact]
+        public void IntrospectionQuery()
+        {
+            AssertResult(
+                FileResource.Open("IntrospectionQuery.graphql"),
+                @"type Query {
+                    abc: String
+                }");
+        }
     }
 }

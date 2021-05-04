@@ -14,12 +14,17 @@ namespace StrawberryShake
         /// <param name="services">
         /// The service collection this client was registered to
         /// </param>
+        /// <param name="clientServices">
+        /// The service collection of the client
+        /// </param>
         public ClientBuilder(
             string clientName,
-            IServiceCollection services)
+            IServiceCollection services,
+            IServiceCollection clientServices)
         {
             ClientName = clientName;
             Services = services;
+            ClientServices = clientServices;
         }
 
         /// <inheritdoc />
@@ -27,5 +32,8 @@ namespace StrawberryShake
 
         /// <inheritdoc />
         public IServiceCollection Services { get; }
+
+        /// <inheritdoc />
+        public IServiceCollection ClientServices { get; }
     }
 }

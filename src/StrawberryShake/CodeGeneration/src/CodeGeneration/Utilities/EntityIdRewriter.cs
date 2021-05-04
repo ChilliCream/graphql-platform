@@ -26,14 +26,14 @@ namespace StrawberryShake.CodeGeneration.Utilities
             FieldNode node,
             Context context)
         {
-            if(node.Name.Value.Equals(WellKnownNames.TypeName)) 
+            if(node.Name.Value.Equals(WellKnownNames.TypeName))
             {
                 return node;
             }
 
             IOutputField field = ((IComplexOutputType)context.Types.Peek()).Fields[node.Name.Value];
 
-            if(field.Type.NamedType().IsLeafType()) 
+            if(field.Type.NamedType().IsLeafType())
             {
                 return node;
             }
@@ -78,37 +78,34 @@ namespace StrawberryShake.CodeGeneration.Utilities
         {
             SelectionSetNode current = base.RewriteSelectionSet(node, context);
 
-            if (NeedsEntityIdFields(context))
+            if (context.Nodes.Peek() is FieldNode or OperationDefinitionNode)
             {
                 List<ISelectionNode> selections = current.Selections.ToList();
 
                 foreach (var objectType in context.Schema.GetPossibleTypes(context.Types.Peek()))
                 {
-                    SelectionSetNode entityDefinition = objectType.GetEntityDefinition();
-                    List<ISelectionNode> fields = new();
-
-                    foreach (var selection in entityDefinition.Selections)
+                    if (objectType.IsEntity())
                     {
-                        fields.Add(selection);
-                    }
+                        SelectionSetNode entityDefinition = objectType.GetEntityDefinition();
+                        List<ISelectionNode> fields = new();
 
-                    selections.Add(new InlineFragmentNode(
-                        null,
-                        new NamedTypeNode(objectType.Name.Value),
-                        new List<DirectiveNode>(),
-                        new SelectionSetNode(fields)));
+                        foreach (var selection in entityDefinition.Selections)
+                        {
+                            fields.Add(selection);
+                        }
+
+                        selections.Add(new InlineFragmentNode(
+                            null,
+                            new NamedTypeNode(objectType.Name.Value),
+                            new List<DirectiveNode>(),
+                            new SelectionSetNode(fields)));
+                    }
                 }
 
                 current = current.WithSelections(selections);
             }
 
             return current;
-        }
-
-        private bool NeedsEntityIdFields(Context context)
-        {
-            return context.Nodes.Peek() is FieldNode or OperationDefinitionNode &&
-                context.Schema.GetPossibleTypes(context.Types.Peek()).Any(t => t.IsEntity());
         }
 
         public static DocumentNode Rewrite(DocumentNode document, ISchema schema)

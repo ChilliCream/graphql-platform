@@ -1,6 +1,7 @@
 using System.Linq;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Descriptors;
+using StrawberryShake.CodeGeneration.Utilities;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.Mappers
@@ -13,7 +14,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
             {
                 RuntimeTypeInfo resultType = context.GetRuntimeType(
                     modelOperation.ResultType.Name,
-                    Descriptors.TypeDescriptors.TypeKind.ResultType);
+                    Descriptors.TypeDescriptors.TypeKind.Result);
 
                 context.Register(
                     modelOperation.Name,
@@ -37,8 +38,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
                                 return new ValueParserDescriptor(
                                     leafType.Name,
-                                    TypeInfos.GetOrCreate(runtimeType),
-                                    TypeInfos.GetOrCreate(serializationType));
+                                    model.Schema.GetOrCreateTypeInfo(runtimeType),
+                                    model.Schema.GetOrCreateTypeInfo(serializationType));
                             }).ToList()));
             }
         }

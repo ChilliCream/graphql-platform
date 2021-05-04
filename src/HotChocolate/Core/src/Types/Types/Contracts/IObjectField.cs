@@ -9,8 +9,7 @@ namespace HotChocolate.Types
     /// <summary>
     /// Represents a field of an <see cref="IObjectType"/>.
     /// </summary>
-    public interface IObjectField
-        : IOutputField
+    public interface IObjectField : IOutputField
     {
         /// <summary>
         /// Gets the type that declares this field.
@@ -38,9 +37,17 @@ namespace HotChocolate.Types
         IReadOnlyList<IDirective> ExecutableDirectives { get; }
 
         /// <summary>
-        /// Gets the associated .net type member of this field.
-        /// This member can be <c>null</c>.
+        /// Gets the associated member of the runtime type for this field.
+        /// This property can be <c>null</c> if this field is not associated to
+        /// a concrete member on the runtime type.
         /// </summary>
         MemberInfo? Member { get; }
+
+        /// <summary>
+        /// Gets the resolver member of this filed.
+        /// If this field has no explicit resolver member
+        /// this property will return <see cref="Member"/>.
+        /// </summary>
+        MemberInfo? ResolverMember { get; }
     }
 }

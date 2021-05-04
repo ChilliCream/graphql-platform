@@ -2,6 +2,8 @@
 title: "Scalars"
 ---
 
+import { ExampleTabs } from "../../../components/mdx/example-tabs"
+
 A GraphQL schema should be built as expressive as possible.
 Just from looking at the schema, a developer should know how to use the API.
 In GraphQL you are not limited to only describing the structure of a type, you can even describe value types.
@@ -364,7 +366,8 @@ dotnet add package HotChocolate.Types.Scalars
 These scalars cannot be mapped by HotChocolate to a field.
 You need to specify them manually.
 
-**Annotation Based**
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
 ```csharp
 public class User
@@ -374,7 +377,8 @@ public class User
 }
 ```
 
-**Code First**
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
 
 ```csharp
 public class UserType : ObjectType<User>
@@ -387,21 +391,25 @@ public class UserType : ObjectType<User>
 }
 ```
 
-**Schema First**
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
 
-```sql
+```sdl
 type User {
   userName: NonEmptyString
 }
 ```
 
+</ExampleTabs.Schema>
+</ExampleTabs>
+
 You will also have to add the Scalar to the schema:
 
 ```csharp
 services
-  .AddGraphQLServer()
-  // ....
-  .AddType<NonEmptyStringType>()
+    .AddGraphQLServer()
+    // ....
+    .AddType<NonEmptyStringType>()
 ```
 
 **Available Scalars:**
@@ -410,11 +418,12 @@ services
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | EmailAddress     | The `EmailAddress` scalar type represents a email address, represented as UTF-8 character sequences that follows the specification defined in RFC 5322.                                                                 |
 | HexColor         | The `HexColor` scalar type represents a valid HEX color code.                                                                                                                                                           |
-| Hsl              | The `Hsl` scalar type represents a valid a CSS HSL color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.                                                                       |
-| Hsla             | The `Hsla` scalar type represents a valid a CSS HSLA color as defined here https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors.                                                                     |
-| IPv4             | The `IPv4` scalar type represents a valid a IPv4 address as defined here https://en.wikipedia.org/wiki/IPv4.                                                                                                            |
+| Hsl              | The `Hsl` scalar type represents a valid a CSS HSL color as defined [here](https://developer.mozilla.org/en-US/docs/Web/CSS/) color_value#hsl_colors.                                                                   |
+| Hsla             | The `Hsla` scalar type represents a valid a CSS HSLA color as defined [here](https://developer.mozilla.org/en-US/docs/Web/CSS/) color_value#hsl_colors.                                                                 |
+| IPv4             | The `IPv4` scalar type represents a valid a IPv4 address as defined [here](https://en.wikipedia.org/wiki/) IPv4.                                                                                                        |
 | IPv6             | The `IPv6` scalar type represents a valid a IPv6 address as defined here [RFC8064](https://tools.ietf.org/html/rfc8064).                                                                                                |
 | Isbn             | The `ISBN` scalar type is a ISBN-10 or ISBN-13 number: https:\/\/en.wikipedia.org\/wiki\/International_Standard_Book_Number.                                                                                            |
+| LocalCurrency    | The `LocalCurrency` scalar type is a currency string.                                                                                                                                                                   |
 | LocalDate        | The `LocalDate` scalar type represents a ISO date string, represented as UTF-8 character sequences yyyy-mm-dd. The scalar follows the specification defined in RFC3339.                                                 |
 | LocalTime        | The `LocalTime` scalar type is a local time string (i.e., with no associated timezone) in 24-hr `HH:mm:ss]`.                                                                                                            |
 | MacAddress       | The `MacAddess` scalar type represents a IEEE 802 48-bit Mac address, represented as UTF-8 character sequences. The scalar follows the specification defined in [RFC7042](https://tools.ietf.org/html/rfc7042#page-19). |
@@ -425,12 +434,12 @@ services
 | NonNegativeInt   | The `NonNegativeIntType` scalar type represents a unsigned 32-bit numeric non-fractional value greater than or equal to 0.                                                                                              |
 | NonPositiveFloat | The `NonPositiveFloat` scalar type represents a double‐precision fractional value less than or equal to 0.                                                                                                              |
 | NonPositiveInt   | The `NonPositiveInt` scalar type represents a signed 32-bit numeric non-fractional value less than or equal to 0.                                                                                                       |
-| PhoneNumber      | The `PhoneNumber` scalar type represents a value that conforms to the standard E.164 format as specified in: https://en.wikipedia.org/wiki/E.164.                                                                       |
+| PhoneNumber      | The `PhoneNumber` scalar type represents a value that conforms to the standard E.164 format as specified [here](https://en.wikipedia.org/wiki/E).164.                                                                   |
 | PositiveInt      | The `PositiveInt` scalar type represents a signed 32‐bit numeric non‐fractional value of at least the value 1.                                                                                                          |
 | PostalCode       | The `PostalCode` scalar type represents a valid postal code.                                                                                                                                                            |
 | Port             | The `Port` scalar type represents a field whose value is a valid TCP port within the range of 0 to 65535.                                                                                                               |
-| Rgb              | The `RGB` scalar type represents a valid CSS RGB color as defined here [MDN](<https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba()>).                                                          |
-| Rgba             | The `RGBA` scalar type represents a valid CSS RGBA color as defined here [MDN](<https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba()>).                                                        |
+| Rgb              | The `RGB` scalar type represents a valid CSS RGB color as defined [here](<https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba()>).                                                              |
+| Rgba             | The `RGBA` scalar type represents a valid CSS RGBA color as defined [here](<https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb()_and_rgba()>).                                                            |
 | UnsignedInt      | The `UnsignedInt` scalar type represents a unsigned 32‐bit numeric non‐fractional value greater than or equal to 0.                                                                                                     |
 | UnsignedLong     | The `UnsignedLong` scalar type represents a unsigned 64‐bit numeric non‐fractional value greater than or equal to 0.                                                                                                    |
 | UtcOffset        | The `UtcOffset` scalar type represents a value of format `±hh:mm`.                                                                                                                                                      |

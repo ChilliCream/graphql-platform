@@ -1,5 +1,0 @@
-﻿{
-  "result": "{\n  \"data\": {\n    \"foo\": {\n      \"someId\": \"QmFyCmQx\",\n      \"someIds\": null\n    }\n  }\n}",
-  "someId": "1",
-  "someIntId": 1
-}

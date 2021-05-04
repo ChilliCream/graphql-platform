@@ -213,7 +213,7 @@ namespace HotChocolate
                 foreach (FieldReference reference in builder._resolvers.Keys)
                 {
                     initializer.Resolvers[reference] = new RegisteredResolver(
-                        typeof(object), builder._resolvers[reference]);
+                        typeof(object), typeof(object), builder._resolvers[reference]);
                 }
 
                 foreach (RegisteredResolver resolver in

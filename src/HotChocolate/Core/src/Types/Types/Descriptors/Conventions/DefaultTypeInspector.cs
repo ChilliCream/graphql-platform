@@ -770,6 +770,7 @@ namespace HotChocolate.Types.Descriptors
                 element.IsDefined(typeof(ServiceAttribute), true) ||
                 element.IsDefined(typeof(GlobalStateAttribute), true) ||
                 element.IsDefined(typeof(ScopedServiceAttribute), true) ||
+                element.IsDefined(typeof(ScopedStateAttribute), true) ||
                 element.IsDefined(typeof(LocalStateAttribute), true) ||
                 element.IsDefined(typeof(DescriptorAttribute), true);
         }

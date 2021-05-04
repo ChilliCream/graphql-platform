@@ -12,14 +12,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _strategy = "strategy";
         private const string _cancellationToken = "cancellationToken";
 
-        protected override void Generate(
+        protected override void Generate(OperationDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
-            OperationDescriptor descriptor,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             fileName = descriptor.InterfaceType.Name;
             path = null;
+            ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
             InterfaceBuilder interfaceBuilder = InterfaceBuilder
                 .New()
@@ -44,11 +46,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             interfaceBuilder.AddMethod(CreateWatchMethod(descriptor, runtimeTypeName));
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
-                .AddType(interfaceBuilder)
-                .Build(writer);
+            interfaceBuilder.Build(writer);
         }
 
         private MethodBuilder CreateWatchMethod(

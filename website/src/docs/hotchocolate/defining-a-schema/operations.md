@@ -6,41 +6,39 @@ title: "GraphQL Operations"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-In GraphQL, we have three root types from which only the Query type has to be defined. Root types provide the entry points that lets us fetch data, mutate data, or subscribe to events. Root types themselves are object types and are commonly referred to as operations.
+In GraphQL, there are three root types from which only the Query type has to be defined. Root types provide the entry points that lets us fetch data, mutate data, or subscribe to events. Root types themselves are object types and are commonly referred to as operations.
 
 # Query
 
 The query type is how we can read data. It is described as a way to access read-only data in a side-effect free way. This means that the GraphQL engine is allowed to parallelize data fetching.
 
-A query type can be represented like the following:
+```graphql
+query {
+  book(id: 1) {
+    title
+    author
+  }
+}
+```
 
-> **Note:** Every single code example will be shown in three different approaches, annotation-based (previously known as pure code-first), code-first, and schema-first. However, they will always result in the same outcome on a GraphQL schema perspective and internally in Hot Chocolate. All three approaches have their pros and cons and can be combined when needed with each other. If you would like to learn more about the three approaches in Hot Chocolate, click on [Coding Approaches](/docs/hotchocolate/api-reference/coding-approaches).
+## Defining a query
+
+A query type can be represented like the following:
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
 
 ```csharp
-// Query.cs
 public class Query
 {
     public Book GetBook() => new Book { Title  = "C# in depth", Author = "Jon Skeet" };
 }
 
-// Book.cs
-public class Book
-{
-    public string Title { get; set; }
-
-    public string Author { get; set; }
-}
-
-// Startup.cs
 public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
         services
-            .AddRouting()
             .AddGraphQLServer()
             .AddQueryType<Query>();
     }
@@ -53,13 +51,11 @@ public class Startup
 <ExampleTabs.Code>
 
 ```csharp
-// Query.cs
 public class Query
 {
     public Book GetBook() => new Book { Title  = "C# in depth", Author = "Jon Skeet" };
 }
 
-// QueryType.cs
 public class QueryType : ObjectType<Query>
 {
     protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
@@ -70,15 +66,6 @@ public class QueryType : ObjectType<Query>
     }
 }
 
-// Book.cs
-public class Book
-{
-    public string Title { get; set; }
-
-    public string Author { get; set; }
-}
-
-// BookType.cs
 public class BookType : ObjectType<Book>
 {
     protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
@@ -93,14 +80,11 @@ public class BookType : ObjectType<Book>
     }
 }
 
-
-// Startup.cs
 public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
         services
-            .AddRouting()
             .AddGraphQLServer()
             .AddQueryType<QueryType>();
     }
@@ -113,19 +97,16 @@ public class Startup
 <ExampleTabs.Schema>
 
 ```csharp
-// Query.cs
 public class Query
 {
     public Book GetBook() => new Book { Title  = "C# in depth", Author = "Jon Skeet" };
 }
 
-// Startup.cs
 public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
         services
-            .AddRouting()
             .AddGraphQLServer()
             .AddDocumentFromString(@"
                 type Query {
@@ -137,7 +118,8 @@ public class Startup
                   author: String
                 }
             ")
-            .BindComplexType<Query>();
+            .BindComplexType<Query>()
+            .BindComplexType<Book>();
     }
 
     // Omitted code for brevity
@@ -149,54 +131,47 @@ public class Startup
 
 # Mutation
 
-A mutation type in GraphQL is used to mutate/change data. This means that when you are doing mutations you are causing side-effects to the system.
+The mutation type in GraphQL is used to mutate/change data. This means that when we are doing mutations, we are causing side-effects to the system.
 
 GraphQL defines mutations as top-level fields on the mutation type. Meaning only the fields on the mutation root type itself are mutations. Everything that is returned from a mutation field represents the changed state of the server.
 
 ```graphql
 {
   mutation {
-    # changeUserName is the mutation and is allowed to cause side-effects.
-    changeUserName(input: { id: 1, name: "Michael Staib" }) {
+    # changeBookTitle is a mutation and is allowed to cause side-effects.
+    changeBookTitle(input: { id: 1, title: "C# in depth" }) {
       # everything in this selection set and below is a query.
       # We essentially allow the user to query the effect that the mutation had
       # on our system.
-      # In this case we are querying the changed user.
-      user {
-        name
+      # In this case we are querying the changed book.
+      book {
+        title
       }
     }
   }
 }
 ```
 
-In one GraphQL request you can execute multiple mutations. Each of these mutations are executed serially one by one whereas their child selection sets are executed possibly in parallel since only the top-level mutations fields are allowed to have side-effects in GraphQL.
+In one GraphQL request we can execute multiple mutations. Each of these mutations are executed serially one by one whereas their child selection sets are executed possibly in parallel since only the top-level mutations fields are allowed to have side-effects in GraphQL.
 
 ```graphql
 {
   mutation {
-    # changeUserName is the mutation and is allowed to cause side-effects.
-    changeUserName(input: { id: 1, name: "Michael Staib" }) {
-      # everything in this selection set and below is a query.
-      # We essentially allow the user to query the effect that the mutation had
-      # on our system.
-      # In this case we are querying the changed user.
-      user {
-        name
+    addBook(input: { title: "C# in depth", author: "Jon Skeet" }) {
+      book {
+        title
       }
     }
-    # activateUser is the mutation and is allowed to cause side-effects.
-    activateUser(input: { id: 1 }) {
-      # everything in this selection set and below is a query.
-      # We essentially allow the user to query the effect that the mutation had
-      # on our system.
-      user {
-        isActive
+    publishBook(input: { id: 1 }) {
+      book {
+        isPublished
       }
     }
   }
 }
 ```
+
+## Defining a Mutation
 
 A mutation type can be represented like the following:
 
@@ -204,32 +179,21 @@ A mutation type can be represented like the following:
 <ExampleTabs.Annotation>
 
 ```csharp
-// Mutation.cs
 public class Mutation
 {
-    public async Task<Book> AddNewBook(Book book)
+    public async Task<Book> AddBook(Book book)
     {
         // Omitted code for brevity
     }
 }
 
-// Book.cs
-public class Book
-{
-    public string Title { get; set; }
-
-    public string Author { get; set; }
-}
-
-// Startup.cs
 public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
         services
-            .AddRouting()
             .AddGraphQLServer()
-            .AddQueryType<Query>()
+            // ...
             .AddMutationType<Mutation>();
     }
 
@@ -241,33 +205,29 @@ public class Startup
 <ExampleTabs.Code>
 
 ```csharp
-// Mutation.cs
 public class Mutation
 {
-    public async Task<Book> AddNewBook(Book book)
+    public async Task<Book> AddBook(Book book)
     {
         // Omitted code for brevity
     }
 }
 
-// MutationType.cs
 public class MutationType : ObjectType<Mutation>
 {
     protected override void Configure(IObjectTypeDescriptor<Mutation> descriptor)
     {
-        descriptor.Field(f => f.AddNewBook(default));
+        descriptor.Field(f => f.AddBook(default));
     }
 }
 
-// Startup.cs
 public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
         services
-            .AddRouting()
             .AddGraphQLServer()
-            .AddQueryType<QueryType>()
+            // ...
             .AddMutationType<MutationType>();
     }
 
@@ -279,30 +239,30 @@ public class Startup
 <ExampleTabs.Schema>
 
 ```csharp
-// Mutation.cs
 public class Mutation
 {
-    public async Task<Book> AddNewBook(Book book)
+    public async Task<Book> AddBook(Book book)
     {
         // Omitted code for brevity
     }
 }
 
-// Startup.cs
 public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
         services
-            .AddRouting()
             .AddGraphQLServer()
             .AddDocumentFromString(@"
-                type Query {
-                  book: Book
-                }
+                # ...
 
                 type Mutation {
-                  addNewBook(input: AddNewBookInput): AddNewBookPayload
+                  addBook(input: BookInput): Book
+                }
+
+                type BookInput {
+                  title: String
+                  author: String
                 }
 
                 type Book {
@@ -310,7 +270,7 @@ public class Startup
                   author: String
                 }
             ")
-            .BindComplexType<Query>()
+            // ...
             .BindComplexType<Mutation>();
     }
 
@@ -334,7 +294,7 @@ The default transaction scope handler can be added like the following:
 ```csharp
 services
     .AddGraphQLServer()
-    ...
+    // ...
     .AddDefaultTransactionScopeHandler();
 ```
 
@@ -370,15 +330,282 @@ public class DefaultTransactionScopeHandler : ITransactionScopeHandler
 }
 ```
 
-If you implement a custom transaction scope handler or if you choose to extend upon the default transaction scope handler you can add it like the following.
+If we implement a custom transaction scope handler or if we choose to extend upon the default transaction scope handler, we can add it like the following.
 
 ```csharp
 services
     .AddGraphQLServer()
-    ...
+    // ...
     .AddTransactionScopeHandler<CustomTransactionScopeHandler>();
 ```
 
 # Subscription
 
-Documentation following ...
+The subscription type in GraphQL is used to add real-time capabilities to our applications. Clients can subscribe to events and receive the event data in real-time, as soon as the server publishes it.
+
+Subscribing to an event is like writing a standard query. The only difference is the operation keyword and that we are only allowed to have one root field.
+
+```graphql
+subscription {
+  onBookAdded(author: "Jon Skeet") {
+    title
+  }
+}
+```
+
+HotChocolate implements Subscriptions via WebSockets and uses the pub/sub approach of [Apollo](https://www.apollographql.com/docs/apollo-server/data/subscriptions/#the-pubsub-class) for triggering subscriptions.
+
+## Defining a Subscription
+
+A subscription type can be represented like the following:
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+public class Subscription
+{
+    [Subscribe]
+    public Book OnBookAdded([EventMessage] Book book) => book;
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            // ...
+            .AddSubscriptionType<Subscription>();
+    }
+
+    // Omitted code for brevity
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class SubscriptionType : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor
+            .Field("onBookAdded")
+            .Type<BookType>()
+            .Resolve(context => context.GetEventMessage<Book>())
+            .Subscribe(async context =>
+            {
+                var receiver = context.Service<ITopicEventReceiver>();
+
+                ISourceStream stream =
+                    await receiver.SubscribeAsync<string, Book>("OnBookAdded");
+
+                return stream;
+            });
+    }
+}
+
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            // ...
+            .AddSubscriptionType<SubscriptionType>();
+    }
+
+    // Omitted code for brevity
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+```csharp
+public class Subscription
+{
+    [Subscribe]
+    public Book OnBookAdded([EventMessage] Book book) => book;
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddDocumentFromString(@"
+                # ...
+
+                type Subscription {
+                  onBookAdded: Book
+                }
+
+                type Book {
+                  title: String
+                  author: String
+                }
+            ")
+            // ...
+            .BindComplexType<Subscription>();
+    }
+
+    // Omitted code for brevity
+}
+```
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+## Transport
+
+After defining the subscription type, we need to add the WebSockets middleware to our request pipeline.
+
+```csharp
+public class Startup
+{
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        app.UseRouting();
+
+        app.UseWebSockets();
+
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapGraphQL();
+        });
+    }
+
+    // Omitted code for brevity
+}
+```
+
+To make pub/sub work, we also have to register a subscription provider. A subscription provider represents a pub/sub implementation used to handle events. Out of the box we support two subscription providers.
+
+### In-Memory Provider
+
+The In-Memory subscription provider does not need any configuration and is easily setup:
+
+```csharp
+services.AddInMemorySubscriptions();
+```
+
+### Redis Provider
+
+The Redis subscription provider enables us to run multiple instances of our HotChocolate GraphQL server and handle subscription events reliably.
+
+In order to use the Redis provider add the following package: `HotChocolate.Subscriptions.Redis`
+
+After we have added the package we can setup the Redis subscription provider:
+
+```csharp
+services.AddRedisSubscriptions((sp) =>
+    ConnectionMultiplexer.Connect("host:port"));
+```
+
+Our Redis subscription provider uses the [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis) Redis client underneath.
+
+## Publishing Events
+
+To publish events and trigger subscriptions, we can use the `ITopicEventSender`. The `ITopicEventSender` is an abstraction for the registered event publishing provider. Using this abstraction allows us to seamlessly switch between subscription providers, when necessary.
+
+Most of the time we will be publishing events for successful mutations. Therefor we can simply inject the `ITopicEventSender` into our mutations like we would with every other `Service`. Of course we can not only publish events from mutations, but everywhere we have access to the `ITopicEventSender` through the DI Container.
+
+```csharp
+public class Mutation
+{
+    public async Book AddBook(Book book, [Service] ITopicEventSender sender)
+    {
+        await sender.SendAsync("OnBookAdded", book);
+
+        // Omitted code for brevity
+    }
+}
+```
+
+In the example the `"OnBookAdded"` is the topic we want to publish to, and `book` is our payload. Even though we have used a string as the topic, we do not have to. Any other type works just fine.
+
+But where is the connection between `"OnBookAdded"` as a topic and the subscription type? Per default HotChocolate will try to map the topic to a field of the subscription type. If we want to make this binding less error-prone, we could do the following:
+
+```csharp
+await sender.SendAsync(nameof(Subscription.OnBookAdded), book);
+```
+
+If we do not want to use the method name, we could use the `Topic` attribute.
+
+```csharp
+public class Subscription
+{
+    [Subscribe]
+    [Topic("ExampleTopic")]
+    public Book OnBookAdded([EventMessage] Book book) => book;
+}
+
+public async Book AddBook(Book book, [Service] ITopicEventSender sender)
+{
+    await sender.SendAsync("ExampleTopic", book);
+
+    // Omitted code for brevity
+}
+```
+
+We can even use the `Topic` attribute on dynamic arguments of the subscription field.
+
+```csharp
+public class Subscription
+{
+    [Subscribe]
+    public Book OnBookAdded([Topic] string author, [EventMessage] Book book)
+        => book;
+}
+
+public async Book AddBook(Book book, [Service] ITopicEventSender sender)
+{
+    await sender.SendAsync(book.Author, book);
+
+    // Omitted code for brevity
+}
+```
+
+We can also use the `ITopicEventReceiver` to work with more complex topics.
+
+```csharp
+public class Subscription
+{
+    [SubscribeAndResolve]
+    public ValueTask<ISourceStream<Book>> OnBookAdded(string author,
+        [Service] ITopicEventReceiver receiver)
+    {
+        string topic = $"{author}_AddedBook";
+        Book book = receiver.SubscribeAsync<string, Book>(topic);
+
+        return book;
+    }
+}
+
+public async Book AddBook(Book book, [Service] ITopicEventSender sender)
+{
+    await sender.SendAsync($"{book.Author}_AddedBook", book);
+
+    // Omitted code for brevity
+}
+```
+
+If we do not want to mix the subscription logic with our resolver, we can also use the `With` argument on the `Subscribe` attribute to specify a seperate method that handles the event subscription.
+
+```csharp
+public class Subscription
+{
+    public ValueTask<ISourceStream<Book>> SubscribeToBooks(
+        [Service] ITopicEventReceiver receiver)
+        => receiver.SubscribeAsync<string, Book>("ExampleTopic");
+
+    [Subscribe(With = nameof(SubscribeToBooks))]
+    public ValueTask<ISourceStream<Book>> OnBookAdded([EventMessage] Book book)
+        => book;
+}
+```

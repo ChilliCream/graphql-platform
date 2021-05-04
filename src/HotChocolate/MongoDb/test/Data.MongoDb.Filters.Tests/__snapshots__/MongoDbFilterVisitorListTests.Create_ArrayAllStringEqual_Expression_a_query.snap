@@ -1,0 +1,1 @@
+﻿find({ "Bar" : { "$exists" : true, "$nin" : [[], null] }, "$nor" : [{ "Bar" : { "$elemMatch" : { "$not" : { "$eq" : "a" } } } }] })

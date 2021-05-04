@@ -14,6 +14,7 @@ namespace StrawberryShake.CodeGeneration
         public const string OperationStore = StrawberryshakeNamespace + "OperationStore";
         public const string IOperationExecutor = StrawberryshakeNamespace + "IOperationExecutor";
         public const string OperationExecutor = StrawberryshakeNamespace + "OperationExecutor";
+        public const string StorelessOperationExecutor = StrawberryshakeNamespace + "StorelessOperationExecutor";
         public const string IOperationResult = StrawberryshakeNamespace + "IOperationResult";
         public const string OperationResult = StrawberryshakeNamespace + "OperationResult";
         public const string IOperationResultDataFactory = StrawberryshakeNamespace + "IOperationResultDataFactory";
@@ -36,6 +37,7 @@ namespace StrawberryShake.CodeGeneration
 
         public const string OperationKind = StrawberryshakeNamespace + "OperationKind";
         public const string EntityId = StrawberryshakeNamespace + "EntityId";
+        public const string EntityIdOrData = StrawberryshakeNamespace + "EntityIdOrData";
         public const string IEntityUpdateSession = StrawberryshakeNamespace + "IEntityUpdateSession";
         public const string IEntityUpdateSession_Version = "Version";
 
@@ -46,8 +48,11 @@ namespace StrawberryShake.CodeGeneration
         public const string ExecutionStrategy = StrawberryshakeNamespace + "ExecutionStrategy";
         public const string GetPropertyOrNull = StrawberryshakeNamespace + "Json.JsonElementExtensions.GetPropertyOrNull";
         public const string HttpConnection= StrawberryshakeNamespace + "Transport.Http.HttpConnection";
+        public const string IHttpConnection= StrawberryshakeNamespace + "Transport.Http.IHttpConnection";
         public const string InMemoryConnection = StrawberryshakeNamespace + "Transport.InMemory.InMemoryConnection";
+        public const string IInMemoryConnection = StrawberryshakeNamespace + "Transport.InMemory.IInMemoryConnection";
         public const string WebSocketConnection= StrawberryshakeNamespace + "Transport.WebSockets.WebSocketConnection";
+        public const string IWebSocketConnection= StrawberryshakeNamespace + "Transport.WebSockets.IWebSocketConnection";
         public const string ISessionPool= StrawberryshakeNamespace + "Transport.WebSockets.ISessionPool";
         public const string IInMemoryClientFactory= StrawberryshakeNamespace + "Transport.InMemory.IInMemoryClientFactory";
         public const string AddProtocol= GlobalDependencyInjectionNamespace + "WebSocketClientFactoryServiceCollectionExtensions.AddProtocol";
@@ -65,6 +70,7 @@ namespace StrawberryShake.CodeGeneration
         public const string String = "global::System.String";
         public const string Byte = "global::System.Byte";
         public const string ByteArray = "global::System.Byte[]";
+        public const string Array = "global::System.Array";
         public const string Int16 = "global::System.Int16";
         public const string Int32 = "global::System.Int32";
         public const string Int64 = "global::System.Int64";
@@ -112,6 +118,10 @@ namespace StrawberryShake.CodeGeneration
             "ServiceCollectionServiceExtensions.AddSingleton";
         public const string BuildServiceProvider = GlobalDependencyInjectionNamespace +
             "ServiceCollectionContainerBuilderExtensions.BuildServiceProvider";
+        public const string InjectAttribute =
+            "global::Microsoft.AspNetCore.Components.InjectAttribute";
+        public const string ParameterAttribute =
+            "global::Microsoft.AspNetCore.Components.ParameterAttribute";
 
         public const string IHttpClientFactory = "global::System.Net.Http.IHttpClientFactory";
         public const string TryAddSingleton= DependencyInjectionExtensions + "TryAddSingleton";
@@ -122,6 +132,7 @@ namespace StrawberryShake.CodeGeneration
         public const string GlobalDependencyInjectionNamespace = "global::Microsoft.Extensions.DependencyInjection.";
         public const string DependencyInjectionNamespace = "Microsoft.Extensions.DependencyInjection";
         public const string DependencyInjectionExtensions =  GlobalDependencyInjectionNamespace +"Extensions.ServiceCollectionDescriptorExtensions.";
+        public const string QueryBase = StrawberryshakeNamespace + "Razor.QueryBase";
 
         public const string StringSerializer = StrawberryshakeNamespace + "Serialization.StringSerializer";
         public const string BooleanSerializer = StrawberryshakeNamespace + "Serialization.BooleanSerializer";

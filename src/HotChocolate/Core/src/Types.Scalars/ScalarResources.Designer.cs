@@ -189,6 +189,24 @@ namespace HotChocolate.Types {
             }
         }
         
+        internal static string LocalDateType_Description {
+            get {
+                return ResourceManager.GetString("LocalDateType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string LocalDateType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("LocalDateType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string LocalDateType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("LocalDateType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+        
         internal static string LocalTimeType_Description {
             get {
                 return ResourceManager.GetString("LocalTimeType_Description", resourceCulture);
@@ -207,27 +225,27 @@ namespace HotChocolate.Types {
             }
         }
         
+        internal static string LocalCurrencyType_Description {
+            get {
+                return ResourceManager.GetString("LocalCurrencyType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string LocalCurrencyType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("LocalCurrencyType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string LocalCurrencyType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("LocalCurrencyType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+        
         internal static string NegativeFloatType_Description {
             get {
                 return ResourceManager.GetString("NegativeFloatType_Description", resourceCulture);
-            }
-        }
-        
-        internal static string LocalDateType_Description {
-            get {
-                return ResourceManager.GetString("LocalDateType_Description", resourceCulture);
-            }
-        }
-        
-        internal static string LocalDateType_IsInvalid_ParseLiteral {
-            get {
-                return ResourceManager.GetString("LocalDateType_IsInvalid_ParseLiteral", resourceCulture);
-            }
-        }
-        
-        internal static string LocalDateType_IsInvalid_ParseValue {
-            get {
-                return ResourceManager.GetString("LocalDateType_IsInvalid_ParseValue", resourceCulture);
             }
         }
         

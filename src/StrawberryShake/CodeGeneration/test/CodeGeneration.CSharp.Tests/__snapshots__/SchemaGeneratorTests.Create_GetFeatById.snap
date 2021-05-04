@@ -9,303 +9,55 @@
 // ReSharper disable SuggestVarOrType_SimpleTypes
 // ReSharper disable InconsistentNaming
 
-// FeatEntity
+// FooClient
 
-// StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-
-#nullable enable
-
-namespace Foo.Bar.State
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class FeatEntity
-    {
-        public FeatEntity(
-            global::System.Guid id,
-            global::System.String name,
-            global::System.Int32 level,
-            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId> details)
-        {
-            Id = id;
-            Name = name;
-            Level = level;
-            Details = details;
-        }
-
-        public global::System.Guid Id { get; }
-
-        public global::System.String Name { get; }
-
-        public global::System.Int32 Level { get; }
-
-        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId> Details { get; }
-    }
-}
-
-
-// FeatDetailsBlockEntity
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
-
-#nullable enable
-
-namespace Foo.Bar.State
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class FeatDetailsBlockEntity
-    {
-        public FeatDetailsBlockEntity(global::System.String text)
-        {
-            Text = text;
-        }
-
-        public global::System.String Text { get; }
-    }
-}
-
-
-// GetFeatByIdResultFactory
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
-
-#nullable enable
-
-namespace Foo.Bar.State
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetFeatByIdResultFactory
-        : global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.GetFeatByIdResult>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatEntity, GetFeatById_Feats_Items_Feat> _getFeatById_Feats_Items_FeatFromFeatEntityMapper;
-        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatDetailsBlockEntity, GetFeatById_Feats_Items_Details_FeatDetailsBlock> _getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper;
-
-        public GetFeatByIdResultFactory(
-            global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatEntity, GetFeatById_Feats_Items_Feat> getFeatById_Feats_Items_FeatFromFeatEntityMapper,
-            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatDetailsBlockEntity, GetFeatById_Feats_Items_Details_FeatDetailsBlock> getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper)
-        {
-            _entityStore = entityStore
-                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _getFeatById_Feats_Items_FeatFromFeatEntityMapper = getFeatById_Feats_Items_FeatFromFeatEntityMapper
-                 ?? throw new global::System.ArgumentNullException(nameof(getFeatById_Feats_Items_FeatFromFeatEntityMapper));
-            _getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper = getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper
-                 ?? throw new global::System.ArgumentNullException(nameof(getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper));
-        }
-
-        global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IGetFeatByIdResult);
-
-        public GetFeatByIdResult Create(
-            global::StrawberryShake.IOperationResultDataInfo dataInfo,
-            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            if (dataInfo is GetFeatByIdResultInfo info)
-            {
-                return new GetFeatByIdResult(MapIGetFeatById_Feats(
-                    info.Feats,
-                    snapshot));
-            }
-
-            throw new global::System.ArgumentException("GetFeatByIdResultInfo expected.");
-        }
-
-        private global::Foo.Bar.IGetFeatById_Feats? MapIGetFeatById_Feats(
-            global::Foo.Bar.State.FeatCollectionSegmentData? data,
-            global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (data is null)
-            {
-                return null;
-            }
-
-            IGetFeatById_Feats returnValue = default!;
-
-            if (data?.__typename.Equals(
-                    "FeatCollectionSegment",
-                    global::System.StringComparison.Ordinal) ?? false)
-            {
-                returnValue = new GetFeatById_Feats_FeatCollectionSegment(MapIGetFeatById_Feats_ItemsArray(
-                    data.Items,
-                    snapshot));
-            }
-            else
-            {
-                throw new global::System.NotSupportedException();
-            }
-            return returnValue;
-        }
-
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items?>? MapIGetFeatById_Feats_ItemsArray(
-            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list,
-            global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (list is null)
-            {
-                return null;
-            }
-
-            var feats = new global::System.Collections.Generic.List<global::Foo.Bar.IGetFeatById_Feats_Items?>();
-
-            foreach (global::StrawberryShake.EntityId? child in list)
-            {
-                feats.Add(MapIGetFeatById_Feats_Items(
-                    child,
-                    snapshot));
-            }
-
-            return feats;
-        }
-
-        private global::Foo.Bar.IGetFeatById_Feats_Items? MapIGetFeatById_Feats_Items(
-            global::StrawberryShake.EntityId? entityId,
-            global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (entityId is null)
-            {
-                return null;
-            }
-
-
-            if (entityId.Value.Name.Equals(
-                    "Feat",
-                    global::System.StringComparison.Ordinal))
-            {
-                return _getFeatById_Feats_Items_FeatFromFeatEntityMapper.Map(
-                    snapshot.GetEntity<global::Foo.Bar.State.FeatEntity>(entityId.Value)
-                        ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-            throw new global::System.NotSupportedException();
-        }
-
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items_Details> MapNonNullableIGetFeatById_Feats_Items_DetailsNonNullableArray(
-            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? list,
-            global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (list is null)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            var featDetailsBlocks = new global::System.Collections.Generic.List<global::Foo.Bar.IGetFeatById_Feats_Items_Details>();
-
-            foreach (global::StrawberryShake.EntityId child in list)
-            {
-                featDetailsBlocks.Add(MapNonNullableIGetFeatById_Feats_Items_Details(
-                    child,
-                    snapshot));
-            }
-
-            return featDetailsBlocks;
-        }
-
-        private global::Foo.Bar.IGetFeatById_Feats_Items_Details MapNonNullableIGetFeatById_Feats_Items_Details(
-            global::StrawberryShake.EntityId entityId,
-            global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-
-            if (entityId.Name.Equals(
-                    "FeatDetailsBlock",
-                    global::System.StringComparison.Ordinal))
-            {
-                return _getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper.Map(
-                    snapshot.GetEntity<global::Foo.Bar.State.FeatDetailsBlockEntity>(entityId)
-                        ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-            throw new global::System.NotSupportedException();
-        }
-
-        global::System.Object global::StrawberryShake.IOperationResultDataFactory.Create(
-            global::StrawberryShake.IOperationResultDataInfo dataInfo,
-            global::StrawberryShake.IEntityStoreSnapshot? snapshot)
-        {
-            return Create(
-                dataInfo,
-                snapshot);
-        }
-    }
-}
-
-
-// GetFeatByIdResultInfo
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
-
-#nullable enable
-
-namespace Foo.Bar.State
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetFeatByIdResultInfo
-        : global::StrawberryShake.IOperationResultDataInfo
-    {
-        private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
-        private readonly global::System.UInt64 _version;
-
-        public GetFeatByIdResultInfo(
-            global::Foo.Bar.State.FeatCollectionSegmentData? feats,
-            global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds,
-            global::System.UInt64 version)
-        {
-            Feats = feats;
-            _entityIds = entityIds
-                 ?? throw new global::System.ArgumentNullException(nameof(entityIds));
-            _version = version;
-        }
-
-        public global::Foo.Bar.State.FeatCollectionSegmentData? Feats { get; }
-
-        public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
-
-        public global::System.UInt64 Version => _version;
-
-        public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
-        {
-            return new GetFeatByIdResultInfo(
-                Feats,
-                _entityIds,
-                version);
-        }
-    }
-}
-
-
-// GetFeatByIdResult
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-
+// <auto-generated/>
 #nullable enable
 
 namespace Foo.Bar
 {
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetFeatByIdResult
-        : global::System.IEquatable<GetFeatByIdResult>
-        , IGetFeatByIdResult
+    public partial class GetFeatByIdResult : global::System.IEquatable<GetFeatByIdResult>, IGetFeatByIdResult
     {
         public GetFeatByIdResult(global::Foo.Bar.IGetFeatById_Feats? feats)
         {
             Feats = feats;
         }
 
-        public global::Foo.Bar.IGetFeatById_Feats? Feats { get; }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
+        public global::Foo.Bar.IGetFeatById_Feats? Feats
         {
-            if (ReferenceEquals(
-                    null,
-                    obj))
+            get;
+        }
+
+        public virtual global::System.Boolean Equals(GetFeatByIdResult? other)
+        {
+            if (ReferenceEquals(null, other))
             {
                 return false;
             }
 
-            if (ReferenceEquals(
-                    this,
-                    obj))
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (((Feats is null && other.Feats is null) || Feats != null && Feats.Equals(other.Feats)));
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
             {
                 return true;
             }
@@ -318,18 +70,43 @@ namespace Foo.Bar
             return Equals((GetFeatByIdResult)obj);
         }
 
-        public global::System.Boolean Equals(GetFeatByIdResult? other)
+        public override global::System.Int32 GetHashCode()
         {
-            if (ReferenceEquals(
-                    null,
-                    other))
+            unchecked
+            {
+                int hash = 5;
+                if (Feats != null)
+                {
+                    hash ^= 397 * Feats.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetFeatById_Feats_FeatCollectionSegment : global::System.IEquatable<GetFeatById_Feats_FeatCollectionSegment>, IGetFeatById_Feats_FeatCollectionSegment
+    {
+        public GetFeatById_Feats_FeatCollectionSegment(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items?>? items)
+        {
+            Items = items;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items?>? Items
+        {
+            get;
+        }
+
+        public virtual global::System.Boolean Equals(GetFeatById_Feats_FeatCollectionSegment? other)
+        {
+            if (ReferenceEquals(null, other))
             {
                 return false;
             }
 
-            if (ReferenceEquals(
-                    this,
-                    other))
+            if (ReferenceEquals(this, other))
             {
                 return true;
             }
@@ -339,59 +116,17 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (((Feats is null && other.Feats is null) ||Feats != null && Feats.Equals(other.Feats)));
+            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Items, other.Items));
         }
-
-        public override global::System.Int32 GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 5;
-
-                if (!(Feats is null))
-                {
-                    hash ^= 397 * Feats.GetHashCode();
-                }
-
-                return hash;
-            }
-        }
-    }
-}
-
-
-// GetFeatById_Feats_FeatCollectionSegment
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetFeatById_Feats_FeatCollectionSegment
-        : global::System.IEquatable<GetFeatById_Feats_FeatCollectionSegment>
-        , IGetFeatById_Feats_FeatCollectionSegment
-    {
-        public GetFeatById_Feats_FeatCollectionSegment(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items?>? items)
-        {
-            Items = items;
-        }
-
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items?>? Items { get; }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
-            if (ReferenceEquals(
-                    null,
-                    obj))
+            if (ReferenceEquals(null, obj))
             {
                 return false;
             }
 
-            if (ReferenceEquals(
-                    this,
-                    obj))
+            if (ReferenceEquals(this, obj))
             {
                 return true;
             }
@@ -404,43 +139,16 @@ namespace Foo.Bar
             return Equals((GetFeatById_Feats_FeatCollectionSegment)obj);
         }
 
-        public global::System.Boolean Equals(GetFeatById_Feats_FeatCollectionSegment? other)
-        {
-            if (ReferenceEquals(
-                    null,
-                    other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(
-                    this,
-                    other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(
-                        Items,
-                        other.Items));
-        }
-
         public override global::System.Int32 GetHashCode()
         {
             unchecked
             {
                 int hash = 5;
-
-                if (!(Items is null))
+                if (Items != null)
                 {
                     foreach (var Items_elm in Items)
                     {
-                        if (!(Items_elm is null))
+                        if (Items_elm != null)
                         {
                             hash ^= 397 * Items_elm.GetHashCode();
                         }
@@ -451,110 +159,12 @@ namespace Foo.Bar
             }
         }
     }
-}
 
-
-// GetFeatById_Feats_Items_FeatFromFeatEntityMapper
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-
-#nullable enable
-
-namespace Foo.Bar.State
-{
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetFeatById_Feats_Items_FeatFromFeatEntityMapper
-        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatEntity, GetFeatById_Feats_Items_Feat>
+    public partial class GetFeatById_Feats_Items_Feat : global::System.IEquatable<GetFeatById_Feats_Items_Feat>, IGetFeatById_Feats_Items_Feat
     {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatDetailsBlockEntity, GetFeatById_Feats_Items_Details_FeatDetailsBlock> _getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper;
-
-        public GetFeatById_Feats_Items_FeatFromFeatEntityMapper(
-            global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatDetailsBlockEntity, GetFeatById_Feats_Items_Details_FeatDetailsBlock> getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper)
-        {
-            _entityStore = entityStore
-                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper = getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper
-                 ?? throw new global::System.ArgumentNullException(nameof(getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper));
-        }
-
-        public GetFeatById_Feats_Items_Feat Map(
-            global::Foo.Bar.State.FeatEntity entity,
-            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new GetFeatById_Feats_Items_Feat(
-                entity.Id,
-                entity.Name,
-                entity.Level,
-                MapNonNullableIGetFeatById_Feats_Items_DetailsNonNullableArray(
-                    entity.Details,
-                    snapshot));
-        }
-
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items_Details> MapNonNullableIGetFeatById_Feats_Items_DetailsNonNullableArray(
-            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? list,
-            global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-            if (list is null)
-            {
-                throw new global::System.ArgumentNullException();
-            }
-
-            var featDetailsBlocks = new global::System.Collections.Generic.List<global::Foo.Bar.IGetFeatById_Feats_Items_Details>();
-
-            foreach (global::StrawberryShake.EntityId child in list)
-            {
-                featDetailsBlocks.Add(MapNonNullableIGetFeatById_Feats_Items_Details(
-                    child,
-                    snapshot));
-            }
-
-            return featDetailsBlocks;
-        }
-
-        private global::Foo.Bar.IGetFeatById_Feats_Items_Details MapNonNullableIGetFeatById_Feats_Items_Details(
-            global::StrawberryShake.EntityId entityId,
-            global::StrawberryShake.IEntityStoreSnapshot snapshot)
-        {
-
-            if (entityId.Name.Equals(
-                    "FeatDetailsBlock",
-                    global::System.StringComparison.Ordinal))
-            {
-                return _getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper.Map(
-                    snapshot.GetEntity<global::Foo.Bar.State.FeatDetailsBlockEntity>(entityId)
-                        ?? throw new global::StrawberryShake.GraphQLClientException());
-            }
-            throw new global::System.NotSupportedException();
-        }
-    }
-}
-
-
-// GetFeatById_Feats_Items_Feat
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetFeatById_Feats_Items_Feat
-        : global::System.IEquatable<GetFeatById_Feats_Items_Feat>
-        , IGetFeatById_Feats_Items_Feat
-    {
-        public GetFeatById_Feats_Items_Feat(
-            global::System.Guid id,
-            global::System.String name,
-            global::System.Int32 level,
-            global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items_Details> details)
+        public GetFeatById_Feats_Items_Feat(global::System.Guid id, global::System.String name, global::System.Int32 level, global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items_Details> details)
         {
             Id = id;
             Name = name;
@@ -562,26 +172,54 @@ namespace Foo.Bar
             Details = details;
         }
 
-        public global::System.Guid Id { get; }
-
-        public global::System.String Name { get; }
-
-        public global::System.Int32 Level { get; }
-
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items_Details> Details { get; }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
+        public global::System.Guid Id
         {
-            if (ReferenceEquals(
-                    null,
-                    obj))
+            get;
+        }
+
+        public global::System.String Name
+        {
+            get;
+        }
+
+        public global::System.Int32 Level
+        {
+            get;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items_Details> Details
+        {
+            get;
+        }
+
+        public virtual global::System.Boolean Equals(GetFeatById_Feats_Items_Feat? other)
+        {
+            if (ReferenceEquals(null, other))
             {
                 return false;
             }
 
-            if (ReferenceEquals(
-                    this,
-                    obj))
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return (Id == other.Id) && Name.Equals(other.Name) && Level == other.Level && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Details, other.Details);
+        }
+
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
             {
                 return true;
             }
@@ -594,47 +232,14 @@ namespace Foo.Bar
             return Equals((GetFeatById_Feats_Items_Feat)obj);
         }
 
-        public global::System.Boolean Equals(GetFeatById_Feats_Items_Feat? other)
-        {
-            if (ReferenceEquals(
-                    null,
-                    other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(
-                    this,
-                    other))
-            {
-                return true;
-            }
-
-            if (other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return (Id == other.Id)
-                && Name.Equals(other.Name)
-                && Level == other.Level
-                && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(
-                        Details,
-                        other.Details);
-        }
-
         public override global::System.Int32 GetHashCode()
         {
             unchecked
             {
                 int hash = 5;
-
                 hash ^= 397 * Id.GetHashCode();
-
                 hash ^= 397 * Name.GetHashCode();
-
                 hash ^= 397 * Level.GetHashCode();
-
                 foreach (var Details_elm in Details)
                 {
                     hash ^= 397 * Details_elm.GetHashCode();
@@ -644,100 +249,29 @@ namespace Foo.Bar
             }
         }
     }
-}
 
-
-// GetFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-
-#nullable enable
-
-namespace Foo.Bar.State
-{
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper
-        : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatDetailsBlockEntity, GetFeatById_Feats_Items_Details_FeatDetailsBlock>
-    {
-        private readonly global::StrawberryShake.IEntityStore _entityStore;
-
-        public GetFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper(global::StrawberryShake.IEntityStore entityStore)
-        {
-            _entityStore = entityStore
-                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-        }
-
-        public GetFeatById_Feats_Items_Details_FeatDetailsBlock Map(
-            global::Foo.Bar.State.FeatDetailsBlockEntity entity,
-            global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
-        {
-            if (snapshot is null)
-            {
-                snapshot = _entityStore.CurrentSnapshot;
-            }
-
-            return new GetFeatById_Feats_Items_Details_FeatDetailsBlock(entity.Text);
-        }
-    }
-}
-
-
-// GetFeatById_Feats_Items_Details_FeatDetailsBlock
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetFeatById_Feats_Items_Details_FeatDetailsBlock
-        : global::System.IEquatable<GetFeatById_Feats_Items_Details_FeatDetailsBlock>
-        , IGetFeatById_Feats_Items_Details_FeatDetailsBlock
+    public partial class GetFeatById_Feats_Items_Details_FeatDetailsBlock : global::System.IEquatable<GetFeatById_Feats_Items_Details_FeatDetailsBlock>, IGetFeatById_Feats_Items_Details_FeatDetailsBlock
     {
         public GetFeatById_Feats_Items_Details_FeatDetailsBlock(global::System.String text)
         {
             Text = text;
         }
 
-        public global::System.String Text { get; }
-
-        public override global::System.Boolean Equals(global::System.Object? obj)
+        public global::System.String Text
         {
-            if (ReferenceEquals(
-                    null,
-                    obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(
-                    this,
-                    obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((GetFeatById_Feats_Items_Details_FeatDetailsBlock)obj);
+            get;
         }
 
-        public global::System.Boolean Equals(GetFeatById_Feats_Items_Details_FeatDetailsBlock? other)
+        public virtual global::System.Boolean Equals(GetFeatById_Feats_Items_Details_FeatDetailsBlock? other)
         {
-            if (ReferenceEquals(
-                    null,
-                    other))
+            if (ReferenceEquals(null, other))
             {
                 return false;
             }
 
-            if (ReferenceEquals(
-                    this,
-                    other))
+            if (ReferenceEquals(this, other))
             {
                 return true;
             }
@@ -750,147 +284,111 @@ namespace Foo.Bar
             return (Text.Equals(other.Text));
         }
 
+        public override global::System.Boolean Equals(global::System.Object? obj)
+        {
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Equals((GetFeatById_Feats_Items_Details_FeatDetailsBlock)obj);
+        }
+
         public override global::System.Int32 GetHashCode()
         {
             unchecked
             {
                 int hash = 5;
-
                 hash ^= 397 * Text.GetHashCode();
-
                 return hash;
             }
         }
     }
-}
 
-
-// IGetFeatByIdResult
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetFeatByIdResult
     {
-        public global::Foo.Bar.IGetFeatById_Feats? Feats { get; }
+        public global::Foo.Bar.IGetFeatById_Feats? Feats
+        {
+            get;
+        }
     }
-}
 
-
-// IGetFeatById_Feats
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetFeatById_Feats
     {
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items?>? Items { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items?>? Items
+        {
+            get;
+        }
     }
-}
 
-
-// IGetFeatById_Feats_FeatCollectionSegment
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFeatById_Feats_FeatCollectionSegment
-        : IGetFeatById_Feats
+    public interface IGetFeatById_Feats_FeatCollectionSegment : IGetFeatById_Feats
     {
     }
-}
 
-
-// IGetFeatById_Feats_Items
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetFeatById_Feats_Items
     {
-        public global::System.Guid Id { get; }
+        public global::System.Guid Id
+        {
+            get;
+        }
 
-        public global::System.String Name { get; }
+        public global::System.String Name
+        {
+            get;
+        }
 
-        public global::System.Int32 Level { get; }
+        public global::System.Int32 Level
+        {
+            get;
+        }
 
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items_Details> Details { get; }
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items_Details> Details
+        {
+            get;
+        }
     }
-}
 
-
-// IGetFeatById_Feats_Items_Feat
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFeatById_Feats_Items_Feat
-        : IGetFeatById_Feats_Items
+    public interface IGetFeatById_Feats_Items_Feat : IGetFeatById_Feats_Items
     {
     }
-}
 
-
-// IGetFeatById_Feats_Items_Details
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public interface IGetFeatById_Feats_Items_Details
     {
-        public global::System.String Text { get; }
+        public global::System.String Text
+        {
+            get;
+        }
     }
-}
 
-
-// IGetFeatById_Feats_Items_Details_FeatDetailsBlock
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFeatById_Feats_Items_Details_FeatDetailsBlock
-        : IGetFeatById_Feats_Items_Details
+    public interface IGetFeatById_Feats_Items_Details_FeatDetailsBlock : IGetFeatById_Feats_Items_Details
     {
     }
-}
 
-
-// GetFeatByIdQueryDocument
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
     /// Represents the operation service of the GetFeatById GraphQL operation
     /// <code>
@@ -918,41 +416,37 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetFeatByIdQueryDocument
-        : global::StrawberryShake.IDocument
+    public partial class GetFeatByIdQueryDocument : global::StrawberryShake.IDocument
     {
         private GetFeatByIdQueryDocument()
         {
         }
 
-        public static GetFeatByIdQueryDocument Instance { get; } = new GetFeatByIdQueryDocument();
+        public static GetFeatByIdQueryDocument Instance
+        {
+            get;
+        }
 
+        = new GetFeatByIdQueryDocument();
         public global::StrawberryShake.OperationKind Kind => global::StrawberryShake.OperationKind.Query;
+        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x46, 0x65, 0x61, 0x74, 0x42, 0x79, 0x49, 0x64, 0x28, 0x24, 0x69, 0x64, 0x3a, 0x20, 0x55, 0x75, 0x69, 0x64, 0x21, 0x29, 0x20, 0x7b, 0x20, 0x66, 0x65, 0x61, 0x74, 0x73, 0x28, 0x77, 0x68, 0x65, 0x72, 0x65, 0x3a, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x3a, 0x20, 0x7b, 0x20, 0x65, 0x71, 0x3a, 0x20, 0x24, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x64, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6c, 0x65, 0x76, 0x65, 0x6c, 0x20, 0x64, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x74, 0x65, 0x78, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x46, 0x65, 0x61, 0x74, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x46, 0x65, 0x61, 0x74, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d};
+        public global::StrawberryShake.DocumentHash Hash
+        {
+            get;
+        }
 
-        public global::System.ReadOnlySpan<global::System.Byte> Body => new global::System.Byte[]{ 0x71, 0x75, 0x65, 0x72, 0x79, 0x20, 0x47, 0x65, 0x74, 0x46, 0x65, 0x61, 0x74, 0x42, 0x79, 0x49, 0x64, 0x28, 0x24, 0x69, 0x64, 0x3a, 0x20, 0x55, 0x75, 0x69, 0x64, 0x21, 0x29, 0x20, 0x7b, 0x20, 0x66, 0x65, 0x61, 0x74, 0x73, 0x28, 0x77, 0x68, 0x65, 0x72, 0x65, 0x3a, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x3a, 0x20, 0x7b, 0x20, 0x65, 0x71, 0x3a, 0x20, 0x24, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x29, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x69, 0x64, 0x20, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x6c, 0x65, 0x76, 0x65, 0x6c, 0x20, 0x64, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x20, 0x7b, 0x20, 0x5f, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x6e, 0x61, 0x6d, 0x65, 0x20, 0x74, 0x65, 0x78, 0x74, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x46, 0x65, 0x61, 0x74, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x2e, 0x2e, 0x2e, 0x20, 0x6f, 0x6e, 0x20, 0x46, 0x65, 0x61, 0x74, 0x20, 0x7b, 0x20, 0x69, 0x64, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d, 0x20, 0x7d };
-
-        public global::StrawberryShake.DocumentHash Hash { get; } = new global::StrawberryShake.DocumentHash("sha1Hash", "f1f9f6354f622482f1770300696a15f2ffc25244");
-
+        = new global::StrawberryShake.DocumentHash("sha1Hash", "f1f9f6354f622482f1770300696a15f2ffc25244");
         public override global::System.String ToString()
         {
-            #if NETSTANDARD2_0
-            return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
-            #else
+#if NETSTANDARD2_0
+        return global::System.Text.Encoding.UTF8.GetString(Body.ToArray());
+#else
             return global::System.Text.Encoding.UTF8.GetString(Body);
-            #endif
+#endif
         }
     }
-}
 
-
-// GetFeatByIdQuery
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
     /// Represents the operation service of the GetFeatById GraphQL operation
     /// <code>
@@ -980,66 +474,39 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetFeatByIdQuery
-        : global::Foo.Bar.IGetFeatByIdQuery
+    public partial class GetFeatByIdQuery : global::Foo.Bar.IGetFeatByIdQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetFeatByIdResult> _operationExecutor;
         private readonly global::StrawberryShake.Serialization.IInputValueFormatter _uuidFormatter;
-
-        public GetFeatByIdQuery(
-            global::StrawberryShake.IOperationExecutor<IGetFeatByIdResult> operationExecutor,
-            global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        public GetFeatByIdQuery(global::StrawberryShake.IOperationExecutor<IGetFeatByIdResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
-            _operationExecutor = operationExecutor
-                 ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
+            _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
             _uuidFormatter = serializerResolver.GetInputValueFormatter("Uuid");
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IGetFeatByIdResult);
-
-        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetFeatByIdResult>> ExecuteAsync(
-            global::System.Guid id,
-            global::System.Threading.CancellationToken cancellationToken = default)
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetFeatByIdResult>> ExecuteAsync(global::System.Guid id, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(id);
-
-            return await _operationExecutor
-                .ExecuteAsync(
-                    request,
-                    cancellationToken)
-                .ConfigureAwait(false);
+            return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
-        public global::System.IObservable<global::StrawberryShake.IOperationResult<IGetFeatByIdResult>> Watch(
-            global::System.Guid id,
-            global::StrawberryShake.ExecutionStrategy? strategy = null)
+        public global::System.IObservable<global::StrawberryShake.IOperationResult<IGetFeatByIdResult>> Watch(global::System.Guid id, global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
             var request = CreateRequest(id);
-            return _operationExecutor.Watch(
-                request,
-                strategy);
+            return _operationExecutor.Watch(request, strategy);
         }
 
         private global::StrawberryShake.OperationRequest CreateRequest(global::System.Guid id)
         {
             var variables = new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>();
-
-            variables.Add(
-                "id",
-                FormatId(id));
-
+            variables.Add("id", FormatId(id));
             return CreateRequest(variables);
         }
 
         private global::StrawberryShake.OperationRequest CreateRequest(global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object?>? variables)
         {
-
-            return new global::StrawberryShake.OperationRequest(
-                id: GetFeatByIdQueryDocument.Instance.Hash.Value,
-                name: "GetFeatById",
-                document: GetFeatByIdQueryDocument.Instance,
-                strategy: global::StrawberryShake.RequestStrategy.Default,
-                variables:variables);
+            return new global::StrawberryShake.OperationRequest(id: GetFeatByIdQueryDocument.Instance.Hash.Value, name: "GetFeatById", document: GetFeatByIdQueryDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.Default, variables: variables);
         }
 
         private global::System.Object? FormatId(global::System.Guid value)
@@ -1052,17 +519,8 @@ namespace Foo.Bar
             return CreateRequest(variables!);
         }
     }
-}
 
-
-// IGetFeatByIdQuery
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
+    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
     /// Represents the operation service of the GetFeatById GraphQL operation
     /// <code>
@@ -1090,31 +548,305 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFeatByIdQuery
-        : global::StrawberryShake.IOperationRequestFactory
+    public interface IGetFeatByIdQuery : global::StrawberryShake.IOperationRequestFactory
     {
-        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetFeatByIdResult>> ExecuteAsync(
-            global::System.Guid id,
-            global::System.Threading.CancellationToken cancellationToken = default);
+        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetFeatByIdResult>> ExecuteAsync(global::System.Guid id, global::System.Threading.CancellationToken cancellationToken = default);
+        global::System.IObservable<global::StrawberryShake.IOperationResult<IGetFeatByIdResult>> Watch(global::System.Guid id, global::StrawberryShake.ExecutionStrategy? strategy = null);
+    }
 
-        global::System.IObservable<global::StrawberryShake.IOperationResult<IGetFeatByIdResult>> Watch(
-            global::System.Guid id,
-            global::StrawberryShake.ExecutionStrategy? strategy = null);
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
+    /// <summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FooClient : global::Foo.Bar.IFooClient
+    {
+        private readonly global::Foo.Bar.IGetFeatByIdQuery _getFeatById;
+        public FooClient(global::Foo.Bar.IGetFeatByIdQuery getFeatById)
+        {
+            _getFeatById = getFeatById ?? throw new global::System.ArgumentNullException(nameof(getFeatById));
+        }
+
+        public static global::System.String ClientName => "FooClient";
+        public global::Foo.Bar.IGetFeatByIdQuery GetFeatById => _getFeatById;
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
+    /// <summary>
+    /// Represents the FooClient GraphQL client
+    /// </summary>
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public interface IFooClient
+    {
+        global::Foo.Bar.IGetFeatByIdQuery GetFeatById
+        {
+            get;
+        }
     }
 }
 
-
-// GetFeatByIdBuilder
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
-
-#nullable enable
-
 namespace Foo.Bar.State
 {
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    public partial class FeatEntity
+    {
+        public FeatEntity(global::System.Guid id = default !, global::System.String name = default !, global::System.Int32 level = default !, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId> details = default !)
+        {
+            Id = id;
+            Name = name;
+            Level = level;
+            Details = details;
+        }
+
+        public global::System.Guid Id
+        {
+            get;
+        }
+
+        public global::System.String Name
+        {
+            get;
+        }
+
+        public global::System.Int32 Level
+        {
+            get;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId> Details
+        {
+            get;
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
+    public partial class FeatDetailsBlockEntity
+    {
+        public FeatDetailsBlockEntity(global::System.String text = default !)
+        {
+            Text = text;
+        }
+
+        public global::System.String Text
+        {
+            get;
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class GetFeatByIdBuilder
-        : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetFeatByIdResult>
+    public partial class GetFeatByIdResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.GetFeatByIdResult>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatEntity, GetFeatById_Feats_Items_Feat> _getFeatById_Feats_Items_FeatFromFeatEntityMapper;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatDetailsBlockEntity, GetFeatById_Feats_Items_Details_FeatDetailsBlock> _getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper;
+        public GetFeatByIdResultFactory(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatEntity, GetFeatById_Feats_Items_Feat> getFeatById_Feats_Items_FeatFromFeatEntityMapper, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatDetailsBlockEntity, GetFeatById_Feats_Items_Details_FeatDetailsBlock> getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _getFeatById_Feats_Items_FeatFromFeatEntityMapper = getFeatById_Feats_Items_FeatFromFeatEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getFeatById_Feats_Items_FeatFromFeatEntityMapper));
+            _getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper = getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper));
+        }
+
+        global::System.Type global::StrawberryShake.IOperationResultDataFactory.ResultType => typeof(global::Foo.Bar.IGetFeatByIdResult);
+        public GetFeatByIdResult Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            if (dataInfo is GetFeatByIdResultInfo info)
+            {
+                return new GetFeatByIdResult(MapIGetFeatById_Feats(info.Feats, snapshot));
+            }
+
+            throw new global::System.ArgumentException("GetFeatByIdResultInfo expected.");
+        }
+
+        private global::Foo.Bar.IGetFeatById_Feats? MapIGetFeatById_Feats(global::Foo.Bar.State.FeatCollectionSegmentData? data, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (data is null)
+            {
+                return null;
+            }
+
+            IGetFeatById_Feats returnValue = default !;
+            if (data?.__typename.Equals("FeatCollectionSegment", global::System.StringComparison.Ordinal) ?? false)
+            {
+                returnValue = new GetFeatById_Feats_FeatCollectionSegment(MapIGetFeatById_Feats_ItemsArray(data.Items, snapshot));
+            }
+            else
+            {
+                throw new global::System.NotSupportedException();
+            }
+
+            return returnValue;
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items?>? MapIGetFeatById_Feats_ItemsArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? list, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (list is null)
+            {
+                return null;
+            }
+
+            var feats = new global::System.Collections.Generic.List<global::Foo.Bar.IGetFeatById_Feats_Items?>();
+            foreach (global::StrawberryShake.EntityId? child in list)
+            {
+                feats.Add(MapIGetFeatById_Feats_Items(child, snapshot));
+            }
+
+            return feats;
+        }
+
+        private global::Foo.Bar.IGetFeatById_Feats_Items? MapIGetFeatById_Feats_Items(global::StrawberryShake.EntityId? entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId is null)
+            {
+                return null;
+            }
+
+            if (entityId.Value.Name.Equals("Feat", global::System.StringComparison.Ordinal))
+            {
+                return _getFeatById_Feats_Items_FeatFromFeatEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.FeatEntity>(entityId.Value) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items_Details> MapNonNullableIGetFeatById_Feats_Items_DetailsNonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? list, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (list is null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            var featDetailsBlocks = new global::System.Collections.Generic.List<global::Foo.Bar.IGetFeatById_Feats_Items_Details>();
+            foreach (global::StrawberryShake.EntityId child in list)
+            {
+                featDetailsBlocks.Add(MapNonNullableIGetFeatById_Feats_Items_Details(child, snapshot));
+            }
+
+            return featDetailsBlocks;
+        }
+
+        private global::Foo.Bar.IGetFeatById_Feats_Items_Details MapNonNullableIGetFeatById_Feats_Items_Details(global::StrawberryShake.EntityId entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId.Name.Equals("FeatDetailsBlock", global::System.StringComparison.Ordinal))
+            {
+                return _getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.FeatDetailsBlockEntity>(entityId) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+
+        global::System.Object global::StrawberryShake.IOperationResultDataFactory.Create(global::StrawberryShake.IOperationResultDataInfo dataInfo, global::StrawberryShake.IEntityStoreSnapshot? snapshot)
+        {
+            return Create(dataInfo, snapshot);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetFeatByIdResultInfo : global::StrawberryShake.IOperationResultDataInfo
+    {
+        private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
+        private readonly global::System.UInt64 _version;
+        public GetFeatByIdResultInfo(global::Foo.Bar.State.FeatCollectionSegmentData? feats, global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> entityIds, global::System.UInt64 version)
+        {
+            Feats = feats;
+            _entityIds = entityIds ?? throw new global::System.ArgumentNullException(nameof(entityIds));
+            _version = version;
+        }
+
+        public global::Foo.Bar.State.FeatCollectionSegmentData? Feats
+        {
+            get;
+        }
+
+        public global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> EntityIds => _entityIds;
+        public global::System.UInt64 Version => _version;
+        public global::StrawberryShake.IOperationResultDataInfo WithVersion(global::System.UInt64 version)
+        {
+            return new GetFeatByIdResultInfo(Feats, _entityIds, version);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetFeatById_Feats_Items_FeatFromFeatEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatEntity, GetFeatById_Feats_Items_Feat>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        private readonly global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatDetailsBlockEntity, GetFeatById_Feats_Items_Details_FeatDetailsBlock> _getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper;
+        public GetFeatById_Feats_Items_FeatFromFeatEntityMapper(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatDetailsBlockEntity, GetFeatById_Feats_Items_Details_FeatDetailsBlock> getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper = getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper ?? throw new global::System.ArgumentNullException(nameof(getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper));
+        }
+
+        public GetFeatById_Feats_Items_Feat Map(global::Foo.Bar.State.FeatEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetFeatById_Feats_Items_Feat(entity.Id, entity.Name, entity.Level, MapNonNullableIGetFeatById_Feats_Items_DetailsNonNullableArray(entity.Details, snapshot));
+        }
+
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetFeatById_Feats_Items_Details> MapNonNullableIGetFeatById_Feats_Items_DetailsNonNullableArray(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId>? list, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (list is null)
+            {
+                throw new global::System.ArgumentNullException();
+            }
+
+            var featDetailsBlocks = new global::System.Collections.Generic.List<global::Foo.Bar.IGetFeatById_Feats_Items_Details>();
+            foreach (global::StrawberryShake.EntityId child in list)
+            {
+                featDetailsBlocks.Add(MapNonNullableIGetFeatById_Feats_Items_Details(child, snapshot));
+            }
+
+            return featDetailsBlocks;
+        }
+
+        private global::Foo.Bar.IGetFeatById_Feats_Items_Details MapNonNullableIGetFeatById_Feats_Items_Details(global::StrawberryShake.EntityId entityId, global::StrawberryShake.IEntityStoreSnapshot snapshot)
+        {
+            if (entityId.Name.Equals("FeatDetailsBlock", global::System.StringComparison.Ordinal))
+            {
+                return _getFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper.Map(snapshot.GetEntity<global::Foo.Bar.State.FeatDetailsBlockEntity>(entityId) ?? throw new global::StrawberryShake.GraphQLClientException());
+            }
+
+            throw new global::System.NotSupportedException();
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper : global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatDetailsBlockEntity, GetFeatById_Feats_Items_Details_FeatDetailsBlock>
+    {
+        private readonly global::StrawberryShake.IEntityStore _entityStore;
+        public GetFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper(global::StrawberryShake.IEntityStore entityStore)
+        {
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+        }
+
+        public GetFeatById_Feats_Items_Details_FeatDetailsBlock Map(global::Foo.Bar.State.FeatDetailsBlockEntity entity, global::StrawberryShake.IEntityStoreSnapshot? snapshot = null)
+        {
+            if (snapshot is null)
+            {
+                snapshot = _entityStore.CurrentSnapshot;
+            }
+
+            return new GetFeatById_Feats_Items_Details_FeatDetailsBlock(entity.Text);
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class GetFeatByIdBuilder : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetFeatByIdResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityIdSerializer _idSerializer;
@@ -1122,124 +854,81 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Guid, global::System.Guid> _uuidParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
-
-        public GetFeatByIdBuilder(
-            global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityIdSerializer idSerializer,
-            global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetFeatByIdResult> resultDataFactory,
-            global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
+        public GetFeatByIdBuilder(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer idSerializer, global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetFeatByIdResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
-            _entityStore = entityStore
-                 ?? throw new global::System.ArgumentNullException(nameof(entityStore));
-            _idSerializer = idSerializer
-                 ?? throw new global::System.ArgumentNullException(nameof(idSerializer));
-            _resultDataFactory = resultDataFactory
-                 ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _uuidParser = serializerResolver.GetLeafValueParser<global::System.Guid, global::System.Guid>("Uuid")
-                 ?? throw new global::System.ArgumentException("No serializer for type `Uuid` found.");
-            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String")
-                 ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
-            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int")
-                 ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
+            _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
+            _idSerializer = idSerializer ?? throw new global::System.ArgumentNullException(nameof(idSerializer));
+            _resultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
+            _uuidParser = serializerResolver.GetLeafValueParser<global::System.Guid, global::System.Guid>("Uuid") ?? throw new global::System.ArgumentException("No serializer for type `Uuid` found.");
+            _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
+            _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int") ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
         }
 
         public global::StrawberryShake.IOperationResult<IGetFeatByIdResult> Build(global::StrawberryShake.Response<global::System.Text.Json.JsonDocument> response)
         {
             (IGetFeatByIdResult Result, GetFeatByIdResultInfo Info)? data = null;
             global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.IClientError>? errors = null;
-
-            try
+            if (response.Exception is null)
             {
-                if (response.Body != null)
+                try
                 {
-                    if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                    if (response.Body != null)
                     {
-                        data = BuildData(dataElement);
-                    }
-                    if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
-                    {
-                        errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        if (response.Body.RootElement.TryGetProperty("data", out global::System.Text.Json.JsonElement dataElement) && dataElement.ValueKind == global::System.Text.Json.JsonValueKind.Object)
+                        {
+                            data = BuildData(dataElement);
+                        }
+
+                        if (response.Body.RootElement.TryGetProperty("errors", out global::System.Text.Json.JsonElement errorsElement))
+                        {
+                            errors = global::StrawberryShake.Json.JsonErrorParser.ParseErrors(errorsElement);
+                        }
                     }
                 }
+                catch (global::System.Exception ex)
+                {
+                    errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(ex.Message, exception: ex, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
+                }
             }
-            catch(global::System.Exception ex)
+            else
             {
-                errors = new global::StrawberryShake.IClientError[] {
-                    new global::StrawberryShake.ClientError(
-                        ex.Message,
-                        exception: ex)
-                };
+                errors = new global::StrawberryShake.IClientError[]{new global::StrawberryShake.ClientError(response.Exception.Message, exception: response.Exception, extensions: new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>{{"body", response.Body?.RootElement.ToString()}})};
             }
 
-            return new global::StrawberryShake.OperationResult<IGetFeatByIdResult>(
-                data?.Result,
-                data?.Info,
-                _resultDataFactory,
-                errors);
+            return new global::StrawberryShake.OperationResult<IGetFeatByIdResult>(data?.Result, data?.Info, _resultDataFactory, errors);
         }
 
         private (IGetFeatByIdResult, GetFeatByIdResultInfo) BuildData(global::System.Text.Json.JsonElement obj)
         {
             var entityIds = new global::System.Collections.Generic.HashSet<global::StrawberryShake.EntityId>();
-            global::StrawberryShake.IEntityStoreSnapshot snapshot = default!;
-
-            global::Foo.Bar.State.FeatCollectionSegmentData? featsId = default!;
-            _entityStore.Update(session => 
+            global::StrawberryShake.IEntityStoreSnapshot snapshot = default !;
+            global::Foo.Bar.State.FeatCollectionSegmentData? featsId = default !;
+            _entityStore.Update(session =>
             {
-                featsId = DeserializeIGetFeatById_Feats(
-                    session,
-                    global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                        obj,
-                        "feats"),
-                    entityIds);
-
+                featsId = DeserializeIGetFeatById_Feats(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "feats"), entityIds);
                 snapshot = session.CurrentSnapshot;
             });
-
-            var resultInfo = new GetFeatByIdResultInfo(
-                featsId,
-                entityIds,
-                snapshot.Version);
-
-            return (
-                _resultDataFactory.Create(resultInfo),
-                resultInfo
-            );
+            var resultInfo = new GetFeatByIdResultInfo(featsId, entityIds, snapshot.Version);
+            return (_resultDataFactory.Create(resultInfo), resultInfo);
         }
 
-        private global::Foo.Bar.State.FeatCollectionSegmentData? DeserializeIGetFeatById_Feats(
-            global::StrawberryShake.IEntityStoreUpdateSession session,
-            global::System.Text.Json.JsonElement? obj,
-            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        private global::Foo.Bar.State.FeatCollectionSegmentData? DeserializeIGetFeatById_Feats(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
             {
                 return null;
             }
 
-            var typename = obj.Value
-                .GetProperty("__typename")
-                .GetString();
-
+            var typename = obj.Value.GetProperty("__typename").GetString();
             if (typename?.Equals("FeatCollectionSegment", global::System.StringComparison.Ordinal) ?? false)
             {
-                return new global::Foo.Bar.State.FeatCollectionSegmentData(
-                    typename,
-                    items: UpdateIGetFeatById_Feats_ItemsEntityArray(
-                        session,
-                        global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                            obj,
-                            "items"),
-                        entityIds));
+                return new global::Foo.Bar.State.FeatCollectionSegmentData(typename, items: UpdateIGetFeatById_Feats_ItemsEntityArray(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "items"), entityIds));
             }
 
             throw new global::System.NotSupportedException();
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? UpdateIGetFeatById_Feats_ItemsEntityArray(
-            global::StrawberryShake.IEntityStoreUpdateSession session,
-            global::System.Text.Json.JsonElement? obj,
-            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? UpdateIGetFeatById_Feats_ItemsEntityArray(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
             {
@@ -1247,22 +936,15 @@ namespace Foo.Bar.State
             }
 
             var feats = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId?>();
-
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                feats.Add(UpdateIGetFeatById_Feats_ItemsEntity(
-                    session,
-                    child,
-                    entityIds));
+                feats.Add(UpdateIGetFeatById_Feats_ItemsEntity(session, child, entityIds));
             }
 
             return feats;
         }
 
-        private global::StrawberryShake.EntityId? UpdateIGetFeatById_Feats_ItemsEntity(
-            global::StrawberryShake.IEntityStoreUpdateSession session,
-            global::System.Text.Json.JsonElement? obj,
-            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        private global::StrawberryShake.EntityId? UpdateIGetFeatById_Feats_ItemsEntity(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
             {
@@ -1271,61 +953,15 @@ namespace Foo.Bar.State
 
             global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
             entityIds.Add(entityId);
-
-
-            if (entityId.Name.Equals(
-                    "Feat",
-                    global::System.StringComparison.Ordinal))
+            if (entityId.Name.Equals("Feat", global::System.StringComparison.Ordinal))
             {
-                if (session.CurrentSnapshot.TryGetEntity(
-                        entityId,
-                        out global::Foo.Bar.State.FeatEntity? entity))
+                if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.FeatEntity? entity))
                 {
-                    session.SetEntity(
-                        entityId,
-                        new global::Foo.Bar.State.FeatEntity(
-                            DeserializeNonNullableGuid(
-                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                                    obj,
-                                    "id")),
-                            DeserializeNonNullableString(
-                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                                    obj,
-                                    "name")),
-                            DeserializeNonNullableInt32(
-                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                                    obj,
-                                    "level")),
-                            UpdateNonNullableIGetFeatById_Feats_Items_DetailsEntityNonNullableArray(
-                                session,
-                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                                    obj,
-                                    "details"),
-                                entityIds)));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.FeatEntity(DeserializeNonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), DeserializeNonNullableInt32(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "level")), UpdateNonNullableIGetFeatById_Feats_Items_DetailsEntityNonNullableArray(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "details"), entityIds)));
                 }
                 else
                 {
-                    session.SetEntity(
-                        entityId,
-                        new global::Foo.Bar.State.FeatEntity(
-                            DeserializeNonNullableGuid(
-                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                                    obj,
-                                    "id")),
-                            DeserializeNonNullableString(
-                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                                    obj,
-                                    "name")),
-                            DeserializeNonNullableInt32(
-                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                                    obj,
-                                    "level")),
-                            UpdateNonNullableIGetFeatById_Feats_Items_DetailsEntityNonNullableArray(
-                                session,
-                                global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                                    obj,
-                                    "details"),
-                                entityIds)));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.FeatEntity(DeserializeNonNullableGuid(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "id")), DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "name")), DeserializeNonNullableInt32(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "level")), UpdateNonNullableIGetFeatById_Feats_Items_DetailsEntityNonNullableArray(session, global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "details"), entityIds)));
                 }
 
                 return entityId;
@@ -1364,10 +1000,7 @@ namespace Foo.Bar.State
             return _intParser.Parse(obj.Value.GetInt32()!);
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId> UpdateNonNullableIGetFeatById_Feats_Items_DetailsEntityNonNullableArray(
-            global::StrawberryShake.IEntityStoreUpdateSession session,
-            global::System.Text.Json.JsonElement? obj,
-            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        private global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId> UpdateNonNullableIGetFeatById_Feats_Items_DetailsEntityNonNullableArray(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
             {
@@ -1375,22 +1008,15 @@ namespace Foo.Bar.State
             }
 
             var featDetailsBlocks = new global::System.Collections.Generic.List<global::StrawberryShake.EntityId>();
-
             foreach (global::System.Text.Json.JsonElement child in obj.Value.EnumerateArray())
             {
-                featDetailsBlocks.Add(UpdateNonNullableIGetFeatById_Feats_Items_DetailsEntity(
-                    session,
-                    child,
-                    entityIds));
+                featDetailsBlocks.Add(UpdateNonNullableIGetFeatById_Feats_Items_DetailsEntity(session, child, entityIds));
             }
 
             return featDetailsBlocks;
         }
 
-        private global::StrawberryShake.EntityId UpdateNonNullableIGetFeatById_Feats_Items_DetailsEntity(
-            global::StrawberryShake.IEntityStoreUpdateSession session,
-            global::System.Text.Json.JsonElement? obj,
-            global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
+        private global::StrawberryShake.EntityId UpdateNonNullableIGetFeatById_Feats_Items_DetailsEntity(global::StrawberryShake.IEntityStoreUpdateSession session, global::System.Text.Json.JsonElement? obj, global::System.Collections.Generic.ISet<global::StrawberryShake.EntityId> entityIds)
         {
             if (!obj.HasValue)
             {
@@ -1399,31 +1025,15 @@ namespace Foo.Bar.State
 
             global::StrawberryShake.EntityId entityId = _idSerializer.Parse(obj.Value);
             entityIds.Add(entityId);
-
-
-            if (entityId.Name.Equals(
-                    "FeatDetailsBlock",
-                    global::System.StringComparison.Ordinal))
+            if (entityId.Name.Equals("FeatDetailsBlock", global::System.StringComparison.Ordinal))
             {
-                if (session.CurrentSnapshot.TryGetEntity(
-                        entityId,
-                        out global::Foo.Bar.State.FeatDetailsBlockEntity? entity))
+                if (session.CurrentSnapshot.TryGetEntity(entityId, out global::Foo.Bar.State.FeatDetailsBlockEntity? entity))
                 {
-                    session.SetEntity(
-                        entityId,
-                        new global::Foo.Bar.State.FeatDetailsBlockEntity(DeserializeNonNullableString(
-                            global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                                obj,
-                                "text"))));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.FeatDetailsBlockEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text"))));
                 }
                 else
                 {
-                    session.SetEntity(
-                        entityId,
-                        new global::Foo.Bar.State.FeatDetailsBlockEntity(DeserializeNonNullableString(
-                            global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(
-                                obj,
-                                "text"))));
+                    session.SetEntity(entityId, new global::Foo.Bar.State.FeatDetailsBlockEntity(DeserializeNonNullableString(global::StrawberryShake.Json.JsonElementExtensions.GetPropertyOrNull(obj, "text"))));
                 }
 
                 return entityId;
@@ -1432,280 +1042,130 @@ namespace Foo.Bar.State
             throw new global::System.NotSupportedException();
         }
     }
-}
 
-
-// FeatCollectionSegmentData
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
-
-#nullable enable
-
-namespace Foo.Bar.State
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
     public partial class FeatCollectionSegmentData
     {
-        public FeatCollectionSegmentData(
-            global::System.String __typename,
-            global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? items = null)
+        public FeatCollectionSegmentData(global::System.String __typename, global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? items = default !)
         {
-            this.__typename = __typename
-                 ?? throw new global::System.ArgumentNullException(nameof(__typename));
+            this.__typename = __typename ?? throw new global::System.ArgumentNullException(nameof(__typename));
             Items = items;
         }
 
-        public global::System.String __typename { get; }
-
-        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Items { get; }
-    }
-}
-
-
-// FooClient
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
-    /// <summary>
-    /// Represents the FooClient GraphQL client
-    /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class FooClient
-        : global::Foo.Bar.IFooClient
-    {
-        private readonly global::Foo.Bar.IGetFeatByIdQuery _getFeatById;
-
-        public FooClient(global::Foo.Bar.IGetFeatByIdQuery getFeatById)
+        public global::System.String __typename
         {
-            _getFeatById = getFeatById
-                 ?? throw new global::System.ArgumentNullException(nameof(getFeatById));
+            get;
         }
 
-        public static global::System.String ClientName => "FooClient";
-
-        public global::Foo.Bar.IGetFeatByIdQuery GetFeatById => _getFeatById;
+        public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Items
+        {
+            get;
+        }
     }
-}
 
-
-// IFooClient
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
-
-#nullable enable
-
-namespace Foo.Bar
-{
-    /// <summary>
-    /// Represents the FooClient GraphQL client
-    /// </summary>
+    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFooClient
+    public partial class FooClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
-        global::Foo.Bar.IGetFeatByIdQuery GetFeatById { get; }
-    }
-}
-
-
-// FooClientEntityIdFactory
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
-
-#nullable enable
-
-namespace Foo.Bar.State
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class FooClientEntityIdFactory
-        : global::StrawberryShake.IEntityIdSerializer
-    {
-        private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions(){ Indented = false };
-
+        private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
+        {Indented = false};
         public global::StrawberryShake.EntityId Parse(global::System.Text.Json.JsonElement obj)
         {
-            global::System.String __typename = obj
-                .GetProperty("__typename")
-                .GetString()!;
-
+            global::System.String __typename = obj.GetProperty("__typename").GetString()!;
             return __typename switch
             {
-                "Feat" => ParseFeatEntityId(
-                    obj,
-                    __typename),
-                "FeatDetailsBlock" => ParseFeatDetailsBlockEntityId(
-                    obj,
-                    __typename),
-                _ => throw new global::System.NotSupportedException()
-            };
+            "Feat" => ParseFeatEntityId(obj, __typename), "FeatDetailsBlock" => ParseFeatDetailsBlockEntityId(obj, __typename), _ => throw new global::System.NotSupportedException()}
+
+            ;
         }
 
         public global::System.String Format(global::StrawberryShake.EntityId entityId)
         {
             return entityId.Name switch
             {
-                "Feat" => FormatFeatEntityId(entityId),
-                "FeatDetailsBlock" => FormatFeatDetailsBlockEntityId(entityId),
-                _ => throw new global::System.NotSupportedException()
-            };
+            "Feat" => FormatFeatEntityId(entityId), "FeatDetailsBlock" => FormatFeatDetailsBlockEntityId(entityId), _ => throw new global::System.NotSupportedException()}
+
+            ;
         }
 
-        private global::StrawberryShake.EntityId ParseFeatEntityId(
-            global::System.Text.Json.JsonElement obj,
-            global::System.String type)
+        private global::StrawberryShake.EntityId ParseFeatEntityId(global::System.Text.Json.JsonElement obj, global::System.String type)
         {
-            return new global::StrawberryShake.EntityId(
-                type,
-                obj
-                    .GetProperty("id")
-                    .GetGuid()!);
+            return new global::StrawberryShake.EntityId(type, obj.GetProperty("id").GetGuid()!);
         }
 
         private global::System.String FormatFeatEntityId(global::StrawberryShake.EntityId entityId)
         {
             using var writer = new global::StrawberryShake.Internal.ArrayWriter();
-            using var jsonWriter = new global::System.Text.Json.Utf8JsonWriter(
-                writer,
-                _options);
+            using var jsonWriter = new global::System.Text.Json.Utf8JsonWriter(writer, _options);
             jsonWriter.WriteStartObject();
-
-            jsonWriter.WriteString(
-                "__typename",
-                entityId.Name);
-
-            jsonWriter.WriteString(
-                "id",
-                (global::System.Guid)entityId.Value);
+            jsonWriter.WriteString("__typename", entityId.Name);
+            jsonWriter.WriteString("id", (global::System.Guid)entityId.Value);
             jsonWriter.WriteEndObject();
             jsonWriter.Flush();
-
-            return global::System.Text.Encoding.UTF8.GetString(
-                writer.GetInternalBuffer(),
-                0,
-                writer.Length);
+            return global::System.Text.Encoding.UTF8.GetString(writer.GetInternalBuffer(), 0, writer.Length);
         }
 
-        private global::StrawberryShake.EntityId ParseFeatDetailsBlockEntityId(
-            global::System.Text.Json.JsonElement obj,
-            global::System.String type)
+        private global::StrawberryShake.EntityId ParseFeatDetailsBlockEntityId(global::System.Text.Json.JsonElement obj, global::System.String type)
         {
-            return new global::StrawberryShake.EntityId(
-                type,
-                obj
-                    .GetProperty("id")
-                    .GetGuid()!);
+            return new global::StrawberryShake.EntityId(type, obj.GetProperty("id").GetGuid()!);
         }
 
         private global::System.String FormatFeatDetailsBlockEntityId(global::StrawberryShake.EntityId entityId)
         {
             using var writer = new global::StrawberryShake.Internal.ArrayWriter();
-            using var jsonWriter = new global::System.Text.Json.Utf8JsonWriter(
-                writer,
-                _options);
+            using var jsonWriter = new global::System.Text.Json.Utf8JsonWriter(writer, _options);
             jsonWriter.WriteStartObject();
-
-            jsonWriter.WriteString(
-                "__typename",
-                entityId.Name);
-
-            jsonWriter.WriteString(
-                "id",
-                (global::System.Guid)entityId.Value);
+            jsonWriter.WriteString("__typename", entityId.Name);
+            jsonWriter.WriteString("id", (global::System.Guid)entityId.Value);
             jsonWriter.WriteEndObject();
             jsonWriter.Flush();
+            return global::System.Text.Encoding.UTF8.GetString(writer.GetInternalBuffer(), 0, writer.Length);
+        }
+    }
 
-            return global::System.Text.Encoding.UTF8.GetString(
-                writer.GetInternalBuffer(),
-                0,
-                writer.Length);
+    // StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial class FooClientStoreAccessor : global::StrawberryShake.StoreAccessor
+    {
+        public FooClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories): base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)
+        {
         }
     }
 }
 
-
-// FooClientServiceCollectionExtensions
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
-
-#nullable enable
-
 namespace Microsoft.Extensions.DependencyInjection
 {
+    // StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public static partial class FooClientServiceCollectionExtensions
     {
-        public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(
-            this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services,
-            global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
+        public static global::StrawberryShake.IClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor> AddFooClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
-                services,
-                sp => 
-                {
-                    var serviceCollection = ConfigureClientDefault(
-                        sp,
-                        strategy);
-
-                    return new ClientServiceProvider(
-                        global::Microsoft.Extensions.DependencyInjection.ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(serviceCollection));
-                });
-
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
-                services,
-                sp => new global::Foo.Bar.State.FooClientStoreAccessor(
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(
-                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)),
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(
-                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)),
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityIdSerializer>(
-                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)),
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory>>(
-                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)),
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory>>(
-                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp))));
-
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
-                services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.GetFeatByIdQuery>(
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
-
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
-                services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
-                services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IFooClient>(
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
-
-            return new global::StrawberryShake.ClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor>(
-                "FooClient",
-                services);
+            var serviceCollection = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp =>
+            {
+                ConfigureClientDefault(sp, serviceCollection, strategy);
+                return new ClientServiceProvider(global::Microsoft.Extensions.DependencyInjection.ServiceCollectionContainerBuilderExtensions.BuildServiceProvider(serviceCollection));
+            });
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => new global::Foo.Bar.State.FooClientStoreAccessor(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityIdSerializer>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory>>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp))));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.GetFeatByIdQuery>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IFooClient>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ClientServiceProvider>(sp)));
+            return new global::StrawberryShake.ClientBuilder<global::Foo.Bar.State.FooClientStoreAccessor>("FooClient", services, serviceCollection);
         }
 
-        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClientDefault(
-            global::System.IServiceProvider parentServices,
-            global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
+        private static global::Microsoft.Extensions.DependencyInjection.IServiceCollection ConfigureClientDefault(global::System.IServiceProvider parentServices, global::Microsoft.Extensions.DependencyInjection.ServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly)
         {
-            var services = new global::Microsoft.Extensions.DependencyInjection.ServiceCollection();
             global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IEntityStore, global::StrawberryShake.EntityStore>(services);
-            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(
-                services,
-                sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton(
-                services,
-                sp => 
-                {
-                    var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
-                    return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
-                });
-
+            global::Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<global::StrawberryShake.IOperationStore>(services, sp => new global::StrawberryShake.OperationStore(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IEntityStore>(sp)));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Transport.Http.IHttpConnection>(services, sp =>
+            {
+                var clientFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Net.Http.IHttpClientFactory>(parentServices);
+                return new global::StrawberryShake.Transport.Http.HttpConnection(() => clientFactory.CreateClient("FooClient"));
+            });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatEntity, global::Foo.Bar.GetFeatById_Feats_Items_Feat>, global::Foo.Bar.State.GetFeatById_Feats_Items_FeatFromFeatEntityMapper>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.FeatDetailsBlockEntity, global::Foo.Bar.GetFeatById_Feats_Items_Details_FeatDetailsBlock>, global::Foo.Bar.State.GetFeatById_Feats_Items_Details_FeatDetailsBlockFromFeatDetailsBlockEntityMapper>(services);
-
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteSerializer>(services);
@@ -1721,48 +1181,23 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(
-                services,
-                sp => new global::StrawberryShake.Serialization.SerializerResolver(
-                    global::System.Linq.Enumerable.Concat(
-                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
-                            parentServices),
-                        global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(
-                            sp))));
-
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(services, sp => new global::StrawberryShake.Serialization.SerializerResolver(global::System.Linq.Enumerable.Concat(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(parentServices), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetFeatByIdResult>, global::Foo.Bar.State.GetFeatByIdResultFactory>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(
-                services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetFeatByIdResult>>(sp));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(
-                services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IGetFeatByIdQuery>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetFeatByIdResult>>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationRequestFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.IGetFeatByIdQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetFeatByIdResult>, global::Foo.Bar.State.GetFeatByIdBuilder>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.IGetFeatByIdResult>>(
-                services,
-                sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetFeatByIdResult>(
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.HttpConnection>(sp),
-                    () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetFeatByIdResult>>(sp),
-                    global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp),
-                    strategy));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationExecutor<global::Foo.Bar.IGetFeatByIdResult>>(services, sp => new global::StrawberryShake.OperationExecutor<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetFeatByIdResult>(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.Transport.Http.IHttpConnection>(sp), () => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::Foo.Bar.IGetFeatByIdResult>>(sp), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationStore>(sp), strategy));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.GetFeatByIdQuery>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.IGetFeatByIdQuery>(
-                services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.GetFeatByIdQuery>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.IGetFeatByIdQuery>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.GetFeatByIdQuery>(sp));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityIdSerializer, global::Foo.Bar.State.FooClientEntityIdFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.FooClient>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.IFooClient>(
-                services,
-                sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(sp));
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::Foo.Bar.IFooClient>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::Foo.Bar.FooClient>(sp));
             return services;
         }
 
-        private class ClientServiceProvider
-            : System.IServiceProvider
-            , System.IDisposable
+        private class ClientServiceProvider : System.IServiceProvider, System.IDisposable
         {
             private readonly System.IServiceProvider _provider;
-
             public ClientServiceProvider(System.IServiceProvider provider)
             {
                 _provider = provider;
@@ -1780,36 +1215,6 @@ namespace Microsoft.Extensions.DependencyInjection
                     d.Dispose();
                 }
             }
-        }
-    }
-}
-
-
-// FooClientStoreAccessor
-
-// StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
-
-#nullable enable
-
-namespace Foo.Bar.State
-{
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class FooClientStoreAccessor
-        : global::StrawberryShake.StoreAccessor
-    {
-        public FooClientStoreAccessor(
-            global::StrawberryShake.IOperationStore operationStore,
-            global::StrawberryShake.IEntityStore entityStore,
-            global::StrawberryShake.IEntityIdSerializer entityIdSerializer,
-            global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories,
-            global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories)
-            : base(
-                operationStore,
-                entityStore,
-                entityIdSerializer,
-                requestFactories,
-                resultDataFactories)
-        {
         }
     }
 }

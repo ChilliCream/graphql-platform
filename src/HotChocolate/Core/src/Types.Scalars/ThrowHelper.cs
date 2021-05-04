@@ -178,6 +178,28 @@ namespace HotChocolate.Types
                 type);
         }
 
+        public static SerializationException LocalCurrencyType_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.LocalCurrencyType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.LocalCurency)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException LocalCurrencyType_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.LocalDateType_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.LocalCurency)
+                    .Build(),
+                type);
+        }
+
         public static SerializationException LocalTimeType_ParseValue_IsInvalid(IType type)
         {
             return new SerializationException(

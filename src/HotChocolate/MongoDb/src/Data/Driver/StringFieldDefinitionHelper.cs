@@ -24,6 +24,7 @@ namespace HotChocolate.Data.MongoDb
             if (serializer is IBsonArraySerializer bsonArraySerializer &&
                 bsonArraySerializer.TryGetItemSerializationInfo(out serializationInfo))
             {
+                resolvedFieldSerializer = serializationInfo.Serializer;
                 documentSerializer = serializationInfo.Serializer as IBsonDocumentSerializer;
             }
 
