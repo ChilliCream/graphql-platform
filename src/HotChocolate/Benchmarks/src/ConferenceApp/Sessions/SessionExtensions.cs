@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.ConferencePlanner.Data;
 using HotChocolate.ConferencePlanner.DataLoader;
-using HotChocolate;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 using Microsoft.EntityFrameworkCore;
