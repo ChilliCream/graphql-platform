@@ -53,6 +53,10 @@
                 "title": "Non-Null"
               },
               {
+                "path": "enums",
+                "title": "Enums"
+              },
+              {
                 "path": "interfaces",
                 "title": "Interfaces"
               },
