@@ -4,10 +4,6 @@ title: "Queries"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-<!-- todo: this belongs into overview -->
-
-In GraphQL, there are three root types from which only the Query type has to be defined. Root types provide the entry points that lets us fetch data, mutate data, or subscribe to events. Root types themselves are object types and are commonly referred to as operations.
-
 The query type is how we can read data. It is described as a way to access read-only data in a side-effect free way. This means that the GraphQL engine is allowed to parallelize data fetching.
 
 ```graphql
