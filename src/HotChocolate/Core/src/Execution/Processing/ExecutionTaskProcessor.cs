@@ -39,13 +39,6 @@ namespace HotChocolate.Execution.Processing
                         task.BeginExecute(cancellationToken);
                     }
 
-                    while (!cancellationToken.IsCancellationRequested &&
-                        executionContext.Work.TryTakeSerial(out IExecutionTask? task))
-                    {
-                        task.BeginExecute(cancellationToken);
-                        await task.WaitForCompletionAsync(cancellationToken).ConfigureAwait(false);
-                    }
-
                     await executionContext.Work
                         .WaitForWorkAsync(cancellationToken)
                         .ConfigureAwait(false);

@@ -15,7 +15,7 @@ namespace HotChocolate.Execution.Processing
         private readonly WorkQueueUnsafe _work = new();
 
         private int _processors = 1;
-        private bool _mainIsWaiting;
+        private bool _mainIsPaused;
 
         public WorkBacklog()
         {
@@ -67,42 +67,6 @@ namespace HotChocolate.Execution.Processing
         }
 
         /// <inheritdoc/>
-        public bool TryTakeSerial([NotNullWhen(true)] out IExecutionTask? task)
-        {
-            task = null;
-            return false;
-        }
-
-        /// <inheritdoc/>
-        public async Task WaitForWorkAsync(CancellationToken cancellationToken)
-        {
-            _mainIsWaiting = true;
-
-            try
-            {
-                if (!_work.IsEmpty)
-                {
-                    return;
-                }
-
-                if (_work.TryPeekInProgress(out IExecutionTask? executionTask))
-                {
-                    await executionTask
-                        .WaitForCompletionAsync(cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    await Task.Yield();
-                }
-            }
-            finally
-            {
-                _mainIsWaiting = false;
-            }
-        }
-
-        /// <inheritdoc/>
         public void Register(IExecutionTask task)
         {
             if (task is null)
@@ -111,19 +75,19 @@ namespace HotChocolate.Execution.Processing
             }
 
             var lockTaken = false;
-            var changedScale = false;
-            var changeScale = false;
+            var scaled = false;
+            int backlogSize;
+            var processors = _processors;
 
             try
             {
                 _lock.Enter(ref lockTaken);
+                backlogSize = _work.Push(task);
 
-                var backlogSize = _work.Push(task);
-                var processors = _processors;
-
-                if (backlogSize > CalculateScalePressure() || _mainIsWaiting && _processors == 1)
+                if (backlogSize > CalculateScalePressure() || _mainIsPaused && _processors == 1)
                 {
-                    changeScale = true;
+                    scaled = TryScaleUnsafe();;
+                    processors = _processors;
                 }
             }
             finally
@@ -131,56 +95,11 @@ namespace HotChocolate.Execution.Processing
                 if (lockTaken) _lock.Exit(false);
             }
 
-            if(changeScale) {
-                lock (_scale)
-                {
-                    if (backlogSize > CalculateScalePressure() ||
-                        _mainIsWaiting && _processors == 1)
-                    {
-                        changedScale = TryScaleUnsafe();
-                        processors = _processors;
-                    }
-                }
-            }
-
-            if (changedScale)
+            if (scaled)
             {
                 // we invoke the scale diagnostic event after leaving the lock to not block
                 // if a an event listener is badly implemented.
                 DiagnosticEvents.ScaleTaskProcessors(RequestContext, backlogSize, processors);
-            }
-        }
-
-        /// <inheritdoc/>
-        public bool TryCompleteProcessor()
-        {
-            var changedScale = false;
-            var processors = _processors;
-            var backlogSize = 0;
-
-            try
-            {
-                lock (_scale)
-                {
-                    if (_mainIsWaiting && _processors == 1 && !_work.IsEmpty)
-                    {
-                        return false;
-                    }
-
-                    changedScale = true;
-                    processors = --_processors;
-                    backlogSize = _work.Count;
-                    return true;
-                }
-            }
-            finally
-            {
-                if (changedScale)
-                {
-                    // we invoke the scale diagnostic event after leaving the lock to not block
-                    // if a an event listener is badly implemented.
-                    DiagnosticEvents.ScaleTaskProcessors(RequestContext, backlogSize, processors);
-                }
             }
         }
 
@@ -192,9 +111,113 @@ namespace HotChocolate.Execution.Processing
                 throw new ArgumentNullException(nameof(task));
             }
 
-            if (task.Parent is null)
+            if (task.Parent is not null)
             {
+                return;
+            }
+
+            var lockTaken = false;
+
+            try
+            {
+                _lock.Enter(ref lockTaken);
                 _work.Complete(task);
+            }
+            finally
+            {
+                if (lockTaken) _lock.Exit(false);
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task WaitForWorkAsync(CancellationToken cancellationToken)
+        {
+            var lockTaken = false;
+
+            try
+            {
+                _lock.Enter(ref lockTaken);
+
+                // if we have work we will not wait and end waiting for new work.
+                if (!_work.IsEmpty || _work.IsEmpty && !IsRunning)
+                {
+                    return;
+                }
+
+                // mark the main processor as being paused.
+                _mainIsPaused = true;
+            }
+            finally
+            {
+                if (lockTaken) _lock.Exit(false);
+            }
+
+            try
+            {
+                // lets take the first thing in the in progress list an wait for it.
+                if (_work.TryPeekInProgress(out IExecutionTask? executionTask))
+                {
+                    await executionTask
+                        .WaitForCompletionAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                else
+                {
+                    // if we have no work in progress we will just wait for 2 spins for a second.
+                    Thread.SpinWait(2);
+
+                    // now lets see if there is new work or if we have completed.
+                    if (!_work.IsEmpty || _work.IsEmpty && !IsRunning)
+                    {
+                        return;
+                    }
+
+                    // if we are still running and there is no work in progress that we can await
+                    // we will yield the task back to the task scheduler for a second and then
+                    // complete waiting.
+                    await Task.Yield();
+                }
+            }
+            finally
+            {
+                // mark the main task as in progress again.
+                _mainIsPaused = false;
+            }
+        }
+
+        /// <inheritdoc/>
+        public bool TryCompleteProcessor()
+        {
+            var changedScale = false;
+            var processors = _processors;
+            var backlogSize = 0;
+
+            var lockTaken = false;
+
+            try
+            {
+                _lock.Enter(ref lockTaken);
+
+                if (_mainIsPaused && _processors == 2 && !_work.IsEmpty)
+                {
+                    return false;
+                }
+
+                changedScale = true;
+                processors = --_processors;
+                backlogSize = _work.Count;
+                return true;
+            }
+            finally
+            {
+                if (lockTaken) _lock.Exit(false);
+
+                if (changedScale)
+                {
+                    // we invoke the scale diagnostic event after leaving the lock to not block
+                    // if a an event listener is badly implemented.
+                    DiagnosticEvents.ScaleTaskProcessors(RequestContext, backlogSize, processors);
+                }
             }
         }
 
@@ -230,10 +253,5 @@ namespace HotChocolate.Execution.Processing
                 7 => 256,
                 _ => 512
             };
-
-        private class NoOp : IExecutionStep
-        {
-            public bool IsAllowed(IExecutionTask task) => true;
-        }
     }
 }

@@ -42,14 +42,14 @@ namespace HotChocolate.Execution.Processing
         bool TryTake([NotNullWhen(true)] out IExecutionTask? task);
 
         /// <summary>
-        /// Try to take a task from the backlog.
+        /// Registers work with the task backlog.
         /// </summary>
-        /// <param name="task">
-        /// The task that was acquired from the backlog.
-        /// The task is not null when the method returns<c>true</c>
-        /// </param>
-        /// <returns>Return <c>true</c> if there was a task on the backlog.</returns>
-        bool TryTakeSerial([NotNullWhen(true)] out IExecutionTask? task);
+        void Register(IExecutionTask task);
+
+        /// <summary>
+        /// Complete a task
+        /// </summary>
+        void Complete(IExecutionTask task);
 
         /// <summary>
         /// Waits for either the <paramref name="cancellationToken" /> to raise or
@@ -60,16 +60,6 @@ namespace HotChocolate.Execution.Processing
         /// Returns a boolean indicating if there is something new to read on this queue.
         /// </returns>
         Task WaitForWorkAsync(CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Registers work with the task backlog.
-        /// </summary>
-        void Register(IExecutionTask task);
-
-        /// <summary>
-        /// Complete a task
-        /// </summary>
-        void Complete(IExecutionTask task);
 
         /// <summary>
         /// Signal that a processor wants to complete.
