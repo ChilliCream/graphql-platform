@@ -4,15 +4,17 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     /// <summary>
-    /// The `MacAddress` scalar type represents a IEEE 802 48-bit Mac address, represented as UTF-8
+    /// The `MacAddress` scalar type represents a IEEE 802 48-bit (mac-48/eui-48)
+    /// and 64-bit (eui-48) Mac addresses, represented as UTF-8
     /// character sequences. The scalar follows the specification defined in
-    /// <a href="https://tools.ietf.org/html/rfc7042#page-19">RFC7042</a>
+    /// <a href="https://tools.ietf.org/html/rfc7042#page-19">RFC7042</a> and
+    /// <a href="https://tools.ietf.org/html/rfc7043">RFC 7043</a> respectively.
     /// </summary>
     public class MacAddressType : RegexType
     {
         private const string _validationPattern =
             @"^(?:[0-9A-Fa-f]{2}([:-]?)[0-9A-Fa-f]{2})(?:(?:\1|\.)(?:[0-9A-Fa-f]{2}([:-]?)" +
-            "[0-9A-Fa-f]{2})){2}$";
+            "[0-9A-Fa-f]{2})){2,3}$";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MacAddressType"/> class.
