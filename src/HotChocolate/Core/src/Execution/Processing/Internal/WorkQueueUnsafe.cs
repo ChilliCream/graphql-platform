@@ -1,15 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using System.Threading;
 
 namespace HotChocolate.Execution.Processing.Internal
 {
-    internal sealed class WorkQueue
+    internal sealed class WorkQueueUnsafe
     {
-        private SpinLock _lock = new(Debugger.IsAttached);
         private readonly Stack<IExecutionTask> _stack = new();
         private IExecutionTask? _head;
         private int _count;
@@ -29,40 +26,29 @@ namespace HotChocolate.Execution.Processing.Internal
                 throw new ArgumentNullException(nameof(executionTask));
             }
 
-            var lockTaken = false;
+            IExecutionTask? previous = executionTask.Previous;
+            IExecutionTask? next = executionTask.Next;
 
-            try
+            if (previous is null)
             {
-                _lock.Enter(ref lockTaken);
-
-                IExecutionTask? previous = executionTask.Previous;
-                IExecutionTask? next = executionTask.Next;
-
-                if (previous is null)
+                if (ReferenceEquals(_head, executionTask))
                 {
-                    if (ReferenceEquals(_head, executionTask))
-                    {
-                        _head = next;
-
-                        if (next is not null)
-                        {
-                            next.Previous = null;
-                        }
-                    }
-                }
-                else
-                {
-                    previous.Next = next;
+                    _head = next;
 
                     if (next is not null)
                     {
-                        next.Previous = previous;
+                        next.Previous = null;
                     }
                 }
             }
-            finally
+            else
             {
-                if (lockTaken) _lock.Exit(false);
+                previous.Next = next;
+
+                if (next is not null)
+                {
+                    next.Previous = previous;
+                }
             }
         }
 
@@ -74,27 +60,23 @@ namespace HotChocolate.Execution.Processing.Internal
 
         public bool TryTake([MaybeNullWhen(false)] out IExecutionTask executionTask)
         {
-            var lockTaken = false;
-            try
-            {
-                _lock.Enter(ref lockTaken);
 #if NETSTANDARD2_0
-                if (_stack.Count > 0)
+            if (_stack.Count > 0)
+            {
+                executionTask = _stack.Pop();
+                MarkInProgress(executionTask);
+                IsEmpty = _stack.Count == 0;
+                _count = _stack.Count;
+
+                if (IsEmpty)
                 {
-                    executionTask = _stack.Pop();
-                    MarkInProgress(executionTask);
-                    IsEmpty = _stack.Count == 0;
-                    _count = _stack.Count;
-
-                    if (IsEmpty)
-                    {
-                        BacklogEmpty?.Invoke(this, EventArgs.Empty);
-                    }
-
-                    return true;
+                    BacklogEmpty?.Invoke(this, EventArgs.Empty);
                 }
 
-                executionTask = default;
+                return true;
+            }
+
+            executionTask = default;
 #else
                 if (_stack.TryPop(out executionTask))
                 {
@@ -110,12 +92,7 @@ namespace HotChocolate.Execution.Processing.Internal
                     return true;
                 }
 #endif
-                return false;
-            }
-            finally
-            {
-                if (lockTaken) _lock.Exit(false);
-            }
+            return false;
         }
 
         public int Push(IExecutionTask executionTask)
@@ -125,19 +102,25 @@ namespace HotChocolate.Execution.Processing.Internal
                 throw new ArgumentNullException(nameof(executionTask));
             }
 
-            var lockTaken = false;
+            _stack.Push(executionTask);
+            IsEmpty = false;
+            return _count = _stack.Count;
+        }
 
-            try
+        public int PushMany(IReadOnlyList<IExecutionTask> executionTasks)
+        {
+            if (executionTasks is null)
             {
-                _lock.Enter(ref lockTaken);
-                _stack.Push(executionTask);
-                IsEmpty = false;
-                return _count = _stack.Count;
+                throw new ArgumentNullException(nameof(executionTasks));
             }
-            finally
+
+            for (var i = 0; i < executionTasks.Count; i++)
             {
-                if (lockTaken) _lock.Exit(false);
+                _stack.Push(executionTasks[i]);
             }
+
+            IsEmpty = false;
+            return _count = _stack.Count;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -153,7 +136,7 @@ namespace HotChocolate.Execution.Processing.Internal
             _head = executionTask;
         }
 
-        public void ClearUnsafe()
+        public void Clear()
         {
             _stack.Clear();
             IsEmpty = true;

@@ -9,6 +9,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing
 {
+    /// <summary>
+    /// Represents a field selection during execution.
+    /// </summary>
     public class Selection : ISelection
     {
         private static readonly ArgumentMap _emptyArguments =
@@ -20,6 +23,7 @@ namespace HotChocolate.Execution.Processing
         private bool _isReadOnly;
 
         public Selection(
+            uint id,
             IObjectType declaringType,
             IObjectField field,
             FieldNode selection,
@@ -29,6 +33,7 @@ namespace HotChocolate.Execution.Processing
             SelectionIncludeCondition? includeCondition = null,
             bool internalSelection = false)
             : this(
+                id,
                 declaringType,
                 field,
                 selection,
@@ -42,6 +47,7 @@ namespace HotChocolate.Execution.Processing
         { }
 
         public Selection(
+            uint id,
             IObjectType declaringType,
             IObjectField field,
             FieldNode selection,
@@ -57,7 +63,8 @@ namespace HotChocolate.Execution.Processing
             {
                 throw new ArgumentNullException(nameof(resolverPipeline));
             }
-
+            
+            Id = id;
             DeclaringType = declaringType
                 ?? throw new ArgumentNullException(nameof(declaringType));
             Field = field
@@ -77,6 +84,19 @@ namespace HotChocolate.Execution.Processing
                 ? SelectionInclusionKind.Internal
                 : SelectionInclusionKind.Always;
 
+            if (InlineResolver is not null)
+            {
+                Kind = SelectionExecutionKind.Inline;
+            }
+            else if (PureResolver is not null)
+            {
+                Kind = SelectionExecutionKind.Pure;
+            }
+            else
+            {
+                Kind = SelectionExecutionKind.Default;
+            }
+
             if (includeCondition is not null)
             {
                 _includeConditions = new List<SelectionIncludeCondition> { includeCondition };
@@ -86,6 +106,8 @@ namespace HotChocolate.Execution.Processing
 
         public Selection(Selection selection)
         {
+            Id = selection.Id;
+            Kind = selection.Kind;
             _includeConditions = selection._includeConditions;
             _selections = selection._selections;
             _isReadOnly = selection._isReadOnly;
@@ -101,6 +123,12 @@ namespace HotChocolate.Execution.Processing
             Arguments = selection.Arguments;
             InclusionKind = selection.InclusionKind;
         }
+
+        /// <inheritdoc />
+        public uint Id { get; }
+
+        /// <inheritdoc />
+        public SelectionExecutionKind Kind { get; }
 
         /// <inheritdoc />
         public IObjectType DeclaringType { get; }

@@ -1,15 +1,11 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing
@@ -18,6 +14,7 @@ namespace HotChocolate.Execution.Processing
     {
         private readonly ISchema _schema;
         private readonly FragmentCollection _fragments;
+        private uint _nextId;
 
         private OperationCompiler(
             ISchema schema,
@@ -26,6 +23,12 @@ namespace HotChocolate.Execution.Processing
             _schema = schema;
             _fragments = fragments;
         }
+
+        internal ISchema Schema => _schema;
+
+        internal FragmentCollection Fragments => _fragments;
+
+        internal uint GetNextId() => _nextId++;
 
         public static IPreparedOperation Compile(
             string operationId,
@@ -229,6 +232,7 @@ namespace HotChocolate.Execution.Processing
                     // if this is the first time we find a selection to this field we have to
                     // create a new prepared selection.
                     preparedSelection = new Selection(
+                        GetNextId(),
                         context.Type,
                         field,
                         selection.SelectionSet is not null
@@ -553,7 +557,7 @@ namespace HotChocolate.Execution.Processing
             return CreateFieldMiddleware(field, selection);
         }
 
-        private FieldDelegate CreateFieldMiddleware(
+        internal FieldDelegate CreateFieldMiddleware(
             IObjectField field,
             FieldNode selection)
         {
@@ -675,14 +679,7 @@ namespace HotChocolate.Execution.Processing
                 return;
             }
 
-            var optimizerContext = new SelectionOptimizerContext(
-                _schema,
-                context.Path,
-                context.Type,
-                context.SelectionSet,
-                context.Fields,
-                CreateFieldMiddleware,
-                TryCreatePureField);
+            var optimizerContext = new SelectionOptimizerContext(this, context);
 
             if (context.Optimizers.Count == 1)
             {
@@ -705,14 +702,7 @@ namespace HotChocolate.Execution.Processing
                 return true;
             }
 
-            var optimizerContext = new SelectionOptimizerContext(
-                _schema,
-                context.Path,
-                context.Type,
-                context.SelectionSet,
-                context.Fields,
-                CreateFieldMiddleware,
-                TryCreatePureField);
+            var optimizerContext = new SelectionOptimizerContext(this, context);
 
             if (context.Optimizers.Count == 1)
             {
@@ -740,14 +730,7 @@ namespace HotChocolate.Execution.Processing
                 return true;
             }
 
-            var optimizerContext = new SelectionOptimizerContext(
-                _schema,
-                context.Path,
-                context.Type,
-                context.SelectionSet,
-                context.Fields,
-                CreateFieldMiddleware,
-                TryCreatePureField);
+            var optimizerContext = new SelectionOptimizerContext(this, context);
 
             if (context.Optimizers.Count == 1)
             {

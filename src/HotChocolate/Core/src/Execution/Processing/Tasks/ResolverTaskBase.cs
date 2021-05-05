@@ -19,7 +19,7 @@ namespace HotChocolate.Execution.Processing.Tasks
 
         protected IDiagnosticEvents DiagnosticEvents => OperationContext.DiagnosticEvents;
 
-        protected ISelection Selection => _selection;
+        public ISelection Selection => _selection;
 
         public abstract ExecutionTaskKind Kind { get; }
 

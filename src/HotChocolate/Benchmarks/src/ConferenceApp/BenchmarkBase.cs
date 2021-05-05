@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -12,6 +13,7 @@ using HotChocolate.ConferencePlanner.Sessions;
 using HotChocolate.ConferencePlanner.Speakers;
 using HotChocolate.ConferencePlanner.Tracks;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +32,10 @@ namespace HotChocolate.ConferencePlanner
             ExecutorResolver = Services.GetRequiredService<IRequestExecutorResolver>();
         }
 
+        public IServiceProvider Services { get; }
+
+        public IRequestExecutorResolver ExecutorResolver { get; }
+
         [GlobalSetup]
         public async Task GlobalSetup()
         {
@@ -43,10 +49,6 @@ namespace HotChocolate.ConferencePlanner
                 }
             }
         }
-
-        public IServiceProvider Services { get; }
-
-        public IRequestExecutorResolver ExecutorResolver { get; }
 
         public Task BenchmarkAsync(string requestDocument)
         {
@@ -62,6 +64,27 @@ namespace HotChocolate.ConferencePlanner
             {
                 throw new InvalidOperationException("The request failed.");
             }
+        }
+
+        public async Task<string> PrintQueryPlanAsync(string requestDocument) 
+        {
+            IRequestExecutor executor = await ExecutorResolver.GetRequestExecutorAsync();
+
+            string hash = _md5.ComputeHash(Encoding.UTF8.GetBytes(requestDocument).AsSpan());
+            DocumentNode document = Utf8GraphQLParser.Parse(requestDocument);
+            var operation =  document.Definitions.OfType<OperationDefinitionNode>().First();
+
+            IPreparedOperation preparedOperation = 
+                OperationCompiler.Compile(
+                    hash,
+                    document,
+                    operation,
+                    executor.Schema,
+                    executor.Schema.GetOperationType(operation.Operation));
+
+            string serialized = preparedOperation.Print();
+            Console.WriteLine(serialized);
+            return serialized;
         }
 
         protected static IQueryRequest Prepare(string requestDocument)

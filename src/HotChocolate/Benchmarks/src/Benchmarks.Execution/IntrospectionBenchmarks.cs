@@ -15,11 +15,19 @@ namespace HotChocolate.Benchmarks
                     __typename
                 }
             ");
+        public async Task Print_Query_TypeName() =>
+            await PrintQueryPlanAsync(@"
+                {
+                    __typename
+                }
+            ");
 
         [Benchmark]
         public async Task Query_Introspection() =>
             await BenchmarkAsync(Introspection);
         public string Introspection { get; } = Resources.Introspection;
+        public async Task Print_Query_Introspection() =>
+            await PrintQueryPlanAsync(Introspection);
 
 
         [Benchmark]

@@ -38,6 +38,7 @@ namespace HotChocolate.Data.Projections.Handlers
                             null);
 
                         var compiledSelection = new Selection(
+                            context.GetNextId(),
                             context.Type,
                             nodesField,
                             nodesFieldNode,

@@ -21,10 +21,36 @@ namespace HotChocolate.Benchmarks
                 }
             ");
 
-        // TODO : this query causes dead-locks ... probably DataLoader
-        // [Benchmark]
+        public async Task Print_Sessions_TitleAndAbstract() =>
+            await PrintQueryPlanAsync(@"
+                {
+                    sessions(first: 50) {
+                        nodes {
+                            title
+                            abstract
+                        }
+                    }
+                }
+            ");
+
+        [Benchmark]
         public async Task Sessions_TitleAndAbstractAndTrackName() =>
             await BenchmarkAsync(@"
+                {
+                    sessions {
+                        nodes {
+                            title
+                            abstract
+                            track {
+                                name
+                            }
+                        }
+                    }
+                }
+            ");
+
+        public async Task Print_Sessions_TitleAndAbstractAndTrackName() =>
+            await PrintQueryPlanAsync(@"
                 {
                     sessions {
                         nodes {

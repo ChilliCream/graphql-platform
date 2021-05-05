@@ -1,0 +1,72 @@
+{
+  "root": {
+    "kind": "serial",
+    "name": "batch",
+    "tasks": [
+      {
+        "kind": "parallel",
+        "name": "fetch",
+        "document": "query { sessions { nodes { title abstract trackId } } }",
+        "export": [
+          {
+            "session": "sessions",
+            "kind": "List"
+          },
+          {
+            "trackId": "sessions.nodes.trackId",
+            "kind": "List",
+            "ignoreNulls": true
+          }
+        ]
+      },
+      {
+        "kind": "parallel",
+        "name": "batch",
+        "tasks": [
+          {
+            "kind": "parallel",
+            "name": "foreach",
+            "list": "trackId",
+            "tasks": [
+              {
+                "kind": "parallel",
+                "name": "fetch",
+                "document": "query($trackId: [String!]) { trackByIds(ids: $trackId) { name } }",
+                "exports": [
+                  {
+                    "trackId": "tracks",
+                    "kind": "List"
+                  }
+                ],
+                "imports": [
+                  {
+                    "contextData": "trackId",
+                    "skipIfNull": true,
+                    "skipIfEmpty": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "parallel",
+            "name": "resolver",
+            "selections": [1, 2, 3, 4],
+            "imports": [
+              {
+                "contextData": "session"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "serial",
+        "name": "resolver",
+        "selections": [5, 6]
+      }
+    ]
+  },
+  "document": "...",
+  "operation": "GetSessions"
+}

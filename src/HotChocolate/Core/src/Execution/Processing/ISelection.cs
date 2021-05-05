@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -12,6 +11,16 @@ namespace HotChocolate.Execution.Processing
         : IFieldSelection
         , IOptionalSelection
     {
+        /// <summary>
+        /// Gets an operation unique identifier of this selection.
+        /// </summary>
+        uint Id { get; }
+
+        /// <summary>
+        /// Gets the execution kind.
+        /// </summary>
+        SelectionExecutionKind Kind { get; }
+
         /// <summary>
         /// The type that declares the field that is selected by this selection.
         /// </summary>
