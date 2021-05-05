@@ -1,5 +1,5 @@
 ---
-title: "Schema basics"
+title: "Overview"
 ---
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"

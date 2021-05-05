@@ -1,5 +1,5 @@
 ---
-title: Schema Documentation
+title: Documentation
 ---
 
 As with any API, documentation is important for describing the data and queries available to a consumer. Hot Chocolate offers multiple ways to document your GraphQL application.

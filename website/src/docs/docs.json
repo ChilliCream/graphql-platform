@@ -22,27 +22,43 @@
             "items": [
               {
                 "path": "index",
-                "title": "Schema basics"
+                "title": "Overview"
               },
               {
-                "path": "descriptions",
-                "title": "Schema Documentation"
+                "path": "queries",
+                "title": "Queries"
               },
               {
-                "path": "operations",
-                "title": "Operations"
+                "path": "mutations",
+                "title": "Mutations"
               },
               {
-                "path": "versioning",
-                "title": "Versioning"
+                "path": "subscriptions",
+                "title": "Subscriptions"
               },
               {
-                "path": "unions-and-interfaces",
-                "title": "Unions and Interfaces"
+                "path": "types",
+                "title": "Types"
               },
               {
-                "path": "extending-types",
-                "title": "Extending types"
+                "path": "inputs",
+                "title": "Inputs"
+              },
+              {
+                "path": "lists",
+                "title": "Lists"
+              },
+              {
+                "path": "nullability",
+                "title": "Nullability"
+              },
+              {
+                "path": "interfaces",
+                "title": "Interfaces"
+              },
+              {
+                "path": "unions",
+                "title": "Unions"
               },
               {
                 "path": "scalars",
@@ -51,6 +67,18 @@
               {
                 "path": "directives",
                 "title": "Directives"
+              },
+              {
+                "path": "documentation",
+                "title": "Documentation"
+              },
+              {
+                "path": "versioning",
+                "title": "Versioning"
+              },
+              {
+                "path": "extending-types",
+                "title": "Extending types"
               }
             ]
           },
