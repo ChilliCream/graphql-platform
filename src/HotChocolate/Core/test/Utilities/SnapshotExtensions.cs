@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Snapshooter;
 using Snapshooter.Xunit;
+using Xunit;
 
 namespace HotChocolate.Tests
 {
@@ -10,7 +11,7 @@ namespace HotChocolate.Tests
         public static IExecutionResult MatchSnapshot(
             this IExecutionResult result)
         {
-            result.ToJson(true).MatchSnapshot();
+            result.ToJson().MatchSnapshot();
             return result;
         }
 
@@ -18,7 +19,8 @@ namespace HotChocolate.Tests
             this Task<IExecutionResult> task)
         {
             IExecutionResult result = await task;
-            result.ToJson(true).MatchSnapshot();
+            string json = await task.ToJsonAsync();
+            json.MatchSnapshot();
             return result;
         }
 
@@ -58,8 +60,7 @@ namespace HotChocolate.Tests
             this IExecutionResult result,
             string snapshotNameExtension)
         {
-            result.ToJson(true).MatchSnapshot(
-                SnapshotNameExtension.Create(snapshotNameExtension));
+            result.ToJson().MatchSnapshot(SnapshotNameExtension.Create(snapshotNameExtension));
             return result;
         }
 
@@ -67,8 +68,7 @@ namespace HotChocolate.Tests
             this IExecutionResult result,
             params string[] snapshotNameExtensions)
         {
-            result.ToJson(true).MatchSnapshot(
-                SnapshotNameExtension.Create(snapshotNameExtensions));
+            result.ToJson().MatchSnapshot(SnapshotNameExtension.Create(snapshotNameExtensions));
             return result;
         }
 
@@ -76,8 +76,7 @@ namespace HotChocolate.Tests
             this IExecutionResult result,
             params object[] snapshotNameExtensions)
         {
-            result.ToJson(true).MatchSnapshot(
-                SnapshotNameExtension.Create(snapshotNameExtensions));
+            result.ToJson().MatchSnapshot(SnapshotNameExtension.Create(snapshotNameExtensions));
             return result;
         }
 
@@ -86,8 +85,8 @@ namespace HotChocolate.Tests
             string snapshotNameExtension)
         {
             IExecutionResult result = await task;
-            result.ToJson(true).MatchSnapshot(
-                SnapshotNameExtension.Create(snapshotNameExtension));
+            string json = await task.ToJsonAsync();
+            json.MatchSnapshot(SnapshotNameExtension.Create(snapshotNameExtension));
             return result;
         }
 
@@ -96,8 +95,8 @@ namespace HotChocolate.Tests
             params string[] snapshotNameExtensions)
         {
             IExecutionResult result = await task;
-            result.ToJson(true).MatchSnapshot(
-                SnapshotNameExtension.Create(snapshotNameExtensions));
+            string json = await task.ToJsonAsync();
+            json.MatchSnapshot(SnapshotNameExtension.Create(snapshotNameExtensions));
             return result;
         }
 
@@ -106,9 +105,15 @@ namespace HotChocolate.Tests
             params object[] snapshotNameExtensions)
         {
             IExecutionResult result = await task;
-            result.ToJson(true).MatchSnapshot(
-                SnapshotNameExtension.Create(snapshotNameExtensions));
+            string json = await task.ToJsonAsync();
+            json.MatchSnapshot(SnapshotNameExtension.Create(snapshotNameExtensions));
             return result;
+        }
+
+        public static async Task<string> ToJsonAsync(this Task<IExecutionResult> task)
+        {
+            IExecutionResult result = await task;
+            return await result.ToJsonAsync();
         }
     }
 }

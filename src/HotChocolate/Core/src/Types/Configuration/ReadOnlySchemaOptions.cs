@@ -36,6 +36,7 @@ namespace HotChocolate.Configuration
             PreserveSyntaxNodes = options.PreserveSyntaxNodes;
             EnableDirectiveIntrospection = options.EnableDirectiveIntrospection;
             DefaultDirectiveVisibility = options.DefaultDirectiveVisibility;
+            AllowInlining = options.AllowInlining;
         }
 
         /// <summary>
@@ -99,5 +100,10 @@ namespace HotChocolate.Configuration
         /// The default directive visibility when directive introspection is enabled.
         /// </summary>
         public DirectiveVisibility DefaultDirectiveVisibility { get; }
+
+        /// <summary>
+        /// Defines if field inlining is allowed.
+        /// </summary>
+        public bool AllowInlining { get; }
     }
 }

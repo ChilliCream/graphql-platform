@@ -35,10 +35,10 @@
     "hero",
     "friends",
     "nodes",
-    2
+    0
   ],
   "data": {
-    "name": "Leia Organa"
+    "name": "Luke Skywalker"
   },
   "hasNext": true
 }
@@ -61,10 +61,10 @@
     "hero",
     "friends",
     "nodes",
-    0
+    2
   ],
   "data": {
-    "name": "Luke Skywalker"
+    "name": "Leia Organa"
   },
   "hasNext": false
 }

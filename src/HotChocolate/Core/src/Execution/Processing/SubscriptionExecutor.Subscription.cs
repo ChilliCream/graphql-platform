@@ -256,8 +256,7 @@ namespace HotChocolate.Execution.Processing
                     // it is important that we correctly coerce the arguments before
                     // invoking subscribe.
                     if (!rootSelection.Arguments.TryCoerceArguments(
-                        middlewareContext.Variables,
-                        middlewareContext.ReportError,
+                        middlewareContext,
                         out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs))
                     {
                         // the middleware context reports errors to the operation context,

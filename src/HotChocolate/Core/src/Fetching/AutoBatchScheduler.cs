@@ -4,12 +4,10 @@ using GreenDonut;
 
 namespace HotChocolate.Fetching
 {
-    public class AutoBatchScheduler
-        : IBatchScheduler
-        , IAutoBatchDispatcher
+    public class AutoBatchScheduler : IAutoBatchDispatcher
     {
         public void Schedule(Func<ValueTask> dispatch) => dispatch();
 
-        public static AutoBatchScheduler Default { get; } = new AutoBatchScheduler();
+        public static AutoBatchScheduler Default { get; } = new();
     }
 }

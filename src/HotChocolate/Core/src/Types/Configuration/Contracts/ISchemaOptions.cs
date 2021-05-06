@@ -68,5 +68,10 @@ namespace HotChocolate.Configuration
         /// The default directive visibility when directive introspection is enabled.
         /// </summary>
         new DirectiveVisibility DefaultDirectiveVisibility { get; set; }
+
+        /// <summary>
+        /// Defines if field inlining is allowed.
+        /// </summary>
+        new bool AllowInlining { get; set; }
     }
 }

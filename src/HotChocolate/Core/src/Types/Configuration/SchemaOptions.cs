@@ -64,13 +64,18 @@ namespace HotChocolate.Configuration
         /// <summary>
         /// Defines if the experimental directive introspection feature shall be enabled.
         /// </summary>
-        public bool EnableDirectiveIntrospection { get; set; } = false;
+        public bool EnableDirectiveIntrospection { get; set; }
 
         /// <summary>
         /// The default directive visibility when directive introspection is enabled.
         /// </summary>
         public DirectiveVisibility DefaultDirectiveVisibility { get; set; } =
             DirectiveVisibility.Public;
+
+        /// <summary>
+        /// Defines if field inlining is allowed.
+        /// </summary>
+        public bool AllowInlining { get; set; } = true;
 
         public static SchemaOptions FromOptions(IReadOnlySchemaOptions options)
         {
@@ -85,7 +90,8 @@ namespace HotChocolate.Configuration
                 DefaultBindingBehavior = options.DefaultBindingBehavior,
                 PreserveSyntaxNodes = options.PreserveSyntaxNodes,
                 EnableDirectiveIntrospection = options.EnableDirectiveIntrospection,
-                DefaultDirectiveVisibility = options.DefaultDirectiveVisibility
+                DefaultDirectiveVisibility = options.DefaultDirectiveVisibility,
+                AllowInlining = options.AllowInlining
             };
         }
     }

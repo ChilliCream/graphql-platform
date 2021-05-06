@@ -9,6 +9,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing
 {
+    /// <summary>
+    /// Represents a field selection during execution.
+    /// </summary>
     public class Selection : ISelection
     {
         private static readonly ArgumentMap _emptyArguments =
@@ -20,6 +23,7 @@ namespace HotChocolate.Execution.Processing
         private bool _isReadOnly;
 
         public Selection(
+            uint id,
             IObjectType declaringType,
             IObjectField field,
             FieldNode selection,
@@ -28,7 +32,39 @@ namespace HotChocolate.Execution.Processing
             IReadOnlyDictionary<NameString, ArgumentValue>? arguments = null,
             SelectionIncludeCondition? includeCondition = null,
             bool internalSelection = false)
+            : this(
+                id,
+                declaringType,
+                field,
+                selection,
+                resolverPipeline,
+                pureResolver: null,
+                inlineResolver: null,
+                responseName,
+                arguments,
+                includeCondition,
+                internalSelection)
+        { }
+
+        public Selection(
+            uint id,
+            IObjectType declaringType,
+            IObjectField field,
+            FieldNode selection,
+            FieldDelegate? resolverPipeline,
+            PureFieldDelegate? pureResolver,
+            InlineFieldDelegate? inlineResolver,
+            NameString? responseName = null,
+            IReadOnlyDictionary<NameString, ArgumentValue>? arguments = null,
+            SelectionIncludeCondition? includeCondition = null,
+            bool internalSelection = false)
         {
+            if (resolverPipeline is null && pureResolver is null)
+            {
+                throw new ArgumentNullException(nameof(resolverPipeline));
+            }
+            
+            Id = id;
             DeclaringType = declaringType
                 ?? throw new ArgumentNullException(nameof(declaringType));
             Field = field
@@ -38,14 +74,28 @@ namespace HotChocolate.Execution.Processing
             ResponseName = responseName ??
                 selection.Alias?.Value ??
                 selection.Name.Value;
-            ResolverPipeline = resolverPipeline ??
-                throw new ArgumentNullException(nameof(resolverPipeline));
+            ResolverPipeline = resolverPipeline;
+            PureResolver = pureResolver;
+            InlineResolver = inlineResolver;
             Arguments = arguments is null
                 ? _emptyArguments
                 : new ArgumentMap(arguments);
             InclusionKind = internalSelection
                 ? SelectionInclusionKind.Internal
                 : SelectionInclusionKind.Always;
+
+            if (InlineResolver is not null)
+            {
+                Kind = SelectionExecutionKind.Inline;
+            }
+            else if (PureResolver is not null)
+            {
+                Kind = SelectionExecutionKind.Pure;
+            }
+            else
+            {
+                Kind = SelectionExecutionKind.Default;
+            }
 
             if (includeCondition is not null)
             {
@@ -56,6 +106,8 @@ namespace HotChocolate.Execution.Processing
 
         public Selection(Selection selection)
         {
+            Id = selection.Id;
+            Kind = selection.Kind;
             _includeConditions = selection._includeConditions;
             _selections = selection._selections;
             _isReadOnly = selection._isReadOnly;
@@ -66,9 +118,17 @@ namespace HotChocolate.Execution.Processing
             _syntaxNodes = selection._syntaxNodes;
             ResponseName = selection.ResponseName;
             ResolverPipeline = selection.ResolverPipeline;
+            PureResolver = selection.PureResolver;
+            InlineResolver = selection.InlineResolver;
             Arguments = selection.Arguments;
             InclusionKind = selection.InclusionKind;
         }
+
+        /// <inheritdoc />
+        public uint Id { get; }
+
+        /// <inheritdoc />
+        public SelectionExecutionKind Kind { get; }
 
         /// <inheritdoc />
         public IObjectType DeclaringType { get; }
@@ -100,7 +160,13 @@ namespace HotChocolate.Execution.Processing
         public NameString ResponseName { get; }
 
         /// <inheritdoc />
-        public FieldDelegate ResolverPipeline { get; }
+        public FieldDelegate? ResolverPipeline { get; }
+
+        /// <inheritdoc />
+        public PureFieldDelegate? PureResolver { get; }
+
+        /// <inheritdoc />
+        public InlineFieldDelegate? InlineResolver { get; }
 
         /// <inheritdoc />
         public IArgumentMap Arguments { get; }

@@ -1,5 +1,5 @@
-using System;
 using System.Threading;
+using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
@@ -8,34 +8,36 @@ namespace HotChocolate.Execution.Processing
 {
     internal partial class ExecutionContext
     {
-        private readonly IExecutionTaskContext _taskContext;
-        private readonly TaskBacklog _taskBacklog;
-        private readonly TaskStatistics _taskStatistics;
-        private readonly IDeferredTaskBacklog _deferredTaskBacklog;
-        private readonly ObjectPool<ResolverTask> _taskPool;
+        private readonly OperationContext _operationContext;
+        private readonly WorkBacklog _workBacklog;
+        private readonly DeferredWorkBacklog _deferredWorkBacklog;
+        private readonly ObjectPool<ResolverTask> _resolverTasks;
+        private readonly ObjectPool<PureResolverTask> _pureResolverTasks;
+        private readonly ObjectPool<BatchExecutionTask> _batchTasks;
+
         private CancellationTokenSource _completed = default!;
         private IBatchDispatcher _batchDispatcher = default!;
         private bool _isInitialized;
 
         public ExecutionContext(
-            IExecutionTaskContext taskContext,
-            ObjectPool<ResolverTask> resolverTaskPool)
+            OperationContext operationContext,
+            ObjectPool<ResolverTask> resolverTasks,
+            ObjectPool<PureResolverTask> pureResolverTasks,
+            ObjectPool<BatchExecutionTask> batchTasks)
         {
-            _taskContext = taskContext;
-            _taskStatistics = new TaskStatistics();
-            _taskBacklog = new TaskBacklog(_taskStatistics, resolverTaskPool);
-            _deferredTaskBacklog = new DeferredTaskBacklog();
-            _taskPool = resolverTaskPool;
-            _taskStatistics.StateChanged += TaskStatisticsEventHandler;
-            _taskStatistics.AllTasksCompleted += OnCompleted;
+            _operationContext = operationContext;
+            _workBacklog = new WorkBacklog(() => _operationContext.RequestContext);
+            _deferredWorkBacklog = new DeferredWorkBacklog();
+            _resolverTasks = resolverTasks;
+            _pureResolverTasks = pureResolverTasks;
+            _batchTasks = batchTasks;
+            _workBacklog.BacklogEmpty += BatchDispatcherEventHandler;
         }
 
         public void Initialize(
             IBatchDispatcher batchDispatcher,
             CancellationToken requestAborted)
         {
-            _taskStatistics.Clear();
-
             _completed = new CancellationTokenSource();
             requestAborted.Register(TryComplete);
 
@@ -71,9 +73,8 @@ namespace HotChocolate.Execution.Processing
                 _batchDispatcher = default!;
             }
 
-            _taskBacklog.Clear();
-            _deferredTaskBacklog.Clear();
-            _taskStatistics.Clear();
+            _workBacklog.Clear();
+            _deferredWorkBacklog.Clear();
 
             if (_completed is not null!)
             {
@@ -87,8 +88,7 @@ namespace HotChocolate.Execution.Processing
 
         public void Reset()
         {
-            _taskBacklog.Clear();
-            _taskStatistics.Clear();
+            _workBacklog.Clear();
 
             if (_completed is not null!)
             {

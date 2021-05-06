@@ -14,6 +14,8 @@ namespace HotChocolate.AspNetCore.Authorization
         [Fact]
         public async Task AuthorizeOnExtension()
         {
+            Snapshot.FullName();
+
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType()

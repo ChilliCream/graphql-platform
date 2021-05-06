@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
@@ -21,9 +22,15 @@ namespace HotChocolate.Execution.Processing
 
         public OperationContext(
             ObjectPool<ResolverTask> resolverTaskPool,
+            ObjectPool<PureResolverTask> pureResolverTaskPool,
+            ObjectPool<BatchExecutionTask> batchExecutionTask,
             ResultPool resultPool)
         {
-            _executionContext = new ExecutionContext(this, resolverTaskPool);
+            _executionContext = new ExecutionContext(
+                this,
+                resolverTaskPool,
+                pureResolverTaskPool,
+                batchExecutionTask);
             _resultHelper = new ResultHelper(resultPool);
         }
 

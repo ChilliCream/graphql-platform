@@ -55,6 +55,12 @@ namespace HotChocolate.Execution.Processing
         public IImmutableDictionary<string, object?> ScopedContextData { get; }
 
         /// <inheritdoc/>
+        public IDeferredExecutionTask? Next { get; set; }
+
+        /// <inheritdoc/>
+        public IDeferredExecutionTask? Previous { get; set; }
+
+        /// <inheritdoc/>
         public async Task<IQueryResult> ExecuteAsync(IOperationContext operationContext)
         {
             ResultMap resultMap = Fragment.SelectionSet.EnqueueResolverTasks(
@@ -63,8 +69,8 @@ namespace HotChocolate.Execution.Processing
                 ScopedContextData,
                 Value);
 
-            await ResolverExecutionHelper
-                .ExecuteTasksAsync(operationContext)
+            await ExecutionTaskProcessor
+                .ExecuteAsync(operationContext)
                 .ConfigureAwait(false);
 
             return operationContext

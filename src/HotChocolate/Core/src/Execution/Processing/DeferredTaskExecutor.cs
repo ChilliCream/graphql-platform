@@ -21,7 +21,7 @@ namespace HotChocolate.Execution.Processing
             {
                 IOperationContext context = _operationContextOwner.OperationContext;
 
-                while (context.Execution.DeferredTaskBacklog.TryTake(
+                while (context.Execution.DeferredWork.TryTake(
                     out IDeferredExecutionTask? deferredTask))
                 {
                     if (cancellationToken.IsCancellationRequested)

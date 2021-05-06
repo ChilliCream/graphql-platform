@@ -85,7 +85,7 @@ namespace HotChocolate.Execution.Processing
         {
             AssertInitialized();
 
-            object? query = _resolveQueryRootValue();
+            var query = _resolveQueryRootValue();
 
             if (query is null &&
                 typeof(T) == typeof(object) &&

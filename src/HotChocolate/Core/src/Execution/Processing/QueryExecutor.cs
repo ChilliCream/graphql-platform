@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using static HotChocolate.Execution.Processing.ResolverExecutionHelper;
+using static HotChocolate.Execution.Processing.ExecutionTaskProcessor;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -32,7 +32,7 @@ namespace HotChocolate.Execution.Processing
                 operationContext, Path.Root, scopedContext,
                 operationContext.RootValue);
 
-            await ExecuteTasksAsync(operationContext).ConfigureAwait(false);
+            await ExecutionTaskProcessor.ExecuteAsync(operationContext).ConfigureAwait(false);
 
             return operationContext
                 .TrySetNext()

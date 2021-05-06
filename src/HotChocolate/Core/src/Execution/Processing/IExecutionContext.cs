@@ -1,5 +1,8 @@
-using HotChocolate.Fetching;
+using System.Threading.Tasks;
+using HotChocolate.Execution.Processing.Internal;
+using HotChocolate.Execution.Processing.Tasks;
 using Microsoft.Extensions.ObjectPool;
+using HotChocolate.Fetching;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -9,28 +12,49 @@ namespace HotChocolate.Execution.Processing
     /// </summary>
     internal interface IExecutionContext
     {
+        // IQueryPlan Plan { get; }
+
+        // IQueryPlanStep Current { get; }
+
         /// <summary>
         /// Gets the backlog of the task that have to be processed.
         /// </summary>
-        ITaskBacklog TaskBacklog { get; }
+        IWorkBacklog Work { get; }
 
         /// <summary>
         /// Gets the backlog of the task that shall be processed after
         /// all the main tasks have been executed.
         /// </summary>
-        IDeferredTaskBacklog DeferredTaskBacklog { get; }
-
-        ObjectPool<ResolverTask> TaskPool { get; }
-
-        ITaskStatistics TaskStats { get; }
+        IDeferredWorkBacklog DeferredWork { get; }
 
         /// <summary>
         /// Gets the batch dispatcher.
         /// </summary>
         IBatchDispatcher BatchDispatcher { get; }
 
+        /// <summary>
+        /// Defines that the execution is completed.
+        /// </summary>
         bool IsCompleted { get; }
 
+        /// <summary>
+        /// Gets the resolver task pool.
+        /// </summary>
+        ObjectPool<ResolverTask> ResolverTasks { get; }
+
+        /// <summary>
+        /// Gets the pure resolver task pool.
+        /// </summary>
+        ObjectPool<PureResolverTask> PureResolverTasks { get; }
+
+        /// <summary>
+        /// Gets the batch task pool.
+        /// </summary>
+        ObjectPool<BatchExecutionTask> BatchTasks { get; }
+
+        /// <summary>
+        /// Resets the execution state.
+        /// </summary>
         void Reset();
     }
 }

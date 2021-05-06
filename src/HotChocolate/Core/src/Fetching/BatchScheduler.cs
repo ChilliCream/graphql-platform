@@ -58,12 +58,12 @@ namespace HotChocolate.Fetching
             }
         }
 
-        private class BatchExecutionTask
-            : IExecutionTask
+        private class BatchExecutionTask : IExecutionTask
         {
             private readonly IExecutionTaskContext _context;
             private readonly IReadOnlyList<Func<ValueTask>> _tasks;
-            private ValueTask _task;
+
+            private Task? _task;
 
             public BatchExecutionTask(
                 IExecutionTaskContext context,
@@ -73,17 +73,29 @@ namespace HotChocolate.Fetching
                 _tasks = tasks;
             }
 
-            public bool IsCompleted => _task.IsCompleted;
+            public bool IsCompleted { get; private set; }
 
             public bool IsCanceled { get; private set; }
 
+            public ExecutionTaskKind Kind { get; }
+
+            public IExecutionTask? Parent { get; set; }
+
+            public IExecutionTask? Next { get; set; }
+
+            public IExecutionTask? Previous { get; set; }
+
             public void BeginExecute(CancellationToken cancellationToken)
             {
-                _context.Started();
-                _task = ExecuteAsync(cancellationToken);
+                _task = ExecuteAsync(cancellationToken).AsTask();
             }
 
-            private async ValueTask ExecuteAsync(CancellationToken cancellationToken)
+            public Task WaitForCompletionAsync(CancellationToken cancellationToken)
+            {
+                return _task ?? Task.CompletedTask;
+            }
+
+            public async ValueTask ExecuteAsync(CancellationToken cancellationToken)
             {
                 try
                 {
@@ -110,7 +122,8 @@ namespace HotChocolate.Fetching
                 finally
                 {
                     IsCanceled = cancellationToken.IsCancellationRequested;
-                    _context.Completed();
+                    IsCompleted = true;
+                    _context.Completed(this);
                 }
             }
         }
