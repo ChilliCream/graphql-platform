@@ -1,15 +1,15 @@
 ﻿query foo($v: Boolean, $q: Boolean) {
   ... on Query {
-    hero(episode: EMPIRE) {
+    hero(episode: EMPIRE) @__execute(id: 0, kind: DEFAULT, type: COMPOSITE) {
       ... on Human {
-        name @include(if: $q)
-        id
-        height @include(if: $v)
+        name @include(if: $q) @__execute(id: 1, kind: DEFAULT, type: LEAF)
+        id @__execute(id: 2, kind: INLINE, type: LEAF)
+        height @include(if: $v) @__execute(id: 3, kind: PURE, type: LEAF)
       }
       ... on Droid {
-        name @include(if: $q)
-        id
-        height @include(if: $v)
+        name @include(if: $q) @__execute(id: 4, kind: DEFAULT, type: LEAF)
+        id @__execute(id: 5, kind: INLINE, type: LEAF)
+        height @include(if: $v) @__execute(id: 6, kind: PURE, type: LEAF)
       }
     }
   }

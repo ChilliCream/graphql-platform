@@ -12,7 +12,7 @@ namespace HotChocolate.Execution.Processing
     internal class WorkBacklog : IWorkBacklog
     {
         private SpinLock _lock = new(Debugger.IsAttached);
-        private readonly WorkQueueUnsafe _work = new();
+        private readonly UnsafeWorkQueue _work = new();
 
         private int _processors = 1;
         private bool _mainIsPaused;

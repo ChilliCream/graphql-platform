@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Execution.Processing.Internal
 {
-    internal sealed class WorkQueueUnsafe
+    internal sealed class UnsafeWorkQueue
     {
         private readonly Stack<IExecutionTask> _stack = new();
         private IExecutionTask? _head;
