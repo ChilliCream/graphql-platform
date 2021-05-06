@@ -1,0 +1,1 @@
+﻿MATCH (u:User)-[r1:OWNS]->(b:Bike)-[r2:USED_ON]->(t:Trip) RETURN b, u
