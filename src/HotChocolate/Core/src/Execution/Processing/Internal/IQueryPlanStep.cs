@@ -1,30 +1,56 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace HotChocolate.Execution.Processing.Internal
 {
-    internal interface IQueryPlanStep
+    internal class QueryPlan
     {
-        bool IsSerial { get; }
+        QueryPlanStep Root { get; }
 
-        bool IsCompleted { get; }
+        /// <summary>
+        /// Gets the first step that needs to be executed.
+        /// </summary>
+        QueryPlanStep First { get; }
 
-        IReadOnlyList<IQueryPlanStep> Steps { get; }
-
-        IQueryPlanStep? Next { get; }
+        // IQueryPlanStep? GetExecutionStep(ISelection selection);
 
 
-        void Initialize(IOperationContext context);
-
-        bool IsAllowed(IExecutionTask task);
     }
 
-    internal interface IQueryPlan
+    internal class OperationOptimizer
     {
-        IQueryPlanStep Root { get; }
+        public QueryPlan Optimize(IPreparedOperation operation)
+        {
+            throw new NotImplementedException();
+        }
+    }
 
-        IQueryPlanStep? GetExecutionStep(ISelection selection);
+    internal abstract class QueryPlanStep
+    {
+        public abstract QueryPlanStepStrategy Strategy { get; }
 
-        IQueryPlanStep First { get; }
+        public abstract IReadOnlyList<QueryPlanStep> Steps { get; }
+
+        public QueryPlanStep? Next { get; internal set; }
+
+        public virtual void Initialize(IOperationContext context)
+        {
+        }
+
+        public virtual bool IsAllowed(IExecutionTask task) => true;
+    }
+
+    internal class ResolverQueryPlanStep : QueryPlanStep
+    {
+        public override QueryPlanStepStrategy Strategy { get; }
+
+        public override IReadOnlyList<QueryPlanStep> Steps { get; }
+    }
+
+    public enum QueryPlanStepStrategy
+    {
+        Serial,
+        Parallel
     }
 }
