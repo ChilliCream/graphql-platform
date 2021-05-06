@@ -11,7 +11,7 @@ You can also extend types and delegate resolvers to a specific backend service.
 
 With this, we can create a consistent GraphQL schema that hides the implementation details of our backend services and provides the consumer of our endpoint with the capability to fetch the data they need with one call, no under- or over-fetching and most importantly no repeated fetching
 
-Every HotChocolate GraphQL server can be used for schema stitching or federations. 
+Every HotChocolate GraphQL server can be used for schema stitching or federations.
 You can also use both approaches on the same gateway.
 You can for example stitch third-party services and use federations for domain services.
 
@@ -63,8 +63,8 @@ type Address {
 # Schema Stitching
 
 In the scenario of schema stitching, the configuration of the gateway schema is on the gateway itself.
-The gateway pulls the schema from the downstream services and can be extended with SDL. 
-The benefit of this approach is that no configuration on the downstream services is needed. 
+The gateway pulls the schema from the downstream services and can be extended with SDL.
+The benefit of this approach is that no configuration on the downstream services is needed.
 With this approach, it is possible to also stitch thrid party GraphQL services.
 
 Gateway:
@@ -83,22 +83,21 @@ graph TD;
 
 # Federated Schema
 
-The major difference between schema federation and schema stitching is where the extensions are stored. 
-In the federated approach, the schema extensions are defined on the federated service. 
-The domain services push the schema on a cache (like Redis). 
+The major difference between schema federation and schema stitching is where the extensions are stored.
+In the federated approach, the schema extensions are defined on the federated service.
+The domain services push the schema on a cache (like Redis).
 The gateway is subscribed to changed from this cache and can hot reload the schema if the configuration of a domain service changes.
-It is also possible to set up federations in a pull setup. 
-In this setup, the downstream services expose a field on their schema to fetch the stitching information. 
-The gateway then fetches the federation information from the downstream service on startup. 
+It is also possible to set up federations in a pull setup.
+In this setup, the downstream services expose a field on their schema to fetch the stitching information.
+The gateway then fetches the federation information from the downstream service on startup.
 With this setup, you do not need a Redis instance, but lose the ability to hot-reload the schema on a change of the downstream service.
 
-The benefit of this approach is that the domain services define where they extend the Gateway schema. 
+The benefit of this approach is that the domain services define where they extend the Gateway schema.
 This might first seem odd and you could argue that the domain service should not have any knowledge of the gateway schema.
-Though in practice many companies see this as a feature rather than a limitation. 
+Though in practice many companies see this as a feature rather than a limitation.
 As the gateway schema grows, the configuration of the schema on the gateway with schema stitching will become more and more complex.
-A change to a downstream service requires also a change to the gateway. This makes development and also deployment a lot more complex. 
+A change to a downstream service requires also a change to the gateway. This makes development and also deployment a lot more complex.
 If teams have sovereignty over different domain services, these teams can work completely independently when you use federations.
-
 
 Address Service:
 
@@ -154,6 +153,7 @@ type NewMessagePayload {
 ```
 
 The second service is handling the users of the services and has the following schema:
+
 ```sdl
 type Query {
   user(userId: ID!): User!
@@ -217,6 +217,7 @@ Even worse for our UI team, in order to build a stream view that shows the messa
 This is actually one of the very things GraphQL tries to solve.
 
 With schema stitching or federations the services can be bundled together into one schema:
+
 ```sdl
 type Query {
   me: User!

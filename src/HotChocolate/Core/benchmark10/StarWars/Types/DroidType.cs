@@ -10,7 +10,7 @@ namespace HotChocolate.StarWars.Types
     {
         protected override void Configure(IObjectTypeDescriptor<Droid> descriptor)
         {
-            descriptor.Interface<CharacterType>();
+            descriptor.Implements<CharacterType>();
 
             descriptor.Field(t => t.Id)
                 .Type<NonNullType<IdType>>();
