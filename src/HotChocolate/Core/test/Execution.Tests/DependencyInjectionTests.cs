@@ -24,13 +24,15 @@ namespace HotChocolate.Execution
                     .AddType<ExtendQuery1>()
                     .BuildRequestExecutorAsync();
 
-            await executor
-                .ExecuteAsync("{ hello }")
-                .MatchSnapshotAsync("1");
-
-            await executor
-                .ExecuteAsync("{ hello }")
-                .MatchSnapshotAsync("2");
+            new
+            {
+                result1 = await executor
+                    .ExecuteAsync("{ hello }")
+                    .ToJsonAsync(),
+                result2 = await executor
+                    .ExecuteAsync("{ hello }")
+                    .ToJsonAsync()
+            }.MatchSnapshot();
         }
 
         [Fact]
@@ -48,36 +50,38 @@ namespace HotChocolate.Execution
 
             IRequestExecutor executor = await services.GetRequestExecutorAsync();
 
+            var result = new string[2];
+
             using (IServiceScope scope = services.CreateScope())
             {
-                await executor
+                result[0] = await executor
                     .ExecuteAsync(
                         QueryRequestBuilder
                             .New()
                             .SetQuery("{ hello }")
                             .SetServices(scope.ServiceProvider)
                             .Create())
-                    .MatchSnapshotAsync();
+                    .ToJsonAsync();
             }
 
             using (IServiceScope scope = services.CreateScope())
             {
-                await executor
+                result[1] = await executor
                     .ExecuteAsync(
                         QueryRequestBuilder
                             .New()
                             .SetQuery("{ hello }")
                             .SetServices(scope.ServiceProvider)
                             .Create())
-                    .MatchSnapshotAsync();
+                    .ToJsonAsync();
             }
+
+            result.MatchSnapshot();
         }
 
         [Fact]
         public async Task Type_With_Constructor_Injection()
         {
-            Snapshot.FullName();
-
             // this test ensures that we inject services into type instances without the need of
             // registering the type into the dependency container.
             IRequestExecutor executor =
@@ -87,20 +91,20 @@ namespace HotChocolate.Execution
                     .AddQueryType<Query2>()
                     .BuildRequestExecutorAsync();
 
-            await executor
-                .ExecuteAsync("{ hello }")
-                .MatchSnapshotAsync("1");
-
-            await executor
-                .ExecuteAsync("{ hello }")
-                .MatchSnapshotAsync("2");
+            new
+            {
+                result1 = await executor
+                    .ExecuteAsync("{ hello }")
+                    .ToJsonAsync(),
+                result2 = await executor
+                    .ExecuteAsync("{ hello }")
+                    .ToJsonAsync()
+            }.MatchSnapshot();
         }
 
         [Fact]
         public async Task Type_With_Scoped_Constructor_Injection()
         {
-            Snapshot.FullName();
-
             IServiceProvider services =
                 new ServiceCollection()
                     .AddScoped<SomeService>()
@@ -112,29 +116,33 @@ namespace HotChocolate.Execution
 
             IRequestExecutor executor = await services.GetRequestExecutorAsync();
 
+            var result = new string[2];
+
             using (IServiceScope scope = services.CreateScope())
             {
-                await executor
+                result[0] = await executor
                     .ExecuteAsync(
                         QueryRequestBuilder
                             .New()
                             .SetQuery("{ hello }")
                             .SetServices(scope.ServiceProvider)
                             .Create())
-                    .MatchSnapshotAsync();
+                    .ToJsonAsync();
             }
 
             using (IServiceScope scope = services.CreateScope())
             {
-                await executor
+                result[1] = await executor
                     .ExecuteAsync(
                         QueryRequestBuilder
                             .New()
                             .SetQuery("{ hello }")
                             .SetServices(scope.ServiceProvider)
                             .Create())
-                    .MatchSnapshotAsync();
+                    .ToJsonAsync();
             }
+
+            result.MatchSnapshot();
         }
 
         public class SomeService

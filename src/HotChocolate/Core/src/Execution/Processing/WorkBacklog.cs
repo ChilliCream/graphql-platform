@@ -14,20 +14,24 @@ namespace HotChocolate.Execution.Processing
         private SpinLock _lock = new(Debugger.IsAttached);
         private readonly UnsafeWorkQueue _work = new();
         private readonly PausedWorkQueue _paused = new();
-        private IQueryPlanStep _step;
+        private readonly Func<IRequestContext> _requestContext;
+        private IQueryPlanStep _step = default!;
 
         private int _processors = 1;
         private bool _mainIsPaused;
 
-        public WorkBacklog()
+        public WorkBacklog(Func<IRequestContext> requestContext)
         {
+            _requestContext = requestContext ??
+                throw new ArgumentNullException(nameof(requestContext));
+
             _work.BacklogEmpty += (sender, args) => BacklogEmpty?.Invoke(sender, args);
         }
 
         /// <summary>
         /// Gets or sets the current request context.
         /// </summary>
-        internal IRequestContext RequestContext { get; set; } = default!;
+        private IRequestContext RequestContext => _requestContext();
 
         /// <summary>
         /// The diagnostic events.
@@ -78,14 +82,15 @@ namespace HotChocolate.Execution.Processing
 
             var lockTaken = false;
             var scaled = false;
-            int backlogSize;
+            var backlogSize = 0;
             var processors = _processors;
 
             try
             {
                 _lock.Enter(ref lockTaken);
 
-                if (_step.IsAllowed(task))
+                // if (_step.IsAllowed(task))
+                if(true)
                 {
                     backlogSize = _work.Push(task);
 
@@ -235,7 +240,6 @@ namespace HotChocolate.Execution.Processing
         {
             _work.Clear();
             _processors = 1;
-            RequestContext = default!;
             BackPressureLimitExceeded = null;
         }
 

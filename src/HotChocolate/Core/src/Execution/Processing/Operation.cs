@@ -167,7 +167,7 @@ namespace HotChocolate.Execution.Processing
 
             if (selection.IsInternal)
             {
-                arguments[4] = new ArgumentNode("internal", BooleanValueNode.True);
+                arguments[3] = new ArgumentNode("internal", BooleanValueNode.True);
             }
 
             return new DirectiveNode("__execute", arguments);

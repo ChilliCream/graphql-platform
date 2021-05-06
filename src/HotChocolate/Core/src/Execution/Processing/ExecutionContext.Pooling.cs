@@ -26,7 +26,7 @@ namespace HotChocolate.Execution.Processing
             ObjectPool<BatchExecutionTask> batchTasks)
         {
             _operationContext = operationContext;
-            _workBacklog = new WorkBacklog();
+            _workBacklog = new WorkBacklog(() => _operationContext.RequestContext);
             _deferredWorkBacklog = new DeferredWorkBacklog();
             _resolverTasks = resolverTasks;
             _pureResolverTasks = pureResolverTasks;
@@ -43,8 +43,6 @@ namespace HotChocolate.Execution.Processing
 
             _batchDispatcher = batchDispatcher;
             _batchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
-
-            _workBacklog.RequestContext = _operationContext.RequestContext;
 
             _isInitialized = true;
         }

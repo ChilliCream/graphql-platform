@@ -183,6 +183,13 @@ namespace HotChocolate.Execution.Processing
             {
                 SelectionSetNode selectionSet = selection.SyntaxNode.SelectionSet!;
                 ISelectionSet selections = operationContext.CollectFields(selectionSet, objectType);
+                Type runtimeType = objectType.RuntimeType;
+
+                if (!runtimeType.IsInstanceOfType(result) &&
+                    operationContext.Converter.TryConvert(runtimeType, result, out var converted))
+                {
+                    result = converted;
+                }
 
                 completedResult = selections.EnqueueResolverTasks(
                     operationContext,
