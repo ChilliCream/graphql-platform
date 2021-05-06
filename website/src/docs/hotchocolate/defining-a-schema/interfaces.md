@@ -12,12 +12,12 @@ Interfaces are defined in the schema as follows.
 
 ```sdl
 interface Message {
-  sendBy: User!
+  author: User!
   createdAt: DateTime!
 }
 
 type TextMessage implements Message {
-  sendBy: User!
+  author: User!
   createdAt: DateTime!
   content: String!
 }
@@ -25,108 +25,140 @@ type TextMessage implements Message {
 
 Learn more about interfaces [here](https://graphql.org/learn/schema/#interfaces).
 
-<!-- ## Interface Definition
-
-HotChocolate tries to infer interfaces from the .Net types.
-When a resolver returns an interface, you just have to register the implementation on the schema builder.
-HotChocolate will register the types as implementations of the interface.
+# Definition
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
 
-In the annotation based approach, you most likely do not need to worry about interfaces at all.
-
 ```csharp
-public class Query
-{
-  public IMessage[] GetMessages([Service]IMessageRepo repo) => repo.GetMessages();
-}
-
 [GraphQLName("Message")]
 public interface IMessage
 {
-  User SendBy { get; }
+    User Author { get; set; }
 
-  DateTime CreatedAt { get; }
+    DateTime CreatedAt { get; set; }
 }
 
 public class TextMessage : IMessage
 {
-  public User SendBy { get; set; }
+    public User Author { get; set; }
 
-  public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 
-  public string Content { get; set; }
+    public string Content { get; set; }
 }
-// .....
+
+public class Query
+{
+  public IMessage[] GetMessages([Service] IMessageRepository repository)
+      => repository.GetMessages();
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
+            .AddType<TextMessage>();
+    }
+}
 ```
 
-_Configure Services_
+<!-- TODO: This is currently broken: https://github.com/ChilliCream/hotchocolate/issues/3577 -->
 
-```csharp
-  public void ConfigureServices(IServiceCollection services)
-  {
-      services
-          .AddRouting()
-          .AddGraphQLServer()
-          .AddQueryType<Query>()
-          // HotChocolate knows that TextMessage implements IMessage and will add it to the list
-          // of implementations
-          .AddType<TextMessage>()
-          .AddType<VideoMessage>()
-  }
-```
-
-You can also use classes as definitions for interfaces.
-To mark a base class as an interface definition you can use `[InterfaceType]`.
+We can also use classes to define an interface.
 
 ```csharp
 [InterfaceType]
 public abstract class Message
 {
-  public User SendBy { get; set; }
+    public User SendBy { get; set; }
 
-  public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
+public class TextMessage : Message
+{
+    public string Content { get; set; }
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            // ...
+            .AddType<TextMessage>();
+    }
 }
 ```
 
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
-HotChocolate provides a fluent configuration API for interfaces that is very similar to the `ObjectType` interface.
-
 ```csharp
-public class MediaMessageType : InterfaceType<IMediaMessage>
+public interface IMessage
 {
-    protected override void Configure(IInterfaceTypeDescriptor<IMediaMessage> descriptor)
+    User Author { get; set; }
+
+    DateTime CreatedAt { get; set; }
+}
+
+public class MessageType : InterfaceType<IMessage>
+{
+    protected override void Configure(IInterfaceTypeDescriptor<IMessage> descriptor)
     {
-        // Configure Type Name
-        descriptor.Name("MediaMessage");
+        descriptor.Name("Message");
+    }
+}
 
-        // By default all fields are bound implicitly. This means, all fields of `IMessage` are
-        // added to the type and do not have to be added with descriptor.Field(x => x.FieldName)
-        // This behaviour can be changed from opt out to opt in by calling BindFieldsExplicitly
-        descriptor.BindFieldsExplicitly();
+public class TextMessage : IMessage
+{
+    public User Author { get; set; }
 
-        // Declare  Fields
-        descriptor.Field(x => x.MediaType);
-        descriptor.Field(x => x.CreatedAt);
-        descriptor.Field(x => x.SendBy);
+    public DateTime CreatedAt { get; set; }
 
-        // This interface implements a interface
+    public string Content { get; set; }
+}
+
+public class TextMessageType : ObjectType<TextMessage>
+{
+    protected override void Configure(IObjectTypeDescriptor<TextMessage> descriptor)
+    {
+        descriptor.Name("TextMessage");
+
         descriptor.Implements<MessageType>();
     }
 }
-```
 
-In a `ObjectType` you can declare what interface this object type implements.
-
-```csharp
-public class VideoMessageType : ObjectType<VideoMessage>
+public class Query
 {
-    protected override void Configure(IObjectTypeDescriptor<VideoMessage> descriptor)
+    public IMessage[] GetMessages([Service] IMessageRepository repository)
+        => repository.GetMessages();
+}
+
+public class QueryType : ObjectType<Query>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
     {
-        descriptor.Implements<MessageType>();
+        descriptor.Name("Query");
+
+        descriptor
+            .Field(f => f.GetMessages(default));
+    }
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddQueryType<QueryType>()
+            .AddType<TextMessageType>();
     }
 }
 ```
@@ -134,7 +166,7 @@ public class VideoMessageType : ObjectType<VideoMessage>
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-In schema first interfaces can be declared directly in SDL:
+TODO: Fix up
 
 ```csharp
 public void ConfigureServices(IServiceCollection services)
@@ -186,4 +218,8 @@ public void ConfigureServices(IServiceCollection services)
 ```
 
 </ExampleTabs.Schema>
-</ExampleTabs> -->
+</ExampleTabs>
+
+## Custom Resolvers
+
+TODO
