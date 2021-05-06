@@ -1,6 +1,8 @@
+import { css, SimpleInterpolation } from "styled-components";
+
 export const MobileBreakpoint = "450px";
-export function IsMobile(innerStyle: String) {
-  return `
+export function IsMobile(innerStyle: SimpleInterpolation) {
+  return css`
     @media only screen and (max-width: ${MobileBreakpoint}) {
       ${innerStyle}
     }
@@ -8,8 +10,8 @@ export function IsMobile(innerStyle: String) {
 }
 
 export const PhabletBreakpoint = "860px";
-export function IsPhablet(innerStyle: String) {
-  return `
+export function IsPhablet(innerStyle: SimpleInterpolation) {
+  return css`
     @media only screen and (max-width: ${PhabletBreakpoint}) {
       ${innerStyle}
     }
@@ -17,8 +19,8 @@ export function IsPhablet(innerStyle: String) {
 }
 
 export const TabletBreakpoint = "1110px";
-export function IsTablet(innerStyle: String) {
-  return `
+export function IsTablet(innerStyle: SimpleInterpolation) {
+  return css`
     @media only screen and (max-width: ${TabletBreakpoint}) {
       ${innerStyle}
     }
@@ -27,8 +29,8 @@ export function IsTablet(innerStyle: String) {
 
 export const SmallDesktopBreakpointNumber = 1280;
 export const SmallDesktopBreakpoint = SmallDesktopBreakpointNumber + "px";
-export function IsSmallDesktop(innerStyle: String) {
-  return `
+export function IsSmallDesktop(innerStyle: SimpleInterpolation) {
+  return css`
     @media only screen and (max-width: ${SmallDesktopBreakpoint}) {
       ${innerStyle}
     }
@@ -37,13 +39,17 @@ export function IsSmallDesktop(innerStyle: String) {
 
 export const DesktopBreakpointNumber = SmallDesktopBreakpointNumber + 1;
 export const DesktopBreakpoint = DesktopBreakpointNumber + "px";
-export function IsDesktop(innerStyle: String) {
-  return `
+export function IsDesktop(innerStyle: SimpleInterpolation) {
+  return css`
     @media only screen and (min-width: ${DesktopBreakpoint}) {
       ${innerStyle}
     }
   `;
 }
 
-export const DocPageDesktopGridColumns = `grid-template-columns: 1fr 250px 820px 250px 1fr;`;
-export const BoxShadow = `box-shadow: rgba(0, 0, 0, 0.25) 0px 3px 6px 0px;`;
+export const DocPageDesktopGridColumns = css`
+  grid-template-columns: 1fr 250px 820px 250px 1fr;
+`;
+export const BoxShadow = css`
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 3px 6px 0px;
+`;
