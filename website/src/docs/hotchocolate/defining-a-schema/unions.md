@@ -4,9 +4,7 @@ title: "Unions"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-> We are still working on the documentation for Hot Chocolate 11.1 so help us by finding typos, missing things or write some additional docs with us.
-
-A Union is very similar to an interface, except that there are no common fields between the specified types.
+A Union is very similar to an [interface](/docs/hotchocolate/defining-a-schema/interfaces), except that there are no common fields between the specified types.
 
 Unions are defined in the schema as follows.
 
@@ -17,6 +15,7 @@ type TextContent {
 
 type ImageContent {
   imageUrl: String!
+  height: Int!
 }
 
 union PostContent = TextContent | ImageContent
@@ -24,82 +23,92 @@ union PostContent = TextContent | ImageContent
 
 Learn more about unions [here](https://graphql.org/learn/schema/#union-types).
 
-<!--
-## Union Definition
+# Definition
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
 
-In the annotation based approach, HotChocolate tries to infer union types from the .Net types.
-You can manage the membership of union types with a marker interface.
+We can use a marker interface to define object types as part of a union.
 
 ```csharp
-[UnionType("GroupMember")]
-public interface IGroupMember
+[UnionType("PostContent")]
+public interface IPostContent
 {
 }
 
-public class Group : IGroupMember
+public class TextContent : IPostContent
 {
-  [Id]
-  public Guid Identifier { get; set; }
-
-  public IGroupMember[] Members { get; set; }
+    public string Text { get; set; }
 }
 
-public class User : IGroupMember
+public class ImageContent : IPostContent
 {
-  public string UserName { get; set; }
+    public string ImageUrl { get; set; }
+
+    public int Height { get; set; }
 }
 
 public class Query
 {
-  public IGroupMember[] GetAccessControl([Service]IAccessRepo repo) => repo.GetItems();
+    public IPostContent GetContent([Service] IContentRepository repository)
+        => repository.GetContent();
 }
-```
 
-_Configure Services_
-
-```csharp
-  public void ConfigureServices(IServiceCollection services)
-  {
-      services
-          .AddRouting()
-          .AddGraphQLServer()
-          // HotChocolate will pick up IGroupMember as a UnionType<IGroupMember>
-          .AddQueryType<Query>()
-          // HotChocolate knows that User and Group implement IGroupMember and will add it to the
-          // list of possible types of the UnionType
-          .AddType<Group>()
-          .AddType<User>()
-  }
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
+            .AddType<TextContent>()
+            .AddType<ImageContent>();
+    }
+}
 ```
 
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
-HotChocolate provides a fluent configuration API for union types that is very similar to the `ObjectType` interface.
-
 ```csharp
-// In case you have a marker interface and want to configure it, you can also just user UnionType<IMarkerInterface>
-public class GroupMemberType : UnionType
+public class PostContentType : UnionType
 {
     protected override void Configure(IUnionTypeDescriptor descriptor)
     {
-        // Configure Type Name
-        descriptor.Name("GroupMember");
+        descriptor.Name("PostContent");
 
-        // Declare Possible Types
-        descriptor.Type<GroupType>();
-        descriptor.Type<UserType>();
+        // The object types that belong to this union
+        descriptor.Type<TextContentType>();
+        descriptor.Type<ImageContentType>();
+    }
+}
+
+public class Query
+{
+    public object GetContent([Service] IContentRepository repository)
+        => repository.GetContent();
+}
+
+
+public class QueryType : ObjectType<Query>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    {
+        descriptor.Name("Query");
+
+        descriptor
+            .Field(f => f.GetContent(default))
+            .Type<PostContentType>();
     }
 }
 ```
 
+Since the types are already registered within the union, we do not have to register them again in our `Startup` class.
+
+We can use a marker interface, as in the annotation-based approach, to type our union definition: `UnionType<IMarkerInterface>`
+
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
-
-In schema first unions can be declared directly in SDL:
 
 ```csharp
 public void ConfigureServices(IServiceCollection services)
@@ -108,27 +117,27 @@ public void ConfigureServices(IServiceCollection services)
         .AddRouting()
         .AddGraphQLServer()
         .AddDocumentFromString(@"
-        type Query {
-            accessControl: [GroupMember]
-        }
+            type Query {
+              content: PostContent
+            }
 
-        type Group {
-            id: ID!
-            members: [GroupMember]
-        }
+            type TextContent {
+              text: String!
+            }
 
-        type User {
-            userName: String!
-        }
+            type ImageContent {
+              imageUrl: String!
+              height: Int!
+            }
 
-        union GroupMember = User | Group
+            union PostContent = TextContent | ImageContent
         ")
         .AddResolver(
             "Query",
-            "accessControl",
-            (context, token) => context.Service<IAccessRepo>().GetItems());
+            "content",
+            (context, ct) => context.Service<IContentRepository>().GetContent());
 }
 ```
 
 </ExampleTabs.Schema>
-</ExampleTabs> -->
+</ExampleTabs>

@@ -6,7 +6,7 @@ import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
 > We are still working on the documentation for Hot Chocolate 11.1 so help us by finding typos, missing things or write some additional docs with us.
 
-An Interface is an abstract type that includes a certain set of fields that a type must include to implement the interface.
+An interface is an abstract type that includes a certain set of fields that a type must include to implement the interface.
 
 Interfaces are defined in the schema as follows.
 
@@ -31,7 +31,7 @@ Learn more about interfaces [here](https://graphql.org/learn/schema/#interfaces)
 <ExampleTabs.Annotation>
 
 ```csharp
-[GraphQLName("Message")]
+[InterfaceType("Message")]
 public interface IMessage
 {
     User Author { get; set; }
@@ -130,6 +130,7 @@ public class TextMessageType : ObjectType<TextMessage>
     {
         descriptor.Name("TextMessage");
 
+        // The interface that is being implemented
         descriptor.Implements<MessageType>();
     }
 }
@@ -166,8 +167,6 @@ public class Startup
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-TODO: Fix up
-
 ```csharp
 public void ConfigureServices(IServiceCollection services)
 {
@@ -175,45 +174,25 @@ public void ConfigureServices(IServiceCollection services)
         .AddRouting()
         .AddGraphQLServer()
         .AddDocumentFromString(@"
-        type Query {
-            messages: Message
-        }
+            type Query {
+              messages: [Message]
+            }
 
-        interface Message {
-          sendBy: User!
-          createdAt: DateTime!
-        }
+            interface Message {
+              author: User!
+              createdAt: DateTime!
+            }
 
-        type TextMessage implements Message {
-          sendBy: User!
-          createdAt: DateTime!
-          content: String!
-        }
-
-        interface MediaMessage implements Message {
-          sendBy: User!
-          createdAt: DateTime!
-          mediaType: MediaType!
-        }
-
-        type VideoMessage implements MediaMessage {
-          sendBy: User!
-          createdAt: DateTime!
-          mediaType: MediaType!
-          videoUrl: String!
-        }
-
-        type VideoMessage implements Message & HasMediaType {
-          sendBy: User!
-          createdAt: DateTime!
-          mediaType: MediaType!
-          videoUrl: String!
-        }
+            type TextMessage implements Message {
+              author: User!
+              createdAt: DateTime!
+              content: String!
+            }
         ")
         .AddResolver(
             "Query",
             "messages",
-            (context, token) => context.Service<IMessageRepo>().GetMessages());
+            (context, ct) => context.Service<IMessageRepository>().GetMessages());
 }
 ```
 
