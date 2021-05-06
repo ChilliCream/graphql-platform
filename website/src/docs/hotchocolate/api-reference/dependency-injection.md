@@ -132,7 +132,9 @@ public class CustomHttpRequestInterceptor : DefaultHttpRequestInterceptor
 2. Register `CustomHttpRequestInterceptor` with the root `ServiceCollection`.
 
 ```csharp
-services.AddHttpRequestInterceptor<CustomHttpRequestInterceptor>();
+services
+    .AddGraphQLServer()
+    .AddHttpRequestInterceptor<CustomHttpRequestInterceptor>();
 ```
 
 3. Next, inherit from `DefaultSocketSessionInterceptor` and override `OnRequestAsync`.
@@ -145,7 +147,7 @@ public class CustomSocketSessionInterceptor : DefaultSocketSessionInterceptor
         IQueryRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
-        await await OnRequestAsync(connection, requestBuilder, cancellationToken);
+        await OnRequestAsync(connection, requestBuilder, cancellationToken);
         requestBuilder.SetServices(CUSTOM_SERVICE_PROVIDER);
     }
 }
@@ -154,5 +156,7 @@ public class CustomSocketSessionInterceptor : DefaultSocketSessionInterceptor
 4. Last, register your `CustomSocketSessionInterceptor` with the root `ServiceCollection`.
 
 ```csharp
-services.AddSocketSessionInterceptor<CustomSocketSessionInterceptor>();
+services
+    .AddGraphQLServer()
+    .AddSocketSessionInterceptor<CustomSocketSessionInterceptor>();
 ```

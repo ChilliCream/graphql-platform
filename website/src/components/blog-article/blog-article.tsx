@@ -37,7 +37,7 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
       <BlogArticleSharebar data={data} tags={existingTags} />
       <ArticleWrapper>
         <Article>
-          <ArticleHeader>
+          <ArticleHeader kind="blog">
             {featuredImage && <Img fluid={featuredImage} />}
             <ArticleTitle>{title}</ArticleTitle>
             <BlogArticleMetadata data={mdx!} />

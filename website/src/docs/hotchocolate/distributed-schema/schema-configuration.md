@@ -6,12 +6,14 @@ Schema stitching and federations do have a lot more potential than just merging 
 You can remove and rename types and fields, extend types with new resolvers and delegate these resolvers to a domain service.
 
 # Schema Transformation
+
 ## Rename Types
-The name of a GraphQL type has to be unique. 
+
+The name of a GraphQL type has to be unique.
 When you build a standalone GraphQL server, the schema validation will make sure that no name is duplicated.
 In case a name is duplicated, an exception is thrown and the schema will not compile.
 
-This behaviour is good for the standalone server but can be an issue in distributed schemas. 
+This behaviour is good for the standalone server but can be an issue in distributed schemas.
 Even with domain services covering domain-specific topics, a type may be duplicated.
 
 To avoid an invalid schema, HotChocolate will prefix duplicated types with the schema name and auto resolves name collisions if they are not structurally equal.
@@ -58,6 +60,7 @@ type ProductCategory @source(name: "Category", schema: "products") {
 ```
 
 ### Schema Stitching
+
 In schema stitching type renames can be defined on the gateway:
 
 ```csharp{5}
@@ -70,6 +73,7 @@ services
 
 ##Schema Federations
 In a federated approach, type renames can be done on the domain service:
+
 ```csharp{9}
 services
     .AddSingleton(ConnectionMultiplexer.Connect("stitching-redis.services.local"))
@@ -87,7 +91,8 @@ services
 ```
 
 ## Rename Fields
-Similar to type names, also fields can collide. A type can only declare a field once. 
+
+Similar to type names, also fields can collide. A type can only declare a field once.
 When you bundle domain services together, multiple domain services may declare the same field on the query type.
 
 Let us assume we have a product and an inventory service. Both define a type field called `categories`:
@@ -123,6 +128,7 @@ type Query {
 ```
 
 ### Schema Stitching
+
 In schema stitching field renames can be defined on the gateway:
 
 ```csharp{5}
@@ -134,7 +140,9 @@ services
 ```
 
 ### Schema Federations
+
 In a federated approach, type renames can be done on the domain service:
+
 ```csharp{9}
 services
     .AddSingleton(ConnectionMultiplexer.Connect("stitching-redis.services.local"))
@@ -152,7 +160,8 @@ services
 ```
 
 ## Ignore Types
-By default, all types of remote schemas are added to the gateway schema. 
+
+By default, all types of remote schemas are added to the gateway schema.
 This can produce types that are not reachable.
 You can remove all not reachable types on the gateway:
 
@@ -167,6 +176,7 @@ services
 If you want to remove a specific type from the schema you can also use `IgnoreType`
 
 ### Schema Stitching
+
 ```csharp{5}
 services
     .AddGraphQLServer()
@@ -176,6 +186,7 @@ services
 ```
 
 ### Schema Federations
+
 ```csharp{9}
 services
     .AddSingleton(ConnectionMultiplexer.Connect("stitching-redis.services.local"))
@@ -193,10 +204,12 @@ services
 ```
 
 ## Ignore Field
+
 HotChocolate has a convenience API to ignore fields of types.
 This can be useful when you want to merge root fields of domain services, but ignore some specific fields
 
 ### Schema Stitching
+
 ```csharp{5-6}
 services
     .AddGraphQLServer()
@@ -207,10 +220,11 @@ services
 ```
 
 # Delegation of Resolvers
-The real power of schema stitching is the delegation of resolvers. 
+
+The real power of schema stitching is the delegation of resolvers.
 You can extend types with fields and redirect calls to a domain service
 
-Let us assume we have a product and an inventory service. 
+Let us assume we have a product and an inventory service.
 
 The product service defines the following types
 
@@ -226,6 +240,7 @@ type Query {
   products: [Product!]!
 }
 ```
+
 The inventory service defines the following types
 
 ```sdl
@@ -243,6 +258,7 @@ type Query {
 Resolver delegation allows us to combine these schemas into one cohesive schema.
 
 We can extend the product type with `inStock` and `shippingEstimate`
+
 ```sdl
 extend type Product {
   inStock: Boolean @delegate(schema:"inventory", path: "inventoryInfo(upc: $fields:upc).isInStock")
@@ -258,7 +274,7 @@ type Product {
   name: String!
   price: Int!
   weight: Int!
-  inStock: Boolean 
+  inStock: Boolean
   shippingEstimate: Int
 }
 
@@ -268,7 +284,8 @@ type Query {
 ```
 
 ## Delegate Directive
-The `@delegate` directive describes where the remote data is found. 
+
+The `@delegate` directive describes where the remote data is found.
 
 ```sdl
 directive @delegate(
@@ -276,17 +293,19 @@ directive @delegate(
   schema: String
   "The path on the schema where delegation points to"
   path: String!
-) on FIELD_DEFINITION 
+) on FIELD_DEFINITION
 ```
 
 The `path` argument can contain references to context data or fields.
 
 ### Field Reference ($fields)
+
 ```sdl
 @delegate(path: "inventoryInfo(upc: $fields:upc).isInStock")
 ```
 
-With the `$fields` variable, you can access fields of the type you extend. 
+With the `$fields` variable, you can access fields of the type you extend.
+
 ```sdl{2,7}
 type Product {
   upc: Int!
@@ -299,11 +318,13 @@ extend type Product {
 ```
 
 ### Argument Reference ($arguments)
+
 ```sdl
 @delegate(path: "inventoryInfo(upc: $arguments:sku).isInStock")
 ```
 
-With the `$fields` variable you can access fields of the type you extend. 
+With the `$fields` variable you can access fields of the type you extend.
+
 ```sdl{2,7}
 extend type Query {
   isProductInStock(sku:String!): Boolean @delegate(schema:"inventory", path: "inventoryInfo(upc: $arguments:upc)")
@@ -311,7 +332,9 @@ extend type Query {
 ```
 
 ### Context Data Reference ($contextData)
+
 Every request contains context data. Context data can be set in resolvers or with a `IHttpRequestInterceptor`
+
 ```sdl
 extend type Query {
   me: User! @delegate(schema: "users", path: "user(id: $contextData:UserId)")
@@ -330,7 +353,8 @@ services
     })
     ...
 ```
-**RequestInterceptor** 
+
+**RequestInterceptor**
 
 ```csharp{10}
 public class RequestInterceptor : DefaultHttpRequestInterceptor
@@ -368,11 +392,12 @@ services
 ```
 
 ### Scoped Context Data Reference ($scopedContext)
+
 Scoped context data can be set in a resolver and will be available in all resolvers in the subtree.
 You have to use scoped context data when a resolver depends on a field that is higher up than just the parent.
 You can use field middlewares to set scoped context data.
 
-Let's assume you have a message and account service. 
+Let's assume you have a message and account service.
 The message holds a field `messageInfo` and knows the id of the creator of the message.
 You want to extend the `messageInfo` with the user from the account service.
 
@@ -415,14 +440,14 @@ services
                 context.ScopedContextData =
                     context.ScopedContextData.SetItem("createdById", value);
             }
-            
+
             await next.Invoke(context);
         })
 ```
 
 **Type Interceptor**
 
-The middleware of `UseField` is executed on each field and created overhead. 
+The middleware of `UseField` is executed on each field and created overhead.
 It would be better if the middleware is only applied to the field that needs it.
 You can use a schema interceptor to apply the middleware to the fields that use it.
 
@@ -454,7 +479,7 @@ public class MessageMiddlwareInterceptor : TypeInterceptor
                             context.ScopedContextData =
                                 context.ScopedContextData.SetItem("createdById", value);
                         }
-                        
+
                         await next.Invoke(context);
                     });
             }
@@ -462,9 +487,11 @@ public class MessageMiddlwareInterceptor : TypeInterceptor
     }
 }
 ```
+
 ## Configuration
+
 You can configure the schema extensions either on the gateway or on the domain service if you use federations.
-Type extensions can either be strings, files or resources 
+Type extensions can either be strings, files or resources
 
 - `AddTypeExtensionFromFile("./Stitching.graphql");`
 - `AddTypeExtensionFromResource(assembly, key);`
@@ -479,11 +506,12 @@ services
     .AddGraphQLServer()
     .AddRemoteSchema(Products)
     .AddRemoteSchema(Inventory)
-    // Adds a type extension. 
+    // Adds a type extension.
     .AddTypeExtensionsFromFile("./Stitching.graphql")
 ```
 
 ### Schema Federations
+
 **Inventory Domain Service:**
 
 ```csharp
@@ -496,9 +524,9 @@ services
         c => c
             .SetName("inventory")
             // Ignores the root types. This removes `inStock` and `shippingEsitmate`
-            // from the `Query` type of the Gateway 
+            // from the `Query` type of the Gateway
             .IgnoreRootTypes()
-            // Adds a type extension. 
+            // Adds a type extension.
             .AddTypeExtensionsFromFile("./Stitching.graphql")
             .PublishToRedis(
                 "Demo",
@@ -506,4 +534,3 @@ services
 ```
 
 If you use the `@delegate` directive in federations you can omit the `schema:` argument.
-
