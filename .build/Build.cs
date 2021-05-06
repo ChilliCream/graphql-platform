@@ -69,7 +69,6 @@ partial class Build : NukeBuild
                 .SetAssemblyVersion(GitVersion.AssemblySemVer)
                 .SetFileVersion(GitVersion.AssemblySemFileVer)
                 .SetInformationalVersion(GitVersion.InformationalVersion)
-                .SetVersion(GitVersion.SemVer)
-                .SetProperty("RequireDocumentationOfPublicApiChanges", false));
+                .SetVersion(GitVersion.SemVer));
         });
 }
