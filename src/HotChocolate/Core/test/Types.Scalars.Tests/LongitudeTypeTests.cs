@@ -205,7 +205,10 @@ namespace HotChocolate.Types
         [InlineData("54° 33' 12.699\" W", -54.5535275, 7)]
         [InlineData("148° 34' 9.124\" W", -148.56920111, 8)]
         [InlineData("44° 44' 2.119\" W", -44.73392194, 8)]
-        protected void Longitude_ExpectParseLiteralToMatch(string literal, double runtime, int precision )
+        protected void Longitude_ExpectParseLiteralToMatch(
+            string literal,
+            double runtime,
+            int precision)
         {
             // arrange
             ScalarType scalar = CreateType<LongitudeType>();
@@ -352,7 +355,8 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void Longitude_ExpectDeserializeStringToThrowSerializationException_GreaterThanMax()
+        protected void
+            Longitude_ExpectDeserializeStringToThrowSerializationException_GreaterThanMax()
         {
             // arrange
             ScalarType scalar = new LongitudeType();
