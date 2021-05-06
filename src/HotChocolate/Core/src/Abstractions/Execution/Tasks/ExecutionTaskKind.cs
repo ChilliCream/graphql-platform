@@ -1,7 +1,7 @@
 namespace HotChocolate.Execution
 {
     /// <summary>
-    /// The execution task kind defines the task behaviour during execution.
+    /// The execution task kind defines the task behavior during execution.
     /// </summary>
     public enum ExecutionTaskKind
     {

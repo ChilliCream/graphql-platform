@@ -139,7 +139,6 @@ namespace HotChocolate.Execution.Instrumentation
         /// </param>
         void TaskError(IExecutionTask task, IError error);
 
-        /// <summary>
         /// This event is called when the request execution pipeline scales
         /// the task processors up or down.
         /// </summary>
@@ -199,13 +198,13 @@ namespace HotChocolate.Execution.Instrumentation
         void SubscriptionEventError(SubscriptionEventContext context, Exception exception);
 
         /// <summary>
-        /// Called when an error occured while producing the subscription event result.
+        /// Called when an error occurred while producing the subscription event result.
         /// </summary>
         /// <param name="subscription">
         /// The subscription object.
         /// </param>
         /// <param name="exception">
-        /// The exception that occured.
+        /// The exception that occurred.
         /// </param>
         void SubscriptionTransportError(ISubscription subscription, Exception exception);
 
