@@ -203,7 +203,10 @@ namespace HotChocolate.Types
         [InlineData("23° 19' 19.453\" S", -23.3220703, 7)]
         [InlineData("66° 0' 21.983\" N", 66.00610639, 8)]
         [InlineData("76° 49' 14.845\" N", 76.82079028, 8)]
-        protected void Latitude_ExpectParseLiteralToMatch(string literal, double runtime, int precision )
+        protected void Latitude_ExpectParseLiteralToMatch(
+            string literal,
+            double runtime,
+            int precision)
         {
             // arrange
             ScalarType scalar = CreateType<LatitudeType>();
@@ -212,7 +215,7 @@ namespace HotChocolate.Types
             // act
             object result = ToPrecision(scalar, valueSyntax, precision);
 
-                // assert
+            // assert
             Assert.Equal(runtime, result);
         }
 
@@ -347,7 +350,8 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        protected void Latitude_ExpectDeserializeStringToThrowSerializationException_GreaterThanMax()
+        protected void
+            Latitude_ExpectDeserializeStringToThrowSerializationException_GreaterThanMax()
         {
             // arrange
             ScalarType scalar = new LatitudeType();
