@@ -83,36 +83,36 @@ namespace HotChocolate.Types.Descriptors
         [Obsolete("Use Implements.")]
         public new IInterfaceTypeDescriptor<T> Interface<TInterface>()
             where TInterface : InterfaceType
-        {
-            base.Interface<TInterface>();
-            return this;
-        }
+            => Implements<TInterface>();
 
         [Obsolete("Use Implements.")]
         public new IInterfaceTypeDescriptor<T> Interface<TInterface>(TInterface type)
             where TInterface : InterfaceType
-        {
-            base.Interface(type);
-            return this;
-        }
+            => Implements(type);
 
         [Obsolete("Use Implements.")]
         public new IInterfaceTypeDescriptor<T> Interface(NamedTypeNode type)
+            => Implements(type);
+
+        public new IInterfaceTypeDescriptor<T> Implements<TInterface>()
+            where TInterface : InterfaceType
         {
-            base.Interface(type);
+            base.Implements<TInterface>();
             return this;
         }
 
-        public new IInterfaceTypeDescriptor<T> Implements<TInterface>()
-            where TInterface : InterfaceType =>
-            Interface<TInterface>();
-
         public new IInterfaceTypeDescriptor<T> Implements<TInterface>(TInterface type)
-            where TInterface : InterfaceType =>
-            Interface(type);
+            where TInterface : InterfaceType
+        {
+            base.Implements(type);
+            return this;
+        }
 
-        public new IInterfaceTypeDescriptor<T> Implements(NamedTypeNode type) =>
-            Interface(type);
+        public new IInterfaceTypeDescriptor<T> Implements(NamedTypeNode type)
+        {
+            base.Implements(type);
+            return this;
+        }
 
         public IInterfaceFieldDescriptor Field(
             Expression<Func<T, object>> propertyOrMethod)
