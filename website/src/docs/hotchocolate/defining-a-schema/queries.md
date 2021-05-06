@@ -15,7 +15,7 @@ query {
 }
 ```
 
-## Defining a query
+# Definition
 
 A query type can be represented like the following:
 

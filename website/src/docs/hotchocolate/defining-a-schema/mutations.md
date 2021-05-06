@@ -44,7 +44,7 @@ In one GraphQL request we can execute multiple mutations. Each of these mutation
 }
 ```
 
-## Defining a Mutation
+# Definition
 
 A mutation type can be represented like the following:
 
@@ -154,7 +154,7 @@ public class Startup
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-## Mutation Transactions
+# Transactions
 
 With multiple mutations executed serially in one request it sometimes would be great to put these into a transactions scope that we can control.
 

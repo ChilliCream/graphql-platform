@@ -4,11 +4,11 @@ title: "Non-Null"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-Per default all fields can be either `null` or the specified type.
+Per default all fields on an object type can be either `null` or the specified type.
 
 ```sdl
 type User {
-    name: String
+  name: String
 }
 ```
 
@@ -19,7 +19,7 @@ GraphQL allows us to be specific about this, by marking a field as non-null.
 
 ```sdl
 type User {
-    name: String!
+  name: String!
 }
 ```
 

@@ -4,60 +4,27 @@ title: "Unions"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-Unions are very similar to interfaces. The difference is that members of an unions do not have fields in common.
-Unions are useful if you have completely disjunct structured types.
+> We are still working on the documentation for Hot Chocolate 11.1 so help us by finding typos, missing things or write some additional docs with us.
+
+A Union is very similar to an interface, except that there are no common fields between the specified types.
+
+Unions are defined in the schema as follows.
 
 ```sdl
-type Group {
-  id: ID!
-  members: [GroupMember]
+type TextContent {
+  text: String!
 }
 
-type User {
-  userName: String!
+type ImageContent {
+  imageUrl: String!
 }
 
-union GroupMember = User | Group
+union PostContent = TextContent | ImageContent
 ```
 
-## Querying Unions
+Learn more about unions [here](https://graphql.org/learn/schema/#union-types).
 
-Union types do not have fields in common.  
-You have to use [Inline Fragments](https://spec.graphql.org/June2018/#sec-Inline-Fragments) to query for fields of a specific implementation.
-
-```graphql
-{
-  accessControl {
-    __typename
-    ... on Group {
-      id
-    }
-    ... on User {
-      userName
-    }
-  }
-}
-```
-
-```json
-{
-  "accessControl": [
-    {
-      "__typename": "Group",
-      "id": "R3JvdXA6MQ=="
-    },
-    {
-      "__typename": "User",
-      "userName": "SpicyChicken404"
-    },
-    {
-      "__typename": "User",
-      "userName": "CookingMaster86"
-    }
-  ]
-}
-```
-
+<!--
 ## Union Definition
 
 <ExampleTabs>
@@ -164,4 +131,4 @@ public void ConfigureServices(IServiceCollection services)
 ```
 
 </ExampleTabs.Schema>
-</ExampleTabs>
+</ExampleTabs> -->

@@ -4,104 +4,28 @@ title: "Interfaces"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-Similar to most type systems, GraphQL knows abstract types. There are two kinds of abstract types:
-[Interfaces](https://graphql.org/learn/schema/#interfaces) and [Unions](https://graphql.org/learn/schema/#unions)
+> We are still working on the documentation for Hot Chocolate 11.1 so help us by finding typos, missing things or write some additional docs with us.
 
-# Interfaces
+An Interface is an abstract type that includes a certain set of fields that a type must include to implement the interface.
 
-An interface type can be used for abstract types that share fields.
+Interfaces are defined in the schema as follows.
 
 ```sdl
 interface Message {
   sendBy: User!
   createdAt: DateTime!
 }
-```
 
-An object type or interface type that _implements_ an interface, does have to declare all the fields that are declared on the interface.
-
-```sdl
 type TextMessage implements Message {
   sendBy: User!
   createdAt: DateTime!
   content: String!
 }
-
-interface MediaMessage implements Message {
-  sendBy: User!
-  createdAt: DateTime!
-  mediaType: MediaType!
-}
-
-type VideoMessage implements MediaMessage {
-  sendBy: User!
-  createdAt: DateTime!
-  mediaType: MediaType!
-  videoUrl: String!
-}
 ```
 
-A type can also implement multiple interfaces.
+Learn more about interfaces [here](https://graphql.org/learn/schema/#interfaces).
 
-```sdl
-type VideoMessage implements Message & HasMediaType {
-  sendBy: User!
-  createdAt: DateTime!
-  mediaType: MediaType!
-  videoUrl: String!
-}
-```
-
-## Querying Interfaces
-
-All fields declared on the interface type are available to query directly.
-[Inline Fragments 📄](https://spec.graphql.org/June2018/#sec-Inline-Fragments) allow to query for fields of a specific implementation.
-
-```graphql
-{
-  messages {
-    __typename
-    sendBy {
-      userName
-    }
-    createdAt
-    ... on TextMessage {
-      content
-    }
-    ... on VideoMessage {
-      videoUrl
-    }
-    ... on MediaMessage {
-      mediaType
-    }
-  }
-}
-```
-
-```json
-{
-  "messages": [
-    {
-      "__typename": "TextMessage",
-      "sendBy": {
-        "userName": "CookingMaster86"
-      },
-      "createdAt": "2020-01-01T11:43:00Z",
-      "context": "Hi there, can you show me how you did it?"
-    }
-    {
-      "__typename": "VideoMessage",
-      "sendBy": {
-        "userName": "SpicyChicken404"
-      },
-      "createdAt": "2020-01-01T12:00:00Z",
-      "videoUrl": "http://chillicream.com/cooking/recipies",
-    }
-  ]
-}
-```
-
-## Interface Definition
+<!-- ## Interface Definition
 
 HotChocolate tries to infer interfaces from the .Net types.
 When a resolver returns an interface, you just have to register the implementation on the schema builder.
@@ -262,4 +186,4 @@ public void ConfigureServices(IServiceCollection services)
 ```
 
 </ExampleTabs.Schema>
-</ExampleTabs>
+</ExampleTabs> -->
