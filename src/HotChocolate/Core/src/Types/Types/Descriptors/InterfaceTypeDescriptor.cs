@@ -101,23 +101,37 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        [Obsolete("Use Implements.")]
         public IInterfaceTypeDescriptor Interface<TInterface>()
             where TInterface : InterfaceType
+            => Implements<TInterface>();
+
+        [Obsolete("Use Implements.")]
+        public IInterfaceTypeDescriptor Interface<TInterface>(
+            TInterface type)
+            where TInterface : InterfaceType
+            => Implements(type);
+
+        [Obsolete("Use Implements.")]
+        public IInterfaceTypeDescriptor Interface(NamedTypeNode type)
+            => Implements(type);
+
+        public IInterfaceTypeDescriptor Implements<T>()
+            where T : InterfaceType
         {
-            if (typeof(TInterface) == typeof(InterfaceType))
+            if (typeof(T) == typeof(InterfaceType))
             {
                 throw new ArgumentException(
                     TypeResources.InterfaceTypeDescriptor_InterfaceBaseClass);
             }
 
             Definition.Interfaces.Add(
-                Context.TypeInspector.GetTypeRef(typeof(TInterface), TypeContext.Output));
+                Context.TypeInspector.GetTypeRef(typeof(T), TypeContext.Output));
             return this;
         }
 
-        public IInterfaceTypeDescriptor Interface<TInterface>(
-            TInterface type)
-            where TInterface : InterfaceType
+        public IInterfaceTypeDescriptor Implements<T>(T type)
+            where T : InterfaceType
         {
             if (type is null)
             {
@@ -128,28 +142,16 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IInterfaceTypeDescriptor Interface(
-            NamedTypeNode namedType)
+        public IInterfaceTypeDescriptor Implements(NamedTypeNode type)
         {
-            if (namedType is null)
+            if (type is null)
             {
-                throw new ArgumentNullException(nameof(namedType));
+                throw new ArgumentNullException(nameof(type));
             }
 
-            Definition.Interfaces.Add(TypeReference.Create(namedType, TypeContext.Output));
+            Definition.Interfaces.Add(TypeReference.Create(type, TypeContext.Output));
             return this;
         }
-
-        public IInterfaceTypeDescriptor Implements<T>()
-            where T : InterfaceType =>
-            Interface<T>();
-
-        public IInterfaceTypeDescriptor Implements<T>(T type)
-            where T : InterfaceType =>
-            Interface(type);
-
-        public IInterfaceTypeDescriptor Implements(NamedTypeNode type) =>
-            Interface(type);
 
         public IInterfaceFieldDescriptor Field(NameString name)
         {
