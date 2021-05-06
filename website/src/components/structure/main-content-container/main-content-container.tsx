@@ -17,7 +17,9 @@ export const MainContentContainer: FunctionComponent = ({ children }) => {
 
   useEffect(() => {
     ref.current?.addEventListener("scroll", handleScroll);
-    return () => ref.current?.removeEventListener("scroll", handleScroll);
+    return () => {
+      ref.current?.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   useEffect(() => {

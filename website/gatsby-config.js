@@ -30,7 +30,7 @@ module.exports = {
     ],
     tools: {
       github: `https://github.com/ChilliCream/hotchocolate`,
-      slack: `http://bit.ly/joinchilli`,
+      slack: `https://bit.ly/join-chillicream-slack`,
       twitter: `https://twitter.com/Chilli_Cream`,
     },
   },
@@ -57,7 +57,7 @@ module.exports = {
             options: {
               maxWidth: 800,
               quality: 90,
-              backgroundColor: 'transparent',
+              backgroundColor: "transparent",
             },
           },
         ],
