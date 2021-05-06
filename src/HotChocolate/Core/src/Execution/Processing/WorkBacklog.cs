@@ -13,6 +13,8 @@ namespace HotChocolate.Execution.Processing
     {
         private SpinLock _lock = new(Debugger.IsAttached);
         private readonly UnsafeWorkQueue _work = new();
+        private readonly PausedWorkQueue _paused = new();
+        private IQueryPlanStep _step;
 
         private int _processors = 1;
         private bool _mainIsPaused;
@@ -82,12 +84,20 @@ namespace HotChocolate.Execution.Processing
             try
             {
                 _lock.Enter(ref lockTaken);
-                backlogSize = _work.Push(task);
 
-                if (backlogSize > CalculateScalePressure() || _mainIsPaused && _processors == 1)
+                if (_step.IsAllowed(task))
                 {
-                    scaled = TryScaleUnsafe();;
-                    processors = _processors;
+                    backlogSize = _work.Push(task);
+
+                    if (backlogSize > CalculateScalePressure() || _mainIsPaused && _processors == 1)
+                    {
+                        scaled = TryScaleUnsafe();
+                        processors = _processors;
+                    }
+                }
+                else
+                {
+                    _paused.Enqueue(task);
                 }
             }
             finally

@@ -36,8 +36,6 @@ namespace HotChocolate.Execution
         [Fact]
         public async Task Extension_With_Scoped_Constructor_Injection()
         {
-            Snapshot.FullName();
-
             IServiceProvider services =
                 new ServiceCollection()
                     .AddScoped<SomeService>()

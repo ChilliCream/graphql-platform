@@ -1,7 +1,7 @@
 ﻿{
   "errors": [
     {
-      "message": "Unexpected Execution Error",
+      "message": "String cannot serialize the given value.",
       "locations": [
         {
           "line": 1,
@@ -10,7 +10,12 @@
       ],
       "path": [
         "error12"
-      ]
+      ],
+      "extensions": {
+        "actualValue": "HotChocolate.Error",
+        "actualType": "HotChocolate.Error",
+        "code": "EXEC_INVALID_LEAF_VALUE"
+      }
     }
   ],
   "data": {

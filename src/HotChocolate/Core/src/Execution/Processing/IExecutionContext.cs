@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using HotChocolate.Execution.Processing.Internal;
 using HotChocolate.Execution.Processing.Tasks;
 using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Fetching;
@@ -11,6 +12,10 @@ namespace HotChocolate.Execution.Processing
     /// </summary>
     internal interface IExecutionContext
     {
+        // IQueryPlan Plan { get; }
+
+        // IQueryPlanStep Current { get; }
+
         /// <summary>
         /// Gets the backlog of the task that have to be processed.
         /// </summary>

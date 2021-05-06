@@ -14,7 +14,7 @@ namespace HotChocolate.Execution.Processing.Internal
         public bool IsEmpty { get; private set; } = true;
 
         public bool CopyToUnsafe(
-            IExecutionStep executionStep,
+            IQueryPlanStep queryPlanStep,
             Action<IReadOnlyList<IExecutionTask>> pushMany)
         {
             IExecutionTask? head;
@@ -48,7 +48,7 @@ namespace HotChocolate.Execution.Processing.Internal
                 head.Previous = null;
                 head.Next = null;
 
-                if (executionStep.IsAllowed(head))
+                if (queryPlanStep.IsAllowed(head))
                 {
                     _tasks.Add(head);
                 }
