@@ -101,6 +101,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        [Obsolete("Use Implements.")]
         public IInterfaceTypeDescriptor Interface<TInterface>()
             where TInterface : InterfaceType
         {
@@ -115,6 +116,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        [Obsolete("Use Implements.")]
         public IInterfaceTypeDescriptor Interface<TInterface>(
             TInterface type)
             where TInterface : InterfaceType
@@ -128,6 +130,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        [Obsolete("Use Implements.")]
         public IInterfaceTypeDescriptor Interface(
             NamedTypeNode namedType)
         {

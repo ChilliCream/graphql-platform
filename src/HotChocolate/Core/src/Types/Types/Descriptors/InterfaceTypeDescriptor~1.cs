@@ -80,6 +80,7 @@ namespace HotChocolate.Types.Descriptors
         public IInterfaceTypeDescriptor<T> BindFieldsImplicitly() =>
             BindFields(BindingBehavior.Implicit);
 
+        [Obsolete("Use Implements.")]
         public new IInterfaceTypeDescriptor<T> Interface<TInterface>()
             where TInterface : InterfaceType
         {
@@ -87,8 +88,16 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        [Obsolete("Use Implements.")]
         public new IInterfaceTypeDescriptor<T> Interface<TInterface>(TInterface type)
             where TInterface : InterfaceType
+        {
+            base.Interface(type);
+            return this;
+        }
+
+        [Obsolete("Use Implements.")]
+        public new IInterfaceTypeDescriptor<T> Interface(NamedTypeNode type)
         {
             base.Interface(type);
             return this;
@@ -97,12 +106,6 @@ namespace HotChocolate.Types.Descriptors
         public new IInterfaceTypeDescriptor<T> Implements<TInterface>()
             where TInterface : InterfaceType =>
             Interface<TInterface>();
-
-        public new IInterfaceTypeDescriptor<T> Interface(NamedTypeNode type)
-        {
-            base.Interface(type);
-            return this;
-        }
 
         public new IInterfaceTypeDescriptor<T> Implements<TInterface>(TInterface type)
             where TInterface : InterfaceType =>

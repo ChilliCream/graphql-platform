@@ -52,7 +52,7 @@ namespace HotChocolate.Types.Descriptors
                         var descriptor = ObjectFieldDescriptor.New(
                             Context, p, Definition.RuntimeType, Definition.FieldBindingType);
 
-                        if(Definition.IsExtension && Context.TypeInspector.IsMemberIgnored(p))
+                        if (Definition.IsExtension && Context.TypeInspector.IsMemberIgnored(p))
                         {
                             descriptor.Ignore();
                         }
@@ -82,7 +82,7 @@ namespace HotChocolate.Types.Descriptors
                 {
                     subscribeResolver = new HashSet<string>();
 
-                    foreach(MemberInfo member in all)
+                    foreach (MemberInfo member in all)
                     {
                         HandlePossibleSubscribeMember(member);
                     }
@@ -93,9 +93,9 @@ namespace HotChocolate.Types.Descriptors
 
             void HandlePossibleSubscribeMember(MemberInfo member)
             {
-                if(member.IsDefined(typeof(SubscribeAttribute)))
+                if (member.IsDefined(typeof(SubscribeAttribute)))
                 {
-                    if(member.GetCustomAttribute<SubscribeAttribute>() is { With: not null } attr)
+                    if (member.GetCustomAttribute<SubscribeAttribute>() is { With: not null } attr)
                     {
                         subscribeResolver.Add(attr.With);
                     }
@@ -129,6 +129,7 @@ namespace HotChocolate.Types.Descriptors
         public IObjectTypeDescriptor<T> BindFieldsImplicitly() =>
             BindFields(BindingBehavior.Implicit);
 
+        [Obsolete("Use Implements.")]
         public new IObjectTypeDescriptor<T> Interface<TInterface>()
             where TInterface : InterfaceType
         {
@@ -136,8 +137,16 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        [Obsolete("Use Implements.")]
         public new IObjectTypeDescriptor<T> Interface<TInterface>(TInterface type)
             where TInterface : InterfaceType
+        {
+            base.Interface(type);
+            return this;
+        }
+
+        [Obsolete("Use Implements.")]
+        public new IObjectTypeDescriptor<T> Interface(NamedTypeNode type)
         {
             base.Interface(type);
             return this;
@@ -146,12 +155,6 @@ namespace HotChocolate.Types.Descriptors
         public new IObjectTypeDescriptor<T> Implements<TInterface>()
             where TInterface : InterfaceType =>
             Interface<TInterface>();
-
-        public new IObjectTypeDescriptor<T> Interface(NamedTypeNode type)
-        {
-            base.Interface(type);
-            return this;
-        }
 
         public new IObjectTypeDescriptor<T> Implements<TInterface>(TInterface type)
             where TInterface : InterfaceType =>
