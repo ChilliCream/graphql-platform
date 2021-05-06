@@ -7,7 +7,7 @@ namespace HotChocolate.Validation.Types
     {
         protected override void Configure(IObjectTypeDescriptor<Alien> descriptor)
         {
-            descriptor.Interface<SentientType>();
+            descriptor.Implements<SentientType>();
             descriptor.Field(t => t.Name).Type<NonNullType<StringType>>();
         }
     }

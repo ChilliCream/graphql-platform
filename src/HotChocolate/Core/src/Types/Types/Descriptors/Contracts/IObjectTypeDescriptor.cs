@@ -44,6 +44,7 @@ namespace HotChocolate.Types
         /// <see cref="ObjectType"/>.
         /// </summary>
         /// <typeparam name="T">The interface type.</typeparam>
+        [Obsolete("Use Implements.")]
         IObjectTypeDescriptor Interface<T>()
             where T : InterfaceType;
 
@@ -52,6 +53,7 @@ namespace HotChocolate.Types
         /// <see cref="ObjectType"/>.
         /// </summary>
         /// <typeparam name="T">The interface type.</typeparam>
+        [Obsolete("Use Implements.")]
         IObjectTypeDescriptor Interface<T>(T type)
             where T : InterfaceType;
 
@@ -62,6 +64,7 @@ namespace HotChocolate.Types
         /// <param name="type">
         /// A syntax node representing an interface type.
         /// </param>
+        [Obsolete("Use Implements.")]
         IObjectTypeDescriptor Interface(NamedTypeNode type);
 
         /// <summary>
