@@ -187,8 +187,6 @@ namespace HotChocolate.Types
         }
 
         [Theory]
-        [InlineData("180° 0' 0.000\" E", 180.0, 0)]
-        [InlineData("180° 0' 0.000\" W", -180.0, 0)]
         [InlineData("176° 19' 26.576\" E", 176.3, 1)]
         [InlineData("62° 12' 48.831\" W", -62.2, 1)]
         [InlineData("4° 46' 6.456\" W", -4.77, 2)]
