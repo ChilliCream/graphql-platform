@@ -4,9 +4,13 @@ title: "Persisted queries"
 
 This guide will walk you through how standard persisted queries works and how you can set them up with the Hot Chocolate GraphQL server.
 
-Persisted queries allows you to pre-register all required queries/mutations from your client on your GraphQl server.
+Persisted queries allow you to pre-register all required queries/mutations from your client on your GraphQl server. This can be done by extracting the queries from your client application at build time and putting them to server query storage. Extracting is supported by client libraries like [Relay](https://relay.dev/docs/guides/persisted-queries/) or [Apollo](https://www.apollographql.com/docs/apollo-server/performance/apq/).
 
-This can be done by extracting the queries from your client application at build time and putting them to server query storage. Persisted client output contains queries / mutations that your client application needs to run. Each extracted query has a specific Hash (identifier) and the client uses it with Variables to query data from your server. There is no more query string in the body of your request. The server obtains only concrete identifier + variables and searches for them in AllowedList. If there is a match, the request is directly executed without the need for query parsing else the particular error message is returned to the request initiator. 
+How it works?
+
+- The persisted output contains only queries / mutations that your client application needs to run.
+- Each extracted query has a specific Hash (identifier) and the client uses it with Variables to query data from your server.
+- The server obtains concrete query identifier + variables and searches for query in persisted storage. **A:** If there is a match, the request is directly executed without the need for query parsing. **B:** The particular error message is returned to client. 
 
 ## Benefits
 
