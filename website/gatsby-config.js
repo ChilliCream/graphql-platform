@@ -30,7 +30,7 @@ module.exports = {
     ],
     tools: {
       github: `https://github.com/ChilliCream/hotchocolate`,
-      slack: `https://bit.ly/join-chillicream-slack`,
+      slack: `https://bit.ly/joinchilli`,
       twitter: `https://twitter.com/Chilli_Cream`,
     },
   },
