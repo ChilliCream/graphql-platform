@@ -25,85 +25,136 @@ namespace HotChocolate.Execution.Processing.Internal
     {
         public QueryPlan Build(IPreparedOperation operation)
         {
+            var context = new QueryPlanBuilderContext(operation);
+            Visit(operation.GetRootSelectionSet(), context);
+
 
         }
 
-        private void Visit(ISelectionVariants selectionVariants)
-        {
-            foreach (var objectType in selectionVariants.GetPossibleTypes())
-            {
-                Visit(selectionVariants.GetSelectionSet(objectType));
-            }
-        }
-
-        private void Visit(ISelectionSet selectionSet)
+        private void Visit(ISelectionSet selectionSet, QueryPlanBuilderContext context)
         {
             foreach (ISelection selection in selectionSet.Selections)
             {
-                Visit(selection);
+                Visit(selection, context);
             }
         }
 
         private void Visit(ISelection selection, QueryPlanBuilderContext context)
         {
-            QueryBatch current = context.Batches.Peek();
+            QueryStepBatch current = context.Steps.Peek();
+            SelectionBatch selections = current.Selections.Peek();
+            var pushed = false;
 
             switch (selection.Strategy)
             {
                 case SelectionExecutionStrategy.Default:
                 case SelectionExecutionStrategy.Pure:
-                    if (current.SelectionStrategy == ExecutionStrategy.Serial)
+                    if (selections.Strategy == ExecutionStrategy.Serial)
                     {
-                        var selections = new HashSet<uint> { selection.Id };
-                        var step = new ResolverQueryPlanStep(
-                            ExecutionStrategy.Serial,
-                            selections);
-
-                        current.Batch.Add(step);
-                        current.Selections.Push(selections);
+                        selections = CreateSelectionBatch(current, ExecutionStrategy.Serial);
+                        pushed = true;
                     }
-                    else
-                    {
-                        current.Selections.Peek().Add(selection.Id);
-                    }
+                    selections.Selections.Add(selection.Id);
                     break;
 
                 case SelectionExecutionStrategy.Serial:
-                    if (current.SelectionStrategy == ExecutionStrategy.Parallel)
+                    if (selections.Strategy == ExecutionStrategy.Parallel)
                     {
-                        if (context.Batches.Count > 1)
+                        if (current.Selections.Count > 1)
                         {
-                            QueryBatch parent = context.Batches[^2];
-
+                            SelectionBatch prev = current.Selections[current.Selections.Count - 2];
+                            if (prev.Selections.Contains(context.Path.Peek().Id))
+                            {
+                                prev.Selections.Add(selection.Id);
+                            }
                         }
-
+                        else
+                        {
+                            selections = CreateSelectionBatch(current, ExecutionStrategy.Serial);
+                            selections.Selections.Add(selection.Id);
+                            pushed = true;
+                        }
                     }
                     else
                     {
-                        current.Selections.Peek().Add(selection.Id);
+                        selections.Selections.Add(selection.Id);
                     }
                     break;
-
-                default:
-                    break;
             }
+
+            context.Path.Push(selection);
+
+            if (selection.SelectionSet is not null)
+            {
+                IPreparedOperation operation = context.Operation;
+                foreach (var objectType in operation.GetPossibleTypes(selection.SelectionSet))
+                {
+                    Visit(operation.GetSelectionSet(selection.SelectionSet, objectType), context);
+                }
+            }
+
+            context.Path.Pop();
+
+            if (pushed)
+            {
+                current.Selections.Pop();
+            }
+        }
+
+        private SelectionBatch CreateSelectionBatch(
+            QueryStepBatch queryStep,
+            ExecutionStrategy strategy)
+        {
+            var selections = new SelectionBatch(strategy);
+            var step = new ResolverQueryPlanStep(selections.Strategy, selections.Selections);
+
+            queryStep.Steps.Add(step);
+            queryStep.Selections.Push(selections);
+
+            return selections;
         }
     }
 
-    internal class QueryPlanBuilderContext
+    internal sealed class QueryPlanBuilderContext
     {
-        public List<QueryBatch> Batches { get; } = new();
+        public QueryPlanBuilderContext(IPreparedOperation operation)
+        {
+            Operation = operation;
+            Steps.Add(new QueryStepBatch(ExecutionStrategy.Serial));
+        }
+
+        public IPreparedOperation Operation { get; }
+
+        public List<QueryStepBatch> Steps { get; } = new();
+
+        public List<ISelection> Path { get; } = new();
     }
 
-    internal class QueryBatch
+    internal sealed class QueryStepBatch
     {
-        public ExecutionStrategy BatchStrategy { get; set; } = ExecutionStrategy.Parallel;
+        public QueryStepBatch(ExecutionStrategy strategy)
+        {
+            Strategy = strategy;
+        }
 
-        public List<QueryPlanStep> Batch { get; } = new();
+        public ExecutionStrategy Strategy { get; }
 
-        public ExecutionStrategy SelectionStrategy { get; set; } = ExecutionStrategy.Parallel;
+        public List<QueryPlanStep> Steps { get; } = new();
 
-        public List<HashSet<uint>> Selections { get; } = new();
+        public List<SelectionBatch> Selections { get; } = new();
+    }
+
+    internal readonly struct SelectionBatch
+    {
+        public SelectionBatch(ExecutionStrategy strategy)
+        {
+            Strategy = strategy;
+            Selections = new HashSet<uint>();
+        }
+
+        public ExecutionStrategy Strategy { get; }
+
+        public HashSet<uint> Selections { get; }
     }
 
     internal abstract class QueryPlanStep
@@ -122,6 +173,20 @@ namespace HotChocolate.Execution.Processing.Internal
         }
 
         public virtual bool IsAllowed(IExecutionTask task) => true;
+    }
+
+    internal sealed class SequenceQueryPlanStep : QueryPlanStep
+    {
+        private readonly QueryPlanStep[] _steps;
+
+        public SequenceQueryPlanStep(QueryPlanStep[] steps)
+        {
+            _steps = steps;
+        }
+
+        public override ExecutionStrategy Strategy => ExecutionStrategy.Serial;
+
+        public override IReadOnlyList<QueryPlanStep> Steps => _steps;
     }
 
     internal sealed class ResolverQueryPlanStep : QueryPlanStep
