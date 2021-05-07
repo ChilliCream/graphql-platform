@@ -22,7 +22,7 @@ namespace HotChocolate.Stitching.Schemas.Contracts
                             .FirstOrDefault(t => t.Id.Equals(id)));
                 });
 
-            descriptor.Interface<ContractType>();
+            descriptor.Implements<ContractType>();
             descriptor.Field(t => t.Id).Type<NonNullType<IdType>>();
             descriptor.Field(t => t.CustomerId).Type<NonNullType<IdType>>();
             descriptor.Field("foo")

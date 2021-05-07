@@ -400,7 +400,7 @@ namespace HotChocolate.Execution
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
                 descriptor.Name("Tea");
-                descriptor.Interface<DrinkType>();
+                descriptor.Implements<DrinkType>();
                 descriptor.Field("kind")
                     .Type<NonNullType<DrinkKindType>>()
                     .Resolver(() => DrinkKind.BlackTea);
