@@ -54,18 +54,36 @@ namespace HotChocolate.Execution.Processing.Internal
                 case SelectionExecutionStrategy.Pure:
                     if (current.SelectionStrategy == ExecutionStrategy.Serial)
                     {
-                        var selections = new HashSet<uint>();
-                        current.Batch.Add(new ResolverQueryPlanStep(
+                        var selections = new HashSet<uint> { selection.Id };
+                        var step = new ResolverQueryPlanStep(
                             ExecutionStrategy.Serial,
-                            selections));
+                            selections);
+
+                        current.Batch.Add(step);
                         current.Selections.Push(selections);
                     }
-
-
+                    else
+                    {
+                        current.Selections.Peek().Add(selection.Id);
+                    }
                     break;
+
                 case SelectionExecutionStrategy.Serial:
+                    if (current.SelectionStrategy == ExecutionStrategy.Parallel)
+                    {
+                        if (context.Batches.Count > 1)
+                        {
+                            QueryBatch parent = context.Batches[^2];
 
+                        }
+
+                    }
+                    else
+                    {
+                        current.Selections.Peek().Add(selection.Id);
+                    }
                     break;
+
                 default:
                     break;
             }
