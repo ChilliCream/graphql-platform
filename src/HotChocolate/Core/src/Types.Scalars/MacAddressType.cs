@@ -4,8 +4,8 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     /// <summary>
-    /// The `MacAddress` scalar type represents a IEEE 802 48-bit (mac-48/eui-48)
-    /// and 64-bit (eui-48) Mac addresses, represented as UTF-8
+    /// The `MacAddress` scalar type represents IEEE 802 48-bit (MAC-48/EUI-48)
+    /// and 64-bit (EUI-64) Mac addresses, represented as UTF-8
     /// character sequences. The scalar follows the specification defined in
     /// <a href="https://tools.ietf.org/html/rfc7042#page-19">RFC7042</a> and
     /// <a href="https://tools.ietf.org/html/rfc7043">RFC 7043</a> respectively.
