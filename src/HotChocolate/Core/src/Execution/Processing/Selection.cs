@@ -86,15 +86,15 @@ namespace HotChocolate.Execution.Processing
 
             if (InlineResolver is not null)
             {
-                Kind = SelectionExecutionKind.Inline;
+                Strategy = SelectionExecutionStrategy.Inline;
             }
             else if (PureResolver is not null)
             {
-                Kind = SelectionExecutionKind.Pure;
+                Strategy = SelectionExecutionStrategy.Pure;
             }
             else
             {
-                Kind = SelectionExecutionKind.Default;
+                Strategy = SelectionExecutionStrategy.Default;
             }
 
             if (includeCondition is not null)
@@ -107,7 +107,7 @@ namespace HotChocolate.Execution.Processing
         public Selection(Selection selection)
         {
             Id = selection.Id;
-            Kind = selection.Kind;
+            Strategy = selection.Strategy;
             _includeConditions = selection._includeConditions;
             _selections = selection._selections;
             _isReadOnly = selection._isReadOnly;
@@ -128,7 +128,7 @@ namespace HotChocolate.Execution.Processing
         public uint Id { get; }
 
         /// <inheritdoc />
-        public SelectionExecutionKind Kind { get; }
+        public SelectionExecutionStrategy Strategy { get; }
 
         /// <inheritdoc />
         public IObjectType DeclaringType { get; }

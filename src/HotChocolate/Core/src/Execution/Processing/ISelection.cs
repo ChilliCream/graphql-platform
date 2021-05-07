@@ -19,7 +19,7 @@ namespace HotChocolate.Execution.Processing
         /// <summary>
         /// Gets the execution kind.
         /// </summary>
-        SelectionExecutionKind Kind { get; }
+        SelectionExecutionStrategy Strategy { get; }
 
         /// <summary>
         /// The type that declares the field that is selected by this selection.

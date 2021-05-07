@@ -143,7 +143,7 @@ namespace HotChocolate.Execution.Processing
         {
             var arguments = new ArgumentNode[selection.IsInternal ? 4 : 3];
             arguments[0] = new ArgumentNode("id", new IntValueNode(selection.Id));
-            arguments[1] = new ArgumentNode("kind", new EnumValueNode(selection.Kind));
+            arguments[1] = new ArgumentNode("kind", new EnumValueNode(selection.Strategy));
 
             if (selection.Field.Type.IsListType())
             {

@@ -15,7 +15,7 @@ namespace HotChocolate.Execution.Processing
         private readonly UnsafeWorkQueue _work = new();
         private readonly PausedWorkQueue _paused = new();
         private readonly Func<IRequestContext> _requestContext;
-        private IQueryPlanStep _step = default!;
+        private QueryPlanStep _step = default!;
 
         private int _processors = 1;
         private bool _mainIsPaused;
