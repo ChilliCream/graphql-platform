@@ -113,8 +113,8 @@ namespace HotChocolate.Types.Descriptors
             => Implements(type);
 
         [Obsolete("Use Implements.")]
-        public IInterfaceTypeDescriptor Interface(NamedTypeNode type)
-            => Implements(type);
+        public IInterfaceTypeDescriptor Interface(NamedTypeNode namedType)
+            => Implements(namedType);
 
         public IInterfaceTypeDescriptor Implements<T>()
             where T : InterfaceType
