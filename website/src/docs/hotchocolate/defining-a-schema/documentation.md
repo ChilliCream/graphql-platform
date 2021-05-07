@@ -2,102 +2,199 @@
 title: Documentation
 ---
 
-As with any API, documentation is important for describing the data and queries available to a consumer. Hot Chocolate offers multiple ways to document your GraphQL application.
+import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-# Code-First
+Documentation allows us to enrich our schema with additional information that is useful for a consumer of our API.
 
-In code-first schemas, there are multiple ways to describe the types and queries available in your API. The documentation options listed below are listed in order of specificity, meaning that options listed at the top will be overridden by options listed after it.
+In GraphQL we can do this by providing descriptions to our types, fields, etc.
 
-## XML Documentation
+```sdl
+type Query {
+  "A query field"
+  user("An argument" username: String): User
+}
 
-Out of the box, Hot Chocolate has the ability to automatically generate API documentation from your existing [XML documentation comments](https://docs.microsoft.com/en-us/dotnet/csharp/codedoc). For example, given the following C# code with XML documentation strings, you will have the following GraphQL schema.
+"An object type"
+type User {
+  "A field"
+  username: String
+}
+
+"An enum"
+enum UserRole {
+  "An enum value"
+  ADMINISTRATOR
+}
+```
+
+# Definition
+
+We can define descriptions like the following.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
 ```csharp
-/// <summary>
-/// A droid in the Star Wars universe.
-/// </summary>
-public class Droid
+[GraphQLDescription("An object type")]
+public class User
 {
-    /// <summary>
-    /// The Id of the droid.
-    /// </summary>
-    public string Id { get; set; }
-
-    /// <summary>
-    /// The name of the droid.
-    /// </summary>
-    public string Name { get; set; }
+    [GraphQLDescription("A field")]
+    public string Username { get; set; }
 }
 
-/// <summary>
-/// An episode in the Star Wars series.
-/// </summary>
-public enum Episode
+[GraphQLDescription("An enum")]
+public enum UserRole
 {
-    /// <summary>
-    /// Star Wars Episode IV: A New Hope
-    /// </summary>
-    NEWHOPE,
-    /// <summary>
-    /// Star Wars Episode V: Empire Strikes Back
-    /// </summary>
-    EMPIRE,
-    /// <summary>
-    /// Star Wars Episode VI: Return of the Jedi
-    /// </summary>
-    JEDI
+    [GraphQLDescription("An enum value")]
+    Administrator
 }
 
-public class Query {
-    /// <summary>
-    /// Get a particular droid by Id.
-    /// </summary>
-    /// <param name="id">The Id of the droid.</param>
-    /// <returns>The droid.</returns>
-    public Droid GetDroid(string id)
+public class Query
+{
+    [GraphQLDescription("A query field")]
+    public User GetUser(
+        [GraphQLDescription("An argument")] string username)
     {
-        /* Removed for brevity */
+        // Omitted code for brevity
     }
 }
 ```
 
-**SDL**
+If the description provided to the `GraphQLDescriptionAttribute` is `null` or made up of only white space, XML documentation strings are used as a fallback.
 
-```sdl
-"""
-A droid in the Star Wars universe.
-"""
-type Droid {
-  "The Id of the droid."
-  id: String
+Learn more about [XML documentation](#xml-documentation) below.
 
-  "The name of the droid."
-  name: String
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class UserType : ObjectType<User>
+{
+    protected override void Configure(IObjectTypeDescriptor<User> descriptor)
+    {
+        descriptor.Name("User");
+        descriptor.Description("An object type");
+
+        descriptor
+            .Field(f => f.Username)
+            .Description("A field");
+    }
 }
 
-"""
-An episode in the Star Wars series.
-"""
-enum Episode {
-  "Star Wars Episode IV: A New Hope"
-  NEWHOPE
+public class UserRoleType : EnumType<UserRole>
+{
+    protected override void Configure(IEnumTypeDescriptor<UserRole> descriptor)
+    {
+        descriptor.Name("UserRole");
+        descriptor.Description("An enum");
 
-  "Star Wars Episode V: Empire Strikes Back"
-  EMPIRE
-
-  "Star Wars Episode VI: Return of the Jedi"
-  JEDI
+        descriptor
+            .Value(UserRole.Administrator)
+            .Description("An enum value");
+    }
 }
 
-type Query {
-  """
-  Get a particular droid by Id.
-  """
-  droid("The Id of the droid." id: String): Droid
+public class QueryType : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor.Name("Query");
+
+        descriptor
+            .Field("user")
+            .Description("A query field")
+            .Argument("username", a => a.Type<StringType>().Description("An argument"))
+            .Resolve(context =>
+            {
+                // Omitted code for brevity
+            });
+    }
 }
 ```
 
-Once you've written your documentation, you will need to enable documentation file generation for your `.csproj`. One of the easiest ways to accomplish this is to add the `<GenerateDocumentationFile>` element to a `<PropertyGroup>` element in your project file. When your project is built, this will automatically generate an XML documentation file for the specified framework and runtime.
+The `Description()` methods take precedence over all other forms of documentation. This is true, even if the provided value is `null` or only white space.
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+```csharp
+services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Query {
+            """"""
+            A query field
+            """"""
+            user(""An argument"" username: String): User
+        }
+
+        """"""
+        An object type
+        """"""
+        type User {
+            ""A field""
+            username: String
+        }
+
+        """"""
+        An enum
+        """"""
+        enum UserRole {
+            ""An enum value""
+            ADMINISTRATOR
+        }
+    ")
+    // Omitted code for brevity
+```
+
+TODO: Note about double quotes in verbatim string
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+# XML Documentation
+
+Hot Chocolate provides the ability to automatically generate API documentation from our existing [XML documentation](https://docs.microsoft.com/en-us/dotnet/csharp/codedoc).
+
+The following will produce the same schema descriptions we declared above.
+
+```csharp
+/// <summary>
+/// An object type
+/// </summary>
+public class User
+{
+    /// <summary>
+    /// A field
+    /// </summary>
+    public string Username { get; set; }
+}
+
+/// <summary>
+/// An enum
+/// </summary>
+public enum UserRole
+{
+    /// <summary>
+    /// An enum value
+    /// </summary>
+    Administrator
+}
+
+public class Query
+{
+    /// <summary>
+    /// A query field
+    /// </summary>
+    /// <param name="username">An argument</param>
+    public User GetUser(string username)
+    {
+        // Omitted code for brevity
+    }
+}
+```
+
+To make the XML documentation available to Hot Chocolate, we have to enable `GenerateDocumentationFile` in our `.csproj` file.
 
 ```xml
 <PropertyGroup>
@@ -106,234 +203,12 @@ Once you've written your documentation, you will need to enable documentation fi
 </PropertyGroup>
 ```
 
-> The `<NoWarn>` element is optional. Including this element prevents the compiler from emitting warnings for any classes, properties, or methods that are missing documentation strings.
+> Note: The `<NoWarn>` element is optional. It prevents the compiler from emitting warnings for missing documentation strings.
 
-Should you decide you do not want to use the XML documentation, you have the ability to turn it off by setting the `UseXmlDocumentation` property on the schema's `ISchemaOptions`.
-
-```csharp
-services
-    .AddGraphQLServer()
-    .ModifyOptions(opt => opt.UseXmlDocumentation = false)
-    ...
-```
-
-## Attributes
-
-Hot Chocolate also provides a `GraphQLDescriptionAttribute` that can be used to provide descriptions for classes, properties, methods, and method parameters. For example, given the following C# code, you will have the following GraphQL schema.
-
-```csharp
-[GraphQLDescription("I am a droid in the Star Wars universe.")]
-public class Droid
-{
-    [GraphQLDescription("The Id of the droid.")]
-    public string Id { get; set; }
-
-    [GraphQLDescription("The name of the droid.")]
-    public string Name { get; set; }
-}
-
-public class Query
-{
-    [GraphQLDescription("Get a particular droid by Id.")]
-    public Droid GetDroid(
-        [GraphQLDescription("The Id of the droid.")] string id)
-    {
-        /* Removed for brevity */
-    }
-}
-```
-
-**SDL**
-
-```sdl
-"""
-A droid in the Star Wars universe.
-"""
-type Droid {
-  "The Id of the droid."
-  id: String
-
-  "The name of the droid."
-  name: String
-}
-
-type Query {
-  """
-  Get a particular droid by Id.
-  """
-  droid("The Id of the droid." id: String): Droid
-}
-```
-
-> If the description provided to the `GraphQLDescriptionAttribute` is `null` or made up of only white space, Hot Chocolate will use XML documentation strings as a fallback (assuming you have the feature enabled).
-
-## Fluent APIs
-
-The `IObjecTypeDescriptor<T>` includes fluent APIs that enable setting descriptions through a declarative syntax. You can easily access these fluent APIs by creating a class that inherits from the `ObjectType<T>` class and overriding the `Configure(IObjectTypeDescriptor<T>)` method. For example, given the following C# code, you would have the following GraphQL schema.
-
-```csharp
-public class Droid
-{
-    public string Id { get; set; }
-
-    public string Name { get; set; }
-}
-
-public class DroidType : ObjectType<Droid>
-{
-    protected override void Configure(IObjectTypeDescriptor<Droid> descriptor)
-    {
-        descriptor
-            .Description("A droid in the Star Wars Universe");
-
-        descriptor
-            .Field(f => f.Id)
-            .Description("The Id of the droid.");
-
-        descriptor
-            .Field(f => f.Name)
-            .Description("The name of the droid.");
-    }
-}
-```
-
-**SDL**
-
-```sdl
-"""
-A droid in the Star Wars Universe.
-"""
-type Droid {
-  "The Id of the droid."
-  id: String
-
-  "The name of the droid."
-  name: String
-}
-```
-
-Similar to the previous options, the fluent APIs also provide the ability to generate descriptions for the queries and their arguments.
-
-```csharp
-public class Query
-{
-    public Droid GetDroid(string id)
-    {
-        /* Removed for brevity */
-    }
-}
-
-public class QueryType : ObjectType<Query>
-{
-    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
-    {
-        descriptor
-            .Field(f => f.GetDroid(default))
-            .Type<DroidType>()
-            .Description("Search for droids.")
-            .Argument(
-                "id",
-                argDescriptor => argDescriptor
-                    .Description("The text to search on."));
-    }
-}
-```
-
-**SDL**
-
-```sdl
-type Query {
-    """
-    Search for droids.
-    """
-    search(
-        "The Id of the droid."
-        text: String
-    ): Droid[]!
-}
-```
-
-> If the `Description()` methods are used, they will **always** override any descriptions provided from the previous options, regardless of being `null` or white space values.
-
-# Schema-first
-
-In schema-first scenarios, the schema parser supports the inclusion of description strings. When a schema string includes such descriptions, they will be available through your typically introspection queries.
+If we do not want to include XML documentation in our schema, we can set the `UseXmlDocumentation` property on the schema's `ISchemaOptions`.
 
 ```csharp
 services
     .AddGraphQLServer()
-    .AddDocumentFromString(@"
-        """"""
-        A droid in the Star Wars universe.
-        """"""
-        type Droid {
-            ""The Id of the droid.""
-            id: String
-
-            ""The name of the droid.""
-            name: String
-        }
-
-        """"""
-        An episode in the Star Wars series.
-        """"""
-        enum Episode {
-            ""Star Wars Episode IV: A New Hope""
-            NEWHOPE
-
-            ""Star Wars Episode V: Empire Strikes Back""
-            EMPIRE
-
-            ""Star Wars Episode VI: Return of the Jedi""
-            JEDI
-        }
-
-        type Query {
-            """"""
-            Get a droid by Id.
-            """"""
-            droid(
-                ""The Id of the droid.""
-                id: String
-            ): Droid
-        }")
-    .AddResolver("Query", "droid", () => null)
-    .AddResolver("Droid", "id", () => "1234")
-    .AddResolver("Droid", "name", () => "R2D2");
-```
-
-**SDL**
-
-```sdl
-"""
-A droid in the Star Wars universe.
-"""
-type Droid {
-  "The Id of the droid."
-  id: String
-
-  "The name of the droid."
-  name: String
-}
-
-"""
-An episode in the Star Wars series.
-"""
-enum Episode {
-  "Star Wars Episode IV: A New Hope"
-  NEWHOPE
-
-  "Star Wars Episode V: Empire Strikes Back"
-  EMPIRE
-
-  "Star Wars Episode VI: Return of the Jedi"
-  JEDI
-}
-
-type Query {
-  """
-  Get a particular droid by Id.
-  """
-  droid("The Id of the droid." id: String): Droid
-}
+    .ModifyOptions(opt => opt.UseXmlDocumentation = false);
 ```

@@ -141,3 +141,7 @@ public void ConfigureServices(IServiceCollection services)
 
 </ExampleTabs.Schema>
 </ExampleTabs>
+
+# Unions as arguments
+
+TODO
