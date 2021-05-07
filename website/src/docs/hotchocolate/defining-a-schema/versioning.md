@@ -4,15 +4,12 @@ title: "Versioning"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-GraphQL versioning works differently as the versioning you know from REST.
-While nothing stops you from versioning a GraphQL API like a REST API, it is not best practice to do so and most often is not needed.
+Whilst we could version our GraphQL endpoint similar to REST, i.e. `/graphql/v1`, it is not a best practice and often unnecessary.
 
-A GraphQL API can evolve. Many changes to a GraphQL Schema are non-breaking changes.
-You are free to add fields to a type for example. This does not break existing queries.
+Many changes to a GraphQL schema are non-breaking. We can freely add new types and extend existing types with new fields. This does not break existing queries.
+However removing a field or changing its nullability does.
 
-If you remove fields or change the nullability of a field, the contract with existing queries is broken.
-In GraphQL it is possible to deprecate fields.
-You can mark a field as deprecated to signal API consumers that a field is obsolete and will be removed in the future.
+Instead of removing a field immediatly and possibly breaking existing queries, GraphQL allows you to mark fields as deprecated. This signals to API consumers that the field will be removed in the future and they can adapt their queries to this change.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
@@ -20,10 +17,11 @@ You can mark a field as deprecated to signal API consumers that a field is obsol
 ```csharp
 public class Query
 {
-    [Deprecated("Use `persons` field instead")]
-    public User[] GetUsers() { ... }
-
-    public User[] GetPersons() { ... }
+    [GraphQLDeprecated("Use the `authors` field instead")]
+    public User[] GetUsers()
+    {
+        // Omitted code for brevity
+    }
 }
 ```
 
@@ -31,11 +29,17 @@ public class Query
 <ExampleTabs.Code>
 
 ```csharp
-public class Query : QueryType<Query>
+public class QueryType : ObjectType
 {
-    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    protected override void Configure(IObjectTypeDescriptor descriptor)
     {
-        descriptor.Field(x => x.GetUsers()).Deprecated("Use `persons` field instead");
+        descriptor
+            .Field("users")
+            .Deprecated("Use the `authors` field instead")
+            .Resolve(context =>
+            {
+                // Omitted code for brevity
+            });
     }
 }
 ```
@@ -45,8 +49,7 @@ public class Query : QueryType<Query>
 
 ```sdl
 type Query {
-    users: [Users] @deprecated("Use `persons` field instead")
-    persons: [Users]
+  users: [User] @deprecated("Use the `authors` field instead")
 }
 ```
 
