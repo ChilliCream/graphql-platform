@@ -17,3 +17,7 @@ enum Role {
 ```
 
 Learn more about enums [here](https://graphql.org/learn/schema/#enumeration-types).
+
+# Usage
+
+TODO

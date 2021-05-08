@@ -9,34 +9,41 @@ In GraphQL we distinguish between input- and output-types. We already learned ab
 Input object type definitions differ from object types only in the used keyword.
 
 ```sdl
-input AddBookInput {
+input BookInput {
   title: String
   author: String
 }
 ```
 
-<!-- If we wanted for instance to create a new book with a mutation we could do that like the following.
+# Usage
+
+Input object types can be defined like the following
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
 
 ```csharp
-// Query.cs
-public class Query
+public class BookInput
 {
-    // Omitted code for brevity
+    public string Title { get; set; }
+
+    public string Author { get; set; }
 }
 
-// Query.cs
 public class Mutation
 {
-    public async Task<Book> CreateBook(Book book)
+    public async Task<Book> AddBook(BookInput input)
     {
-
+        // Omitted code for brevity
     }
 }
+```
 
-// Book.cs
+> Note: If a class is used as an argument to a resolver and it does not end in `Input`, Hot Chocolate will append `Input` to the schema name.
+
+We can also use a class both as an output- and an input-type.
+
+```csharp
 public class Book
 {
     public string Title { get; set; }
@@ -44,122 +51,73 @@ public class Book
     public string Author { get; set; }
 }
 
-// Startup.cs
-public class Startup
+public class Mutation
 {
-    public void ConfigureServices(IServiceCollection services)
+    public async Task<Book> AddBook(Book input)
     {
-        services
-            .AddRouting()
-            .AddGraphQLServer()
-            .AddQueryType<Query>()
-            .AddMutationType<Mutation>();
+        // Omitted code for brevity
     }
-
-    // Omitted code for brevity
 }
 ```
+
+This will produce the following schema.
+
+```sdl
+type Book {
+  title: String
+  author: String
+}
+
+input BookInput {
+  title: String
+  author: String
+}
+
+type Mutation {
+  addBook(input: BookInput): Book
+}
+```
+
+> Note: While it is possible, it is not encouraged, as it complicates future extensions of either type.
 
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
 ```csharp
-// Query.cs
-public class Query
-{
-    public Task<Book> GetBookAsync(string id)
-    {
-        // Omitted code for brevity
-    }
-}
-
-// QueryType.cs
-public class QueryType : ObjectType<Query>
-{
-    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
-    {
-        descriptor
-            .Field(f => f.GetBook(default))
-            .Type<BookType>();
-    }
-}
-
-// Book.cs
-public class Book
+public class BookInput
 {
     public string Title { get; set; }
 
     public string Author { get; set; }
 }
 
-// BookType.cs
-public class BookType : ObjectType<Book>
+public class BookInputType : InputObjectType<BookInput>
 {
-    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
-    {
-        descriptor
-            .Field(f => f.Title)
-            .Type<StringType>();
-
-        descriptor
-            .Field(f => f.Author)
-            .Type<StringType>();
-    }
 }
 
-
-// Startup.cs
-public class Startup
+public class MutationType : ObjectType
 {
-    public void ConfigureServices(IServiceCollection services)
+    protected override void Configure(IObjectTypeDescriptor descriptor)
     {
-        services
-            .AddRouting()
-            .AddGraphQLServer()
-            .AddQueryType<QueryType>();
-    }
+        descriptor.Name(OperationTypeNames.Mutation);
 
-    // Omitted code for brevity
+        descriptor
+            .Field("addBook")
+            .Argument("input", a => a.Type<BookInputType>())
+            .Resolve(context =>
+            {
+                var input = context.ArgumentValue<BookInput>("input");
+
+                // Omitted code for brevity
+            });
+    }
 }
 ```
 
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-```csharp
-// Query.cs
-public class Query
-{
-    public Task<Book> GetBookAsync(string id)
-    {
-        // Omitted code for brevity
-    }
-}
-
-// Startup.cs
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddRouting()
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                type Query {
-                  book(id: String): Book
-                }
-
-                type Book {
-                  title: String
-                  author: String
-                }
-            ")
-            .BindComplexType<Query>();
-    }
-
-    // Omitted code for brevity
-}
-```
+TODO
 
 </ExampleTabs.Schema>
-</ExampleTabs> -->
+</ExampleTabs>
