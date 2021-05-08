@@ -41,6 +41,10 @@
                 "title": "Types"
               },
               {
+                "path": "arguments",
+                "title": "Arguments"
+              },
+              {
                 "path": "inputs",
                 "title": "Inputs"
               },

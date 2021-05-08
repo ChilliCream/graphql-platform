@@ -25,6 +25,8 @@ Learn more about unions [here](https://graphql.org/learn/schema/#union-types).
 
 # Definition
 
+Unions can be defined like the following.
+
 <ExampleTabs>
 <ExampleTabs.Annotation>
 
@@ -94,7 +96,7 @@ public class QueryType : ObjectType<Query>
 {
     protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
     {
-        descriptor.Name("Query");
+        descriptor.Name(OperationTypeNames.Query);
 
         descriptor
             .Field(f => f.GetContent(default))

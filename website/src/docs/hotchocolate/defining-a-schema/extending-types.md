@@ -48,7 +48,7 @@ public class QueryTypeExtension : ObjectTypeExtension<Query>
 {
     protected override void Configure(IObjectTypeDescriptor descriptor)
     {
-        descriptor.Name("Query")
+        descriptor.Name(OperationTypeNames.Query)
     }
 }
 

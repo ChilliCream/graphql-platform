@@ -21,7 +21,7 @@ type Query {
 
 # Definition
 
-We can deprecate fields like the following.
+Fields can be deprecated like the following.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>

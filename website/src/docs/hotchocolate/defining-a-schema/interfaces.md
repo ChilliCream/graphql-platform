@@ -27,6 +27,8 @@ Learn more about interfaces [here](https://graphql.org/learn/schema/#interfaces)
 
 # Definition
 
+Interfaces can be defined like the following.
+
 <ExampleTabs>
 <ExampleTabs.Annotation>
 
@@ -145,7 +147,7 @@ public class QueryType : ObjectType<Query>
 {
     protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
     {
-        descriptor.Name("Query");
+        descriptor.Name(OperationTypeNames.Query);
 
         descriptor
             .Field(f => f.GetMessages(default));
@@ -200,5 +202,9 @@ public void ConfigureServices(IServiceCollection services)
 </ExampleTabs>
 
 ## Custom Resolvers
+
+TODO
+
+# Interfaces implementing interfaces
 
 TODO

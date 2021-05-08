@@ -60,9 +60,9 @@ public class Query
 }
 ```
 
-If the description provided to the `GraphQLDescriptionAttribute` is `null` or made up of only white space, XML documentation strings are used as a fallback.
+If the description provided to the `GraphQLDescriptionAttribute` is `null` or made up of only white space, XML documentation comments are used as a fallback.
 
-Learn more about [XML documentation](#xml-documentation) below.
+Learn more about XML documentation below.
 
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
@@ -98,7 +98,7 @@ public class QueryType : ObjectType
 {
     protected override void Configure(IObjectTypeDescriptor descriptor)
     {
-        descriptor.Name("Query");
+        descriptor.Name(OperationTypeNames.Query);
 
         descriptor
             .Field("user")
