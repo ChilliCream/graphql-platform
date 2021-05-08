@@ -27,7 +27,7 @@ enum UserRole {
 }
 ```
 
-# Definition
+# Usage
 
 We can define descriptions like the following.
 

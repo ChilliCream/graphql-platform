@@ -25,7 +25,7 @@ subscription {
 
 HotChocolate implements subscriptions via WebSockets and uses the pub/sub approach of [Apollo](https://www.apollographql.com/docs/apollo-server/data/subscriptions/#the-pubsub-class) for triggering subscriptions.
 
-# Definition
+# Usage
 
 A subscription type can be defined like the following.
 

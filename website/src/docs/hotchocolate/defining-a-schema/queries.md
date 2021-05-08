@@ -29,7 +29,7 @@ query {
 
 Queries are expected to be side-effect free and are therefore parallelized by the execution engine.
 
-# Definition
+# Usage
 
 A query type can be defined like the following.
 

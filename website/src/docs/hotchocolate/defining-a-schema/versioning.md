@@ -19,7 +19,7 @@ type Query {
 
 ```
 
-# Definition
+# Deprecating fields
 
 Fields can be deprecated like the following.
 

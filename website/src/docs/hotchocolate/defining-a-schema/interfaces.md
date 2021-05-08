@@ -25,7 +25,7 @@ type TextMessage implements Message {
 
 Learn more about interfaces [here](https://graphql.org/learn/schema/#interfaces).
 
-# Definition
+# Usage
 
 Interfaces can be defined like the following.
 

@@ -33,13 +33,11 @@ mutation {
 }
 ```
 
-Each of these mutations is executed serially one by one whereas their child selection sets are executed possibly in parallel since only the top-level mutations fields are allowed to have side-effects in GraphQL.
+Each of these mutations is executed serially one by one whereas their child selection sets are executed possibly in parallel since only the top-level mutation fields are allowed to have side-effects in GraphQL.
 
-# Definition
+# Usage
 
 A mutation type can be defined like the following.
-
-TODO: Update code examples
 
 <ExampleTabs>
 <ExampleTabs.Annotation>

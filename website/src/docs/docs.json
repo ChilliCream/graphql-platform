@@ -37,12 +37,16 @@
                 "title": "Subscriptions"
               },
               {
-                "path": "types",
-                "title": "Types"
+                "path": "object-types",
+                "title": "Object Types"
               },
               {
                 "path": "arguments",
                 "title": "Arguments"
+              },
+              {
+                "path": "input-object-types",
+                "title": "Input Object Types"
               },
               {
                 "path": "lists",

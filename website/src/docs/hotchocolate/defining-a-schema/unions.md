@@ -23,7 +23,7 @@ union PostContent = TextContent | ImageContent
 
 Learn more about unions [here](https://graphql.org/learn/schema/#union-types).
 
-# Definition
+# Usage
 
 Unions can be defined like the following.
 
@@ -141,7 +141,3 @@ public void ConfigureServices(IServiceCollection services)
 
 </ExampleTabs.Schema>
 </ExampleTabs>
-
-# Unions as arguments
-
-TODO
