@@ -96,8 +96,6 @@ public class QueryType : ObjectType<Query>
 {
     protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
     {
-        descriptor.Name(OperationTypeNames.Query);
-
         descriptor
             .Field(f => f.GetContent(default))
             .Type<PostContentType>();

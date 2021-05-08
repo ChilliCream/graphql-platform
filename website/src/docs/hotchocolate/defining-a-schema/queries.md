@@ -4,20 +4,34 @@ title: "Queries"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-The query type is how we can read data. It is described as a way to access read-only data in a side-effect free way. This means that the GraphQL engine is allowed to parallelize data fetching.
+The query type in GraphQL represents a read-only view of all of our entities and ways to retrieve them. A query type is required for every GraphQL server.
+
+```sdl
+type Query {
+  books: [Book!]!
+  author(id: Int!): Author
+}
+```
+
+Clients can query one or more fields through the query type.
 
 ```graphql
 query {
-  book(id: 1) {
+  books {
     title
     author
+  }
+  author(id: 1) {
+    name
   }
 }
 ```
 
+Queries are expected to be side-effect free and are therefore parallelized by the execution engine.
+
 # Definition
 
-A query type can be represented like the following:
+A query type can be defined like the following.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
@@ -62,7 +76,7 @@ public class QueryType : ObjectType<Query>
 
 public class BookType : ObjectType<Book>
 {
-    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
     {
         descriptor
             .Field(f => f.Title)

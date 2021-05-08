@@ -6,21 +6,28 @@ import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
 The subscription type in GraphQL is used to add real-time capabilities to our applications. Clients can subscribe to events and receive the event data in real-time, as soon as the server publishes it.
 
+```sdl
+type Subscription {
+  bookAdded: Book!
+  bookPublished(author: String!): Book!
+}
+```
+
 Subscribing to an event is like writing a standard query. The only difference is the operation keyword and that we are only allowed to have one root field.
 
 ```graphql
 subscription {
-  onBookAdded(author: "Jon Skeet") {
+  bookAdded {
     title
   }
 }
 ```
 
-HotChocolate implements Subscriptions via WebSockets and uses the pub/sub approach of [Apollo](https://www.apollographql.com/docs/apollo-server/data/subscriptions/#the-pubsub-class) for triggering subscriptions.
+HotChocolate implements subscriptions via WebSockets and uses the pub/sub approach of [Apollo](https://www.apollographql.com/docs/apollo-server/data/subscriptions/#the-pubsub-class) for triggering subscriptions.
 
 # Definition
 
-A subscription type can be represented like the following:
+A subscription type can be defined like the following.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
@@ -29,7 +36,7 @@ A subscription type can be represented like the following:
 public class Subscription
 {
     [Subscribe]
-    public Book OnBookAdded([EventMessage] Book book) => book;
+    public Book BookAdded([EventMessage] Book book) => book;
 }
 
 public class Startup
@@ -38,7 +45,6 @@ public class Startup
     {
         services
             .AddGraphQLServer()
-            // ...
             .AddSubscriptionType<Subscription>();
     }
 
@@ -55,7 +61,7 @@ public class SubscriptionType : ObjectType
     protected override void Configure(IObjectTypeDescriptor descriptor)
     {
         descriptor
-            .Field("onBookAdded")
+            .Field("bookAdded")
             .Type<BookType>()
             .Resolve(context => context.GetEventMessage<Book>())
             .Subscribe(async context =>
@@ -63,7 +69,7 @@ public class SubscriptionType : ObjectType
                 var receiver = context.Service<ITopicEventReceiver>();
 
                 ISourceStream stream =
-                    await receiver.SubscribeAsync<string, Book>("OnBookAdded");
+                    await receiver.SubscribeAsync<string, Book>("bookAdded");
 
                 return stream;
             });
@@ -77,7 +83,6 @@ public class Startup
     {
         services
             .AddGraphQLServer()
-            // ...
             .AddSubscriptionType<SubscriptionType>();
     }
 
@@ -92,7 +97,7 @@ public class Startup
 public class Subscription
 {
     [Subscribe]
-    public Book OnBookAdded([EventMessage] Book book) => book;
+    public Book BookAdded([EventMessage] Book book) => book;
 }
 
 public class Startup
@@ -102,10 +107,8 @@ public class Startup
         services
             .AddGraphQLServer()
             .AddDocumentFromString(@"
-                # ...
-
                 type Subscription {
-                  onBookAdded: Book
+                  bookAdded: Book!
                 }
 
                 type Book {
@@ -113,7 +116,6 @@ public class Startup
                   author: String
                 }
             ")
-            // ...
             .BindComplexType<Subscription>();
     }
 
@@ -124,7 +126,7 @@ public class Startup
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-## Transport
+# Transport
 
 After defining the subscription type, we need to add the WebSockets middleware to our request pipeline.
 
@@ -149,21 +151,21 @@ public class Startup
 
 To make pub/sub work, we also have to register a subscription provider. A subscription provider represents a pub/sub implementation used to handle events. Out of the box we support two subscription providers.
 
-### In-Memory Provider
+## In-Memory Provider
 
-The In-Memory subscription provider does not need any configuration and is easily setup:
+The In-Memory subscription provider does not need any configuration and is easily setup.
 
 ```csharp
 services.AddInMemorySubscriptions();
 ```
 
-### Redis Provider
+## Redis Provider
 
 The Redis subscription provider enables us to run multiple instances of our HotChocolate GraphQL server and handle subscription events reliably.
 
 In order to use the Redis provider add the following package: `HotChocolate.Subscriptions.Redis`
 
-After we have added the package we can setup the Redis subscription provider:
+After we have added the package we can setup the Redis subscription provider.
 
 ```csharp
 services.AddRedisSubscriptions((sp) =>
@@ -172,7 +174,7 @@ services.AddRedisSubscriptions((sp) =>
 
 Our Redis subscription provider uses the [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis) Redis client underneath.
 
-## Publishing Events
+# Publishing Events
 
 To publish events and trigger subscriptions, we can use the `ITopicEventSender`. The `ITopicEventSender` is an abstraction for the registered event publishing provider. Using this abstraction allows us to seamlessly switch between subscription providers, when necessary.
 
@@ -183,19 +185,19 @@ public class Mutation
 {
     public async Book AddBook(Book book, [Service] ITopicEventSender sender)
     {
-        await sender.SendAsync("OnBookAdded", book);
+        await sender.SendAsync("BookAdded", book);
 
         // Omitted code for brevity
     }
 }
 ```
 
-In the example the `"OnBookAdded"` is the topic we want to publish to, and `book` is our payload. Even though we have used a string as the topic, we do not have to. Any other type works just fine.
+In the example the `"BookAdded"` is the topic we want to publish to, and `book` is our payload. Even though we have used a string as the topic, we do not have to. Any other type works just fine.
 
-But where is the connection between `"OnBookAdded"` as a topic and the subscription type? Per default HotChocolate will try to map the topic to a field of the subscription type. If we want to make this binding less error-prone, we could do the following:
+But where is the connection between `"BookAdded"` as a topic and the subscription type? Per default HotChocolate will try to map the topic to a field of the subscription type. If we want to make this binding less error-prone, we could do the following.
 
 ```csharp
-await sender.SendAsync(nameof(Subscription.OnBookAdded), book);
+await sender.SendAsync(nameof(Subscription.BookAdded), book);
 ```
 
 If we do not want to use the method name, we could use the `Topic` attribute.
@@ -205,7 +207,7 @@ public class Subscription
 {
     [Subscribe]
     [Topic("ExampleTopic")]
-    public Book OnBookAdded([EventMessage] Book book) => book;
+    public Book BookAdded([EventMessage] Book book) => book;
 }
 
 public async Book AddBook(Book book, [Service] ITopicEventSender sender)
@@ -222,11 +224,11 @@ We can even use the `Topic` attribute on dynamic arguments of the subscription f
 public class Subscription
 {
     [Subscribe]
-    public Book OnBookAdded([Topic] string author, [EventMessage] Book book)
+    public Book BookPublished([Topic] string author, [EventMessage] Book book)
         => book;
 }
 
-public async Book AddBook(Book book, [Service] ITopicEventSender sender)
+public async Book PublishBook(Book book, [Service] ITopicEventSender sender)
 {
     await sender.SendAsync(book.Author, book);
 
@@ -234,25 +236,27 @@ public async Book AddBook(Book book, [Service] ITopicEventSender sender)
 }
 ```
 
-If we need more complex topics, we can use the `ITopicEventReceiver`.
+## ITopicEventReceiver
+
+If more complex topics are required, we can use the `ITopicEventReceiver`.
 
 ```csharp
 public class Subscription
 {
     [SubscribeAndResolve]
-    public ValueTask<ISourceStream<Book>> OnBookAdded(string author,
+    public ValueTask<ISourceStream<Book>> BookPublished(string author,
         [Service] ITopicEventReceiver receiver)
     {
-        string topic = $"{author}_AddedBook";
+        string topic = $"{author}_PublishedBook";
         ISourceStream<Book> stream = receiver.SubscribeAsync<string, Book>(topic);
 
         return stream;
     }
 }
 
-public async Book AddBook(Book book, [Service] ITopicEventSender sender)
+public async Book PublishBook(Book book, [Service] ITopicEventSender sender)
 {
-    await sender.SendAsync($"{book.Author}_AddedBook", book);
+    await sender.SendAsync($"{book.Author}_PublishedBook", book);
 
     // Omitted code for brevity
 }
@@ -268,7 +272,9 @@ public class Subscription
         => receiver.SubscribeAsync<string, Book>("ExampleTopic");
 
     [Subscribe(With = nameof(SubscribeToBooks))]
-    public ValueTask<ISourceStream<Book>> OnBookAdded([EventMessage] Book book)
+    public ValueTask<ISourceStream<Book>> BookAdded([EventMessage] Book book)
         => book;
 }
 ```
+
+<!-- todo: arguments with Subscribe(With = "...") -->

@@ -8,45 +8,38 @@ The mutation type in GraphQL is used to mutate/change data. This means that when
 
 GraphQL defines mutations as top-level fields on the mutation type. Meaning only the fields on the mutation root type itself are mutations. Everything that is returned from a mutation field represents the changed state of the server.
 
+```sdl
+type Mutation {
+  addBook(input: AddBookInput!): AddBookPayload!
+  publishBook(input: PublishBookInput!): PublishBookPayload!
+}
+```
+
+Clients can execute one or more mutations through the mutation type.
+
 ```graphql
-{
-  mutation {
-    # changeBookTitle is a mutation and is allowed to cause side-effects.
-    changeBookTitle(input: { id: 1, title: "C# in depth" }) {
-      # everything in this selection set and below is a query.
-      # We essentially allow the user to query the effect that the mutation had
-      # on our system.
-      # In this case we are querying the changed book.
-      book {
-        title
-      }
+mutation {
+  addBook(input: { title: "C# in depth" }) {
+    book {
+      id
+      title
+    }
+  }
+  publishBook(input: { id: 1 }) {
+    book {
+      publishDate
     }
   }
 }
 ```
 
-In one GraphQL request we can execute multiple mutations. Each of these mutations are executed serially one by one whereas their child selection sets are executed possibly in parallel since only the top-level mutations fields are allowed to have side-effects in GraphQL.
-
-```graphql
-{
-  mutation {
-    addBook(input: { title: "C# in depth", author: "Jon Skeet" }) {
-      book {
-        title
-      }
-    }
-    publishBook(input: { id: 1 }) {
-      book {
-        isPublished
-      }
-    }
-  }
-}
-```
+Each of these mutations is executed serially one by one whereas their child selection sets are executed possibly in parallel since only the top-level mutations fields are allowed to have side-effects in GraphQL.
 
 # Definition
 
-A mutation type can be represented like the following:
+A mutation type can be defined like the following.
+
+TODO: Update code examples
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
@@ -66,7 +59,6 @@ public class Startup
     {
         services
             .AddGraphQLServer()
-            // ...
             .AddMutationType<Mutation>();
     }
 
@@ -100,7 +92,6 @@ public class Startup
     {
         services
             .AddGraphQLServer()
-            // ...
             .AddMutationType<MutationType>();
     }
 
@@ -127,8 +118,6 @@ public class Startup
         services
             .AddGraphQLServer()
             .AddDocumentFromString(@"
-                # ...
-
                 type Mutation {
                   addBook(input: BookInput): Book
                 }
@@ -143,7 +132,6 @@ public class Startup
                   author: String
                 }
             ")
-            // ...
             .BindComplexType<Mutation>();
     }
 
@@ -167,7 +155,6 @@ The default transaction scope handler can be added like the following:
 ```csharp
 services
     .AddGraphQLServer()
-    // ...
     .AddDefaultTransactionScopeHandler();
 ```
 
@@ -208,6 +195,5 @@ If we implement a custom transaction scope handler or if we choose to extend upo
 ```csharp
 services
     .AddGraphQLServer()
-    // ...
     .AddTransactionScopeHandler<CustomTransactionScopeHandler>();
 ```
