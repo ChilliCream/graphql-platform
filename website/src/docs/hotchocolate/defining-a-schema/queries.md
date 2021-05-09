@@ -50,8 +50,6 @@ public class Startup
             .AddGraphQLServer()
             .AddQueryType<Query>();
     }
-
-    // Omitted code for brevity
 }
 ```
 
@@ -96,8 +94,6 @@ public class Startup
             .AddGraphQLServer()
             .AddQueryType<QueryType>();
     }
-
-    // Omitted code for brevity
 }
 ```
 
@@ -129,8 +125,6 @@ public class Startup
             .BindComplexType<Query>()
             .BindComplexType<Book>();
     }
-
-    // Omitted code for brevity
 }
 ```
 

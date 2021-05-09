@@ -2,17 +2,15 @@
 title: "Enums"
 ---
 
-> We are still working on the documentation for Hot Chocolate 11.1 so help us by finding typos, missing things or write some additional docs with us.
+import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-An Enum is a special kind of scalar that is restricted to a particular set of allowed values.
-
-Enums are defined in the schema as follows.
+An Enum is a special kind of [scalar](/docs/hotchocolate/defining-a-schema/scalars) that is restricted to a particular set of allowed values.
 
 ```sdl
-enum Role {
-  Guest,
-  Default,
-  Administrator
+enum UserRole {
+  GUEST,
+  DEFAULT,
+  ADMINISTRATOR
 }
 ```
 
@@ -20,4 +18,131 @@ Learn more about enums [here](https://graphql.org/learn/schema/#enumeration-type
 
 # Usage
 
+We can define enums like the following.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+public enum UserRole
+{
+    Guest,
+    Standard,
+    Administrator
+}
+
+public class Query
+{
+    public User[] GetUsers(UserRole role)
+    {
+        // Omitted code for brevity
+    }
+}
+```
+
+We can also specify different names for the type and values to be used in the schema.
+
+```csharp
+[GraphQLName("NewUserRole")]
+public enum UserRole
+{
+    Guest,
+    [GraphQLName("Default")]
+    Standard,
+    Administrator
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public enum UserRole
+{
+    Guest,
+    Standard,
+    Administrator
+}
+
+public class UserRoleType : EnumType<UserRole>
+{
+}
+
+public class QueryType : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor.Name(OperationTypeNames.Query);
+
+        descriptor
+            .Field("users")
+            .Argument("role", a => a.Type<UserRoleType>())
+            .Resolve(context =>
+            {
+                var role = context.ArgumentValue<UserRole>("role");
+
+                // Omitted code for brevity
+            });
+    }
+}
+```
+
+We can also specify different names for the type and values to be used in the schema.
+
+```csharp
+public class UserRoleType : EnumType<UserRole>
+{
+    protected override void Configure(IEnumTypeDescriptor<UserRole> descriptor)
+    {
+        descriptor.Name("NewUserRole");
+
+        descriptor
+            .Value(UserRole.Standard)
+            .Name("Default");
+    }
+}
+```
+
+We can also bind the enumeration type to any other .NET type.
+
+```csharp
+public class UserRoleType : EnumType<string>
+{
+    protected override void Configure(IEnumTypeDescriptor<string> descriptor)
+    {
+        // we need to specify a name or otherwise we will get a conflict
+        // with the built-in StringType
+        descriptor.Name("UserRole");
+
+        descriptor
+            .Value("Default")
+            .Name("Standard");
+    }
+}
+
+public class QueryType : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor.Name(OperationTypeNames.Query);
+
+        descriptor
+            .Field("users")
+            .Argument("role", a => a.Type<UserRoleType>())
+            .Resolve(context =>
+            {
+                var role = context.ArgumentValue<string>("role");
+
+                // Omitted code for brevity
+            });
+    }
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
 TODO
+
+</ExampleTabs.Schema>
+</ExampleTabs>

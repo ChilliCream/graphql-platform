@@ -92,8 +92,6 @@ public class Startup
             .AddGraphQLServer()
             .AddMutationType<MutationType>();
     }
-
-    // Omitted code for brevity
 }
 ```
 
@@ -132,8 +130,6 @@ public class Startup
             ")
             .BindComplexType<Mutation>();
     }
-
-    // Omitted code for brevity
 }
 ```
 

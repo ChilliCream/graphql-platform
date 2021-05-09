@@ -147,8 +147,6 @@ services
     // Omitted code for brevity
 ```
 
-TODO: Note about double quotes in verbatim string
-
 </ExampleTabs.Schema>
 </ExampleTabs>
 
