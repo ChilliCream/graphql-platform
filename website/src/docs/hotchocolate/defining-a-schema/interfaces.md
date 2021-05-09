@@ -4,11 +4,7 @@ title: "Interfaces"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-> We are still working on the documentation for Hot Chocolate 11.1 so help us by finding typos, missing things or write some additional docs with us.
-
 An interface is an abstract type that includes a certain set of fields that a type must include to implement the interface.
-
-Interfaces are defined in the schema as follows.
 
 ```sdl
 interface Message {
@@ -20,6 +16,21 @@ type TextMessage implements Message {
   author: User!
   createdAt: DateTime!
   content: String!
+}
+```
+
+Clients can query fields returning an interface like the following.
+
+```graphql
+{
+  messages {
+    author {
+      name
+    }
+    ... on TextMessage {
+      content
+    }
+  }
 }
 ```
 

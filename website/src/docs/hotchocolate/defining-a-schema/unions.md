@@ -6,8 +6,6 @@ import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
 A Union is very similar to an [interface](/docs/hotchocolate/defining-a-schema/interfaces), except that there are no common fields between the specified types.
 
-Unions are defined in the schema as follows.
-
 ```sdl
 type TextContent {
   text: String!
@@ -19,6 +17,21 @@ type ImageContent {
 }
 
 union PostContent = TextContent | ImageContent
+```
+
+Clients can query fields returning a union like the following.
+
+```graphql
+{
+  postContent {
+    ... on TextContent {
+      text
+    }
+    ... on ImageContent {
+      imageUrl
+    }
+  }
+}
 ```
 
 Learn more about unions [here](https://graphql.org/learn/schema/#union-types).
