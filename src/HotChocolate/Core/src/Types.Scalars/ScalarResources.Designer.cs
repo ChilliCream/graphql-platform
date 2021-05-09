@@ -207,6 +207,24 @@ namespace HotChocolate.Types {
             }
         }
         
+        internal static string LatitudeType_Description {
+            get {
+                return ResourceManager.GetString("LatitudeType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string LatitudeType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("LatitudeType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string LatitudeType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("LatitudeType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+        
         internal static string LocalTimeType_Description {
             get {
                 return ResourceManager.GetString("LocalTimeType_Description", resourceCulture);
