@@ -152,6 +152,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.RemoveAll<IPreparedOperationCache>();
             services.AddSingleton<IPreparedOperationCache>(
                 sp => new DefaultPreparedOperationCache(capacity));
+            services.AddSingleton<IQueryPlanCache>(
+                sp => new DefaultQueryPlanCache(capacity));
             return services;
         }
 

@@ -33,6 +33,9 @@ namespace HotChocolate.Execution
         public IExecutionTask? Previous { get; set; }
 
         /// <inheritdoc />
+        public object? State { get; set; }
+
+        /// <inheritdoc />
         public void BeginExecute(CancellationToken cancellationToken)
         {
             _task = ExecuteInternalAsync(cancellationToken).AsTask();

@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing.Internal;
+using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Execution.Processing.Tasks;
 using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Fetching;
@@ -12,10 +13,6 @@ namespace HotChocolate.Execution.Processing
     /// </summary>
     internal interface IExecutionContext
     {
-        // IQueryPlan Plan { get; }
-
-        // IQueryPlanStep Current { get; }
-
         /// <summary>
         /// Gets the backlog of the task that have to be processed.
         /// </summary>
@@ -51,6 +48,15 @@ namespace HotChocolate.Execution.Processing
         /// Gets the batch task pool.
         /// </summary>
         ObjectPool<BatchExecutionTask> BatchTasks { get; }
+
+        /// <summary>
+        /// Defines if a execution task can be processed of if it is suspended/paused.
+        /// </summary>
+        /// <param name="executionTask">
+        /// The execution task that shall be evaluated.
+        /// </param>
+        /// <returns></returns>
+        bool IsSuspended(IExecutionTask executionTask);
 
         /// <summary>
         /// Resets the execution state.

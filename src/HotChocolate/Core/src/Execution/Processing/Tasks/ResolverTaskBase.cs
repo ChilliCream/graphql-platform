@@ -31,6 +31,8 @@ namespace HotChocolate.Execution.Processing.Tasks
 
         public IExecutionTask? Previous { get; set; }
 
+        public object? State { get; set; }
+
         public abstract void BeginExecute(CancellationToken cancellationToken);
 
         public abstract Task WaitForCompletionAsync(CancellationToken cancellationToken);

@@ -22,6 +22,8 @@ namespace HotChocolate.Execution.Processing.Tasks
 
         public IExecutionTask? Previous { get; set; }
 
+        public object? State { get; set; }
+
         public void BeginExecute(CancellationToken cancellationToken)
         {
             try

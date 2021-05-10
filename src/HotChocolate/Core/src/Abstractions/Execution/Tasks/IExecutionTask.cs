@@ -22,22 +22,6 @@ namespace HotChocolate.Execution
         bool IsCompleted { get; }
 
         /// <summary>
-        /// Begins executing this task.
-        /// </summary>
-        /// <param name="cancellationToken">
-        /// The cancellation token.
-        /// </param>
-        void BeginExecute(CancellationToken cancellationToken);
-
-        /// <summary>
-        /// The running task can be awaited to track completion of this particular task.
-        /// </summary>
-        /// <param name="cancellationToken">
-        /// The cancellation token.
-        /// </param>
-        Task WaitForCompletionAsync(CancellationToken cancellationToken);
-
-        /// <summary>
         /// If this task is being executed within another task the parent property exposes the
         /// owner task. Child tasks are not tracked within the execution engine.
         /// </summary>
@@ -54,5 +38,26 @@ namespace HotChocolate.Execution
         /// track the execution state.
         /// </summary>
         IExecutionTask? Previous { get; set; }
+
+        /// <summary>
+        /// Optional execution state that is set by the execution engine.
+        /// </summary>
+        object? State { get; set; }
+
+        /// <summary>
+        /// Begins executing this task.
+        /// </summary>
+        /// <param name="cancellationToken">
+        /// The cancellation token.
+        /// </param>
+        void BeginExecute(CancellationToken cancellationToken);
+
+        /// <summary>
+        /// The running task can be awaited to track completion of this particular task.
+        /// </summary>
+        /// <param name="cancellationToken">
+        /// The cancellation token.
+        /// </param>
+        Task WaitForCompletionAsync(CancellationToken cancellationToken);
     }
 }

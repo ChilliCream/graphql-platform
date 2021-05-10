@@ -1,4 +1,5 @@
 using System.Threading;
+using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
@@ -17,6 +18,7 @@ namespace HotChocolate.Execution.Processing
 
         private CancellationTokenSource _completed = default!;
         private IBatchDispatcher _batchDispatcher = default!;
+        private QueryPlanStateMachine _stateMachine = new();
         private bool _isInitialized;
 
         public ExecutionContext(
@@ -26,7 +28,7 @@ namespace HotChocolate.Execution.Processing
             ObjectPool<BatchExecutionTask> batchTasks)
         {
             _operationContext = operationContext;
-            _workBacklog = new WorkBacklog(() => _operationContext.RequestContext);
+            _workBacklog = new WorkBacklog();
             _deferredWorkBacklog = new DeferredWorkBacklog();
             _resolverTasks = resolverTasks;
             _pureResolverTasks = pureResolverTasks;
@@ -43,8 +45,9 @@ namespace HotChocolate.Execution.Processing
 
             _batchDispatcher = batchDispatcher;
             _batchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
-
             _isInitialized = true;
+
+            _workBacklog.Initialize(_operationContext.RequestContext, _operationContext.QueryPlan);
         }
 
         private void TryComplete()

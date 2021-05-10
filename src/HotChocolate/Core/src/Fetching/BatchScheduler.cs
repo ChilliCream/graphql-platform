@@ -85,6 +85,8 @@ namespace HotChocolate.Fetching
 
             public IExecutionTask? Previous { get; set; }
 
+            public object? State { get; set; }
+
             public void BeginExecute(CancellationToken cancellationToken)
             {
                 _task = ExecuteAsync(cancellationToken).AsTask();

@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing.Internal;
+using HotChocolate.Execution.Processing.Plan;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -13,30 +15,22 @@ namespace HotChocolate.Execution.Processing
     {
         private SpinLock _lock = new(Debugger.IsAttached);
         private readonly UnsafeWorkQueue _work = new();
-        private readonly PausedWorkQueue _paused = new();
-        private readonly Func<IRequestContext> _requestContext;
-        private QueryPlanStep _step = default!;
+        private readonly UnsafeSuspendedWorkQueue _suspended = new();
+        private readonly QueryPlanStateMachine _stateMachine = new();
 
         private int _processors = 1;
         private bool _mainIsPaused;
+        private IRequestContext _requestContext = default!;
 
-        public WorkBacklog(Func<IRequestContext> requestContext)
+        public WorkBacklog()
         {
-            _requestContext = requestContext ??
-                throw new ArgumentNullException(nameof(requestContext));
-
             _work.BacklogEmpty += (sender, args) => BacklogEmpty?.Invoke(sender, args);
         }
 
         /// <summary>
-        /// Gets or sets the current request context.
-        /// </summary>
-        private IRequestContext RequestContext => _requestContext();
-
-        /// <summary>
         /// The diagnostic events.
         /// </summary>
-        private IDiagnosticEvents DiagnosticEvents => RequestContext.DiagnosticEvents;
+        private IDiagnosticEvents DiagnosticEvents => _requestContext.DiagnosticEvents;
 
         /// <inheritdoc/>
         public event EventHandler<EventArgs>? BackPressureLimitExceeded;
@@ -52,8 +46,14 @@ namespace HotChocolate.Execution.Processing
         {
             get
             {
-                return _work.IsRunning || _processors > 1;
+                return _work.IsRunning || !_stateMachine.IsCompleted || _processors > 1;
             }
+        }
+
+        internal void Initialize(IRequestContext requestContext, QueryPlan queryPlan)
+        {
+            _requestContext = requestContext;
+            _stateMachine.Initialize(queryPlan);
         }
 
         /// <inheritdoc/>
@@ -89,8 +89,7 @@ namespace HotChocolate.Execution.Processing
             {
                 _lock.Enter(ref lockTaken);
 
-                // if (_step.IsAllowed(task))
-                if(true)
+                if (_stateMachine.Register(task))
                 {
                     backlogSize = _work.Push(task);
 
@@ -102,7 +101,7 @@ namespace HotChocolate.Execution.Processing
                 }
                 else
                 {
-                    _paused.Enqueue(task);
+                    _suspended.Enqueue(task);
                 }
             }
             finally
@@ -114,7 +113,7 @@ namespace HotChocolate.Execution.Processing
             {
                 // we invoke the scale diagnostic event after leaving the lock to not block
                 // if a an event listener is badly implemented.
-                DiagnosticEvents.ScaleTaskProcessors(RequestContext, backlogSize, processors);
+                DiagnosticEvents.ScaleTaskProcessors(_requestContext, backlogSize, processors);
             }
         }
 
@@ -136,6 +135,18 @@ namespace HotChocolate.Execution.Processing
             try
             {
                 _lock.Enter(ref lockTaken);
+
+                // we first complete the task on the state machine so that if we are completing
+                // the last task the state machine is marked as complete before the work queue
+                // signals that it is complete.
+                if (_stateMachine.Complete(task) && !_suspended.IsEmpty)
+                {
+                    _suspended.CopyTo(_work, _stateMachine);
+                }
+
+                // last we complete the work queue which will signal to the execution context
+                // that work has been completed if it has no more tasks enqueued or marked
+                // running.
                 _work.Complete(task);
             }
             finally
@@ -231,7 +242,7 @@ namespace HotChocolate.Execution.Processing
                 {
                     // we invoke the scale diagnostic event after leaving the lock to not block
                     // if a an event listener is badly implemented.
-                    DiagnosticEvents.ScaleTaskProcessors(RequestContext, backlogSize, processors);
+                    DiagnosticEvents.ScaleTaskProcessors(_requestContext, backlogSize, processors);
                 }
             }
         }
@@ -239,6 +250,8 @@ namespace HotChocolate.Execution.Processing
         public void Clear()
         {
             _work.Clear();
+            _suspended.Clear();
+            _stateMachine.Clear();
             _processors = 1;
             BackPressureLimitExceeded = null;
         }

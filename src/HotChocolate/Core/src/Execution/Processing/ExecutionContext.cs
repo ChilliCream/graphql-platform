@@ -1,5 +1,4 @@
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
@@ -77,6 +76,11 @@ namespace HotChocolate.Execution.Processing
                 AssertNotPooled();
                 return _batchTasks;
             }
+        }
+
+        public bool IsSuspended(IExecutionTask executionTask)
+        {
+            throw new NotImplementedException();
         }
 
 #pragma warning disable 4014

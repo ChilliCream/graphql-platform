@@ -69,7 +69,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 _ => new ExecutionTaskPool<PureResolverTask>(
                     new PureResolverTaskPoolPolicy(),
                     maximumRetained));
-            
+
             return services;
         }
 
@@ -116,6 +116,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 _ => new DefaultDocumentCache());
             services.TryAddSingleton<IPreparedOperationCache>(
                 _ => new DefaultPreparedOperationCache());
+            services.TryAddSingleton<IQueryPlanCache>(
+                _ => new DefaultQueryPlanCache());
             return services;
         }
 
