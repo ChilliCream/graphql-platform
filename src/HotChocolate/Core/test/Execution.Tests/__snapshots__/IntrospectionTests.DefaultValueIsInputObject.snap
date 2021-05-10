@@ -1,9 +1,7 @@
 ﻿{
   "data": {
     "__schema": {
-      "queryType": {
-        "name": "Bar"
-      },
+      "queryType": {},
       "mutationType": null,
       "subscriptionType": null,
       "types": [
@@ -66,8 +64,7 @@
                     "kind": "NON_NULL",
                     "name": null,
                     "ofType": {
-                      "kind": "ENUM",
-                      "name": "__DirectiveLocation"
+                      "kind": "ENUM"
                     }
                   }
                 }
@@ -89,8 +86,7 @@
                     "kind": "NON_NULL",
                     "name": null,
                     "ofType": {
-                      "kind": "OBJECT",
-                      "name": "__InputValue"
+                      "kind": "OBJECT"
                     }
                   }
                 }
@@ -391,8 +387,7 @@
                     "kind": "NON_NULL",
                     "name": null,
                     "ofType": {
-                      "kind": "OBJECT",
-                      "name": "__InputValue"
+                      "kind": "OBJECT"
                     }
                   }
                 }
@@ -548,8 +543,7 @@
                     "kind": "NON_NULL",
                     "name": null,
                     "ofType": {
-                      "kind": "OBJECT",
-                      "name": "__Type"
+                      "kind": "OBJECT"
                     }
                   }
                 }
@@ -611,8 +605,7 @@
                     "kind": "NON_NULL",
                     "name": null,
                     "ofType": {
-                      "kind": "OBJECT",
-                      "name": "__Directive"
+                      "kind": "OBJECT"
                     }
                   }
                 }

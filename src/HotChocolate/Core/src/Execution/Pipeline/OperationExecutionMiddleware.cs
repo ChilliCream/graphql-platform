@@ -34,7 +34,7 @@ namespace HotChocolate.Execution.Pipeline
             _next = next ??
                 throw new ArgumentNullException(nameof(next));
             _operationContextPool = operationContextPool ??
-                                    throw new ArgumentNullException(nameof(operationContextPool));
+                throw new ArgumentNullException(nameof(operationContextPool));
             _queryExecutor = queryExecutor ??
                 throw new ArgumentNullException(nameof(queryExecutor));
             _mutationExecutor = mutationExecutor ??
