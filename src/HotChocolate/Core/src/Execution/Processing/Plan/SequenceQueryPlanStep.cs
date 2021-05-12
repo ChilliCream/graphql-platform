@@ -27,7 +27,21 @@ namespace HotChocolate.Execution.Processing.Plan
         internal QueryPlanStep? GetNextStep(QueryPlanStep current)
         {
             var index = Array.IndexOf(_steps, current);
-            return index == -1 ? null : _steps[index];
+
+            if (index == -1)
+            {
+                return null;
+            }
+
+            // move index to the next item.
+            index++;
+
+            if (index < _steps.Length)
+            {
+                return _steps[index];
+            }
+
+            return null;
         }
     }
 }

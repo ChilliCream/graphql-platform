@@ -1,21 +1,7 @@
 ﻿{
   "errors": [
     {
-      "message": "String cannot serialize the given value.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 3
-        }
-      ],
-      "path": [
-        "error9"
-      ],
-      "extensions": {
-        "actualValue": "HotChocolate.Error",
-        "actualType": "HotChocolate.Error",
-        "code": "EXEC_INVALID_LEAF_VALUE"
-      }
+      "message": "query error 9"
     }
   ],
   "data": {

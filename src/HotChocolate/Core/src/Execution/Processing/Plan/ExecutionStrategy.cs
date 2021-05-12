@@ -1,6 +1,6 @@
 namespace HotChocolate.Execution.Processing.Plan
 {
-    public enum ExecutionStrategy
+    internal enum ExecutionStrategy
     {
         Serial,
         Parallel

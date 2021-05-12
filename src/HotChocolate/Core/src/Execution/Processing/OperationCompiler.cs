@@ -241,7 +241,7 @@ namespace HotChocolate.Execution.Processing
                                     selection.SelectionSet.Selections))
                             : selection,
                         responseName: responseName,
-                        resolverPipeline: TryCreateFieldMiddleware(field, selection),
+                        resolverPipeline: CreateFieldMiddleware(field, selection),
                         pureResolver: TryCreatePureField(field, selection),
                         inlineResolver: TryCreateInlineField(field, selection),
                         arguments: CoerceArgumentValues(field, selection, responseName),
@@ -543,18 +543,6 @@ namespace HotChocolate.Execution.Processing
             return argument.Formatter is not null
                 ? argument.Formatter.OnAfterDeserialize(runtimeValue)
                 : runtimeValue;
-        }
-
-        private FieldDelegate? TryCreateFieldMiddleware(
-            IObjectField field,
-            FieldNode selection)
-        {
-            if (field.PureResolver is not null && selection.Directives.Count == 0)
-            {
-                return null;
-            }
-
-            return CreateFieldMiddleware(field, selection);
         }
 
         internal FieldDelegate CreateFieldMiddleware(

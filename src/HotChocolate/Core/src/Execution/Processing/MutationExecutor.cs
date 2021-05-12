@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using static HotChocolate.Execution.Processing.Tasks.ResolverTaskFactory;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -36,15 +37,14 @@ namespace HotChocolate.Execution.Processing
                 ISelection selection = selections[i];
                 if (selection.IsIncluded(operationContext.Variables))
                 {
-                    IExecutionTask task = operationContext.CreateTask(
-                        new ResolverTaskDefinition(
-                            operationContext,
-                            selection,
-                            responseIndex++,
-                            resultMap,
-                            operationContext.RootValue,
-                            Path.New(selection.ResponseName),
-                            scopedContext));
+                    IExecutionTask task = CreateResolverTask(
+                        operationContext,
+                        selection,
+                        operationContext.RootValue,
+                        responseIndex++,
+                        Path.New(selection.ResponseName),
+                        resultMap,
+                        scopedContext);
 
                     operationContext.Execution.Work.Register(task);
 

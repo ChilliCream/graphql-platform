@@ -32,7 +32,19 @@ namespace HotChocolate.Execution.Processing.Internal
             _head = null;
             IsEmpty = true;
 
-            IExecutionTask? tail = null;
+            IExecutionTask? tail = _head?.Previous;
+
+            if (tail is not null)
+            {
+                tail.Next = null;
+                tail = null;
+            }
+
+            if (ReferenceEquals(head, head.Next))
+            {
+                head.Next = null;
+            }
+
             _tasks.Clear();
 
             while (head is not null)
@@ -99,6 +111,7 @@ namespace HotChocolate.Execution.Processing.Internal
             }
 
             AppendTask(ref _head, executionTask);
+            IsEmpty = false;
         }
 
         private void AppendTask(ref IExecutionTask? head, IExecutionTask executionTask)

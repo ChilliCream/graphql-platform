@@ -1,24 +1,32 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Execution.Processing.Plan
 {
-    internal class QueryPlanStateMachine
+    internal sealed class QueryPlanStateMachine
     {
-        private readonly HashSet<QueryPlanStep> _active = new();
-        private int[] _tasks = Array.Empty<int>();
+        // by default we will have 8 slots to store state on.
+        private State[] _state = { new(), new(), new(), new(), new(), new(), new(), new() };
+
+        // since it is likely that we hit one specific state multiple time we keep the last touched
+        // cached for faster access.
+        private State? _current;
+
+        // the count of active query plan steps.
+        private int _running;
+
+        // the current query plan.
         private QueryPlan _plan = default!;
 
-        public bool IsCompleted => _active.Count == 0;
+        public bool IsCompleted => _running == 0;
 
         public void Initialize(QueryPlan plan)
         {
             _plan = plan;
 
-            if (_tasks.Length < plan.Count)
+            if (_state.Length < plan.Count)
             {
-                _tasks = new int[plan.Count];
+                Array.Resize(ref _state, plan.Count);
             }
 
             Activate(plan.Root);
@@ -28,9 +36,17 @@ namespace HotChocolate.Execution.Processing.Plan
         {
             if (_plan.TryGetStep(task, out var step))
             {
+                State? state = _current;
+
+                if (state is null || state.Id != step.Id)
+                {
+                    _current = state = _state[step.Id];
+                    state.Id = step.Id;
+                }
+
+                state.Tasks++;
                 task.State = step;
-                _tasks[step.Id]++;
-                return _active.Contains(step);
+                return state.IsActive;
             }
 
             return true;
@@ -40,7 +56,15 @@ namespace HotChocolate.Execution.Processing.Plan
         {
             if (task.State is QueryPlanStep step)
             {
-                if (--_tasks[step.Id] == 0)
+                State? state = _current;
+
+                if (state is null || state.Id != step.Id)
+                {
+                    _current = state = _state[step.Id];
+                    state.Id = step.Id;
+                }
+
+                if (--state.Tasks == 0)
                 {
                     return Complete(step);
                 }
@@ -49,64 +73,134 @@ namespace HotChocolate.Execution.Processing.Plan
             return false;
         }
 
-        public bool IsSuspended(IExecutionTask task) =>
-            task.State is QueryPlanStep step &&
-            _active.Contains(step);
+        public bool IsSuspended(IExecutionTask task)
+        {
+            if (task.State is QueryPlanStep step)
+            {
+                State? state = _current;
+
+                if (state is null || state.Id != step.Id)
+                {
+                    _current = state = _state[step.Id];
+                    state.Id = step.Id;
+                }
+
+                return !state.IsActive;
+            }
+
+            return false;
+        }
 
         public void Clear()
         {
-            _active.Clear();
-            _tasks.AsSpan().Clear();
+            for (var i = 0; i < _state.Length; i++)
+            {
+                _state[i].Clear();
+            }
+
+            _current = _state[0];
+            _running = default;
         }
 
         private void Activate(QueryPlanStep step)
         {
-            if (step is SequenceQueryPlanStep sequence)
+            while (true)
             {
-                _active.Add(sequence);
-                Activate(sequence.Steps[0]);
-            }
-            else if (step is ParallelQueryPlanStep parallel)
-            {
-                _active.Add(parallel);
-
-                for (var i = 0; i < parallel.Steps.Count; i++)
+                if (step is SequenceQueryPlanStep sequence)
                 {
-                    Activate(parallel.Steps[i]);
+                    SetActiveStatus(sequence.Id, true);
+                    step = sequence.Steps[0];
+                    continue;
                 }
-            }
-            else
-            {
-                _active.Add(step);
+
+                if (step is ParallelQueryPlanStep parallel)
+                {
+                    SetActiveStatus(parallel.Id, true);
+
+                    for (var i = 0; i < parallel.Steps.Count; i++)
+                    {
+                        Activate(parallel.Steps[i]);
+                    }
+
+                    continue;
+                }
+
+                SetActiveStatus(step.Id, true);
+                break;
             }
         }
 
         private bool Complete(QueryPlanStep step)
         {
-            _active.Remove(step);
-
-            if (step.Parent is SequenceQueryPlanStep sequence)
+            while (true)
             {
-                if (sequence.GetNextStep(sequence) is { } next)
+                SetActiveStatus(step.Id, false);
+
+                if (step.Parent is SequenceQueryPlanStep sequence)
                 {
-                    Activate(next);
-                    return true;
+                    if (sequence.GetNextStep(step) is { } next)
+                    {
+                        Activate(next);
+                        return true;
+                    }
+
+                    step = sequence;
+                    continue;
                 }
 
-                return Complete(sequence);
-            }
-
-            if (step.Parent is ParallelQueryPlanStep parallel)
-            {
-                if (parallel.Steps.Intersect(_active).Any())
+                if (step.Parent is ParallelQueryPlanStep parallel)
                 {
-                    return false;
+                    for(var i = 0; i < parallel.Steps.Count; i++)
+                    {
+                        if (_state[i].IsActive)
+                        {
+                            return false;
+                        }
+                    }
+
+                    step = parallel;
+                    continue;
                 }
 
-                return Complete(parallel);
+                return false;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void SetActiveStatus(int stepId, bool active)
+        {
+            State? state = _current;
+
+            if (state is null || state.Id != stepId)
+            {
+                _current = state = _state[stepId];
+                state.Id = stepId;
             }
 
-            return false;
+            state.IsActive = active;
+
+            if (active)
+            {
+                _running++;
+            }
+            else
+            {
+                _running--;
+            }
+        }
+
+        private sealed class State
+        {
+            public int Id;
+            public bool IsActive;
+            public int Tasks;
+
+            public void Clear()
+            {
+                Id = default;
+                IsActive = default;
+                Tasks = default;
+            }
         }
     }
 }

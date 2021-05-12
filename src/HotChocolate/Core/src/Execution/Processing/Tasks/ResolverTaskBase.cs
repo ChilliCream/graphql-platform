@@ -72,6 +72,7 @@ namespace HotChocolate.Execution.Processing.Tasks
 
         protected void CompleteValue(bool success, CancellationToken cancellationToken)
         {
+            ValueCompletionContext context = new(_operationContext, _resolverContext);
             object? completedValue = null;
 
             try
@@ -79,14 +80,8 @@ namespace HotChocolate.Execution.Processing.Tasks
                 // we will only try to complete the resolver value if there are no known errors.
                 if (success)
                 {
-                    if (ValueCompletion.TryComplete(
-                            _operationContext,
-                            _resolverContext,
-                            _resolverContext.Path,
-                            _resolverContext.Field.Type,
-                            _resolverContext.Result,
-                            out completedValue) &&
-                        !_resolverContext.Field.Type.IsLeafType() &&
+                    if (ValueCompletion2.TryComplete(ref context, out completedValue) &&
+                        context.FieldType.Kind is not TypeKind.Scalar and not TypeKind.Enum &&
                         completedValue is IHasResultDataParent result)
                     {
                         result.Parent = _resolverContext.ResultMap;
