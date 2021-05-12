@@ -93,6 +93,12 @@ It also takes care of removing lines marked with `*REMOVE*` (removals of APIs).
 
 This will output the contents of all `PublicAPI.Unshipped.txt` files throughout the project.
 
+If we only want to see the breaking changes, we can add the `breaking` flag:
+
+```sh
+display-unshipped-api.ps1 -breaking $true
+```
+
 ### diff-shipped-api.ps1
 
 This shows all changes of `PublicAPI.Shipped.txt` files between git refs. Tags, commit hashes and branch names are supported.

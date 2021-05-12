@@ -3,6 +3,7 @@ param ()
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
+$removedPrefix = "*REMOVED*";
 
 function MarkShipped([string]$dir) {
     $shippedFilePath = Join-Path $dir "PublicAPI.Shipped.txt"
@@ -18,7 +19,6 @@ function MarkShipped([string]$dir) {
     }
 
     $removed = @()
-    $removedPrefix = "*REMOVED*";
 
     Write-Host "Processing $dir"
 
@@ -43,6 +43,8 @@ try {
         $dir = Split-Path -parent $file
         MarkShipped $dir
     }
+
+    Write-Host "Marked unshipped API as shipped!"
 }
 catch {
     Write-Host $_

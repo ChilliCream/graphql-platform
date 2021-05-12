@@ -1,4 +1,4 @@
-[CmdletBinding(PositionalBinding=$false)]
+[CmdletBinding(PositionalBinding = $false)]
 param (
     [string]$from,
     [string]$to = "main"
