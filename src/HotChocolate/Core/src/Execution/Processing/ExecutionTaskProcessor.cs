@@ -59,7 +59,7 @@ namespace HotChocolate.Execution.Processing
             CancellationToken cancellationToken = _context.RequestAborted;
 
             await Task.Yield();
-            bool completed;
+
 RESTART:
 
             try
@@ -77,12 +77,8 @@ RESTART:
                     HandleError(ex);
                 }
             }
-            finally
-            {
-                completed = executionContext.Work.TryCompleteProcessor();
-            }
 
-            if (!completed)
+            if (!executionContext.Work.TryCompleteProcessor())
             {
                 goto RESTART;
             }

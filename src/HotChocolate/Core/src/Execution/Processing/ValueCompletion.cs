@@ -9,154 +9,85 @@ using static HotChocolate.Execution.Processing.Tasks.ResolverTaskFactory;
 
 namespace HotChocolate.Execution.Processing
 {
-    internal ref struct ValueCompletionContext
-    {
-        public ValueCompletionContext(
-            IOperationContext operationContext,
-            MiddlewareContext resolverContext)
-            : this(
-                operationContext,
-                resolverContext,
-                (ISelection)resolverContext.Selection,
-                resolverContext.Path,
-                resolverContext.Field.Type,
-                resolverContext.ResponseName,
-                resolverContext.ResponseIndex,
-                resolverContext.Result)
-        {
-        }
-
-        public ValueCompletionContext(
-            IOperationContext operationContext,
-            MiddlewareContext resolverContext,
-            ISelection selection,
-            Path path,
-            IType fieldType,
-            string responseName,
-            int responseIndex,
-            object? result)
-        {
-            OperationContext = operationContext;
-            ResolverContext = resolverContext;
-            Selection = selection;
-            Path = path;
-            FieldType = fieldType;
-            ResponseName = responseName;
-            ResponseIndex = responseIndex;
-            Result = result;
-        }
-
-        public IOperationContext OperationContext { get; }
-        public MiddlewareContext ResolverContext { get; }
-        public ISelection Selection { get; set; }
-        public Path Path { get; set; }
-        public IType FieldType { get; set; }
-        public string ResponseName { get; set; }
-        public int ResponseIndex { get; set; }
-        public object? Result { get; set; }
-
-        public void ReportError(IError error)
-        {
-            error = OperationContext.ErrorHandler.Handle(error);
-            OperationContext.Result.AddError(error, Selection.SyntaxNode);
-            OperationContext.DiagnosticEvents.ResolverError(ResolverContext, error);
-        }
-
-        public void ReportError(Exception exception)
-        {
-            if (exception is null)
-            {
-                throw new ArgumentNullException(nameof(exception));
-            }
-
-            if (exception is GraphQLException graphQLException)
-            {
-                foreach (IError error in graphQLException.Errors)
-                {
-                    ReportError(error);
-                }
-            }
-            else
-            {
-                IError error = OperationContext.ErrorHandler
-                    .CreateUnexpectedError(exception)
-                    .SetPath(Path)
-                    .AddLocation(Selection.SyntaxNode)
-                    .Build();
-
-                ReportError(error);
-            }
-        }
-
-        public ValueCompletionContext WithInnerFieldType()
-        {
-            return new(
-                OperationContext,
-                ResolverContext,
-                Selection,
-                Path,
-                FieldType.InnerType(),
-                ResponseName,
-                ResponseIndex,
-                Result);
-        }
-
-        public ValueCompletionContext Copy()
-        {
-            return new(
-                OperationContext,
-                ResolverContext,
-                Selection,
-                Path,
-                FieldType,
-                ResponseName,
-                ResponseIndex,
-                Result);
-        }
-    }
-
     internal static partial class ValueCompletion2
     {
         public static bool TryComplete(
-            ref ValueCompletionContext context,
+            IOperationContext operationContext,
+            MiddlewareContext resolverContext,
+            ISelection selection,
+            Path path ,
+            IType fieldType ,
+            string responseName,
+            int responseIndex,
+            object? result,
             out object? completedResult)
         {
-            TypeKind typeKind = context.FieldType.Kind;
+            TypeKind typeKind = fieldType.Kind;
 
-            if (typeKind == TypeKind.NonNull)
+            if (typeKind is TypeKind.NonNull)
             {
-                ValueCompletionContext nullableContext = context.WithInnerFieldType();
-                return TryComplete(ref nullableContext, out completedResult) &&
+                return TryComplete(
+                    operationContext,
+                    resolverContext,
+                    selection,
+                    path,
+                    fieldType.InnerType(),
+                    responseName,
+                    responseIndex,
+                    result,
+                    out completedResult) &&
                     completedResult is not null;
             }
 
-            if (context.Result is null)
+            if (result is null)
             {
                 completedResult = null;
                 return true;
             }
 
-            if (typeKind == TypeKind.List)
+            if (typeKind is TypeKind.List)
             {
-                return TryCompleteListValue(ref context, out completedResult);
+                return TryCompleteListValue(
+                    operationContext,
+                    resolverContext,
+                    selection,
+                    path,
+                    fieldType,
+                    responseName,
+                    responseIndex,
+                    result,
+                    out completedResult);
             }
 
-            if (typeKind == TypeKind.Scalar || typeKind == TypeKind.Enum)
+            if (typeKind is TypeKind.Scalar or TypeKind.Enum)
             {
-                return TryCompleteLeafValue(ref context, out completedResult);
+                return TryCompleteLeafValue(
+                    operationContext,
+                    resolverContext,
+                    selection,
+                    path,
+                    fieldType,
+                    result,
+                    out completedResult);
             }
 
-            if (typeKind == TypeKind.Object ||
-                typeKind == TypeKind.Interface ||
-                typeKind == TypeKind.Union)
+            if (typeKind is TypeKind.Object or TypeKind.Interface or TypeKind.Union)
             {
-                return TryCompleteCompositeValue(ref context, out completedResult);
+                return TryCompleteCompositeValue(
+                    operationContext,
+                    resolverContext,
+                    selection,
+                    path,
+                    fieldType,
+                    result,
+                    out completedResult);
             }
 
-            context.ReportError(
-                UnexpectedValueCompletionError(
-                    context.Selection.SyntaxNode,
-                    context.Path));
+            ReportError(
+                operationContext,
+                resolverContext,
+                selection,
+                UnexpectedValueCompletionError(selection.SyntaxNode, path));
 
             completedResult = null;
             return false;
@@ -169,17 +100,21 @@ namespace HotChocolate.Execution.Processing
     internal static partial class ValueCompletion2
     {
         private static bool TryCompleteLeafValue(
-            ref ValueCompletionContext context,
+            IOperationContext operationContext,
+            MiddlewareContext resolverContext,
+            ISelection selection,
+            Path path ,
+            IType fieldType ,
+            object? result,
             out object? completedResult)
         {
             try
             {
-                var leafType = (ILeafType)context.FieldType;
+                var leafType = (ILeafType)fieldType;
                 Type runtimeType = leafType.RuntimeType;
-                object result = context.Result!;
 
                 if (!runtimeType.IsInstanceOfType(result) &&
-                    context.OperationContext.Converter.TryConvert(runtimeType, result, out var c))
+                    operationContext.Converter.TryConvert(runtimeType, result, out var c))
                 {
                     result = c;
                 }
@@ -189,20 +124,23 @@ namespace HotChocolate.Execution.Processing
             }
             catch (SerializationException ex)
             {
-                context.ReportError(
-                    InvalidLeafValue(
-                        ex,
-                        context.Selection.SyntaxNode,
-                        context.Path));
+                ReportError(
+                    operationContext,
+                    resolverContext,
+                    selection,
+                    InvalidLeafValue(ex, selection.SyntaxNode, path));
             }
             catch (Exception ex)
             {
-                context.ReportError(
+                ReportError(
+                    operationContext,
+                    resolverContext,
+                    selection,
                     UnexpectedLeafValueSerializationError(
                         ex,
-                        context.OperationContext.ErrorHandler,
-                        context.Selection.SyntaxNode,
-                        context.Path));
+                        operationContext.ErrorHandler,
+                        selection.SyntaxNode,
+                        path));
             }
 
             completedResult = null;
@@ -214,76 +152,102 @@ namespace HotChocolate.Execution.Processing
     internal static partial class ValueCompletion2
     {
         private static bool TryCompleteCompositeValue(
-            ref ValueCompletionContext context,
+            IOperationContext operationContext,
+            MiddlewareContext resolverContext,
+            ISelection selection,
+            Path path ,
+            IType fieldType,
+            object result,
             [NotNullWhen(true)] out object? completedResult)
         {
-            if (TryResolveObjectType(ref context, out ObjectType? objectType))
+            if (TryResolveObjectType(
+                operationContext,
+                resolverContext,
+                selection,
+                path,
+                fieldType,
+                result,
+                out ObjectType? objectType))
             {
-                SelectionSetNode selectionSet = context.Selection.SyntaxNode.SelectionSet!;
-                ISelectionSet selections = context.OperationContext.CollectFields(selectionSet, objectType);
+                SelectionSetNode selectionSet = selection.SyntaxNode.SelectionSet!;
+                ISelectionSet selections = operationContext.CollectFields(selectionSet, objectType);
                 Type runtimeType = objectType.RuntimeType;
 
-                if (!runtimeType.IsInstanceOfType(context.Result) &&
-                    context.OperationContext.Converter.TryConvert(runtimeType, context.Result, out var converted))
+                if (!runtimeType.IsInstanceOfType(result) &&
+                    operationContext.Converter.TryConvert(runtimeType, result, out var converted))
                 {
-                    context.Result = converted;
+                    result = converted;
                 }
 
-                completedResult = EnqueueOrInlineResolverTasks(ref context, selections);
+                completedResult = EnqueueOrInlineResolverTasks(
+                    operationContext,
+                    resolverContext,
+                    path,
+                    result,
+                    selections);
                 return true;
             }
 
-            context.ReportError(
-                ValueCompletion_CouldNotResolveAbstractType(
-                    context.Selection.SyntaxNode,
-                    context.Path,
-                    context.Result!));
+            ReportError(
+                operationContext,
+                resolverContext,
+                selection,
+                ValueCompletion_CouldNotResolveAbstractType(selection.SyntaxNode, path, result));
+
             completedResult = null;
             return false;
         }
 
         private static bool TryResolveObjectType(
-            ref ValueCompletionContext context,
+            IOperationContext operationContext,
+            MiddlewareContext resolverContext,
+            ISelection selection,
+            Path path ,
+            IType fieldType,
+            object result,
             [NotNullWhen(true)] out ObjectType? objectType)
         {
             try
             {
-                if (context.ResolverContext.ValueType is ObjectType valueType &&
-                    ReferenceEquals(context.Selection, context.ResolverContext.Selection))
+                if (resolverContext.ValueType is ObjectType valueType &&
+                    ReferenceEquals(selection, resolverContext.Selection))
                 {
                     objectType = valueType;
                     return true;
                 }
 
-                switch (context.FieldType)
+                switch (fieldType)
                 {
                     case ObjectType ot:
                         objectType = ot;
                         return true;
 
                     case InterfaceType it:
-                        objectType = it.ResolveConcreteType(context.ResolverContext, context.Result!);
+                        objectType = it.ResolveConcreteType(resolverContext, result);
                         return objectType is not null;
 
                     case UnionType ut:
-                        objectType = ut.ResolveConcreteType(context.ResolverContext, context.Result!);
+                        objectType = ut.ResolveConcreteType(resolverContext, result);
                         return objectType is not null;
                 }
 
-                context.ReportError(
-                    UnableToResolveTheAbstractType(
-                        context.FieldType.Print(),
-                        context.Selection.SyntaxNode,
-                        context.Path));
+                ReportError(
+                    operationContext,
+                    resolverContext,
+                    selection,
+                    UnableToResolveTheAbstractType(fieldType.Print(), selection.SyntaxNode, path));
             }
             catch (Exception ex)
             {
-                context.ReportError(
+                ReportError(
+                    operationContext,
+                    resolverContext,
+                    selection,
                     UnexpectedErrorWhileResolvingAbstractType(
                         ex,
-                        context.FieldType.Print(),
-                        context.Selection.SyntaxNode,
-                        context.Path));
+                        fieldType.Print(),
+                        selection.SyntaxNode,
+                        path));
             }
 
             objectType = null;
@@ -295,39 +259,64 @@ namespace HotChocolate.Execution.Processing
     internal static partial class ValueCompletion2
     {
         private static bool TryCompleteListValue(
-            ref ValueCompletionContext context,
+            IOperationContext operationContext,
+            MiddlewareContext resolverContext,
+            ISelection selection,
+            Path path ,
+            IType fieldType ,
+            string responseName,
+            int responseIndex,
+            object? result,
             out object? completedValue)
         {
-            IType elementType = context.FieldType.InnerType();
+            IType elementType = fieldType.InnerType();
 
-            if (elementType.Kind == TypeKind.Object ||
-                elementType.Kind == TypeKind.Interface ||
-                elementType.Kind == TypeKind.Union)
+            if (elementType.Kind is TypeKind.Object or TypeKind.Interface or TypeKind.Union)
             {
-                return TryCompleteCompositeListValue(ref context, out completedValue);
+                return TryCompleteCompositeListValue(
+                    operationContext,
+                    resolverContext,
+                    selection,
+                    path,
+                    fieldType,
+                    responseName,
+                    responseIndex,
+                    result,
+                    out completedValue);
             }
 
-            return TryCompleteOtherListValue(ref context, out completedValue);
+            return TryCompleteOtherListValue(
+                operationContext,
+                resolverContext,
+                selection,
+                path,
+                fieldType,
+                responseName,
+                responseIndex,
+                result,
+                out completedValue);
         }
 
         private static bool TryCompleteCompositeListValue(
-            ref ValueCompletionContext context,
+            IOperationContext operationContext,
+            MiddlewareContext resolverContext,
+            ISelection selection,
+            Path path ,
+            IType fieldType ,
+            string responseName,
+            int responseIndex,
+            object? result,
             out object? completedResult)
         {
-            ValueCompletionContext elementContext = context.WithInnerFieldType();
-            Path path = context.Path;
+            ResultMapList resultList = operationContext.Result.RentResultMapList();
+            IType elementType = fieldType.InnerType();
+            resultList.IsNullable = elementType.Kind == TypeKind.NonNull;
 
-            ResultMapList resultList = context.OperationContext.Result.RentResultMapList();
-            resultList.IsNullable = elementContext.FieldType.Kind == TypeKind.NonNull;
-
-            if (context.Result is Array array)
+            if (result is Array array)
             {
                 for (var i = 0; i < array.Length; i++)
                 {
-                    elementContext.Path = path.Append(i);
-                    elementContext.Result = array.GetValue(i);
-
-                    if (!TryCompleteElement(ref elementContext))
+                    if (!TryCompleteElement(path.Append(i), array.GetValue(i)))
                     {
                         completedResult = null;
                         return true;
@@ -338,14 +327,11 @@ namespace HotChocolate.Execution.Processing
                 return true;
             }
 
-            if (context.Result is IList list)
+            if (result is IList list)
             {
                 for (var i = 0; i < list.Count; i++)
                 {
-                    elementContext.Path = path.Append(i);
-                    elementContext.Result = list[i];
-
-                    if (!TryCompleteElement(ref elementContext))
+                    if (!TryCompleteElement(path.Append(i), list[i]))
                     {
                         completedResult = null;
                         return true;
@@ -356,16 +342,13 @@ namespace HotChocolate.Execution.Processing
                 return true;
             }
 
-            if (context.Result is IEnumerable enumerable)
+            if (result is IEnumerable enumerable)
             {
                 var index = 0;
 
                 foreach (var element in enumerable)
                 {
-                    elementContext.Path = path.Append(index++);
-                    elementContext.Result = element;
-
-                    if (!TryCompleteElement(ref elementContext))
+                    if (!TryCompleteElement(path.Append(index++), element))
                     {
                         completedResult = null;
                         return true;
@@ -376,17 +359,27 @@ namespace HotChocolate.Execution.Processing
                 return true;
             }
 
-            context.ReportError(
-                ListValueIsNotSupported(
-                    resultList.GetType(),
-                    context.Selection.SyntaxNode,
-                    path));
+            ReportError(
+                operationContext,
+                resolverContext,
+                selection,
+                ListValueIsNotSupported(resultList.GetType(), selection.SyntaxNode, path));
+
             completedResult = null;
             return false;
 
-            bool TryCompleteElement(ref ValueCompletionContext elementContext)
+            bool TryCompleteElement(Path elementPath, object? elementResult)
             {
-                if (TryComplete(ref elementContext, out var completedElement) &&
+                if (TryComplete(
+                    operationContext,
+                    resolverContext,
+                    selection,
+                    elementPath,
+                    elementType,
+                    responseName,
+                    responseIndex,
+                    elementResult,
+                    out var completedElement) &&
                     completedElement is ResultMap resultMap)
                 {
                     resultMap.Parent = resultList;
@@ -406,24 +399,26 @@ namespace HotChocolate.Execution.Processing
         }
 
         private static bool TryCompleteOtherListValue(
-            ref ValueCompletionContext context,
+            IOperationContext operationContext,
+            MiddlewareContext resolverContext,
+            ISelection selection,
+            Path path ,
+            IType fieldType ,
+            string responseName,
+            int responseIndex,
+            object? result,
             out object? completedResult)
         {
-            ValueCompletionContext elementContext = context.WithInnerFieldType();
-            Path path = context.Path;
+            ResultList resultList = operationContext.Result.RentResultList();
+            IType elementType = fieldType.InnerType();
+            resultList.IsNullable = elementType.Kind == TypeKind.NonNull;
+            var isElementList = elementType.IsListType();
 
-            ResultList resultList = context.OperationContext.Result.RentResultList();
-            resultList.IsNullable = elementContext.FieldType.Kind == TypeKind.NonNull;
-            var isElementList = elementContext.FieldType.IsListType();
-
-            if (context.Result is Array array)
+            if (result is Array array)
             {
                 for (var i = 0; i < array.Length; i++)
                 {
-                    elementContext.Path = path.Append(i);
-                    elementContext.Result = array.GetValue(i);
-
-                    if (!TryCompleteElement(ref elementContext))
+                    if (!TryCompleteElement(path.Append(i), array.GetValue(i)))
                     {
                         completedResult = null;
                         return true;
@@ -434,14 +429,11 @@ namespace HotChocolate.Execution.Processing
                 return true;
             }
 
-            if (context.Result is IList list)
+            if (result is IList list)
             {
                 for (var i = 0; i < list.Count; i++)
                 {
-                    elementContext.Path = path.Append(i);
-                    elementContext.Result = list[i];
-
-                    if (!TryCompleteElement(ref elementContext))
+                    if (!TryCompleteElement(path.Append(i),  list[i]))
                     {
                         completedResult = null;
                         return true;
@@ -452,16 +444,13 @@ namespace HotChocolate.Execution.Processing
                 return true;
             }
 
-            if (context.Result is IEnumerable enumerable)
+            if (result is IEnumerable enumerable)
             {
                 var index = 0;
 
                 foreach (var element in enumerable)
                 {
-                    elementContext.Path = path.Append(index++);
-                    elementContext.Result = element;
-
-                    if (!TryCompleteElement(ref elementContext))
+                    if (!TryCompleteElement(path.Append(index++),  element))
                     {
                         completedResult = null;
                         return true;
@@ -472,24 +461,34 @@ namespace HotChocolate.Execution.Processing
                 return true;
             }
 
-            context.ReportError(
-                ListValueIsNotSupported(
-                    resultList.GetType(),
-                    context.Selection.SyntaxNode,
-                    path));
+            ReportError(
+                operationContext,
+                resolverContext,
+                selection,
+                ListValueIsNotSupported(resultList.GetType(), selection.SyntaxNode, path));
+
             completedResult = null;
             return false;
 
-            bool TryCompleteElement(ref ValueCompletionContext elementContext)
+            bool TryCompleteElement(Path elementPath, object? elementResult)
             {
-                if (TryComplete(ref elementContext, out var completedElementValue) &&
-                    completedElementValue is not null)
+                if (TryComplete(
+                        operationContext,
+                        resolverContext,
+                        selection,
+                        elementPath,
+                        elementType,
+                        responseName,
+                        responseIndex,
+                        elementResult,
+                        out var completedElement) &&
+                    completedElement is not null)
                 {
-                    resultList.Add(completedElementValue);
+                    resultList.Add(completedElement);
 
                     if (isElementList)
                     {
-                        SetParent(completedElementValue, resultList);
+                        ((IHasResultDataParent)completedElement).Parent = resultList;
                     }
                 }
                 else if (resultList.IsNullable)
@@ -503,38 +502,51 @@ namespace HotChocolate.Execution.Processing
 
                 return true;
             }
-
-            void SetParent(object elementValue, IResultData list) =>
-                ((IHasResultDataParent)elementValue).Parent = list;
         }
     }
 
     // tools
     internal static partial class ValueCompletion2
     {
-        public static void SetCompletedValue(
-            this ValueCompletionContext context,
-            object? completedValue,
-            ResultMap resultMap)
+        public static  void ReportError(
+            IOperationContext operationContext,
+            MiddlewareContext resolverContext,
+            ISelection selection,
+            IError error)
         {
-            bool isNonNullType = context.FieldType.IsNullableType();
+            error = operationContext.ErrorHandler.Handle(error);
+            operationContext.Result.AddError(error, selection.SyntaxNode);
+            operationContext.DiagnosticEvents.ResolverError(resolverContext, error);
+        }
 
-            if (completedValue is null && isNonNullType)
+        public static void ReportError(
+            IOperationContext operationContext,
+            MiddlewareContext resolverContext,
+            ISelection selection,
+            Path path,
+            Exception exception)
+        {
+            if (exception is null)
             {
-                // if we detect a non-null violation we will stash it for later.
-                // the non-null propagation is delayed so that we can parallelize better.
-                context.OperationContext.Result.AddNonNullViolation(
-                    context.Selection.SyntaxNode,
-                    context.Path,
-                    resultMap);
+                throw new ArgumentNullException(nameof(exception));
+            }
+
+            if (exception is GraphQLException graphQLException)
+            {
+                foreach (IError error in graphQLException.Errors)
+                {
+                    ReportError(operationContext, resolverContext, selection, error);
+                }
             }
             else
             {
-                resultMap.SetValue(
-                    context.ResponseIndex,
-                    context.ResponseName,
-                    completedValue,
-                    isNonNullType);
+                IError error = operationContext.ErrorHandler
+                    .CreateUnexpectedError(exception)
+                    .SetPath(path)
+                    .AddLocation(selection.SyntaxNode)
+                    .Build();
+
+                ReportError(operationContext, resolverContext, selection, error);
             }
         }
     }

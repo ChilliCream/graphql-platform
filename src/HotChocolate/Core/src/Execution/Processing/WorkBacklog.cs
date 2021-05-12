@@ -1,7 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
@@ -256,9 +256,10 @@ namespace HotChocolate.Execution.Processing
             BackPressureLimitExceeded = null;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool TryScaleUnsafe()
         {
-            if (_processors < 4)
+            if (_processors < 4 && BackPressureLimitExceeded is not null)
             {
                 _processors++;
                 BackPressureLimitExceeded?.Invoke(null, EventArgs.Empty);
@@ -280,5 +281,20 @@ namespace HotChocolate.Execution.Processing
                 7 => 256,
                 _ => 512
             };
+
+        public override bool Equals(object? obj)
+        {
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        public override string? ToString()
+        {
+            return base.ToString();
+        }
     }
 }

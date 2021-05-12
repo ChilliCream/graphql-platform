@@ -46,18 +46,17 @@ namespace HotChocolate.Execution.Processing.Tasks
         }
 
         public static ResultMap EnqueueOrInlineResolverTasks(
-            ref ValueCompletionContext context,
+            IOperationContext operationContext,
+            MiddlewareContext resolverContext,
+            Path path,
+            object result,
             ISelectionSet selectionSet)
         {
             var responseIndex = 0;
             IReadOnlyList<ISelection> selections = selectionSet.Selections;
-            IWorkBacklog backlog = context.OperationContext.Execution.Work;
-            ResultMap resultMap = context.OperationContext.Result.RentResultMap(selections.Count);
-            IVariableValueCollection variables = context.OperationContext.Variables;
-            ValueCompletionContext selectionContext = context.Copy();
-
-            object result = context.Result!;
-            Path path = context.Path;
+            IWorkBacklog backlog = operationContext.Execution.Work;
+            ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
+            IVariableValueCollection variables = operationContext.Variables;
 
             for (var i = 0; i < selections.Count; i++)
             {
@@ -65,35 +64,53 @@ namespace HotChocolate.Execution.Processing.Tasks
 
                 if (selection.IsIncluded(variables))
                 {
-                    selectionContext.Selection = selection;
-                    selectionContext.Path = path.Append(selection.ResponseName);
-                    selectionContext.FieldType = selection.Field.Type;
-                    selectionContext.ResponseName = selection.ResponseName;
-                    selectionContext.ResponseIndex = responseIndex++;
-                    selectionContext.Result = result;
-
                     switch (selection.Strategy)
                     {
                         case SelectionExecutionStrategy.Inline:
-                            ResolveAndCompleteInline(ref selectionContext, resultMap);
+                            ResolveAndCompleteInline(
+                                operationContext,
+                                resolverContext,
+                                selection,
+                                path.Append(selection.ResponseName),
+                                selection.Field.Type,
+                                selection.ResponseName,
+                                responseIndex++,
+                                result,
+                                resultMap);
                             break;
 
                         case SelectionExecutionStrategy.Pure:
-                            backlog.Register(CreatePureResolverTask(ref selectionContext, resultMap));
+                            IExecutionTask pureResolverTask = CreatePureResolverTask(
+                                operationContext,
+                                resolverContext,
+                                selection,
+                                path.Append(selection.ResponseName),
+                                responseIndex++,
+                                result,
+                                resultMap);
+                            backlog.Register(pureResolverTask);
                             break;
 
                         // parallel and serial are always enqueued.
                         default:
-                            backlog.Register(CreateResolverTask(ref selectionContext, resultMap));
+                            IExecutionTask resolverTask = CreateResolverTask(
+                                operationContext,
+                                resolverContext,
+                                selection,
+                                path.Append(selection.ResponseName),
+                                responseIndex++,
+                                result,
+                                resultMap);
+                            backlog.Register(resolverTask);
                             break;
                     }
                 }
             }
 
             TryHandleDeferredFragments(
-                context.OperationContext,
+                operationContext,
                 selectionSet,
-                context.ResolverContext.ScopedContextData,
+                resolverContext.ScopedContextData,
                 path,
                 result);
 
@@ -101,25 +118,38 @@ namespace HotChocolate.Execution.Processing.Tasks
         }
 
         private static void ResolveAndCompleteInline(
-            ref ValueCompletionContext context,
+            IOperationContext operationContext,
+            MiddlewareContext resolverContext,
+            ISelection selection,
+            Path path ,
+            IType fieldType ,
+            string responseName,
+            int responseIndex,
+            object parent,
             ResultMap resultMap)
         {
 
-            ISelection selection = context.Selection;
             object? completedValue = null;
 
             try
             {
-                context.Result = selection.InlineResolver!(context.Result);
+                var resolverResult = selection.InlineResolver!(parent);
 
-                if (ValueCompletion2.TryComplete(ref context, out completedValue) &&
-                    context.FieldType.Kind is not TypeKind.Scalar and not TypeKind.Enum &&
+                if (ValueCompletion2.TryComplete(
+                    operationContext,
+                    resolverContext,
+                    selection,
+                    path,
+                    fieldType,
+                    responseName,
+                    responseIndex,
+                    resolverResult,
+                    out completedValue) &&
+                    fieldType.Kind is not TypeKind.Scalar and not TypeKind.Enum &&
                     completedValue is IHasResultDataParent result)
                 {
                     result.Parent = resultMap;
                 }
-
-                ValueCompletion2.TryComplete(ref context, out completedValue);
             }
             catch (OperationCanceledException)
             {
@@ -129,50 +159,59 @@ namespace HotChocolate.Execution.Processing.Tasks
             }
             catch (Exception ex)
             {
-                if (context.OperationContext.RequestAborted.IsCancellationRequested)
+                if (operationContext.RequestAborted.IsCancellationRequested)
                 {
                     // if cancellation is request we do no longer report errors to the
                     // operation context.
                     return;
                 }
 
-                context.ReportError(ex);
-                context.Result = null;
+                ValueCompletion2.ReportError(
+                    operationContext,
+                    resolverContext,
+                    selection,
+                    path,
+                    ex);
             }
 
             if (completedValue is null && selection.Field.Type.IsNonNullType())
             {
                 // if we detect a non-null violation we will stash it for later.
                 // the non-null propagation is delayed so that we can parallelize better.
-                context.OperationContext.Result.AddNonNullViolation(
+                operationContext.Result.AddNonNullViolation(
                     selection.SyntaxNode,
-                    context.Path,
+                    path,
                     resultMap);
             }
             else
             {
                 resultMap.SetValue(
-                    context.ResponseIndex,
-                    context.ResponseName,
+                    responseIndex,
+                    responseName,
                     completedValue,
-                    context.FieldType.IsNullableType());
+                    fieldType.IsNullableType());
             }
         }
 
         private static IExecutionTask CreateResolverTask(
-            ref ValueCompletionContext context,
+            IOperationContext operationContext,
+            MiddlewareContext resolverContext,
+            ISelection selection,
+            Path path,
+            int responseIndex,
+            object parent,
             ResultMap resultMap)
         {
-            ResolverTask task = context.OperationContext.Execution.ResolverTasks.Get();
+            ResolverTask task = operationContext.Execution.ResolverTasks.Get();
 
             task.Initialize(
-                context.OperationContext,
-                context.Selection,
+                operationContext,
+                selection,
                 resultMap,
-                context.ResponseIndex,
-                context.Result,
-                context.Path,
-                context.ResolverContext.ScopedContextData);
+                responseIndex,
+                parent,
+                path,
+                resolverContext.ScopedContextData);
 
             return task;
         }
@@ -201,19 +240,24 @@ namespace HotChocolate.Execution.Processing.Tasks
         }
 
         private static IExecutionTask CreatePureResolverTask(
-            ref ValueCompletionContext context,
+            IOperationContext operationContext,
+            MiddlewareContext resolverContext,
+            ISelection selection,
+            Path path,
+            int responseIndex,
+            object parent,
             ResultMap resultMap)
         {
-            PureResolverTask task = context.OperationContext.Execution.PureResolverTasks.Get();
+            PureResolverTask task = operationContext.Execution.PureResolverTasks.Get();
 
             task.Initialize(
-                context.OperationContext,
-                context.Selection,
+                operationContext,
+                selection,
                 resultMap,
-                context.ResponseIndex,
-                context.Result,
-                context.Path,
-                context.ResolverContext.ScopedContextData);
+                responseIndex,
+                parent,
+                path,
+                resolverContext.ScopedContextData);
 
             return task;
         }

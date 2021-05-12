@@ -1,30 +1,35 @@
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Processing.Plan
 {
-    internal class QueryPlanBuilder
+    internal static class QueryPlanBuilder
     {
         public static QueryPlan Build(IPreparedOperation operation)
         {
             var context = new QueryPlanBuilderContext(operation);
+            QueryStepBatch current = context.Batches.Peek();
+            CreateSelectionBatch(current, ExecutionStrategy.Parallel);
             Visit(operation.GetRootSelectionSet(), true, context);
 
-            QueryPlanStep? root = null;
+            if (current.Selections.Count > 1)
+            {
+                if (current.Selections[0].Selections.Count == 0)
+                {
+                    current.Steps.RemoveAt(0);
+                    current.Selections.RemoveAt(0);
+                }
+            }
+
+            QueryPlanStep? root;
 
             if (context.Batches.Count == 1)
             {
-                var steps = context.Batches[0].Steps;
+                List<QueryPlanStep> steps = current.Steps;
 
-                if (steps.Count == 1)
-                {
-                    root = steps[0];
-                }
-                else
-                {
-                    root = new SequenceQueryPlanStep(context.Batches[0].Steps.ToArray());
-                }
+                root = steps.Count == 1
+                    ? steps[0]
+                    : new SequenceQueryPlanStep(steps.ToArray());
             }
             else
             {
