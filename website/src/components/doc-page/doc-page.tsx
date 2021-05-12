@@ -1,21 +1,9 @@
 import { graphql } from "gatsby";
+import { MDXRenderer } from "gatsby-plugin-mdx";
 import React, { FunctionComponent, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import { DocPageFragment } from "../../../graphql-types";
-import { toggleAside, toggleTOC } from "../../state/common";
-import { ArticleComments } from "../articles/article-comments";
-import {
-  ArticleContent,
-  ArticleHeader,
-  ArticleTitle,
-} from "../articles/article-elements";
-import { ArticleSections } from "../articles/article-sections";
-import { Aside, DocPageAside } from "./doc-page-aside";
-import { DocPageCommunity } from "./doc-page-community";
-import { DocPageLegacy } from "./doc-page-legacy";
-import { DocPageNavigation, Navigation } from "./doc-page-navigation";
-
 import ListAltIconSvg from "../../images/list-alt.svg";
 import NewspaperIconSvg from "../../images/newspaper.svg";
 import {
@@ -25,13 +13,24 @@ import {
   IsSmallDesktop,
   IsTablet,
 } from "../../shared-style";
+import { State } from "../../state";
+import { toggleAside, toggleTOC } from "../../state/common";
 import { Article } from "../articles/article";
+import { ArticleComments } from "../articles/article-comments";
+import {
+  ArticleContent,
+  ArticleHeader,
+  ArticleTitle,
+} from "../articles/article-elements";
+import { ArticleSections } from "../articles/article-sections";
 import {
   ArticleWrapper,
   ArticleWrapperElement,
 } from "./doc-page-article-wrapper";
-import { State } from "../../state";
-import { MDXRenderer } from "gatsby-plugin-mdx";
+import { Aside, DocPageAside } from "./doc-page-aside";
+import { DocPageCommunity } from "./doc-page-community";
+import { DocPageLegacy } from "./doc-page-legacy";
+import { DocPageNavigation, Navigation } from "./doc-page-navigation";
 
 interface DocPageProperties {
   data: DocPageFragment;
@@ -76,11 +75,8 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
         <ArticleContainer>
           <Article>
             {false && <DocPageLegacy />}
-            <ArticleHeader>
+            <ArticleHeader kind="doc">
               <ResponsiveMenuWrapper>
-                <ResponsiveMenuBackground
-                  hasScrolled={hasScrolled}
-                ></ResponsiveMenuBackground>
                 <ResponsiveMenu hasScrolled={hasScrolled}>
                   <Button onClick={handleToggleTOC} className="toc-toggle">
                     <ListAltIconSvg /> Table of contents
@@ -143,7 +139,6 @@ const ArticleContainer = styled.div`
 
   ${IsSmallDesktop(`
       grid-column: 1;
-      margin-top: 10px;
   `)};
 
   ${IsPhablet(`
@@ -201,26 +196,27 @@ const Container = styled.div`
   }
 `;
 
-const ResponsiveMenu = styled.div<{ hasScrolled: boolean }>`
+const ResponsiveMenu = styled.div<{ readonly hasScrolled: boolean }>`
   position: fixed;
   transition: all 100ms linear 0s;
-  top: 100px;
-  ${(state) => (state.hasScrolled ? "top: 60px;" : "")}
+  ${({ hasScrolled }) => (hasScrolled ? "top: 60px;" : "top: 80px;")}
   box-sizing: border-box;
   z-index: 3;
   display: flex;
   flex-direction: row;
   align-items: center;
+  border-radius: 4px 4px 0 0;
   background: linear-gradient(
     180deg,
     #ffffff 30%,
     rgba(255, 255, 255, 0.75) 100%
   );
 
-  width: 800px;
+  width: 820px;
+  height: 60px;
   margin-left: auto;
   margin-right: auto;
-  padding: 20px;
+  padding: 0 20px;
 
   ${IsPhablet(`
     left: 0;
@@ -245,37 +241,6 @@ const ResponsiveMenu = styled.div<{ hasScrolled: boolean }>`
     > .toc-toggle {
       display: initial;
     }
-  `)}
-`;
-
-const ResponsiveMenuBackground = styled.div<{ hasScrolled: boolean }>`
-  display: ${(state) => (state.hasScrolled ? "initial" : "none")};
-  position: fixed;
-  height: 60px;
-  top: 60px;
-  box-sizing: border-box;
-  z-index: 2;
-  background: linear-gradient(
-    180deg,
-    #ffffff 30%,
-    rgba(255, 255, 255, 0.75) 100%
-  );
-
-  width: 800px;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 20px;
-
-  ${IsPhablet(`
-    left: 0;
-    width: auto;
-    right: 0;
-    margin-left: 0;
-    margin-right: 0;
-  `)}
-
-  ${IsDesktop(`
-    display: none;
   `)}
 `;
 
