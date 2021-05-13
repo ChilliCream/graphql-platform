@@ -18,6 +18,8 @@ namespace GreenDonut
 
         public int Size => _items.Count;
 
+        public int MyProperty { get; set; }
+
         public bool TryGetOrCreate(
             TKey key,
             [NotNullWhen(true)] out TaskCompletionSource<TValue>? promise)
