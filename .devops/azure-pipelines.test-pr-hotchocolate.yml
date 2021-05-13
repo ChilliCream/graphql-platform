@@ -34,3 +34,16 @@ stages:
             inputs:
               artifactName: test-results
               pathtoPublish: "output/test-results"
+      - job: CheckPublicApi
+        displayName: "Check public API"
+        dependsOn: [Test]
+        steps:
+          - task: UseDotNet@2
+            displayName: "Install .NET Core"
+            inputs:
+              packageType: 'sdk'
+              useGlobalJson: true
+          - task: CmdLine@2
+            displayName: "Check for undocumented public API changes"
+            inputs:
+              script: './build.cmd CheckPublicApi'
