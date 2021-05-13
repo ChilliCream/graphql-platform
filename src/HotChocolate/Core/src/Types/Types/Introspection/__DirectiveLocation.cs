@@ -15,100 +15,100 @@ namespace HotChocolate.Types.Introspection
                 .Description(TypeResources.DirectiveLocation_Description)
                 // Introspection types must always be bound explicitly so that we
                 // do not get any interference with conventions.
-                .BindItems(BindingBehavior.Explicit);
+                .BindValues(BindingBehavior.Explicit);
 
             descriptor
-                .Item(DirectiveLocation.Query)
+                .Value(DirectiveLocation.Query)
                 .Name(Lang.Query.Value)
                 .Description(TypeResources.DirectiveLocation_Query);
 
             descriptor
-                .Item(DirectiveLocation.Mutation)
+                .Value(DirectiveLocation.Mutation)
                 .Name(Lang.Mutation.Value)
                 .Description(TypeResources.DirectiveLocation_Mutation);
 
             descriptor
-                .Item(DirectiveLocation.Subscription)
+                .Value(DirectiveLocation.Subscription)
                 .Name(Lang.Subscription.Value)
                 .Description(TypeResources.DirectiveLocation_Subscription);
 
             descriptor
-                .Item(DirectiveLocation.Field)
+                .Value(DirectiveLocation.Field)
                 .Name(Lang.Field.Value)
                 .Description(TypeResources.DirectiveLocation_Field);
 
             descriptor
-                .Item(DirectiveLocation.FragmentDefinition)
+                .Value(DirectiveLocation.FragmentDefinition)
                 .Name(Lang.FragmentDefinition.Value)
                 .Description(TypeResources.DirectiveLocation_FragmentDefinition);
 
             descriptor
-                .Item(DirectiveLocation.FragmentSpread)
+                .Value(DirectiveLocation.FragmentSpread)
                 .Name(Lang.FragmentSpread.Value)
                 .Description(TypeResources.DirectiveLocation_FragmentSpread);
 
             descriptor
-                .Item(DirectiveLocation.InlineFragment)
+                .Value(DirectiveLocation.InlineFragment)
                 .Name(Lang.InlineFragment.Value)
                 .Description(TypeResources.DirectiveLocation_InlineFragment);
 
             descriptor
-                .Item(DirectiveLocation.VariableDefinition)
+                .Value(DirectiveLocation.VariableDefinition)
                 .Name(Lang.VariableDefinition.Value)
                 .Description("Location adjacent to a variable definition.");
 
             descriptor
-                .Item(DirectiveLocation.Schema)
+                .Value(DirectiveLocation.Schema)
                 .Name(Lang.Schema.Value)
                 .Description(TypeResources.DirectiveLocation_Schema);
 
             descriptor
-                .Item(DirectiveLocation.Scalar)
+                .Value(DirectiveLocation.Scalar)
                 .Name(Lang.Scalar.Value)
                 .Description(TypeResources.DirectiveLocation_Scalar);
 
             descriptor
-                .Item(DirectiveLocation.Object)
+                .Value(DirectiveLocation.Object)
                 .Name(Lang.Object.Value)
                 .Description(TypeResources.DirectiveLocation_Object);
 
             descriptor
-                .Item(DirectiveLocation.FieldDefinition)
+                .Value(DirectiveLocation.FieldDefinition)
                 .Name(Lang.FieldDefinition.Value)
                 .Description(TypeResources.DirectiveLocation_FieldDefinition);
 
             descriptor
-                .Item(DirectiveLocation.ArgumentDefinition)
+                .Value(DirectiveLocation.ArgumentDefinition)
                 .Name(Lang.ArgumentDefinition.Value)
                 .Description(TypeResources.DirectiveLocation_ArgumentDefinition);
 
             descriptor
-                .Item(DirectiveLocation.Interface)
+                .Value(DirectiveLocation.Interface)
                 .Name(Lang.Interface.Value)
                 .Description(TypeResources.DirectiveLocation_Interface);
 
             descriptor
-                .Item(DirectiveLocation.Union)
+                .Value(DirectiveLocation.Union)
                 .Name(Lang.Union.Value)
                 .Description(TypeResources.DirectiveLocation_Union);
 
             descriptor
-                .Item(DirectiveLocation.Enum)
+                .Value(DirectiveLocation.Enum)
                 .Name(Lang.Enum.Value)
                 .Description(TypeResources.DirectiveLocation_Enum);
 
             descriptor
-                .Item(DirectiveLocation.EnumValue)
+                .Value(DirectiveLocation.EnumValue)
                 .Name(Lang.EnumValue.Value)
                 .Description(TypeResources.DirectiveLocation_EnumValue);
 
             descriptor
-                .Item(DirectiveLocation.InputObject)
+                .Value(DirectiveLocation.InputObject)
                 .Name(Lang.InputObject.Value)
                 .Description(TypeResources.DirectiveLocation_InputObject);
 
             descriptor
-                .Item(DirectiveLocation.InputFieldDefinition)
+                .Value(DirectiveLocation.InputFieldDefinition)
                 .Name(Lang.InputFieldDefinition.Value)
                 .Description(TypeResources.DirectiveLocation_InputFieldDefinition);
         }
