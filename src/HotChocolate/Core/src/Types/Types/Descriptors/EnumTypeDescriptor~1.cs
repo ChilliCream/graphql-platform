@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         protected internal EnumTypeDescriptor(
-            IDescriptorContext context, 
+            IDescriptorContext context,
             EnumTypeDefinition definition)
             : base(context, definition)
         {
@@ -38,6 +38,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        [Obsolete("Use `BindValues`.")]
         public new IEnumTypeDescriptor<T> BindItems(
             BindingBehavior behavior) =>
             BindValues(behavior);
@@ -54,12 +55,13 @@ namespace HotChocolate.Types.Descriptors
         public new IEnumTypeDescriptor<T> BindValuesImplicitly() =>
             BindValues(BindingBehavior.Implicit);
 
-        public IEnumValueDescriptor Item(T value)
-        {
-            return base.Item(value);
-        }
+        [Obsolete("Use `Value`.")]
+        public IEnumValueDescriptor Item(T value) => Value<T>(value);
 
-        public IEnumValueDescriptor Value(T value) => Item(value);
+        public IEnumValueDescriptor Value(T value)
+        {
+            return base.Value(value);
+        }
 
         public new IEnumTypeDescriptor<T> Directive<TDirective>(
             TDirective directiveInstance)
