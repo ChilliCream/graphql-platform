@@ -252,3 +252,82 @@ TODO
 # Additional fields
 
 TODO
+
+# Generics
+
+> Note: Read about [interfaces](/docs/hotchocolate/defining-a-schema/interfaces) and [unions](/docs/hotchocolate/defining-a-schema/unions) before resorting to generic object types.
+
+In the Code-first approach we can define generic object types.
+
+```csharp
+public class Response
+{
+    public string Status { get; set; }
+
+    public object Payload { get; set; }
+}
+
+public class ResponseType<T> : ObjectType<Response>
+    where T : class, IOutputType
+{
+    protected override void Configure(IObjectTypeDescriptor<Response> descriptor)
+    {
+        descriptor.Field(f => f.Status);
+
+        descriptor
+            .Field(f => f.Payload)
+            .Type<T>();
+    }
+}
+
+public class Query
+{
+    [GraphQLType(typeof(ResponseType<StringType>))]
+    public Response GetResponse()
+    {
+        return new Response
+        {
+            Status = "OK",
+            Payload = "Payload"
+        };
+    }
+}
+```
+
+This will produce the following schema types.
+
+```sdl
+type Query {
+  response: Response
+}
+
+type Response {
+  status: String!
+  payload: String
+}
+```
+
+## Naming
+
+If we were to add another field of the type `ResponseType<DateTimeType>`, we would get an error, since both `ResponseType` have the same name.
+
+We can change the name of our generic object type depending on the used generic type.
+
+```csharp
+public class ResponseType<T> : ObjectType<Response>
+    where T : class, IOutputType
+{
+    protected override void Configure(IObjectTypeDescriptor<Response> descriptor)
+    {
+        descriptor
+            .Name(dependency => dependency.Name + "Response")
+            .DependsOn<T>();
+
+        descriptor.Field(f => f.Status);
+
+        descriptor
+            .Field(f => f.Payload)
+            .Type<T>();
+    }
+}
+```
