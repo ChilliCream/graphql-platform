@@ -109,10 +109,6 @@ public class Startup
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-# Fields
-
-TODO
-
 <!-- todo: maybe example tabs here -->
 
 # Binding behavior
@@ -203,9 +199,8 @@ We can override these defaults using the `[GraphQLName]` attribute.
 [GraphQLName("BookAuthor")]
 public class Author
 {
-    [GraphQLName("FullName")]
+    [GraphQLName("fullName")]
     public string Name { get; set; }
-}
 ```
 
 </ExampleTabs.Annotation>
@@ -224,7 +219,7 @@ public class AuthorType : ObjectType<Author>
 
         descriptor
             .Field(f => f.Name)
-            .Name("FullName");
+            .Name("fullName");
     }
 }
 ```
@@ -244,8 +239,6 @@ type BookAuthor {
   fullName: String
 }
 ```
-
-Field names are automatically converted into camelCase by Hot Chocolate.
 
 # Explicit types
 
@@ -295,7 +288,56 @@ Simply change the field type in the schema.
 
 # Additional fields
 
+<!-- todo: pocos is not the right word here -->
+
+We can add additional (dynamic) fields to our schema types, without adding new properties to our POCOs.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+public class Author
+{
+    public string Name { get; set; }
+
+    public DateTime AdditionalField()
+    {
+        return DateTime.Now;
+    }
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+In the Code-first approach we can use the `Type<T>` method on the `IObjectFieldDescriptor`.
+
+```csharp
+public class AuthorType : ObjectType<Author>
+{
+    protected override void Configure(IObjectTypeDescriptor<Author> descriptor)
+    {
+        descriptor
+            .Field("AdditionalField")
+            .Resolve(context =>
+            {
+                return DateTime.Now;
+            })
+    }
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
 TODO
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+What we have just created is a resolver. Hot Chocolate automatically creates resolvers for our properties, but we can also define them ourselves.
+
+Head over to the [resolver documentation](/docs/hotchocolate/fetching-data) to learn more.
 
 # Generics
 
@@ -314,7 +356,8 @@ public class Response
 public class ResponseType<T> : ObjectType<Response>
     where T : class, IOutputType
 {
-    protected override void Configure(IObjectTypeDescriptor<Response> descriptor)
+    protected override void Configure(
+        IObjectTypeDescriptor<Response> descriptor)
     {
         descriptor.Field(f => f.Status);
 
@@ -352,6 +395,32 @@ type Response {
 }
 ```
 
+We have used an `object` as the generic field above, but we can also make `Response` generic and add another generic parameter to the `ResponseType`.
+
+```csharp
+public class Response<T>
+{
+    public string Status { get; set; }
+
+    public T Payload { get; set; }
+}
+
+public class ResponseType<TSchemaType, TRuntimeType>
+    : ObjectType<Response<TRuntimeType>>
+    where TSchemaType : class, IOutputType
+{
+    protected override void Configure(
+        IObjectTypeDescriptor<Response<TRuntimeType>> descriptor)
+    {
+        descriptor.Field(f => f.Status);
+
+        descriptor
+            .Field(f => f.Payload)
+            .Type<TSchemaType>();
+    }
+}
+```
+
 ## Naming
 
 If we were to add another field of the type `ResponseType<DateTimeType>`, we would get an error, since both `ResponseType` have the same name.
@@ -362,7 +431,8 @@ We can change the name of our generic object type depending on the used generic 
 public class ResponseType<T> : ObjectType<Response>
     where T : class, IOutputType
 {
-    protected override void Configure(IObjectTypeDescriptor<Response> descriptor)
+    protected override void Configure(
+        IObjectTypeDescriptor<Response> descriptor)
     {
         descriptor
             .Name(dependency => dependency.Name + "Response")
