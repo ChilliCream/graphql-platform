@@ -210,41 +210,42 @@ public class Startup
 
 **Available Scalars:**
 
-| Type             | Description                                                                                                        |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------ |
-| EmailAddress     | An email address, represented as UTF-8 character sequences that follows the specification defined in RFC 5322.     |
-| HexColor         | A valid HEX color code.                                                                                            |
-| Hsl              | A valid a CSS HSL color as defined [here][1].                                                                      |
-| Hsla             | A valid a CSS HSLA color as defined [here][1].                                                                     |
-| IPv4             | A valid IPv4 address as defined [here](https://en.wikipedia.org/wiki/IPv4).                                        |
-| IPv6             | A valid IPv6 address as defined in [RFC8064](https://tools.ietf.org/html/rfc8064).                                 |
-| Isbn             | An ISBN-10 or ISBN-13 number as defined [here](https://en.wikipedia.org/wiki/International_Standard_Book_Number).  |
-| Latitude         | A valid decimal degrees latitude number.                                                                           |
-| Longitude        | A valid decimal degrees longitude number.                                                                          |
-| LocalCurrency    | A currency string.                                                                                                 |
-| LocalDate        | An ISO date string, represented as UTF-8 character sequences yyyy-mm-dd, as defined in [RFC3339][2].               |
-| LocalTime        | A local time string (i.e., with no associated timezone) in 24-hr `HH:mm:ss]`.                                      |
-| MacAddress       | An IEEE 802 48-bit Mac address, represented as UTF-8 character sequences, as defined in [RFC7042][3].              |
-| NegativeFloat    | A double‐precision fractional value less than 0.                                                                   |
-| NegativeInt      | A signed 32-bit numeric non-fractional with a maximum of -1.                                                       |
-| NonEmptyString   | Non empty textual data, represented as UTF‐8 character sequences with at least one character.                      |
-| NonNegativeFloat | A double‐precision fractional value greater than or equal to 0.                                                    |
-| NonNegativeInt   | An unsigned 32-bit numeric non-fractional value greater than or equal to 0.                                        |
-| NonPositiveFloat | A double‐precision fractional value less than or equal to 0.                                                       |
-| NonPositiveInt   | A signed 32-bit numeric non-fractional value less than or equal to 0.                                              |
-| PhoneNumber      | A value that conforms to the standard E.164 format as defined [here](https://en.wikipedia.org/wiki/E.164).         |
-| PositiveInt      | A signed 32‐bit numeric non‐fractional value of at least the value 1.                                              |
-| PostalCode       | A valid postal code.                                                                                               |
-| Port             | A valid TCP port within the range of 0 to 65535.                                                                   |
-| Rgb              | A valid CSS RGB color as defined [here](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb_colors).  |
-| Rgba             | A valid CSS RGBA color as defined [here](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb_colors). |
-| UnsignedInt      | An unsigned 32‐bit numeric non‐fractional value greater than or equal to 0.                                        |
-| UnsignedLong     | An unsigned 64‐bit numeric non‐fractional value greater than or equal to 0.                                        |
-| UtcOffset        | A value of format `±hh:mm`.                                                                                        |
+| Type             | Description                                                                                                                                               |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| EmailAddress     | An email address, represented as UTF-8 character sequences that follows the specification defined in RFC 5322.                                            |
+| HexColor         | A valid HEX color code.                                                                                                                                   |
+| Hsl              | A valid a CSS HSL color as defined [here][1].                                                                                                             |
+| Hsla             | A valid a CSS HSLA color as defined [here][1].                                                                                                            |
+| IPv4             | A valid IPv4 address as defined [here](https://en.wikipedia.org/wiki/IPv4).                                                                               |
+| IPv6             | A valid IPv6 address as defined in [RFC8064](https://tools.ietf.org/html/rfc8064).                                                                        |
+| Isbn             | An ISBN-10 or ISBN-13 number as defined [here](https://en.wikipedia.org/wiki/International_Standard_Book_Number).                                         |
+| Latitude         | A valid decimal degrees latitude number.                                                                                                                  |
+| Longitude        | A valid decimal degrees longitude number.                                                                                                                 |
+| LocalCurrency    | A currency string.                                                                                                                                        |
+| LocalDate        | An ISO date string, represented as UTF-8 character sequences yyyy-mm-dd, as defined in [RFC3339][2].                                                      |
+| LocalTime        | A local time string (i.e., with no associated timezone) in 24-hr `HH:mm:ss]`.                                                                             |
+| MacAddress       | IEEE 802 48-bit (MAC-48/EUI-48) and 64-bit (EUI-64) Mac addresses, represented as UTF-8 character sequences, as defined in [RFC7042][3] and [RFC7043][4]. |
+| NegativeFloat    | A double‐precision fractional value less than 0.                                                                                                          |
+| NegativeInt      | A signed 32-bit numeric non-fractional with a maximum of -1.                                                                                              |
+| NonEmptyString   | Non empty textual data, represented as UTF‐8 character sequences with at least one character.                                                             |
+| NonNegativeFloat | A double‐precision fractional value greater than or equal to 0.                                                                                           |
+| NonNegativeInt   | An unsigned 32-bit numeric non-fractional value greater than or equal to 0.                                                                               |
+| NonPositiveFloat | A double‐precision fractional value less than or equal to 0.                                                                                              |
+| NonPositiveInt   | A signed 32-bit numeric non-fractional value less than or equal to 0.                                                                                     |
+| PhoneNumber      | A value that conforms to the standard E.164 format as defined [here](https://en.wikipedia.org/wiki/E.164).                                                |
+| PositiveInt      | A signed 32‐bit numeric non‐fractional value of at least the value 1.                                                                                     |
+| PostalCode       | A valid postal code.                                                                                                                                      |
+| Port             | A valid TCP port within the range of 0 to 65535.                                                                                                          |
+| Rgb              | A valid CSS RGB color as defined [here](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb_colors).                                         |
+| Rgba             | A valid CSS RGBA color as defined [here](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb_colors).                                        |
+| UnsignedInt      | An unsigned 32‐bit numeric non‐fractional value greater than or equal to 0.                                                                               |
+| UnsignedLong     | An unsigned 64‐bit numeric non‐fractional value greater than or equal to 0.                                                                               |
+| UtcOffset        | A value of format `±hh:mm`.                                                                                                                               |
 
 [1]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors
 [2]: https://tools.ietf.org/html/rfc3339
 [3]: https://tools.ietf.org/html/rfc7042#page-19
+[4]: https://tools.ietf.org/html/rfc7043
 
 # Custom Converters
 
