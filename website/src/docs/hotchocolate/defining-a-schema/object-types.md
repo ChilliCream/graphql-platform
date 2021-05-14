@@ -222,7 +222,9 @@ public class AuthorType : ObjectType<Author>
     {
         descriptor.Name("BookAuthor");
 
-        descriptor.Field(f => f.Name).Name("FullName");
+        descriptor
+            .Field(f => f.Name)
+            .Name("FullName");
     }
 }
 ```
@@ -245,9 +247,51 @@ type BookAuthor {
 
 Field names are automatically converted into camelCase by Hot Chocolate.
 
-# Concrete types
+# Explicit types
 
-TODO
+Hot Chocolate will most of the type correctly infer the schema types of our fields. Sometimes we might have to be explicit about it though, for example when we are working with custom scalars.
+
+We can define explicit schema types like the following.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+Per default the name of the class is the name of the object type in the schema and the names of the properties are the names of the fields of that object type.
+
+We can override these defaults using the `[GraphQLName]` attribute.
+
+```csharp
+public class Author
+{
+    [GraphQLType(typeof(StringType))]
+    public string Name { get; set; }
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+In the Code-first approach we can use the `Type<T>` method on the `IObjectFieldDescriptor`.
+
+```csharp
+public class AuthorType : ObjectType<Author>
+{
+    protected override void Configure(IObjectTypeDescriptor<Author> descriptor)
+    {
+        descriptor
+            .Field(f => f.Name)
+            .Type<StringType>();
+    }
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+Simply change the field type in the schema.
+
+</ExampleTabs.Schema>
+</ExampleTabs>
 
 # Additional fields
 
@@ -280,15 +324,16 @@ public class ResponseType<T> : ObjectType<Response>
     }
 }
 
+// todo: this is not code-first...
 public class Query
 {
-    [GraphQLType(typeof(ResponseType<StringType>))]
+    [GraphQLType(typeof(ResponseType<IntType>))]
     public Response GetResponse()
     {
         return new Response
         {
             Status = "OK",
-            Payload = "Payload"
+            Payload = 123
         };
     }
 }
@@ -303,7 +348,7 @@ type Query {
 
 type Response {
   status: String!
-  payload: String
+  payload: Int
 }
 ```
 
