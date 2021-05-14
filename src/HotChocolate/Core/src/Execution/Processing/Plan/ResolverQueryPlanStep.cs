@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution.Processing.Tasks;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Processing.Plan
 {

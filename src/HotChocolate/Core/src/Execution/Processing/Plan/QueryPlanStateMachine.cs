@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Execution.Processing.Plan
@@ -78,23 +77,6 @@ namespace HotChocolate.Execution.Processing.Plan
             return false;
         }
 
-        public bool CompleteNext()
-        {
-            for (var i = 0; i < _state.Length; i++)
-            {
-                State state = _state[i];
-
-                if (_state[i].IsActive &&
-                    _plan.TryGetStep(state.Id, out QueryPlanStep? step) &&
-                    step is not SequenceQueryPlanStep and not ParallelQueryPlanStep)
-                {
-                    return Complete(step);
-                }
-            }
-
-            return false;
-        }
-
         public bool IsSuspended(IExecutionTask task)
         {
             if (task.State is QueryPlanStep step)
@@ -125,11 +107,16 @@ namespace HotChocolate.Execution.Processing.Plan
             _running = default;
         }
 
-        private void Activate(QueryPlanStep step)
+        private bool Activate(QueryPlanStep step)
         {
             while (true)
             {
-                step.Initialize(_context);
+                if (!step.Initialize(_context))
+                {
+                    SetActiveStatus(step.Id, true);
+                    SetActiveStatus(step.Id, false);
+                    return false;
+                }
 
                 if (step is SequenceQueryPlanStep sequence)
                 {
@@ -153,6 +140,8 @@ namespace HotChocolate.Execution.Processing.Plan
                 SetActiveStatus(step.Id, true);
                 break;
             }
+
+            return true;
         }
 
         private bool Complete(QueryPlanStep step)
@@ -163,10 +152,23 @@ namespace HotChocolate.Execution.Processing.Plan
 
                 if (step.Parent is SequenceQueryPlanStep sequence)
                 {
-                    if (sequence.GetNextStep(step) is { } next)
+                    QueryPlanStep current = step;
+
+                    while(true)
                     {
-                        Activate(next);
-                        return true;
+                        QueryPlanStep? next = sequence.GetNextStep(current);
+
+                        if (next is null)
+                        {
+                            break;
+                        }
+
+                        if (Activate(next))
+                        {
+                            return true;
+                        }
+
+                        current = next;
                     }
 
                     step = sequence;

@@ -767,7 +767,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
         }
 
         [InlineData("true")]
-        [InlineData("false")]
+        // [InlineData("false")]
         [Theory]
         public async Task Include_With_Literal(string ifValue)
         {
