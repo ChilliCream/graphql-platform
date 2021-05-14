@@ -302,10 +302,28 @@ namespace HotChocolate.Types {
                 return ResourceManager.GetString("LocalDateType_IsInvalid_ParseValue", resourceCulture);
             }
         }
-        
+         
         /// <summary>
         ///   Looks up a localized string similar to The LocalTime scalar type is a local time string (i.e., with no associated timezone) in 24-hr HH:mm:ss..
-        /// </summary>
+        /// </summary> 
+        internal static string LatitudeType_Description {
+            get {
+                return ResourceManager.GetString("LatitudeType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string LatitudeType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("LatitudeType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string LatitudeType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("LatitudeType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+         
         internal static string LocalTimeType_Description {
             get {
                 return ResourceManager.GetString("LocalTimeType_Description", resourceCulture);
@@ -356,10 +374,28 @@ namespace HotChocolate.Types {
                 return ResourceManager.GetString("MacAddressType_IsInvalid_ParseValue", resourceCulture);
             }
         }
-        
+         
         /// <summary>
         ///   Looks up a localized string similar to The NegativeFloat scalar type represents a double‐precision fractional value less than 0..
-        /// </summary>
+        /// </summary> 
+        internal static string LongitudeType_Description {
+            get {
+                return ResourceManager.GetString("LongitudeType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string LongitudeType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("LongitudeType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string LongitudeType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("LongitudeType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+         
         internal static string NegativeFloatType_Description {
             get {
                 return ResourceManager.GetString("NegativeFloatType_Description", resourceCulture);

@@ -22,7 +22,7 @@ namespace HotChocolate.Types
                 c.RegisterType(new EnumType(d => d
                     .Name(dep => dep.Name + "Enum")
                     .DependsOn<StringType>()
-                    .Item("BAR")));
+                    .Value("BAR")));
 
                 c.Options.StrictValidation = false;
             });
@@ -57,7 +57,7 @@ namespace HotChocolate.Types
                 c.RegisterType(new EnumType(d => d
                     .Name(dep => dep.Name + "Enum")
                     .DependsOn(typeof(StringType))
-                    .Item("BAR")));
+                    .Value("BAR")));
 
                 c.Options.StrictValidation = false;
             });
@@ -175,7 +175,7 @@ namespace HotChocolate.Types
                 c.RegisterType(new EnumType<Foo>(d =>
                 {
                     d.BindValues(BindingBehavior.Explicit);
-                    d.Item(Foo.Bar1);
+                    d.Value(Foo.Bar1);
                 }));
                 c.Options.StrictValidation = false;
             });
@@ -198,7 +198,7 @@ namespace HotChocolate.Types
                 c.RegisterType(new EnumType<Foo>(d =>
                 {
                     d.BindValuesImplicitly().BindValuesExplicitly();
-                    d.Item(Foo.Bar1);
+                    d.Value(Foo.Bar1);
                 }));
                 c.Options.StrictValidation = false;
             });
@@ -220,7 +220,7 @@ namespace HotChocolate.Types
             {
                 c.RegisterType(new EnumType<Foo>(d =>
                 {
-                    d.Item(Foo.Bar1).Name("FOOBAR");
+                    d.Value(Foo.Bar1).Name("FOOBAR");
                 }));
                 c.Options.StrictValidation = false;
             });
@@ -302,7 +302,7 @@ namespace HotChocolate.Types
                 SchemaBuilder.New()
                     .AddQueryType<Bar>()
                     .AddType(new EnumType<Foo?>(d => d.Name("Foo")
-                        .Item(null)))
+                        .Value(null)))
                     .Create();
 
             // assert
@@ -328,7 +328,7 @@ namespace HotChocolate.Types
 
                 c.RegisterType(new EnumType(d => d
                     .Name("Foo")
-                    .Item("baz")
+                    .Value("baz")
                     .Directive<DirectiveNode>(new DirectiveNode("bar"))));
 
                 c.Options.StrictValidation = false;
@@ -353,7 +353,7 @@ namespace HotChocolate.Types
 
                 c.RegisterType(new EnumType(d => d
                     .Name("Foo")
-                    .Item("baz")
+                    .Value("baz")
                     .Directive("bar", Array.Empty<ArgumentNode>())));
 
                 c.Options.StrictValidation = false;
@@ -378,7 +378,7 @@ namespace HotChocolate.Types
 
                 c.RegisterType(new EnumType(d => d
                     .Name("Foo")
-                    .Item("baz")
+                    .Value("baz")
                     .Directive<DirectiveNode>(new DirectiveNode("bar"))));
 
                 c.Options.StrictValidation = false;
@@ -400,7 +400,7 @@ namespace HotChocolate.Types
 
                 c.RegisterType(new EnumType(d => d
                     .Name("Foo")
-                    .Item("baz")
+                    .Value("baz")
                     .Directive<Bar>()));
 
                 c.Options.StrictValidation = false;
@@ -425,7 +425,7 @@ namespace HotChocolate.Types
 
                 c.RegisterType(new EnumType(d => d
                     .Name("Foo")
-                    .Item("baz")
+                    .Value("baz")
                     .Directive<Bar>(new Bar())));
 
                 c.Options.StrictValidation = false;

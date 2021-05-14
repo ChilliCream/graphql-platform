@@ -198,6 +198,15 @@
   <data name="LocalDateType_IsInvalid_ParseValue" xml:space="preserve">
     <value>LocalDateType cannot parse the provided value. The provided value is not a valid Local Date.</value>
   </data>
+  <data name="LatitudeType_Description" xml:space="preserve">
+    <value>The Latitude scalar type represents represents a valid decimal degrees latitude number.</value>
+  </data>
+  <data name="LatitudeType_IsInvalid_ParseLiteral" xml:space="preserve">
+    <value>LatitudeType cannot parse the provided literal. The provided value was not a valid decimal degrees latitude number.</value>
+  </data>
+  <data name="LatitudeType_IsInvalid_ParseValue" xml:space="preserve">
+    <value>LatitudeType cannot parse the provided value. The provided value was not a valid decimal degrees latitude number.</value>
+  </data>
   <data name="LocalTimeType_Description" xml:space="preserve">
     <value>The LocalTime scalar type is a local time string (i.e., with no associated timezone) in 24-hr HH:mm:ss.</value>
   </data>
@@ -215,6 +224,15 @@
   </data>
   <data name="LocalCurrencyType_IsInvalid_ParseValue" xml:space="preserve">
     <value>LocalCurrencyType cannot parse the provided value. The provided value is not a valid local currency.</value>
+  </data>
+  <data name="LongitudeType_Description" xml:space="preserve">
+    <value>The Longitude scalar type is a valid decimal degrees longitude number.</value>
+  </data>
+  <data name="LongitudeType_IsInvalid_ParseLiteral" xml:space="preserve">
+    <value>LongitudeType cannot parse the provided literal. The provided value is not a valid longitude number.</value>
+  </data>
+  <data name="LongitudeType_IsInvalid_ParseValue" xml:space="preserve">
+    <value>LongitudeType cannot parse the provided value. The provided value is not a valid longitude number.</value>
   </data>
   <data name="NegativeFloatType_Description" xml:space="preserve">
     <value>The NegativeFloat scalar type represents a double‐precision fractional value less than 0.</value>
