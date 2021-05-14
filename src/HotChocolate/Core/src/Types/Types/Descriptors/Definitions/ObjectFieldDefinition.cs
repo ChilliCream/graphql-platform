@@ -84,6 +84,11 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public bool IsIntrospectionField { get; internal set; }
 
         /// <summary>
+        /// Defines if this field can be executed in parallel with other fields.
+        /// </summary>
+        public bool IsParallelExecutable { get; set; } = true;
+
+        /// <summary>
         /// A list of middleware components which will be used to form the field pipeline.
         /// </summary>
         internal IReadOnlyList<FieldMiddleware> GetMiddlewareComponents()

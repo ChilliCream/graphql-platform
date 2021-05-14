@@ -78,6 +78,16 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
+        /// <inheritdoc />
+        public ObjectPool<IExecutionTask?[]> TaskBuffers
+        {
+            get
+            {
+                AssertNotPooled();
+                return _taskBuffers;
+            }
+        }
+
         public bool IsSuspended(IExecutionTask executionTask)
         {
             throw new NotImplementedException();

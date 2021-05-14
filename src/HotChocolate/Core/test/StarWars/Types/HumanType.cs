@@ -5,8 +5,7 @@ using HotChocolate.StarWars.Resolvers;
 
 namespace HotChocolate.StarWars.Types
 {
-    public class HumanType
-        : ObjectType<Human>
+    public class HumanType : ObjectType<Human>
     {
         protected override void Configure(IObjectTypeDescriptor<Human> descriptor)
         {
@@ -16,12 +15,15 @@ namespace HotChocolate.StarWars.Types
                 .Type<NonNullType<IdType>>();
 
             descriptor.Field(f => f.Name)
-                .Type<NonNullType<StringType>>();
+                .Type<NonNullType<StringType>>()
+                .Extend()
+                .OnBeforeCreate(d => d.IsParallelExecutable = false);
 
             descriptor.Field(t => t.AppearsIn)
                 .Type<ListType<EpisodeType>>();
 
-            descriptor.Field<SharedResolvers>(r => r.GetCharacter(default, default))
+            descriptor
+                .Field<SharedResolvers>(r => r.GetCharacter(default, default))
                 .UsePaging<CharacterType>()
                 .Name("friends");
 

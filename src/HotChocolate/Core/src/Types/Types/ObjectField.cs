@@ -35,6 +35,7 @@ namespace HotChocolate.Types
             ResolverExpression = definition.Expression;
             SubscribeResolver = definition.SubscribeResolver;
             IsIntrospectionField = definition.IsIntrospectionField;
+            IsParallelExecutable = definition.IsParallelExecutable;
         }
 
         /// <summary>
@@ -43,6 +44,11 @@ namespace HotChocolate.Types
         public new ObjectType DeclaringType => (ObjectType)base.DeclaringType;
 
         IObjectType IObjectField.DeclaringType => DeclaringType;
+
+        /// <summary>
+        /// Defines if this field can be executed in parallel with other fields.
+        /// </summary>
+        public bool IsParallelExecutable { get; }
 
         /// <summary>
         /// Gets the field resolver middleware.

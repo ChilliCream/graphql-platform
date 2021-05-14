@@ -16,9 +16,7 @@ namespace HotChocolate.Execution.Processing.Plan
 
         internal virtual IReadOnlyList<QueryPlanStep> Steps => _empty;
 
-        public virtual void Initialize(IOperationContext context)
-        {
-        }
+        public virtual bool Initialize(IOperationContext context) => true;
 
         internal bool IsPartOf(QueryPlanStep step)
         {
@@ -69,6 +67,28 @@ namespace HotChocolate.Execution.Processing.Plan
             for(var i = 0; i < Steps.Count; i++)
             {
                 if (Steps[i].TryGetStep(executionTask, out step))
+                {
+                    return true;
+                }
+            }
+
+            step = null;
+            return false;
+        }
+
+        internal bool TryGetStep(
+            int stepId,
+            [MaybeNullWhen(false)] out QueryPlanStep step)
+        {
+            if (Id == stepId)
+            {
+                step = this;
+                return true;
+            }
+
+            for(var i = 0; i < Steps.Count; i++)
+            {
+                if (Steps[i].TryGetStep(stepId, out step))
                 {
                     return true;
                 }

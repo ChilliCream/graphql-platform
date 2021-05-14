@@ -18,6 +18,11 @@ namespace HotChocolate.Types
         new IObjectType DeclaringType { get; }
 
         /// <summary>
+        /// Defines if this field can be executed in parallel with other fields.
+        /// </summary>
+        bool IsParallelExecutable { get; }
+
+        /// <summary>
         /// Gets the field resolver middleware.
         /// </summary>
         FieldDelegate Middleware { get; }

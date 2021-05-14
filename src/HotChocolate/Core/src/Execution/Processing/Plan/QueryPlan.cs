@@ -22,6 +22,11 @@ namespace HotChocolate.Execution.Processing.Plan
             [MaybeNullWhen(false)] out QueryPlanStep step) =>
             Root.TryGetStep(executionTask, out step);
 
+        internal bool TryGetStep(
+            int  stepId,
+            [MaybeNullWhen(false)] out QueryPlanStep step) =>
+            Root.TryGetStep(stepId, out step);
+
         private static void AssignId(QueryPlanStep node, ref int stepId)
         {
             node.Id = stepId++;

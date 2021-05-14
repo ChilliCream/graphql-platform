@@ -1,6 +1,5 @@
 using System;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +12,7 @@ namespace HotChocolate.Execution.Processing
     /// <inheritdoc/>
     internal class WorkBacklog : IWorkBacklog
     {
-        private SpinLock _lock = new(Debugger.IsAttached);
+        private readonly object _sync = new();
         private readonly UnsafeWorkQueue _work = new();
         private readonly UnsafeSuspendedWorkQueue _suspended = new();
         private readonly QueryPlanStateMachine _stateMachine = new();
@@ -21,16 +20,12 @@ namespace HotChocolate.Execution.Processing
         private int _processors = 1;
         private bool _mainIsPaused;
         private IRequestContext _requestContext = default!;
+        private IDiagnosticEvents _diagnosticEvents = default!;
 
         public WorkBacklog()
         {
             _work.BacklogEmpty += (sender, args) => BacklogEmpty?.Invoke(sender, args);
         }
-
-        /// <summary>
-        /// The diagnostic events.
-        /// </summary>
-        private IDiagnosticEvents DiagnosticEvents => _requestContext.DiagnosticEvents;
 
         /// <inheritdoc/>
         public event EventHandler<EventArgs>? BackPressureLimitExceeded;
@@ -50,25 +45,32 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        internal void Initialize(IRequestContext requestContext, QueryPlan queryPlan)
+        internal void Initialize(OperationContext operationContext, QueryPlan queryPlan)
         {
-            _requestContext = requestContext;
-            _stateMachine.Initialize(queryPlan);
+            _requestContext = operationContext.RequestContext;
+            _diagnosticEvents = operationContext.RequestContext.DiagnosticEvents;
+            _stateMachine.Initialize(operationContext, queryPlan);
         }
 
-        /// <inheritdoc/>
-        public bool TryTake([NotNullWhen(true)] out IExecutionTask? task)
+        /// <inheritdoc />
+        public int TryTake(IExecutionTask?[] buffer, bool main)
         {
-            var lockTaken = false;
+            lock (_sync)
+            {
+                var size = 0;
 
-            try
-            {
-                _lock.Enter(ref lockTaken);
-                return _work.TryTake(out task);
-            }
-            finally
-            {
-                if (lockTaken) _lock.Exit(false);
+                for (var i = 0; i < buffer.Length; i++)
+                {
+                    if (!_work.TryTake(out IExecutionTask? task))
+                    {
+                        break;
+                    }
+
+                    size++;
+                    buffer[i] = task;
+                }
+
+                return size;
             }
         }
 
@@ -80,15 +82,12 @@ namespace HotChocolate.Execution.Processing
                 throw new ArgumentNullException(nameof(task));
             }
 
-            var lockTaken = false;
             var scaled = false;
             var backlogSize = 0;
             var processors = _processors;
 
-            try
+            lock (_sync)
             {
-                _lock.Enter(ref lockTaken);
-
                 if (_stateMachine.Register(task))
                 {
                     backlogSize = _work.Push(task);
@@ -104,16 +103,57 @@ namespace HotChocolate.Execution.Processing
                     _suspended.Enqueue(task);
                 }
             }
-            finally
+
+            if (scaled)
             {
-                if (lockTaken) _lock.Exit(false);
+                // we invoke the scale diagnostic event after leaving the lock to not block
+                // if a an event listener is badly implemented.
+                _diagnosticEvents.ScaleTaskProcessors(_requestContext, backlogSize, processors);
+            }
+        }
+
+        /// <inheritdoc/>
+        public void Register(IExecutionTask?[] tasks, int length)
+        {
+            if (tasks is null)
+            {
+                throw new ArgumentNullException(nameof(tasks));
+            }
+
+            var scaled = false;
+            var backlogSize = 0;
+            var processors = _processors;
+
+            lock (_sync)
+            {
+                for (var i = 0; i < length; i++)
+                {
+                    IExecutionTask task = tasks[i]!;
+                    tasks[i] = null;
+                    Debug.Assert(task != null, "A task slot is not allowed to be empty.");
+
+                    if (_stateMachine.Register(task))
+                    {
+                        backlogSize = _work.Push(task);
+                    }
+                    else
+                    {
+                        _suspended.Enqueue(task);
+                    }
+                }
+
+                if (backlogSize > CalculateScalePressure() || _mainIsPaused && _processors == 1)
+                {
+                    scaled = TryScaleUnsafe();
+                    processors = _processors;
+                }
             }
 
             if (scaled)
             {
                 // we invoke the scale diagnostic event after leaving the lock to not block
                 // if a an event listener is badly implemented.
-                DiagnosticEvents.ScaleTaskProcessors(_requestContext, backlogSize, processors);
+                _diagnosticEvents.ScaleTaskProcessors(_requestContext, backlogSize, processors);
             }
         }
 
@@ -130,18 +170,18 @@ namespace HotChocolate.Execution.Processing
                 return;
             }
 
-            var lockTaken = false;
+            var scaled = false;
+            var backlogSize = 0;
+            var processors = _processors;
 
-            try
+            lock (_sync)
             {
-                _lock.Enter(ref lockTaken);
-
                 // we first complete the task on the state machine so that if we are completing
                 // the last task the state machine is marked as complete before the work queue
                 // signals that it is complete.
                 if (_stateMachine.Complete(task) && !_suspended.IsEmpty)
                 {
-                    _suspended.CopyTo(_work, _stateMachine);
+                    TryEnqueueSuspended();
                 }
 
                 // last we complete the work queue which will signal to the execution context
@@ -149,21 +189,32 @@ namespace HotChocolate.Execution.Processing
                 // running.
                 _work.Complete(task);
             }
-            finally
+
+            if (scaled)
             {
-                if (lockTaken) _lock.Exit(false);
+                // we invoke the scale diagnostic event after leaving the lock to not block
+                // if a an event listener is badly implemented.
+                _diagnosticEvents.ScaleTaskProcessors(_requestContext, backlogSize, processors);
+            }
+
+            void TryEnqueueSuspended()
+            {
+                _suspended.CopyTo(_work, _stateMachine);
+                backlogSize = _work.Count;
+
+                if (backlogSize > CalculateScalePressure() || _mainIsPaused && _processors == 1)
+                {
+                    scaled = TryScaleUnsafe();
+                    processors = _processors;
+                }
             }
         }
 
         /// <inheritdoc/>
         public async Task WaitForWorkAsync(CancellationToken cancellationToken)
         {
-            var lockTaken = false;
-
-            try
+            lock (_sync)
             {
-                _lock.Enter(ref lockTaken);
-
                 // if we have work we will not wait and end waiting for new work.
                 if (!_work.IsEmpty || _work.IsEmpty && !IsRunning)
                 {
@@ -172,10 +223,6 @@ namespace HotChocolate.Execution.Processing
 
                 // mark the main processor as being paused.
                 _mainIsPaused = true;
-            }
-            finally
-            {
-                if (lockTaken) _lock.Exit(false);
             }
 
             try
@@ -218,31 +265,28 @@ namespace HotChocolate.Execution.Processing
             var processors = _processors;
             var backlogSize = 0;
 
-            var lockTaken = false;
-
             try
             {
-                _lock.Enter(ref lockTaken);
-
-                if (_mainIsPaused && _processors == 2 && !_work.IsEmpty)
+                lock (_sync)
                 {
-                    return false;
-                }
+                    if (_mainIsPaused && _processors == 2 && !_work.IsEmpty)
+                    {
+                        return false;
+                    }
 
-                changedScale = true;
-                processors = --_processors;
-                backlogSize = _work.Count;
-                return true;
+                    changedScale = true;
+                    processors = --_processors;
+                    backlogSize = _work.Count;
+                    return true;
+                }
             }
             finally
             {
-                if (lockTaken) _lock.Exit(false);
-
                 if (changedScale)
                 {
                     // we invoke the scale diagnostic event after leaving the lock to not block
                     // if a an event listener is badly implemented.
-                    DiagnosticEvents.ScaleTaskProcessors(_requestContext, backlogSize, processors);
+                    _diagnosticEvents.ScaleTaskProcessors(_requestContext, backlogSize, processors);
                 }
             }
         }
@@ -262,7 +306,7 @@ namespace HotChocolate.Execution.Processing
             if (_processors < 4 && BackPressureLimitExceeded is not null)
             {
                 _processors++;
-                BackPressureLimitExceeded?.Invoke(null, EventArgs.Empty);
+                BackPressureLimitExceeded(null, EventArgs.Empty);
                 return true;
             }
 
@@ -281,20 +325,5 @@ namespace HotChocolate.Execution.Processing
                 7 => 256,
                 _ => 512
             };
-
-        public override bool Equals(object? obj)
-        {
-            return base.Equals(obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
-
-        public override string? ToString()
-        {
-            return base.ToString();
-        }
     }
 }

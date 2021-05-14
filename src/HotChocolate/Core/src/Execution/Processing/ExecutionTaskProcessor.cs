@@ -27,16 +27,38 @@ namespace HotChocolate.Execution.Processing
         {
             IExecutionContext executionContext = _context.Execution;
             CancellationToken cancellationToken = _context.RequestAborted;
+            IExecutionTask?[] buffer = executionContext.TaskBuffers.Get();
 
             do
             {
                 try
                 {
-                    while (!cancellationToken.IsCancellationRequested &&
-                        executionContext.Work.TryTake(out IExecutionTask? task))
+                    do
                     {
-                        task.BeginExecute(cancellationToken);
-                    }
+                        var work = executionContext.Work.TryTake(buffer, true);
+
+                        if (work == 0)
+                        {
+                            break;
+                        }
+
+                        if (buffer[0]!.Kind == ExecutionTaskKind.Serial)
+                        {
+                            for (var i = 0; i < work; i++)
+                            {
+                                IExecutionTask task = buffer[i]!;
+                                task.BeginExecute(cancellationToken);
+                                await task.WaitForCompletionAsync(cancellationToken);
+                            }
+                        }
+                        else
+                        {
+                            for (var i = 0; i < work; i++)
+                            {
+                                buffer[i]!.BeginExecute(cancellationToken);
+                            }
+                        }
+                    } while (!cancellationToken.IsCancellationRequested);
 
                     await executionContext.Work
                         .WaitForWorkAsync(cancellationToken)
@@ -51,6 +73,8 @@ namespace HotChocolate.Execution.Processing
                 }
             } while (!cancellationToken.IsCancellationRequested &&
                 !executionContext.IsCompleted);
+
+            executionContext.TaskBuffers.Return(buffer);
         }
 
         private async Task ExecuteSecondaryProcessorAsync()
@@ -60,15 +84,25 @@ namespace HotChocolate.Execution.Processing
 
             await Task.Yield();
 
-RESTART:
+            IExecutionTask?[] buffer = executionContext.TaskBuffers.Get();
 
+            RESTART:
             try
             {
-                while (!cancellationToken.IsCancellationRequested &&
-                       executionContext.Work.TryTake(out IExecutionTask? task))
+                do
                 {
-                    task.BeginExecute(cancellationToken);
-                }
+                    var work = executionContext.Work.TryTake(buffer, false);
+
+                    if (work == 0)
+                    {
+                        break;
+                    }
+
+                    for (var i = 0; i < work; i++)
+                    {
+                        buffer[i]!.BeginExecute(cancellationToken);
+                    }
+                } while (!cancellationToken.IsCancellationRequested);
             }
             catch (Exception ex)
             {
@@ -82,6 +116,8 @@ RESTART:
             {
                 goto RESTART;
             }
+
+            executionContext.TaskBuffers.Return(buffer);
         }
 
         private void HandleError(Exception exception)

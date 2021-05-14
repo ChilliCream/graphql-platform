@@ -244,6 +244,9 @@ namespace HotChocolate.Execution.Processing
                         resolverPipeline: CreateFieldMiddleware(field, selection),
                         pureResolver: TryCreatePureField(field, selection),
                         inlineResolver: TryCreateInlineField(field, selection),
+                        strategy: field.IsParallelExecutable
+                            ? null // use default strategy
+                            : SelectionExecutionStrategy.Serial,
                         arguments: CoerceArgumentValues(field, selection, responseName),
                         includeCondition: includeCondition,
                         internalSelection: context.IsInternalSelection);

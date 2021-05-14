@@ -50,6 +50,11 @@ namespace HotChocolate.Execution.Processing
         ObjectPool<BatchExecutionTask> BatchTasks { get; }
 
         /// <summary>
+        /// Gets the task buffer pool.
+        /// </summary>
+        ObjectPool<IExecutionTask?[]> TaskBuffers { get; }
+
+        /// <summary>
         /// Defines if a execution task can be processed of if it is suspended/paused.
         /// </summary>
         /// <param name="executionTask">

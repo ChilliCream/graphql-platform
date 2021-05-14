@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Execution.Processing.Plan
@@ -15,13 +16,17 @@ namespace HotChocolate.Execution.Processing.Plan
         // the count of active query plan steps.
         private int _running;
 
-        // the current query plan.
+        // the current operation context
+        private IOperationContext _context = default!;
+
+        // the current query plan
         private QueryPlan _plan = default!;
 
         public bool IsCompleted => _running == 0;
 
-        public void Initialize(QueryPlan plan)
+        public void Initialize(IOperationContext context, QueryPlan plan)
         {
+            _context = context;
             _plan = plan;
 
             if (_state.Length < plan.Count)
@@ -73,6 +78,23 @@ namespace HotChocolate.Execution.Processing.Plan
             return false;
         }
 
+        public bool CompleteNext()
+        {
+            for (var i = 0; i < _state.Length; i++)
+            {
+                State state = _state[i];
+
+                if (_state[i].IsActive &&
+                    _plan.TryGetStep(state.Id, out QueryPlanStep? step) &&
+                    step is not SequenceQueryPlanStep and not ParallelQueryPlanStep)
+                {
+                    return Complete(step);
+                }
+            }
+
+            return false;
+        }
+
         public bool IsSuspended(IExecutionTask task)
         {
             if (task.State is QueryPlanStep step)
@@ -99,6 +121,7 @@ namespace HotChocolate.Execution.Processing.Plan
             }
 
             _current = _state[0];
+            _plan = default!;
             _running = default;
         }
 
@@ -106,6 +129,8 @@ namespace HotChocolate.Execution.Processing.Plan
         {
             while (true)
             {
+                step.Initialize(_context);
+
                 if (step is SequenceQueryPlanStep sequence)
                 {
                     SetActiveStatus(sequence.Id, true);
@@ -122,7 +147,7 @@ namespace HotChocolate.Execution.Processing.Plan
                         Activate(parallel.Steps[i]);
                     }
 
-                    continue;
+                    break;
                 }
 
                 SetActiveStatus(step.Id, true);

@@ -70,6 +70,11 @@ namespace Microsoft.Extensions.DependencyInjection
                     new PureResolverTaskPoolPolicy(),
                     maximumRetained));
 
+            services.TryAddSingleton<ObjectPool<IExecutionTask?[]>>(
+                _ => new DefaultObjectPool<IExecutionTask?[]>(
+                    new TaskBufferPoolPolicy(),
+                    maximumRetained / 8));
+
             return services;
         }
 

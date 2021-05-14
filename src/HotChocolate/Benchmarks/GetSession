@@ -13,3 +13,18 @@ query GetSessions {
         }
     }
 }
+
+
+mutation Foo {
+    a {
+        b
+        c
+        c2
+    }
+    d {
+        e
+        f
+    }
+
+}
+

@@ -57,13 +57,14 @@ namespace HotChocolate.Execution.Processing
             NameString? responseName = null,
             IReadOnlyDictionary<NameString, ArgumentValue>? arguments = null,
             SelectionIncludeCondition? includeCondition = null,
-            bool internalSelection = false)
+            bool internalSelection = false,
+            SelectionExecutionStrategy? strategy = null)
         {
             if (resolverPipeline is null && pureResolver is null)
             {
                 throw new ArgumentNullException(nameof(resolverPipeline));
             }
-            
+
             Id = id;
             DeclaringType = declaringType
                 ?? throw new ArgumentNullException(nameof(declaringType));
@@ -84,7 +85,11 @@ namespace HotChocolate.Execution.Processing
                 ? SelectionInclusionKind.Internal
                 : SelectionInclusionKind.Always;
 
-            if (InlineResolver is not null)
+            if (strategy is not null)
+            {
+                Strategy = strategy.Value;
+            }
+            else if (InlineResolver is not null)
             {
                 Strategy = SelectionExecutionStrategy.Inline;
             }

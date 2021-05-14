@@ -15,17 +15,18 @@ namespace HotChocolate.Execution.Processing
         private readonly ObjectPool<ResolverTask> _resolverTasks;
         private readonly ObjectPool<PureResolverTask> _pureResolverTasks;
         private readonly ObjectPool<BatchExecutionTask> _batchTasks;
+        private readonly ObjectPool<IExecutionTask?[]> _taskBuffers;
 
         private CancellationTokenSource _completed = default!;
         private IBatchDispatcher _batchDispatcher = default!;
-        private QueryPlanStateMachine _stateMachine = new();
         private bool _isInitialized;
 
         public ExecutionContext(
             OperationContext operationContext,
             ObjectPool<ResolverTask> resolverTasks,
             ObjectPool<PureResolverTask> pureResolverTasks,
-            ObjectPool<BatchExecutionTask> batchTasks)
+            ObjectPool<BatchExecutionTask> batchTasks,
+            ObjectPool<IExecutionTask?[]> taskBuffers)
         {
             _operationContext = operationContext;
             _workBacklog = new WorkBacklog();
@@ -33,6 +34,7 @@ namespace HotChocolate.Execution.Processing
             _resolverTasks = resolverTasks;
             _pureResolverTasks = pureResolverTasks;
             _batchTasks = batchTasks;
+            _taskBuffers = taskBuffers;
             _workBacklog.BacklogEmpty += BatchDispatcherEventHandler;
         }
 
@@ -47,7 +49,7 @@ namespace HotChocolate.Execution.Processing
             _batchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
             _isInitialized = true;
 
-            _workBacklog.Initialize(_operationContext.RequestContext, _operationContext.QueryPlan);
+            _workBacklog.Initialize(_operationContext, _operationContext.QueryPlan);
         }
 
         private void TryComplete()
