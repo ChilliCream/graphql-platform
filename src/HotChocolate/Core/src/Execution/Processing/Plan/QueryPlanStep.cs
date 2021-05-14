@@ -10,6 +10,8 @@ namespace HotChocolate.Execution.Processing.Plan
 
         internal int Id { get; set; }
 
+        protected internal virtual string Name => GetType().Name;
+
         public abstract ExecutionStrategy Strategy { get; }
 
         public QueryPlanStep? Parent { get; internal set; }

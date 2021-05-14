@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace HotChocolate.Execution.Processing.Plan
 {
@@ -19,6 +20,8 @@ namespace HotChocolate.Execution.Processing.Plan
                 step.Parent = this;
             }
         }
+
+        protected internal override string Name => "Sequence";
 
         public override ExecutionStrategy Strategy => ExecutionStrategy.Serial;
 
@@ -42,6 +45,11 @@ namespace HotChocolate.Execution.Processing.Plan
             }
 
             return null;
+        }
+
+        public override string ToString()
+        {
+            return $"{Name}[{string.Join(", ", _steps.Select(t => t.Name))}]";
         }
     }
 }

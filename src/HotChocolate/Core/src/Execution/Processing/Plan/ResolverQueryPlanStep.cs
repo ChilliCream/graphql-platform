@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution.Processing.Tasks;
-using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Processing.Plan
 {
@@ -25,6 +24,11 @@ namespace HotChocolate.Execution.Processing.Plan
             _selections = selections.ToArray();
         }
 
+        protected internal override string Name => 
+            Strategy == ExecutionStrategy.Serial
+                ? "SerialResolver"
+                : "Resolver";
+
         public override ExecutionStrategy Strategy { get; }
 
         public override bool Initialize(IOperationContext context)
@@ -45,5 +49,10 @@ namespace HotChocolate.Execution.Processing.Plan
         public override bool IsPartOf(IExecutionTask task) =>
             task is ResolverTaskBase resolverTask &&
             _ids.Contains(resolverTask.Selection.Id);
+
+        public override string ToString()
+        {
+            return $"{Name}[{string.Join(", ", _ids)}]";
+        }
     }
 }

@@ -13,8 +13,8 @@ namespace HotChocolate.Execution.Processing
     internal class WorkBacklog : IWorkBacklog
     {
         private readonly object _sync = new();
-        private readonly UnsafeWorkQueue _work = new();
-        private readonly UnsafeSuspendedWorkQueue _suspended = new();
+        private readonly WorkQueue _work = new();
+        private readonly SuspendedWorkQueue _suspended = new();
         private readonly QueryPlanStateMachine _stateMachine = new();
 
         private int _processors = 1;

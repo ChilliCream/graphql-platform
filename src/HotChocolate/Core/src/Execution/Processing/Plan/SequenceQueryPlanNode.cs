@@ -9,10 +9,8 @@ namespace HotChocolate.Execution.Processing.Plan
         {
         }
 
-        public override QueryPlanStep CreateStep()
-        {
-            return new SequenceQueryPlanStep(Nodes.Select(t => t.CreateStep()).ToArray());
-        }
+        public override QueryPlanStep CreateStep() =>
+            new SequenceQueryPlanStep(Nodes.Select(t => t.CreateStep()).ToArray());
 
         public override void Serialize(Utf8JsonWriter writer)
         {

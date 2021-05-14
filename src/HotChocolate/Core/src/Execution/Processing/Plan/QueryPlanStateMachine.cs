@@ -228,6 +228,16 @@ namespace HotChocolate.Execution.Processing.Plan
                 IsActive = default;
                 Tasks = default;
             }
+
+            /// <summary>
+            /// Debug visualization.
+            /// </summary>
+            public override string ToString()
+            {
+                string active = IsActive ? " active" : ""; 
+                string tasks = Tasks > 0 ? $" tasks: {Tasks}" : "";
+                return $"{Id}{active}{tasks}";
+            }
         }
     }
 }

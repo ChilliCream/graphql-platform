@@ -47,19 +47,16 @@ namespace HotChocolate.Execution.Processing.Plan
             QueryPlanNode root = QueryPlanBuilder.BuildNode(operation);
 
             // assert
-            
-            Snapshot(operation, root);
+            Snapshot(root);
         }
 
-        private static void Snapshot(IPreparedOperation operation, QueryPlanNode node)
+        private static void Snapshot(QueryPlanNode node)
         {
             using var stream = new MemoryStream();
             using var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true});
             node.Serialize(writer);
             writer.Flush();
-            Encoding.UTF8.GetString(stream.ToArray())
-                .MatchSnapshot(new SnapshotNameExtension("plan"));
-            operation.Print().MatchSnapshot(new SnapshotNameExtension("operation"));
+            Encoding.UTF8.GetString(stream.ToArray()).MatchSnapshot();
         }
     }
 }

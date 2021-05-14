@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace HotChocolate.Execution.Processing.Plan
 {
@@ -19,8 +20,15 @@ namespace HotChocolate.Execution.Processing.Plan
             }
         }
 
+        protected internal override string Name => "Parallel";
+
         public override ExecutionStrategy Strategy => ExecutionStrategy.Parallel;
 
         internal override IReadOnlyList<QueryPlanStep> Steps => _steps;
+
+        public override string ToString()
+        {
+            return $"{Name}[{string.Join(", ", _steps.Select(t => t.Name))}]";
+        }
     }
 }
