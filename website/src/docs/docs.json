@@ -41,6 +41,10 @@
                 "title": "Object Types"
               },
               {
+                "path": "scalars",
+                "title": "Scalars"
+              },
+              {
                 "path": "arguments",
                 "title": "Arguments"
               },
@@ -67,10 +71,6 @@
               {
                 "path": "unions",
                 "title": "Unions"
-              },
-              {
-                "path": "scalars",
-                "title": "Scalars"
               },
               {
                 "path": "directives",
