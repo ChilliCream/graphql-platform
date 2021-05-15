@@ -38,9 +38,7 @@ public class Author
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
-<!-- todo: every sentence starts with we.... urrrgh -->
-
-We create a new class inheriting from `ObjectType<T>` to map our POCO `Author` to an object type.
+In the Code-first approach we create a new class inheriting from `ObjectType<T>` to map our POCO `Author` to an object type.
 
 ```csharp
 public class Author
@@ -65,7 +63,7 @@ public class AuthorType : ObjectType<Author>
 }
 ```
 
-We will learn how to use the `descriptor` in the following chapters.
+The `descriptor` gives us the ability to configure the object type. We will cover how to use it in the following chapters.
 
 We can also create schema object types without a backing POCO.
 
@@ -109,8 +107,6 @@ public class Startup
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-<!-- todo: maybe example tabs here -->
-
 # Binding behavior
 
 In the Annotation-based approach all public properties and methods are implicitly mapped to fields of the schema object type.
@@ -146,6 +142,9 @@ public class BookType : ObjectType<Book>
 
 ## Ignoring fields
 
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
 In the Annotation-based approach we can ignore fields using the `[GraphQLIgnore]` attribute.
 
 ```csharp
@@ -158,6 +157,9 @@ public class Book
 }
 ```
 
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
 In the Code-first approach we can ignore certain properties of our POCO using the `Ignore` method on the `descriptor`. This is only necessary, if the binding behavior of the object type is implicit.
 
 ```csharp
@@ -169,6 +171,14 @@ public class BookType : ObjectType<Book>
     }
 }
 ```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+TODO
+
+</ExampleTabs.Schema>
+</ExampleTabs>
 
 ## Including fields
 
@@ -288,9 +298,7 @@ Simply change the field type in the schema.
 
 # Additional fields
 
-<!-- todo: pocos is not the right word here -->
-
-We can add additional (dynamic) fields to our schema types, without adding new properties to our POCOs.
+We can add additional (dynamic) fields to our schema types, without adding new properties to our backing class.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
@@ -367,10 +375,8 @@ public class ResponseType<T> : ObjectType<Response>
     }
 }
 
-// todo: this is not code-first...
 public class Query
 {
-    [GraphQLType(typeof(ResponseType<IntType>))]
     public Response GetResponse()
     {
         return new Response
@@ -378,6 +384,16 @@ public class Query
             Status = "OK",
             Payload = 123
         };
+    }
+}
+
+public class QueryType : ObjectType<Query>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    {
+        descriptor
+            .Field(f => f.GetResponse())
+            .Type<ResponseType<IntType>>();
     }
 }
 ```

@@ -150,7 +150,7 @@ Lists can be accessed generically by getting them as `IReadOnlyList<object>` or 
 
 HotChocolate provides additional scalars for more specific usecases.
 
-To use these scalars we have to add the package `HotChocolate.Types.Scalars`
+To use these scalars we have to add the `HotChocolate.Types.Scalars` package.
 
 ```bash
 dotnet add package HotChocolate.Types.Scalars

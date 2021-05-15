@@ -163,7 +163,11 @@ services.AddInMemorySubscriptions();
 
 The Redis subscription provider enables us to run multiple instances of our HotChocolate GraphQL server and handle subscription events reliably.
 
-In order to use the Redis provider add the following package: `HotChocolate.Subscriptions.Redis`
+In order to use the Redis provider we have to add the `HotChocolate.Subscriptions.Redis` package.
+
+```bash
+dotnet add package HotChocolate.Subscriptions.Redis
+```
 
 After we have added the package we can setup the Redis subscription provider.
 

@@ -2,13 +2,9 @@
 title: "Directives"
 ---
 
-Here we will learn what GraphQL directives are and how we can build custom directives.
-
-# Introduction
-
 Directives provide a way to add metadata for client tools such as code generators and IDEs or alternate a GraphQL server's runtime execution and type validation behavior. There are two kinds of directives, executable directives to annotate executable parts of GraphQL documents and type-system directives to annotate SDL types. Typically, any GraphQL server implementation should provide the following directives `@skip`, `@include`, and `@deprecated`. `@skip` and `@include`, for example, are executable directives used in GraphQL documents to exclude or include fields, whereas `@deprecated` is a type-system directive used in SDL types to inform client tools that a particular part such as a field is deprecated.
 
-> **Hint:** Directives in GraphQL are pretty similar to Attributes in .Net
+> Hint: Directives in GraphQL are pretty similar to Attributes in .NET
 
 ## Structure
 
