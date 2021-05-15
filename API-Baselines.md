@@ -22,20 +22,32 @@ There are three types of public API changes that need to be documented.
 
 ### New APIs
 
-A new entry needs to be added to the `PublicAPI.Unshipped.txt` file for a new API. For example:
+This case will be indicated by an error/warning like the following:
+
+```
+RS0016: Symbol 'X' is not part of the declared API
+```
+
+It can be resolved by adding the new symbol to the `PublicAPI.Unshipped.txt` file:
 
 ```
 #nullable enable
 Microsoft.AspNetCore.Builder.NewApplicationBuilder.New() -> Microsoft.AspNetCore.Builder.IApplicationBuilder!
 ```
 
-Your IDE should warn you about this case and prompt you to add the new API to `PublicAPI.Unshipped.txt`. It will also be displayed as a warning in the build output.
+This change can be performed automatically by your IDE.
 
 > Note: Currently not every IDE supports Code-Fixes provided by a Roslyn Analyzer. Visual Studio Code for example does not at the moment - Visual Studio 2019 does.
 
 ### Removed APIs
 
-A new entry needs to be added to the `PublicAPI.Unshipped.txt` file for a removed API. For example:
+This case will be indicated by an error/warning like the following:
+
+```
+RS0017: Symbol 'X' is part of the declared API, but is either not public or could not be found
+```
+
+It can be resolved by adding the removed symbol to the `PublicAPI.Unshipped.txt` file:
 
 ```
 #nullable enable
