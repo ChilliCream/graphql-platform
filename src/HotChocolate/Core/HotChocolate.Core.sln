@@ -39,7 +39,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Validation", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Abstractions.Tests", "test\Abstractions.Tests\HotChocolate.Abstractions.Tests.csproj", "{80F8703D-804D-4921-A409-AF4BB26E59BE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.StarWars", "test\StarWars\HotChocolate.StarWars.csproj", "{AADFF9B1-B275-48B4-8F32-F6CD837619E5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.StarWars.Tests", "test\StarWars\HotChocolate.StarWars.Tests.csproj", "{AADFF9B1-B275-48B4-8F32-F6CD837619E5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Types.Tests", "test\Types.Tests\HotChocolate.Types.Tests.csproj", "{CD2B383F-2957-4A83-B965-070DC8CF36F6}"
 EndProject
