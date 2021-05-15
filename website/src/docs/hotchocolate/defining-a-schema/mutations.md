@@ -45,7 +45,7 @@ A mutation type can be defined like the following.
 ```csharp
 public class Mutation
 {
-    public async Task<Book> AddBook(Book book)
+    public async Task<BookAddedPayload> AddBook(Book book)
     {
         // Omitted code for brevity
     }
@@ -70,7 +70,7 @@ public class Startup
 ```csharp
 public class Mutation
 {
-    public async Task<Book> AddBook(Book book)
+    public async Task<BookAddedPayload> AddBook(Book book)
     {
         // Omitted code for brevity
     }
@@ -101,7 +101,7 @@ public class Startup
 ```csharp
 public class Mutation
 {
-    public async Task<Book> AddBook(Book book)
+    public async Task<BookAddedPayload> AddBook(Book book)
     {
         // Omitted code for brevity
     }

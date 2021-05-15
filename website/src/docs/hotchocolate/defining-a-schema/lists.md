@@ -12,7 +12,7 @@ type Query {
 }
 ```
 
-Clients can query lists fields like any other field.
+Clients can query list fields like any other field.
 
 ```graphql
 {

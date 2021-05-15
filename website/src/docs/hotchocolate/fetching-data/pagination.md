@@ -40,7 +40,7 @@ type PageInfo {
 
 You can learn more about this in the [GraphQL Cursor Connections Specification](https://relay.dev/graphql/connections.htm).
 
-> Note: _Connections_ are often associated with _cursor-based_ pagination, due to the use of a _cursor_. Since the specification describes the _cursor_ as opague though, it can be used to faciliate an _offset_ as well.
+> Note: _Connections_ are often associated with _cursor-based_ pagination, due to the use of a _cursor_, since the specification describes the _cursor_ as opaque though, it can be used to faciliate an _offset_ as well.
 
 ## Usage
 
