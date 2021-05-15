@@ -156,6 +156,28 @@ namespace HotChocolate.Types
                 type);
         }
 
+        public static SerializationException JsonType_ParseValue_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.JsonType_IsInvalid_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.Json)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException JsonType_ParseLiteral_IsInvalid(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.JsonType_IsInvalid_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.Json)
+                    .Build(),
+                type);
+        }
+
         public static SerializationException LatitudeType_ParseValue_IsInvalid(IType type)
         {
             return new SerializationException(
