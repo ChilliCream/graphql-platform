@@ -36,6 +36,9 @@ namespace HotChocolate.Execution
         public object? State { get; set; }
 
         /// <inheritdoc />
+        public bool IsSerial { get; set; }
+
+        /// <inheritdoc />
         public void BeginExecute(CancellationToken cancellationToken)
         {
             _task = ExecuteInternalAsync(cancellationToken).AsTask();

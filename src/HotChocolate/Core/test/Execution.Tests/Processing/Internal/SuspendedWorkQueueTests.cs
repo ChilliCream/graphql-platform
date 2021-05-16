@@ -42,7 +42,8 @@ namespace HotChocolate.Execution.Processing.Internal
             var operationContext = new Mock<IOperationContext>();
             var stateMachine = new QueryPlanStateMachine();
             stateMachine.Initialize(operationContext.Object, plan);
-            Assert.True(queue.CopyTo(work, stateMachine));
+            queue.CopyTo(work, work, stateMachine);
+
             Assert.True(work.TryTake(out IExecutionTask task));
             Assert.Same(task1, task);
             Assert.True(work.TryTake(out task));
@@ -51,8 +52,6 @@ namespace HotChocolate.Execution.Processing.Internal
 
         internal class MockQueryPlanStep : QueryPlanStep
         {
-            public override ExecutionStrategy Strategy { get; }
-
             public override bool IsPartOf(IExecutionTask task) => true;
         }
 
@@ -64,6 +63,7 @@ namespace HotChocolate.Execution.Processing.Internal
             public IExecutionTask Next { get; set; }
             public IExecutionTask Previous { get; set; }
             public object State { get; set; }
+            public bool IsSerial { get; set; }
 
             public void BeginExecute(CancellationToken cancellationToken)
             {

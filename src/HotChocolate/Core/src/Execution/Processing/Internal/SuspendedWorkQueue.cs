@@ -10,11 +10,10 @@ namespace HotChocolate.Execution.Processing.Internal
 
         public bool IsEmpty { get; private set; } = true;
 
-        public bool CopyTo(WorkQueue work, QueryPlanStateMachine stateMachine)
+        public void CopyTo(WorkQueue work, WorkQueue serial, QueryPlanStateMachine stateMachine)
         {
             IExecutionTask? head = _head;
             _head = null;
-            var copied = false;
 
             while (head is not null)
             {
@@ -28,13 +27,11 @@ namespace HotChocolate.Execution.Processing.Internal
                 }
                 else
                 {
-                    work.Push(current);
-                    copied = true;
+                    (current.IsSerial ? serial : work).Push(current);
                 }
             }
 
             IsEmpty = _head is null;
-            return copied;
         }
 
         public void Enqueue(IExecutionTask executionTask)

@@ -23,8 +23,6 @@ namespace HotChocolate.Execution.Processing.Plan
 
         protected internal override string Name => "Sequence";
 
-        public override ExecutionStrategy Strategy => ExecutionStrategy.Serial;
-
         internal override IReadOnlyList<QueryPlanStep> Steps => _steps;
 
         internal QueryPlanStep? GetNextStep(QueryPlanStep current)

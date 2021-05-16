@@ -22,8 +22,6 @@ namespace HotChocolate.Execution.Processing.Plan
 
         protected internal override string Name => "Parallel";
 
-        public override ExecutionStrategy Strategy => ExecutionStrategy.Parallel;
-
         internal override IReadOnlyList<QueryPlanStep> Steps => _steps;
 
         public override string ToString()

@@ -15,24 +15,61 @@ namespace HotChocolate.Execution.Processing.Plan
         // the count of active query plan steps.
         private int _running;
 
+        // the count of serial query plan steps.
+        private int _serial;
+
         // the current operation context
         private IOperationContext _context = default!;
 
         // the current query plan
         private QueryPlan _plan = default!;
 
+        /// <summary>
+        /// Defines if processing the query plan is completed.
+        /// </summary>
         public bool IsCompleted => _running == 0;
 
+        /// <summary>
+        /// The current execution strategy for the main task processor.
+        /// </summary>
+        public ExecutionStrategy Strategy { get; private set; }
+
+        /// <summary>
+        /// Defines if the main processor execution strategy is serial.
+        /// </summary>
+        public bool IsSerial => Strategy == ExecutionStrategy.Serial;
+
+        /// <summary>
+        /// Initializes the state machine.
+        /// </summary>
+        /// <param name="context">
+        /// The operation context.
+        /// </param>
+        /// <param name="plan">
+        /// The query plan.
+        /// </param>
         public void Initialize(IOperationContext context, QueryPlan plan)
         {
             _context = context;
             _plan = plan;
+            Strategy = ExecutionStrategy.Parallel;
 
+            // we first ensure that the state machine has enough state slots for the current
+            // query plan.
             if (_state.Length < plan.Count)
             {
+                // if the query plan has more steps than we have state slots we will resize
+                // the state array.
                 Array.Resize(ref _state, plan.Count);
+
+                // also we create new state objects for the empty slots.
+                for (var i = 0; i < _state.Length; i++)
+                {
+                    _state[i] ??= new();
+                }
             }
 
+            // last we activate the query plan by activating the first steps.
             Activate(plan.Root);
         }
 
@@ -40,16 +77,11 @@ namespace HotChocolate.Execution.Processing.Plan
         {
             if (_plan.TryGetStep(task, out var step))
             {
-                State? state = _current;
-
-                if (state is null || state.Id != step.Id)
-                {
-                    _current = state = _state[step.Id];
-                    state.Id = step.Id;
-                }
+                InitializeState(step, out State state);
 
                 state.Tasks++;
                 task.State = step;
+                task.IsSerial = state.IsSerial;
                 return state.IsActive;
             }
 
@@ -60,20 +92,14 @@ namespace HotChocolate.Execution.Processing.Plan
         {
             if (task.State is QueryPlanStep step)
             {
-                State? state = _current;
-
-                if (state is null || state.Id != step.Id)
-                {
-                    _current = state = _state[step.Id];
-                    state.Id = step.Id;
-                }
+                InitializeState(step, out State state);
 
                 if (--state.Tasks == 0)
                 {
                     return Complete(step);
                 }
             }
-
+            
             return false;
         }
 
@@ -81,14 +107,7 @@ namespace HotChocolate.Execution.Processing.Plan
         {
             if (task.State is QueryPlanStep step)
             {
-                State? state = _current;
-
-                if (state is null || state.Id != step.Id)
-                {
-                    _current = state = _state[step.Id];
-                    state.Id = step.Id;
-                }
-
+                InitializeState(step, out State state);
                 return !state.IsActive;
             }
 
@@ -105,6 +124,7 @@ namespace HotChocolate.Execution.Processing.Plan
             _current = _state[0];
             _plan = default!;
             _running = default;
+            _serial = default;
         }
 
         private bool Activate(QueryPlanStep step)
@@ -116,6 +136,12 @@ namespace HotChocolate.Execution.Processing.Plan
                     SetActiveStatus(step.Id, true);
                     SetActiveStatus(step.Id, false);
                     return false;
+                }
+
+                if (step is ResolverQueryPlanStep { Strategy: ExecutionStrategy.Serial })
+                {
+                    _serial++;
+                    Strategy = ExecutionStrategy.Serial;
                 }
 
                 if (step is SequenceQueryPlanStep sequence)
@@ -150,11 +176,19 @@ namespace HotChocolate.Execution.Processing.Plan
             {
                 SetActiveStatus(step.Id, false);
 
+                if (step is ResolverQueryPlanStep { Strategy: ExecutionStrategy.Serial })
+                {
+                    if (--_serial == 0)
+                    {
+                        Strategy = ExecutionStrategy.Parallel;
+                    }
+                }
+
                 if (step.Parent is SequenceQueryPlanStep sequence)
                 {
                     QueryPlanStep current = step;
 
-                    while(true)
+                    while (true)
                     {
                         QueryPlanStep? next = sequence.GetNextStep(current);
 
@@ -177,9 +211,9 @@ namespace HotChocolate.Execution.Processing.Plan
 
                 if (step.Parent is ParallelQueryPlanStep parallel)
                 {
-                    for(var i = 0; i < parallel.Steps.Count; i++)
+                    for (var i = 0; i < parallel.Steps.Count; i++)
                     {
-                        if (_state[i].IsActive)
+                        if (_state[parallel.Steps[i].Id].IsActive)
                         {
                             return false;
                         }
@@ -191,6 +225,31 @@ namespace HotChocolate.Execution.Processing.Plan
 
                 return false;
             }
+        }
+
+        public bool CompleteNext()
+        {
+TryAgain:
+            for (var i = 0; i < _state.Length; i++)
+            {
+                var state = _state[i];
+
+                if (state.IsActive && state.Tasks == 0)
+                {
+                    if (_plan.TryGetStep(state.Id, out QueryPlanStep? step) &&
+                        step is not SequenceQueryPlanStep and not ParallelQueryPlanStep)
+                    {
+                        if (Complete(step))
+                        {
+                            return true;
+                        }
+
+                        goto TryAgain;
+                    }
+                }
+            }
+
+            return false;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -216,16 +275,38 @@ namespace HotChocolate.Execution.Processing.Plan
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void InitializeState(QueryPlanStep step, out State state)
+        {
+            state = _current;
+
+            if (state is null || state.Id != step.Id)
+            {
+                _current = state = _state[step.Id];
+                if (!state.IsInitialized)
+                {
+                    state.Id = step.Id;
+                    state.IsSerial = step is ResolverQueryPlanStep
+                        { Strategy: ExecutionStrategy.Serial };
+                    state.IsInitialized = true;
+                }
+            }
+        }
+
         private sealed class State
         {
             public int Id;
             public bool IsActive;
             public int Tasks;
+            public bool IsSerial;
+            public bool IsInitialized;
 
             public void Clear()
             {
                 Id = default;
                 IsActive = default;
+                IsSerial = default;
+                IsInitialized = default;
                 Tasks = default;
             }
 
@@ -234,7 +315,7 @@ namespace HotChocolate.Execution.Processing.Plan
             /// </summary>
             public override string ToString()
             {
-                string active = IsActive ? " active" : ""; 
+                string active = IsActive ? " active" : "";
                 string tasks = Tasks > 0 ? $" tasks: {Tasks}" : "";
                 return $"{Id}{active}{tasks}";
             }

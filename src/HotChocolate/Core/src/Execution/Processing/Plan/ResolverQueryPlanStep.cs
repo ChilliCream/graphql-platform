@@ -24,12 +24,12 @@ namespace HotChocolate.Execution.Processing.Plan
             _selections = selections.ToArray();
         }
 
-        protected internal override string Name => 
+        protected internal override string Name =>
             Strategy == ExecutionStrategy.Serial
                 ? "SerialResolver"
                 : "Resolver";
 
-        public override ExecutionStrategy Strategy { get; }
+        public ExecutionStrategy Strategy { get; }
 
         public override bool Initialize(IOperationContext context)
         {

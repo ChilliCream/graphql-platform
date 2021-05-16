@@ -24,6 +24,8 @@ namespace HotChocolate.Execution.Processing.Tasks
 
         public object? State { get; set; }
 
+        public bool IsSerial { get; set; }
+
         public void BeginExecute(CancellationToken cancellationToken)
         {
             try

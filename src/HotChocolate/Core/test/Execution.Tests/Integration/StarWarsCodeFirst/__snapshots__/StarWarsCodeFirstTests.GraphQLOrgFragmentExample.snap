@@ -9,12 +9,8 @@
       ],
       "friends": {
         "nodes": [
-          {
-            "name": "Han Solo"
-          },
-          {
-            "name": "Leia Organa"
-          },
+          {},
+          {},
           {
             "name": "C-3PO"
           },
@@ -33,15 +29,9 @@
       ],
       "friends": {
         "nodes": [
-          {
-            "name": "Luke Skywalker"
-          },
-          {
-            "name": "Han Solo"
-          },
-          {
-            "name": "Leia Organa"
-          }
+          {},
+          {},
+          {}
         ]
       }
     }

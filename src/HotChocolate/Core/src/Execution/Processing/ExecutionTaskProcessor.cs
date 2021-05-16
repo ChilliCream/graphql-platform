@@ -42,7 +42,7 @@ namespace HotChocolate.Execution.Processing
                             break;
                         }
 
-                        if (buffer[0]!.Kind == ExecutionTaskKind.Serial)
+                        if (buffer[0]!.IsSerial)
                         {
                             for (var i = 0; i < work; i++)
                             {

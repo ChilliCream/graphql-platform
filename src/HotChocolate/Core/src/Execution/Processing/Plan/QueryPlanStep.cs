@@ -12,8 +12,6 @@ namespace HotChocolate.Execution.Processing.Plan
 
         protected internal virtual string Name => GetType().Name;
 
-        public abstract ExecutionStrategy Strategy { get; }
-
         public QueryPlanStep? Parent { get; internal set; }
 
         internal virtual IReadOnlyList<QueryPlanStep> Steps => _empty;

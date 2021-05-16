@@ -73,19 +73,28 @@ namespace HotChocolate.Fetching
                 _tasks = tasks;
             }
 
+            /// <inheritdoc />
             public bool IsCompleted { get; private set; }
 
             public bool IsCanceled { get; private set; }
 
+            /// <inheritdoc />
             public ExecutionTaskKind Kind { get; }
 
+            /// <inheritdoc />
             public IExecutionTask? Parent { get; set; }
 
+            /// <inheritdoc />
             public IExecutionTask? Next { get; set; }
 
+            /// <inheritdoc />
             public IExecutionTask? Previous { get; set; }
 
+            /// <inheritdoc />
             public object? State { get; set; }
+
+            /// <inheritdoc />
+            public bool IsSerial { get; set; }
 
             public void BeginExecute(CancellationToken cancellationToken)
             {

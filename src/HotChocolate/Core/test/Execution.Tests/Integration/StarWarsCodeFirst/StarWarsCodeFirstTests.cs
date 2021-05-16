@@ -2,11 +2,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using Snapshooter;
 using Snapshooter.Xunit;
-using ChilliCream.Testing;
 using Xunit;
 using Snapshot = Snapshooter.Xunit.Snapshot;
 using static HotChocolate.Tests.TestHelper;
@@ -767,7 +767,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
         }
 
         [InlineData("true")]
-        // [InlineData("false")]
+        [InlineData("false")]
         [Theory]
         public async Task Include_With_Literal(string ifValue)
         {

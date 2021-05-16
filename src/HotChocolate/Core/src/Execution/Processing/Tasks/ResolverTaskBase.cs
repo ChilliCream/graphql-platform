@@ -33,6 +33,8 @@ namespace HotChocolate.Execution.Processing.Tasks
 
         public object? State { get; set; }
 
+        public bool IsSerial { get; set; }
+
         public abstract void BeginExecute(CancellationToken cancellationToken);
 
         public abstract Task WaitForCompletionAsync(CancellationToken cancellationToken);

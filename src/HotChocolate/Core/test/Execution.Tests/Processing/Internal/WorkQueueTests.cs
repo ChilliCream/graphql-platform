@@ -142,6 +142,7 @@ namespace HotChocolate.Execution.Processing.Internal
             public IExecutionTask Next { get; set; }
             public IExecutionTask Previous { get; set; }
             public object State { get; set; }
+            public bool IsSerial { get; set; }
 
             public void BeginExecute(CancellationToken cancellationToken)
             {

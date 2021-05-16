@@ -40,9 +40,15 @@ namespace HotChocolate.Execution
         IExecutionTask? Previous { get; set; }
 
         /// <summary>
-        /// Optional execution state that is set by the execution engine.
+        /// This property is set by the execution engine and stores the execution state on it.
         /// </summary>
         object? State { get; set; }
+
+        /// <summary>
+        /// This property is set by the execution engine defines if the task needs to be
+        /// executed in a serial context.
+        /// </summary>
+        bool IsSerial { get; set; }
 
         /// <summary>
         /// Begins executing this task.

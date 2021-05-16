@@ -14,6 +14,7 @@ namespace HotChocolate.Execution.Processing
     {
         private readonly object _sync = new();
         private readonly WorkQueue _work = new();
+        private readonly WorkQueue _serial = new();
         private readonly SuspendedWorkQueue _suspended = new();
         private readonly QueryPlanStateMachine _stateMachine = new();
 
@@ -34,16 +35,14 @@ namespace HotChocolate.Execution.Processing
         public event EventHandler<EventArgs>? BacklogEmpty;
 
         /// <inheritdoc/>
-        public bool IsEmpty => _work.IsEmpty;
+        public bool IsEmpty => _work.IsEmpty && _serial.IsEmpty;
 
         /// <inheritdoc/>
-        public bool IsRunning
-        {
-            get
-            {
-                return _work.IsRunning || !_stateMachine.IsCompleted || _processors > 1;
-            }
-        }
+        public bool IsRunning =>
+            _work.IsRunning ||
+            _serial.IsRunning ||
+           !_stateMachine.IsCompleted ||
+           _processors > 1;
 
         internal void Initialize(OperationContext operationContext, QueryPlan queryPlan)
         {
@@ -58,10 +57,11 @@ namespace HotChocolate.Execution.Processing
             lock (_sync)
             {
                 var size = 0;
+                WorkQueue work = main && _stateMachine.IsSerial ? _serial : _work;
 
                 for (var i = 0; i < buffer.Length; i++)
                 {
-                    if (!_work.TryTake(out IExecutionTask? task))
+                    if (!work.TryTake(out IExecutionTask? task))
                     {
                         break;
                     }
@@ -90,7 +90,8 @@ namespace HotChocolate.Execution.Processing
             {
                 if (_stateMachine.Register(task))
                 {
-                    backlogSize = _work.Push(task);
+                    WorkQueue work = task.IsSerial ? _serial : _work;
+                    backlogSize = work.Push(task);
 
                     if (backlogSize > CalculateScalePressure() || _mainIsPaused && _processors == 1)
                     {
@@ -134,7 +135,8 @@ namespace HotChocolate.Execution.Processing
 
                     if (_stateMachine.Register(task))
                     {
-                        backlogSize = _work.Push(task);
+                        WorkQueue work = task.IsSerial ? _serial : _work;
+                        backlogSize = work.Push(task);
                     }
                     else
                     {
@@ -184,10 +186,28 @@ namespace HotChocolate.Execution.Processing
                     TryEnqueueSuspended();
                 }
 
-                // last we complete the work queue which will signal to the execution context
+                // determine the work queue.
+                WorkQueue work = task.IsSerial ? _serial : _work;
+
+                // now we complete the work queue which will signal to the execution context
                 // that work has been completed if it has no more tasks enqueued or marked
                 // running.
-                _work.Complete(task);
+                work.Complete(task);
+
+                // if there is now more work and the state machine is not completed yet we will
+                // close open steps and reevaluate. This can happen if optional resolver tasks
+                // are not enqueued.
+                if (!_stateMachine.IsCompleted &&
+                    _work.IsEmpty &&
+                    _serial.IsEmpty &&
+                    !_work.IsRunning &&
+                    !_serial.IsRunning)
+                {
+                    if (_stateMachine.CompleteNext() && !_suspended.IsEmpty)
+                    {
+                        TryEnqueueSuspended();
+                    }
+                }
             }
 
             if (scaled)
@@ -199,7 +219,9 @@ namespace HotChocolate.Execution.Processing
 
             void TryEnqueueSuspended()
             {
-                _suspended.CopyTo(_work, _stateMachine);
+                // note that backlog pressure is only measured on the default work queue since the
+                // serial work queue is not scaled by default.
+                _suspended.CopyTo(_work, _serial, _stateMachine);
                 backlogSize = _work.Count;
 
                 if (backlogSize > CalculateScalePressure() || _mainIsPaused && _processors == 1)
@@ -213,6 +235,10 @@ namespace HotChocolate.Execution.Processing
         /// <inheritdoc/>
         public async Task WaitForWorkAsync(CancellationToken cancellationToken)
         {
+            // we do not have any code to switch between serial and parallel work since the wait
+            // for work is only meant for parallel work since the serial work is executed in
+            // one stream.
+
             lock (_sync)
             {
                 // if we have work we will not wait and end waiting for new work.
