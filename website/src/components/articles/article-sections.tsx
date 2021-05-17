@@ -1,60 +1,101 @@
 import { graphql, Link } from "gatsby";
-import React, {
-  Fragment,
-  FunctionComponent,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { FunctionComponent, useCallback, useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { Subscription } from "rxjs";
 import styled from "styled-components";
 import { ArticleSectionsFragment } from "../../../graphql-types";
-import { State } from "../../state";
+import { useObservable } from "../../state";
 import { closeAside } from "../../state/common";
 import { MostProminentSection } from "../doc-page/doc-page-elements";
 
 interface ArticleSectionsProperties {
-  data: ArticleSectionsFragment;
+  readonly data: ArticleSectionsFragment;
 }
 
 export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
   data,
 }) => {
   const dispatch = useDispatch();
-  const [activeHeadingId, setActiveHeadingId] = useState<string>();
-  const [headings, setHeadings] = useState<Heading[]>([]);
-  const yScrollPosition = useSelector<State, number>(
+  const yScrollPosition$ = useObservable(
     (state) => state.common.yScrollPosition
   );
 
   const handleCloseClick = useCallback(() => {
     dispatch(closeAside());
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
-    const result = ((data.tableOfContents.items as TableOfContentItem[]) ?? [])
+    const headings = (
+      (data.tableOfContents.items as TableOfContentItem[]) ?? []
+    )
       .flatMap((item) => [item, ...(item.items ?? [])])
-      .map((item) => ({
+      .map<Heading>((item) => ({
         id: item.url,
+        title: item.title,
         position:
           (document.getElementById(item.url.substring(1))?.offsetTop ?? 80) -
           80,
       }))
       .reverse();
+    let currentActiveId: string | undefined;
+    let currentActiveClass: string = "";
+    let timeoutHandler: number | undefined;
+    let subscription: Subscription | undefined;
 
-    setHeadings(result);
+    if (headings.length > 0) {
+      subscription = yScrollPosition$.subscribe((yScrollPosition) => {
+        let newActiveId: string | undefined;
+        let title: string | undefined;
+
+        for (let i = 0; i < headings.length; i++) {
+          if (yScrollPosition >= headings[i].position) {
+            newActiveId = headings[i].id;
+            title = headings[i].title;
+            break;
+          }
+        }
+
+        if (currentActiveId !== newActiveId) {
+          if (currentActiveId) {
+            document.getElementById(
+              harmonizeId(currentActiveId)
+            )!.className = currentActiveClass;
+          }
+
+          currentActiveId = newActiveId;
+          clearTimeout(timeoutHandler);
+
+          if (currentActiveId) {
+            const element = document.getElementById(
+              harmonizeId(currentActiveId)
+            )!;
+
+            currentActiveClass = element.className;
+            element.className = currentActiveClass + " active";
+            timeoutHandler = window.setTimeout(() => {
+              window.history.pushState(
+                undefined,
+                title ?? "ChilliCream Docs", // todo: default heading should be the doc title
+                `./${currentActiveId ?? ""}`
+              );
+            }, 250);
+          } else {
+            timeoutHandler = window.setTimeout(() => {
+              window.history.pushState(
+                undefined,
+                "ChilliCream Docs", // todo: default heading should be the doc title
+                "./"
+              );
+            }, 250);
+          }
+        }
+      });
+    }
+
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, [data]);
-
-  useEffect(() => {
-    const activeHeading = headings.find((id) => yScrollPosition >= id.position)
-      ?.id;
-    window.history.pushState(
-      undefined,
-      activeHeading ?? "ChilliCream Docs",
-      "./" + (activeHeading ?? "")
-    );
-    setActiveHeadingId(activeHeading);
-  }, [headings, yScrollPosition]);
 
   const tocItems: TableOfContentItem[] = data.tableOfContents.items ?? [];
 
@@ -63,7 +104,7 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
       <Title>In this article</Title>
       <MostProminentSection>
         <div onClick={handleCloseClick}>
-          <TableOfContent items={tocItems} activeHeadingId={activeHeadingId} />
+          <TableOfContent items={tocItems} />
         </div>
       </MostProminentSection>
     </Container>
@@ -71,44 +112,36 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
 };
 
 interface Heading {
-  id: string;
-  position: number;
+  readonly id: string;
+  readonly title: string;
+  readonly position: number;
 }
 
 interface TableOfContentProps {
-  items: TableOfContentItem[];
-  activeHeadingId: string | undefined;
+  readonly items: TableOfContentItem[];
 }
 
-const TableOfContent: FunctionComponent<TableOfContentProps> = ({
-  items,
-  activeHeadingId,
-}) => {
+const TableOfContent: FunctionComponent<TableOfContentProps> = ({ items }) => {
   return (
     <TocItemContainer>
       {items.map((item) => (
-        <Fragment key={item.url}>
-          <TocListItem
-            className={activeHeadingId === item.url ? "active" : undefined}
-          >
-            <TocLink to={item.url}>{item.title}</TocLink>
-          </TocListItem>
-          {item.items && (
-            <TableOfContent
-              items={item.items ?? []}
-              activeHeadingId={activeHeadingId}
-            />
-          )}
-        </Fragment>
+        <TocListItem key={item.url} id={harmonizeId(item.url)}>
+          <TocLink to={item.url}>{item.title}</TocLink>
+          {item.items && <TableOfContent items={item.items ?? []} />}
+        </TocListItem>
       ))}
     </TocItemContainer>
   );
 };
 
+function harmonizeId(id: string): string {
+  return id.replace("#", "link-");
+}
+
 interface TableOfContentItem {
-  title: string;
-  url: string;
-  items?: TableOfContentItem[];
+  readonly title: string;
+  readonly url: string;
+  readonly items?: TableOfContentItem[];
 }
 
 export const ArticleSectionsGraphQLFragment = graphql`
@@ -131,7 +164,6 @@ const Title = styled.h6`
 `;
 
 const TocItemContainer = styled.ul`
-  position: absolute;
   display: block;
   margin: 0;
   padding: 0 25px 10px;

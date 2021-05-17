@@ -1,22 +1,26 @@
 import React, { FunctionComponent, useEffect, useRef } from "react";
-import styled from "styled-components";
-import { Footer } from "./footer";
-import { PageTop } from "../../misc/page-top";
 import { useDispatch } from "react-redux";
+import styled from "styled-components";
 import { hasScrolled } from "../../../state/common";
+import { PageTop } from "../../misc/page-top";
 import { ContentComponent } from "./content";
+import { Footer } from "./footer";
 
 export const MainContentContainer: FunctionComponent = ({ children }) => {
   const ref = useRef<HTMLDivElement>(null);
-
   const dispatch = useDispatch();
-  const handleScroll = () => {
-    const top = ref.current?.scrollTop || 0;
-    dispatch(hasScrolled({ yScrollPosition: top }));
-  };
 
   useEffect(() => {
+    const handleScroll = () => {
+      dispatch(
+        hasScrolled({
+          yScrollPosition: ref.current?.scrollTop ?? 0,
+        })
+      );
+    };
+
     ref.current?.addEventListener("scroll", handleScroll);
+
     return () => {
       ref.current?.removeEventListener("scroll", handleScroll);
     };
