@@ -6,8 +6,11 @@ namespace HotChocolate.Execution.Processing.Plan
 {
     internal sealed class ResolverQueryPlanNode : QueryPlanNode
     {
-        public ResolverQueryPlanNode(ISelection first, ISelection? firstParent = null)
-            : base(QueryPlanBuilder.GetStrategyFromSelection(first))
+        public ResolverQueryPlanNode(
+            ISelection first,
+            ISelection? firstParent = null,
+            ExecutionStrategy? strategy = null)
+            : base(strategy ?? QueryPlanBuilder.GetStrategyFromSelection(first))
         {
             First = first;
             FirstParent = firstParent;

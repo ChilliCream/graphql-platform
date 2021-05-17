@@ -1,4 +1,5 @@
-﻿using HotChocolate.Types;
+﻿using HotChocolate.Execution;
+using HotChocolate.Types;
 
 #nullable enable
 
@@ -75,5 +76,10 @@ namespace HotChocolate.Configuration
         /// Defines if field inlining is allowed.
         /// </summary>
         bool AllowInlining { get; }
+
+        /// <summary>
+        /// Defines that the default resolver execution strategy. 
+        /// </summary>
+        ExecutionStrategy DefaultResolverStrategy { get; }
     }
 }

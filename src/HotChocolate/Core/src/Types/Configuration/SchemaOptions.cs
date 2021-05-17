@@ -1,3 +1,4 @@
+using HotChocolate.Execution;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
@@ -77,6 +78,11 @@ namespace HotChocolate.Configuration
         /// </summary>
         public bool AllowInlining { get; set; } = true;
 
+        /// <summary>
+        /// Defines that the default resolver execution strategy. 
+        /// </summary>
+        public ExecutionStrategy DefaultResolverStrategy { get; set; }
+
         public static SchemaOptions FromOptions(IReadOnlySchemaOptions options)
         {
             return new()
@@ -91,7 +97,8 @@ namespace HotChocolate.Configuration
                 PreserveSyntaxNodes = options.PreserveSyntaxNodes,
                 EnableDirectiveIntrospection = options.EnableDirectiveIntrospection,
                 DefaultDirectiveVisibility = options.DefaultDirectiveVisibility,
-                AllowInlining = options.AllowInlining
+                AllowInlining = options.AllowInlining,
+                DefaultResolverStrategy = options.DefaultResolverStrategy
             };
         }
     }
