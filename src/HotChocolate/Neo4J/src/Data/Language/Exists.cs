@@ -8,6 +8,6 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public override ClauseKind Kind => ClauseKind.Exists;
 
-        public static readonly Exists Instance = new ();
+        public static Exists Instance { get; } = new();
     }
 }

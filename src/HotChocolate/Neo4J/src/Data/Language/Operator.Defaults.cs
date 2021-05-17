@@ -7,79 +7,79 @@
     public partial class Operator
     {
         // Aggregation
-        public static readonly Operator Distinct = new("DISTINCT");
+        public static Operator Distinct { get; } = new("DISTINCT");
 
         // Mathematical operators
-        public static readonly Operator Addition = new("+");
+        public static Operator Addition { get; } = new("+");
 
-        public static readonly Operator Subtraction = new("-");
+        public static Operator Subtraction { get; } = new("-");
 
-        public static readonly Operator Multiplication = new("*");
+        public static Operator Multiplication { get; } = new("*");
 
-        public static readonly Operator Division = new("/");
+        public static Operator Division { get; } = new("/");
 
-        public static readonly Operator Modulo = new("%");
+        public static Operator Modulo { get; } = new("%");
 
-        public static readonly Operator Exponent = new("^");
+        public static Operator Exponent { get; } = new("^");
 
         // Comparison operators
-        public static readonly Operator Equality = new("=");
+        public static Operator Equality { get; } = new("=");
 
-        public static readonly Operator InEquality = new("<>");
+        public static Operator InEquality { get; } = new("<>");
 
-        public static readonly Operator LessThan = new("<");
+        public static Operator LessThan { get; } = new("<");
 
-        public static readonly Operator GreaterThan = new(">");
+        public static Operator GreaterThan { get; } = new(">");
 
-        public static readonly Operator LessThanOrEqualTo = new("<=");
+        public static Operator LessThanOrEqualTo { get; } = new("<=");
 
-        public static readonly Operator GreaterThanOrEqualTo = new(">=");
+        public static Operator GreaterThanOrEqualTo { get; } = new(">=");
 
-        public static readonly Operator IsNull = new("IS NULL", Type.Postfix);
+        public static Operator IsNull { get; } = new("IS NULL", Type.Postfix);
 
-        public static readonly Operator IsNotNull = new("IS NOT NULL", Type.Postfix);
+        public static Operator IsNotNull { get; } = new("IS NOT NULL", Type.Postfix);
 
         // String specific comparison operators
-        public static readonly Operator StartsWith = new("STARTS WITH");
+        public static Operator StartsWith { get; } = new("STARTS WITH");
 
-        public static readonly Operator EndsWith = new("ENDS WITH");
+        public static Operator EndsWith { get; } = new("ENDS WITH");
 
-        public static readonly Operator Contains = new("CONTAINS");
+        public static Operator Contains { get; } = new("CONTAINS");
 
         // Boolean operators
-        public static readonly Operator And = new("AND");
+        public static Operator And { get; } = new("AND");
 
-        public static readonly Operator Or = new("OR");
+        public static Operator Or { get; } = new("OR");
 
-        public static readonly Operator XOr = new("XOR");
+        public static Operator XOr { get; } = new("XOR");
 
-        public static readonly Operator Not = new("NOT", Type.Prefix);
+        public static Operator Not { get; } = new("NOT", Type.Prefix);
 
         // String operators
-        public static readonly Operator Concat = new("+");
+        public static Operator Concat { get; } = new("+");
 
-        public static readonly Operator Matches = new("=~");
+        public static Operator Matches { get; } = new("=~");
 
         // List operators
-        public static readonly Operator In = new("IN");
+        public static Operator In { get; } = new("IN");
 
-        public static readonly Operator NotIn = new("NOT IN");
+        public static Operator NotIn { get; } = new("NOT IN");
 
         // Property operators
-        public static readonly Operator Set = new("=", Type.Property);
+        public static Operator Set { get; } = new("=", Type.Property);
 
-        public static readonly Operator Get = new(".", Type.Property);
+        public static Operator Get { get; } = new(".", Type.Property);
 
-        public static readonly Operator Mutate = new("+=", Type.Property);
+        public static Operator Mutate { get; } = new("+=", Type.Property);
 
         // Node operators
-        public static readonly Operator SetLabel = new("", Type.Label);
+        public static Operator SetLabel { get; } = new("", Type.Label);
 
-        public static readonly Operator RemoveLabel = new("", Type.Label);
+        public static Operator RemoveLabel { get; } = new("", Type.Label);
 
         // Misc
-        public static readonly Operator Eq = new("=");
+        public static Operator Eq { get; } = new("=");
 
-        public static readonly Operator Pipe = new("|");
+        public static Operator Pipe { get; } = new("|");
     }
 }

@@ -14,9 +14,10 @@ namespace HotChocolate.Data.Neo4J.Language
         public string GetLeftSymbol() => _symbolLeft;
         public string GetRightSymbol() => _symbolRight;
 
-        public static readonly RelationshipDirection Outgoing = new("-", "->");
-        public static readonly RelationshipDirection Incoming = new("<-", "-");
-        public static readonly RelationshipDirection None = new("-", "-");
+        public static RelationshipDirection Outgoing { get; } = new("-", "->");
 
+        public static RelationshipDirection Incoming { get; } = new("<-", "-");
+
+        public static RelationshipDirection None { get; } = new("-", "-");
     }
 }

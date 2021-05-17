@@ -12,8 +12,8 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public override string AsString() => GetContent().ToString(CultureInfo.InvariantCulture);
 
-        public static readonly BooleanLiteral True = new(true);
+        public static BooleanLiteral True { get; } = new(true);
 
-        public static readonly BooleanLiteral False = new(false);
+        public static BooleanLiteral False { get; } = new(false);
     }
 }

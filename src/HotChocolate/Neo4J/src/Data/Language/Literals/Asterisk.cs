@@ -8,6 +8,6 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public override string AsString() => GetContent();
 
-        public static readonly Asterisk Instance = new();
+        public static Asterisk Instance { get; } = new();
     }
 }

@@ -8,15 +8,15 @@ namespace HotChocolate.Data.Neo4J.Language
             {
             }
 
-            public static readonly Predicates All = new("all");
+            public static Predicates All { get; } = new("all");
 
-            public static readonly Predicates Any = new("any");
+            public static Predicates Any { get; } = new("any");
 
-            public static readonly Predicates Exists = new("exists");
+            public static Predicates Exists { get; } = new("exists");
 
-            public static readonly Predicates None = new("none");
+            public static Predicates None { get; } = new("none");
 
-            public static readonly Predicates Single = new("single");
+            public static Predicates Single { get; } = new("single");
         }
     }
 }

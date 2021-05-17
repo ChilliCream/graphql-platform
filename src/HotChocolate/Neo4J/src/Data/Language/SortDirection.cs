@@ -13,8 +13,10 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public string GetSymbol() => _symbol;
 
-        public static readonly SortDirection Undefined = new("");
-        public static readonly SortDirection Ascending = new("ASC");
-        public static readonly SortDirection Descending = new("DESC");
+        public static SortDirection Undefined { get; } = new("");
+
+        public static SortDirection Ascending { get; } = new("ASC");
+
+        public static SortDirection Descending { get; } = new("DESC");
     }
 }

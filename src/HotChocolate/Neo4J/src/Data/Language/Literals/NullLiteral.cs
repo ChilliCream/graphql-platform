@@ -8,6 +8,6 @@
 
         public override string AsString() => "NULL";
 
-        public static readonly NullLiteral Instance = new();
+        public static NullLiteral Instance { get; } = new();
     }
 }
