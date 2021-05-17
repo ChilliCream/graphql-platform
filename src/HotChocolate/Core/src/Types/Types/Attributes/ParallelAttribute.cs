@@ -6,11 +6,10 @@ using HotChocolate.Types.Descriptors;
 namespace HotChocolate.Types
 {
     /// <summary>
-    /// Marks a resolver as serial executable which will ensure that the execution engine 
-    /// synchronizes resolver execution around the annotated resolver and ensures that 
-    /// no other resolver is executed in parallel.
+    /// Marks a resolver as parallel executable which will allow the execution engine 
+    /// to execute this resolver in parallel with other resolvers.
     /// </summary>
-    public sealed class SerialAttribute : ObjectFieldDescriptorAttribute
+    public sealed class ParallelAttribute : ObjectFieldDescriptorAttribute
     {
         public override void OnConfigure(
             IDescriptorContext context,

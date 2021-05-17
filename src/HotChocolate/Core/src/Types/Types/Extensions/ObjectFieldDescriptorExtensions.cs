@@ -22,5 +22,20 @@ namespace HotChocolate.Types
             descriptor.Extend().OnBeforeCreate(c => c.IsParallelExecutable = false);
             return descriptor;
         }
+
+        /// <summary>
+        /// Marks a field as parallel executable which will allow the execution engine 
+        /// to execute this field in parallel with other resolvers.
+        /// </summary>
+        public static IObjectFieldDescriptor Parallel(this IObjectFieldDescriptor descriptor)
+        {
+            if (descriptor is null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
+            descriptor.Extend().OnBeforeCreate(c => c.IsParallelExecutable = true);
+            return descriptor;
+        }
     }
 }
