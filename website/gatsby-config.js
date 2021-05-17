@@ -60,6 +60,7 @@ module.exports = {
               backgroundColor: "transparent",
             },
           },
+          "gatsby-remark-check-links",
         ],
       },
     },
