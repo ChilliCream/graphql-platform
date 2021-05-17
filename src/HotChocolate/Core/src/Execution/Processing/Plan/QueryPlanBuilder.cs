@@ -27,35 +27,7 @@ namespace HotChocolate.Execution.Processing.Plan
                     Visit(selection, context);
                 }
 
-                QueryPlanNode root = Optimize(context.Root!);
-
-                if (context.PureSelections.Count > 0)
-                {
-                    if (root is ResolverQueryPlanNode
-                        {
-                            Strategy: ExecutionStrategy.Parallel,
-                            Nodes: { Count: 0 }
-                        } rootResolver)
-                    {
-                        for (var i = 0; i < context.PureSelections.Count; i++)
-                        {
-                            rootResolver.Selections.Add(context.PureSelections[i]);
-                        }
-
-                        return rootResolver;
-                    }
-
-                    var pureRoot = new ResolverQueryPlanNode(context.PureSelections[0]);
-
-                    for (var i = 1; i < context.PureSelections.Count; i++)
-                    {
-                        pureRoot.Selections.Add(context.PureSelections[i]);
-                    }
-
-                    root = ParallelQueryPlanNode.Create(root, pureRoot);
-                }
-
-                return root;
+                return Optimize(context.Root!);
             }
 
             private static void Visit(ISelection selection, QueryPlanContext context)
@@ -78,7 +50,7 @@ namespace HotChocolate.Execution.Processing.Plan
                         else if(context.SelectionPath.Count > 0 &&
                             context.NodePath.TryPeek(2, out QueryPlanNode? grandParent) &&
                             grandParent is ResolverQueryPlanNode { Strategy: ExecutionStrategy.Serial } gp &&
-                            gp.Selections.Contains(context.SelectionPath.PeekOrDefault()))
+                            gp.Selections.Contains(context.SelectionPath.PeekOrDefault()!))
                         {
                             gp.Selections.Add(selection);
                         }
@@ -92,6 +64,7 @@ namespace HotChocolate.Execution.Processing.Plan
                         }
                     }
                     else if (selection.Strategy == SelectionExecutionStrategy.Default ||
+                        selection.Strategy == SelectionExecutionStrategy.Pure ||
                         context.SelectionPath.Count == 0)
                     {
                         if (parent is ResolverQueryPlanNode { Strategy: ExecutionStrategy.Parallel } p)
@@ -101,7 +74,7 @@ namespace HotChocolate.Execution.Processing.Plan
                         else if(context.SelectionPath.Count > 0 &&
                             context.NodePath.TryPeek(2, out QueryPlanNode? grandParent) &&
                             grandParent is ResolverQueryPlanNode { Strategy: ExecutionStrategy.Parallel } gp &&
-                            gp.Selections.Contains(context.SelectionPath.PeekOrDefault()))
+                            gp.Selections.Contains(context.SelectionPath.PeekOrDefault()!))
                         {
                             gp.Selections.Add(selection);
                         }
@@ -113,10 +86,6 @@ namespace HotChocolate.Execution.Processing.Plan
                             parent.AddNode(resolverPlanStep);
                             context.NodePath.Push(resolverPlanStep);
                         }
-                    }
-                    else if (selection.Strategy == SelectionExecutionStrategy.Pure)
-                    {
-                        context.PureSelections.Add(selection);
                     }
                     else if (selection.Strategy == SelectionExecutionStrategy.Inline)
                     {
@@ -172,51 +141,9 @@ namespace HotChocolate.Execution.Processing.Plan
                     Optimize(child);
                 }
 
-                ResolverQueryPlanNode? parallel = null;
-                ResolverQueryPlanNode? serial = null;
-                var nodes = new List<QueryPlanNode>();
-
-                while(node.TryTakeNode(out var child))
-                {
-                    switch (child)
-                    {
-                        case ResolverQueryPlanNode { Strategy: ExecutionStrategy.Parallel } p
-                            when parallel is null:
-                            parallel = p;
-                            nodes.Add(p);
-                            break;
-                        case ResolverQueryPlanNode { Strategy: ExecutionStrategy.Parallel } p:
-                        {
-                            foreach (ISelection selection in p.Selections)
-                            {
-                                parallel.Selections.Add(selection);
-                            }
-
-                            break;
-                        }
-                        case ResolverQueryPlanNode { Strategy: ExecutionStrategy.Serial } s
-                            when serial is null:
-                            serial = s;
-                            nodes.Add(s);
-                            break;
-                        case ResolverQueryPlanNode { Strategy: ExecutionStrategy.Serial } s:
-                        {
-                            foreach (ISelection selection in s.Selections)
-                            {
-                                serial.Selections.Add(selection);
-                            }
-
-                            break;
-                        }
-                        default:
-                            nodes.Add(child);
-                            break;
-                    }
-                }
-
                 var sequence = new SequenceQueryPlanNode();
 
-                foreach (QueryPlanNode child in nodes)
+                while(node.TryTakeNode(out var child))
                 {
                     sequence.AddNode(child);
                 }
@@ -237,8 +164,6 @@ namespace HotChocolate.Execution.Processing.Plan
             public IPreparedOperation Operation { get; }
 
             public QueryPlanNode? Root { get; set; }
-
-            public List<ISelection> PureSelections { get; } = new();
 
             public List<QueryPlanNode> NodePath { get; } = new();
 
