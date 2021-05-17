@@ -1,12 +1,14 @@
 ﻿namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
-    /// WHERE adds constraints to the patterns in a MATCH or OPTIONAL MATCH clause or filters the results of a WITH clause.
-    /// <see href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/Match.html#Where" />
+    /// WHERE adds constraints to the patterns in a MATCH or OPTIONAL MATCH clause or filters the
+    /// results of a WITH clause.
+    /// <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/Match.html#Where" >
+    /// Where
+    /// </a>
     /// </summary>
     public class Where : Visitable
     {
-        public override ClauseKind Kind => ClauseKind.Where;
         private readonly Exists _exists;
         private readonly Condition _condition;
 
@@ -15,11 +17,14 @@
             _exists = null;
             _condition = condition;
         }
+
         public Where(bool exists, Condition condition)
         {
             _exists = exists ? Exists.Instance : null;
             _condition = condition;
         }
+
+        public override ClauseKind Kind => ClauseKind.Where;
 
         public override void Visit(CypherVisitor cypherVisitor)
         {

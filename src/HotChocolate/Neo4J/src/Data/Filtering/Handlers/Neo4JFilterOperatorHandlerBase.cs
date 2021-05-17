@@ -4,14 +4,12 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Language;
 
-#nullable enable
-
 namespace HotChocolate.Data.Neo4J.Filtering
 {
     /// <summary>
     /// The base of a Neo4j operation handler that can be bound to a
-    /// <see cref="FilterOperationField"/>. This is executed during the visitation of a input object.
-    /// This base is optimized to handle filter operations for Neo4j
+    /// <see cref="FilterOperationField"/>. This is executed during the visitation of a input
+    /// object. This base is optimized to handle filter operations for Neo4j
     /// </summary>
     public abstract class Neo4JFilterOperationHandlerBase
         : FilterOperationHandler<Neo4JFilterVisitorContext, Condition>
@@ -35,12 +33,12 @@ namespace HotChocolate.Data.Neo4J.Filtering
                 return false;
             }
 
-            if (!field.Type.IsInstanceOfType(value)) throw new InvalidOperationException();
-            result = HandleOperation(
-                context,
-                field,
-                value,
-                parsedValue);
+            if (!field.Type.IsInstanceOfType(value))
+            {
+                throw new InvalidOperationException();
+            }
+
+            result = HandleOperation(context, field, value, parsedValue);
 
             return true;
         }

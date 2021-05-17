@@ -3,8 +3,6 @@ using HotChocolate.Data.Projections;
 using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Execution.Processing;
 
-#nullable enable
-
 namespace HotChocolate.Data.Neo4J.Projections
 {
     /// <summary>

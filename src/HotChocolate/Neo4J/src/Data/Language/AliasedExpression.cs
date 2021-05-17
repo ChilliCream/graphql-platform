@@ -3,10 +3,10 @@ namespace HotChocolate.Data.Neo4J.Language
     /// <summary>
     /// An aliased expression, that deals with named expressions when accepting visitors.
     /// </summary>
-    public class AliasedExpression : Expression, IAliased
+    public class AliasedExpression
+        : Expression
+        , IAliased
     {
-        public override ClauseKind Kind => ClauseKind.AliasedExpression;
-
         private readonly string _alias;
         private readonly Expression _expression;
 
@@ -15,6 +15,8 @@ namespace HotChocolate.Data.Neo4J.Language
             _expression = expression;
             _alias = alias;
         }
+
+        public override ClauseKind Kind => ClauseKind.AliasedExpression;
 
         public string GetAlias() => _alias;
 

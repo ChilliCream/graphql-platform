@@ -3,8 +3,6 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Language;
 
-#nullable enable
-
 namespace HotChocolate.Data.Neo4J.Filtering
 {
     /// <summary>
@@ -19,7 +17,8 @@ namespace HotChocolate.Data.Neo4J.Filtering
             ITypeCompletionContext context,
             IFilterInputTypeDefinition typeDefinition,
             IFilterFieldDefinition fieldDefinition) =>
-                fieldDefinition is FilterOperationFieldDefinition {Id: DefaultFilterOperations.Equals};
+            fieldDefinition is FilterOperationFieldDefinition
+                { Id: DefaultFilterOperations.Equals };
 
         /// <inheritdoc />
         public override Condition HandleOperation(
@@ -28,11 +27,10 @@ namespace HotChocolate.Data.Neo4J.Filtering
             IValueNode value,
             object? parsedValue)
         {
-            Condition? expression = context
+            return context
                 .GetNode()
-                .Property(context.GetNeo4JFilterScope().GetPath()).IsEqualTo(Cypher.LiteralOf(parsedValue));
-
-            return expression;
+                .Property(context.GetNeo4JFilterScope().GetPath())
+                .IsEqualTo(Cypher.LiteralOf(parsedValue));
         }
     }
 }

@@ -17,8 +17,7 @@ namespace HotChocolate.Data.Neo4J
         {
             descriptor
                 .Extend()
-                .OnBeforeCreate(x =>
-                    x.ContextData.Add(nameof(Neo4JIgnoreAttribute), null));
+                .OnBeforeCreate(x => x.ContextData.Add(nameof(Neo4JIgnoreAttribute), null));
         }
     }
 }

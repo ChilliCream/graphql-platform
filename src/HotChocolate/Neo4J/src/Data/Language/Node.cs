@@ -1,28 +1,26 @@
 using System.Collections.Generic;
 using System.Linq;
 
-#nullable enable
-
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
     /// https://s3.amazonaws.com/artifacts.opencypher.org/railroad/NodePattern.html
     /// </summary>
-    public class Node :
-        Visitable,
-        IPatternElement,
-        IPropertyContainer,
-        IExposesRelationships<Relationship>,
-        IExposesProperties<Node>
+    public class Node
+        : Visitable
+        , IPatternElement
+        , IPropertyContainer
+        , IExposesRelationships<Relationship>
+        , IExposesProperties<Node>
     {
-        public override ClauseKind Kind => ClauseKind.Node;
         private readonly SymbolicName? _symbolicName;
         private readonly List<NodeLabel>? _labels;
         private readonly Properties? _properties;
-        public SymbolicName? GetSymbolicName() => _symbolicName;
-        public SymbolicName GetRequiredSymbolicName() => _symbolicName;
 
-        private Node(string? primaryLabel, Properties? properties, params string[]? additionalLabels)
+        private Node(
+            string? primaryLabel,
+            Properties? properties,
+            params string[]? additionalLabels)
         {
             _symbolicName = null;
             _labels = new List<NodeLabel>();
@@ -72,26 +70,38 @@ namespace HotChocolate.Data.Neo4J.Language
             return new Node(newSymbolicName, _properties, _labels);
         }
 
+        public override ClauseKind Kind => ClauseKind.Node;
+
+        public SymbolicName? GetSymbolicName() => _symbolicName;
+
+        public SymbolicName GetRequiredSymbolicName() => _symbolicName;
+
         public Node WithProperties(MapExpression? newProperties) =>
-            new(_symbolicName, newProperties == null ? null : new Properties(newProperties), _labels);
+            new(_symbolicName,
+                newProperties == null ? null : new Properties(newProperties),
+                _labels);
 
         public Node WithProperties(params object[] keysAndValues)
         {
             MapExpression? newProperties = null;
-            if(keysAndValues.Length != 0)
+            if (keysAndValues.Length != 0)
             {
                 newProperties = MapExpression.Create(keysAndValues);
             }
+
             return WithProperties(newProperties);
         }
 
-        public Property Property(string name) => Property(new[] { name });
+        public Property Property(string name) => Property(new[]
+        {
+            name
+        });
 
         public Property Property(params string[] names) =>
-            Language.Property.Create((INamed)this, names);
+            Language.Property.Create(this, names);
 
         public Property Property(Expression lookup) =>
-            Language.Property.Create(this,lookup);
+            Language.Property.Create(this, lookup);
 
         public MapProjection Project(List<object> entries) =>
             Project(entries.ToArray());
@@ -101,12 +111,12 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public static Node Create(string primaryLabel)
         {
-            return new (primaryLabel, null, null);
+            return new(primaryLabel, null, null);
         }
 
         public static Node Create()
         {
-            return new (null, null);
+            return new(null, null);
         }
 
         public static Node Create(string primaryLabel, string[] additionalLabels)
@@ -114,9 +124,15 @@ namespace HotChocolate.Data.Neo4J.Language
             return Create(primaryLabel, null, additionalLabels);
         }
 
-        public static Node Create(string primaryLabel, MapExpression? properties, string[]? additionalLabels)
+        public static Node Create(
+            string primaryLabel,
+            MapExpression? properties,
+            string[]? additionalLabels)
         {
-            return new (primaryLabel, properties != null ? new Properties(properties) : null, additionalLabels);
+            return new(
+                primaryLabel,
+                properties != null ? new Properties(properties) : null,
+                additionalLabels);
         }
 
         public Relationship RelationshipTo(Node other, params string[] types) =>
@@ -124,6 +140,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public Relationship RelationshipFrom(Node other, params string[] types) =>
             Relationship.Create(this, RelationshipDirection.Incoming, other, types);
+
         public Relationship RelationshipBetween(Node other, params string[] types) =>
             Relationship.Create(this, RelationshipDirection.None, other, types);
 
@@ -133,9 +150,9 @@ namespace HotChocolate.Data.Neo4J.Language
         public Condition? IsNotEqualTo(Node otherNode) =>
             GetRequiredSymbolicName().IsNotEqualTo(otherNode.GetRequiredSymbolicName());
 
-        public Condition? IsNull()  => GetRequiredSymbolicName()?.IsNull();
+        public Condition? IsNull() => GetRequiredSymbolicName()?.IsNull();
 
-        public Condition? IsNotNull()  => GetRequiredSymbolicName()?.IsNotNull();
+        public Condition? IsNotNull() => GetRequiredSymbolicName()?.IsNotNull();
 
         public SortItem? Descending => GetRequiredSymbolicName()?.Descending();
 

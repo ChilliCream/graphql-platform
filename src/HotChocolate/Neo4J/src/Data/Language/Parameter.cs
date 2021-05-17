@@ -2,7 +2,6 @@
 {
     public class Parameter<T> : Expression
     {
-        public override ClauseKind Kind => ClauseKind.Parameter;
         private readonly string _name;
         private readonly T _value;
 
@@ -11,6 +10,8 @@
             _name = name;
             _value = value;
         }
+
+        public override ClauseKind Kind => ClauseKind.Parameter;
 
         public T GetValue() => _value;
     }

@@ -5,11 +5,30 @@ namespace HotChocolate.Data.Neo4J.Language
     /// <summary>
     /// A dedicated map expression.
     /// </summary>
-    public class MapExpression : TypedSubtree<Expression>, ITypedSubtree
+    public class MapExpression
+        : TypedSubtree<Expression>
+        , ITypedSubtree
     {
+        private MapExpression(List<Expression> expressions) : base(expressions)
+        {
+        }
+
         public override ClauseKind Kind => ClauseKind.MapExpression;
 
-        private MapExpression(List<Expression> expressions) : base(expressions) { }
+        public MapExpression AddEntries(IEnumerable<Expression> entries)
+        {
+            var newContent = new List<Expression>();
+            newContent.AddRange(Children);
+            newContent.AddRange(entries);
+
+            return new MapExpression(newContent);
+        }
+
+        protected override IVisitable PrepareVisit(Expression child) =>
+            Expressions.NameOrExpression(child);
+
+        public static MapExpression WithEntries(List<Expression> entries) =>
+            new(entries);
 
         public static MapExpression Create(params object[] input)
         {
@@ -23,22 +42,8 @@ namespace HotChocolate.Data.Neo4J.Language
                 newContent.Add(entry);
                 knownKeys.Add(entry.GetKey());
             }
-            return new MapExpression(newContent);
-        }
-
-        public static MapExpression WithEntries(List<Expression> entries) =>
-            new(entries);
-
-        public MapExpression AddEntries(IEnumerable<Expression> entries)
-        {
-            var newContent = new List<Expression>();
-            newContent.AddRange(Children);
-            newContent.AddRange(entries);
 
             return new MapExpression(newContent);
         }
-
-        protected override IVisitable PrepareVisit(Expression child) =>
-            Expressions.NameOrExpression(child);
     }
 }

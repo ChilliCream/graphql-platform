@@ -21,8 +21,7 @@ namespace HotChocolate.Data.Neo4J
         {
             descriptor
                 .Extend()
-                .OnBeforeCreate(x =>
-                    x.ContextData.Add(nameof(Neo4JCypherAttribute), _statement));
+                .OnBeforeCreate(x => x.ContextData.Add(nameof(Neo4JCypherAttribute), _statement));
         }
     }
 }

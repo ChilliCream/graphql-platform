@@ -22,7 +22,6 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public Stack<IExtendedType> RuntimeTypes { get; }
 
         /// <inheritdoc />
-        public override FilterScope<Condition> CreateScope() =>
-            new Neo4JFilterScope();
+        public override FilterScope<Condition> CreateScope() => new Neo4JFilterScope();
     }
 }

@@ -6,8 +6,6 @@ using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types.Descriptors.Definitions;
 
-#nullable enable
-
 namespace HotChocolate.Data.Neo4J.Sorting
 {
     /// <summary>
@@ -47,14 +45,15 @@ namespace HotChocolate.Data.Neo4J.Sorting
         {
             if (sortValue is null)
             {
-                context.ReportError(
-                    ErrorHelper.CreateNonNullError(field, node, context));
+                context.ReportError(ErrorHelper.CreateNonNullError(field, node, context));
 
                 action = null!;
                 return false;
             }
 
-            context.Operations.Enqueue(new Neo4JSortDefinition(context.Path.Peek(), _sortDirection));
+            context.Operations
+                .Enqueue(new Neo4JSortDefinition(context.Path.Peek(), _sortDirection));
+
             action = SyntaxVisitor.Continue;
 
             return true;

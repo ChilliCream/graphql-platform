@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -16,7 +15,11 @@ namespace HotChocolate.Data.Neo4J
             if (typeof(IEnumerable).IsAssignableFrom(targetType))
             {
                 if (cypherValue is not IEnumerable enumerable)
-                    throw new InvalidOperationException($"The cypher value is not a list and cannot be mapped to target type: {targetType.UnderlyingSystemType}");
+                {
+                    throw ThrowHelper
+                        .ValueMapper_CypherValueIsNotAListAndCannotBeMapped(
+                            targetType.UnderlyingSystemType);
+                }
 
                 if (targetType == typeof(string))
                 {
@@ -30,25 +33,16 @@ namespace HotChocolate.Data.Neo4J
                 return (T)collectionMapper.MapValues(enumerable, targetType);
             }
 
-            switch (cypherValue)
+            return cypherValue switch
             {
-                case INode node:
-                {
-                    T entity = node.Properties.FromObjectDictionary<T>();
-                    return entity;
-                }
-                case IRelationship relationship:
-                {
-                    T entity = relationship.Properties.FromObjectDictionary<T>();
-                    return entity;
-                }
-                case IReadOnlyDictionary<string, object> map:
-                    return map.FromObjectDictionary<T>();
-                case IEnumerable:
-                    throw new InvalidOperationException($"The cypher value is a list and cannot be mapped to target type: {targetType.UnderlyingSystemType}");
-                default:
-                    return cypherValue.As<T>();
-            }
+                INode node => node.Properties.FromObjectDictionary<T>(),
+                IRelationship relationship => relationship.Properties.FromObjectDictionary<T>(),
+                IReadOnlyDictionary<string, object> map => map.FromObjectDictionary<T>(),
+                IEnumerable =>
+                    throw ThrowHelper.ValueMapper_CypherValueIsAListAndCannotBeMapped(
+                        targetType.UnderlyingSystemType),
+                _ => cypherValue.As<T>()
+            };
         }
     }
 }

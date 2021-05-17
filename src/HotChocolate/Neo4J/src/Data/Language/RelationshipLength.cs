@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
@@ -30,7 +28,7 @@ namespace HotChocolate.Data.Neo4J.Language
         ///
         /// </summary>
         /// <returns>Minimum number of hops to match.</returns>
-        public int? GetMinimum() =>  _minimum;
+        public int? GetMinimum() => _minimum;
 
         /// <summary>
         ///

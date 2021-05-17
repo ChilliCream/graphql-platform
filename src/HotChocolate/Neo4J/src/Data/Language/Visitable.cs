@@ -3,6 +3,7 @@
     public abstract class Visitable : IVisitable
     {
         public abstract ClauseKind Kind { get; }
+
         /// <summary>
         /// Visits a visitor visiting this Visitable and its nested Visitable if applicable.
         /// </summary>

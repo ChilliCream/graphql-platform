@@ -14,6 +14,6 @@ namespace HotChocolate.Data.Neo4J.Sorting
         /// <summary>
         /// The path from the root to the current position in the input object
         /// </summary>
-        public List<string> Path { get; } = new ();
+        public List<string> Path { get; } = new();
     }
 }

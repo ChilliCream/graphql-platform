@@ -1,19 +1,25 @@
-#nullable enable
-
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
-    /// See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/PatternComprehension.html">PatternComprehension</a>
-    /// and <a href="https://neo4j.com/docs/cypher-manual/current/syntax/lists/#cypher-pattern-comprehension">the corresponding cypher manual entry</a>.
+    /// See
+    /// <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/PatternComprehension.html">
+    /// PatternComprehension
+    /// </a>
+    /// and
+    /// <a href="https://neo4j.com/docs/cypher-manual/current/syntax/lists/#cypher-pattern-comprehension">
+    /// the corresponding cypher manual entry
+    /// </a>.
     /// </summary>
     public class PatternComprehension : Expression
     {
-        public override ClauseKind Kind => ClauseKind.PatternComprehension;
         private readonly IPatternElement _patternElement;
         private readonly Where? _where;
         private readonly Expression? _expression;
 
-        public PatternComprehension(IPatternElement patternElement, Where? where, Expression? expression)
+        public PatternComprehension(
+            IPatternElement patternElement,
+            Where? where,
+            Expression? expression)
         {
             _patternElement = patternElement;
             _where = where;
@@ -33,6 +39,8 @@ namespace HotChocolate.Data.Neo4J.Language
             _where = null;
             _expression = null;
         }
+
+        public override ClauseKind Kind => ClauseKind.PatternComprehension;
 
         public override void Visit(CypherVisitor cypherVisitor)
         {

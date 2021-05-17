@@ -1,18 +1,16 @@
 using System.Collections.Generic;
 using HotChocolate.Language;
 
-#nullable enable
-
 namespace HotChocolate.Data.Neo4J.Language
 {
     public partial class CypherVisitor
     {
-        private readonly LinkedList<IVisitable> _currentVisitedElements = new ();
+        private readonly LinkedList<IVisitable> _currentVisitedElements = new();
 
         /// <summary>
         /// Target for all rendered parts of the cypher statement.
         /// </summary>
-        private readonly CypherWriter _writer = new ();
+        private readonly CypherWriter _writer = new();
 
         /// <summary>
         /// Keeps track of named objects that have been already visited.
@@ -20,25 +18,26 @@ namespace HotChocolate.Data.Neo4J.Language
         private readonly HashSet<INamed> _visitedNamed = new();
 
         /// <summary>
-        /// A set of aliased expressions that already have been seen and for which an alias must be used on each following
-        /// appearance.
+        /// A set of aliased expressions that already have been seen and for which an alias must be
+        /// used on each following appearance.
         /// </summary>
         private readonly HashSet<AliasedExpression> _visitableToAliased = new();
 
         /// <summary>
-        /// Keeps track if currently in an aliased expression so that the content can be skipped when already visited.
+        /// Keeps track if currently in an aliased expression so that the content can be skipped
+        /// when already visited.
         /// </summary>
         private readonly List<AliasedExpression> _currentAliasedElements = new();
 
         /// <summary>
         /// This keeps track on which level of the tree a separator is needed.
         /// </summary>
-        private readonly Dictionary<int, string> _separatorOnLevel = new ();
+        private readonly Dictionary<int, string> _separatorOnLevel = new();
 
         /// <summary>
         /// Keeps track of unresolved symbolic names.
         /// </summary>
-        private readonly Dictionary<SymbolicName, string> _resolvedSymbolicNames = new ();
+        private readonly Dictionary<SymbolicName, string> _resolvedSymbolicNames = new();
 
         /// <summary>
         /// The current level in the tree of cypher elements.
@@ -48,21 +47,25 @@ namespace HotChocolate.Data.Neo4J.Language
         /// <summary>
         /// Will be set to true when entering an already visited node.
         /// </summary>
-        private bool _skipNodeContent = false;
+        private bool _skipNodeContent;
 
         /// <summary>
-        /// A flag if we can skip aliasing. This is currently the case in exactly one scenario: A aliased expression passed
-        /// to a map project. In that case, the alias is already defined by the key to use in the projected map and we
-        /// cannot define him in `AS xxx` fragment.
+        /// A flag if we can skip aliasing. This is currently the case in exactly one scenario: A
+        /// aliased expression passed to a map project. In that case, the alias is already defined
+        /// by the key to use in the projected map and we cannot define him in `AS xxx` fragment.
         /// </summary>
         private bool _skipAliasing;
 
         public string Print() => _writer.Print();
 
-        private void EnableSeparator(int level, bool on) {
-            if (on) {
+        private void EnableSeparator(int level, bool on)
+        {
+            if (on)
+            {
                 _separatorOnLevel[level] = "";
-            } else {
+            }
+            else
+            {
                 _separatorOnLevel.Remove(level);
             }
         }
@@ -71,15 +74,18 @@ namespace HotChocolate.Data.Neo4J.Language
         private bool PreEnter(IVisitable visitable)
         {
             _currentAliasedElements.TryPeek(out AliasedExpression lastAliased);
-            if (_skipNodeContent || _visitableToAliased.Contains(lastAliased)) {
+            if (_skipNodeContent || _visitableToAliased.Contains(lastAliased))
+            {
                 return false;
             }
 
-            if (visitable is AliasedExpression aliasedExpression) {
+            if (visitable is AliasedExpression aliasedExpression)
+            {
                 _currentAliasedElements.Push(aliasedExpression);
             }
 
-            if (visitable is MapProjection) {
+            if (visitable is MapProjection)
+            {
                 _skipAliasing = true;
             }
 
@@ -107,7 +113,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
             if (visitable is ITypedSubtree)
             {
-                EnableSeparator(_currentLevel+1, false);
+                EnableSeparator(_currentLevel + 1, false);
             }
 
             --_currentLevel;

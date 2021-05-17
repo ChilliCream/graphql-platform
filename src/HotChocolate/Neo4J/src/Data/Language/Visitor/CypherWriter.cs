@@ -10,10 +10,13 @@ namespace HotChocolate.Data.Neo4J.Language
     internal sealed class CypherWriter : IDisposable
     {
         private bool _isDisposed;
+
         private static readonly ObjectPoolProvider _objectPoolProvider =
             new DefaultObjectPoolProvider();
+
         private static readonly ObjectPool<StringBuilder> _stringBuilderPool =
             _objectPoolProvider.CreateStringBuilderPool();
+
         private readonly StringBuilder _builder;
 
         public CypherWriter()
@@ -48,7 +51,9 @@ namespace HotChocolate.Data.Neo4J.Language
         private void Dispose(bool disposing)
         {
             if (_isDisposed)
+            {
                 return;
+            }
 
             if (disposing)
             {

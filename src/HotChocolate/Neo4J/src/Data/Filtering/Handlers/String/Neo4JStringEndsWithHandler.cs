@@ -3,8 +3,6 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Language;
 
-#nullable enable
-
 namespace HotChocolate.Data.Neo4J.Filtering
 {
     public class Neo4JStringEndsWithHandler
@@ -23,12 +21,15 @@ namespace HotChocolate.Data.Neo4J.Filtering
             IValueNode value,
             object? parsedValue)
         {
-            if (parsedValue is not string str) throw new InvalidOperationException();
+            if (parsedValue is not string str)
+            {
+                throw new InvalidOperationException();
+            }
 
-            Condition? expression = context
+            return context
                 .GetNode()
-                .Property(context.GetNeo4JFilterScope().GetPath()).EndsWith(Cypher.LiteralOf(str));
-            return expression;
+                .Property(context.GetNeo4JFilterScope().GetPath())
+                .EndsWith(Cypher.LiteralOf(str));
         }
     }
 }

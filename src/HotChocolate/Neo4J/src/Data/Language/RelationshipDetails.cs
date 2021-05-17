@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
@@ -8,7 +6,6 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class RelationshipDetails : Visitable
     {
-        public override ClauseKind Kind => ClauseKind.RelationshipDetails;
         private readonly RelationshipDirection _direction;
         private readonly SymbolicName? _symbolicName;
         private readonly RelationshipTypes? _types;
@@ -29,17 +26,7 @@ namespace HotChocolate.Data.Neo4J.Language
             _properties = properties;
         }
 
-        public static RelationshipDetails Create(
-            RelationshipDirection direction,
-            SymbolicName? symbolicName,
-            RelationshipTypes? types) =>
-                new(
-                    direction,
-                    symbolicName,
-                    types,
-                    null,
-                    null
-                );
+        public override ClauseKind Kind => ClauseKind.RelationshipDetails;
 
         public bool HasContent() =>
             _symbolicName != null ||
@@ -56,7 +43,7 @@ namespace HotChocolate.Data.Neo4J.Language
         public RelationshipDetails Named(SymbolicName newSymbolicName)
         {
             Ensure.IsNotNull(newSymbolicName, "Symbolic name is required.");
-            return new (_direction, newSymbolicName, _types, _length, _properties);
+            return new(_direction, newSymbolicName, _types, _length, _properties);
         }
 
         public RelationshipDetails With(Properties newProperties) =>
@@ -76,7 +63,11 @@ namespace HotChocolate.Data.Neo4J.Language
                 ? new RelationshipLength(minimum, null)
                 : new RelationshipLength(minimum, _length.GetMaximum());
 
-            return new RelationshipDetails(_direction, _symbolicName, _types, newLength, _properties);
+            return new RelationshipDetails(_direction,
+                _symbolicName,
+                _types,
+                newLength,
+                _properties);
         }
 
         public RelationshipDetails Maximum(int? maximum)
@@ -90,7 +81,11 @@ namespace HotChocolate.Data.Neo4J.Language
                 ? new RelationshipLength(null, maximum)
                 : new RelationshipLength(_length.GetMinimum(), maximum);
 
-            return new RelationshipDetails(_direction, _symbolicName, _types, newLength, _properties);
+            return new RelationshipDetails(_direction,
+                _symbolicName,
+                _types,
+                newLength,
+                _properties);
         }
 
         public RelationshipDirection GetDirection() => _direction;
@@ -110,5 +105,17 @@ namespace HotChocolate.Data.Neo4J.Language
             _properties?.Visit(cypherVisitor);
             cypherVisitor.Leave(this);
         }
+
+        public static RelationshipDetails Create(
+            RelationshipDirection direction,
+            SymbolicName? symbolicName,
+            RelationshipTypes? types) =>
+            new(
+                direction,
+                symbolicName,
+                types,
+                null,
+                null
+            );
     }
 }

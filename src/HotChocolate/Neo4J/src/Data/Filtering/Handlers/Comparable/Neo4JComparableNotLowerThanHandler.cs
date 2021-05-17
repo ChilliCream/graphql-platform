@@ -3,8 +3,6 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Language;
 
-#nullable enable
-
 namespace HotChocolate.Data.Neo4J.Filtering
 {
     /// <summary>
@@ -29,14 +27,16 @@ namespace HotChocolate.Data.Neo4J.Filtering
             IValueNode value,
             object? parsedValue)
         {
-            if (parsedValue is null) throw new InvalidOperationException();
+            if (parsedValue is null)
+            {
+                throw new InvalidOperationException();
+            }
 
-            Condition? expression = context
+            return context
                 .GetNode()
-                .Property(context.GetNeo4JFilterScope().GetPath()).LessThan(Cypher.LiteralOf(parsedValue))
+                .Property(context.GetNeo4JFilterScope().GetPath())
+                .LessThan(Cypher.LiteralOf(parsedValue))
                 .Not();
-
-            return expression;
         }
     }
 }

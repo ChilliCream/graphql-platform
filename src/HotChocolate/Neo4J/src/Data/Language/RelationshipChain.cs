@@ -9,13 +9,11 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class RelationshipChain
         : Visitable
-            , IRelationshipPattern
+        , IRelationshipPattern
     {
-        public override ClauseKind Kind { get; } = ClauseKind.RelationshipChain;
         private readonly List<Relationship> _relationships = new();
 
-        public static RelationshipChain Create(Relationship firstElement) =>
-            new RelationshipChain().Add(firstElement);
+        public override ClauseKind Kind { get; } = ClauseKind.RelationshipChain;
 
         public RelationshipChain Add(Relationship element)
         {
@@ -86,7 +84,7 @@ namespace HotChocolate.Data.Neo4J.Language
         public override void Visit(CypherVisitor cypherVisitor)
         {
             cypherVisitor.Enter(this);
-            Node lastNode = null;
+            Node? lastNode = null;
             foreach (Relationship relationship in _relationships)
             {
                 relationship.GetLeft().Visit(cypherVisitor);
@@ -94,8 +92,12 @@ namespace HotChocolate.Data.Neo4J.Language
 
                 lastNode = relationship.GetRight();
             }
+
             lastNode?.Visit(cypherVisitor);
             cypherVisitor.Leave(this);
         }
+
+        public static RelationshipChain Create(Relationship firstElement) =>
+            new RelationshipChain().Add(firstElement);
     }
 }

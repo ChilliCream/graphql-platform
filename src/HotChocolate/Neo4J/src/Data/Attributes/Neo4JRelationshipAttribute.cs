@@ -7,9 +7,6 @@ namespace HotChocolate.Data.Neo4J
     public class Neo4JRelationshipAttribute
         : ObjectFieldDescriptorAttribute
     {
-        public readonly string Name;
-        public RelationshipDirection Direction { get; } = RelationshipDirection.Outgoing;
-
         public Neo4JRelationshipAttribute(string name)
         {
             Name = name;
@@ -23,6 +20,10 @@ namespace HotChocolate.Data.Neo4J
             Direction = direction;
         }
 
+        public string Name { get; }
+
+        public RelationshipDirection Direction { get; } = RelationshipDirection.Outgoing;
+
         public override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
@@ -30,8 +31,7 @@ namespace HotChocolate.Data.Neo4J
         {
             descriptor
                 .Extend()
-                .OnBeforeCreate(x =>
-                    x.ContextData.Add(nameof(Neo4JRelationshipAttribute), this));
+                .OnBeforeCreate(x => x.ContextData.Add(nameof(Neo4JRelationshipAttribute), this));
         }
     }
 }

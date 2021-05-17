@@ -6,7 +6,10 @@ namespace HotChocolate.Data.Neo4J.Language
     public class Predicates
     {
         /// <summary>
-        /// https://neo4j.com/docs/cypher-manual/current/functions/predicate/#functions-exists
+        /// See
+        /// <a href="https://neo4j.com/docs/cypher-manual/current/functions/predicate/#functions-exists">
+        /// Functions Exists
+        /// </a>
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
@@ -15,7 +18,10 @@ namespace HotChocolate.Data.Neo4J.Language
                 FunctionInvocation.Create(BuiltInFunctions.Predicates.Exists, property));
 
         /// <summary>
-        /// https://neo4j.com/docs/cypher-manual/current/functions/predicate/#functions-exists
+        /// See
+        /// <a href="https://neo4j.com/docs/cypher-manual/current/functions/predicate/#functions-exists">
+        /// Functions Exists
+        /// </a>
         /// </summary>
         /// <param name="pattern"></param>
         /// <returns></returns>
@@ -24,7 +30,10 @@ namespace HotChocolate.Data.Neo4J.Language
                 FunctionInvocation.Create(BuiltInFunctions.Predicates.Exists, pattern));
 
         /// <summary>
-        /// https://neo4j.com/docs/cypher-manual/current/functions/predicate/#functions-all
+        /// See
+        /// <a href="https://neo4j.com/docs/cypher-manual/current/functions/predicate/#functions-all">
+        /// Functions All
+        /// </a>
         /// </summary>
         /// <param name="variable"></param>
         /// <returns></returns>
@@ -32,7 +41,10 @@ namespace HotChocolate.Data.Neo4J.Language
             All(SymbolicName.Of(variable));
 
         /// <summary>
-        /// https://neo4j.com/docs/cypher-manual/current/functions/predicate/#functions-all
+        /// See
+        /// <a href="https://neo4j.com/docs/cypher-manual/current/functions/predicate/#functions-all">
+        /// Functions All
+        /// </a>
         /// </summary>
         /// <param name="variable"></param>
         /// <returns></returns>
@@ -80,7 +92,10 @@ namespace HotChocolate.Data.Neo4J.Language
             Single(SymbolicName.Of(variable));
 
         /// <summary>
-        /// https://neo4j.com/docs/cypher-manual/current/functions/predicate/#functions-single
+        /// See
+        /// <a href="https://neo4j.com/docs/cypher-manual/current/functions/predicate/#functions-single">
+        /// Functions Single
+        /// </a>
         /// </summary>
         /// <param name="variable">The variable referring to elements of a list</param>
         /// <returns>A builder for the single() predicate function</returns>
@@ -92,15 +107,14 @@ namespace HotChocolate.Data.Neo4J.Language
         /// </summary>
         private class Builder
             : IOngoingListBasedPredicateFunction
-                , IOngoingListBasedPredicateFunctionWithList
+            , IOngoingListBasedPredicateFunctionWithList
         {
-
             private readonly BuiltInFunctions.Predicates _predicate;
             private readonly SymbolicName _name;
             private Expression _listExpression;
 
-            public Builder(BuiltInFunctions.Predicates predicate, SymbolicName name) {
-
+            public Builder(BuiltInFunctions.Predicates predicate, SymbolicName name)
+            {
                 Ensure.IsNotNull(predicate, "The predicate is required");
                 Ensure.IsNotNull(name, "The name is required");
                 _predicate = predicate;
@@ -118,24 +132,9 @@ namespace HotChocolate.Data.Neo4J.Language
             {
                 Ensure.IsNotNull(condition, "The condition is required");
                 return new BooleanFunctionCondition(
-                    FunctionInvocation.Create(_predicate, new ListPredicate(_name, _listExpression, new Where(condition))));
+                    FunctionInvocation.Create(_predicate,
+                        new ListPredicate(_name, _listExpression, new Where(condition))));
             }
         }
-    }
-
-    /// <summary>
-    ///
-    /// </summary>
-    public interface IOngoingListBasedPredicateFunction
-    {
-        IOngoingListBasedPredicateFunctionWithList In(Expression list);
-    }
-
-    /// <summary>
-    ///
-    /// </summary>
-    public interface IOngoingListBasedPredicateFunctionWithList
-    {
-        Condition Where(Condition condition);
     }
 }

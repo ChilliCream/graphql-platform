@@ -18,8 +18,7 @@ namespace HotChocolate.Data.Neo4J.Sorting
         }
 
         /// <inheritdoc/>
-        public Neo4JSortProvider(
-            Action<ISortProviderDescriptor<Neo4JSortVisitorContext>> configure)
+        public Neo4JSortProvider(Action<ISortProviderDescriptor<Neo4JSortVisitorContext>> configure)
             : base(configure)
         {
         }
@@ -27,8 +26,8 @@ namespace HotChocolate.Data.Neo4J.Sorting
         /// <summary>
         /// The visitor thar will traverse a incoming query and execute the sorting handlers
         /// </summary>
-        protected virtual SortVisitor<Neo4JSortVisitorContext, Neo4JSortDefinition>
-            Visitor { get; } = new ();
+        protected virtual SortVisitor<Neo4JSortVisitorContext, Neo4JSortDefinition> Visitor { get; }
+            = new();
 
         /// <inheritdoc />
         public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
@@ -51,7 +50,7 @@ namespace HotChocolate.Data.Neo4J.Sorting
 
                     Visitor.Visit(filter, visitorContext);
 
-                    if (!visitorContext.TryCreateQuery(out Neo4JSortDefinition[] sorts) ||
+                    if (!visitorContext.TryCreateQuery(out Neo4JSortDefinition[]? sorts) ||
                         visitorContext.Errors.Count > 0)
                     {
                         context.Result = Array.Empty<TEntityType>();
@@ -63,9 +62,7 @@ namespace HotChocolate.Data.Neo4J.Sorting
                     else
                     {
                         context.LocalContextData =
-                            context.LocalContextData.SetItem(
-                                "Sorting",
-                                sorts);
+                            context.LocalContextData.SetItem("Sorting", sorts);
 
                         await next(context).ConfigureAwait(false);
 

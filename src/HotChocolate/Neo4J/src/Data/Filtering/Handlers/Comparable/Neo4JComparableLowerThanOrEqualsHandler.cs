@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Language;
@@ -28,13 +27,15 @@ namespace HotChocolate.Data.Neo4J.Filtering
             IValueNode value,
             object? parsedValue)
         {
-            if (parsedValue is null) throw new InvalidOperationException();
+            if (parsedValue is null)
+            {
+                throw new InvalidOperationException();
+            }
 
-            Condition expression = context
+            return context
                 .GetNode()
-                .Property(context.GetNeo4JFilterScope().GetPath()).LessThanOrEqualTo(Cypher.LiteralOf(parsedValue));
-
-            return expression;
+                .Property(context.GetNeo4JFilterScope().GetPath())
+                .LessThanOrEqualTo(Cypher.LiteralOf(parsedValue));
         }
     }
 }

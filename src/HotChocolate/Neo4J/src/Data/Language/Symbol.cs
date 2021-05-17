@@ -6,6 +6,7 @@
     public static class Symbol
     {
         public const string Colon = ":";
+
         public const string Pipe = "|";
     }
 }

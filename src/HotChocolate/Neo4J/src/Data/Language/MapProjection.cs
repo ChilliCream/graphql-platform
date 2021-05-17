@@ -1,17 +1,16 @@
 using System;
 using System.Collections.Generic;
 
-#nullable enable
-
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
     /// Represents a map projection as described in
-    /// https://medium.com/neo4j/loading-graph-data-for-an-object-graph-mapper-or-graphql-5103b1a8b66e
+    /// <a href="https://medium.com/neo4j/loading-graph-data-for-an-object-graph-mapper-or-graphql-5103b1a8b66e">
+    /// Read More
+    /// </a>
     /// </summary>
     public class MapProjection : Expression
     {
-        public override ClauseKind Kind => ClauseKind.MapProjection;
         private readonly SymbolicName _name;
         private readonly MapExpression _expression;
 
@@ -21,21 +20,7 @@ namespace HotChocolate.Data.Neo4J.Language
             _expression = expression;
         }
 
-        public static MapProjection Create(SymbolicName name, params object[] content) =>
-            new(name, MapExpression.WithEntries(CreateNewContent(content)));
-
-        private static object? ContentAt(object[] content, int i)
-        {
-            if (content == null) throw new ArgumentNullException(nameof(content));
-
-            object currentObject = content[i];
-            return currentObject switch
-            {
-                Expression expression => Expressions.NameOrExpression(expression),
-                INamed named => named.GetSymbolicName(),
-                _ => currentObject
-            };
-        }
+        public override ClauseKind Kind => ClauseKind.MapProjection;
 
         public MapProjection And(params object[] content) =>
             new(_name, _expression.AddEntries(CreateNewContent(content)));
@@ -83,32 +68,38 @@ namespace HotChocolate.Data.Neo4J.Language
                     newContent.Add(new KeyValueMapEntry(lastKey, lastExpression));
                     knownKeys.Add(lastKey);
                 }
-                else switch (lastExpression)
+                else
                 {
-                    case SymbolicName:
-                    case PropertyLookup:
-                        newContent.Add(lastExpression);
-                        break;
-                    case Property property:
+                    switch (lastExpression)
                     {
-                        List<PropertyLookup> names = property.GetNames();
-                        if (names.Count > 1)
-                        {
-                            throw new InvalidOperationException("Cannot project nested properties");
-                        }
-                        newContent.AddRange(names);
-                        break;
+                        case SymbolicName:
+                        case PropertyLookup:
+                            newContent.Add(lastExpression);
+                            break;
+                        case Property property:
+                            List<PropertyLookup> names = property.GetNames();
+                            if (names.Count > 1)
+                            {
+                                throw new InvalidOperationException(
+                                    "Cannot project nested properties");
+                            }
+
+                            newContent.AddRange(names);
+                            break;
+
+                        case AliasedExpression expression:
+                            newContent.Add(new KeyValueMapEntry(expression.GetAlias(), expression));
+                            break;
+
+                        case null:
+                            throw new InvalidOperationException(
+                                "Could not determine an expression from the given content!");
+                        default:
+                            throw new InvalidOperationException(lastExpression + " of type " +
+                                " cannot be used with an implicit name as map entry.");
                     }
-                    case AliasedExpression expression:
-                    {
-                        newContent.Add(new KeyValueMapEntry(expression.GetAlias(), expression));
-                        break;
-                    }
-                    case null:
-                        throw new InvalidOperationException("Could not determine an expression from the given content!");
-                    default:
-                        throw new InvalidOperationException(lastExpression + " of type " + " cannot be used with an implicit name as map entry.");
                 }
+
                 lastKey = null;
                 lastExpression = null;
             }
@@ -122,6 +113,26 @@ namespace HotChocolate.Data.Neo4J.Language
             _name.Visit(cypherVisitor);
             _expression.Visit(cypherVisitor);
             cypherVisitor.Leave(this);
+        }
+
+        public static MapProjection Create(SymbolicName name, params object[] content) =>
+            new(name, MapExpression.WithEntries(CreateNewContent(content)));
+
+        private static object? ContentAt(object[] content, int i)
+        {
+            if (content == null)
+            {
+                throw new ArgumentNullException(nameof(content));
+            }
+
+            object currentObject = content[i];
+
+            return currentObject switch
+            {
+                Expression expression => Expressions.NameOrExpression(expression),
+                INamed named => named.GetSymbolicName(),
+                _ => currentObject
+            };
         }
     }
 }

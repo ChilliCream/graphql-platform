@@ -5,7 +5,6 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class With : Visitable
     {
-        public override ClauseKind Kind => ClauseKind.With;
         private readonly ProjectionBody _body;
         private readonly Where _where;
 
@@ -19,6 +18,8 @@ namespace HotChocolate.Data.Neo4J.Language
             _body = new ProjectionBody(returnItems, orderBy, skip, limit);
             _where = where;
         }
+
+        public override ClauseKind Kind => ClauseKind.With;
 
         public override void Visit(CypherVisitor cypherVisitor)
         {

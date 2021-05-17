@@ -68,14 +68,14 @@ namespace HotChocolate.Data.Neo4J.Paging
         {
             if (descriptor is IObjectFieldDescriptor odf)
             {
-                odf.UseNeo4JOffsetPaging(
-                    Type,
-                    options: new PagingOptions
-                    {
-                        DefaultPageSize = _defaultPageSize,
-                        MaxPageSize = _maxPageSize,
-                        IncludeTotalCount = _includeTotalCount
-                    });
+                var options = new PagingOptions
+                {
+                    DefaultPageSize = _defaultPageSize,
+                    MaxPageSize = _maxPageSize,
+                    IncludeTotalCount = _includeTotalCount
+                };
+
+                odf.UseNeo4JOffsetPaging(Type, options: options);
             }
         }
     }

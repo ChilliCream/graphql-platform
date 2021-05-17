@@ -5,6 +5,5 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public interface IUpdatingClause : IVisitable
     {
-
     }
 }

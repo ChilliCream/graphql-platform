@@ -13,6 +13,7 @@ namespace HotChocolate.Data.Neo4J.Language
             {
                 return named.GetSymbolicName();
             }
+
             return expression;
         }
 

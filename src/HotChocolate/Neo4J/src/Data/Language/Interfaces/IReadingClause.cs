@@ -2,7 +2,12 @@
 {
     /// <summary>
     /// Match, Unwind, InQueryCall
-    /// https://s3.amazonaws.com/artifacts.opencypher.org/M15/railroad/SinglePartQuery.html#ReadingClause
+    /// See
+    /// <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M15/railroad/SinglePartQuery.html#ReadingClause">
+    /// Reading Clause
+    /// </a>
     /// </summary>
-    public interface IReadingClause : IVisitable { }
+    public interface IReadingClause : IVisitable
+    {
+    }
 }

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Language;
 
@@ -22,21 +21,10 @@ namespace HotChocolate.Data.Neo4J.Filtering
                 ? CreateArrayAllScalar(scope, path)
                 : CreateArrayAll(scope, path);
 
-        private static Condition CreateArrayAll(
-            Neo4JFilterScope scope,
-            string path)
-        {
+        private static Condition CreateArrayAll(Neo4JFilterScope scope, string path) =>
+            new CompoundCondition(Operator.And);
 
-            var compound = new CompoundCondition(Operator.And);
-            return compound;
-        }
-
-        private static Condition CreateArrayAllScalar(
-            Neo4JFilterScope scope,
-            string path)
-        {
-
-            return new CompoundCondition(Operator.And);
-        }
+        private static Condition CreateArrayAllScalar(Neo4JFilterScope scope, string path) =>
+            new CompoundCondition(Operator.And);
     }
 }

@@ -5,8 +5,6 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class ListPredicate : Expression
     {
-        public override ClauseKind Kind => ClauseKind.ListPredicate;
-
         private readonly SymbolicName _variable;
         private readonly Expression _listExpression;
         private readonly Where _where;
@@ -17,6 +15,8 @@ namespace HotChocolate.Data.Neo4J.Language
             _listExpression = listExpression;
             _where = where;
         }
+
+        public override ClauseKind Kind => ClauseKind.ListPredicate;
 
         public override void Visit(CypherVisitor cypherVisitor)
         {

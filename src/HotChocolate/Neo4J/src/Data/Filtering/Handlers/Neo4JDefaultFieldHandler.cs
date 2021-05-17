@@ -1,12 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
-using HotChocolate.Data.Neo4J.Extensions;
 using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-
-#nullable enable
 
 namespace HotChocolate.Data.Neo4J.Filtering
 {

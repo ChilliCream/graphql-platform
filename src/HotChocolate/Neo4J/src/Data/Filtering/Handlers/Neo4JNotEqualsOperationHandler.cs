@@ -1,8 +1,8 @@
-#nullable enable
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Language;
+using static HotChocolate.Data.Filters.DefaultFilterOperations;
 
 namespace HotChocolate.Data.Neo4J.Filtering
 {
@@ -19,8 +19,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
             IFilterInputTypeDefinition typeDefinition,
             IFilterFieldDefinition fieldDefinition)
         {
-            return fieldDefinition is FilterOperationFieldDefinition operationField &&
-                   operationField.Id is DefaultFilterOperations.NotEquals;
+            return fieldDefinition is FilterOperationFieldDefinition { Id: NotEquals };
         }
 
         /// <inheritdoc />
@@ -32,7 +31,8 @@ namespace HotChocolate.Data.Neo4J.Filtering
         {
             Condition? expression = context
                 .GetNode()
-                .Property(context.GetNeo4JFilterScope().GetPath()).IsNotEqualTo(Cypher.LiteralOf(parsedValue));
+                .Property(context.GetNeo4JFilterScope().GetPath())
+                .IsNotEqualTo(Cypher.LiteralOf(parsedValue));
 
             return expression;
         }

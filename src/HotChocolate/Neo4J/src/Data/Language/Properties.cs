@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
@@ -7,13 +5,14 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class Properties : Visitable
     {
-        public override ClauseKind Kind => ClauseKind.Properties;
         private readonly MapExpression _properties;
 
         public Properties(MapExpression properties)
         {
             _properties = properties;
         }
+
+        public override ClauseKind Kind => ClauseKind.Properties;
 
         public override void Visit(CypherVisitor cypherVisitor)
         {
