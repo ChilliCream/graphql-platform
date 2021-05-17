@@ -2,40 +2,41 @@
 {
     public class FunctionInvocation : Expression
     {
-        private readonly string _functionName;
         private readonly TypedSubtree<Expression>? _arguments;
         private readonly TypedSubtree<IPatternElement>? _patternArguments;
 
         public FunctionInvocation(string functionName, params Expression[] arguments)
         {
-            _functionName = functionName;
+            FunctionName = functionName;
             _arguments = new ExpressionList(arguments);
         }
 
         public FunctionInvocation(string functionName, Pattern pattern)
         {
-            _functionName = functionName;
+            FunctionName = functionName;
             _patternArguments = pattern;
         }
 
         private FunctionInvocation(string functionName, TypedSubtree<Expression> pattern)
         {
-            _functionName = functionName;
+            FunctionName = functionName;
             _arguments = pattern;
         }
 
-        public override ClauseKind Kind { get; } = ClauseKind.FunctionInvocation;
+        public override ClauseKind Kind => ClauseKind.FunctionInvocation;
+
+        public string FunctionName { get; }
 
         public static FunctionInvocation Create(
             FunctionDefinition definition,
             params Expression[] expressions)
         {
-            var message = $"The expression for {definition.GetImplementationName()}() is required.";
+            var message = $"The expression for {definition.ImplementationName}() is required.";
 
             Ensure.IsNotEmpty(expressions, message);
             Ensure.IsNotNull(expressions[0], message);
 
-            return new FunctionInvocation(definition.GetImplementationName(), expressions);
+            return new FunctionInvocation(definition.ImplementationName, expressions);
         }
 
         public static FunctionInvocation Create(
@@ -44,9 +45,9 @@
         {
             Ensure.IsNotNull(
                 arguments,
-                definition.GetImplementationName() + "() requires at least one argument.");
+                definition.ImplementationName + "() requires at least one argument.");
 
-            return new FunctionInvocation(definition.GetImplementationName(), arguments);
+            return new FunctionInvocation(definition.ImplementationName, arguments);
         }
 
         public static FunctionInvocation Create(
@@ -55,12 +56,10 @@
         {
             Ensure.IsNotNull(
                 pattern,
-                $"The pattern for {definition.GetImplementationName()}() is required.");
+                $"The pattern for {definition.ImplementationName}() is required.");
 
-            return new FunctionInvocation(definition.GetImplementationName(), new Pattern(pattern));
+            return new FunctionInvocation(definition.ImplementationName, new Pattern(pattern));
         }
-
-        public string GetFunctionName() => _functionName;
 
         public override void Visit(CypherVisitor cypherVisitor)
         {

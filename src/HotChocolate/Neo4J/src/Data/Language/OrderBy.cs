@@ -12,6 +12,5 @@ namespace HotChocolate.Data.Neo4J.Language
         }
 
         public override ClauseKind Kind => ClauseKind.OrderBy;
-
     }
 }

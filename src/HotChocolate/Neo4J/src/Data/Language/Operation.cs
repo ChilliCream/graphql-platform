@@ -1,4 +1,4 @@
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace HotChocolate.Data.Neo4J.Language
@@ -12,14 +12,14 @@ namespace HotChocolate.Data.Neo4J.Language
         private readonly Operator _op;
         private readonly Visitable _right;
 
-        private static readonly ImmutableList<Operator> _labelOperators =
-            ImmutableList.Create(Operator.SetLabel, Operator.RemoveLabel);
+        private static readonly IReadOnlyList<Operator> _labelOperators =
+            new []{ Operator.SetLabel, Operator.RemoveLabel };
 
-        private static readonly ImmutableList<Operator> _dontGroup =
-            ImmutableList.Create(Operator.Exponent, Operator.Pipe);
+        private static readonly IReadOnlyList<Operator> _dontGroup =
+            new [] { Operator.Exponent, Operator.Pipe };
 
-        private static readonly ImmutableList<Operator.Type> _needsGroupingByType =
-            ImmutableList.Create(Operator.Type.Property, Operator.Type.Label);
+        private static readonly IReadOnlyList<OperatorType> _needsGroupingByType =
+            new [] { OperatorType.Property, OperatorType.Label };
 
         public Operation(Expression left, Operator op, Expression right)
         {
@@ -38,7 +38,7 @@ namespace HotChocolate.Data.Neo4J.Language
         public override ClauseKind Kind => ClauseKind.Operation;
 
         public bool NeedsGrouping() =>
-            _needsGroupingByType.Contains(_op.GetType()) && !_dontGroup.Contains(_op);
+            _needsGroupingByType.Contains(_op.Type) && !_dontGroup.Contains(_op);
 
         public override void Visit(CypherVisitor cypherVisitor)
         {

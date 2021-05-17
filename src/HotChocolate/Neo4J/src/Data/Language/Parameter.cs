@@ -3,16 +3,15 @@
     public class Parameter<T> : Expression
     {
         private readonly string _name;
-        private readonly T _value;
 
         public Parameter(string name, T value)
         {
             _name = name;
-            _value = value;
+            Value = value;
         }
 
         public override ClauseKind Kind => ClauseKind.Parameter;
 
-        public T GetValue() => _value;
+        public T Value { get; }
     }
 }

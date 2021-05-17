@@ -10,6 +10,6 @@
         {
         }
 
-        public override string AsString() => $"'{GetContent()}'";
+        public override string Print() => $"'{Content}'";
     }
 }

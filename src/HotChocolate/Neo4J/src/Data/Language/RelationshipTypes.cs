@@ -10,11 +10,9 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class RelationshipTypes : Visitable
     {
-        private readonly List<string> _values;
-
         public RelationshipTypes(List<string> values)
         {
-            _values = values;
+            Values = values;
         }
 
         public override ClauseKind Kind => ClauseKind.RelationshipTypes;
@@ -22,6 +20,6 @@ namespace HotChocolate.Data.Neo4J.Language
         /// <summary>
         /// The list of types. The types are not escaped and must be escaped prior to rendering.
         /// </summary>
-        public List<string> GetValues() => _values;
+        public List<string> Values { get; }
     }
 }

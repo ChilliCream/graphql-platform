@@ -13,16 +13,15 @@ namespace HotChocolate.Data.Neo4J.Language
         , IExposesRelationships<Relationship>
         , IExposesProperties<Node>
     {
-        private readonly SymbolicName? _symbolicName;
         private readonly List<NodeLabel>? _labels;
-        private readonly Properties? _properties;
 
         private Node(
             string? primaryLabel,
             Properties? properties,
             params string[]? additionalLabels)
         {
-            _symbolicName = null;
+            SymbolicName = null;
+            RequiredSymbolicName = null;
             _labels = new List<NodeLabel>();
 
             if (!string.IsNullOrEmpty(primaryLabel))
@@ -38,15 +37,22 @@ namespace HotChocolate.Data.Neo4J.Language
                 }
             }
 
-            _properties = properties;
+            Properties = properties;
         }
 
         private Node(SymbolicName? symbolicName, Properties? properties, List<NodeLabel>? labels)
         {
-            _symbolicName = symbolicName;
-            _properties = properties;
+            SymbolicName = symbolicName;
+            RequiredSymbolicName = symbolicName;
+            Properties = properties;
             _labels = labels;
         }
+
+        public SymbolicName? SymbolicName { get; }
+
+        public SymbolicName RequiredSymbolicName { get; }
+
+        public Properties? Properties { get; }
 
         /// <summary>
         /// Creates a copy of this node with a new symbolic name.
@@ -56,7 +62,7 @@ namespace HotChocolate.Data.Neo4J.Language
         public Node Named(string newSymbolicName)
         {
             Ensure.HasText(newSymbolicName, "Symbolic name is required");
-            return new Node(SymbolicName.Of(newSymbolicName), _properties, _labels);
+            return new Node(SymbolicName.Of(newSymbolicName), Properties, _labels);
         }
 
         /// <summary>
@@ -67,17 +73,13 @@ namespace HotChocolate.Data.Neo4J.Language
         public Node Named(SymbolicName newSymbolicName)
         {
             Ensure.IsNotNull(newSymbolicName, "Symbolic name is required");
-            return new Node(newSymbolicName, _properties, _labels);
+            return new Node(newSymbolicName, Properties, _labels);
         }
 
         public override ClauseKind Kind => ClauseKind.Node;
 
-        public SymbolicName? GetSymbolicName() => _symbolicName;
-
-        public SymbolicName GetRequiredSymbolicName() => _symbolicName;
-
         public Node WithProperties(MapExpression? newProperties) =>
-            new(_symbolicName,
+            new(SymbolicName,
                 newProperties == null ? null : new Properties(newProperties),
                 _labels);
 
@@ -107,7 +109,7 @@ namespace HotChocolate.Data.Neo4J.Language
             Project(entries.ToArray());
 
         public MapProjection Project(params object[] entries) =>
-            GetRequiredSymbolicName().Project(entries);
+            RequiredSymbolicName.Project(entries);
 
         public static Node Create(string primaryLabel)
         {
@@ -145,30 +147,28 @@ namespace HotChocolate.Data.Neo4J.Language
             Relationship.Create(this, RelationshipDirection.None, other, types);
 
         public Condition? IsEqualTo(Node otherNode) =>
-            GetRequiredSymbolicName().IsEqualTo(otherNode.GetRequiredSymbolicName());
+            RequiredSymbolicName.IsEqualTo(otherNode.RequiredSymbolicName);
 
         public Condition? IsNotEqualTo(Node otherNode) =>
-            GetRequiredSymbolicName().IsNotEqualTo(otherNode.GetRequiredSymbolicName());
+            RequiredSymbolicName.IsNotEqualTo(otherNode.RequiredSymbolicName);
 
-        public Condition? IsNull() => GetRequiredSymbolicName()?.IsNull();
+        public Condition? IsNull() => RequiredSymbolicName?.IsNull();
 
-        public Condition? IsNotNull() => GetRequiredSymbolicName()?.IsNotNull();
+        public Condition? IsNotNull() => RequiredSymbolicName?.IsNotNull();
 
-        public SortItem? Descending => GetRequiredSymbolicName()?.Descending();
+        public SortItem? Descending => RequiredSymbolicName?.Descending();
 
-        public SortItem? Ascending => GetRequiredSymbolicName()?.Ascending();
+        public SortItem? Ascending => RequiredSymbolicName?.Ascending();
 
         public AliasedExpression? As(string alias) =>
-            GetRequiredSymbolicName().As(alias);
-
-        public IReadOnlyList<NodeLabel>? GetLabels() => _labels?.AsReadOnly();
+            RequiredSymbolicName.As(alias);
 
         public override void Visit(CypherVisitor cypherVisitor)
         {
             cypherVisitor.Enter(this);
-            _symbolicName?.Visit(cypherVisitor);
+            SymbolicName?.Visit(cypherVisitor);
             _labels?.ForEach(label => label.Visit(cypherVisitor));
-            _properties?.Visit(cypherVisitor);
+            Properties?.Visit(cypherVisitor);
             cypherVisitor.Leave(this);
         }
     }

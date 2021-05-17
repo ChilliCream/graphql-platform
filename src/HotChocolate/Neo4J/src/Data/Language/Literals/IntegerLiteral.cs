@@ -1,5 +1,4 @@
-﻿using System;
-using System.Globalization;
+﻿using System.Globalization;
 
 namespace HotChocolate.Data.Neo4J.Language
 {
@@ -9,7 +8,6 @@ namespace HotChocolate.Data.Neo4J.Language
         {
         }
 
-        public override string AsString() =>
-            Convert.ToString(GetContent(), new CultureInfo("en-US"));
+        public override string Print() => Content.ToString(new CultureInfo("en-US"));
     }
 }

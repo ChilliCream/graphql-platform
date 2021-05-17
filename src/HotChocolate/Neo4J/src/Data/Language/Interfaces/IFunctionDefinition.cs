@@ -5,8 +5,8 @@
     /// </summary>
     public interface IFunctionDefinition
     {
-        public string GetImplementationName();
+        string ImplementationName { get; }
 
-        public bool IsAggregate();
+        bool IsAggregate { get; }
     }
 }

@@ -20,6 +20,7 @@
         {
             cypherVisitor.Enter(this);
             Expressions.NameOrExpression(_expression).Visit(cypherVisitor);
+
             if (_direction != SortDirection.Undefined)
             {
                 _direction?.Visit(cypherVisitor);

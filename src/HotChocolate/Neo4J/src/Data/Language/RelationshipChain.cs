@@ -13,7 +13,7 @@ namespace HotChocolate.Data.Neo4J.Language
     {
         private readonly List<Relationship> _relationships = new();
 
-        public override ClauseKind Kind { get; } = ClauseKind.RelationshipChain;
+        public override ClauseKind Kind  => ClauseKind.RelationshipChain;
 
         public RelationshipChain Add(Relationship element)
         {
@@ -24,17 +24,17 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public RelationshipChain RelationshipTo(Node other, params string[] types)
         {
-            return Add(_relationships.Peek().GetRight().RelationshipTo(other, types));
+            return Add(_relationships.Peek().Right.RelationshipTo(other, types));
         }
 
         public RelationshipChain RelationshipFrom(Node other, params string[] types)
         {
-            return Add(_relationships.Peek().GetRight().RelationshipFrom(other, types));
+            return Add(_relationships.Peek().Right.RelationshipFrom(other, types));
         }
 
         public RelationshipChain RelationshipBetween(Node other, params string[] types)
         {
-            return Add(_relationships.Peek().GetRight().RelationshipBetween(other, types));
+            return Add(_relationships.Peek().Right.RelationshipBetween(other, types));
         }
 
         public RelationshipChain Unbounded()
@@ -87,10 +87,10 @@ namespace HotChocolate.Data.Neo4J.Language
             Node? lastNode = null;
             foreach (Relationship relationship in _relationships)
             {
-                relationship.GetLeft().Visit(cypherVisitor);
-                relationship.GetDetails().Visit(cypherVisitor);
+                relationship.Left.Visit(cypherVisitor);
+                relationship.Details.Visit(cypherVisitor);
 
-                lastNode = relationship.GetRight();
+                lastNode = relationship.Right;
             }
 
             lastNode?.Visit(cypherVisitor);

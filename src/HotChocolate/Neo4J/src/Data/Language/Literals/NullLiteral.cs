@@ -6,7 +6,7 @@
         {
         }
 
-        public override string AsString() => "NULL";
+        public override string Print() => "NULL";
 
         public static NullLiteral Instance { get; } = new();
     }

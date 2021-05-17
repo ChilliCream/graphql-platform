@@ -11,9 +11,13 @@ namespace HotChocolate.Data.Neo4J.Language
         : TypedSubtree<Expression>
         , ITypedSubtree
     {
-        public ExpressionList(List<Expression> returnItems) : base(returnItems) { }
+        public ExpressionList(List<Expression> returnItems) : base(returnItems)
+        {
+        }
 
-        public ExpressionList(params Expression[] returnItems) : base(returnItems) { }
+        public ExpressionList(params Expression[] returnItems) : base(returnItems)
+        {
+        }
 
         public override ClauseKind Kind => ClauseKind.ExpressionList;
 

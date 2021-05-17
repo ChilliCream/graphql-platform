@@ -6,30 +6,18 @@
     /// </summary>
     public partial class Operator : Visitable
     {
-        private readonly string _representation;
-        private readonly Type _type;
-
-        private Operator(string rep, Type type = Type.Binary)
+        private Operator(string rep, OperatorType type = OperatorType.Binary)
         {
-            _representation = rep;
-            _type = type;
+            Representation = rep;
+            Type = type;
         }
 
         public override ClauseKind Kind => ClauseKind.Operator;
 
-        public bool IsUnary() => _type != Type.Binary;
+        public bool IsUnary() => Type != OperatorType.Binary;
 
-        public new Type GetType() => _type;
+        public OperatorType Type { get; }
 
-        public string GetRepresentation() => _representation;
-
-        public enum Type
-        {
-            Binary,
-            Prefix,
-            Postfix,
-            Property,
-            Label
-        }
+        public string Representation { get; }
     }
 }

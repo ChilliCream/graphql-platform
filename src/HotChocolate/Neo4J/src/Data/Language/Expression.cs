@@ -26,7 +26,7 @@ namespace HotChocolate.Data.Neo4J.Language
         public AliasedExpression As(SymbolicName alias)
         {
             Ensure.IsNotNull(alias, "The alias may not be null.");
-            return As(alias.GetValue());
+            return As(alias.Value);
         }
 
         public Condition IsEqualTo(Expression rhs) => Conditions.IsEqualTo(this, rhs);

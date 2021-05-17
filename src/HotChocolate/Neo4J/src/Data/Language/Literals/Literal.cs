@@ -3,25 +3,23 @@ namespace HotChocolate.Data.Neo4J.Language
     public abstract class Literal<T> : Expression, ILiteral
     {
         /// <summary>
-        /// The content of this literal.
-        /// </summary>
-        private readonly T _content;
-
-        /// <summary>
         /// @return the content of this literal, result maybe null.
         /// </summary>
         /// <param name="content"></param>
         protected Literal(T content)
         {
-            _content = content;
+            Content = content;
         }
+
+        /// <summary>
+        /// The content of this literal.
+        /// </summary>
+        public T Content { get; }
 
         /// <summary>
         /// Represents a literal with an optional content.
         /// </summary>
         public override ClauseKind Kind => ClauseKind.Literal;
-
-        protected T GetContent() => _content;
 
         /// <summary>
         /// The string representation should be designed in such a way the a renderer can use it
@@ -31,6 +29,6 @@ namespace HotChocolate.Data.Neo4J.Language
         /// <returns>
         /// A string representation to be used literally in a cypher statement.
         /// </returns>
-        public abstract string AsString();
+        public abstract string Print();
     }
 }
