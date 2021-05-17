@@ -1,5 +1,4 @@
 ﻿using HotChocolate.Types;
-using HotChocolate.Types.Relay;
 using HotChocolate.StarWars.Models;
 using HotChocolate.StarWars.Resolvers;
 
@@ -11,21 +10,15 @@ namespace HotChocolate.StarWars.Types
         {
             descriptor.Interface<CharacterType>();
 
-            descriptor.Field(t => t.Id)
-                .Type<NonNullType<IdType>>();
-
-            descriptor.Field(f => f.Name)
-                .Type<NonNullType<StringType>>()
-                .Extend()
-                .OnBeforeCreate(d => d.IsParallelExecutable = false);
-
-            descriptor.Field(t => t.AppearsIn)
-                .Type<ListType<EpisodeType>>();
+            descriptor.Field(t => t.Id).Type<NonNullType<IdType>>();
+            descriptor.Field(f => f.Name).Type<NonNullType<StringType>>();
+            descriptor.Field(t => t.AppearsIn).Type<ListType<EpisodeType>>();
 
             descriptor
                 .Field<SharedResolvers>(r => r.GetCharacter(default, default))
                 .UsePaging<CharacterType>()
-                .Name("friends");
+                .Name("friends")
+                .Parallel();
 
             descriptor.Field<SharedResolvers>(r => r.GetOtherHuman(default, default));
 

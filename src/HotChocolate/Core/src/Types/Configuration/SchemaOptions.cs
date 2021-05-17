@@ -81,7 +81,8 @@ namespace HotChocolate.Configuration
         /// <summary>
         /// Defines that the default resolver execution strategy. 
         /// </summary>
-        public ExecutionStrategy DefaultResolverStrategy { get; set; }
+        public ExecutionStrategy DefaultResolverStrategy { get; set; } =
+            ExecutionStrategy.Parallel;
 
         public static SchemaOptions FromOptions(IReadOnlySchemaOptions options)
         {

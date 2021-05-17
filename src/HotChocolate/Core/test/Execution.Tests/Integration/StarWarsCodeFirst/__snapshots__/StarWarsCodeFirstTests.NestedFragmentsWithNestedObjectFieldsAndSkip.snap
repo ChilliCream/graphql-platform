@@ -34,7 +34,32 @@
           {
             "node": {
               "__typename": "Human",
-              "friends": {}
+              "friends": {
+                "nodes": [
+                  {
+                    "__typename": "Human",
+                    "name": "Luke Skywalker",
+                    "otherHuman": {
+                      "__typename": "Human",
+                      "name": "Han Solo"
+                    }
+                  },
+                  {
+                    "__typename": "Human",
+                    "name": "Han Solo",
+                    "otherHuman": {
+                      "__typename": "Human",
+                      "name": "Luke Skywalker"
+                    }
+                  },
+                  {
+                    "__typename": "Droid"
+                  },
+                  {
+                    "__typename": "Droid"
+                  }
+                ]
+              }
             }
           },
           {

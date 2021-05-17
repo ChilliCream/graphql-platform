@@ -278,9 +278,9 @@ TryAgain:
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void InitializeState(QueryPlanStep step, out State state)
         {
-            state = _current;
+            state = _current!;
 
-            if (state is null || state.Id != step.Id)
+            if (state is null || state.Id != step.Id || !state.IsInitialized)
             {
                 _current = state = _state[step.Id];
                 if (!state.IsInitialized)

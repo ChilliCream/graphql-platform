@@ -3,13 +3,24 @@
   "nodes": [
     {
       "type": "Resolver",
-      "strategy": "Parallel",
+      "strategy": "Serial",
       "selections": [
         {
           "id": 0,
           "field": "Query.hero",
           "responseName": "hero"
         },
+        {
+          "id": 7,
+          "field": "Droid.friends",
+          "responseName": "friends"
+        }
+      ]
+    },
+    {
+      "type": "Resolver",
+      "strategy": "Parallel",
+      "selections": [
         {
           "id": 2,
           "field": "Human.friends",
@@ -22,26 +33,10 @@
           "pure": true
         },
         {
-          "id": 7,
-          "field": "Droid.friends",
-          "responseName": "friends"
-        },
-        {
           "id": 8,
           "field": "CharacterConnection.nodes",
           "responseName": "nodes",
           "pure": true
-        }
-      ]
-    },
-    {
-      "type": "Resolver",
-      "strategy": "Serial",
-      "selections": [
-        {
-          "id": 1,
-          "field": "Human.name",
-          "responseName": "name"
         }
       ]
     }

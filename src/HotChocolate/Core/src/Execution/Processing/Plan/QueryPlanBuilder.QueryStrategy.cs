@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Processing.Plan
@@ -141,19 +143,69 @@ namespace HotChocolate.Execution.Processing.Plan
                     return SequenceQueryPlanNode.Create(node, child);
                 }
 
-                foreach (QueryPlanNode child in node.Nodes)
-                {
-                    Optimize(child);
-                }
+                var children = new List<QueryPlanNode>();
 
-                var sequence = new SequenceQueryPlanNode();
+                SequenceQueryPlanNode? seq = null;
+                ParallelQueryPlanNode? par = null;
 
                 while (node.TryTakeNode(out var child))
                 {
-                    sequence.AddNode(child);
+                    child = Optimize(child);
+
+                    if (child is SequenceQueryPlanNode s)
+                    {
+                        if (par is not null)
+                        {
+                            par = null;
+                            seq = s;
+                            children.Add(seq);
+                        }
+                        else if (seq is not null)
+                        {
+                            foreach (var c in s.Nodes)
+                            {
+                                seq.AddNode(c);
+                            }
+                        }
+                        else
+                        {
+                            seq = s;
+                            children.Add(seq);
+                        }
+                    }
+                    else if (child is ParallelQueryPlanNode p)
+                    {
+                        if (seq is not null)
+                        {
+                            seq = null;
+                            par = p;
+                            children.Add(par);
+                        }
+                        else if (par is not null)
+                        {
+                            foreach (var c in p.Nodes)
+                            {
+                                par.AddNode(c);
+                            }
+                        }
+                        else
+                        {
+                            par = p;
+                            children.Add(par);
+                        }
+                    }
+                    else
+                    {
+                        seq = null;
+                        par = null;
+                        children.Add(child);
+                    }
                 }
 
-                node.AddNode(sequence);
+                foreach (var child in children)
+                {
+                    node.AddNode(child);
+                }
 
                 return node;
             }
