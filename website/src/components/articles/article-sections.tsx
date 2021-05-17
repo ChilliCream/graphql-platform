@@ -131,14 +131,13 @@ const Title = styled.h6`
 `;
 
 const TocItemContainer = styled.ul`
-  position: absolute;
   display: block;
   margin: 0;
-  padding: 0 25px 10px;
+  padding: 0 25px 2px;
   list-style-type: none;
 
   @media only screen and (min-width: 1320px) {
-    padding: 0 20px 10px;
+    padding: 0 20px 2px;
   }
 `;
 
