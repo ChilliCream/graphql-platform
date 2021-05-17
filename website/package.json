@@ -43,6 +43,7 @@
     "gatsby-plugin-styled-components": "^3.10.0",
     "gatsby-plugin-ts": "^2.2.3",
     "gatsby-plugin-web-font-loader": "^1.0.4",
+    "gatsby-remark-check-links": "^2.1.0",
     "gatsby-remark-images": "^3.11.0",
     "gatsby-remark-mermaid": "^2.1.0",
     "gatsby-remark-reading-time": "^1.1.0",
