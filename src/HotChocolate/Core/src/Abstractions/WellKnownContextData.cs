@@ -44,5 +44,10 @@ namespace HotChocolate
         /// The key for setting a message that is being used when introspection is not allowed.
         /// </summary>
         public const string IntrospectionMessage = "HotChocolate.Execution.Introspection.Message";
+
+        /// <summary>
+        /// Includes the query plan into the response.
+        /// </summary>
+        public const string IncludeQueryPlan = "HotChocolate.Execution.EmitQueryPlan";
     }
 }

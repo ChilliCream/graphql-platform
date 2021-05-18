@@ -1,10 +1,14 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using static HotChocolate.Execution.Processing.Plan.QueryPlanSerializationProperties;
 
 namespace HotChocolate.Execution.Processing.Plan
 {
     internal sealed class SequenceQueryPlanNode : QueryPlanNode
     {
+        private const string _name = "Sequence";
+
         public SequenceQueryPlanNode() : base(ExecutionStrategy.Serial)
         {
         }
@@ -29,6 +33,15 @@ namespace HotChocolate.Execution.Processing.Plan
             }
 
             writer.WriteEndObject();
+        }
+
+        public override object Serialize()
+        {
+            return new Dictionary<string, object?>
+            {
+                { TypeProp, _name },
+                { NodesProp, Nodes.Select(t => t.Serialize()).ToArray() }
+            };
         }
 
         public static SequenceQueryPlanNode Create(params QueryPlanNode[] nodes)

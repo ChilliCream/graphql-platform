@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Caching;
 using Microsoft.Extensions.ObjectPool;
@@ -103,6 +104,21 @@ namespace HotChocolate.Execution.Pipeline
                     await ExecuteQueryOrMutationAsync(
                         context, batchDispatcher, operation, queryPlan, operationContext)
                         .ConfigureAwait(false);
+
+                    if (context.ContextData.ContainsKey(WellKnownContextData.IncludeQueryPlan) &&
+                        context.Result is IQueryResult original)
+                    {
+                        var serializedQueryPlan = new Dictionary<string, object?>
+                        {
+                            { "flow", QueryPlanBuilder.Prepare(operation).Serialize() },
+                            { "selections", operation.Print() }
+                        };
+
+                        context.Result = QueryResultBuilder
+                            .FromResult(original)
+                            .AddExtension("query-plan", serializedQueryPlan)
+                            .Create();
+                    }
 
                     if(operationContext.Execution.DeferredWork.HasWork &&
                        context.Result is IQueryResult result)

@@ -105,5 +105,10 @@ namespace HotChocolate.Execution.Processing.Plan
         /// The JSON writer that is used for serializing this node.
         /// </param>
         public abstract void Serialize(Utf8JsonWriter writer);
+
+        /// <summary>
+        /// Serializes the current node to a GraphQL extension response structure.
+        /// </summary>
+        public abstract object Serialize();
     }
 }
