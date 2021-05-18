@@ -8,8 +8,6 @@ using HotChocolate.Data.Neo4J.Sorting;
 using HotChocolate.Language;
 using Neo4j.Driver;
 
-#nullable enable
-
 namespace HotChocolate.Data.Neo4J.Execution
 {
     public class Neo4JExecutable<T> : INeo4JExecutable, IExecutable<T>
@@ -43,12 +41,13 @@ namespace HotChocolate.Data.Neo4J.Execution
         /// </summary>
         private int? Limit { get; set; }
 
-        public object? Source { get; }
 
         public Neo4JExecutable(IAsyncSession session)
         {
             _session = session;
         }
+
+        public object? Source { get; }
 
         public async ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
         {
@@ -66,10 +65,7 @@ namespace HotChocolate.Data.Neo4J.Execution
             throw new NotImplementedException();
         }
 
-        public string Print()
-        {
-            return Pipeline().Build() ?? "";
-        }
+        public string Print() => Pipeline().Build();
 
         public Neo4JExecutable<T> WithSkip(int skip)
         {
@@ -101,7 +97,6 @@ namespace HotChocolate.Data.Neo4J.Execution
             return this;
         }
 
-
         public StatementBuilder Pipeline()
         {
             StatementBuilder statement = Cypher.Match(Node).Return(Node);
@@ -116,13 +111,16 @@ namespace HotChocolate.Data.Neo4J.Execution
                 statement.Return(Node.Project(Projection));
             }
 
-            if (Sorting is null) return statement;
+            if (Sorting is null)
+            {
+                return statement;
+            }
 
             var sorts = new List<SortItem>();
 
             foreach (Neo4JSortDefinition sort in Sorting)
             {
-                SortItem? sortItem = Cypher.Sort(Node.Property(sort.Field));
+                SortItem sortItem = Cypher.Sort(Node.Property(sort.Field));
                 if (sort.Direction == SortDirection.Ascending)
                 {
                     sorts.Push(sortItem.Ascending());
@@ -131,12 +129,19 @@ namespace HotChocolate.Data.Neo4J.Execution
                 {
                     sorts.Push(sortItem.Descending());
                 }
-
             }
+
             statement.OrderBy(sorts);
 
-            if (Limit is not null) statement.Limit((int)Limit);
-            if (Skip is not null) statement.Limit((int)Skip);
+            if (Limit is not null)
+            {
+                statement.Limit((int)Limit);
+            }
+
+            if (Skip is not null)
+            {
+                statement.Limit((int)Skip);
+            }
 
             return statement;
         }

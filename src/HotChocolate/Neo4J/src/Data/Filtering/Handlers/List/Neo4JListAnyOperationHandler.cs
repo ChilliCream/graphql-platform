@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
@@ -22,7 +21,8 @@ namespace HotChocolate.Data.Neo4J.Filtering
             IFilterFieldDefinition fieldDefinition)
         {
             return context.Type is IListFilterInputType &&
-                   fieldDefinition is FilterOperationFieldDefinition {Id: DefaultFilterOperations.Any};
+                fieldDefinition is FilterOperationFieldDefinition
+                    { Id: DefaultFilterOperations.Any };
         }
 
         /// <inheritdoc />
@@ -35,10 +35,8 @@ namespace HotChocolate.Data.Neo4J.Filtering
             if (context.RuntimeTypes.Count > 0 &&
                 context.RuntimeTypes.Peek().TypeArguments is { Count: > 0 } &&
                 parsedValue is bool parsedBool &&
-                context.Scopes.Peek() is Neo4JFilterScope scope)
+                context.Scopes.Peek() is Neo4JFilterScope)
             {
-                var path = scope.GetPath();
-
                 if (parsedBool)
                 {
                     return new CompoundCondition(Operator.And);

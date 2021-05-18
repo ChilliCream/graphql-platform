@@ -4,8 +4,9 @@
     <PackageId>HotChocolate.Data.Neo4J</PackageId>
     <AssemblyName>HotChocolate.Data.Neo4J</AssemblyName>
     <RootNamespace>HotChocolate.Data.Neo4J</RootNamespace>
-    <NoWarn>$(NoWarn);CA1062</NoWarn>
+    <NoWarn>$(NoWarn);CA1062;RS0016;RS0017;RS0037</NoWarn>
     <Description>Contains extensions for seamless integration of Neo4J into the HotChocolate.Data package</Description>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

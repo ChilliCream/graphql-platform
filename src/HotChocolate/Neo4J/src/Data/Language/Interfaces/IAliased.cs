@@ -2,8 +2,9 @@
 {
     /// <summary>
     /// <para>
-    /// An interface for element with an alias. An alias has a subtle difference to a symbolic name in cypher.
-    /// Nodes and relationships can have symbolic names which in turn can be aliased as well.
+    /// An interface for element with an alias. An alias has a subtle difference to a symbolic name
+    /// in cypher. Nodes and relationships can have symbolic names which in turn can be aliased as
+    /// well.
     /// </para>
     /// <para>
     /// Therefore, the Cypher generator needs both <see cref="INamed"/> and <see cref="IAliased"/>.
@@ -11,8 +12,10 @@
     /// </summary>
     public interface IAliased
     {
-        /// <returns>The alias.</returns>
-        string GetAlias();
+        /// <summary>
+        /// The alias.
+        /// </summary>
+        string Alias { get; }
 
         /// <summary>
         /// Turns this alias into a symbolic name that can be used as an <see cref="Expression"/>.

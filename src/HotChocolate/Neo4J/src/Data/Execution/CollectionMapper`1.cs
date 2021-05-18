@@ -9,11 +9,14 @@ namespace HotChocolate.Data.Neo4J
     {
         public IEnumerable MapValues(IEnumerable fromList, Type toInstanceOfType)
         {
-            var to = (ICollection<TResult>)TranslateListWithElements<TResult>.CreateInstance(toInstanceOfType);
-            foreach (var item in fromList)
+            var to = (ICollection<TResult>)TranslateListWithElements<TResult>
+                .CreateInstance(toInstanceOfType);
+
+            foreach (object item in fromList)
             {
                 to.Add(ValueMapper.MapValue<TResult>(item));
             }
+
             return to;
         }
     }

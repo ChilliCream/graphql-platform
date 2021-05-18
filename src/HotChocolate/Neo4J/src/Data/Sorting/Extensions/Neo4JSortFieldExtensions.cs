@@ -4,8 +4,7 @@ namespace HotChocolate.Data.Neo4J.Sorting
 {
     internal static class Neo4JSortFieldExtensions
     {
-        public static string GetName(
-            this ISortField field)
+        public static string GetName(this ISortField field)
         {
             string fieldName = field.Name;
             if (field.Member is { } p)

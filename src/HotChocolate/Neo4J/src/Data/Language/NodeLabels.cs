@@ -7,13 +7,14 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class NodeLabels : Visitable
     {
-        public override ClauseKind Kind => ClauseKind.NodeLabels;
         private readonly List<NodeLabel> _labels;
 
         public NodeLabels(List<NodeLabel> labels)
         {
             _labels = labels;
         }
+
+        public override ClauseKind Kind => ClauseKind.NodeLabels;
 
         public override void Visit(CypherVisitor cypherVisitor)
         {

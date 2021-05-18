@@ -4,9 +4,11 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     public class ListLiteral<T> : Literal<IEnumerable<Literal<T>>>
     {
-        public ListLiteral(IEnumerable<Literal<T>> content) : base(content) { }
+        public ListLiteral(IEnumerable<Literal<T>> content) : base(content)
+        {
+        }
 
-        public override string AsString()
+        public override string Print()
         {
             throw new System.NotImplementedException();
         }

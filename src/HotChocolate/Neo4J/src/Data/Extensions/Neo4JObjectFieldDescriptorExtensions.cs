@@ -11,10 +11,7 @@ namespace HotChocolate.Data.Neo4J
             string dbName)
         {
             return descriptor.UseScopedService(
-                create: s =>
-                    s.GetRequiredService<IDriver>()
-                        .AsyncSession(o => o.WithDatabase(dbName)),
-                dispose: null);
+                s => s.GetRequiredService<IDriver>().AsyncSession(o => o.WithDatabase(dbName)));
         }
     }
 }

@@ -3,83 +3,57 @@ using System.Collections.Generic;
 using System.Linq;
 using ServiceStack;
 
-#nullable enable
-
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
-    /// See <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M15/railroad/RelationshipPattern.html">RelationshipPattern</a>.
+    /// See
+    /// <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M15/railroad/RelationshipPattern.html">
+    /// Relationship Pattern
+    /// </a>
     /// </summary>
-    public class Relationship :
-        Visitable,
-        IRelationshipPattern,
-        IPropertyContainer,
-        IExposesProperties<Relationship>
+    public class Relationship
+        : Visitable
+        , IRelationshipPattern
+        , IPropertyContainer
+        , IExposesProperties<Relationship>
     {
-        public override ClauseKind Kind => ClauseKind.Relationship;
-        private readonly Node _left;
-        private readonly Node _right;
-        private readonly RelationshipDetails _details;
-
         private Relationship(Node left, RelationshipDetails details, Node right)
         {
-            _left = left;
-            _right = right;
-            _details = details;
+            Left = left;
+            Right = right;
+            Details = details;
         }
 
-        public static Relationship Create(
-            Node left,
-            RelationshipDirection? relationshipDirection,
-            Node right,
-            params string[] types)
-        {
-            Ensure.IsNotNull(left, "Left node is required.");
-            Ensure.IsNotNull(right, "Right node is required.");
+        public override ClauseKind Kind => ClauseKind.Relationship;
 
-            var listOfTypes = types.Where(s => !string.IsNullOrEmpty(s)).ToList();
+        public Node Left { get; }
 
-            var details = RelationshipDetails.Create(
-                relationshipDirection ?? RelationshipDirection.None,
-                null,
-                listOfTypes.IsNullOrEmpty() ? null : new RelationshipTypes(listOfTypes));
+        public Node Right { get; }
 
-            return new Relationship(left, details , right);
-        }
-
-        public Node GetLeft() => _left;
-
-        public Node GetRight() => _right;
-
-        public RelationshipDetails GetDetails() => _details;
+        public RelationshipDetails Details { get; }
 
         public Relationship Named(SymbolicName newSymbolicName) =>
-            new (_left, _details.Named(newSymbolicName), _right);
+            new(Left, Details.Named(newSymbolicName), Right);
 
         public Relationship Named(string newSymbolicName) =>
-            new (_left, _details.Named(newSymbolicName), _right);
-
+            new(Left, Details.Named(newSymbolicName), Right);
 
 
         public Relationship Unbounded() =>
-            new (_left, _details.Unbounded(), _right);
+            new(Left, Details.Unbounded(), Right);
 
         public Relationship Minimum(int minimum) =>
-            new(_left, _details.Minimum(minimum), _right);
+            new(Left, Details.Minimum(minimum), Right);
 
         public Relationship Maximum(int maximum) =>
-            new(_left, _details.Maximum(maximum), _right);
+            new(Left, Details.Maximum(maximum), Right);
 
         public Relationship Length(int minimum, int maximum) =>
-            new(_left, _details.Minimum(minimum).Maximum(maximum), _right);
+            new(Left, Details.Minimum(minimum).Maximum(maximum), Right);
 
-        public SymbolicName? GetSymbolicName() => _details.GetSymbolicName();
+        public SymbolicName? SymbolicName => Details.SymbolicName;
 
-
-        public SymbolicName? GetRequiredSymbolicName()
-        {
-            return _details.GetSymbolicName();
-        }
+        public SymbolicName RequiredSymbolicName => Details.SymbolicName;
 
         public Property Property(string name)
         {
@@ -103,20 +77,20 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public MapProjection Project(params object[] entries)
         {
-            return GetSymbolicName().Project(entries);
+            return SymbolicName.Project(entries);
         }
 
         public Relationship WithProperties(MapExpression? newProperties)
         {
-            if (newProperties == null && _details.GetProperties() == null)
+            if (newProperties == null && Details.Properties == null)
             {
                 return this;
             }
 
             return new Relationship(
-                _left,
-                _details.With(newProperties == null ? null : new Properties(newProperties)),
-                _right);
+                Left,
+                Details.With(newProperties == null ? null : new Properties(newProperties)),
+                Right);
         }
 
         public Relationship WithProperties(params object[] keysAndValues)
@@ -131,23 +105,42 @@ namespace HotChocolate.Data.Neo4J.Language
         }
 
         public RelationshipChain RelationshipTo(Node other, params string[] types) =>
-            RelationshipChain.Create(this).Add(_right.RelationshipTo(other, types));
+            RelationshipChain.Create(this).Add(Right.RelationshipTo(other, types));
 
         public RelationshipChain RelationshipFrom(Node other, params string[] types) =>
-            RelationshipChain.Create(this).Add(_right.RelationshipFrom(other, types));
+            RelationshipChain.Create(this).Add(Right.RelationshipFrom(other, types));
 
         public RelationshipChain RelationshipBetween(Node other, params string[] types) =>
-            RelationshipChain.Create(this).Add(_right.RelationshipBetween(other, types));
+            RelationshipChain.Create(this).Add(Right.RelationshipBetween(other, types));
 
         public Condition AsCondition() => new RelationshipPatternCondition(this);
 
         public override void Visit(CypherVisitor cypherVisitor)
         {
             cypherVisitor.Enter(this);
-            _left.Visit(cypherVisitor);
-            _details.Visit(cypherVisitor);
-            _right.Visit(cypherVisitor);
+            Left.Visit(cypherVisitor);
+            Details.Visit(cypherVisitor);
+            Right.Visit(cypherVisitor);
             cypherVisitor.Leave(this);
+        }
+
+        public static Relationship Create(
+            Node left,
+            RelationshipDirection? relationshipDirection,
+            Node right,
+            params string[] types)
+        {
+            Ensure.IsNotNull(left, "Left node is required.");
+            Ensure.IsNotNull(right, "Right node is required.");
+
+            var listOfTypes = types.Where(s => !string.IsNullOrEmpty(s)).ToList();
+
+            var details = RelationshipDetails.Create(
+                relationshipDirection ?? RelationshipDirection.None,
+                null,
+                listOfTypes.IsNullOrEmpty() ? null : new RelationshipTypes(listOfTypes));
+
+            return new Relationship(left, details, right);
         }
     }
 }

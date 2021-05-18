@@ -1,8 +1,8 @@
-#nullable enable
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Language;
+using static HotChocolate.Data.Filters.DefaultFilterOperations;
 
 namespace HotChocolate.Data.Neo4J.Filtering
 {
@@ -17,10 +17,8 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public override bool CanHandle(
             ITypeCompletionContext context,
             IFilterInputTypeDefinition typeDefinition,
-            IFilterFieldDefinition fieldDefinition)
-        {
-            return fieldDefinition is FilterOperationFieldDefinition {Id: DefaultFilterOperations.NotIn};
-        }
+            IFilterFieldDefinition fieldDefinition) =>
+            fieldDefinition is FilterOperationFieldDefinition { Id: NotIn };
 
         /// <inheritdoc />
         public override Condition HandleOperation(
@@ -29,12 +27,11 @@ namespace HotChocolate.Data.Neo4J.Filtering
             IValueNode value,
             object? parsedValue)
         {
-            Condition? expression = context
+            return context
                 .GetNode()
-                .Property(context.GetNeo4JFilterScope().GetPath()).In(new PlainStringLiteral(value.ToString()))
+                .Property(context.GetNeo4JFilterScope().GetPath())
+                .In(new PlainStringLiteral(value.ToString()))
                 .Not();
-
-            return expression;
         }
     }
 }

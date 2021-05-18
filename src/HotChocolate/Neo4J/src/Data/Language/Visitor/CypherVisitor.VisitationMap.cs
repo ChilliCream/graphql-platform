@@ -10,6 +10,7 @@ namespace HotChocolate.Data.Neo4J.Language
             {
                 _writer.Write("OPTIONAL ");
             }
+
             _writer.Write("MATCH ");
         }
 
@@ -24,10 +25,16 @@ namespace HotChocolate.Data.Neo4J.Language
             _writer.Write("(");
             _skipNodeContent = _visitedNamed.Contains(node);
 
-            if (!_skipNodeContent) return;
-            var symbolicName = node.GetSymbolicName()?.GetValue() ?? node.GetRequiredSymbolicName().GetValue();
-            _writer.Write(symbolicName);
+            if (!_skipNodeContent)
+            {
+                return;
+            }
 
+            string symbolicName =
+                node.SymbolicName?.Value ??
+                node.RequiredSymbolicName.Value;
+
+            _writer.Write(symbolicName);
         }
 
         private void LeaveVisitable(Node _)
@@ -36,49 +43,58 @@ namespace HotChocolate.Data.Neo4J.Language
             _skipNodeContent = false;
         }
 
-        private void EnterVisitable(SymbolicName symbolicName) => _writer.Write(symbolicName.GetValue());
+        private void EnterVisitable(SymbolicName symbolicName) =>
+            _writer.Write(symbolicName.Value);
 
         private void EnterVisitable(NodeLabel nodeLabel)
         {
             _writer.Write(Symbol.Colon);
-            _writer.Write(nodeLabel.GetValue());
+            _writer.Write(nodeLabel.Value);
         }
 
-        private void EnterVisitable(PropertyLookup propertyLookup) => _writer.Write(propertyLookup.IsDynamicLookup() ? "[" : ".");
+        private void EnterVisitable(PropertyLookup propertyLookup) =>
+            _writer.Write(propertyLookup.IsDynamicLookup() ? "[" : ".");
 
         private void LeaveVisitable(PropertyLookup propertyLookup)
         {
-            if (propertyLookup.IsDynamicLookup()) {
+            if (propertyLookup.IsDynamicLookup())
+            {
                 _writer.Write("]");
             }
         }
+
         private void EnterVisitable(Operation operation)
         {
-
-            if (operation.NeedsGrouping()) {
+            if (operation.NeedsGrouping())
+            {
                 _writer.Write("(");
             }
         }
 
         private void EnterVisitable(Operator op)
         {
-            Operator.Type type = op.GetType();
-            if (type == Operator.Type.Label) {
+            OperatorType type = op.Type;
+            if (type == OperatorType.Label)
+            {
                 return;
             }
-            if (type != Operator.Type.Prefix && op != Operator.Exponent) {
+
+            if (type != OperatorType.Prefix && op != Operator.Exponent)
+            {
                 _writer.Write(" ");
             }
-            _writer.Write(op.GetRepresentation());
-            if (type != Operator.Type.Postfix && op != Operator.Exponent) {
+
+            _writer.Write(op.Representation);
+            if (type != OperatorType.Postfix && op != Operator.Exponent)
+            {
                 _writer.Write(" ");
             }
         }
 
         private void LeaveVisitable(Operation operation)
         {
-
-            if (operation.NeedsGrouping()) {
+            if (operation.NeedsGrouping())
+            {
                 _writer.Write(")");
             }
         }
@@ -89,7 +105,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         private void EnterVisitable(KeyValueMapEntry map)
         {
-            _writer.Write(map.GetKey());
+            _writer.Write(map.Key);
             _writer.Write(": ");
         }
 
@@ -99,7 +115,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         private void LeaveVisitable(PatternComprehension _) => _writer.Write("]");
 
-        private void EnterVisitable(ILiteral literal) => _writer.Write(literal.AsString());
+        private void EnterVisitable(ILiteral literal) => _writer.Write(literal.Print());
 
         private void EnterVisitable(CompoundCondition _) => _writer.Write("(");
 
@@ -120,14 +136,14 @@ namespace HotChocolate.Data.Neo4J.Language
         private void EnterVisitable(AliasedExpression aliased)
         {
             _writer.Write(" AS ");
-            _writer.Write(aliased.GetAlias());
+            _writer.Write(aliased.Alias);
         }
 
         private void EnterVisitable(RelationshipDetails details)
         {
-            RelationshipDirection direction = details.GetDirection();
+            RelationshipDirection direction = details.Direction;
 
-            _writer.Write(direction.GetLeftSymbol());
+            _writer.Write(direction.LeftSymbol);
             if (details.HasContent())
             {
                 _writer.Write("[");
@@ -136,45 +152,53 @@ namespace HotChocolate.Data.Neo4J.Language
 
         private void LeaveVisitable(RelationshipDetails details)
         {
-            RelationshipDirection direction = details.GetDirection();
+            RelationshipDirection direction = details.Direction;
 
             if (details.HasContent())
             {
                 _writer.Write("]");
             }
-            _writer.Write(direction.GetRightSymbol());
+
+            _writer.Write(direction.RightSymbol);
         }
 
         private void EnterVisitable(RelationshipTypes types)
         {
             _writer.Write(
-                types.GetValues()
-                    .Aggregate(string.Empty,
+                types
+                    .Values
+                    .Aggregate(
+                        string.Empty,
                         (partialPhrase, word) => $"{partialPhrase}{Symbol.Pipe}:{word}")
                     .TrimStart(Symbol.Pipe.ToCharArray()));
         }
 
         private void EnterVisitable(RelationshipLength length)
         {
-            var minimum = length.GetMinimum();
-            var maximum = length.GetMaximum();
+            var minimum = length.Minimum;
+            var maximum = length.Maximum;
 
-            if (length.IsUnbounded()) {
+            if (length.IsUnbounded)
+            {
                 _writer.Write("*");
                 return;
             }
 
-            if (minimum == null && maximum == null) {
+            if (minimum is null && maximum is null)
+            {
                 return;
             }
 
             _writer.Write("*");
-            if (minimum != null) {
-                _writer.Write(minimum.ToString());
+            if (minimum is not null)
+            {
+                _writer.Write(minimum.Value.ToString());
             }
+
             _writer.Write("..");
-            if (maximum != null) {
-                _writer.Write(maximum.ToString());
+            if (maximum is not null)
+            {
+                _writer.Write(maximum.Value.ToString());
             }
         }
 
@@ -185,7 +209,7 @@ namespace HotChocolate.Data.Neo4J.Language
         private void EnterVisitable(SortDirection sortDirection)
         {
             _writer.Write(" ");
-            _writer.Write(sortDirection.GetSymbol());
+            _writer.Write(sortDirection.Symbol);
         }
 
         private void EnterVisitable(With _) => _writer.Write("WITH ");
@@ -194,7 +218,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
         void EnterVisitable(FunctionInvocation functionInvocation)
         {
-            _writer.Write(functionInvocation.GetFunctionName());
+            _writer.Write(functionInvocation.FunctionName);
             _writer.Write("(");
         }
 

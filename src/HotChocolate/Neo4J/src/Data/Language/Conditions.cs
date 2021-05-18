@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace HotChocolate.Data.Neo4J.Language
+﻿namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
     /// Builder for various conditions

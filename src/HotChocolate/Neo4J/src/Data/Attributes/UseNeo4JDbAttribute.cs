@@ -9,7 +9,8 @@ namespace HotChocolate.Data.Neo4J
     {
         private readonly string _databaseName;
 
-        public UseNeo4JDatabaseAttribute(string databaseName) {
+        public UseNeo4JDatabaseAttribute(string databaseName)
+        {
             _databaseName = databaseName;
         }
 

@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
@@ -7,41 +5,39 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class RelationshipLength : Visitable
     {
-        public override ClauseKind Kind => ClauseKind.RelationshipLength;
-        private readonly int? _minimum;
-        private readonly int? _maximum;
-        private readonly bool _unbounded;
-
         public RelationshipLength()
         {
-            _minimum = null;
-            _maximum = null;
-            _unbounded = true;
+            Minimum = null;
+            Maximum = null;
+            IsUnbounded = true;
         }
 
         public RelationshipLength(int? minimum, int? maximum)
         {
-            _minimum = minimum;
-            _maximum = maximum;
-            _unbounded = false;
+            Minimum = minimum;
+            Maximum = maximum;
+            IsUnbounded = false;
         }
+
+        public override ClauseKind Kind => ClauseKind.RelationshipLength;
 
         /// <summary>
         ///
         /// </summary>
         /// <returns>Minimum number of hops to match.</returns>
-        public int? GetMinimum() =>  _minimum;
+        public int? Minimum { get; }
 
         /// <summary>
         ///
         /// </summary>
         /// <returns>Maximum number of hops to match.</returns>
-        public int? GetMaximum() => _maximum;
+        public int? Maximum { get; }
 
         /// <summary>
         ///
         /// </summary>
         /// <returns>True if neither minimum nor maximum number of hops are set.</returns>
-        public bool IsUnbounded() => _unbounded;
+        public bool IsUnbounded { get;
+        }
     }
 }

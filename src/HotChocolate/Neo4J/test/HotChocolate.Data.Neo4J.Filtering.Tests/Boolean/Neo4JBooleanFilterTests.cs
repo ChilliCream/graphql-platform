@@ -9,13 +9,16 @@ namespace HotChocolate.Data.Neo4J.Filtering
         : IClassFixture<Neo4JFixture>
     {
         private readonly Neo4JFixture _fixture;
+
         public Neo4JBooleanFilterTests(Neo4JFixture fixture)
         {
             _fixture = fixture;
         }
 
-        private readonly string _fooEntitiesCypher = @"CREATE (:Foo {Bar: true}), (:Foo {Bar: false})";
-        private readonly string _fooEntitiesNullableCypher = @"CREATE (:FooNullable {Bar: true}), (:FooNullable {Bar: false}), (:FooNullable {Bar: NULL})";
+        private readonly string _fooEntitiesCypher =
+            @"CREATE (:Foo {Bar: true}), (:Foo {Bar: false})";
+        private readonly string _fooEntitiesNullableCypher =
+            @"CREATE (:FooNullable {Bar: true}), (:FooNullable {Bar: false}), (:FooNullable {Bar: NULL})";
 
         public class Foo
         {
@@ -41,7 +44,8 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_BooleanEqual_Expression()
         {
             // arrange
-            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
+            IRequestExecutor tester =
+                await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
 
             // act
             IExecutionResult res1 = await tester.ExecuteAsync(
@@ -63,12 +67,14 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_And_BooleanEqual_Expression()
         {
             // arrange
-            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
+            IRequestExecutor tester =
+                await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
 
             // act
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: {and: [{ bar: { eq: true}}, { bar: { eq: false}}]} ){ bar }}")
+                    .SetQuery(
+                        "{ root(where: {and: [{ bar: { eq: true}}, { bar: { eq: false}}]} ){ bar }}")
                     .Create());
 
             // assert
@@ -79,12 +85,14 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_Or_BooleanEqual_Expression()
         {
             // arrange
-            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
+            IRequestExecutor tester =
+                await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
 
             // act
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: {or: [{ bar: { eq: true}}, { bar: { eq: false}}]} ){ bar }}")
+                    .SetQuery(
+                        "{ root(where: {or: [{ bar: { eq: true}}, { bar: { eq: false}}]} ){ bar }}")
                     .Create());
 
             // assert
@@ -95,7 +103,8 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_BooleanNotEqual_Expression()
         {
             // arrange
-            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
+            IRequestExecutor tester =
+                await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
 
             // act
             IExecutionResult res1 = await tester.ExecuteAsync(
@@ -117,7 +126,9 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_NullableBooleanEqual_Expression()
         {
             // arrange
-            IRequestExecutor tester = await _fixture.GetOrCreateSchema<FooNullable, FooNullableFilterType>(_fooEntitiesNullableCypher);
+            IRequestExecutor tester =
+                await _fixture.GetOrCreateSchema<FooNullable, FooNullableFilterType>(
+                    _fooEntitiesNullableCypher);
 
             // act
             IExecutionResult res1 = await tester.ExecuteAsync(
@@ -145,7 +156,9 @@ namespace HotChocolate.Data.Neo4J.Filtering
         public async Task Create_NullableBooleanNotEqual_Expression()
         {
             // arrange
-            IRequestExecutor tester = await _fixture.GetOrCreateSchema<FooNullable, FooNullableFilterType>(_fooEntitiesNullableCypher);
+            IRequestExecutor tester =
+                await _fixture.GetOrCreateSchema<FooNullable, FooNullableFilterType>(
+                    _fooEntitiesNullableCypher);
 
             // act
             IExecutionResult res1 = await tester.ExecuteAsync(

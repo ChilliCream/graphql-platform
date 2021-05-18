@@ -1,8 +1,6 @@
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-#nullable enable
-
 namespace HotChocolate.Data.Neo4J
 {
     /// <summary>
@@ -25,7 +23,7 @@ namespace HotChocolate.Data.Neo4J
         public static IRequestExecutorBuilder AddNeo4JFiltering(
             this IRequestExecutorBuilder builder,
             string? name = null) =>
-                builder.ConfigureSchema(s => s.AddNeo4JFiltering(name));
+            builder.ConfigureSchema(s => s.AddNeo4JFiltering(name));
 
         /// <summary>
         /// Adds sorting support for Neo4j.
@@ -40,9 +38,9 @@ namespace HotChocolate.Data.Neo4J
         /// Returns the <see cref="IRequestExecutorBuilder"/>.
         /// </returns>
         public static IRequestExecutorBuilder AddNeo4JSorting(
-             this IRequestExecutorBuilder builder,
-             string? name = null) =>
-                builder.ConfigureSchema(s => s.AddNeo4JSorting(name));
+            this IRequestExecutorBuilder builder,
+            string? name = null) =>
+            builder.ConfigureSchema(s => s.AddNeo4JSorting(name));
 
         /// <summary>
         /// Adds projections support for Neo4j.

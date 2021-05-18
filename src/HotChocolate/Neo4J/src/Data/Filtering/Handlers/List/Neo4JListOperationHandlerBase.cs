@@ -7,8 +7,6 @@ using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
-#nullable enable
-
 namespace HotChocolate.Data.Neo4J.Filtering
 {
     /// <summary>
@@ -82,11 +80,9 @@ namespace HotChocolate.Data.Neo4J.Filtering
                 context.Scopes.Pop() is Neo4JFilterScope scope)
             {
                 var path = context.GetNeo4JFilterScope().GetPath();
-                Condition combinedOperations = HandleListOperation(
-                    context,
-                    field,
-                    scope,
-                    path);
+
+                Condition combinedOperations =
+                    HandleListOperation(context, field, scope, path);
 
                 context.GetLevel().Enqueue(combinedOperations);
             }
@@ -116,8 +112,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
         /// </summary>
         /// <param name="scope">The scope where the definitions should be combined</param>
         /// <returns>A with and combined filter definition of all definitions of the scope</returns>
-        protected static Condition CombineOperationsOfScope(
-            Neo4JFilterScope scope)
+        protected static Condition CombineOperationsOfScope(Neo4JFilterScope scope)
         {
             Queue<Condition> level = scope.Level.Peek();
             if (level.Count == 1)

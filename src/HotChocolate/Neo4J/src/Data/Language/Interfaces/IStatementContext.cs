@@ -6,6 +6,7 @@
     public interface IStatementContext<T>
     {
         string GetParameterName(Parameter<T> parameter);
+
         bool IsRenderConstantsAsParameters();
     }
 }

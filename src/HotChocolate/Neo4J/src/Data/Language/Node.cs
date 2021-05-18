@@ -1,30 +1,27 @@
 using System.Collections.Generic;
 using System.Linq;
 
-#nullable enable
-
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
     /// https://s3.amazonaws.com/artifacts.opencypher.org/railroad/NodePattern.html
     /// </summary>
-    public class Node :
-        Visitable,
-        IPatternElement,
-        IPropertyContainer,
-        IExposesRelationships<Relationship>,
-        IExposesProperties<Node>
+    public class Node
+        : Visitable
+        , IPatternElement
+        , IPropertyContainer
+        , IExposesRelationships<Relationship>
+        , IExposesProperties<Node>
     {
-        public override ClauseKind Kind => ClauseKind.Node;
-        private readonly SymbolicName? _symbolicName;
         private readonly List<NodeLabel>? _labels;
-        private readonly Properties? _properties;
-        public SymbolicName? GetSymbolicName() => _symbolicName;
-        public SymbolicName GetRequiredSymbolicName() => _symbolicName;
 
-        private Node(string? primaryLabel, Properties? properties, params string[]? additionalLabels)
+        private Node(
+            string? primaryLabel,
+            Properties? properties,
+            params string[]? additionalLabels)
         {
-            _symbolicName = null;
+            SymbolicName = null;
+            RequiredSymbolicName = null;
             _labels = new List<NodeLabel>();
 
             if (!string.IsNullOrEmpty(primaryLabel))
@@ -40,15 +37,22 @@ namespace HotChocolate.Data.Neo4J.Language
                 }
             }
 
-            _properties = properties;
+            Properties = properties;
         }
 
         private Node(SymbolicName? symbolicName, Properties? properties, List<NodeLabel>? labels)
         {
-            _symbolicName = symbolicName;
-            _properties = properties;
+            SymbolicName = symbolicName;
+            RequiredSymbolicName = symbolicName;
+            Properties = properties;
             _labels = labels;
         }
+
+        public SymbolicName? SymbolicName { get; }
+
+        public SymbolicName RequiredSymbolicName { get; }
+
+        public Properties? Properties { get; }
 
         /// <summary>
         /// Creates a copy of this node with a new symbolic name.
@@ -58,7 +62,7 @@ namespace HotChocolate.Data.Neo4J.Language
         public Node Named(string newSymbolicName)
         {
             Ensure.HasText(newSymbolicName, "Symbolic name is required");
-            return new Node(SymbolicName.Of(newSymbolicName), _properties, _labels);
+            return new Node(SymbolicName.Of(newSymbolicName), Properties, _labels);
         }
 
         /// <summary>
@@ -69,44 +73,52 @@ namespace HotChocolate.Data.Neo4J.Language
         public Node Named(SymbolicName newSymbolicName)
         {
             Ensure.IsNotNull(newSymbolicName, "Symbolic name is required");
-            return new Node(newSymbolicName, _properties, _labels);
+            return new Node(newSymbolicName, Properties, _labels);
         }
 
+        public override ClauseKind Kind => ClauseKind.Node;
+
         public Node WithProperties(MapExpression? newProperties) =>
-            new(_symbolicName, newProperties == null ? null : new Properties(newProperties), _labels);
+            new(SymbolicName,
+                newProperties == null ? null : new Properties(newProperties),
+                _labels);
 
         public Node WithProperties(params object[] keysAndValues)
         {
             MapExpression? newProperties = null;
-            if(keysAndValues.Length != 0)
+            if (keysAndValues.Length != 0)
             {
                 newProperties = MapExpression.Create(keysAndValues);
             }
+
             return WithProperties(newProperties);
         }
 
-        public Property Property(string name) => Property(new[] { name });
+        public Property Property(string name) => Property(new[]
+        {
+            name
+        });
 
         public Property Property(params string[] names) =>
-            Language.Property.Create((INamed)this, names);
+            Language.Property.Create(this, names);
 
         public Property Property(Expression lookup) =>
-            Language.Property.Create(this,lookup);
+            Language.Property.Create(this, lookup);
 
         public MapProjection Project(List<object> entries) =>
             Project(entries.ToArray());
 
         public MapProjection Project(params object[] entries) =>
-            GetRequiredSymbolicName().Project(entries);
+            RequiredSymbolicName.Project(entries);
 
         public static Node Create(string primaryLabel)
         {
-            return new (primaryLabel, null, null);
+            return new(primaryLabel, null, null);
         }
 
         public static Node Create()
         {
-            return new (null, null);
+            return new(null, null);
         }
 
         public static Node Create(string primaryLabel, string[] additionalLabels)
@@ -114,9 +126,15 @@ namespace HotChocolate.Data.Neo4J.Language
             return Create(primaryLabel, null, additionalLabels);
         }
 
-        public static Node Create(string primaryLabel, MapExpression? properties, string[]? additionalLabels)
+        public static Node Create(
+            string primaryLabel,
+            MapExpression? properties,
+            string[]? additionalLabels)
         {
-            return new (primaryLabel, properties != null ? new Properties(properties) : null, additionalLabels);
+            return new(
+                primaryLabel,
+                properties != null ? new Properties(properties) : null,
+                additionalLabels);
         }
 
         public Relationship RelationshipTo(Node other, params string[] types) =>
@@ -124,34 +142,33 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public Relationship RelationshipFrom(Node other, params string[] types) =>
             Relationship.Create(this, RelationshipDirection.Incoming, other, types);
+
         public Relationship RelationshipBetween(Node other, params string[] types) =>
             Relationship.Create(this, RelationshipDirection.None, other, types);
 
         public Condition? IsEqualTo(Node otherNode) =>
-            GetRequiredSymbolicName().IsEqualTo(otherNode.GetRequiredSymbolicName());
+            RequiredSymbolicName.IsEqualTo(otherNode.RequiredSymbolicName);
 
         public Condition? IsNotEqualTo(Node otherNode) =>
-            GetRequiredSymbolicName().IsNotEqualTo(otherNode.GetRequiredSymbolicName());
+            RequiredSymbolicName.IsNotEqualTo(otherNode.RequiredSymbolicName);
 
-        public Condition? IsNull()  => GetRequiredSymbolicName()?.IsNull();
+        public Condition? IsNull() => RequiredSymbolicName?.IsNull();
 
-        public Condition? IsNotNull()  => GetRequiredSymbolicName()?.IsNotNull();
+        public Condition? IsNotNull() => RequiredSymbolicName?.IsNotNull();
 
-        public SortItem? Descending => GetRequiredSymbolicName()?.Descending();
+        public SortItem? Descending => RequiredSymbolicName?.Descending();
 
-        public SortItem? Ascending => GetRequiredSymbolicName()?.Ascending();
+        public SortItem? Ascending => RequiredSymbolicName?.Ascending();
 
         public AliasedExpression? As(string alias) =>
-            GetRequiredSymbolicName().As(alias);
-
-        public IReadOnlyList<NodeLabel>? GetLabels() => _labels?.AsReadOnly();
+            RequiredSymbolicName.As(alias);
 
         public override void Visit(CypherVisitor cypherVisitor)
         {
             cypherVisitor.Enter(this);
-            _symbolicName?.Visit(cypherVisitor);
+            SymbolicName?.Visit(cypherVisitor);
             _labels?.ForEach(label => label.Visit(cypherVisitor));
-            _properties?.Visit(cypherVisitor);
+            Properties?.Visit(cypherVisitor);
             cypherVisitor.Leave(this);
         }
     }

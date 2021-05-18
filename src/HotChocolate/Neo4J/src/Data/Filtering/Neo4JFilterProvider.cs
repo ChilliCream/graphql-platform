@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Data.Filters;
@@ -28,8 +27,8 @@ namespace HotChocolate.Data.Neo4J.Filtering
         /// <summary>
         /// The visitor that is used to traverse the incoming selection set an execute handlers
         /// </summary>
-        protected virtual FilterVisitor<Neo4JFilterVisitorContext, Condition>
-            Visitor { get; } = new(new Neo4JFilterCombinator());
+        protected virtual FilterVisitor<Neo4JFilterVisitorContext, Condition> Visitor { get; } =
+            new(new Neo4JFilterCombinator());
 
         /// <inheritdoc />
         public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
@@ -62,9 +61,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
                     else
                     {
                         context.LocalContextData =
-                            context.LocalContextData.SetItem(
-                                "Filter",
-                                whereQuery);
+                            context.LocalContextData.SetItem("Filter", whereQuery);
 
                         await next(context).ConfigureAwait(false);
 

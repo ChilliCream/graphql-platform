@@ -1,14 +1,13 @@
-﻿#nullable enable
-
-namespace HotChocolate.Data.Neo4J.Language
+﻿namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
     /// The container or "body" for return items, order and optional skip things.
-    /// <see href="https://s3.amazonaws.com/artifacts.opencypher.org/M15/railroad/ProjectionBody.html" />
+    /// <a href="https://s3.amazonaws.com/artifacts.opencypher.org/M15/railroad/ProjectionBody.html">
+    /// Projection Body
+    /// </a>
     /// </summary>
     public class ProjectionBody : Visitable
     {
-        public override ClauseKind Kind => ClauseKind.ProjectionBody;
         private readonly ExpressionList _returnItems;
         private readonly OrderBy? _order;
         private readonly Skip? _skip;
@@ -25,6 +24,8 @@ namespace HotChocolate.Data.Neo4J.Language
             _skip = skip;
             _limit = limit;
         }
+
+        public override ClauseKind Kind => ClauseKind.ProjectionBody;
 
         public new void Visit(CypherVisitor cypherVisitor)
         {

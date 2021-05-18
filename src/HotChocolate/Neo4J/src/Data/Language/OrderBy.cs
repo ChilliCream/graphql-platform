@@ -7,7 +7,10 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class OrderBy : TypedSubtree<SortItem>, ITypedSubtree
     {
+        public OrderBy(List<SortItem> items) : base(items)
+        {
+        }
+
         public override ClauseKind Kind => ClauseKind.OrderBy;
-        public OrderBy(List<SortItem> items) : base(items) { }
     }
 }

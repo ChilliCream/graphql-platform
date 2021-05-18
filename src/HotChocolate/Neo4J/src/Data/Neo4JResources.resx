@@ -27,4 +27,19 @@
   <data name="Paging_SourceIsNotSupported" xml:space="preserve">
     <value>The provided source {0} is not supported for Neo4j paging</value>
   </data>
+  <data name="ValueMapper_CypherValueIsNotAListAndCannotBeMapped" xml:space="preserve">
+    <value>The provided value for filter `{0}` of type {1} is invalid. Null values are not supported.</value>
+  </data>
+  <data name="ValueMapper_CypherValueIsAListAndCannotBeMapped" xml:space="preserve">
+    <value>The cypher value is a list and cannot be mapped to target type: {0}</value>
+  </data>
+  <data name="Language_UnsupportedLiteralType" xml:space="preserve">
+    <value>Unsupported literal type.</value>
+  </data>
+  <data name="Language_NeedsAParentWithSymbolicName" xml:space="preserve">
+    <value>A property derived from a node or a relationship needs a parent with a symbolic name.</value>
+  </data>
+  <data name="Projection_RelationshipDirectionNotSet" xml:space="preserve">
+    <value>Relationship direction not set.</value>
+  </data>
 </root>

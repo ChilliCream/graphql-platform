@@ -4,6 +4,7 @@ using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Data.Projections;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
+using static HotChocolate.Data.Neo4J.RelationshipDirection;
 
 namespace HotChocolate.Data.Neo4J.Projections
 {
@@ -29,30 +30,37 @@ namespace HotChocolate.Data.Neo4J.Projections
                 context.Projections.Add(field.GetName());
                 return true;
             }
-            if(context.StartNodes.Count != context.EndNodes.Count)
+
+            if (context.StartNodes.Count != context.EndNodes.Count)
+            {
                 context.EndNodes.Push(Cypher.NamedNode(selection.DeclaringType.Name.Value));
+            }
 
             if (context.StartNodes.Count != context.Relationships.Count)
             {
                 Neo4JRelationshipAttribute rel = context.RelationshipTypes.Peek();
                 Node startNode = context.StartNodes.Peek();
                 Node endNode = context.EndNodes.Peek();
-                switch (rel.Direction)
+
+
+                Relationship direction = rel.Direction switch
                 {
-                    case RelationshipDirection.Incoming:
-                        context.Relationships.Push(startNode.RelationshipFrom(endNode, rel.Name));
-                        break;
-                    case RelationshipDirection.Outgoing:
-                        context.Relationships.Push(startNode.RelationshipTo(endNode, rel.Name));
-                        break;
-                    case RelationshipDirection.None:
-                        context.Relationships.Push(startNode.RelationshipBetween(endNode, rel.Name));
-                        break;
-                    default:
-                        throw new InvalidOperationException("Relationship direction not set!");
-                }
+                    Incoming => startNode.RelationshipFrom(endNode, rel.Name),
+
+                    Outgoing => startNode.RelationshipTo(endNode, rel.Name),
+
+                    None => startNode.RelationshipBetween(endNode, rel.Name),
+
+                    _ => throw new InvalidOperationException(
+                        Neo4JResources.Projection_RelationshipDirectionNotSet)
+                };
+
+                context.Relationships.Push(direction);
             }
-            context.RelationshipProjections[context.CurrentLevel].Enqueue(selection.Field.GetName());
+
+            context
+                .RelationshipProjections[context.CurrentLevel]
+                .Enqueue(selection.Field.GetName());
 
             return true;
         }

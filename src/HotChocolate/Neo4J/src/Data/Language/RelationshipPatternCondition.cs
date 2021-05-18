@@ -5,13 +5,14 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     class RelationshipPatternCondition : Condition
     {
-        public override ClauseKind Kind => ClauseKind.RelationshipPatternCondition;
         private readonly IRelationshipPattern _pattern;
 
         public RelationshipPatternCondition(IRelationshipPattern pattern)
         {
             _pattern = pattern;
         }
+
+        public override ClauseKind Kind => ClauseKind.RelationshipPatternCondition;
 
         public override void Visit(CypherVisitor cypherVisitor)
         {

@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Data.Neo4J.Language
 {
     // A named element which can have a symbolic name.
@@ -9,12 +7,12 @@ namespace HotChocolate.Data.Neo4J.Language
         ///
         /// </summary>
         /// <returns></returns>
-        public SymbolicName? GetSymbolicName();
+        SymbolicName? SymbolicName { get; }
 
         /// <summary>
         ///
         /// </summary>
         /// <returns></returns>
-        public SymbolicName GetRequiredSymbolicName();
+        SymbolicName RequiredSymbolicName { get; }
     }
 }

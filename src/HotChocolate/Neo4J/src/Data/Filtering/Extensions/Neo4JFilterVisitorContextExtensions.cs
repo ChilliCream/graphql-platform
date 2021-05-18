@@ -17,8 +17,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
             this Neo4JFilterVisitorContext context) =>
             (Neo4JFilterScope)context.GetScope();
 
-        public static Node GetNode(
-            this Neo4JFilterVisitorContext context)
+        public static Node GetNode(this Neo4JFilterVisitorContext context)
         {
             var nodeName = context.RuntimeTypes.Skip(1).First().Type.Name;
 

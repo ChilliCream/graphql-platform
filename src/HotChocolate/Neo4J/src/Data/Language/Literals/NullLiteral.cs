@@ -2,10 +2,12 @@
 {
     public sealed class NullLiteral : Literal<string>
     {
-        public static readonly NullLiteral Instance = new();
+        private NullLiteral() : base("null")
+        {
+        }
 
-        public NullLiteral() : base("null") { }
+        public override string Print() => "NULL";
 
-        public override string AsString() => "NULL";
+        public static NullLiteral Instance { get; } = new();
     }
 }

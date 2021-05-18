@@ -13,9 +13,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
             Neo4JFilterVisitorContext context,
             IFilterField field,
             Neo4JFilterScope scope,
-            string path)
-        {
-            return new CompoundCondition(Operator.And);
-        }
+            string path) =>
+            new CompoundCondition(Operator.And);
     }
 }

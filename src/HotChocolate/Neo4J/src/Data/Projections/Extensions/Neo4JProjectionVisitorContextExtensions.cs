@@ -1,8 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Data.Neo4J.Language;
 
-#nullable enable
-
 namespace HotChocolate.Data.Neo4J.Projections
 {
     internal static class Neo4JProjectionVisitorContextExtensions
@@ -22,13 +20,14 @@ namespace HotChocolate.Data.Neo4J.Projections
             return true;
         }
 
-        public static bool TryCreateRelationshipProjection(this Neo4JProjectionVisitorContext context,
-            out PatternComprehension patternComprehension)
+        public static bool TryCreateRelationshipProjection(
+            this Neo4JProjectionVisitorContext context,
+            [NotNullWhen(true)]out PatternComprehension? patternComprehension)
         {
-
             patternComprehension = new PatternComprehension(
-                 context.Relationships.Peek(),
-                 context.EndNodes.Peek().Project(context.RelationshipProjections[context.CurrentLevel].ToArray()));
+                context.Relationships.Peek(),
+                context.EndNodes.Peek()
+                    .Project(context.RelationshipProjections[context.CurrentLevel].ToArray()));
 
             return true;
         }

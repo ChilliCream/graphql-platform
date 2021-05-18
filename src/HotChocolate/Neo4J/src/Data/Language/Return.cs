@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
@@ -7,7 +5,6 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class Return : Visitable
     {
-        public override ClauseKind Kind => ClauseKind.Return;
         private readonly ProjectionBody _returnItems;
 
         public Return(
@@ -18,6 +15,8 @@ namespace HotChocolate.Data.Neo4J.Language
         {
             _returnItems = new ProjectionBody(returnItems, orderBy, skip, limit);
         }
+
+        public override ClauseKind Kind => ClauseKind.Return;
 
         public override void Visit(CypherVisitor cypherVisitor)
         {

@@ -12,9 +12,14 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class Pattern : TypedSubtree<IPatternElement>, ITypedSubtree
     {
-        public override ClauseKind Kind => ClauseKind.Pattern;
+        public Pattern(List<IPatternElement> patternElements) : base(patternElements)
+        {
+        }
 
-        public Pattern(List<IPatternElement> patternElements) : base(patternElements) { }
-        public Pattern(params IPatternElement[] patternElements) : base(patternElements) { }
+        public Pattern(params IPatternElement[] patternElements) : base(patternElements)
+        {
+        }
+
+        public override ClauseKind Kind => ClauseKind.Pattern;
     }
 }

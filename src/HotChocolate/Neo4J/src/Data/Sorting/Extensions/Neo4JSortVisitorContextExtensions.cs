@@ -7,7 +7,7 @@ namespace HotChocolate.Data.Neo4J.Sorting
     {
         public static bool TryCreateQuery(
             this Neo4JSortVisitorContext context,
-            [NotNullWhen(true)] out Neo4JSortDefinition[] query)
+            [NotNullWhen(true)] out Neo4JSortDefinition[]? query)
         {
             query = null;
 

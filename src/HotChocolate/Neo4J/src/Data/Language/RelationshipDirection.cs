@@ -2,20 +2,20 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     public class RelationshipDirection
     {
-        public static readonly RelationshipDirection Outgoing = new ("-", "->");
-        public static readonly RelationshipDirection Incoming = new ("<-", "-");
-        public static readonly RelationshipDirection None = new("-", "-");
-
-        private readonly string _symbolLeft;
-        private readonly string _symbolRight;
-
         public RelationshipDirection(string symbolLeft, string symbolRight)
         {
-            _symbolLeft = symbolLeft;
-            _symbolRight = symbolRight;
+            LeftSymbol = symbolLeft;
+            RightSymbol = symbolRight;
         }
 
-        public string GetLeftSymbol() => _symbolLeft;
-        public string GetRightSymbol() => _symbolRight;
+        public string LeftSymbol { get; }
+
+        public string RightSymbol { get; }
+
+        public static RelationshipDirection Outgoing { get; } = new("-", "->");
+
+        public static RelationshipDirection Incoming { get; } = new("<-", "-");
+
+        public static RelationshipDirection None { get; } = new("-", "-");
     }
 }

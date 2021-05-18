@@ -2,18 +2,19 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     public class SortDirection : Visitable
     {
-        public override ClauseKind Kind => ClauseKind.SortDirection;
-
-        public static readonly SortDirection Undefined = new("");
-        public static readonly SortDirection Ascending = new("ASC");
-        public static readonly SortDirection Descending = new("DESC");
-
-        private readonly string _symbol;
-
         public SortDirection(string symbol)
         {
-            _symbol = symbol;
+            Symbol = symbol;
         }
-        public string GetSymbol() => _symbol;
+
+        public override ClauseKind Kind => ClauseKind.SortDirection;
+
+        public string Symbol { get; }
+
+        public static SortDirection Undefined { get; } = new("");
+
+        public static SortDirection Ascending { get; } = new("ASC");
+
+        public static SortDirection Descending { get; } = new("DESC");
     }
 }

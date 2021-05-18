@@ -24,12 +24,14 @@ namespace HotChocolate.Data.Neo4J.Paging
         public override bool CanHandle(IExtendedType source)
         {
             return typeof(INeo4JExecutable).IsAssignableFrom(source.Source) ||
-                   source.Source.IsGenericType &&
-                   source.Source.GetGenericTypeDefinition() is { } type && (
-                       type == typeof(Neo4JExecutable<>));
+                source.Source.IsGenericType &&
+                source.Source.GetGenericTypeDefinition() is { } type &&
+                type == typeof(Neo4JExecutable<>);
         }
 
-        protected override OffsetPagingHandler CreateHandler(IExtendedType source, PagingOptions options)
+        protected override OffsetPagingHandler CreateHandler(
+            IExtendedType source,
+            PagingOptions options)
         {
             if (source is null)
             {
@@ -38,11 +40,16 @@ namespace HotChocolate.Data.Neo4J.Paging
 
             return (OffsetPagingHandler)_createHandler
                 .MakeGenericMethod(source.ElementType?.Source ?? source.Source)
-                .Invoke(null, new object[] { options })!;
+                .Invoke(
+                    null,
+                    new object[]
+                    {
+                        options
+                    })!;
         }
 
         private static Neo4JOffsetPagingHandler<TEntity> CreateHandlerInternal<TEntity>(
-            PagingOptions options) => new (options);
+            PagingOptions options) => new(options);
 
         private class Neo4JOffsetPagingHandler<TEntity> : OffsetPagingHandler
         {
@@ -74,8 +81,6 @@ namespace HotChocolate.Data.Neo4J.Paging
                 Neo4JExecutable<TEntity> queryable,
                 OffsetPagingArguments arguments = default)
             {
-                Neo4JExecutable<TEntity> original = queryable;
-
                 if (arguments.Skip.HasValue)
                 {
                     queryable = queryable.WithSkip(arguments.Skip.Value);
@@ -88,10 +93,7 @@ namespace HotChocolate.Data.Neo4J.Paging
                     .ConfigureAwait(false);
 
 
-                return new CollectionSegment(
-                    (IReadOnlyCollection<object>)items,
-                    null,
-                    null);
+                return new CollectionSegment((IReadOnlyCollection<object>)items, null, null);
             }
         }
     }

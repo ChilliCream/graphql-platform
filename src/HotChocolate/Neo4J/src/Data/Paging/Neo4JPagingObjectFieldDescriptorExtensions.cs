@@ -3,8 +3,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 
-#nullable  enable
-
 namespace HotChocolate.Data.Neo4J.Paging
 {
     public static class Neo4JPagingObjectFieldDescriptorExtensions
@@ -28,7 +26,7 @@ namespace HotChocolate.Data.Neo4J.Paging
             descriptor.UseOffsetPaging(
                 type,
                 entityType,
-                (services, sourceType) => services.GetService<Neo4JOffsetPagingProvider>() ??
+                (services, _) => services.GetService<Neo4JOffsetPagingProvider>() ??
                     new Neo4JOffsetPagingProvider(),
                 options);
 

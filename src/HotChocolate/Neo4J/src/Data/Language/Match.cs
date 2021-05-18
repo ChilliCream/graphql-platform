@@ -1,5 +1,4 @@
-﻿#nullable enable
-namespace HotChocolate.Data.Neo4J.Language
+﻿namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
     /// https://s3.amazonaws.com/artifacts.opencypher.org/M15/railroad/Match.html
@@ -7,7 +6,6 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class Match : Visitable, IReadingClause
     {
-        public override ClauseKind Kind => ClauseKind.Match;
         private readonly bool _optional;
         private readonly Pattern _pattern;
         private readonly Where? _optionalWhere;
@@ -18,6 +16,8 @@ namespace HotChocolate.Data.Neo4J.Language
             _pattern = pattern;
             _optionalWhere = optionalWhere;
         }
+
+        public override ClauseKind Kind => ClauseKind.Match;
 
         public bool IsOptional() => _optional;
 

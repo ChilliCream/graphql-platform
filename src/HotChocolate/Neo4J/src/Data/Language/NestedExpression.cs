@@ -3,6 +3,7 @@ namespace HotChocolate.Data.Neo4J.Language
     public class NestedExpression : Expression
     {
         public override ClauseKind Kind => ClauseKind.NestedExpression;
+
         private readonly Expression _expression;
 
         public NestedExpression(Expression expression)

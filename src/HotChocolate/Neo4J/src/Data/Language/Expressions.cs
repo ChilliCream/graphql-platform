@@ -11,13 +11,14 @@ namespace HotChocolate.Data.Neo4J.Language
         {
             if (expression is INamed named)
             {
-                return named.GetSymbolicName();
+                return named.SymbolicName;
             }
+
             return expression;
         }
 
         public static Expression[] CreateSymbolicNames(INamed[] variables) =>
-            Array.ConvertAll(variables, i => i.GetSymbolicName());
+            Array.ConvertAll(variables, i => i.SymbolicName);
 
         public static SymbolicName[] CreateSymbolicNames(string[] variables) =>
             Array.ConvertAll(variables, SymbolicName.Of);

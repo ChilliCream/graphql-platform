@@ -30,7 +30,7 @@ namespace HotChocolate.Data.Neo4J
         /// <exception cref="ArgumentException">The exception is there is no text.</exception>
         public static void HasText(string text, string message)
         {
-            if(!text.HasText())
+            if (!text.HasText())
             {
                 throw new ArgumentException(message);
             }

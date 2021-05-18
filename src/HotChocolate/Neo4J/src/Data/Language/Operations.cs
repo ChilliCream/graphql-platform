@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
@@ -12,7 +10,6 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public static Operation Add(Expression op1, Expression op2) =>
             Operation.Create(op1, Operator.Addition, op2);
-
 
         public static Operation Subtract(Expression op1, Expression op2) =>
             Operation.Create(op1, Operator.Subtraction, op2);

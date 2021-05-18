@@ -5,13 +5,13 @@ using Neo4j.Driver;
 
 namespace HotChocolate.Data.Neo4J
 {
-public static class ResultCursorExtensions
+    internal static class ResultCursorExtensions
     {
-        public static async Task<List<TReturn>> MapAsync<TReturn>(
-            this IResultCursor resultCursor)
+        public static async Task<List<TReturn>> MapAsync<TReturn>(this IResultCursor resultCursor)
         {
-            return await resultCursor.MapAsync(
-                record => record.Map<TReturn>()).ConfigureAwait(false);
+            return await resultCursor
+                .MapAsync(record => record.Map<TReturn>())
+                .ConfigureAwait(false);
         }
 
         private static async Task<List<TReturn>> MapAsync<TReturn>(
@@ -23,6 +23,7 @@ public static class ResultCursorExtensions
             {
                 list.Add(mapFunc(resultCursor.Current));
             }
+
             return list;
         }
     }

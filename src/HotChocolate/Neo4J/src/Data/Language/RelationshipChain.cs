@@ -9,13 +9,11 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class RelationshipChain
         : Visitable
-            , IRelationshipPattern
+        , IRelationshipPattern
     {
-        public override ClauseKind Kind { get; } = ClauseKind.RelationshipChain;
         private readonly List<Relationship> _relationships = new();
 
-        public static RelationshipChain Create(Relationship firstElement) =>
-            new RelationshipChain().Add(firstElement);
+        public override ClauseKind Kind  => ClauseKind.RelationshipChain;
 
         public RelationshipChain Add(Relationship element)
         {
@@ -26,17 +24,17 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public RelationshipChain RelationshipTo(Node other, params string[] types)
         {
-            return Add(_relationships.Peek().GetRight().RelationshipTo(other, types));
+            return Add(_relationships.Peek().Right.RelationshipTo(other, types));
         }
 
         public RelationshipChain RelationshipFrom(Node other, params string[] types)
         {
-            return Add(_relationships.Peek().GetRight().RelationshipFrom(other, types));
+            return Add(_relationships.Peek().Right.RelationshipFrom(other, types));
         }
 
         public RelationshipChain RelationshipBetween(Node other, params string[] types)
         {
-            return Add(_relationships.Peek().GetRight().RelationshipBetween(other, types));
+            return Add(_relationships.Peek().Right.RelationshipBetween(other, types));
         }
 
         public RelationshipChain Unbounded()
@@ -86,16 +84,20 @@ namespace HotChocolate.Data.Neo4J.Language
         public override void Visit(CypherVisitor cypherVisitor)
         {
             cypherVisitor.Enter(this);
-            Node lastNode = null;
+            Node? lastNode = null;
             foreach (Relationship relationship in _relationships)
             {
-                relationship.GetLeft().Visit(cypherVisitor);
-                relationship.GetDetails().Visit(cypherVisitor);
+                relationship.Left.Visit(cypherVisitor);
+                relationship.Details.Visit(cypherVisitor);
 
-                lastNode = relationship.GetRight();
+                lastNode = relationship.Right;
             }
+
             lastNode?.Visit(cypherVisitor);
             cypherVisitor.Leave(this);
         }
+
+        public static RelationshipChain Create(Relationship firstElement) =>
+            new RelationshipChain().Add(firstElement);
     }
 }

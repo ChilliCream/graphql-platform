@@ -6,8 +6,6 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class ListComprehension : Expression
     {
-        public override ClauseKind Kind => ClauseKind.ListComprehension;
-
         /// <summary>
         /// The variable for the where part
         /// </summary>
@@ -40,6 +38,8 @@ namespace HotChocolate.Data.Neo4J.Language
             _listDefinition = listDefinition;
         }
 
+        public override ClauseKind Kind => ClauseKind.ListComprehension;
+
         public static IOngoingDefinitionWithVariable With(SymbolicName variable)
         {
             return new Builder(variable);
@@ -57,6 +57,7 @@ namespace HotChocolate.Data.Neo4J.Language
                 Operator.Pipe.Visit(cypherVisitor);
                 _listDefinition.Visit(cypherVisitor);
             }
+
             cypherVisitor.Leave(this);
         }
 
@@ -99,13 +100,16 @@ namespace HotChocolate.Data.Neo4J.Language
                 _where = new Where(condition);
                 return this;
             }
-            public ListComprehension Returning() => new (_variable, _listExpression, _where, null);
+
+            public ListComprehension Returning() => new(_variable, _listExpression, _where, null);
 
             public ListComprehension Returning(params INamed[] variables) =>
                 Returning(Expressions.CreateSymbolicNames(variables));
 
             public ListComprehension Returning(params Expression[] listDefinition) =>
-                new (_variable, _listExpression, _where,
+                new(_variable,
+                    _listExpression,
+                    _where,
                     ListExpression.ListOrSingleExpression(listDefinition));
         }
     }

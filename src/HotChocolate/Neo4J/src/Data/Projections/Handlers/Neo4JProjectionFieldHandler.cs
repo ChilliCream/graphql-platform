@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -6,8 +5,6 @@ using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Data.Projections;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-
-#nullable enable
 
 namespace HotChocolate.Data.Neo4J.Projections
 {
@@ -26,7 +23,11 @@ namespace HotChocolate.Data.Neo4J.Projections
             [NotNullWhen(true)] out ISelectionVisitorAction? action)
         {
             ++context.CurrentLevel;
-            selection.Field.ContextData.TryGetValue(nameof(Neo4JRelationshipAttribute), out object? relationship);
+
+            selection.Field.ContextData.TryGetValue(
+                nameof(Neo4JRelationshipAttribute),
+                out object? relationship);
+
             if (relationship is Neo4JRelationshipAttribute rel)
             {
                 context.RelationshipTypes.Push(rel);
@@ -36,11 +37,12 @@ namespace HotChocolate.Data.Neo4J.Projections
 
             if (context.RelationshipProjections.ContainsKey(context.CurrentLevel))
             {
-                context.RelationshipProjections[context.CurrentLevel].Enqueue(selection.Field.GetName());
+                context.RelationshipProjections[context.CurrentLevel]
+                    .Enqueue(selection.Field.GetName());
             }
             else
             {
-                Queue<object> queue = new ();
+                Queue<object> queue = new();
                 queue.Enqueue(selection.Field.GetName());
                 context.RelationshipProjections.Add(context.CurrentLevel, queue);
             }
@@ -57,7 +59,7 @@ namespace HotChocolate.Data.Neo4J.Projections
         {
             if (context.StartNodes.Any())
             {
-                object? field = context.RelationshipProjections[context.CurrentLevel].Dequeue();
+                object field = context.RelationshipProjections[context.CurrentLevel].Dequeue();
 
                 context.TryCreateRelationshipProjection(out PatternComprehension? projections);
 
@@ -65,7 +67,8 @@ namespace HotChocolate.Data.Neo4J.Projections
                 {
                     case > 1:
                         context.RelationshipProjections[context.CurrentLevel - 1].Enqueue(field);
-                        context.RelationshipProjections[context.CurrentLevel - 1].Enqueue(projections);
+                        context.RelationshipProjections[context.CurrentLevel - 1]
+                            .Enqueue(projections);
                         break;
                     case 1:
                         context.Projections.Push(field);

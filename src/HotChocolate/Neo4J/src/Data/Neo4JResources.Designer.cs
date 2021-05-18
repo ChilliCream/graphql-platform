@@ -62,5 +62,35 @@ namespace HotChocolate.Data.Neo4J {
                 return ResourceManager.GetString("Paging_SourceIsNotSupported", resourceCulture);
             }
         }
+        
+        internal static string ValueMapper_CypherValueIsNotAListAndCannotBeMapped {
+            get {
+                return ResourceManager.GetString("ValueMapper_CypherValueIsNotAListAndCannotBeMapped", resourceCulture);
+            }
+        }
+        
+        internal static string ValueMapper_CypherValueIsAListAndCannotBeMapped {
+            get {
+                return ResourceManager.GetString("ValueMapper_CypherValueIsAListAndCannotBeMapped", resourceCulture);
+            }
+        }
+        
+        internal static string Language_UnsupportedLiteralType {
+            get {
+                return ResourceManager.GetString("Language_UnsupportedLiteralType", resourceCulture);
+            }
+        }
+        
+        internal static string Language_NeedsAParentWithSymbolicName {
+            get {
+                return ResourceManager.GetString("Language_NeedsAParentWithSymbolicName", resourceCulture);
+            }
+        }
+        
+        internal static string Projection_RelationshipDirectionNotSet {
+            get {
+                return ResourceManager.GetString("Projection_RelationshipDirectionNotSet", resourceCulture);
+            }
+        }
     }
 }
