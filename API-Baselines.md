@@ -92,6 +92,12 @@ cp scripts/PublicAPI.empty.txt "src/$DIR/PublicAPI.Shipped.txt"
 cp scripts/PublicAPI.empty.txt "src/$DIR/PublicAPI.Unshipped.txt"
 ```
 
+## Pipeline Job
+
+A PR to `main` will trigger a Pipeline job that runs this analyzer. Contrary to the development environment, where the analyzer only reports warnings, here it throws an error. This is done to enforce highlighting of public API changes.
+
+The job is defined as part of [this Pipeline definition](./.devops/azure-pipelines.test-pr-hotchocolate.yml). It can be easily disabled by adding `condition: false` to the `CheckPublicApi` section or commenting out the section.
+
 ## Scripts
 
 There are three scripts to help you manage the `PublicAPI.*.txt` files. They can be found [here](./scripts).
