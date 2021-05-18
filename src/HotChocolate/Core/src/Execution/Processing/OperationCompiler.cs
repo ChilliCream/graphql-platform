@@ -14,7 +14,8 @@ namespace HotChocolate.Execution.Processing
     {
         private readonly ISchema _schema;
         private readonly FragmentCollection _fragments;
-        private uint _nextId;
+        private int _nextSelectionId;
+        private int _nextFragmentId;
 
         private OperationCompiler(
             ISchema schema,
@@ -28,7 +29,7 @@ namespace HotChocolate.Execution.Processing
 
         internal FragmentCollection Fragments => _fragments;
 
-        internal uint GetNextId() => _nextId++;
+        internal int GetNextId() => _nextSelectionId++;
 
         public static IPreparedOperation Compile(
             string operationId,
@@ -307,6 +308,7 @@ namespace HotChocolate.Execution.Processing
                     CompileSelectionSet(deferContext);
 
                     context.RegisterFragment(new Fragment(
+                        _nextFragmentId++,
                         context.Type,
                         fragmentSpread,
                         fragmentDefinition,
@@ -350,6 +352,7 @@ namespace HotChocolate.Execution.Processing
                     CompileSelectionSet(deferContext);
 
                     context.RegisterFragment(new Fragment(
+                        _nextFragmentId++,
                         context.Type,
                         inlineFragment,
                         deferContext.GetSelectionSet(),
@@ -782,6 +785,6 @@ namespace HotChocolate.Execution.Processing
         }
 
         private static bool HasErrors(object? result) =>
-            result is IError || result is IEnumerable<IError>;
+            result is IError or IEnumerable<IError>;
     }
 }

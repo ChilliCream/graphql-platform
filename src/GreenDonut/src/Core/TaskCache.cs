@@ -5,19 +5,18 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace GreenDonut
 {
-    internal class TaskCache
+    internal sealed class TaskCache
         : ITaskCache
         , IDisposable
     {
-        private readonly ConcurrentDictionary<object, CacheEntry> _cache =
-            new ConcurrentDictionary<object, CacheEntry>();
+        private readonly ConcurrentDictionary<object, CacheEntry> _cache = new();
         private bool _disposed;
-        private readonly LinkedList<object> _ranking = new LinkedList<object>();
-        private readonly object _sync = new object();
+        private readonly LinkedList<object> _ranking = new();
+        private readonly object _sync = new();
 
         public TaskCache(int size)
         {
-            Size = (Defaults.MinCacheSize > size)
+            Size = Defaults.MinCacheSize > size
                 ? Defaults.MinCacheSize
                 : size;
         }
@@ -139,7 +138,7 @@ namespace GreenDonut
             GC.SuppressFinalize(this);
         }
 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (!_disposed)
             {

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Processing.Plan
@@ -12,7 +13,16 @@ namespace HotChocolate.Execution.Processing.Plan
                 throw new ArgumentNullException(nameof(operation));
             }
 
-            return new(Prepare(operation).CreateStep());
+            OperationQueryPlanNode operationNode = Prepare(new QueryPlanContext(operation));
+
+            if (operationNode.Deferred.Count == 0)
+            {
+                return new QueryPlan(operationNode.CreateStep());
+            }
+
+            return new QueryPlan(
+                operationNode.CreateStep(),
+                operationNode.Deferred.Select(t => new QueryPlan(t.CreateStep())).ToArray());
         }
 
         public static QueryPlanNode Prepare(IPreparedOperation operation)
@@ -22,12 +32,17 @@ namespace HotChocolate.Execution.Processing.Plan
                 throw new ArgumentNullException(nameof(operation));
             }
 
-            if (operation.Definition.Operation == OperationType.Mutation)
+            return Prepare(new QueryPlanContext(operation));
+        }
+
+        private static OperationQueryPlanNode Prepare(QueryPlanContext context)
+        {
+            if (context.Operation.Definition.Operation is OperationType.Mutation)
             {
-                return MutationStrategy.Build(operation);
+                return MutationStrategy.Build(context);
             }
 
-            return QueryStrategy.Build(operation);
+            return QueryStrategy.Build(context);
         }
 
         internal static ExecutionStrategy GetStrategyFromSelection(ISelection selection) =>

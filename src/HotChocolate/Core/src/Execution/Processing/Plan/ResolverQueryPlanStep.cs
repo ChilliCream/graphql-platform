@@ -7,7 +7,7 @@ namespace HotChocolate.Execution.Processing.Plan
 {
     internal sealed class ResolverQueryPlanStep : QueryPlanStep
     {
-        private readonly HashSet<uint> _ids;
+        private readonly HashSet<int> _ids;
         private readonly ISelection[] _selections;
 
         public ResolverQueryPlanStep(
@@ -20,7 +20,7 @@ namespace HotChocolate.Execution.Processing.Plan
             }
 
             Strategy = strategy;
-            _ids = new HashSet<uint>(selections.Select(t => t.Id));
+            _ids = new HashSet<int>(selections.Select(t => t.Id));
             _selections = selections.ToArray();
         }
 

@@ -1,12 +1,22 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Execution.Properties;
 
 namespace HotChocolate.Execution.Processing.Plan
 {
     internal class QueryPlan
     {
+        private readonly QueryPlan[] _deferredPlans;
+
         public QueryPlan(QueryPlanStep root)
+            : this(root, Array.Empty<QueryPlan>())
+        {
+        }
+
+        public QueryPlan(QueryPlanStep root, QueryPlan[] deferredPlans)
         {
             Root = root;
+            _deferredPlans = deferredPlans;
 
             var count = 0;
             AssignId(root, ref count);
@@ -16,6 +26,18 @@ namespace HotChocolate.Execution.Processing.Plan
         public QueryPlanStep Root { get; }
 
         public int Count { get; }
+
+        public QueryPlan GetDeferredPlan(int fragmentId)
+        {
+            if (fragmentId >= _deferredPlans.Length)
+            {
+                throw new ArgumentException(
+                    Resources.QueryPlan_InvalidFragmentId,
+                    nameof(fragmentId));
+            }
+
+            return _deferredPlans[fragmentId];
+        }
 
         internal bool TryGetStep(
             IExecutionTask executionTask,

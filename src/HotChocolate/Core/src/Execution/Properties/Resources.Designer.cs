@@ -326,5 +326,11 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("BatchExecutionTask_AddExecutionTask_SerialTasksNotAllowed", resourceCulture);
             }
         }
+        
+        internal static string QueryPlan_InvalidFragmentId {
+            get {
+                return ResourceManager.GetString("QueryPlan_InvalidFragmentId", resourceCulture);
+            }
+        }
     }
 }

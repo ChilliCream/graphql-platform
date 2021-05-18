@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Processing.Plan;
 using static HotChocolate.Execution.Processing.Tasks.ResolverTaskFactory;
 
 namespace HotChocolate.Execution.Processing
@@ -64,6 +65,8 @@ namespace HotChocolate.Execution.Processing
         /// <inheritdoc/>
         public async Task<IQueryResult> ExecuteAsync(IOperationContext operationContext)
         {
+            operationContext.QueryPlan = operationContext.QueryPlan.GetDeferredPlan(Fragment.Id);
+
             ResultMap resultMap = EnqueueResolverTasks(
                 operationContext,
                 Fragment.SelectionSet,

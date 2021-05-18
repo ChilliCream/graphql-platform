@@ -99,7 +99,7 @@ namespace HotChocolate.Execution.Processing.Plan
                     return Complete(step);
                 }
             }
-            
+
             return false;
         }
 
@@ -280,7 +280,7 @@ TryAgain:
         {
             state = _current!;
 
-            if (state is null || state.Id != step.Id || !state.IsInitialized)
+            if (state is null! || state.Id != step.Id || !state.IsInitialized)
             {
                 _current = state = _state[step.Id];
                 if (!state.IsInitialized)

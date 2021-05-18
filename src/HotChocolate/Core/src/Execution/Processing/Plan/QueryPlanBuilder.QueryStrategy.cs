@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Processing.Plan
@@ -9,16 +8,43 @@ namespace HotChocolate.Execution.Processing.Plan
     {
         private static class QueryStrategy
         {
-            public static QueryPlanNode Build(IPreparedOperation operation)
+            public static OperationQueryPlanNode Build(QueryPlanContext context)
             {
-                var context = new QueryPlanContext(operation);
+                QueryPlanNode root = Build(context, context.Operation.GetRootSelectionSet());
+                var operationNode = new OperationQueryPlanNode(root);
 
-                foreach (ISelection selection in operation.GetRootSelectionSet().Selections)
+                if (context.Deferred.Count > 0)
+                {
+                    foreach (var deferred in BuildDeferred(context))
+                    {
+                        operationNode.Deferred.Add(deferred);
+                    }
+                }
+
+                return operationNode;
+            }
+
+            public static QueryPlanNode Build(QueryPlanContext context, ISelectionSet selectionSet)
+            {
+                foreach (ISelection selection in selectionSet.Selections)
                 {
                     Visit(selection, context);
                 }
 
+                CollectFragments(selectionSet, context);
+
                 return Optimize(context.Root!);
+            }
+
+            public static IEnumerable<QueryPlanNode> BuildDeferred(QueryPlanContext context)
+            {
+                var processed = new HashSet<int>();
+
+                while (context.Deferred.TryPop(out IFragment? fragment) &&
+                    processed.Add(fragment.Id))
+                {
+                    yield return Build(context, fragment.SelectionSet);
+                }
             }
 
             private static void Visit(ISelection selection, QueryPlanContext context)
@@ -112,6 +138,8 @@ namespace HotChocolate.Execution.Processing.Plan
                         {
                             Visit(child, context);
                         }
+
+                        CollectFragments(selectionSet, context);
                     }
 
                     if (context.NodePath.Count > depth)
@@ -119,6 +147,19 @@ namespace HotChocolate.Execution.Processing.Plan
                         context.NodePath.Pop();
                     }
                     context.SelectionPath.Pop();
+                }
+            }
+
+            private static void CollectFragments(
+                ISelectionSet selectionSet,
+                QueryPlanContext context)
+            {
+                if (selectionSet.Fragments.Count > 0)
+                {
+                    foreach (IFragment fragment in selectionSet.Fragments)
+                    {
+                        context.Deferred.Add(fragment);
+                    }
                 }
             }
 

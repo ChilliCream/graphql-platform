@@ -44,11 +44,20 @@ namespace HotChocolate.Execution.Processing
 
                         if (buffer[0]!.IsSerial)
                         {
-                            for (var i = 0; i < work; i++)
+                            try
                             {
-                                IExecutionTask task = buffer[i]!;
-                                task.BeginExecute(cancellationToken);
-                                await task.WaitForCompletionAsync(cancellationToken);
+                                executionContext.BatchDispatcher.DispatchOnSchedule = true;
+
+                                for (var i = 0; i < work; i++)
+                                {
+                                    IExecutionTask task = buffer[i]!;
+                                    task.BeginExecute(cancellationToken);
+                                    await task.WaitForCompletionAsync(cancellationToken);
+                                }
+                            }
+                            finally
+                            {
+                                executionContext.BatchDispatcher.DispatchOnSchedule = false;
                             }
                         }
                         else
@@ -129,8 +138,6 @@ namespace HotChocolate.Execution.Processing
                     .Build();
 
             error = _context.ErrorHandler.Handle(error);
-
-            // TODO : this error needs to be reported!
             _context.Result.AddError(error);
         }
 

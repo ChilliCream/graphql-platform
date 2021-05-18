@@ -56,6 +56,57 @@ namespace HotChocolate.Execution.Processing.Plan
         [InlineData(ExecutionStrategy.Parallel)]
         [InlineData(ExecutionStrategy.Serial)]
         [Theory]
+        public void GetHero_Root_Deferred_Plan(ExecutionStrategy defaultStrategy)
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddStarWarsTypes()
+                .ModifyOptions(o => o.DefaultResolverStrategy = defaultStrategy)
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                @"query GetHero($episode: Episode, $withFriends: Boolean!) {
+                    ... @defer {
+                        hero(episode: $episode) {
+                            name
+                            friends @include(if: $withFriends) {
+                                nodes {
+                                    id
+                                }
+                            }
+                        }
+                    }
+                    a: hero(episode: $episode) {
+                        name
+                        friends @include(if: $withFriends) {
+                            nodes {
+                                id
+                            }
+                        }
+                    }
+                }");
+
+            OperationDefinitionNode operationDefinition =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+            IPreparedOperation operation =
+                OperationCompiler.Compile(
+                    "a",
+                    document,
+                    operationDefinition,
+                    schema,
+                    schema.QueryType);
+
+            // act
+            QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
+
+            // assert
+            Snapshot(root, defaultStrategy);
+        }
+
+        [InlineData(ExecutionStrategy.Parallel)]
+        [InlineData(ExecutionStrategy.Serial)]
+        [Theory]
         public void CreateReviewForEpisode_Plan(ExecutionStrategy defaultStrategy)
         {
             // arrange

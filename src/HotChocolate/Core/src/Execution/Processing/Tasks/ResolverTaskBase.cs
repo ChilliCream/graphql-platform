@@ -83,7 +83,7 @@ namespace HotChocolate.Execution.Processing.Tasks
                 {
                     IType fieldType = _resolverContext.Field.Type;
 
-                    if (ValueCompletion2.TryComplete(
+                    if (ValueCompletion.TryComplete(
                         _operationContext,
                         _resolverContext,
                         (ISelection)_resolverContext.Selection,

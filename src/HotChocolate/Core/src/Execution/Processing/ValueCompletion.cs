@@ -9,7 +9,7 @@ using static HotChocolate.Execution.Processing.Tasks.ResolverTaskFactory;
 
 namespace HotChocolate.Execution.Processing
 {
-    internal static partial class ValueCompletion2
+    internal static partial class ValueCompletion
     {
         public static bool TryComplete(
             IOperationContext operationContext,
@@ -97,7 +97,7 @@ namespace HotChocolate.Execution.Processing
 
 
     // leaf
-    internal static partial class ValueCompletion2
+    internal static partial class ValueCompletion
     {
         private static bool TryCompleteLeafValue(
             IOperationContext operationContext,
@@ -149,7 +149,7 @@ namespace HotChocolate.Execution.Processing
     }
 
     // composite value
-    internal static partial class ValueCompletion2
+    internal static partial class ValueCompletion
     {
         private static bool TryCompleteCompositeValue(
             IOperationContext operationContext,
@@ -256,7 +256,7 @@ namespace HotChocolate.Execution.Processing
     }
 
     // lists
-    internal static partial class ValueCompletion2
+    internal static partial class ValueCompletion
     {
         private static bool TryCompleteListValue(
             IOperationContext operationContext,
@@ -269,7 +269,7 @@ namespace HotChocolate.Execution.Processing
             object? result,
             out object? completedValue)
         {
-            IType elementType = fieldType.InnerType();
+            IType elementType = fieldType.ElementType();
 
             if (elementType.Kind is TypeKind.Object or TypeKind.Interface or TypeKind.Union)
             {
@@ -506,7 +506,7 @@ namespace HotChocolate.Execution.Processing
     }
 
     // tools
-    internal static partial class ValueCompletion2
+    internal static partial class ValueCompletion
     {
         public static  void ReportError(
             IOperationContext operationContext,

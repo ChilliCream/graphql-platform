@@ -1,5 +1,4 @@
 using System.Threading;
-using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
@@ -52,24 +51,6 @@ namespace HotChocolate.Execution.Processing
             _workBacklog.Initialize(_operationContext, _operationContext.QueryPlan);
         }
 
-        private void TryComplete()
-        {
-            if (_completed is not null!)
-            {
-                try
-                {
-                    if (!_completed.IsCancellationRequested)
-                    {
-                        _completed.Cancel();
-                    }
-                }
-                catch
-                {
-                    // ignore if we could not cancel the completed task source.
-                }
-            }
-        }
-
         public void Clean()
         {
             if (_batchDispatcher is not null!)
@@ -93,13 +74,37 @@ namespace HotChocolate.Execution.Processing
 
         public void Reset()
         {
-            _workBacklog.Clear();
+            ResetStateMachine();
 
             if (_completed is not null!)
             {
                 TryComplete();
                 _completed.Dispose();
                 _completed = new CancellationTokenSource();
+            }
+        }
+
+        public void ResetStateMachine()
+        {
+            _workBacklog.Clear();
+            _workBacklog.Initialize(_operationContext, _operationContext.QueryPlan);
+        }
+
+        private void TryComplete()
+        {
+            if (_completed is not null!)
+            {
+                try
+                {
+                    if (!_completed.IsCancellationRequested)
+                    {
+                        _completed.Cancel();
+                    }
+                }
+                catch
+                {
+                    // ignore if we could not cancel the completed task source.
+                }
             }
         }
 

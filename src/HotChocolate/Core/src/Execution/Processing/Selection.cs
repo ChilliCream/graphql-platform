@@ -23,7 +23,7 @@ namespace HotChocolate.Execution.Processing
         private bool _isReadOnly;
 
         public Selection(
-            uint id,
+            int id,
             IObjectType declaringType,
             IObjectField field,
             FieldNode selection,
@@ -47,7 +47,7 @@ namespace HotChocolate.Execution.Processing
         { }
 
         public Selection(
-            uint id,
+            int id,
             IObjectType declaringType,
             IObjectField field,
             FieldNode selection,
@@ -130,7 +130,7 @@ namespace HotChocolate.Execution.Processing
         }
 
         /// <inheritdoc />
-        public uint Id { get; }
+        public int Id { get; }
 
         /// <inheritdoc />
         public SelectionExecutionStrategy Strategy { get; }

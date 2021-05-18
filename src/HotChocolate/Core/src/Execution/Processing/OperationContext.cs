@@ -25,6 +25,12 @@ namespace HotChocolate.Execution.Processing
                 AssertInitialized();
                 return _queryPlan;
             }
+            set
+            {
+                AssertInitialized();
+                _queryPlan = value;
+                _executionContext.ResetStateMachine();
+            }
         }
 
         public object? RootValue

@@ -174,7 +174,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             {
                 var resolverResult = selection.InlineResolver!(parent);
 
-                if (ValueCompletion2.TryComplete(
+                if (ValueCompletion.TryComplete(
                     operationContext,
                     resolverContext,
                     selection,
@@ -205,7 +205,7 @@ namespace HotChocolate.Execution.Processing.Tasks
                     return;
                 }
 
-                ValueCompletion2.ReportError(
+                ValueCompletion.ReportError(
                     operationContext,
                     resolverContext,
                     selection,

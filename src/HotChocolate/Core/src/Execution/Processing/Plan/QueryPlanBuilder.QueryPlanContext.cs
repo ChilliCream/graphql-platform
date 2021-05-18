@@ -18,6 +18,8 @@ namespace HotChocolate.Execution.Processing.Plan
             public List<QueryPlanNode> NodePath { get; } = new();
 
             public List<ISelection> SelectionPath { get; } = new();
+
+            public List<IFragment> Deferred { get; } = new();
         }
     }
 }

@@ -42,7 +42,7 @@ namespace HotChocolate.Execution.Processing
         /// <summary>
         /// Gets the query execution plan.
         /// </summary>
-        QueryPlan QueryPlan { get; }
+        QueryPlan QueryPlan { get; set; }
 
         /// <summary>
         /// Gets the value representing the instance of the

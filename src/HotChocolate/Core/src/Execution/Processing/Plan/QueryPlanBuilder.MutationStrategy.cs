@@ -6,15 +6,14 @@ namespace HotChocolate.Execution.Processing.Plan
     {
         private static class MutationStrategy
         {
-            public static QueryPlanNode Build(IPreparedOperation operation)
+            public static OperationQueryPlanNode Build(QueryPlanContext context)
             {
                 var root = new SequenceQueryPlanNode();
 
-                var context = new QueryPlanContext(operation);
                 context.Root = root;
                 context.NodePath.Push(root);
 
-                foreach (ISelection mutation in operation.GetRootSelectionSet().Selections)
+                foreach (ISelection mutation in context.Operation.GetRootSelectionSet().Selections)
                 {
                     context.SelectionPath.Push(mutation);
 
@@ -33,7 +32,18 @@ namespace HotChocolate.Execution.Processing.Plan
 
                 context.NodePath.Pop();
 
-                return QueryStrategy.Optimize(context.Root);
+                QueryPlanNode optimized = QueryStrategy.Optimize(context.Root);
+                var operationNode = new OperationQueryPlanNode(optimized);
+
+                if (context.Deferred.Count > 0)
+                {
+                    foreach (var deferred in QueryStrategy.BuildDeferred(context))
+                    {
+                        operationNode.Deferred.Add(deferred);
+                    }
+                }
+
+                return operationNode;
             }
         }
     }
