@@ -12,16 +12,14 @@
     /// </summary>
     public class SymbolicName : Expression
     {
-        private readonly string _value;
-
         private SymbolicName(string value)
         {
-            _value = value;
+            Value = value;
         }
 
         public override ClauseKind Kind => ClauseKind.SymbolicName;
 
-        public string GetValue() => _value;
+        public string Value { get; }
 
         public static SymbolicName Of(string name)
         {

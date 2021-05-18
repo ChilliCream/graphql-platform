@@ -9,31 +9,29 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class Property : Expression
     {
-        private readonly INamed? _container;
         private readonly Expression _containerReference;
-        private readonly List<PropertyLookup> _names;
 
         private Property(
             INamed? container,
             Expression containerReference,
             List<PropertyLookup> names)
         {
-            _container = container;
+            Container = container;
             _containerReference = containerReference;
-            _names = names;
+            Names = names;
         }
 
         public override ClauseKind Kind => ClauseKind.Property;
 
-        public List<PropertyLookup> GetNames() => _names;
+        public List<PropertyLookup> Names { get; }
 
-        public INamed? GetContainer() => _container;
+        public INamed? Container { get; }
 
         private static SymbolicName ExtractRequiredSymbolicName(INamed parentContainer)
         {
             try
             {
-                return parentContainer.GetRequiredSymbolicName();
+                return parentContainer.RequiredSymbolicName;
             }
             catch (InvalidOperationException)
             {
@@ -47,7 +45,7 @@ namespace HotChocolate.Data.Neo4J.Language
         {
             cypherVisitor.Enter(this);
             _containerReference.Visit(cypherVisitor);
-            _names.ForEach(name => name.Visit(cypherVisitor));
+            Names.ForEach(name => name.Visit(cypherVisitor));
             cypherVisitor.Leave(this);
         }
 

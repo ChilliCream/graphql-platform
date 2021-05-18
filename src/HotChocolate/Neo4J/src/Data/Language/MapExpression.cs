@@ -40,7 +40,7 @@ namespace HotChocolate.Data.Neo4J.Language
             {
                 var entry = new KeyValueMapEntry((string)input[i], (Expression)input[i + 1]);
                 newContent.Add(entry);
-                knownKeys.Add(entry.GetKey());
+                knownKeys.Add(entry.Key);
             }
 
             return new MapExpression(newContent);

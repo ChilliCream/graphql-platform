@@ -77,7 +77,8 @@ namespace HotChocolate.Data.Neo4J.Language
                             newContent.Add(lastExpression);
                             break;
                         case Property property:
-                            List<PropertyLookup> names = property.GetNames();
+                            List<PropertyLookup> names = property.Names;
+
                             if (names.Count > 1)
                             {
                                 throw new InvalidOperationException(
@@ -88,7 +89,7 @@ namespace HotChocolate.Data.Neo4J.Language
                             break;
 
                         case AliasedExpression expression:
-                            newContent.Add(new KeyValueMapEntry(expression.GetAlias(), expression));
+                            newContent.Add(new KeyValueMapEntry(expression.Alias, expression));
                             break;
 
                         case null:
@@ -130,7 +131,7 @@ namespace HotChocolate.Data.Neo4J.Language
             return currentObject switch
             {
                 Expression expression => Expressions.NameOrExpression(expression),
-                INamed named => named.GetSymbolicName(),
+                INamed named => named.SymbolicName,
                 _ => currentObject
             };
         }

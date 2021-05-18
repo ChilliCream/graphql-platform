@@ -7,13 +7,11 @@ namespace HotChocolate.Data.Neo4J.Language
     {
         public override ClauseKind Kind => ClauseKind.NodeLabel;
 
-        private readonly string _value;
-
         public NodeLabel(string value)
         {
-            _value = value;
+            Value = value;
         }
 
-        public string GetValue() => _value;
+        public string Value { get; }
     }
 }

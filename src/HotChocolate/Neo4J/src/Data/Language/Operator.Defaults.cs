@@ -35,9 +35,9 @@
 
         public static Operator GreaterThanOrEqualTo { get; } = new(">=");
 
-        public static Operator IsNull { get; } = new("IS NULL", Type.Postfix);
+        public static Operator IsNull { get; } = new("IS NULL", OperatorType.Postfix);
 
-        public static Operator IsNotNull { get; } = new("IS NOT NULL", Type.Postfix);
+        public static Operator IsNotNull { get; } = new("IS NOT NULL", OperatorType.Postfix);
 
         // String specific comparison operators
         public static Operator StartsWith { get; } = new("STARTS WITH");
@@ -53,7 +53,7 @@
 
         public static Operator XOr { get; } = new("XOR");
 
-        public static Operator Not { get; } = new("NOT", Type.Prefix);
+        public static Operator Not { get; } = new("NOT", OperatorType.Prefix);
 
         // String operators
         public static Operator Concat { get; } = new("+");
@@ -66,16 +66,16 @@
         public static Operator NotIn { get; } = new("NOT IN");
 
         // Property operators
-        public static Operator Set { get; } = new("=", Type.Property);
+        public static Operator Set { get; } = new("=", OperatorType.Property);
 
-        public static Operator Get { get; } = new(".", Type.Property);
+        public static Operator Get { get; } = new(".", OperatorType.Property);
 
-        public static Operator Mutate { get; } = new("+=", Type.Property);
+        public static Operator Mutate { get; } = new("+=", OperatorType.Property);
 
         // Node operators
-        public static Operator SetLabel { get; } = new("", Type.Label);
+        public static Operator SetLabel { get; } = new("", OperatorType.Label);
 
-        public static Operator RemoveLabel { get; } = new("", Type.Label);
+        public static Operator RemoveLabel { get; } = new("", OperatorType.Label);
 
         // Misc
         public static Operator Eq { get; } = new("=");

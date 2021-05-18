@@ -8,14 +8,14 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public interface IPropertyContainer : INamed
     {
-        public Property Property(string name);
+        Property Property(string name);
 
-        public Property Property(params string[] names);
+        Property Property(params string[] names);
 
-        public Property Property(Expression lookup);
+        Property Property(Expression lookup);
 
-        public MapProjection Project(List<object> entries);
+        MapProjection Project(List<object> entries);
 
-        public MapProjection Project(params object[] entries);
+        MapProjection Project(params object[] entries);
     }
 }

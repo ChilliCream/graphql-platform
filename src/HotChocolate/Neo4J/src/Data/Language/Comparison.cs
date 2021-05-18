@@ -40,11 +40,11 @@
         public static Comparison Create(Expression left, Operator op, Expression right) =>
             new(left, op, right);
 
-        public static Comparison Create(Operator op, Expression expression) => op.GetType()
+        public static Comparison Create(Operator op, Expression expression) => op.Type
             switch
             {
-                Operator.Type.Prefix => new Comparison(null, op, expression),
-                Operator.Type.Postfix => new Comparison(expression, op, null),
+                OperatorType.Prefix => new Comparison(null, op, expression),
+                OperatorType.Postfix => new Comparison(expression, op, null),
                 _ => throw new System.ArgumentException("Invalid operator type"),
             };
 

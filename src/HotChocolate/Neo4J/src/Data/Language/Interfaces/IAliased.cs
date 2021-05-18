@@ -12,8 +12,10 @@
     /// </summary>
     public interface IAliased
     {
-        /// <returns>The alias.</returns>
-        string GetAlias();
+        /// <summary>
+        /// The alias.
+        /// </summary>
+        string Alias { get; }
 
         /// <summary>
         /// Turns this alias into a symbolic name that can be used as an <see cref="Expression"/>.

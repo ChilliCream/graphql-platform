@@ -8,7 +8,7 @@ namespace HotChocolate.Data.Neo4J.Language
         {
         }
 
-        public override string AsString()
+        public override string Print()
         {
             throw new System.NotImplementedException();
         }

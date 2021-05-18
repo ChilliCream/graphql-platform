@@ -4,17 +4,15 @@ namespace HotChocolate.Data.Neo4J.Language
         : Expression
         , IFunctionDefinition
     {
-        private readonly string _implementationName;
-
         public FunctionDefinition(string implementationName)
         {
-            _implementationName = implementationName;
+            ImplementationName = implementationName;
         }
 
         public override ClauseKind Kind => ClauseKind.FunctionDefinition;
 
-        public string GetImplementationName() => _implementationName;
+        public string ImplementationName { get; }
 
-        public bool IsAggregate() => false;
+        public bool IsAggregate => false;
     }
 }

@@ -8,6 +8,6 @@ namespace HotChocolate.Data.Neo4J.Language
         {
         }
 
-        public override string AsString() => GetContent().ToString(CultureInfo.InvariantCulture);
+        public override string Print() => Content.ToString(CultureInfo.InvariantCulture);
     }
 }
