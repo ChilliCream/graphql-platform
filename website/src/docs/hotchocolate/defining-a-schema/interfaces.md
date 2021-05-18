@@ -4,7 +4,7 @@ title: "Interfaces"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-An interface is an abstract type that includes a certain set of fields that a type must include to implement the interface.
+An interface is an abstract type that defines a certain set of fields that a type must include to implement the interface.
 
 ```sdl
 interface Message {
@@ -81,7 +81,7 @@ public class Startup
 
 <!-- TODO: This is currently broken: https://github.com/ChilliCream/hotchocolate/issues/3577 -->
 
-We can also use classes to define an interface.
+<!-- We can also use classes to define an interface.
 
 ```csharp
 [InterfaceType]
@@ -107,7 +107,7 @@ public class Startup
             .AddType<TextMessage>();
     }
 }
-```
+``` -->
 
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
@@ -210,10 +210,204 @@ public void ConfigureServices(IServiceCollection services)
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-## Custom Resolvers
-
-TODO
+> Note: We have to explicitly register the interface implementations:
+>
+> ```csharp
+> services.AddType<TextMessageType>()
+> ```
 
 # Interfaces implementing interfaces
+
+Interfaces can also implement other interfaces.
+
+```sdl
+interface Message {
+  author: User
+}
+
+interface DatedMessage implements Message {
+  createdAt: DateTime!
+  author: User
+}
+
+type TextMessage implements DatedMessage & Message {
+  author: User
+  createdAt: DateTime!
+  content: String
+}
+```
+
+We can implement this like the following.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+[InterfaceType("Message")]
+public interface IMessage
+{
+    User Author { get; set; }
+}
+
+[InterfaceType("DatedMessage")]
+public interface IDatedMessage : IMessage
+{
+    DateTime CreatedAt { get; set; }
+}
+
+public class TextMessage : IDatedMessage
+{
+    public User Author { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    public string Content { get; set; }
+}
+
+public class Query
+{
+  public IMessage[] GetMessages([Service] IMessageRepository repository)
+      => repository.GetMessages();
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
+            .AddType<IDatedMessage>()
+            .AddType<TextMessage>();
+    }
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public interface IMessage
+{
+    User Author { get; set; }
+}
+
+public class MessageType : InterfaceType<IMessage>
+{
+    protected override void Configure(IInterfaceTypeDescriptor<IMessage> descriptor)
+    {
+        descriptor.Name("Message");
+    }
+}
+
+public interface IDatedMessage : IMessage
+{
+    DateTime CreatedAt { get; set; }
+}
+
+public class DatedMessageType : InterfaceType<IDatedMessage>
+{
+    protected override void Configure(IInterfaceTypeDescriptor<IDatedMessage> descriptor)
+    {
+        descriptor.Name("DatedMessage");
+
+        descriptor.Implements<MessageType>();
+    }
+}
+
+public class TextMessage : IDatedMessage
+{
+    public User Author { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    public string Content { get; set; }
+}
+
+public class TextMessageType : ObjectType<TextMessage>
+{
+    protected override void Configure(IObjectTypeDescriptor<TextMessage> descriptor)
+    {
+        descriptor.Name("TextMessage");
+
+        // The interface that is being implemented
+        descriptor.Implements<DatedMessageType>();
+    }
+}
+
+public class Query
+{
+    public IMessage[] GetMessages([Service] IMessageRepository repository)
+        => repository.GetMessages();
+}
+
+public class QueryType : ObjectType<Query>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    {
+        descriptor
+            .Field(f => f.GetMessages(default));
+    }
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddQueryType<QueryType>()
+            .AddType<DatedMessageType>()
+            .AddType<TextMessageType>();
+    }
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    services
+        .AddRouting()
+        .AddGraphQLServer()
+        .AddDocumentFromString(@"
+            type Query {
+              messages: [Message]
+            }
+
+            interface Message {
+              author: User
+            }
+
+            interface DatedMessage implements Message {
+              createdAt: DateTime!
+              author: User
+            }
+
+            type TextMessage implements DatedMessage & Message {
+              author: User
+              createdAt: DateTime!
+              content: String
+            }
+        ")
+        .AddResolver(
+            "Query",
+            "messages",
+            (context, ct) => context.Service<IMessageRepository>().GetMessages());
+}
+```
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+> Note: We also have to register the `DatedMessage` interface manually, if we do not expose it through a field directly:
+>
+> ```csharp
+> services.AddType<DatedMessageType>()
+> ```
+
+## Custom Resolvers
 
 TODO
