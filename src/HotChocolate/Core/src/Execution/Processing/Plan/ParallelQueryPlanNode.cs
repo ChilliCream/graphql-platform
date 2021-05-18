@@ -1,10 +1,14 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using static HotChocolate.Execution.Processing.Plan.QueryPlanSerializationProperties;
 
 namespace HotChocolate.Execution.Processing.Plan
 {
     internal sealed class ParallelQueryPlanNode : QueryPlanNode
     {
+        private const string _name = "Parallel";
+
         public ParallelQueryPlanNode() : base(ExecutionStrategy.Parallel)
         {
         }
@@ -15,20 +19,26 @@ namespace HotChocolate.Execution.Processing.Plan
         public override void Serialize(Utf8JsonWriter writer)
         {
             writer.WriteStartObject();
-            writer.WriteString("type", "Parallel");
+            writer.WriteString(TypeProp, _name);
 
-            if (Nodes.Count > 0)
+            writer.WritePropertyName(NodesProp);
+            writer.WriteStartArray();
+            foreach (var node in Nodes)
             {
-                writer.WritePropertyName("nodes");
-                writer.WriteStartArray();
-                foreach (var node in Nodes)
-                {
-                    node.Serialize(writer);
-                }
-                writer.WriteEndArray();
+                node.Serialize(writer);
             }
+            writer.WriteEndArray();
 
             writer.WriteEndObject();
+        }
+
+        public override object Serialize()
+        {
+            return new Dictionary<string, object?>
+            {
+                { TypeProp, _name },
+                { NodesProp, Nodes.Select(t => t.Serialize()).ToArray() }
+            };
         }
 
         public static ParallelQueryPlanNode Create(params QueryPlanNode[] nodes)
