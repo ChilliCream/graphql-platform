@@ -33,7 +33,9 @@ export const TabGroupProvider: FC = ({ children }) => {
 
     setGroups({ ...groups, [groupId]: value });
 
-    localStorage.setItem(getLocalStorageKey(groupId), value);
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.setItem(getLocalStorageKey(groupId), value);
+    }
   };
 
   return (
@@ -55,13 +57,13 @@ export function useActiveTab(
   if (!groupId) return [activeTab, setActiveTab];
 
   const activeGroupTab = useMemo(() => {
-    let value = groups[groupId];
+    let value: string | null = groups[groupId];
 
-    if (!value) {
-      value = localStorage.getItem(getLocalStorageKey(groupId)) ?? defaultValue;
+    if (!value && typeof window !== "undefined" && window.localStorage) {
+      value = window.localStorage.getItem(getLocalStorageKey(groupId));
     }
 
-    return value;
+    return value ?? defaultValue;
   }, [groups]);
 
   const handleSetGroupTab = useCallback(
