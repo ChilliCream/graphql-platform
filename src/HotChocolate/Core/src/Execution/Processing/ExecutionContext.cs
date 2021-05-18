@@ -69,16 +69,6 @@ namespace HotChocolate.Execution.Processing
         }
 
         /// <inheritdoc />
-        public ObjectPool<BatchExecutionTask> BatchTasks
-        {
-            get
-            {
-                AssertNotPooled();
-                return _batchTasks;
-            }
-        }
-
-        /// <inheritdoc />
         public ObjectPool<IExecutionTask?[]> TaskBuffers
         {
             get
@@ -86,11 +76,6 @@ namespace HotChocolate.Execution.Processing
                 AssertNotPooled();
                 return _taskBuffers;
             }
-        }
-
-        public bool IsSuspended(IExecutionTask executionTask)
-        {
-            throw new NotImplementedException();
         }
 
 #pragma warning disable 4014

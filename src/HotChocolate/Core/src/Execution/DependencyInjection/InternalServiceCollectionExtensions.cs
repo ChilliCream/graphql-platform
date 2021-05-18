@@ -55,11 +55,6 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services,
             int maximumRetained = 256)
         {
-            services.TryAddSingleton<ObjectPool<BatchExecutionTask>>(
-                _ => new ExecutionTaskPool<BatchExecutionTask>(
-                    new BatchExecutionTaskPoolPolicy(),
-                    maximumRetained / 4));
-
             services.TryAddSingleton<ObjectPool<ResolverTask>>(
                 _ => new ExecutionTaskPool<ResolverTask>(
                     new ResolverTaskPoolPolicy(),
