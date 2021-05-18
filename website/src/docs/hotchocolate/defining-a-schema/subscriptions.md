@@ -222,6 +222,8 @@ public async Book AddBook(Book book, [Service] ITopicEventSender sender)
 }
 ```
 
+## Dynamic Topics
+
 We can even use the `Topic` attribute on dynamic arguments of the subscription field.
 
 ```csharp

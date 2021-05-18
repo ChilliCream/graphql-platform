@@ -408,6 +408,87 @@ public void ConfigureServices(IServiceCollection services)
 > services.AddType<DatedMessageType>()
 > ```
 
-## Custom Resolvers
+<!-- todo: this name feels not correct -->
+
+# Custom Resolvers
+
+We can also declare additional resolvers on our interfaces.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+[InterfaceType("Message")]
+public interface IMessage
+{
+    User Author { get; set; }
+
+    DateTime GetCreatedAt();
+}
+
+public class TextMessage : IMessage
+{
+    public User Author { get; set; }
+
+    public DateTime GetCreatedAt()
+    {
+        // Omitted code for brevity
+    }
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public interface IMessage
+{
+    User Author { get; set; }
+
+    DateTime GetCreatedAt();
+}
+
+public class MessageType : InterfaceType<IMessage>
+{
+    protected override void Configure(IInterfaceTypeDescriptor<IMessage> descriptor)
+    {
+        descriptor.Name("Message");
+    }
+}
+
+public class TextMessage : IMessage
+{
+    public User Author { get; set; }
+
+    public DateTime GetCreatedAt()
+    {
+        // Omitted code for brevity
+    }
+}
+
+public class TextMessageType : ObjectType<TextMessage>
+{
+    protected override void Configure(IObjectTypeDescriptor<TextMessage> descriptor)
+    {
+        descriptor.Name("TextMessage");
+
+        // The interface that is being implemented
+        descriptor.Implements<MessageType>();
+    }
+}
+```
+
+If we do not want to pollute our interface with methods, we can also declare them directly on the interface type.
+
+TODO: should this cover `descriptor.Field`? What is the recommended approach?
+
+Before properties on our interfaces were automatically transformed into default resolvers on the implementing types.
+Now that we have specified custom resolvers, all implementing types need to provide an implementation of this resolver.
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
 
 TODO
+
+</ExampleTabs.Schema>
+</ExampleTabs>
