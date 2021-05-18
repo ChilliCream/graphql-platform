@@ -7,7 +7,7 @@ import React, {
 import { List } from "./list";
 import { Panel, PanelProps } from "./panel";
 import { Tab, TabProps } from "./tab";
-import { useActiveTab } from "./tab-groups";
+import { useActiveTab, useIsClient } from "./tab-groups";
 
 interface TabsContext {
   activeTab: string;
@@ -33,10 +33,12 @@ export const Tabs: FunctionComponent<TabsProps> & TabsComposition = ({
   groupId,
   children,
 }) => {
+  const { key } = useIsClient();
   const [activeTab, setActiveTab] = useActiveTab(defaultValue, groupId);
 
   return (
     <TabsContext.Provider
+      key={key}
       value={{
         activeTab,
         setActiveTab,

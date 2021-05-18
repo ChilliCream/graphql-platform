@@ -3,6 +3,7 @@ import React, {
   FC,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -74,4 +75,14 @@ export function useActiveTab(
   );
 
   return [activeGroupTab, handleSetGroupTab];
+}
+
+export function useIsClient() {
+  const [isClient, setClient] = useState(false);
+
+  useEffect(() => {
+    setClient(true);
+  }, []);
+
+  return { isClient, key: isClient ? "client" : "server" };
 }
