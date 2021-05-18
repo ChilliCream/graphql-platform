@@ -15,8 +15,8 @@ namespace HotChocolate.Execution.Processing
             IOperationContext operationContext,
             MiddlewareContext resolverContext,
             ISelection selection,
-            Path path ,
-            IType fieldType ,
+            Path path,
+            IType fieldType,
             string responseName,
             int responseIndex,
             object? result,
@@ -103,8 +103,8 @@ namespace HotChocolate.Execution.Processing
             IOperationContext operationContext,
             MiddlewareContext resolverContext,
             ISelection selection,
-            Path path ,
-            IType fieldType ,
+            Path path,
+            IType fieldType,
             object? result,
             out object? completedResult)
         {
@@ -155,7 +155,7 @@ namespace HotChocolate.Execution.Processing
             IOperationContext operationContext,
             MiddlewareContext resolverContext,
             ISelection selection,
-            Path path ,
+            Path path,
             IType fieldType,
             object result,
             [NotNullWhen(true)] out object? completedResult)
@@ -202,7 +202,7 @@ namespace HotChocolate.Execution.Processing
             IOperationContext operationContext,
             MiddlewareContext resolverContext,
             ISelection selection,
-            Path path ,
+            Path path,
             IType fieldType,
             object result,
             [NotNullWhen(true)] out ObjectType? objectType)
@@ -262,14 +262,19 @@ namespace HotChocolate.Execution.Processing
             IOperationContext operationContext,
             MiddlewareContext resolverContext,
             ISelection selection,
-            Path path ,
-            IType fieldType ,
+            Path path,
+            IType fieldType,
             string responseName,
             int responseIndex,
             object? result,
             out object? completedValue)
         {
-            IType elementType = fieldType.ElementType();
+            IType elementType = fieldType.InnerType();
+
+            if (elementType.Kind is TypeKind.NonNull)
+            {
+                elementType = elementType.InnerType();
+            }
 
             if (elementType.Kind is TypeKind.Object or TypeKind.Interface or TypeKind.Union)
             {
@@ -301,8 +306,8 @@ namespace HotChocolate.Execution.Processing
             IOperationContext operationContext,
             MiddlewareContext resolverContext,
             ISelection selection,
-            Path path ,
-            IType fieldType ,
+            Path path,
+            IType fieldType,
             string responseName,
             int responseIndex,
             object? result,
@@ -310,7 +315,7 @@ namespace HotChocolate.Execution.Processing
         {
             ResultMapList resultList = operationContext.Result.RentResultMapList();
             IType elementType = fieldType.InnerType();
-            resultList.IsNullable = elementType.Kind == TypeKind.NonNull;
+            resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
 
             if (result is Array array)
             {
@@ -402,8 +407,8 @@ namespace HotChocolate.Execution.Processing
             IOperationContext operationContext,
             MiddlewareContext resolverContext,
             ISelection selection,
-            Path path ,
-            IType fieldType ,
+            Path path,
+            IType fieldType,
             string responseName,
             int responseIndex,
             object? result,
@@ -411,7 +416,7 @@ namespace HotChocolate.Execution.Processing
         {
             ResultList resultList = operationContext.Result.RentResultList();
             IType elementType = fieldType.InnerType();
-            resultList.IsNullable = elementType.Kind == TypeKind.NonNull;
+            resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
             var isElementList = elementType.IsListType();
 
             if (result is Array array)
@@ -433,7 +438,7 @@ namespace HotChocolate.Execution.Processing
             {
                 for (var i = 0; i < list.Count; i++)
                 {
-                    if (!TryCompleteElement(path.Append(i),  list[i]))
+                    if (!TryCompleteElement(path.Append(i), list[i]))
                     {
                         completedResult = null;
                         return true;
@@ -450,7 +455,7 @@ namespace HotChocolate.Execution.Processing
 
                 foreach (var element in enumerable)
                 {
-                    if (!TryCompleteElement(path.Append(index++),  element))
+                    if (!TryCompleteElement(path.Append(index++), element))
                     {
                         completedResult = null;
                         return true;
@@ -508,7 +513,7 @@ namespace HotChocolate.Execution.Processing
     // tools
     internal static partial class ValueCompletion
     {
-        public static  void ReportError(
+        public static void ReportError(
             IOperationContext operationContext,
             MiddlewareContext resolverContext,
             ISelection selection,

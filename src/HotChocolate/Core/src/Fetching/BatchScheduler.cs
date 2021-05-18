@@ -65,16 +65,14 @@ namespace HotChocolate.Fetching
                 {
                     dispatchOnSchedule = false;
                     _tasks.Add(dispatch);
+                    TaskEnqueued?.Invoke(this, EventArgs.Empty);
+
                 }
             }
 
             if (dispatchOnSchedule)
             {
                 BeginDispatchOnEnqueue(dispatch);
-            }
-            else
-            {
-                TaskEnqueued?.Invoke(this, EventArgs.Empty);
             }
         }
 
