@@ -1,5 +1,5 @@
 ﻿{
-  "type": "operation",
+  "type": "Operation",
   "root": {
     "type": "Sequence",
     "nodes": [
