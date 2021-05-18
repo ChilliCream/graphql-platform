@@ -370,7 +370,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 ## Testing a GraphQL Server
 
-In order to now query our GraphQL server we need a GraphQL IDE to formulate queries and explore the schema. If you want a deluxe GraphQL IDE as an application, you can get our very own Banana Cakepop which can be downloaded [here](/docs/bananacakepop).
+In order to now query our GraphQL server we need a GraphQL IDE to formulate queries and explore the schema. If you want a deluxe GraphQL IDE as an application, you can get our very own Banana Cake Pop which can be downloaded [here](/docs/bananacakepop).
 
 ![Hot Chocolate](banana-cake-pop.png)
 
@@ -415,11 +415,11 @@ Let’s test our GraphQL server.
 dotnet run --urls http://localhost:5000
 ```
 
-### Testing with Banana Cakepop
+### Testing with Banana Cake Pop
 
-If you have chosen _Banana Cakepop_ to test and explore the GraphQL Schema open it now.
+If you have chosen _Banana Cake Pop_ to test and explore the GraphQL Schema open it now.
 
-_Banana Cakepop_ will open with an empty tab. In the address bar type in the URL of our GraphQL server `http://localhost:5000` and hit `enter`.
+_Banana Cake Pop_ will open with an empty tab. In the address bar type in the URL of our GraphQL server `http://localhost:5000` and hit `enter`.
 
 ![Hot Chocolate](banana-cake-pop-address.png)
 

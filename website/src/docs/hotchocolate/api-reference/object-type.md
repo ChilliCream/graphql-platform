@@ -211,4 +211,4 @@ extend type Person {
 
 Type extensions basically work like usual types and are also added like usual types.
 
-More about type extensions can be found [here](../defining-a-schema/extending-types).
+More about type extensions can be found [here](/docs/hotchocolate/defining-a-schema/extending-types).
