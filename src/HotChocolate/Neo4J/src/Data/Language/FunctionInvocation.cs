@@ -2,30 +2,39 @@
 {
     public class FunctionInvocation : Expression
     {
-        private readonly TypedSubtree<Expression>? _arguments;
-        private readonly TypedSubtree<IPatternElement>? _patternArguments;
-
         public FunctionInvocation(string functionName, params Expression[] arguments)
         {
             FunctionName = functionName;
-            _arguments = new ExpressionList(arguments);
+            Arguments = new ExpressionList(arguments);
         }
 
         public FunctionInvocation(string functionName, Pattern pattern)
         {
             FunctionName = functionName;
-            _patternArguments = pattern;
+            PatternArguments = pattern;
         }
 
         private FunctionInvocation(string functionName, TypedSubtree<Expression> pattern)
         {
             FunctionName = functionName;
-            _arguments = pattern;
+            Arguments = pattern;
         }
 
         public override ClauseKind Kind => ClauseKind.FunctionInvocation;
 
         public string FunctionName { get; }
+
+        public TypedSubtree<Expression>? Arguments { get; }
+
+        public TypedSubtree<IPatternElement>? PatternArguments { get; }
+
+        public override void Visit(CypherVisitor cypherVisitor)
+        {
+            cypherVisitor.Enter(this);
+            Arguments?.Visit(cypherVisitor);
+            PatternArguments?.Visit(cypherVisitor);
+            cypherVisitor.Leave(this);
+        }
 
         public static FunctionInvocation Create(
             FunctionDefinition definition,
@@ -59,14 +68,6 @@
                 $"The pattern for {definition.ImplementationName}() is required.");
 
             return new FunctionInvocation(definition.ImplementationName, new Pattern(pattern));
-        }
-
-        public override void Visit(CypherVisitor cypherVisitor)
-        {
-            cypherVisitor.Enter(this);
-            _arguments?.Visit(cypherVisitor);
-            _patternArguments?.Visit(cypherVisitor);
-            cypherVisitor.Leave(this);
         }
     }
 }

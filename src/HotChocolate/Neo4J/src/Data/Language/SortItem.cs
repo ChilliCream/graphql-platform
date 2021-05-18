@@ -2,28 +2,30 @@
 {
     public class SortItem : Visitable
     {
-        private readonly Expression _expression;
-        private readonly SortDirection? _direction;
-
         public SortItem(Expression expression, SortDirection? direction)
         {
-            _expression = expression;
-            _direction = direction;
+            Expression = expression;
+            Direction = direction;
         }
 
         public override ClauseKind Kind => ClauseKind.SortItem;
 
-        public SortItem Ascending() => new(_expression, SortDirection.Ascending);
-        public SortItem Descending() => new(_expression, SortDirection.Descending);
+        public Expression Expression { get; }
+
+        public SortDirection? Direction { get; }
+
+        public SortItem Ascending() => new(Expression, SortDirection.Ascending);
+
+        public SortItem Descending() => new(Expression, SortDirection.Descending);
 
         public override void Visit(CypherVisitor cypherVisitor)
         {
             cypherVisitor.Enter(this);
-            Expressions.NameOrExpression(_expression).Visit(cypherVisitor);
+            Expressions.NameOrExpression(Expression).Visit(cypherVisitor);
 
-            if (_direction != SortDirection.Undefined)
+            if (Direction != SortDirection.Undefined)
             {
-                _direction?.Visit(cypherVisitor);
+                Direction?.Visit(cypherVisitor);
             }
 
             cypherVisitor.Leave(this);

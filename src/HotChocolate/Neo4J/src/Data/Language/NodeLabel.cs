@@ -5,12 +5,12 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class NodeLabel : Visitable
     {
-        public override ClauseKind Kind => ClauseKind.NodeLabel;
-
         public NodeLabel(string value)
         {
             Value = value;
         }
+
+        public override ClauseKind Kind => ClauseKind.NodeLabel;
 
         public string Value { get; }
     }

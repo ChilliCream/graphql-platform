@@ -4,7 +4,10 @@ using System.Linq;
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
-    /// https://s3.amazonaws.com/artifacts.opencypher.org/railroad/NodePattern.html
+    /// See
+    /// <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/NodePattern.html">
+    /// Node Pattern
+    /// </a>
     /// </summary>
     public class Node
         : Visitable
@@ -13,8 +16,6 @@ namespace HotChocolate.Data.Neo4J.Language
         , IExposesRelationships<Relationship>
         , IExposesProperties<Node>
     {
-        private readonly List<NodeLabel>? _labels;
-
         private Node(
             string? primaryLabel,
             Properties? properties,
@@ -22,18 +23,18 @@ namespace HotChocolate.Data.Neo4J.Language
         {
             SymbolicName = null;
             RequiredSymbolicName = null;
-            _labels = new List<NodeLabel>();
+            Labels = new List<NodeLabel>();
 
             if (!string.IsNullOrEmpty(primaryLabel))
             {
-                _labels.Add(new NodeLabel(primaryLabel));
+                Labels.Add(new NodeLabel(primaryLabel));
             }
 
             if (additionalLabels != null && additionalLabels.Any())
             {
                 foreach (var nodeLabel in additionalLabels)
                 {
-                    _labels.Add(new NodeLabel(nodeLabel));
+                    Labels.Add(new NodeLabel(nodeLabel));
                 }
             }
 
@@ -45,14 +46,18 @@ namespace HotChocolate.Data.Neo4J.Language
             SymbolicName = symbolicName;
             RequiredSymbolicName = symbolicName;
             Properties = properties;
-            _labels = labels;
+            Labels = labels;
         }
+
+        public override ClauseKind Kind => ClauseKind.Node;
 
         public SymbolicName? SymbolicName { get; }
 
         public SymbolicName RequiredSymbolicName { get; }
 
         public Properties? Properties { get; }
+
+        public List<NodeLabel>? Labels { get; }
 
         /// <summary>
         /// Creates a copy of this node with a new symbolic name.
@@ -62,7 +67,7 @@ namespace HotChocolate.Data.Neo4J.Language
         public Node Named(string newSymbolicName)
         {
             Ensure.HasText(newSymbolicName, "Symbolic name is required");
-            return new Node(SymbolicName.Of(newSymbolicName), Properties, _labels);
+            return new Node(SymbolicName.Of(newSymbolicName), Properties, Labels);
         }
 
         /// <summary>
@@ -73,15 +78,13 @@ namespace HotChocolate.Data.Neo4J.Language
         public Node Named(SymbolicName newSymbolicName)
         {
             Ensure.IsNotNull(newSymbolicName, "Symbolic name is required");
-            return new Node(newSymbolicName, Properties, _labels);
+            return new Node(newSymbolicName, Properties, Labels);
         }
-
-        public override ClauseKind Kind => ClauseKind.Node;
 
         public Node WithProperties(MapExpression? newProperties) =>
             new(SymbolicName,
                 newProperties == null ? null : new Properties(newProperties),
-                _labels);
+                Labels);
 
         public Node WithProperties(params object[] keysAndValues)
         {
@@ -167,7 +170,7 @@ namespace HotChocolate.Data.Neo4J.Language
         {
             cypherVisitor.Enter(this);
             SymbolicName?.Visit(cypherVisitor);
-            _labels?.ForEach(label => label.Visit(cypherVisitor));
+            Labels?.ForEach(label => label.Visit(cypherVisitor));
             Properties?.Visit(cypherVisitor);
             cypherVisitor.Leave(this);
         }

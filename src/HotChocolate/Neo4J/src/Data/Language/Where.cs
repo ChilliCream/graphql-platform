@@ -9,28 +9,29 @@
     /// </summary>
     public class Where : Visitable
     {
-        private readonly Exists _exists;
-        private readonly Condition _condition;
-
         public Where(Condition condition)
         {
-            _exists = null;
-            _condition = condition;
+            Exists = null;
+            Condition = condition;
         }
 
         public Where(bool exists, Condition condition)
         {
-            _exists = exists ? Exists.Instance : null;
-            _condition = condition;
+            Exists = exists ? Exists.Instance : null;
+            Condition = condition;
         }
 
         public override ClauseKind Kind => ClauseKind.Where;
 
+        public Exists Exists { get; }
+
+        public Condition Condition { get; }
+
         public override void Visit(CypherVisitor cypherVisitor)
         {
             cypherVisitor.Enter(this);
-            _exists?.Visit(cypherVisitor);
-            _condition.Visit(cypherVisitor);
+            Exists?.Visit(cypherVisitor);
+            Condition.Visit(cypherVisitor);
             cypherVisitor.Leave(this);
         }
     }

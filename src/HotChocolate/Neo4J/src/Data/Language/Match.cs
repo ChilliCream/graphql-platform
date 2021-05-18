@@ -6,26 +6,26 @@
     /// </summary>
     public class Match : Visitable, IReadingClause
     {
-        private readonly bool _optional;
-        private readonly Pattern _pattern;
-        private readonly Where? _optionalWhere;
-
-        public Match(bool optional, Pattern pattern, Where? optionalWhere)
+        public Match(bool isOptional, Pattern pattern, Where? where)
         {
-            _optional = optional;
-            _pattern = pattern;
-            _optionalWhere = optionalWhere;
+            IsOptional = isOptional;
+            Pattern = pattern;
+            Where = where;
         }
 
         public override ClauseKind Kind => ClauseKind.Match;
 
-        public bool IsOptional() => _optional;
+        public bool IsOptional { get;}
+
+        public Pattern Pattern { get;}
+
+        public Where? Where { get;}
 
         public override void Visit(CypherVisitor cypherVisitor)
         {
             cypherVisitor.Enter(this);
-            _pattern.Visit(cypherVisitor);
-            _optionalWhere?.Visit(cypherVisitor);
+            Pattern.Visit(cypherVisitor);
+            Where?.Visit(cypherVisitor);
             cypherVisitor.Leave(this);
         }
     }

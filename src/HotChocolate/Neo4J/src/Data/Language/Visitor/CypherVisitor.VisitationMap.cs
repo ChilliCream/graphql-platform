@@ -6,7 +6,7 @@ namespace HotChocolate.Data.Neo4J.Language
     {
         private void EnterVisitable(Match match)
         {
-            if (match.IsOptional())
+            if (match.IsOptional)
             {
                 _writer.Write("OPTIONAL ");
             }
@@ -53,11 +53,11 @@ namespace HotChocolate.Data.Neo4J.Language
         }
 
         private void EnterVisitable(PropertyLookup propertyLookup) =>
-            _writer.Write(propertyLookup.IsDynamicLookup() ? "[" : ".");
+            _writer.Write(propertyLookup.IsDynamicLookup ? "[" : ".");
 
         private void LeaveVisitable(PropertyLookup propertyLookup)
         {
-            if (propertyLookup.IsDynamicLookup())
+            if (propertyLookup.IsDynamicLookup)
             {
                 _writer.Write("]");
             }

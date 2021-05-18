@@ -6,7 +6,8 @@ using HotChocolate.Data.Neo4J.Language;
 namespace HotChocolate.Data.Neo4J
 {
     /// <summary>
-    /// Represents methods that can be used to ensure that parameter values meet expected conditions.
+    /// Represents methods that can be used to ensure that parameter values meet expected
+    /// conditions.
     /// </summary>
     public static class Ensure
     {
@@ -19,7 +20,7 @@ namespace HotChocolate.Data.Neo4J
         /// <returns>The value of the parameter.</returns>
         public static void IsNotNull<T>(T value, string paramName)
         {
-            _ = value ?? throw new ArgumentNullException(paramName, @"Value cannot be null.");
+            _ = value ?? throw new ArgumentNullException(paramName, "Value cannot be null.");
         }
 
         /// <summary>

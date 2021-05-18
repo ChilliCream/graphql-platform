@@ -6,18 +6,18 @@
     /// </summary>
     public class BooleanFunctionCondition : Condition
     {
-        private readonly FunctionInvocation _functionInvocation;
-
         public BooleanFunctionCondition(FunctionInvocation functionInvocation)
         {
-            _functionInvocation = functionInvocation;
+            FunctionInvocation = functionInvocation;
         }
 
         public override ClauseKind Kind => ClauseKind.BooleanFunctionCondition;
 
+        public FunctionInvocation FunctionInvocation { get; }
+
         public override void Visit(CypherVisitor cypherVisitor)
         {
-            _functionInvocation.Visit(cypherVisitor);
+            FunctionInvocation.Visit(cypherVisitor);
         }
     }
 }
