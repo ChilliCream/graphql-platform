@@ -38,11 +38,11 @@ namespace HotChocolate.Types.Pagination
                 .ConfigureAwait(false);
 
             int? after = arguments.After is { } a
-                ? (int?)IndexEdge<TEntity>.DeserializeCursor(a)
+                ? IndexEdge<TEntity>.DeserializeCursor(a)
                 : null;
 
             int? before = arguments.Before is { } b
-                ? (int?)IndexEdge<TEntity>.DeserializeCursor(b)
+                ? IndexEdge<TEntity>.DeserializeCursor(b)
                 : null;
 
             IReadOnlyList<IndexEdge<TEntity>> selectedEdges =
@@ -68,7 +68,7 @@ namespace HotChocolate.Types.Pagination
             return new Connection<TEntity>(
                 selectedEdges,
                 pageInfo,
-                ct => new ValueTask<int>(pageInfo.TotalCount ?? 0));
+                _ => new ValueTask<int>(pageInfo.TotalCount ?? 0));
         }
 
         private async ValueTask<IReadOnlyList<IndexEdge<TEntity>>> GetSelectedEdgesAsync(

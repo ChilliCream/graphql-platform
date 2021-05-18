@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Resolvers;
@@ -16,6 +15,11 @@ namespace HotChocolate.Types
         /// Gets the type that declares this field.
         /// </summary>
         new IObjectType DeclaringType { get; }
+
+        /// <summary>
+        /// Defines if this field can be executed in parallel with other fields.
+        /// </summary>
+        bool IsParallelExecutable { get; }
 
         /// <summary>
         /// Gets the field resolver middleware.

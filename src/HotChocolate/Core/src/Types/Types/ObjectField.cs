@@ -35,6 +35,7 @@ namespace HotChocolate.Types
             ResolverExpression = definition.Expression;
             SubscribeResolver = definition.SubscribeResolver;
             IsIntrospectionField = definition.IsIntrospectionField;
+            IsParallelExecutable = definition.IsParallelExecutable;
         }
 
         /// <summary>
@@ -43,6 +44,11 @@ namespace HotChocolate.Types
         public new ObjectType DeclaringType => (ObjectType)base.DeclaringType;
 
         IObjectType IObjectField.DeclaringType => DeclaringType;
+
+        /// <summary>
+        /// Defines if this field can be executed in parallel with other fields.
+        /// </summary>
+        public bool IsParallelExecutable { get; private set; }
 
         /// <summary>
         /// Gets the field resolver middleware.
@@ -171,13 +177,13 @@ namespace HotChocolate.Types
 
             Resolver = definition.Resolver!;
 
-            if (definition.PureResolver is not null)
+            if (definition.PureResolver is not null && IsPureContext())
             {
                 PureFieldResolverDelegate pure = definition.PureResolver;
                 PureResolver = c => c.Result = pure(c);
             }
 
-            if (definition.InlineResolver is not null)
+            if (definition.InlineResolver is not null && IsPureContext())
             {
                 InlineResolver = definition.InlineResolver;
             }
@@ -196,10 +202,7 @@ namespace HotChocolate.Types
                 PureFieldResolverDelegate? pureResolver =
                     definition.PureResolver is null &&
                     external &&
-                    (skipMiddleware ||
-                        (context.GlobalComponents.Count == 0 &&
-                        fieldComponents.Count == 0 &&
-                        _executableDirectives.Length == 0))
+                    IsPureContext()
                         ? resolver?.PureResolver
                         : null;
 
@@ -216,6 +219,19 @@ namespace HotChocolate.Types
                         InlineResolver = CompileInlineResolver(property);
                     }
                 }
+            }
+
+            // if we have an inline resolver we can always create from that
+            // a pure resolver that can be used by the execution engine.
+            if (InlineResolver is not null && PureResolver is null)
+            {
+                PureResolver = ctx => ctx.Result = InlineResolver(ctx.Parent<object>());
+            }
+
+            // by definition fields with pure resolvers are parallel executable.
+            if (!IsParallelExecutable && PureResolver is not null)
+            {
+                IsParallelExecutable = true;
             }
 
             Middleware = FieldMiddlewareCompiler.Compile(
@@ -239,6 +255,14 @@ namespace HotChocolate.Types
                             context.Type,
                             SyntaxNode));
                 }
+            }
+
+            bool IsPureContext()
+            {
+                return (skipMiddleware ||
+                    (context.GlobalComponents.Count == 0 &&
+                    fieldComponents.Count == 0 &&
+                    _executableDirectives.Length == 0));
             }
         }
 

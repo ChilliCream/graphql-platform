@@ -8,7 +8,7 @@ namespace HotChocolate.Execution
             this IOperationContext context,
             bool alwaysSet = false)
         {
-            if (!context.Execution.DeferredWork.IsEmpty)
+            if (context.Execution.DeferredWork.HasWork)
             {
                 context.Result.SetHasNext(true);
             }

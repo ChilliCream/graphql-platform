@@ -1,5 +1,4 @@
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
@@ -70,12 +69,12 @@ namespace HotChocolate.Execution.Processing
         }
 
         /// <inheritdoc />
-        public ObjectPool<BatchExecutionTask> BatchTasks
+        public ObjectPool<IExecutionTask?[]> TaskBuffers
         {
             get
             {
                 AssertNotPooled();
-                return _batchTasks;
+                return _taskBuffers;
             }
         }
 

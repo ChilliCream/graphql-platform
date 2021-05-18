@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Execution.Processing.Internal
 {
-    internal sealed class UnsafeWorkQueue
+    internal sealed class WorkQueue
     {
         private readonly Stack<IExecutionTask> _stack = new();
         private IExecutionTask? _head;
@@ -13,7 +13,7 @@ namespace HotChocolate.Execution.Processing.Internal
 
         public event EventHandler<EventArgs>? BacklogEmpty;
 
-        public bool IsEmpty { get; private set; } = true;
+        public bool IsEmpty => _stack.Count == 0;
 
         public bool IsRunning => _head is not null;
 
@@ -65,7 +65,6 @@ namespace HotChocolate.Execution.Processing.Internal
             {
                 executionTask = _stack.Pop();
                 MarkInProgress(executionTask);
-                IsEmpty = _stack.Count == 0;
                 _count = _stack.Count;
 
                 if (IsEmpty)
@@ -78,19 +77,18 @@ namespace HotChocolate.Execution.Processing.Internal
 
             executionTask = default;
 #else
-                if (_stack.TryPop(out executionTask))
+            if (_stack.TryPop(out executionTask))
+            {
+                MarkInProgress(executionTask);
+                _count = _stack.Count;
+
+                if (IsEmpty)
                 {
-                    MarkInProgress(executionTask);
-                    IsEmpty = _stack.Count == 0;
-                    _count = _stack.Count;
-
-                    if (IsEmpty)
-                    {
-                        BacklogEmpty?.Invoke(this, EventArgs.Empty);
-                    }
-
-                    return true;
+                    BacklogEmpty?.Invoke(this, EventArgs.Empty);
                 }
+
+                return true;
+            }
 #endif
             return false;
         }
@@ -103,7 +101,6 @@ namespace HotChocolate.Execution.Processing.Internal
             }
 
             _stack.Push(executionTask);
-            IsEmpty = false;
             return _count = _stack.Count;
         }
 
@@ -119,7 +116,6 @@ namespace HotChocolate.Execution.Processing.Internal
                 _stack.Push(executionTasks[i]);
             }
 
-            IsEmpty = false;
             return _count = _stack.Count;
         }
 
@@ -139,7 +135,6 @@ namespace HotChocolate.Execution.Processing.Internal
         public void Clear()
         {
             _stack.Clear();
-            IsEmpty = true;
             _count = 0;
             _head = null;
         }

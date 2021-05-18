@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing.Internal;
+using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Execution.Processing.Tasks;
 using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Fetching;
@@ -12,10 +13,6 @@ namespace HotChocolate.Execution.Processing
     /// </summary>
     internal interface IExecutionContext
     {
-        // IQueryPlan Plan { get; }
-
-        // IQueryPlanStep Current { get; }
-
         /// <summary>
         /// Gets the backlog of the task that have to be processed.
         /// </summary>
@@ -48,9 +45,9 @@ namespace HotChocolate.Execution.Processing
         ObjectPool<PureResolverTask> PureResolverTasks { get; }
 
         /// <summary>
-        /// Gets the batch task pool.
+        /// Gets the task buffer pool.
         /// </summary>
-        ObjectPool<BatchExecutionTask> BatchTasks { get; }
+        ObjectPool<IExecutionTask?[]> TaskBuffers { get; }
 
         /// <summary>
         /// Resets the execution state.

@@ -11,7 +11,7 @@ namespace HotChocolate.Execution.Processing
         /// <c>true</c> if there are no more deferred tasks in the backlog.
         /// </summary>
         /// <value></value>
-        bool IsEmpty { get; }
+        bool HasWork { get; }
 
         /// <summary>
         /// Tries to take the next task from the backlog.

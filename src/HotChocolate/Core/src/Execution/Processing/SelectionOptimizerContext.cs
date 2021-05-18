@@ -67,6 +67,6 @@ namespace HotChocolate.Execution.Processing
         /// <summary>
         /// Gets the next operation unique selection id.
         /// </summary>
-        public uint GetNextId() => _compiler.GetNextId();
+        public int GetNextId() => _compiler.GetNextId();
     }
 }

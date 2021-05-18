@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,6 +34,12 @@ namespace HotChocolate.Execution
         public IExecutionTask? Previous { get; set; }
 
         /// <inheritdoc />
+        public object? State { get; set; }
+
+        /// <inheritdoc />
+        public bool IsSerial { get; set; }
+
+        /// <inheritdoc />
         public void BeginExecute(CancellationToken cancellationToken)
         {
             _task = ExecuteInternalAsync(cancellationToken).AsTask();
@@ -50,6 +57,22 @@ namespace HotChocolate.Execution
                 {
                     await ExecuteAsync(cancellationToken).ConfigureAwait(false);
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                // If we run into this exception the request was aborted.
+                // In this case we do nothing and just return.
+            }
+            catch (Exception ex)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    // if cancellation is request we do no longer report errors to the
+                    // operation context.
+                    return;
+                }
+
+                Context.ReportError(this, ex);
             }
             finally
             {
