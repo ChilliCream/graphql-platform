@@ -4,7 +4,7 @@ This document contains information regarding API baseline files and how to work 
 
 ## Files
 
-Each project contains two files tracking the public API surface of this project.
+Each project contains two files tracking the public API surface of said project. These files are used by the [Microsoft.CodeAnalysis.PublicApiAnalyzers](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers) roslyn analyzer as a reference to what the public API surface looked like previously.
 
 ### PublicAPI.Shipped.txt
 
@@ -54,7 +54,7 @@ It can be resolved by adding the removed symbol to the `PublicAPI.Unshipped.txt`
 *REMOVED*Microsoft.Builder.OldApplicationBuilder.New() -> Microsoft.AspNetCore.Builder.IApplicationBuilder!
 ```
 
-This change needs to be done by hand. Copy the relevant line from `PublicAPI.Shipped.txt` into `PublicAPI.Unshipped.txt` and place `*REMOVED*` in front of it.
+This change needs to be done manually. Copy the relevant line from `PublicAPI.Shipped.txt` into `PublicAPI.Unshipped.txt` and place `*REMOVED*` in front of it.
 
 ### Updated APIs
 
@@ -66,7 +66,7 @@ Two new entries need to be added to the `PublicAPI.Unshipped.txt` file for an up
 Microsoft.AspNetCore.DataProtection.Infrastructure.IApplicationDiscriminator.Discriminator.get -> string?
 ```
 
-The removed case needs to be handled by hand as explained [here](#removed-apis).
+The removed case needs to be done manually as explained [here](#removed-apis).
 
 ## Ignoring projects
 
@@ -87,8 +87,9 @@ The two text files mentioned above need to be added to each new project.
 There is a template file called `PublicAPI.empty.txt` in the `scripts` directory that can be copied over into a new project.
 
 ```sh
-cp scripts/PublicAPI.empty.txt src/<new-project-folder>/PublicAPI.Shipped.txt
-cp scripts/PublicAPI.empty.txt src/<new-project-folder>/PublicAPI.Unshipped.txt
+DIR="<new-project-folder>"
+cp scripts/PublicAPI.empty.txt "src/$DIR/PublicAPI.Shipped.txt"
+cp scripts/PublicAPI.empty.txt "src/$DIR/PublicAPI.Unshipped.txt"
 ```
 
 ## Scripts
