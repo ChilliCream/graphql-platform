@@ -15,8 +15,7 @@ namespace HotChocolate.Execution.Processing
         private readonly ObjectPool<ResolverTask> _taskPool;
         private CancellationTokenSource _completed = default!;
         private IBatchDispatcher _batchDispatcher = default!;
-
-        private bool _isPooled = true;
+        private bool _isInitialized;
 
         public ExecutionContext(
             IExecutionTaskContext taskContext,
@@ -43,7 +42,7 @@ namespace HotChocolate.Execution.Processing
             _batchDispatcher = batchDispatcher;
             _batchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
 
-            _isPooled = false;
+            _isInitialized = true;
         }
 
         private void TryComplete()
@@ -83,7 +82,7 @@ namespace HotChocolate.Execution.Processing
                 _completed = default!;
             }
 
-            _isPooled = true;
+            _isInitialized = false;
         }
 
         public void Reset()
@@ -101,9 +100,9 @@ namespace HotChocolate.Execution.Processing
 
         private void AssertNotPooled()
         {
-            if (_isPooled)
+            if (!_isInitialized)
             {
-                throw Object_Returned_To_Pool();
+                throw Object_Not_Initialized();
             }
         }
     }

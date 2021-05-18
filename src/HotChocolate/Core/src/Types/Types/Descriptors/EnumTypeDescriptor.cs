@@ -103,6 +103,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        [Obsolete("Use `BindValues`.")]
         public IEnumTypeDescriptor BindItems(
             BindingBehavior behavior) =>
             BindValues(behavior);
@@ -120,7 +121,10 @@ namespace HotChocolate.Types.Descriptors
         public IEnumTypeDescriptor BindValuesImplicitly() =>
             BindValues(BindingBehavior.Implicit);
 
-        public IEnumValueDescriptor Item<T>(T value)
+        [Obsolete("Use `Value`.")]
+        public IEnumValueDescriptor Item<T>(T value) => Value<T>(value);
+
+        public IEnumValueDescriptor Value<T>(T value)
         {
             EnumValueDescriptor descriptor = Values.FirstOrDefault(t =>
                 t.Definition.Value is not null &&
@@ -135,8 +139,6 @@ namespace HotChocolate.Types.Descriptors
             Values.Add(descriptor);
             return descriptor;
         }
-
-        public IEnumValueDescriptor Value<T>(T value) => Item<T>(value);
 
         public IEnumTypeDescriptor Directive<T>(T directiveInstance)
             where T : class

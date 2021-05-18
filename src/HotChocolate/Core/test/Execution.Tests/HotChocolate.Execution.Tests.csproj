@@ -10,7 +10,7 @@
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Execution\HotChocolate.Execution.csproj" />
     <ProjectReference Include="..\..\src\Subscriptions.InMemory\HotChocolate.Subscriptions.InMemory.csproj" />
-    <ProjectReference Include="..\StarWars\HotChocolate.StarWars.csproj" />
+    <ProjectReference Include="..\StarWars\HotChocolate.StarWars.Tests.csproj" />
     <ProjectReference Include="..\Utilities\HotChocolate.Tests.Utilities.csproj" />
   </ItemGroup>
 

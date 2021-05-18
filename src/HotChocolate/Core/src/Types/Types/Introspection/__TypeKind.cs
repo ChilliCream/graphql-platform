@@ -15,45 +15,45 @@ namespace HotChocolate.Types.Introspection
                 .Description(TypeResources.TypeKind_Description)
                 // Introspection types must always be bound explicitly so that we
                 // do not get any interference with conventions.
-                .BindItems(BindingBehavior.Explicit);
+                .BindValues(BindingBehavior.Explicit);
 
             descriptor
-                .Item(TypeKind.Scalar)
+                .Value(TypeKind.Scalar)
                 .Name(Names.Scalar)
                 .Description(TypeResources.TypeKind_Scalar);
 
             descriptor
-                .Item(TypeKind.Object)
+                .Value(TypeKind.Object)
                 .Name(Names.Object)
                 .Description(TypeResources.TypeKind_Object);
 
             descriptor
-                .Item(TypeKind.Interface)
+                .Value(TypeKind.Interface)
                 .Name(Names.Interface)
                 .Description(TypeResources.TypeKind_Interface);
 
             descriptor
-                .Item(TypeKind.Union)
+                .Value(TypeKind.Union)
                 .Name(Names.Union)
                 .Description(TypeResources.TypeKind_Union);
 
             descriptor
-                .Item(TypeKind.Enum)
+                .Value(TypeKind.Enum)
                 .Name(Names.Enum)
                 .Description(TypeResources.TypeKind_Enum);
 
             descriptor
-                .Item(TypeKind.InputObject)
+                .Value(TypeKind.InputObject)
                 .Name(Names.InputObject)
                 .Description(TypeResources.TypeKind_InputObject);
 
             descriptor
-                .Item(TypeKind.List)
+                .Value(TypeKind.List)
                 .Name(Names.List)
                 .Description(TypeResources.TypeKind_List);
 
             descriptor
-                .Item(TypeKind.NonNull)
+                .Value(TypeKind.NonNull)
                 .Name(Names.NonNull)
                 .Description(TypeResources.TypeKind_NonNull);
         }

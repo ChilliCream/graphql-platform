@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Instrumentation
@@ -14,7 +15,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// Called when starting to execute a request.
         /// </summary>
         /// <param name="context">
-        /// The request context encapsulates all GraphQL-specific information about an 
+        /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
         /// <returns>
@@ -27,7 +28,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// including unhandled exceptions when resolving fields.
         /// </summary>
         /// <param name="context">
-        /// The request context encapsulates all GraphQL-specific information about an 
+        /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
         /// <param name="exception">
@@ -39,7 +40,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// Called when starting to parse a document.
         /// </summary>
         /// <param name="context">
-        /// The request context encapsulates all GraphQL-specific information about an 
+        /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
         /// <returns>
@@ -51,7 +52,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// Called if a syntax error is detected in a document during parsing.
         /// </summary>
         /// <param name="context">
-        /// The request context encapsulates all GraphQL-specific information about an 
+        /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
         /// <param name="error">
@@ -63,7 +64,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// Called when starting to validate a document.
         /// </summary>
         /// <param name="context">
-        /// The request context encapsulates all GraphQL-specific information about an 
+        /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
         /// <returns>
@@ -75,7 +76,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// Called if there are any document validation errors.
         /// </summary>
         /// <param name="context">
-        /// The request context encapsulates all GraphQL-specific information about an 
+        /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
         /// <param name="errors">
@@ -91,7 +92,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// a listener implements this method to ensure that it is called.
         /// </remarks>
         /// <param name="context">
-        /// The middleware context encapsulates all resolver-specific information about the 
+        /// The middleware context encapsulates all resolver-specific information about the
         /// execution of an individual field selection.
         /// </param>
         /// <returns>
@@ -102,8 +103,13 @@ namespace HotChocolate.Execution.Instrumentation
         /// <summary>
         /// Called for any errors during field resolution, including unhandled exceptions.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="error"></param>
+        /// <param name="context">
+        /// The middleware context encapsulates all resolver-specific information about the
+        /// execution of an individual field selection.
+        /// </param>
+        /// <param name="error">
+        /// The error object.
+        /// </param>
         void ResolverError(IMiddlewareContext context, IError error);
 
         /// <summary>
@@ -134,10 +140,65 @@ namespace HotChocolate.Execution.Instrumentation
         void TaskError(IExecutionTask task, IError error);
 
         /// <summary>
+        /// Called when a subscription was created.
+        /// </summary>
+        /// <param name="subscription">
+        /// The subscription object.
+        /// </param>
+        /// <returns>
+        /// A scope that will be disposed when the subscription has completed.
+        /// </returns>
+        IActivityScope ExecuteSubscription(ISubscription subscription);
+
+        /// <summary>
+        /// Called when an event was raised and a new subscription result is being produced.
+        /// </summary>
+        /// <param name="context">
+        /// The subscription event context.
+        /// </param>
+        /// <returns>
+        /// A scope that will be disposed when the subscription event execution has completed.
+        /// </returns>
+        IActivityScope OnSubscriptionEvent(SubscriptionEventContext context);
+
+        /// <summary>
+        /// Called when a result for a specific subscription event was produced.
+        /// </summary>
+        /// <param name="context">
+        /// The subscription event context.
+        /// </param>
+        /// <param name="result">
+        /// The subscription result that is being written to the response stream.
+        /// </param>
+        void SubscriptionEventResult(SubscriptionEventContext context, IQueryResult result);
+
+        /// <summary>
+        /// Called when an error occured while producing the subscription event result.
+        /// </summary>
+        /// <param name="context">
+        /// The subscription event context.
+        /// </param>
+        /// <param name="exception">
+        /// The exception that occured.
+        /// </param>
+        void SubscriptionEventError(SubscriptionEventContext context, Exception exception);
+
+        /// <summary>
+        /// Called when an error occured while producing the subscription event result.
+        /// </summary>
+        /// <param name="subscription">
+        /// The subscription object.
+        /// </param>
+        /// <param name="exception">
+        /// The exception that occured.
+        /// </param>
+        void SubscriptionTransportError(ISubscription subscription, Exception exception);
+
+        /// <summary>
         /// A GraphQL request document was added to the document cache.
         /// </summary>
         /// <param name="context">
-        /// The request context encapsulates all GraphQL-specific information about an 
+        /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
         void AddedDocumentToCache(IRequestContext context);
@@ -146,7 +207,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// A GraphQL request document was retrieved from the document cache.
         /// </summary>
         /// <param name="context">
-        /// The request context encapsulates all GraphQL-specific information about an 
+        /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
         void RetrievedDocumentFromCache(IRequestContext context);
@@ -161,7 +222,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// A compiled operation was added to the operation cache.
         /// </summary>
         /// <param name="context">
-        /// The request context encapsulates all GraphQL-specific information about an 
+        /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
         void AddedOperationToCache(IRequestContext context);
@@ -170,18 +231,18 @@ namespace HotChocolate.Execution.Instrumentation
         /// A compiled operation was retrieved from the operation cache.
         /// </summary>
         /// <param name="context">
-        /// The request context encapsulates all GraphQL-specific information about an 
+        /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
         void RetrievedOperationFromCache(IRequestContext context);
 
         /// <summary>
-        /// During execution we allow components like the DataLoader or schema stitching to 
-        /// defer execution of data resolvers to be executed in batches. If the execution engine 
+        /// During execution we allow components like the DataLoader or schema stitching to
+        /// defer execution of data resolvers to be executed in batches. If the execution engine
         /// has nothing to execute anymore these batches will be dispatched for execution.
         /// </summary>
         /// <param name="context">
-        /// The request context encapsulates all GraphQL-specific information about an 
+        /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
         void BatchDispatched(IRequestContext context);
