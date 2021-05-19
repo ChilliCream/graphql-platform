@@ -116,7 +116,7 @@ namespace HotChocolate.Execution.Pipeline
 
                         context.Result = QueryResultBuilder
                             .FromResult(original)
-                            .AddExtension("query-plan", serializedQueryPlan)
+                            .AddExtension("queryPlan", serializedQueryPlan)
                             .Create();
                     }
 
