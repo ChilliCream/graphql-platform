@@ -16,7 +16,7 @@ namespace HotChocolate.Data.Neo4J.Paging
     public class Neo4JFixture : Neo4jResource<Neo4JConfig>
     {
         private readonly ConcurrentDictionary<(Type, string), Task<IRequestExecutor>> _cache =
-            new ();
+            new();
 
         public Task<IRequestExecutor> GetOrCreateSchema<T>(string cypher)
             where T : class
@@ -28,8 +28,7 @@ namespace HotChocolate.Data.Neo4J.Paging
                 k => CreateSchema<T>(cypher));
         }
 
-        private async Task<IRequestExecutor> CreateSchema<TEntity>(
-            string cypher)
+        private async Task<IRequestExecutor> CreateSchema<TEntity>(string cypher)
             where TEntity : class
         {
             IAsyncSession session = GetAsyncSession();

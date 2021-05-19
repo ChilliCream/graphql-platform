@@ -17,6 +17,7 @@ namespace HotChocolate.Data.Neo4J.Projections.Scalar
         private string _fooEntitiesCypher = @"
             CREATE (:Foo {Bar: true, Baz: 'a'}), (:Foo {Bar: false, Baz: 'b'})
         ";
+
         public class Foo
         {
             public bool Bar { get; set; }
@@ -27,7 +28,7 @@ namespace HotChocolate.Data.Neo4J.Projections.Scalar
         public async Task Create_ProjectsTwoProperties_Expression()
         {
             // arrange
-            IRequestExecutor tester = await  _fixture.GetOrCreateSchema<Foo>(_fooEntitiesCypher);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo>(_fooEntitiesCypher);
 
             // act
             // assert
@@ -43,7 +44,7 @@ namespace HotChocolate.Data.Neo4J.Projections.Scalar
         public async Task Create_ProjectsOneProperty_Expression()
         {
             // arrange
-            IRequestExecutor tester = await  _fixture.GetOrCreateSchema<Foo>(_fooEntitiesCypher);
+            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo>(_fooEntitiesCypher);
 
             // act
             // assert

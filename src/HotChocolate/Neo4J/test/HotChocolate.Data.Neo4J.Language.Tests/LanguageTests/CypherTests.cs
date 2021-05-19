@@ -30,7 +30,8 @@ namespace HotChocolate.Data.Neo4J.Language
             [Fact]
             public void NodeWithProperties()
             {
-                StatementBuilder statement = Cypher.Match(_bikeNode, _userNode, Cypher.Node("U").Named("o"))
+                StatementBuilder statement = Cypher
+                    .Match(_bikeNode, _userNode, Cypher.Node("U").Named("o"))
                     .Return(_bikeNode, _userNode);
                 statement.Build().MatchSnapshot();
             }
@@ -38,7 +39,8 @@ namespace HotChocolate.Data.Neo4J.Language
             [Fact]
             public void ReturnAsterisk()
             {
-                StatementBuilder statement = Cypher.Match(_bikeNode, _userNode, Cypher.Node("U").Named("o"))
+                StatementBuilder statement = Cypher
+                    .Match(_bikeNode, _userNode, Cypher.Node("U").Named("o"))
                     .Return(Cypher.Asterisk);
                 statement.Build().MatchSnapshot();
             }
@@ -54,7 +56,8 @@ namespace HotChocolate.Data.Neo4J.Language
             [Fact]
             public void SimpleRelationshipSingleType()
             {
-                StatementBuilder statement = Cypher.Match(_userNode.RelationshipTo(_bikeNode, "OWNS"))
+                StatementBuilder statement = Cypher
+                    .Match(_userNode.RelationshipTo(_bikeNode, "OWNS"))
                     .Return(_bikeNode, _userNode);
                 statement.Build().MatchSnapshot();
             }
@@ -62,7 +65,8 @@ namespace HotChocolate.Data.Neo4J.Language
             [Fact]
             public void SimpleRelationshipMultipleTypes()
             {
-                StatementBuilder statement = Cypher.Match(_userNode.RelationshipTo(_bikeNode, "OWNS", "RIDES"))
+                StatementBuilder statement = Cypher
+                    .Match(_userNode.RelationshipTo(_bikeNode, "OWNS", "RIDES"))
                     .Return(_bikeNode, _userNode);
                 statement.Build().MatchSnapshot();
             }
@@ -72,7 +76,8 @@ namespace HotChocolate.Data.Neo4J.Language
             {
                 StatementBuilder statement = Cypher.Match(
                         _userNode.RelationshipTo(_bikeNode, "OWNS")
-                            .WithProperties(Cypher.MapOf("boughtOn", Cypher.LiteralOf("2021-03-02"))))
+                            .WithProperties(
+                                Cypher.MapOf("boughtOn", Cypher.LiteralOf("2021-03-02"))))
                     .Return(_bikeNode, _userNode);
                 statement.Build().MatchSnapshot();
             }
@@ -99,7 +104,7 @@ namespace HotChocolate.Data.Neo4J.Language
             public void SimpleRelationshipSingleTypeWithLength()
             {
                 StatementBuilder statement = Cypher.Match(
-                        _userNode.RelationshipTo(_bikeNode, "OWNS").Length(3,5))
+                        _userNode.RelationshipTo(_bikeNode, "OWNS").Length(3, 5))
                     .Return(_bikeNode, _userNode);
                 statement.Build().MatchSnapshot();
             }
@@ -108,9 +113,11 @@ namespace HotChocolate.Data.Neo4J.Language
             public void SimpleRelationshipSingleTypeWithLengthAndProperties()
             {
                 StatementBuilder statement = Cypher.Match(
-                        _userNode.RelationshipTo(_bikeNode, "OWNS").Named("b1")
-                            .Length(3,5)
-                            .WithProperties(Cypher.MapOf("boughtOn", Cypher.LiteralOf("2021-03-02"))))
+                        _userNode.RelationshipTo(_bikeNode, "OWNS")
+                            .Named("b1")
+                            .Length(3, 5)
+                            .WithProperties(
+                                Cypher.MapOf("boughtOn", Cypher.LiteralOf("2021-03-02"))))
                     .Return(_bikeNode, _userNode);
                 statement.Build().MatchSnapshot();
             }
@@ -122,8 +129,10 @@ namespace HotChocolate.Data.Neo4J.Language
 
                 StatementBuilder statement = Cypher
                     .Match(_userNode
-                        .RelationshipTo(_bikeNode, "OWNS").Named("r1")
-                        .RelationshipTo(tripNode, "USED_ON").Named("r2")
+                        .RelationshipTo(_bikeNode, "OWNS")
+                        .Named("r1")
+                        .RelationshipTo(tripNode, "USED_ON")
+                        .Named("r2")
                     )
                     .Return(_bikeNode, _userNode);
                 statement.Build().MatchSnapshot();
@@ -136,10 +145,14 @@ namespace HotChocolate.Data.Neo4J.Language
 
                 StatementBuilder statement = Cypher
                     .Match(_userNode
-                        .RelationshipTo(_bikeNode, "OWNS").Named("r1")
-                        .RelationshipTo(tripNode, "USED_ON").Named("r2")
-                        .RelationshipFrom(_userNode, "WAS_ON").Named("x")
-                        .RelationshipBetween(Cypher.Node("SOMETHING")).Named("y")
+                        .RelationshipTo(_bikeNode, "OWNS")
+                        .Named("r1")
+                        .RelationshipTo(tripNode, "USED_ON")
+                        .Named("r2")
+                        .RelationshipFrom(_userNode, "WAS_ON")
+                        .Named("x")
+                        .RelationshipBetween(Cypher.Node("SOMETHING"))
+                        .Named("y")
                     )
                     .Return(_bikeNode, _userNode);
                 statement.Build().MatchSnapshot();
@@ -164,12 +177,13 @@ namespace HotChocolate.Data.Neo4J.Language
                 Relationship? condition = _userNode.RelationshipTo(_bikeNode, "OWNS");
 
                 StatementBuilder statement = Cypher
-                    .Match(new Where(Predicates.Exists(condition)),_userNode)
+                    .Match(new Where(Predicates.Exists(condition)), _userNode)
                     .Return(_userNode);
                 statement.Build().MatchSnapshot();
             }
 
-            [Fact] public void PredicateAll()
+            [Fact]
+            public void PredicateAll()
             {
                 var compoundCondition = new CompoundCondition(Operator.And);
 
@@ -184,7 +198,7 @@ namespace HotChocolate.Data.Neo4J.Language
 
 
                 StatementBuilder statement = Cypher
-                    .Match(new Where(compoundCondition),_userNode)
+                    .Match(new Where(compoundCondition), _userNode)
                     .Return(_userNode);
                 statement.Build().MatchSnapshot();
             }
@@ -194,7 +208,8 @@ namespace HotChocolate.Data.Neo4J.Language
             {
                 StatementBuilder statement = Cypher
                     .Match(_userNode)
-                    .Where(_userNode.Property("email").IsEqualTo(Cypher.LiteralOf("user@gmail.com"))
+                    .Where(_userNode.Property("email")
+                        .IsEqualTo(Cypher.LiteralOf("user@gmail.com"))
                         .And(_userNode.Property("address").IsNull()))
                     .Return(_userNode);
                 statement.Build().MatchSnapshot();
@@ -205,7 +220,8 @@ namespace HotChocolate.Data.Neo4J.Language
             {
                 StatementBuilder statement = Cypher
                     .Match(_userNode)
-                    .Where(_userNode.Property("email").IsEqualTo(Cypher.LiteralOf("user@gmail.com"))
+                    .Where(_userNode.Property("email")
+                        .IsEqualTo(Cypher.LiteralOf("user@gmail.com"))
                         .Or(_userNode.Property("address").IsNull()))
                     .Return(_userNode);
                 statement.Build().MatchSnapshot();
@@ -216,7 +232,8 @@ namespace HotChocolate.Data.Neo4J.Language
             {
                 StatementBuilder statement = Cypher
                     .Match(_userNode)
-                    .Where(_userNode.Property("email").IsEqualTo(Cypher.LiteralOf("user@gmail.com")))
+                    .Where(_userNode.Property("email")
+                        .IsEqualTo(Cypher.LiteralOf("user@gmail.com")))
                     .Return(_userNode);
                 statement.Build().MatchSnapshot();
             }
@@ -287,8 +304,9 @@ namespace HotChocolate.Data.Neo4J.Language
                             _userNode.RelationshipTo(_bikeNode, "OWNS"),
                             new Where(_bikeNode.Property("age").IsEqualTo(Cypher.LiteralOf(12))),
                             _bikeNode.Project("age"))
-                        ))
-                    .OrderBy(Cypher.Sort(_userNode.Property("name")).Descending());;
+                    ))
+                    .OrderBy(Cypher.Sort(_userNode.Property("name")).Descending());
+                ;
                 statement.Build().MatchSnapshot();
             }
 
@@ -303,11 +321,14 @@ namespace HotChocolate.Data.Neo4J.Language
                         "owns",
                         new PatternComprehension(
                             _userNode.RelationshipTo(_bikeNode, "OWNS"),
-                            _bikeNode.Project("age", "test",  new PatternComprehension(
-                                _userNode.RelationshipTo(_bikeNode, "TEST"),
-                                _bikeNode.Project("test")) ))
+                            _bikeNode.Project("age",
+                                "test",
+                                new PatternComprehension(
+                                    _userNode.RelationshipTo(_bikeNode, "TEST"),
+                                    _bikeNode.Project("test"))))
                     ))
-                    .OrderBy(Cypher.Sort(_userNode.Property("name")).Descending());;
+                    .OrderBy(Cypher.Sort(_userNode.Property("name")).Descending());
+                ;
                 statement.Build().MatchSnapshot();
             }
         }
@@ -352,10 +373,14 @@ namespace HotChocolate.Data.Neo4J.Language
                 Node movie = Cypher.Node("Movie")
                     .Named("m")
                     .WithProperties(
-                        "title", Cypher.LiteralOf("The Matrix"),
-                        "yearReleased", Cypher.LiteralOf(1999),
-                        "released", Cypher.LiteralOf(true),
-                        "rating", Cypher.LiteralOf(8.7)
+                        "title",
+                        Cypher.LiteralOf("The Matrix"),
+                        "yearReleased",
+                        Cypher.LiteralOf(1999),
+                        "released",
+                        Cypher.LiteralOf(true),
+                        "rating",
+                        Cypher.LiteralOf(8.7)
                     );
 
                 StatementBuilder statement = Cypher.Match(movie);
