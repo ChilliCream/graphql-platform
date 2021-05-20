@@ -6,8 +6,7 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Instrumentation
 {
-    internal class ApolloTracingDiagnosticEventListener
-        : DiagnosticEventListener
+    internal class ApolloTracingDiagnosticEventListener : DiagnosticEventListener
     {
         private const string _extensionKey = "tracing";
         private readonly TracingPreference _tracingPreference;

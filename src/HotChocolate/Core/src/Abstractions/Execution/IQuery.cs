@@ -3,6 +3,8 @@ using System;
 using System.IO;
 using System.Threading;
 
+#nullable enable
+
 namespace HotChocolate.Execution
 {
     /// <summary>

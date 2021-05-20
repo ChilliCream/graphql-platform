@@ -3,9 +3,6 @@ const path = require(`path`);
 
 exports.createPages = async ({ actions, graphql, reporter }) => {
   const { createPage, createRedirect } = actions;
-  const blogArticleTemplate = path.resolve(
-    `src/templates/blog-article-template.tsx`
-  );
   const result = await graphql(`
     {
       blog: allMdx(

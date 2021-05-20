@@ -11,6 +11,9 @@ namespace HotChocolate.Execution.Processing
         public ArgumentMap(IReadOnlyDictionary<NameString, ArgumentValue> arguments)
         {
             _arguments = arguments;
+
+            IsFinalNoErrors = arguments.Count == 0;
+
             if (_arguments.Count > 0)
             {
                 foreach (ArgumentValue argument in arguments.Values)
@@ -25,10 +28,14 @@ namespace HotChocolate.Execution.Processing
                         HasErrors = true;
                     }
                 }
+
+                IsFinalNoErrors = IsFinal && !HasErrors;
             }
         }
 
         public ArgumentValue this[NameString key] => _arguments[key];
+
+        public bool IsFinalNoErrors { get; }
 
         public bool IsFinal { get; } = true;
 
@@ -49,6 +56,7 @@ namespace HotChocolate.Execution.Processing
 
         public IEnumerator<KeyValuePair<NameString, ArgumentValue>> GetEnumerator() =>
             _arguments.GetEnumerator();
+
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

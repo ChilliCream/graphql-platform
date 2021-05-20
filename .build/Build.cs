@@ -12,8 +12,8 @@ using static Helpers;
     AzurePipelinesImage.UbuntuLatest,
     InvokedTargets = new[] { nameof(Sonar) },
     PullRequestsAutoCancel = true,
-    PullRequestsBranchesInclude = new [] { "master" },
-    AutoGenerate =  false)]
+    PullRequestsBranchesInclude = new[] { "master" },
+    AutoGenerate = false)]
 [GitHubActions(
     "sonar-pr-hotchocolate",
     GitHubActionsImage.UbuntuLatest,

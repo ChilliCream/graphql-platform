@@ -7,7 +7,7 @@ namespace HotChocolate.Execution
     public class ScopedContextDataTests
     {
         [Fact]
-        public async Task ScopedContextDataIsPassedAllongCorrectly()
+        public async Task ScopedContextDataIsPassedAlongCorrectly()
         {
             // arrange
             ISchema schema = Schema.Create(
@@ -26,10 +26,10 @@ namespace HotChocolate.Execution
                     foo: String
                 }
                 ",
-                c => c.Use(next => context =>
+                c => c.Use(_ => context =>
                 {
                     if (context.ScopedContextData
-                        .TryGetValue("field", out object o)
+                        .TryGetValue("field", out var o)
                         && o is string s)
                     {
                         s += "/" + context.Field.Name;
@@ -44,7 +44,7 @@ namespace HotChocolate.Execution
 
                     context.Result = s;
 
-                    return default(ValueTask);
+                    return default;
                 }));
 
             IRequestExecutor executor = schema.MakeExecutable();

@@ -7,11 +7,13 @@ namespace HotChocolate.Execution.Processing
 {
     internal sealed partial class OperationContext
     {
+        internal IRequestContext RequestContext => _requestContext;
+
         public ISchema Schema
         {
             get
             {
-                AssertNotPooled();
+                AssertInitialized();
                 return _requestContext.Schema;
             }
         }
@@ -20,7 +22,7 @@ namespace HotChocolate.Execution.Processing
         {
             get
             {
-                AssertNotPooled();
+                AssertInitialized();
                 return _requestContext.ErrorHandler;
             }
         }
@@ -29,7 +31,7 @@ namespace HotChocolate.Execution.Processing
         {
             get
             {
-                AssertNotPooled();
+                AssertInitialized();
                 return _requestContext.Converter;
             }
         }
@@ -38,7 +40,7 @@ namespace HotChocolate.Execution.Processing
         {
             get
             {
-                AssertNotPooled();
+                AssertInitialized();
                 return _requestContext.Activator;
             }
         }
@@ -47,7 +49,7 @@ namespace HotChocolate.Execution.Processing
         {
             get
             {
-                AssertNotPooled();
+                AssertInitialized();
                 return _requestContext.DiagnosticEvents;
             }
         }
@@ -56,7 +58,7 @@ namespace HotChocolate.Execution.Processing
         {
             get
             {
-                AssertNotPooled();
+                AssertInitialized();
                 return _requestContext.ContextData;
             }
         }
@@ -65,7 +67,7 @@ namespace HotChocolate.Execution.Processing
         {
             get
             {
-                AssertNotPooled();
+                AssertInitialized();
                 return _requestContext.RequestAborted;
             }
         }

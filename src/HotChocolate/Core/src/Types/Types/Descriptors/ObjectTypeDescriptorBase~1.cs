@@ -41,7 +41,8 @@ namespace HotChocolate.Types.Descriptors
         {
             HashSet<string> subscribeResolver = null;
 
-            if (Definition.Fields.IsImplicitBinding())
+            if (Definition.Fields.IsImplicitBinding() &&
+                Definition.FieldBindingType is not null)
             {
                 FieldDescriptorUtilities.AddImplicitFields(
                     this,
@@ -51,7 +52,7 @@ namespace HotChocolate.Types.Descriptors
                         var descriptor = ObjectFieldDescriptor.New(
                             Context, p, Definition.RuntimeType, Definition.FieldBindingType);
 
-                        if(Definition.IsExtension && p.IsDefined(typeof(GraphQLIgnoreAttribute)))
+                        if(Definition.IsExtension && Context.TypeInspector.IsMemberIgnored(p))
                         {
                             descriptor.Ignore();
                         }
@@ -62,7 +63,8 @@ namespace HotChocolate.Types.Descriptors
                     fields,
                     handledMembers,
                     include: IncludeField,
-                    includeIgnoredMembers: Definition.IsExtension);
+                    includeIgnoredMembers
+                    : Definition.IsExtension);
             }
 
             base.OnCompleteFields(fields, handledMembers);

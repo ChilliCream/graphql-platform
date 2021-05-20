@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using static HotChocolate.Execution.Processing.ResolverExecutionHelper;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -37,7 +36,7 @@ namespace HotChocolate.Execution.Processing
                 ISelection selection = selections[i];
                 if (selection.IsIncluded(operationContext.Variables))
                 {
-                    operationContext.Execution.TaskBacklog.Register(
+                    IExecutionTask task = operationContext.CreateTask(
                         new ResolverTaskDefinition(
                             operationContext,
                             selection,
@@ -47,7 +46,9 @@ namespace HotChocolate.Execution.Processing
                             Path.New(selection.ResponseName),
                             scopedContext));
 
-                    await ExecuteTasksAsync(operationContext).ConfigureAwait(false);
+                    operationContext.Execution.Work.Register(task);
+
+                    await ExecutionTaskProcessor.ExecuteAsync(operationContext).ConfigureAwait(false);
 
                     if (i + 1 < selections.Count)
                     {

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq.Expressions;
+using System.Reflection;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -74,6 +76,9 @@ namespace HotChocolate.Configuration
         /// </exception>
         T GetType<T>(ITypeReference typeRef) where T : IType;
 
+        /// <summary>
+        /// Gets all registered types of <typeparamref name="T"/>.
+        /// </summary>
         IEnumerable<T> GetTypes<T>() where T : IType;
 
         bool TryGetDirectiveType(
@@ -82,7 +87,7 @@ namespace HotChocolate.Configuration
 
         DirectiveType GetDirectiveType(IDirectiveReference directiveRef);
 
-        FieldResolver GetResolver(NameString fieldName);
+        FieldResolver? GetResolver(NameString fieldName);
 
         Func<ISchema> GetSchemaResolver();
     }

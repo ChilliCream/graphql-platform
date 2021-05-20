@@ -39,11 +39,11 @@ const PlatformPage: FunctionComponent = () => {
           <ContentContainer>
             <SectionTitle>Hot Chocolate</SectionTitle>
             <p>
-              Hot Chocolate is the GraphQL server and provides core libraries
+              Hot Chocolate is our GraphQL server and provides core libraries
               for Strawberry Shake, our GraphQL client, and our GraphQL tools.
               No wonder why Hot Chocolate is the ChilliCream's platform core.
             </p>
-            <Link to="/docs/hotchocolate/v10/">Learn more</Link>
+            <Link to="/docs/hotchocolate">Learn more</Link>
           </ContentContainer>
         </SectionRow>
       </Section>
@@ -88,7 +88,8 @@ const PlatformPage: FunctionComponent = () => {
             <p>
               Keep track of all clients that depend on your GraphQL endpoints.
             </p>
-            <Link to="/docs/marshmallowpie">Learn more</Link>
+            {/* comment in again, once there is documentation */}
+            {/* <Link to="/docs/marshmallowpie">Learn more</Link> */}
           </ContentContainer>
         </SectionRow>
       </Section>

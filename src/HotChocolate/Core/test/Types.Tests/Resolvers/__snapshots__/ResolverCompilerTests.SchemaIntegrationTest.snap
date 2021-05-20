@@ -1,0 +1,53 @@
+﻿schema {
+  query: Resolvers
+}
+
+type Resolvers {
+  globalState: String
+  globalStateNullable: String!
+  globalStateWithDefault: String
+  globalStateWithDefaultAbc: String
+  globalStateWithKey: String
+  localState: String
+  localStateWithDefault: String
+  localStateWithDefaultAbc: String
+  localStateWithKey: String
+  optionalStringResolverWithArg(a: String): String
+  resolverWithCancellationToken: String
+  resolverWithDocument: Boolean!
+  resolverWithFieldSelection: Boolean!
+  resolverWithObjectField: Boolean!
+  resolverWithObjectType: Boolean!
+  resolverWithOperationDefinition: Boolean!
+  resolverWithOutputField: Boolean!
+  resolverWithResolverContext: Boolean!
+  resolverWithSchema: Boolean!
+  resolverWithService: Boolean!
+  resolveWithContextData: String
+  resolveWithContextDataDefault: String
+  resolveWithScopedContextData: String
+  resolveWithScopedContextDataDefault: String
+  scopedState: String
+  scopedStateNullable: String!
+  scopedStateWithDefault: String
+  scopedStateWithDefaultAbc: String
+  scopedStateWithKey: String
+  setGlobalState: String
+  setGlobalStateGeneric: String
+  setLocalState: String
+  setLocalStateGeneric: String
+  setScopedState: String
+  setScopedStateGeneric: String
+  stringProp: String
+  stringResolver: String
+  stringResolverWithArg(a: String): String
+  stringTaskResolver: String
+  stringTaskResolverProp: String
+  stringTaskResolverWithArg(a: String): String
+}
+
+"The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
+directive @defer("Deferred when true." if: Boolean "If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to." label: String) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"The `@stream` directive may be provided for a field of `List` type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. `@include` and `@skip` take precedence over `@stream`."
+directive @stream("Streamed when true." if: Boolean! "The initial elements that shall be send down to the consumer." initialCount: Int! "If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to." label: String) on FIELD

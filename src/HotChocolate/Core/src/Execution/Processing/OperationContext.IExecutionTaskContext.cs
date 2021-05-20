@@ -26,27 +26,21 @@ namespace HotChocolate.Execution.Processing
                 throw new ArgumentNullException(nameof(error));
             }
 
-            AssertNotPooled();
+            AssertInitialized();
             error = ErrorHandler.Handle(error);
             Result.AddError(error);
             DiagnosticEvents.TaskError(task, error);
         }
 
-        void IExecutionTaskContext.Started()
+        void IExecutionTaskContext.Completed(IExecutionTask task)
         {
-            AssertNotPooled();
-            Execution.TaskStats.TaskStarted();
-        }
-
-        void IExecutionTaskContext.Completed()
-        {
-            AssertNotPooled();
-            Execution.TaskStats.TaskCompleted();
+            AssertInitialized();
+            Execution.Work.Complete(task);
         }
 
         IDisposable IExecutionTaskContext.Track(IExecutionTask task)
         {
-            AssertNotPooled();
+            AssertInitialized();
             return DiagnosticEvents.RunTask(task);
         }
     }

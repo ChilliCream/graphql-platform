@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>HotChocolate.Benchmarks</RootNamespace>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ConferenceApp\HotChocolate.ConferenceApp.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Requests\*.graphql" />
+    <EmbeddedResource Include="Requests\*.graphql" />
+  </ItemGroup>
+
+</Project>

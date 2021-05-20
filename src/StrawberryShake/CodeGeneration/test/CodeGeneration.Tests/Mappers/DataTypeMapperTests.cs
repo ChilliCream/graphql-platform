@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Extensions;
 using Xunit;
+using RequestStrategyGen = StrawberryShake.Tools.Configuration.RequestStrategy;
 using static StrawberryShake.CodeGeneration.Mappers.TestDataHelper;
 
 namespace StrawberryShake.CodeGeneration.Mappers
@@ -41,7 +42,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 "Foo.Bar",
                 "FooClient",
                 new Sha1DocumentHashProvider(),
-                Descriptors.Operations.RequestStrategy.Default,
+                RequestStrategyGen.Default,
                 new[]
                 {
                     TransportProfile.Default
@@ -122,7 +123,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 "Foo.Bar",
                 "FooClient",
                 new Sha1DocumentHashProvider(),
-                Descriptors.Operations.RequestStrategy.Default,
+                RequestStrategyGen.Default,
                 new[]
                 {
                     TransportProfile.Default
@@ -216,7 +217,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 "Foo.Bar",
                 "FooClient",
                 new Sha1DocumentHashProvider(),
-                Descriptors.Operations.RequestStrategy.Default,
+                RequestStrategyGen.Default,
                 new[]
                 {
                     TransportProfile.Default

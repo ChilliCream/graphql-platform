@@ -11,7 +11,7 @@ namespace HotChocolate.AspNetCore.Properties {
     using System;
     
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class AspNetCoreResources {
@@ -69,9 +69,9 @@ namespace HotChocolate.AspNetCore.Properties {
             }
         }
         
-        internal static string ThrowHelper_HttpMultipartMiddleware_Form_Incomplete {
+        internal static string ThrowHelper_HttpMultipartMiddleware_Invalid_Form {
             get {
-                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_Form_Incomplete", resourceCulture);
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_Invalid_Form", resourceCulture);
             }
         }
         
@@ -162,6 +162,24 @@ namespace HotChocolate.AspNetCore.Properties {
         internal static string ErrorHelper_ResponseTypeNotSupported {
             get {
                 return ResourceManager.GetString("ErrorHelper_ResponseTypeNotSupported", resourceCulture);
+            }
+        }
+        
+        internal static string Subscription_SendResultsAsync {
+            get {
+                return ResourceManager.GetString("Subscription_SendResultsAsync", resourceCulture);
+            }
+        }
+        
+        internal static string WebSocketSession_SessionEnded {
+            get {
+                return ResourceManager.GetString("WebSocketSession_SessionEnded", resourceCulture);
+            }
+        }
+        
+        internal static string DataStartMessageHandler_Not_A_SubscriptionResult {
+            get {
+                return ResourceManager.GetString("DataStartMessageHandler_Not_A_SubscriptionResult", resourceCulture);
             }
         }
     }

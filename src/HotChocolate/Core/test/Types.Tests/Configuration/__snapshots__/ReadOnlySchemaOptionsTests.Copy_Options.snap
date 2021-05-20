@@ -10,5 +10,6 @@
   "DefaultBindingBehavior": "Explicit",
   "FieldMiddleware": "AllFields",
   "EnableDirectiveIntrospection": false,
-  "DefaultDirectiveVisibility": "Public"
+  "DefaultDirectiveVisibility": "Public",
+  "AllowInlining": true
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
@@ -17,17 +18,23 @@ namespace HotChocolate.Execution.Processing
         private IServiceProvider _services = default!;
         private Func<object?> _resolveQueryRootValue = default!;
         private object? _rootValue;
-        private bool _isPooled = true;
+        private bool _isInitialized;
 
         public OperationContext(
             ObjectPool<ResolverTask> resolverTaskPool,
+            ObjectPool<PureResolverTask> pureResolverTaskPool,
+            ObjectPool<BatchExecutionTask> batchExecutionTask,
             ResultPool resultPool)
         {
-            _executionContext = new ExecutionContext(this, resolverTaskPool);
+            _executionContext = new ExecutionContext(
+                this,
+                resolverTaskPool,
+                pureResolverTaskPool,
+                batchExecutionTask);
             _resultHelper = new ResultHelper(resultPool);
         }
 
-        public bool IsPooled => _isPooled;
+        public bool IsInitialized => _isInitialized;
 
         public void Initialize(
             IRequestContext requestContext,
@@ -47,7 +54,7 @@ namespace HotChocolate.Execution.Processing
             _services = scopedServices;
             _rootValue = rootValue;
             _resolveQueryRootValue = resolveQueryRootValue;
-            _isPooled = false;
+            _isInitialized = true;
         }
 
         public void Clean()
@@ -65,14 +72,14 @@ namespace HotChocolate.Execution.Processing
             _services = default!;
             _rootValue = null;
             _resolveQueryRootValue = default!;
-            _isPooled = true;
+            _isInitialized = false;
         }
 
-        private void AssertNotPooled()
+        private void AssertInitialized()
         {
-            if (_isPooled)
+            if (!_isInitialized)
             {
-                throw Object_Returned_To_Pool();
+                throw Object_Not_Initialized();
             }
         }
     }

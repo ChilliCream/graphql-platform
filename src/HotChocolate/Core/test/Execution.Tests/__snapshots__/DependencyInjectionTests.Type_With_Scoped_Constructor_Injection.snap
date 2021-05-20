@@ -1,5 +1,4 @@
-﻿{
-  "data": {
-    "hello": "Hello_0"
-  }
-}
+﻿[
+  "{\n  \"data\": {\n    \"hello\": \"Hello_0\"\n  }\n}",
+  "{\n  \"data\": {\n    \"hello\": \"Hello_0\"\n  }\n}"
+]

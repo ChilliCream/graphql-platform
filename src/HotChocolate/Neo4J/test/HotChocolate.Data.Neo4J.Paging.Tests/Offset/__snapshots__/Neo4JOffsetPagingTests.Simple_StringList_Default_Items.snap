@@ -1,0 +1,13 @@
+﻿{
+  "errors": [
+    {
+      "message": "The provided source is not supported for Neo4j paging",
+      "extensions": {
+        "code": "HC0025"
+      }
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}

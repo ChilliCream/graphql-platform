@@ -72,12 +72,12 @@ namespace StrawberryShake
 
         public void UpdateResult(ulong version)
         {
-            if (LastResult is { DataInfo: not null } result)
+            if (LastResult is { DataInfo: { } dataInfo } result)
             {
                 SetResult(
                     result.WithData(
-                        result.DataFactory.Create(result.DataInfo),
-                        result.DataInfo.WithVersion(version)));
+                        result.DataFactory.Create(dataInfo),
+                        dataInfo.WithVersion(version)));
             }
         }
 

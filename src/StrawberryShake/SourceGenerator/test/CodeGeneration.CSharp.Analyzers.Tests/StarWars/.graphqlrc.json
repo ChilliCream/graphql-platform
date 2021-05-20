@@ -4,7 +4,6 @@
   "extensions": {
     "strawberryShake": {
       "name": "StarWarsClient",
-      "namespace": "StrawberryShake.CodeGeneration.CSharp.Analyzers.StarWars",
       "url": "http://localhost:5000",
       "dependencyInjection": true,
       "requestStrategy": "PersistedQuery",

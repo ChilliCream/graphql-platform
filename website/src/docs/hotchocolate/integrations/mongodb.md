@@ -54,7 +54,7 @@ services
 
 > To use MongoDB filtering alongside with `IQueryable`/`IEnumerable`, you have to register the MongoDB convention under a different scope.
 > You can specify the scope on the schema builder by executing `AddMongoDbFiltering("yourScope")`.
-> You then have to specify this scope on each method you use MongoDb filtering: `[UseFiltering("yourScope")]` or `UseFiltering("yourScope")`
+> You then have to specify this scope on each method you use MongoDb filtering: `[UseFiltering(Scope = "yourScope")]` or `UseFiltering(scope = "yourScope")`
 
 Your filters are now converted to `BsonDocument`s and applied to the executable.
 
@@ -102,7 +102,7 @@ services
 
 > To use MongoDB Sorting alongside with `IQueryable`/`IEnumerable`, you have to register the MongoDB convention under a different scope.
 > You can specify the scope on the schema builder by executing `AddMongoDbSorting("yourScope")`.
-> You then have to specify this scope on each method you use MongoDb Sorting: `[UseSorting("yourScope")]` or `UseSorting("yourScope")`
+> You then have to specify this scope on each method you use MongoDb Sorting: `[UseSorting(Scope = "yourScope")]` or `UseSorting(scope = "yourScope")`
 
 Your sorting is now converted to `BsonDocument`s and applied to the executable.
 
@@ -143,7 +143,7 @@ services
 
 > To use MongoDB Projections alongside with `IQueryable`/`IEnumerable`, you have to register the MongoDB convention under a different scope.
 > You can specify the scope on the schema builder by executing `AddMongoDbProjections("yourScope")`.
-> You then have to specify this scope on each method you use MongoDb Projections: `[UseProjections("yourScope")]` or `UseProjections("yourScope")`
+> You then have to specify this scope on each method you use MongoDb Projections: `[UseProjections(Scope = "yourScope")]` or `UseProjections(scope = "yourScope")`
 
 Projections do not always lead to a performance increase.
 Even though MongoDB processes and transfers less data, it more often than not harms query performance.

@@ -21,12 +21,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected void AddConstructorAssignedField(
             TypeReferenceBuilder type,
             string fieldName,
+            string paramName,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             bool skipNullCheck = false)
         {
-            var paramName = fieldName.TrimStart('_');
-
             classBuilder.AddField()
                 .SetReadOnly()
                 .SetName(fieldName)
@@ -50,6 +49,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         protected void AddConstructorAssignedField(
             string typename,
             string fieldName,
+            string paramName,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             bool skipNullCheck = false)
@@ -57,6 +57,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             AddConstructorAssignedField(
                 TypeReferenceBuilder.New().SetName(typename),
                 fieldName,
+                paramName,
                 classBuilder,
                 constructorBuilder,
                 skipNullCheck);

@@ -1,13 +1,22 @@
 ---
-title: "Overview"
+title: "Integrations"
 ---
 
-Hi,
+In this section we will give you an overview over the different integrations you can use with HotChocolate.
+We provide you with additional packages that help you integrate your favourite technology into a GraphQL API.
 
-We're currently working on the version 11 documentation. Probably right now at this very moment. However, this is an open-source project, and we need any help we can get! You can jump in at any time and help us improve the documentation for hundreds or even thousands of developers!
+# Entity Framework
+The package `HotChocolate.Data.EntityFramework` helps you to manage the `DBContext` life cycle.
 
-In case you might need help, check out our slack channel and get immediate help from the core contributors or the community itself.
+[Find out more!](/docs/hotchocolate/integrations/entity-framework/)
 
-Sorry for any inconvenience, and thank you for being patient!
+# MongoDb
+With the package `HotChocoalte.Data.MongoDb` you can integrate your MongoDb with ease. 
+This package adds support for filtering, sorting, projection and pagination with native MongoDb queries.
 
-The ChilliCream Team
+[Find out more!](/docs/hotchocolate/integrations/mongodb/)
+
+# Spatial Data
+This collection of packages help you to expose [NetTopologySuite types](https://github.com/NetTopologySuite/NetTopologySuite) in form of [GeoJSON](https://geojson.org/) and even integrate it with the data api.
+
+[Find out more!](/docs/hotchocolate/integrations/spatial-data/)

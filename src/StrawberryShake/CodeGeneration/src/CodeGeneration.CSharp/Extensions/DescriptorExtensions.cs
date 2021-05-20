@@ -1,9 +1,11 @@
 using System;
 using HotChocolate;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Extensions
 {
@@ -11,7 +13,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
     {
         public static NameString ExtractMapperName(this INamedTypeDescriptor descriptor)
         {
-            return descriptor.Kind == TypeKind.EntityType
+            return descriptor.Kind == TypeKind.Entity
                 ? CreateEntityMapperName(
                     descriptor.RuntimeType.Name,
                     descriptor.Name)
@@ -23,10 +25,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
         public static RuntimeTypeInfo ExtractType(
             this INamedTypeDescriptor descriptor)
         {
-            return descriptor.IsEntityType()
+            return descriptor.IsEntity()
                 ? CreateEntityType(descriptor.Name, descriptor.RuntimeType.NamespaceWithoutGlobal)
                 : new (descriptor.Name, descriptor.RuntimeType.NamespaceWithoutGlobal);
         }
+
+        public static TypeSyntax ToTypeSyntax(
+            this ITypeDescriptor typeReferenceDescriptor,
+            TypeReferenceBuilder? builder = null) =>
+            ParseTypeName(typeReferenceDescriptor.ToTypeReference(builder).ToString());
 
         public static TypeReferenceBuilder ToTypeReference(
             this ITypeDescriptor typeReferenceDescriptor,
@@ -61,6 +68,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
             };
         }
 
+        public static TypeSyntax ToStateTypeSyntax(
+            this ITypeDescriptor typeDescriptor,
+            TypeReferenceBuilder? builder = null) =>
+            ParseTypeName(typeDescriptor.ToStateTypeReference(builder).ToString());
+
         public static TypeReferenceBuilder ToStateTypeReference(
             this ITypeDescriptor typeDescriptor,
             TypeReferenceBuilder? builder = null)
@@ -87,13 +99,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Extensions
                 ILeafTypeDescriptor leaf =>
                     actualBuilder.SetName(leaf.RuntimeType.ToString()),
 
+                INamedTypeDescriptor { Kind: TypeKind.EntityOrData } =>
+                    actualBuilder.SetName(TypeNames.EntityIdOrData),
+
                 ComplexTypeDescriptor { ParentRuntimeType: { } parentRuntimeType }  =>
                     actualBuilder.SetName(parentRuntimeType.ToString()),
 
-                INamedTypeDescriptor { Kind: TypeKind.DataType } d =>
+                INamedTypeDescriptor { Kind: TypeKind.Data } d =>
                     actualBuilder.SetName(d.RuntimeType.ToString()),
 
-                INamedTypeDescriptor { Kind: TypeKind.EntityType } =>
+                INamedTypeDescriptor { Kind: TypeKind.Entity } =>
                     actualBuilder.SetName(TypeNames.EntityId),
 
                 INamedTypeDescriptor d => actualBuilder.SetName(d.RuntimeType.ToString()),

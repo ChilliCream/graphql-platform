@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using HotChocolate.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -13,14 +8,19 @@ namespace HotChocolate.Server.Template
 {
     public class Startup
     {
+        public Startup(IConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
+
+        public IConfiguration Configuration { get; }
+
         // This method gets called by the runtime. Use this method to add services to the container.
-        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
             // If you need dependency injection with your query object add your query type as a services.
             // services.AddSingleton<Query>();
             services
-                .AddRouting()
                 .AddGraphQLServer()
                 .AddQueryType<Query>();
         }
@@ -38,8 +38,8 @@ namespace HotChocolate.Server.Template
             app.UseEndpoints(endpoints =>
             {
                 // By default the GraphQL server is mapped to /graphql
-                // This route also provides you with our GraphQL IDE. In order to configure the
-                // the GraphQL IDE use endpoints.MapGraphQL().WithToolOptions(...).
+                // This route also provides you with our GraphQL IDE. 
+                // In order to configure the GraphQL IDE use endpoints.MapGraphQL().WithToolOptions(...).
                 endpoints.MapGraphQL();
             });
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -11,6 +12,20 @@ namespace HotChocolate.Resolvers.CodeGeneration
 {
     internal static class ArgumentHelper
     {
+        internal static bool IsPure(ParameterInfo parameterInfo, Type sourceType)
+        {
+            switch (LookupKind(parameterInfo, sourceType))
+            {
+                case ArgumentKind.Argument:
+                case ArgumentKind.Source:
+                case ArgumentKind.CustomContext:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
         internal static ArgumentKind LookupKind(
            ParameterInfo parameter, Type sourceType)
         {
@@ -19,8 +34,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 throw new ArgumentNullException(nameof(parameter));
             }
 
-            ArgumentKind argumentKind;
-            if (TryCheckForResolverArguments(parameter, sourceType, out argumentKind)
+            if (TryCheckForResolverArguments(parameter, sourceType, out ArgumentKind argumentKind)
                 || TryCheckForSubscription(parameter, out argumentKind)
                 || TryCheckForSchemaTypes(parameter, out argumentKind)
                 || TryCheckForQueryTypes(parameter, out argumentKind)
@@ -51,7 +65,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
             if (sourceType is null)
             {
-                argumentKind = default(ArgumentKind);
+                argumentKind = default;
                 return false;
             }
 
@@ -62,7 +76,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 return true;
             }
 
-            argumentKind = default(ArgumentKind);
+            argumentKind = default;
             return false;
         }
 
@@ -89,7 +103,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 return true;
             }
 
-            argumentKind = default(ArgumentKind);
+            argumentKind = default;
             return false;
         }
 
@@ -115,7 +129,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 return true;
             }
 
-            argumentKind = default(ArgumentKind);
+            argumentKind = default;
             return false;
         }
 
@@ -147,7 +161,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 return true;
             }
 
-            argumentKind = default(ArgumentKind);
+            argumentKind = default;
             return false;
         }
 
@@ -161,7 +175,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 return true;
             }
 
-            argumentKind = default(ArgumentKind);
+            argumentKind = default;
             return false;
         }
 
