@@ -4,7 +4,6 @@ import React, {
   useCallback,
   useContext,
   useEffect,
-  useMemo,
   useState,
 } from "react";
 
@@ -55,38 +54,34 @@ export function useActiveTab(
   groupId?: string
 ): TabGroupReturn {
   const { groups, setGroup } = useContext(TabGroupContext);
-  const localTabState = useState(defaultValue);
+  const [activeTab, setActiveTab] = useState(defaultValue);
 
-  if (!groupId) {
-    return localTabState;
-  }
+  useEffect(() => {
+    if (!groupId) {
+      return;
+    }
 
-  const activeGroupTab = useMemo(() => {
     let value: string | null | undefined = groups[groupId];
 
     if (!value && typeof window !== "undefined" && window.localStorage) {
       value = window.localStorage.getItem(getLocalStorageKey(groupId));
     }
 
-    return value ?? defaultValue;
-  }, [groups]);
+    if (value) {
+      setActiveTab(value);
+    }
+  }, [groups, groupId]);
 
-  const handleSetGroupTab = useCallback(
+  if (!groupId) {
+    return [activeTab, setActiveTab];
+  }
+
+  const setGroupTab = useCallback(
     (value: string) => {
       setGroup(groupId, value);
     },
-    [groupId]
+    [groupId, setGroup]
   );
 
-  return [activeGroupTab, handleSetGroupTab];
-}
-
-export function useIsClient() {
-  const [isClient, setClient] = useState(false);
-
-  useEffect(() => {
-    setClient(true);
-  }, []);
-
-  return { isClient, key: isClient ? "client" : "server" };
+  return [activeTab, setGroupTab];
 }
