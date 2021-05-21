@@ -4,6 +4,10 @@ using System;
 
 namespace HotChocolate.Execution
 {
+    /// <summary>
+    /// The execution task context can be used by an execution task to
+    /// interact with the execution engine.
+    /// </summary>
     public interface IExecutionTaskContext
     {
         /// <summary>

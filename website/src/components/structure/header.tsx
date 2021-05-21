@@ -1,6 +1,11 @@
 import { graphql, useStaticQuery } from "gatsby";
-import React, { FunctionComponent, useState } from "react";
-import { useSelector } from "react-redux";
+import React, {
+  FunctionComponent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import styled, { createGlobalStyle } from "styled-components";
 import { GetHeaderDataQuery } from "../../../graphql-types";
 import BarsIconSvg from "../../images/bars.svg";
@@ -10,16 +15,13 @@ import GithubIconSvg from "../../images/github.svg";
 import SlackIconSvg from "../../images/slack.svg";
 import TimesIconSvg from "../../images/times.svg";
 import TwitterIconSvg from "../../images/twitter.svg";
-import { State } from "../../state";
+import { useObservable } from "../../state";
 import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
 import { Search } from "../misc/search";
 
 export const Header: FunctionComponent = () => {
-  const showShadow = useSelector<State, boolean>(
-    (state) => state.common.yScrollPosition > 0
-  );
-
+  const containerRef = useRef<HTMLHeadingElement>(null);
   const [topNavOpen, setTopNavOpen] = useState<boolean>(false);
   const data = useStaticQuery<GetHeaderDataQuery>(graphql`
     query getHeaderData {
@@ -40,17 +42,35 @@ export const Header: FunctionComponent = () => {
     }
   `);
   const { siteUrl, topnav, tools } = data.site!.siteMetadata!;
+  const showShadow$ = useObservable((state) => {
+    return state.common.yScrollPosition > 0;
+  });
 
-  const handleHamburgerOpenClick = () => {
+  const handleHamburgerOpenClick = useCallback(() => {
     setTopNavOpen(true);
-  };
+  }, [setTopNavOpen]);
 
-  const handleHamburgerCloseClick = () => {
+  const handleHamburgerCloseClick = useCallback(() => {
     setTopNavOpen(false);
-  };
+  }, [setTopNavOpen]);
+
+  useEffect(() => {
+    const classes = containerRef.current?.className ?? "";
+
+    const subscription = showShadow$.subscribe((showShadow) => {
+      if (containerRef.current) {
+        containerRef.current.className =
+          classes + (showShadow ? " shadow" : "");
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [showShadow$]);
 
   return (
-    <Container enableShadow={showShadow}>
+    <Container ref={containerRef}>
       <BodyStyle disableScrolling={topNavOpen} />
       <ContainerWrapper>
         <LogoLink to="/">
@@ -109,15 +129,17 @@ export const Header: FunctionComponent = () => {
   );
 };
 
-const Container = styled.header<{ enableShadow: boolean }>`
+const Container = styled.header`
   position: fixed;
   z-index: 30;
   width: 100vw;
   height: 60px;
   background-color: var(--brand-color);
-  ${({ enableShadow }) =>
-    enableShadow && "box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);"}
   transition: box-shadow 0.2s ease-in-out;
+
+  &.shadow {
+    box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
+  }
 `;
 
 const BodyStyle = createGlobalStyle<{ disableScrolling: boolean }>`

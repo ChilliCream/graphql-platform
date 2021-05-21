@@ -66,14 +66,6 @@ namespace HotChocolate.Execution.Instrumentation
         }
 
         /// <inheritdoc />
-        public virtual void ScaleTaskProcessors(
-            IRequestContext context,
-            int backlogSize,
-            int processors)
-        {
-        }
-
-        /// <inheritdoc />
         public virtual IActivityScope ExecuteSubscription(
             ISubscription subscription) =>
             EmptyScope;

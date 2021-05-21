@@ -8,7 +8,7 @@ namespace HotChocolate.StarWars.Types
     {
         protected override void Configure(IObjectTypeDescriptor<Human> descriptor)
         {
-            descriptor.Interface<CharacterType>();
+            descriptor.Implements<CharacterType>();
 
             descriptor.Field(t => t.Id).Type<NonNullType<IdType>>();
             descriptor.Field(f => f.Name).Type<NonNullType<StringType>>();

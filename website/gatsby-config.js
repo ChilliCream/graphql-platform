@@ -30,7 +30,7 @@ module.exports = {
     ],
     tools: {
       github: `https://github.com/ChilliCream/hotchocolate`,
-      slack: `https://bit.ly/join-chillicream-slack`,
+      slack: `https://bit.ly/joinchilli`,
       twitter: `https://twitter.com/Chilli_Cream`,
     },
   },
@@ -60,6 +60,10 @@ module.exports = {
               backgroundColor: "transparent",
             },
           },
+          // todo: enable and fix
+          // note: disabled for now, because # hash links are not recognized.
+          // we probably need this plugin again gatsby-remark-autolink-headers.
+          //`gatsby-remark-check-links`,
         ],
       },
     },
