@@ -1,0 +1,9 @@
+{
+  "root": {
+    "kind": "parallel",
+    "name": "resolver",
+    "selections": [1, 2, 5]
+  },
+  "document": "...",
+  "operation": "GetSessions"
+}

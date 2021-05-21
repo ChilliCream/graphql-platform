@@ -78,7 +78,7 @@ namespace HotChocolate
         /// <c>true</c>, if a type with the name exists and is of the specified
         /// kind, <c>false</c> otherwise.
         /// </returns>
-        bool TryGetType<T>(NameString typeName, [NotNullWhen(true)]out T type)
+        bool TryGetType<T>(NameString typeName, [MaybeNullWhen(false)] out T type)
             where T : INamedType;
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace HotChocolate
         /// <c>true</c>, if a .net type was found that was bound
         /// the specified schema type, <c>false</c> otherwise.
         /// </returns>
-        bool TryGetRuntimeType(NameString typeName, [NotNullWhen(true)]out Type? runtimeType);
+        bool TryGetRuntimeType(NameString typeName, [MaybeNullWhen(false)]out Type? runtimeType);
 
         /// <summary>
         /// Gets the possible object types to

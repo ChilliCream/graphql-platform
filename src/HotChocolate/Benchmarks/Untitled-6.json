@@ -1,0 +1,47 @@
+{
+  "root": {
+    "kind": "serial",
+    "name": "batch",
+    "tasks": [
+      {
+        "kind": "serial",
+        "name": "Data",
+        "exports": [
+          {
+            "trackId": "sessions",
+            "kind": "List"
+          }
+        ]
+      },
+      {
+        "kind": "parallel",
+        "name": "neo4J-fetch",
+        "query": "MATCH",
+        "imports": [
+          {
+            "contextData": "__internal.1.sessions.tracks",
+            "skipIfNull": true,
+            "skipIfEmpty": true
+          }
+        ],
+        "exports": [
+          {
+            "trackId": "__internal.2.tracks",
+            "kind": "List"
+          }
+        ]
+      },
+      {
+        "kind": "parallel",
+        "name": "resolver",
+        "selections": ["sessions", "sessions.nodes" ]
+      }
+    ]
+  },
+  "document": "...",
+  "operation": "GetSessions",
+  "context": {
+      "__internal.1": "[Sessions]",
+      "__internal.2": "[TrackById]"
+  }
+}

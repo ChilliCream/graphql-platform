@@ -128,6 +128,14 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
+        public void ScaleTaskProcessors(IRequestContext context, int backlogSize, int processors)
+        {
+            for (var i = 0; i < _listeners.Length; i++)
+            {
+                _listeners[i].ScaleTaskProcessors(context, backlogSize, processors);
+            }
+        }
+
         public IActivityScope ExecuteSubscription(ISubscription subscription)
         {
             var scopes = new IActivityScope[_listeners.Length];

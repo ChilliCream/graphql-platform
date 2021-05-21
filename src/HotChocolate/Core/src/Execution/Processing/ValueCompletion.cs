@@ -1,39 +1,37 @@
-using System;
-using System.Collections;
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 using static HotChocolate.Execution.ErrorHelper;
 
 namespace HotChocolate.Execution.Processing
 {
-    internal static class ValueCompletion
+    internal static partial class ValueCompletion
     {
         public static bool TryComplete(
             IOperationContext operationContext,
-            IMiddlewareContext middlewareContext,
+            MiddlewareContext resolverContext,
+            ISelection selection,
             Path path,
             IType fieldType,
+            string responseName,
+            int responseIndex,
             object? result,
             out object? completedResult)
         {
-            if (fieldType.IsNonNullType())
+            TypeKind typeKind = fieldType.Kind;
+
+            if (typeKind is TypeKind.NonNull)
             {
-                if (TryComplete(
+                return TryComplete(
                     operationContext,
-                    middlewareContext,
+                    resolverContext,
+                    selection,
                     path,
                     fieldType.InnerType(),
+                    responseName,
+                    responseIndex,
                     result,
                     out completedResult) &&
-                    completedResult is { })
-                {
-                    return true;
-                }
-
-                return false;
+                    completedResult is not null;
             }
 
             if (result is null)
@@ -42,481 +40,53 @@ namespace HotChocolate.Execution.Processing
                 return true;
             }
 
-            if (fieldType.IsListType())
+            if (typeKind is TypeKind.List)
             {
-                if (TryCompleteListValue(
+                return TryCompleteListValue(
                     operationContext,
-                    middlewareContext,
+                    resolverContext,
+                    selection,
                     path,
                     fieldType,
-                    result,
-                    out IResultData? completedList))
-                {
-                    completedResult = completedList;
-                    return true;
-                }
-
-                completedResult = null;
-                return false;
-            }
-
-            if (fieldType is ILeafType leafType)
-            {
-                return TryCompleteLeafValue(
-                    operationContext,
-                    middlewareContext,
-                    path,
-                    leafType,
+                    responseName,
+                    responseIndex,
                     result,
                     out completedResult);
             }
 
-            if (fieldType.IsCompositeType())
+            if (typeKind is TypeKind.Scalar or TypeKind.Enum)
             {
-                if (TryCompleteCompositeValue(
+                return TryCompleteLeafValue(
                     operationContext,
-                    middlewareContext,
+                    resolverContext,
+                    selection,
                     path,
                     fieldType,
                     result,
-                    out ResultMap? completedResultMap))
-                {
-                    completedResult = completedResultMap;
-                    return true;
-                }
-
-                completedResult = null;
-                return false;
+                    out completedResult);
             }
 
-            middlewareContext.ReportError(
-                UnexpectedValueCompletionError(
-                    middlewareContext.Selection.SyntaxNode,
-                    path));
-
-            completedResult = null;
-            return false;
-        }
-
-        private static bool TryCompleteListValue(
-            IOperationContext operationContext,
-            IMiddlewareContext middlewareContext,
-            Path path,
-            IType fieldType,
-            object result,
-            out IResultData? completedValue)
-        {
-            IType elementType = fieldType.ElementType();
-
-            if (elementType.IsCompositeType())
+            if (typeKind is TypeKind.Object or TypeKind.Interface or TypeKind.Union)
             {
-                if (TryCompleteResultMapListValue(
+                return TryCompleteCompositeValue(
                     operationContext,
-                    middlewareContext,
+                    resolverContext,
+                    selection,
                     path,
-                    elementType,
+                    fieldType,
                     result,
-                    out ResultMapList? mapList))
-                {
-                    completedValue = mapList;
-                    return true;
-                }
+                    out completedResult);
             }
-            else if (TryCompleteResultListValue(
+
+            ReportError(
                 operationContext,
-                middlewareContext,
-                path,
-                elementType,
-                result,
-                out ResultList? list))
-            {
-                completedValue = list;
-                return true;
-            }
-
-            completedValue = null;
-            return false;
-        }
-
-        private static bool TryCompleteResultMapListValue(
-            IOperationContext operationContext,
-            IMiddlewareContext middlewareContext,
-            Path path,
-            IType elementType,
-            object result,
-            out ResultMapList? completedResult)
-        {
-            if (result is Array array)
-            {
-                completedResult = operationContext.Result.RentResultMapList();
-                completedResult.IsNullable = elementType.IsNullableType();
-
-                for (var i = 0; i < array.Length; i++)
-                {
-                    if (TryComplete(
-                        operationContext,
-                        middlewareContext,
-                        path.Append(i),
-                        elementType,
-                        array.GetValue(i),
-                        out object? completedElement) &&
-                        completedElement is ResultMap m)
-                    {
-                        m.Parent = completedResult;
-                        completedResult.Add(m);
-                    }
-                    else if (completedResult.IsNullable)
-                    {
-                        completedResult.Add(null);
-                    }
-                    else
-                    {
-                        completedResult = null;
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
-            if (result is IList list)
-            {
-                completedResult = operationContext.Result.RentResultMapList();
-                completedResult.IsNullable = elementType.IsNullableType();
-
-                for (var i = 0; i < list.Count; i++)
-                {
-                    if (TryComplete(
-                            operationContext,
-                            middlewareContext,
-                            path.Append(i),
-                            elementType,
-                            list[i],
-                            out object? completedElement) &&
-                        completedElement is ResultMap m)
-                    {
-                        m.Parent = completedResult;
-                        completedResult.Add(m);
-                    }
-                    else if (completedResult.IsNullable)
-                    {
-                        completedResult.Add(null);
-                    }
-                    else
-                    {
-                        completedResult = null;
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
-            if (result is IEnumerable enumerable)
-            {
-                var index = 0;
-                completedResult = operationContext.Result.RentResultMapList();
-                completedResult.IsNullable = elementType.IsNullableType();
-
-                foreach (object? element in enumerable)
-                {
-                    if (TryComplete(
-                            operationContext,
-                            middlewareContext,
-                            path.Append(index++),
-                            elementType,
-                            element,
-                            out object? completedElement) &&
-                        completedElement is ResultMap m)
-                    {
-                        m.Parent = completedResult;
-                        completedResult.Add(m);
-                    }
-                    else if (completedResult.IsNullable)
-                    {
-                        completedResult.Add(null);
-                    }
-                    else
-                    {
-                        completedResult = null;
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
-            middlewareContext.ReportError(
-                ListValueIsNotSupported(
-                    result.GetType(),
-                    middlewareContext.Selection.SyntaxNode,
-                    path));
-            completedResult = null;
-            return false;
-        }
-
-        private static bool TryCompleteResultListValue(
-           IOperationContext operationContext,
-           IMiddlewareContext middlewareContext,
-           Path path,
-           IType elementType,
-           object result,
-           out ResultList? completedResult)
-        {
-            var isElementList = elementType.IsListType();
-
-            if (result is Array array)
-            {
-                completedResult = operationContext.Result.RentResultList();
-                completedResult.IsNullable = elementType.IsNullableType();
-
-                for (var i = 0; i < array.Length; i++)
-                {
-                    if (TryComplete(
-                        operationContext,
-                        middlewareContext,
-                        path.Append(i),
-                        elementType,
-                        array.GetValue(i),
-                        out object? completedElement) &&
-                        completedElement is { } m)
-                    {
-                        completedResult.Add(m);
-                        if (isElementList)
-                        {
-                            SetParent(m, completedResult);
-                        }
-                    }
-                    else if (completedResult.IsNullable)
-                    {
-                        completedResult.Add(null);
-                    }
-                    else
-                    {
-                        completedResult = null;
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
-            if (result is IList list)
-            {
-                completedResult = operationContext.Result.RentResultList();
-                completedResult.IsNullable = elementType.IsNullableType();
-
-                for (var i = 0; i < list.Count; i++)
-                {
-                    if (TryComplete(
-                            operationContext,
-                            middlewareContext,
-                            path.Append(i),
-                            elementType,
-                            list[i],
-                            out object? completedElement) &&
-                        completedElement is { } m)
-                    {
-                        completedResult.Add(m);
-                        if (isElementList)
-                        {
-                            SetParent(m, completedResult);
-                        }
-                    }
-                    else if (completedResult.IsNullable)
-                    {
-                        completedResult.Add(null);
-                    }
-                    else
-                    {
-                        completedResult = null;
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
-            if (result is IEnumerable enumerable)
-            {
-                var index = 0;
-                completedResult = operationContext.Result.RentResultList();
-                completedResult.IsNullable = elementType.IsNullableType();
-
-                foreach (object? element in enumerable)
-                {
-                    if (TryComplete(
-                            operationContext,
-                            middlewareContext,
-                            path.Append(index++),
-                            elementType,
-                            element,
-                            out object? completedElement) &&
-                        completedElement is { } m)
-                    {
-                        completedResult.Add(m);
-                        if (isElementList)
-                        {
-                            SetParent(m, completedResult);
-                        }
-                    }
-                    else if (completedResult.IsNullable)
-                    {
-                        completedResult.Add(null);
-                    }
-                    else
-                    {
-                        completedResult = null;
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
-            middlewareContext.ReportError(
-                ListValueIsNotSupported(
-                    result.GetType(),
-                    middlewareContext.Selection.SyntaxNode,
-                    path));
-            completedResult = null;
-            return false;
-        }
-
-        private static void SetParent(object value, IResultData parentList)
-        {
-            if (value is IHasResultDataParent result)
-            {
-                result.Parent = parentList;
-            }
-        }
-
-        private static bool TryCompleteLeafValue(
-            IOperationContext operationContext,
-            IMiddlewareContext middlewareContext,
-            Path path,
-            ILeafType fieldType,
-            object result,
-            out object? completedResult)
-        {
-            try
-            {
-                if (!fieldType.RuntimeType.IsInstanceOfType(result) &&
-                    operationContext.Converter.TryConvert(fieldType.RuntimeType, result, out var c))
-                {
-                    result = c;
-                }
-                completedResult = fieldType.Serialize(result);
-                return true;
-            }
-            catch (SerializationException ex)
-            {
-                middlewareContext.ReportError(
-                    InvalidLeafValue(
-                        ex,
-                        middlewareContext.Selection.SyntaxNode,
-                        path));
-            }
-            catch (Exception ex)
-            {
-                middlewareContext.ReportError(
-                    UnexpectedLeafValueSerializationError(
-                        ex,
-                        operationContext.ErrorHandler,
-                        middlewareContext.Selection.SyntaxNode,
-                        path));
-            }
+                resolverContext,
+                selection,
+                UnexpectedValueCompletionError(selection.SyntaxNode, path));
 
             completedResult = null;
-            return true;
-        }
-
-        private static bool TryCompleteCompositeValue(
-            IOperationContext operationContext,
-            IMiddlewareContext middlewareContext,
-            Path path,
-            IType fieldType,
-            object result,
-            [NotNullWhen(true)] out ResultMap? completedResult)
-        {
-            if (TryResolveObjectType(
-                middlewareContext, path, fieldType, result,
-                out ObjectType? objectType))
-            {
-                SelectionSetNode selectionSet =
-                    middlewareContext.Selection.SyntaxNode.SelectionSet!;
-
-                ISelectionSet selections =
-                    operationContext.CollectFields(selectionSet, objectType);
-
-                completedResult = selections.EnqueueResolverTasks(
-                    operationContext,
-                    path,
-                    middlewareContext.ScopedContextData,
-                    result);
-                return true;
-            }
-
-            middlewareContext.ReportError(
-                ValueCompletion_CouldNotResolveAbstractType(
-                    middlewareContext.Selection.SyntaxNode,
-                    path,
-                    result));
-            completedResult = null;
             return false;
         }
 
-        private static bool TryResolveObjectType(
-            IMiddlewareContext middlewareContext,
-            Path path,
-            IType fieldType,
-            object result,
-            [NotNullWhen(true)] out ObjectType? objectType)
-        {
-            try
-            {
-                if (middlewareContext.ValueType is ObjectType vot)
-                {
-                    objectType = vot;
-                    return true;
-                }
-
-                if (fieldType is ObjectType ot)
-                {
-                    objectType = ot;
-                    return true;
-                }
-
-                if (fieldType is InterfaceType it)
-                {
-                    objectType = it.ResolveConcreteType(middlewareContext, result);
-                    return objectType is { };
-                }
-
-                if (fieldType is UnionType ut)
-                {
-                    objectType = ut.ResolveConcreteType(middlewareContext, result);
-                    return objectType is { };
-                }
-
-                middlewareContext.ReportError(
-                    UnableToResolveTheAbstractType(
-                        fieldType.Print(),
-                        middlewareContext.Selection.SyntaxNode,
-                        path));
-            }
-            catch (Exception ex)
-            {
-                middlewareContext.ReportError(
-                    UnexpectedErrorWhileResolvingAbstractType(
-                        ex,
-                        fieldType.Print(),
-                        middlewareContext.Selection.SyntaxNode,
-                        path));
-            }
-
-            objectType = null;
-            return false;
-        }
     }
 }

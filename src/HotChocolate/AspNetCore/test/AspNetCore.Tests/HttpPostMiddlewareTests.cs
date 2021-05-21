@@ -31,6 +31,21 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
+        public async Task Include_Query_Plan()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientQueryResult result = await server.PostAsync(
+                new ClientQueryRequest { Query = "{ __typename }" },
+                includeQueryPlan: true);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task Serialize_Payload_With_Whitespaces()
         {
             // arrange

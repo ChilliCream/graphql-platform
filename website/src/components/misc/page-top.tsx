@@ -56,12 +56,10 @@ const JumpToTop = styled.button`
   &:hover {
     opacity: 1;
   }
-
   svg {
     width: 30px;
     height: 30px;
   }
-
   @media only screen and (min-width: 1600px) {
     right: calc(((100vw - 1320px) / 2) - 100px);
   }

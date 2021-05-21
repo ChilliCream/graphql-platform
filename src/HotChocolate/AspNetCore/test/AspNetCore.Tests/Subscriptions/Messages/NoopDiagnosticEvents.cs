@@ -41,6 +41,10 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         {
         }
 
+        public void ScaleTaskProcessors(IRequestContext context, int backlogSize, int processors)
+        {
+        }
+
         public IActivityScope ExecuteSubscription(ISubscription subscription) => this;
 
         public IActivityScope OnSubscriptionEvent(SubscriptionEventContext context) => this;

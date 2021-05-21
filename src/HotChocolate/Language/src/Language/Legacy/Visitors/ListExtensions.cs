@@ -36,7 +36,7 @@ namespace HotChocolate.Language
             return list[lastIndex];
         }
 
-        public static bool TryPeek<T>(this IList<T> list, [NotNullWhen(true)]out T item)
+        public static bool TryPeek<T>(this IList<T> list, [MaybeNullWhen(false)] out T item)
         {
             if (list.Count > 0)
             {
@@ -45,11 +45,27 @@ namespace HotChocolate.Language
                 return true;
             }
 
-            item = default!;
+            item = default;
             return false;
         }
 
-        public static T PeekOrDefault<T>(this IList<T> list, T defaultValue = default!)
+        public static bool TryPeek<T>(
+            this IList<T> list,
+            int elements,
+            [MaybeNullWhen(false)] out T item)
+        {
+            if (list.Count >= elements)
+            {
+                var lastIndex = list.Count - elements;
+                item = list[lastIndex]!;
+                return true;
+            }
+
+            item = default;
+            return false;
+        }
+
+        public static T? PeekOrDefault<T>(this IList<T> list, T? defaultValue = default)
         {
             if (list.Count > 0)
             {

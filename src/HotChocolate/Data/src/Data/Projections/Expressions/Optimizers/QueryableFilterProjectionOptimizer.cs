@@ -31,6 +31,7 @@ namespace HotChocolate.Data.Projections.Handlers
             resolverPipeline = WrappedPipeline(resolverPipeline);
 
             var compiledSelection = new Selection(
+                context.GetNextId(),
                 context.Type,
                 selection.Field,
                 selection.SyntaxNode,

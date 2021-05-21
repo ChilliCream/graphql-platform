@@ -17,9 +17,6 @@ namespace HotChocolate.Execution.Processing
         /// </summary>
         string Id { get; }
 
-        // TODO : we might want to move this into the execution plan.
-        int ProposedTaskCount { get; }
-
         /// <summary>
         /// Gets the prepared root selections for this operation.
         /// </summary>

@@ -1,13 +1,13 @@
 ﻿{
   ... on Query {
-    root {
+    root @__execute(id: 0, kind: DEFAULT, type: COMPOSITE) {
       ... on Foo {
-        bar {
+        bar @__execute(id: 1, kind: INLINE, type: COMPOSITE) {
           ... on Bar {
-            text
-            baz @_internal {
+            text @__execute(id: 2, kind: INLINE, type: LEAF)
+            baz @__execute(id: 3, kind: DEFAULT, type: COMPOSITE, internal: true) {
               ... on Baz {
-                text @_internal
+                text @__execute(id: 4, kind: INLINE, type: LEAF, internal: true)
               }
             }
           }

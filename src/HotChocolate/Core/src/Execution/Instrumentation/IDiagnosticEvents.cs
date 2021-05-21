@@ -139,6 +139,75 @@ namespace HotChocolate.Execution.Instrumentation
         /// </param>
         void TaskError(IExecutionTask task, IError error);
 
+        /// This event is called when the request execution pipeline scales
+        /// the task processors up or down.
+        /// </summary>
+        /// <param name="context">
+        /// The request that is being executed.
+        /// </param>
+        /// <param name="backlogSize">
+        /// The current backlog size.
+        /// </param>
+        /// <param name="processors">
+        /// The new processor count.
+        /// </param>
+        void ScaleTaskProcessors(IRequestContext context, int backlogSize, int processors);
+
+        /// <summary>
+        /// Called when a subscription was created.
+        /// </summary>
+        /// <param name="subscription">
+        /// The subscription object.
+        /// </param>
+        /// <returns>
+        /// A scope that will be disposed when the subscription has completed.
+        /// </returns>
+        IActivityScope ExecuteSubscription(ISubscription subscription);
+
+        /// <summary>
+        /// Called when an event was raised and a new subscription result is being produced.
+        /// </summary>
+        /// <param name="context">
+        /// The subscription event context.
+        /// </param>
+        /// <returns>
+        /// A scope that will be disposed when the subscription event execution has completed.
+        /// </returns>
+        IActivityScope OnSubscriptionEvent(SubscriptionEventContext context);
+
+        /// <summary>
+        /// Called when a result for a specific subscription event was produced.
+        /// </summary>
+        /// <param name="context">
+        /// The subscription event context.
+        /// </param>
+        /// <param name="result">
+        /// The subscription result that is being written to the response stream.
+        /// </param>
+        void SubscriptionEventResult(SubscriptionEventContext context, IQueryResult result);
+
+        /// <summary>
+        /// Called when an error occured while producing the subscription event result.
+        /// </summary>
+        /// <param name="context">
+        /// The subscription event context.
+        /// </param>
+        /// <param name="exception">
+        /// The exception that occured.
+        /// </param>
+        void SubscriptionEventError(SubscriptionEventContext context, Exception exception);
+
+        /// <summary>
+        /// Called when an error occurred while producing the subscription event result.
+        /// </summary>
+        /// <param name="subscription">
+        /// The subscription object.
+        /// </param>
+        /// <param name="exception">
+        /// The exception that occurred.
+        /// </param>
+        void SubscriptionTransportError(ISubscription subscription, Exception exception);
+
         /// <summary>
         /// Called when a subscription was created.
         /// </summary>

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Properties;
+using HotChocolate.Resolvers.CodeGeneration;
 using HotChocolate.Resolvers.Expressions.Parameters;
 
 #nullable enable
@@ -60,8 +61,8 @@ namespace HotChocolate.Resolvers.Expressions
             }
         }
 
-        public static SubscribeCompiler Subscribe { get; } = new SubscribeCompiler();
+        public static SubscribeCompiler Subscribe { get; } = new();
 
-        public static ResolveCompiler Resolve { get; } = new ResolveCompiler();
+        public static ResolveCompiler Resolve { get; } = new();
     }
 }

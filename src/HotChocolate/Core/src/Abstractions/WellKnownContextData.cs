@@ -47,5 +47,10 @@ namespace HotChocolate
         public const string SkipComplexityAnalysis = "HotChocolate.Execution.NoComplexityAnalysis";
         public const string OperationComplexity = "HotChocolate.Execution.OperationComplexity";
         public const string MaximumAllowedComplexity = "HotChocolate.Execution.AllowedComplexity";
+
+        /// <summary>
+        /// Includes the query plan into the response.
+        /// </summary>
+        public const string IncludeQueryPlan = "HotChocolate.Execution.EmitQueryPlan";
     }
 }
