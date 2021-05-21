@@ -30,7 +30,9 @@ export const TabGroupProvider: FC = ({ children }) => {
   const [groups, setGroups] = useState<GroupMap>({});
 
   const handleSetGroup: SetGroup = (groupId, value) => {
-    if (groups[groupId] === value) return;
+    if (groups[groupId] === value) {
+      return;
+    }
 
     setGroups({ ...groups, [groupId]: value });
 
@@ -53,9 +55,11 @@ export function useActiveTab(
   groupId?: string
 ): TabGroupReturn {
   const { groups, setGroup } = useContext(TabGroupContext);
-  const [activeTab, setActiveTab] = useState(defaultValue);
+  const localTabState = useState(defaultValue);
 
-  if (!groupId) return [activeTab, setActiveTab];
+  if (!groupId) {
+    return localTabState;
+  }
 
   const activeGroupTab = useMemo(() => {
     let value: string | null | undefined = groups[groupId];
