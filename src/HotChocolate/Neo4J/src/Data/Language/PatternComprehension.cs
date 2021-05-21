@@ -12,43 +12,45 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class PatternComprehension : Expression
     {
-        private readonly IPatternElement _patternElement;
-        private readonly Where? _where;
-        private readonly Expression? _expression;
-
         public PatternComprehension(
             IPatternElement patternElement,
             Where? where,
             Expression? expression)
         {
-            _patternElement = patternElement;
-            _where = where;
-            _expression = expression;
+            PatternElement = patternElement;
+            Where = where;
+            Expression = expression;
         }
 
         public PatternComprehension(IPatternElement patternElement, Expression? expression)
         {
-            _patternElement = patternElement;
-            _where = null;
-            _expression = expression;
+            PatternElement = patternElement;
+            Where = null;
+            Expression = expression;
         }
 
         public PatternComprehension(IPatternElement patternElement)
         {
-            _patternElement = patternElement;
-            _where = null;
-            _expression = null;
+            PatternElement = patternElement;
+            Where = null;
+            Expression = null;
         }
 
         public override ClauseKind Kind => ClauseKind.PatternComprehension;
 
+        public IPatternElement PatternElement { get;}
+
+        public Where? Where { get;}
+
+        public Expression? Expression { get;}
+
         public override void Visit(CypherVisitor cypherVisitor)
         {
             cypherVisitor.Enter(this);
-            _patternElement.Visit(cypherVisitor);
-            _where?.Visit(cypherVisitor);
+            PatternElement.Visit(cypherVisitor);
+            Where?.Visit(cypherVisitor);
             Operator.Pipe.Visit(cypherVisitor);
-            _expression?.Visit(cypherVisitor);
+            Expression?.Visit(cypherVisitor);
             cypherVisitor.Leave(this);
         }
     }

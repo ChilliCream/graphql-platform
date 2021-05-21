@@ -8,31 +8,34 @@
     /// </summary>
     public class ProjectionBody : Visitable
     {
-        private readonly ExpressionList _returnItems;
-        private readonly OrderBy? _order;
-        private readonly Skip? _skip;
-        private readonly Limit? _limit;
-
         public ProjectionBody(
             ExpressionList returnItems,
-            OrderBy? order,
+            OrderBy? orderBy,
             Skip? skip,
             Limit? limit)
         {
-            _returnItems = returnItems;
-            _order = order;
-            _skip = skip;
-            _limit = limit;
+            ReturnItems = returnItems;
+            OrderBy = orderBy;
+            Skip = skip;
+            Limit = limit;
         }
 
         public override ClauseKind Kind => ClauseKind.ProjectionBody;
 
+        public ExpressionList ReturnItems { get; }
+
+        public OrderBy? OrderBy { get; }
+
+        public Skip? Skip { get; }
+
+        public Limit? Limit { get; }
+
         public new void Visit(CypherVisitor cypherVisitor)
         {
-            _returnItems.Visit(cypherVisitor);
-            _order?.Visit(cypherVisitor);
-            _skip?.Visit(cypherVisitor);
-            _limit?.Visit(cypherVisitor);
+            ReturnItems.Visit(cypherVisitor);
+            OrderBy?.Visit(cypherVisitor);
+            Skip?.Visit(cypherVisitor);
+            Limit?.Visit(cypherVisitor);
         }
     }
 }

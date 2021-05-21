@@ -11,6 +11,5 @@ namespace HotChocolate.Data.Neo4J.Language
         public abstract List<string> GetParameterNames();
 
         public static StatementBuilder Builder() => new();
-
     }
 }

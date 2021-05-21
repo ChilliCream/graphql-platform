@@ -8,46 +8,60 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class Operation : Expression
     {
-        private readonly Expression _left;
-        private readonly Operator _op;
-        private readonly Visitable _right;
-
         private static readonly IReadOnlyList<Operator> _labelOperators =
-            new []{ Operator.SetLabel, Operator.RemoveLabel };
+            new[]
+            {
+                Operator.SetLabel,
+                Operator.RemoveLabel
+            };
 
         private static readonly IReadOnlyList<Operator> _dontGroup =
-            new [] { Operator.Exponent, Operator.Pipe };
+            new[]
+            {
+                Operator.Exponent,
+                Operator.Pipe
+            };
 
         private static readonly IReadOnlyList<OperatorType> _needsGroupingByType =
-            new [] { OperatorType.Property, OperatorType.Label };
+            new[]
+            {
+                OperatorType.Property,
+                OperatorType.Label
+            };
 
-        public Operation(Expression left, Operator op, Expression right)
+        public Operation(Expression left, Operator @operator, Expression right)
         {
-            _left = left;
-            _op = op;
-            _right = right;
+            Left = left;
+            Operator = @operator;
+            Right = right;
         }
 
-        public Operation(Expression left, Operator op, NodeLabels right)
+        public Operation(Expression left, Operator @operator, NodeLabels right)
         {
-            _left = left;
-            _op = op;
-            _right = right;
+            Left = left;
+            Operator = @operator;
+            Right = right;
         }
 
         public override ClauseKind Kind => ClauseKind.Operation;
 
-        public bool NeedsGrouping() =>
-            _needsGroupingByType.Contains(_op.Type) && !_dontGroup.Contains(_op);
+        public Expression Left { get; }
+
+        public Operator Operator { get; }
+
+        public Visitable Right { get; }
 
         public override void Visit(CypherVisitor cypherVisitor)
         {
             cypherVisitor.Enter(this);
-            Expressions.NameOrExpression(_left).Visit(cypherVisitor);
-            _op.Visit(cypherVisitor);
-            _right.Visit(cypherVisitor);
+            Expressions.NameOrExpression(Left).Visit(cypherVisitor);
+            Operator.Visit(cypherVisitor);
+            Right.Visit(cypherVisitor);
             cypherVisitor.Leave(this);
         }
+
+        public bool NeedsGrouping() =>
+            _needsGroupingByType.Contains(Operator.Type) && !_dontGroup.Contains(Operator);
 
         public static Operation Create(Expression op1, Operator op, Expression op2)
         {

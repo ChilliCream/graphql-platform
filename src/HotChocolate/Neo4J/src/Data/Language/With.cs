@@ -1,13 +1,13 @@
 namespace HotChocolate.Data.Neo4J.Language
 {
     /// <summary>
-    /// <see href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/With.html" />
+    /// See
+    /// <a href="https://s3.amazonaws.com/artifacts.opencypher.org/railroad/With.html" >
+    /// With
+    /// </a>
     /// </summary>
     public class With : Visitable
     {
-        private readonly ProjectionBody _body;
-        private readonly Where _where;
-
         public With(
             ExpressionList returnItems,
             OrderBy orderBy,
@@ -15,17 +15,21 @@ namespace HotChocolate.Data.Neo4J.Language
             Limit limit,
             Where where)
         {
-            _body = new ProjectionBody(returnItems, orderBy, skip, limit);
-            _where = where;
+            Body = new ProjectionBody(returnItems, orderBy, skip, limit);
+            Where = where;
         }
 
         public override ClauseKind Kind => ClauseKind.With;
 
+        public ProjectionBody Body { get; }
+
+        public Where Where { get; }
+
         public override void Visit(CypherVisitor cypherVisitor)
         {
             cypherVisitor.Enter(this);
-            _body.Visit(cypherVisitor);
-            _where?.Visit(cypherVisitor);
+            Body.Visit(cypherVisitor);
+            Where?.Visit(cypherVisitor);
             cypherVisitor.Leave(this);
         }
     }

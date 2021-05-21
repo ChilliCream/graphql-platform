@@ -6,7 +6,7 @@ using ServiceStack;
 
 namespace HotChocolate.Data.Neo4J
 {
-    public static class ValueMapper
+    internal static class ValueMapper
     {
         public static T MapValue<T>(object cypherValue)
         {

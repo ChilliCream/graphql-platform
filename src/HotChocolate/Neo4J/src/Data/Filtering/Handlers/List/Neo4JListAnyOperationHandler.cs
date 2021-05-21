@@ -3,6 +3,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Language;
+using static HotChocolate.Data.Filters.DefaultFilterOperations;
 
 namespace HotChocolate.Data.Neo4J.Filtering
 {
@@ -21,8 +22,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
             IFilterFieldDefinition fieldDefinition)
         {
             return context.Type is IListFilterInputType &&
-                fieldDefinition is FilterOperationFieldDefinition
-                    { Id: DefaultFilterOperations.Any };
+                fieldDefinition is FilterOperationFieldDefinition { Id: Any };
         }
 
         /// <inheritdoc />
