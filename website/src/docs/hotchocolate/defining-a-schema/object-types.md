@@ -252,7 +252,7 @@ type BookAuthor {
 
 # Explicit types
 
-Hot Chocolate will most of the type correctly infer the schema types of our fields. Sometimes we might have to be explicit about it though, for example when we are working with custom scalars.
+Hot Chocolate will, most of the time, correctly infer the schema types of our fields. Sometimes we might have to be explicit about it though, for example when we are working with custom scalars.
 
 We can define explicit schema types like the following.
 
@@ -318,7 +318,7 @@ public class Author
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
-In the Code-first approach we can use the `Type<T>` method on the `IObjectFieldDescriptor`.
+In the Code-first approach we can use the `Resolve` method on the `IObjectFieldDescriptor`.
 
 ```csharp
 public class AuthorType : ObjectType<Author>

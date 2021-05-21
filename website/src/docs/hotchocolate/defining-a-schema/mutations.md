@@ -4,7 +4,7 @@ title: "Mutations"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-The mutation type in GraphQL is used to mutate/change data. This means that when we are doing mutations, we are causing side-effects to the system.
+The mutation type in GraphQL is used to mutate/change data. This means that when we are doing mutations, we are intending to cause side-effects in the system.
 
 GraphQL defines mutations as top-level fields on the mutation type. Meaning only the fields on the mutation root type itself are mutations. Everything that is returned from a mutation field represents the changed state of the server.
 
@@ -33,7 +33,7 @@ mutation {
 }
 ```
 
-Each of these mutations is executed serially one by one whereas their child selection sets are executed possibly in parallel since only the top-level mutation fields are allowed to have side-effects in GraphQL.
+Each of these mutations is executed serially one by one whereas their child selection sets are executed possibly in parallel since only top-level mutation fields (those directly under `mutation`) are allowed to cause side-effects in GraphQL.
 
 # Usage
 
@@ -138,7 +138,7 @@ public class Startup
 
 # Transactions
 
-With multiple mutations executed serially in one request it sometimes would be great to put these into a transactions scope that we can control.
+With multiple mutations executed serially in one request it can be useful to wrap these in a transaction that we can control.
 
 Hot Chocolate provides for this the `ITransactionScopeHandler` which is used by the operation execution middleware to create transaction scopes for mutation requests.
 

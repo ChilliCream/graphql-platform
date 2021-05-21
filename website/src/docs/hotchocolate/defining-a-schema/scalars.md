@@ -13,7 +13,7 @@ Scalars are leaf types, meaning we cannot use e.g. `{ fieldname }` to further dr
 A scalar must only know how to serialize and deserialize the value of the field.
 GraphQL gives us the freedom to define custom scalar types.
 This makes them the perfect tool for expressive value types.
-We could for example create a scalar for `CreditCardNumber` or `NonEmptyString`.
+We could, for example, create a scalar for `CreditCardNumber` or `NonEmptyString`.
 
 The GraphQL specification defines the following scalars
 
@@ -252,7 +252,7 @@ public class Startup
 HotChocolate converts .Net types to match the types supported by the scalar of the field.
 By default, all standard .Net types have converters registered.
 We can register converters and reuse the built-in scalar types.
-In case we use a non-standard library, e.g. [Noda Time](https://nodatime.org/), we can register a converter and use the standard `DateTimeType`.
+In case we use a non-standard library, e.g. [NodaTime](https://nodatime.org/), we can register a converter and use the standard `DateTimeType`.
 
 ```csharp
 public class Query

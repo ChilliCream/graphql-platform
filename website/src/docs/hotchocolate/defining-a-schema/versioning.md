@@ -9,7 +9,7 @@ Whilst we could version our GraphQL API similar to REST, i.e. `/graphql/v1`, it 
 Many changes to a GraphQL schema are non-breaking. We can freely add new types and extend existing types with new fields. This does not break existing queries.
 However removing a field or changing its nullability does.
 
-Instead of removing a field immediatly and possibly breaking existing queries, GraphQL allows you to mark fields as deprecated. This signals to API consumers that the field will be removed in the future and they can adapt their queries to this change.
+Instead of removing a field immediately and possibly breaking existing consumers of our API, fields can be marked as deprecated in our schema. This signals to consumers that the field will be removed in the future and they need to adapt before then.
 
 ```sdl
 type Query {
@@ -73,3 +73,5 @@ services
 
 </ExampleTabs.Schema>
 </ExampleTabs>
+
+> Note: It is currently not possible to deprecate input values, such as arguments.

@@ -198,7 +198,7 @@ public class Mutation
 
 In the example the `"BookAdded"` is the topic we want to publish to, and `book` is our payload. Even though we have used a string as the topic, we do not have to. Any other type works just fine.
 
-But where is the connection between `"BookAdded"` as a topic and the subscription type? Per default HotChocolate will try to map the topic to a field of the subscription type. If we want to make this binding less error-prone, we could do the following.
+But where is the connection between `"BookAdded"` as a topic and the subscription type? By default, HotChocolate will try to map the topic to a field of the subscription type. If we want to make this binding less error-prone, we could do the following.
 
 ```csharp
 await sender.SendAsync(nameof(Subscription.BookAdded), book);

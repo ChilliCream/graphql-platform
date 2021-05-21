@@ -6,7 +6,7 @@ import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
 In GraphQL we distinguish between input- and output-types. We already learned about [object types](/docs/hotchocolate/defining-a-schema/object-types) which are the most prominent output-type and let us consume data. Further, we used simple [scalars](/docs/hotchocolate/defining-a-schema/scalars) like `String` to pass data into a field as an argument. GraphQL defines input object types in order to define complex structures of raw data that can be used as input data.
 
-Input object type definitions differ from object types only in the used keyword and in that fields can not have arguments.
+Input object type definitions differ from object types only in the used keyword and in that their fields can not have arguments.
 
 ```sdl
 input BookInput {
