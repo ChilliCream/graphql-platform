@@ -45,7 +45,7 @@ dotnet tool install NSwag.ConsoleCore --version 13.10.9
 You then have to get the `swagger.json` from your REST endpoint
 
 ```bash
-curl http://localhost:5000/swagger/v1/swagger.json > swagger.json
+curl -o swagger.json http://localhost:5000/swagger/v1/swagger.json
 ```
 
 Now you can generate the client from the `swagger.json`.
