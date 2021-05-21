@@ -1,3 +1,9 @@
+HotChocolate.Configuration.IReadOnlySchemaOptions.AllowInlining.get -> bool
+HotChocolate.Configuration.IReadOnlySchemaOptions.DefaultResolverStrategy.get -> HotChocolate.Execution.ExecutionStrategy
+HotChocolate.Configuration.ISchemaOptions.AllowInlining.get -> bool
+HotChocolate.Configuration.ISchemaOptions.AllowInlining.set -> void
+HotChocolate.Configuration.ReadOnlySchemaOptions.AllowInlining.get -> bool
+HotChocolate.Configuration.ReadOnlySchemaOptions.DefaultResolverStrategy.get -> HotChocolate.Execution.ExecutionStrategy
 HotChocolate.Resolvers.FieldResolver.FieldResolver(HotChocolate.NameString typeName, HotChocolate.NameString fieldName, HotChocolate.Resolvers.FieldResolverDelegate! resolver, HotChocolate.Resolvers.PureFieldResolverDelegate? pureResolver = null) -> void
 HotChocolate.Resolvers.FieldResolver.PureResolver.get -> HotChocolate.Resolvers.PureFieldResolverDelegate?
 HotChocolate.SchemaBuilder
@@ -6,6 +12,7 @@ HotChocolate.Types.IObjectField.InlineResolver.get -> HotChocolate.Resolvers.Inl
 HotChocolate.Types.IObjectField.IsParallelExecutable.get -> bool
 HotChocolate.Types.IObjectField.PureResolver.get -> HotChocolate.Resolvers.PureFieldDelegate?
 HotChocolate.Types.IObjectField.Resolver.get -> HotChocolate.Resolvers.FieldResolverDelegate?
+HotChocolate.Types.IObjectFieldDescriptor.Argument(HotChocolate.NameString argumentName, System.Action<HotChocolate.Types.IArgumentDescriptor!>! argumentDescriptor) -> HotChocolate.Types.IObjectFieldDescriptor!
 HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>
 HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.BindFields(HotChocolate.Types.BindingBehavior behavior) -> HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>!
 HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.BindFieldsExplicitly() -> HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>!

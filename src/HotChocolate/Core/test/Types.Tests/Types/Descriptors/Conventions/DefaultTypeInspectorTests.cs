@@ -418,7 +418,7 @@ namespace HotChocolate.Types.Descriptors
             var typeInspector = new DefaultTypeInspector();
 
             // act
-            void Action() => typeInspector.GetType(typeof(Foo), default(bool?[])!);
+            void Action() => typeInspector.GetType(typeof(Foo), default!);
 
             // assert
             Assert.Throws<ArgumentNullException>(Action);
