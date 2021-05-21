@@ -13,8 +13,8 @@ namespace HotChocolate.Data.Neo4J.Projections
 {
     public class Neo4JFixture : Neo4jResource<Neo4JConfig>
     {
-
-        private readonly ConcurrentDictionary<(Type, object), Task<IRequestExecutor>> _cache = new();
+        private readonly ConcurrentDictionary<(Type, object), Task<IRequestExecutor>>
+            _cache = new();
 
         public Task<IRequestExecutor> GetOrCreateSchema<T>(string cypher)
             where T : class
@@ -45,7 +45,8 @@ namespace HotChocolate.Data.Neo4J.Projections
                         {
                             c.Name("Query");
                             ApplyConfigurationToFieldDescriptor(
-                                c.Field(x => x.Root).Resolver(new Neo4JExecutable<TEntity>(GetAsyncSession())));
+                                c.Field(x => x.Root)
+                                    .Resolver(new Neo4JExecutable<TEntity>(GetAsyncSession())));
                         }))
                 .UseRequest(
                     next => async context =>

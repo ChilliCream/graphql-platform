@@ -23,7 +23,8 @@ namespace HotChocolate.Data.Neo4J.Language
             var visitor = new CypherVisitor();
             Node movie = Node.Create("Movie").Named("m");
 
-            Condition condition1 = movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix"));
+            Condition condition1 =
+                movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix"));
             Condition condition2 = movie.Property("Rating").IsEqualTo(Cypher.LiteralOf(3.2));
             Condition andCondition = Condition.And(condition1, condition2);
             Where where = new(andCondition);
@@ -37,7 +38,8 @@ namespace HotChocolate.Data.Neo4J.Language
             var visitor = new CypherVisitor();
             Node movie = Node.Create("Movie").Named("m");
 
-            Condition condition1 = movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix"));
+            Condition condition1 =
+                movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix"));
             Condition condition2 = movie.Property("Rating").IsEqualTo(Cypher.LiteralOf(3.2));
             Condition andCondition = Condition.Or(condition1, condition2);
             Where where = new(andCondition);
@@ -51,7 +53,8 @@ namespace HotChocolate.Data.Neo4J.Language
             var visitor = new CypherVisitor();
             Node movie = Node.Create("Movie").Named("m");
 
-            Condition condition1 = movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix"));
+            Condition condition1 =
+                movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix"));
             Condition condition2 = movie.Property("Rating").IsEqualTo(Cypher.LiteralOf(3.2));
             Condition andCondition = Condition.XOr(condition1, condition2);
             Where where = new(andCondition);
@@ -67,7 +70,8 @@ namespace HotChocolate.Data.Neo4J.Language
 
             Node bike = Node.Create("Bike").Named("b");
 
-            Condition condition1 = movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix"));
+            Condition condition1 =
+                movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix"));
             Condition condition2 = movie.Property("Rating").IsEqualTo(Cypher.LiteralOf(3.2));
             Condition condition3 = bike.Property("Broken").IsEqualTo(Cypher.LiteralTrue());
             Condition orCondition = Condition.Or(condition1, condition2);
@@ -83,7 +87,8 @@ namespace HotChocolate.Data.Neo4J.Language
             var visitor = new CypherVisitor();
             Node movie = Node.Create("Movie").Named("m");
 
-            Condition condition1 = movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix"));
+            Condition condition1 =
+                movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix"));
             Condition condition2 = movie.Property("Rating").IsEqualTo(Cypher.LiteralOf(3.2));
             Condition compoundCondition = condition1.And(condition2);
             Where where = new(compoundCondition);
@@ -97,7 +102,8 @@ namespace HotChocolate.Data.Neo4J.Language
             var visitor = new CypherVisitor();
             Node movie = Node.Create("Movie").Named("m");
 
-            Condition condition1 = movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix"));
+            Condition condition1 =
+                movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix"));
             Condition condition2 = movie.Property("Rating").IsEqualTo(Cypher.LiteralOf(3.2));
             Condition compoundCondition = condition1.Or(condition2);
             Where where = new(compoundCondition);
@@ -112,7 +118,8 @@ namespace HotChocolate.Data.Neo4J.Language
             Node movie = Node.Create("Movie").Named("m");
 
             Where where = new(
-                movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix"))
+                movie.Property("Title")
+                    .IsEqualTo(Cypher.LiteralOf("The Matrix"))
                     .XOr(movie.Property("Rating").IsEqualTo(Cypher.LiteralOf(3.2))));
             where.Visit(visitor);
             visitor.Print().MatchSnapshot();
@@ -125,8 +132,10 @@ namespace HotChocolate.Data.Neo4J.Language
             Node movie = Node.Create("Movie").Named("m");
 
             Where where = new(
-                movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix"))
-                    .XOr(movie.Property("Rating").IsEqualTo(Cypher.LiteralOf(3.2))
+                movie.Property("Title")
+                    .IsEqualTo(Cypher.LiteralOf("The Matrix"))
+                    .XOr(movie.Property("Rating")
+                        .IsEqualTo(Cypher.LiteralOf(3.2))
                         .And(movie.Property("Age").IsEqualTo(Cypher.LiteralOf(2)))));
             where.Visit(visitor);
             visitor.Print().MatchSnapshot();
@@ -144,7 +153,8 @@ namespace HotChocolate.Data.Neo4J.Language
             Condition property4 = movie.Property("Name").IsEqualTo(Cypher.LiteralOf("Peter"));
             Condition property5 = movie.Property("Name").IsEqualTo(Cypher.LiteralOf("Tim"));
 
-            Where where = new(property1.XOr(property2.And(property3)).Or(property4.Or(property5).Not()));
+            Where where = new(property1.XOr(property2.And(property3))
+                .Or(property4.Or(property5).Not()));
             where.Visit(visitor);
             visitor.Print().MatchSnapshot();
         }

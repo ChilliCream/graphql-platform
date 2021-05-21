@@ -18,7 +18,10 @@ namespace HotChocolate.Data.Neo4J.Filtering
         private readonly string _fooEntitiesCypher =
             @"CREATE (:Foo {Bar: true}), (:Foo {Bar: false})";
         private readonly string _fooEntitiesNullableCypher =
-            @"CREATE (:FooNullable {Bar: true}), (:FooNullable {Bar: false}), (:FooNullable {Bar: NULL})";
+            @"CREATE
+                (:FooNullable {Bar: true}),
+                (:FooNullable {Bar: false}),
+                (:FooNullable {Bar: NULL})";
 
         public class Foo
         {
@@ -48,14 +51,16 @@ namespace HotChocolate.Data.Neo4J.Filtering
                 await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
 
             // act
+            const string query1 = "{ root(where: { bar: { eq: true}}){ bar }}";
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { eq: true}}){ bar }}")
+                    .SetQuery(query1)
                     .Create());
 
+            const string query2 = "{ root(where: { bar: { eq: false}}){ bar }}";
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { eq: false}}){ bar }}")
+                    .SetQuery(query2)
                     .Create());
 
             // assert
@@ -71,10 +76,11 @@ namespace HotChocolate.Data.Neo4J.Filtering
                 await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
 
             // act
+            const string query1 =
+                "{ root(where: {and: [{ bar: { eq: true}}, { bar: { eq: false}}]} ){ bar }}";
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: {and: [{ bar: { eq: true}}, { bar: { eq: false}}]} ){ bar }}")
+                    .SetQuery(query1)
                     .Create());
 
             // assert
@@ -89,10 +95,11 @@ namespace HotChocolate.Data.Neo4J.Filtering
                 await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
 
             // act
+            const string query1 =
+                "{ root(where: {or: [{ bar: { eq: true}}, { bar: { eq: false}}]} ){ bar }}";
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: {or: [{ bar: { eq: true}}, { bar: { eq: false}}]} ){ bar }}")
+                    .SetQuery(query1)
                     .Create());
 
             // assert
@@ -107,14 +114,16 @@ namespace HotChocolate.Data.Neo4J.Filtering
                 await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
 
             // act
+            const string query1 = "{ root(where: { bar: { neq: true}}){ bar}}";
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { neq: true}}){ bar}}")
+                    .SetQuery(query1)
                     .Create());
 
+            const string query2 = "{ root(where: { bar: { neq: false}}){ bar}}";
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { neq: false}}){ bar}}")
+                    .SetQuery(query2)
                     .Create());
 
             // assert
@@ -131,19 +140,22 @@ namespace HotChocolate.Data.Neo4J.Filtering
                     _fooEntitiesNullableCypher);
 
             // act
+            const string query1 = "{ root(where: { bar: { eq: true}}){ bar }}";
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { eq: true}}){ bar }}")
+                    .SetQuery(query1)
                     .Create());
 
+            const string query2 = "{ root(where: { bar: { eq: false}}){ bar }}";
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { eq: false}}){ bar }}")
+                    .SetQuery(query2)
                     .Create());
 
+            const string query3 = "{ root(where: { bar: { eq: null}}){ bar }}";
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { eq: null}}){ bar }}")
+                    .SetQuery(query3)
                     .Create());
 
             // assert
@@ -161,19 +173,22 @@ namespace HotChocolate.Data.Neo4J.Filtering
                     _fooEntitiesNullableCypher);
 
             // act
+            const string query1 = "{ root(where: { bar: { neq: true}}){ bar }}";
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { neq: true}}){ bar }}")
+                    .SetQuery(query1)
                     .Create());
 
+            const string query2 = "{ root(where: { bar: { neq: false}}){ bar }}";
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { neq: false}}){ bar }}")
+                    .SetQuery(query2)
                     .Create());
 
+            const string query3 = "{ root(where: { bar: { neq: null}}){ bar }}";
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { neq: null}}){ bar }}")
+                    .SetQuery(query3)
                     .Create());
 
             // assert

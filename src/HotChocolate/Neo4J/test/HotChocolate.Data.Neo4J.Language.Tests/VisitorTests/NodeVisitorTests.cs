@@ -18,7 +18,11 @@ namespace HotChocolate.Data.Neo4J.Language
         [Fact]
         public void NodeWithAdditionalLabels()
         {
-            string[] additionalLabels = { "Film", "Flick" };
+            string[] additionalLabels =
+            {
+                "Film",
+                "Flick"
+            };
 
             var visitor = new CypherVisitor();
 
@@ -33,8 +37,8 @@ namespace HotChocolate.Data.Neo4J.Language
             var visitor = new CypherVisitor();
 
             Node movie = Node.Create("Movie")
-                                    .Named("m")
-                                    .WithProperties("Title", Cypher.LiteralOf("The Matrix"));
+                .Named("m")
+                .WithProperties("Title", Cypher.LiteralOf("The Matrix"));
             movie.Visit(visitor);
             visitor.Print().MatchSnapshot();
         }
@@ -45,13 +49,17 @@ namespace HotChocolate.Data.Neo4J.Language
             var visitor = new CypherVisitor();
 
             Node movie = Node.Create("Movie")
-                                    .Named("m")
-                                    .WithProperties(
-                                        "Title", Cypher.LiteralOf("The Matrix"),
-                                        "YearReleased", Cypher.LiteralOf(1999),
-                                        "Released", Cypher.LiteralOf(true),
-                                        "Rating", Cypher.LiteralOf(8.7)
-                                    );
+                .Named("m")
+                .WithProperties(
+                    "Title",
+                    Cypher.LiteralOf("The Matrix"),
+                    "YearReleased",
+                    Cypher.LiteralOf(1999),
+                    "Released",
+                    Cypher.LiteralOf(true),
+                    "Rating",
+                    Cypher.LiteralOf(8.7)
+                );
             movie.Visit(visitor);
 
             visitor.Print().MatchSnapshot();

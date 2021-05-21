@@ -22,7 +22,8 @@ namespace HotChocolate.Data.Neo4J.Language
             var visitor = new CypherVisitor();
             Node movie = Node.Create("Movie").Named("m");
 
-            Condition statement = movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix")).Not();
+            Condition statement =
+                movie.Property("Title").IsEqualTo(Cypher.LiteralOf("The Matrix")).Not();
             statement.Visit(visitor);
             visitor.Print().MatchSnapshot();
         }
@@ -33,7 +34,8 @@ namespace HotChocolate.Data.Neo4J.Language
             var visitor = new CypherVisitor();
             Node movie = Node.Create("Movie").Named("m");
 
-            Condition statement = movie.Property("Title").IsNotEqualTo(Cypher.LiteralOf("The Matrix"));
+            Condition statement =
+                movie.Property("Title").IsNotEqualTo(Cypher.LiteralOf("The Matrix"));
             statement.Visit(visitor);
             visitor.Print().MatchSnapshot();
         }
@@ -55,7 +57,8 @@ namespace HotChocolate.Data.Neo4J.Language
             var visitor = new CypherVisitor();
             Node movie = Node.Create("Movie").Named("m");
 
-            Condition statement = movie.Property("Title").LessThanOrEqualTo(Cypher.LiteralOf("The Matrix"));
+            Condition statement = movie.Property("Title")
+                .LessThanOrEqualTo(Cypher.LiteralOf("The Matrix"));
             statement.Visit(visitor);
             visitor.Print().MatchSnapshot();
         }
@@ -66,7 +69,8 @@ namespace HotChocolate.Data.Neo4J.Language
             var visitor = new CypherVisitor();
             Node movie = Node.Create("Movie").Named("m");
 
-            Condition statement = movie.Property("Title").GreaterThan(Cypher.LiteralOf("The Matrix"));
+            Condition statement =
+                movie.Property("Title").GreaterThan(Cypher.LiteralOf("The Matrix"));
             statement.Visit(visitor);
             visitor.Print().MatchSnapshot();
         }
@@ -77,7 +81,8 @@ namespace HotChocolate.Data.Neo4J.Language
             var visitor = new CypherVisitor();
             Node movie = Node.Create("Movie").Named("m");
 
-            Condition statement = movie.Property("Title").GreaterThanOEqualTo(Cypher.LiteralOf("The Matrix"));
+            Condition statement = movie.Property("Title")
+                .GreaterThanOEqualTo(Cypher.LiteralOf("The Matrix"));
             statement.Visit(visitor);
             visitor.Print().MatchSnapshot();
         }
@@ -110,7 +115,8 @@ namespace HotChocolate.Data.Neo4J.Language
             var visitor = new CypherVisitor();
             Node person = Node.Create("Person").Named("p");
 
-            Condition statement = person.Property("Email").Matches(Cypher.LiteralOf("email@gmail.com"));
+            Condition statement =
+                person.Property("Email").Matches(Cypher.LiteralOf("email@gmail.com"));
             statement.Visit(visitor);
             visitor.Print().MatchSnapshot();
         }

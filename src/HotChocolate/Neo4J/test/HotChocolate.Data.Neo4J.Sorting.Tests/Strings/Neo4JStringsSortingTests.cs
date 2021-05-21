@@ -34,7 +34,8 @@ namespace HotChocolate.Data.Neo4J.Sorting.Boolean
         public async Task Sorting_Strings_SchemaSnapshot()
         {
             // arrange
-            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo, FooSortType>(_fooEntitiesCypher);
+            IRequestExecutor tester =
+                await _fixture.GetOrCreateSchema<Foo, FooSortType>(_fooEntitiesCypher);
             tester.Schema.Print().MatchSnapshot();
         }
 
@@ -42,7 +43,8 @@ namespace HotChocolate.Data.Neo4J.Sorting.Boolean
         public async Task Create_String_OrderBy()
         {
             // arrange
-            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo, FooSortType>(_fooEntitiesCypher);
+            IRequestExecutor tester =
+                await _fixture.GetOrCreateSchema<Foo, FooSortType>(_fooEntitiesCypher);
 
             // act
             IExecutionResult res1 = await tester.ExecuteAsync(

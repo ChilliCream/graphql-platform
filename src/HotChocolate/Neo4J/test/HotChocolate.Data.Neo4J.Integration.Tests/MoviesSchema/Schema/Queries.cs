@@ -11,12 +11,12 @@ namespace HotChocolate.Data.Neo4J.Integration
         [UseProjection]
         [UseFiltering]
         [UseSorting]
-        public Neo4JExecutable<Actor> Actors([ScopedService] IAsyncSession session) => new (session);
+        public Neo4JExecutable<Actor> Actors([ScopedService] IAsyncSession session) => new(session);
 
         [UseNeo4JDatabase("neo4j")]
         [UseProjection]
         [UseFiltering]
         [UseSorting]
-        public Neo4JExecutable<Movie> Movies([ScopedService] IAsyncSession session) => new (session);
+        public Neo4JExecutable<Movie> Movies([ScopedService] IAsyncSession session) => new(session);
     }
 }
