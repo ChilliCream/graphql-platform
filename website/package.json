@@ -68,7 +68,7 @@
     "@storybook/addon-actions": "^6.1.15",
     "@storybook/addon-essentials": "^6.1.15",
     "@storybook/addon-links": "^6.1.15",
-    "@storybook/react": "^6.1.15",
+    "@storybook/react": "^6.2.9",
     "@types/algoliasearch": "^3.34.10",
     "@types/prismjs": "^1.16.2",
     "@types/react": "^17.0.1",
