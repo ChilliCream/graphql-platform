@@ -8,16 +8,16 @@ import React, {
   useState,
 } from "react";
 
-type Groups = {
-  [group: string]: string;
-};
+interface GroupMap {
+  [groupId: string]: string | undefined;
+}
 
 type SetGroup = (groupId: string, value: string) => void;
 
-type TabGroupContextShape = {
-  groups: Groups;
+interface TabGroupContextShape {
+  readonly groups: GroupMap;
   setGroup: SetGroup;
-};
+}
 
 const TabGroupContext = createContext<TabGroupContextShape>({
   groups: {},
@@ -27,7 +27,7 @@ const TabGroupContext = createContext<TabGroupContextShape>({
 const getLocalStorageKey = (groupId: string) => `tab-${groupId}`;
 
 export const TabGroupProvider: FC = ({ children }) => {
-  const [groups, setGroups] = useState<Groups>({});
+  const [groups, setGroups] = useState<GroupMap>({});
 
   const handleSetGroup: SetGroup = (groupId, value) => {
     if (groups[groupId] === value) return;
@@ -58,7 +58,7 @@ export function useActiveTab(
   if (!groupId) return [activeTab, setActiveTab];
 
   const activeGroupTab = useMemo(() => {
-    let value: string | null = groups[groupId];
+    let value: string | null | undefined = groups[groupId];
 
     if (!value && typeof window !== "undefined" && window.localStorage) {
       value = window.localStorage.getItem(getLocalStorageKey(groupId));
