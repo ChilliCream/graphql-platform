@@ -3,6 +3,10 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Language
 {
+    /// <summary>
+    /// Provides Stack and Queue extensions for <see cref="List{T}"/> to
+    /// the visitor APIs.
+    /// </summary>
     public static class ListExtensions
     {
         public static T Pop<T>(this IList<T> list)

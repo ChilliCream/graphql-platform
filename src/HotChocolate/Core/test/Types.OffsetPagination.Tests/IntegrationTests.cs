@@ -703,7 +703,7 @@ namespace HotChocolate.Types.Pagination
 
         public string Print()
         {
-            return _source.ToString();
+            return _source.ToString()!;
         }
     }
 }

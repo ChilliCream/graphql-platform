@@ -342,14 +342,20 @@ namespace HotChocolate.Language
             current = Rewrite(current, current.Name, context,
                 RewriteName, current.WithName);
 
-            current = Rewrite(current, current.Description, context,
-                RewriteStringValue, current.WithDescription);
+            if (current.Description is not null)
+            {
+                current = Rewrite(current, current.Description, context,
+                    RewriteStringValue, current.WithDescription);
+            }
 
             current = Rewrite(current, current.Type, context,
                 RewriteType, current.WithType);
 
-            current = Rewrite(current, current.DefaultValue, context,
-                RewriteValue, current.WithDefaultValue);
+            if (current.DefaultValue is not null)
+            {
+                current = Rewrite(current, current.DefaultValue, context,
+                    RewriteValue, current.WithDefaultValue);
+            }
 
             return current;
         }

@@ -768,7 +768,9 @@ namespace HotChocolate.Types.Descriptors
 
             public IAsyncResult GetSomeAsyncResult() => null;
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
             public async void GetAsyncVoid() { }
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
 
 #if !NETCOREAPP2_1
             public string RefStruct(ReadOnlySpan<byte> bytes) => "";

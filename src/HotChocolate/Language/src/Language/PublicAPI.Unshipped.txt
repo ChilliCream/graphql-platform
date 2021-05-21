@@ -1,1 +1,6 @@
-
+static HotChocolate.Language.ListExtensions.PeekOrDefault<T>(this System.Collections.Generic.IList<T>! list, T? defaultValue = default(T?)) -> T?
+static HotChocolate.Language.ListExtensions.Pop<T>(this System.Collections.Generic.IList<T>! list) -> T
+static HotChocolate.Language.ListExtensions.Push<T>(this System.Collections.Generic.IList<T>! list, T item) -> void
+static HotChocolate.Language.ListExtensions.TryPeek<T>(this System.Collections.Generic.IList<T>! list, int elements, out T item) -> bool
+static HotChocolate.Language.ListExtensions.TryPeek<T>(this System.Collections.Generic.IList<T>! list, out T item) -> bool
+static HotChocolate.Language.ListExtensions.TryPop<T>(this System.Collections.Generic.IList<T>! list, out T item) -> bool

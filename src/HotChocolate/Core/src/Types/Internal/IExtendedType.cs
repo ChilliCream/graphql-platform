@@ -18,7 +18,7 @@ namespace HotChocolate.Internal
         /// <summary>
         /// Gets the original type representation.
         /// In case of a nullable int the original type will be
-        /// <see cref="System.Nullable{System.Int32}"/>.
+        /// <see cref="Nullable{int}"/>.
         /// </summary>
         Type Source { get; }
 

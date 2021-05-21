@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 #nullable enable
 
@@ -62,11 +62,9 @@ namespace HotChocolate.Resolvers
                 || IsEqualTo(obj as FieldResolver);
         }
 
-        private bool IsEqualTo(FieldResolver? other)
-        {
-            return base.IsEqualTo(other)
-                && other.Resolver.Equals(Resolver);
-        }
+        private bool IsEqualTo(FieldResolver? other) =>
+            base.IsEqualTo(other) &&
+                (other?.Resolver.Equals(Resolver) ?? false);
 
         public override int GetHashCode()
         {
@@ -77,10 +75,8 @@ namespace HotChocolate.Resolvers
             }
         }
 
-        public override string ToString()
-        {
-            return $"{TypeName}.{FieldName}";
-        }
+        public override string ToString() =>
+            $"{TypeName}.{FieldName}";
 
         public FieldReference ToFieldReference() =>
             _fieldReference ??= new FieldReference(TypeName, FieldName);

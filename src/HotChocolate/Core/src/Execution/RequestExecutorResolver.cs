@@ -407,7 +407,7 @@ namespace HotChocolate.Execution
                 DefinitionBase? definition,
                 IDictionary<string, object?> contextData)
             {
-                definition.Name = _schemaName;
+                definition!.Name = _schemaName;
             }
         }
     }
