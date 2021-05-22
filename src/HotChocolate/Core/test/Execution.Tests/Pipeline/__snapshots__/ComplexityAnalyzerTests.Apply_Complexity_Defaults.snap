@@ -25,7 +25,7 @@ type PersonConnection {
   "A list of edges."
   edges: [PersonEdge!]
   "A flattened list of the nodes."
-  nodes: [Person]
+  nodes: [Person] @cost(complexity: 5)
 }
 
 "An edge in a connection."
