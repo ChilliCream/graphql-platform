@@ -302,7 +302,7 @@ service
 In your resolver or input type you can then use the `IFile` interface to use the upload scalar.
 
 ```csharp
-public class Query 
+public class Query
 {
     public async Task<bool> UploadFile(IFile file)
     {

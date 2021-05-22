@@ -52,13 +52,13 @@ namespace HotChocolate.Execution.Processing
                     {
                         throw ThrowHelper.NonNullVariableIsNull(variableDefinition);
                     }
-                    coercedValues[variableName] = new VariableValueOrLiteral(
-                        variableType, null, NullValueNode.Default);
+                    coercedValues[variableName] =
+                        new VariableValueOrLiteral(variableType, null, NullValueNode.Default);
                 }
                 else
                 {
-                    coercedValues[variableName] = CoerceVariableValue(
-                        variableDefinition, variableType, value);
+                    coercedValues[variableName] =
+                        CoerceVariableValue(variableDefinition, variableType, value);
                 }
             }
         }

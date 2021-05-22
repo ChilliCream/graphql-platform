@@ -1,0 +1,27 @@
+HotChocolate.Execution.Instrumentation.IDiagnosticEvents.ScaleTaskProcessors(HotChocolate.Execution.IRequestContext! context, int backlogSize, int processors) -> void
+HotChocolate.Execution.Processing.Fragment.Fragment(int fragmentId, HotChocolate.Types.IObjectType! typeCondition, HotChocolate.Language.FragmentSpreadNode! fragmentSpread, HotChocolate.Language.FragmentDefinitionNode! fragmentDefinition, HotChocolate.Execution.Processing.ISelectionSet! selectionSet, bool internalFragment, HotChocolate.Execution.Processing.SelectionIncludeCondition? includeCondition) -> void
+HotChocolate.Execution.Processing.Fragment.Fragment(int fragmentId, HotChocolate.Types.IObjectType! typeCondition, HotChocolate.Language.InlineFragmentNode! inlineFragment, HotChocolate.Execution.Processing.ISelectionSet! selectionSet, bool internalFragment, HotChocolate.Execution.Processing.SelectionIncludeCondition? includeCondition) -> void
+HotChocolate.Execution.Processing.Fragment.Id.get -> int
+HotChocolate.Execution.Processing.IArgumentMap.IsFinalNoErrors.get -> bool
+HotChocolate.Execution.Processing.IFragment.Id.get -> int
+HotChocolate.Execution.Processing.ISelection.Id.get -> int
+HotChocolate.Execution.Processing.ISelection.InlineResolver.get -> HotChocolate.Resolvers.InlineFieldDelegate?
+HotChocolate.Execution.Processing.ISelection.PureResolver.get -> HotChocolate.Resolvers.PureFieldDelegate?
+HotChocolate.Execution.Processing.ISelection.ResolverPipeline.get -> HotChocolate.Resolvers.FieldDelegate?
+HotChocolate.Execution.Processing.ISelection.Strategy.get -> HotChocolate.Execution.Processing.SelectionExecutionStrategy
+HotChocolate.Execution.Processing.Selection.Id.get -> int
+HotChocolate.Execution.Processing.Selection.InlineResolver.get -> HotChocolate.Resolvers.InlineFieldDelegate?
+HotChocolate.Execution.Processing.Selection.PureResolver.get -> HotChocolate.Resolvers.PureFieldDelegate?
+HotChocolate.Execution.Processing.Selection.ResolverPipeline.get -> HotChocolate.Resolvers.FieldDelegate?
+HotChocolate.Execution.Processing.Selection.Selection(HotChocolate.Execution.Processing.Selection! selection) -> void
+HotChocolate.Execution.Processing.Selection.Selection(int id, HotChocolate.Types.IObjectType! declaringType, HotChocolate.Types.IObjectField! field, HotChocolate.Language.FieldNode! selection, HotChocolate.Resolvers.FieldDelegate! resolverPipeline, HotChocolate.NameString? responseName = null, System.Collections.Generic.IReadOnlyDictionary<HotChocolate.NameString, HotChocolate.Execution.Processing.ArgumentValue!>? arguments = null, HotChocolate.Execution.Processing.SelectionIncludeCondition? includeCondition = null, bool internalSelection = false) -> void
+HotChocolate.Execution.Processing.Selection.Selection(int id, HotChocolate.Types.IObjectType! declaringType, HotChocolate.Types.IObjectField! field, HotChocolate.Language.FieldNode! selection, HotChocolate.Resolvers.FieldDelegate? resolverPipeline, HotChocolate.Resolvers.PureFieldDelegate? pureResolver, HotChocolate.Resolvers.InlineFieldDelegate? inlineResolver, HotChocolate.NameString? responseName = null, System.Collections.Generic.IReadOnlyDictionary<HotChocolate.NameString, HotChocolate.Execution.Processing.ArgumentValue!>? arguments = null, HotChocolate.Execution.Processing.SelectionIncludeCondition? includeCondition = null, bool internalSelection = false, HotChocolate.Execution.Processing.SelectionExecutionStrategy? strategy = null) -> void
+HotChocolate.Execution.Processing.Selection.Strategy.get -> HotChocolate.Execution.Processing.SelectionExecutionStrategy
+HotChocolate.Execution.Processing.SelectionExecutionStrategy
+HotChocolate.Execution.Processing.SelectionExecutionStrategy.Default = 0 -> HotChocolate.Execution.Processing.SelectionExecutionStrategy
+HotChocolate.Execution.Processing.SelectionExecutionStrategy.Inline = 3 -> HotChocolate.Execution.Processing.SelectionExecutionStrategy
+HotChocolate.Execution.Processing.SelectionExecutionStrategy.Pure = 2 -> HotChocolate.Execution.Processing.SelectionExecutionStrategy
+HotChocolate.Execution.Processing.SelectionExecutionStrategy.Serial = 1 -> HotChocolate.Execution.Processing.SelectionExecutionStrategy
+HotChocolate.Execution.Processing.SelectionOptimizerContext.GetNextId() -> int
+static HotChocolate.Execution.Processing.ArgumentCoercionHelper.TryCoerceArguments(this HotChocolate.Execution.Processing.IArgumentMap! arguments, HotChocolate.Resolvers.IResolverContext! resolverContext, out System.Collections.Generic.IReadOnlyDictionary<HotChocolate.NameString, HotChocolate.Execution.Processing.ArgumentValue!>? coercedArgs) -> bool
+virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.ScaleTaskProcessors(HotChocolate.Execution.IRequestContext! context, int backlogSize, int processors) -> void

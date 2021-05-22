@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Processing.Plan;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
 
@@ -24,11 +25,17 @@ namespace HotChocolate.Execution.Processing
 
         public async Task<IExecutionResult> ExecuteAsync(
             IRequestContext requestContext,
+            QueryPlan queryPlan,
             Func<object?> resolveQueryValue)
         {
             if (requestContext is null)
             {
                 throw new ArgumentNullException(nameof(requestContext));
+            }
+
+            if (queryPlan is null)
+            {
+                throw new ArgumentNullException(nameof(queryPlan));
             }
 
             if (requestContext.Operation is null || requestContext.Variables is null)
@@ -56,6 +63,7 @@ namespace HotChocolate.Execution.Processing
                     _operationContextPool,
                     _queryExecutor,
                     requestContext,
+                    queryPlan,
                     requestContext.Operation.RootType,
                     selectionSet,
                     resolveQueryValue,
@@ -65,7 +73,10 @@ namespace HotChocolate.Execution.Processing
                 return new SubscriptionResult(
                     subscription.ExecuteAsync,
                     null,
-                    session: subscription);
+                    session: subscription,
+                    contextData: new SingleValueExtensionData(
+                        WellKnownContextData.Subscription,
+                        subscription));
             }
             catch (GraphQLException ex)
             {

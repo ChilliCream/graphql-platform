@@ -1,8 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
-    <AssemblyName>HotChocolate.Types.Tests</AssemblyName>
-    <RootNamespace>HotChocolate</RootNamespace>
+    <RootNamespace>HotChocolate.Types.Pagination</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

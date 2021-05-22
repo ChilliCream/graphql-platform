@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
@@ -90,7 +90,7 @@ namespace HotChocolate
         /// <c>true</c>, if a type with the name exists and is of the specified
         /// kind, <c>false</c> otherwise.
         /// </returns>
-        public bool TryGetType<T>(NameString typeName, [NotNullWhen(true)] out T type)
+        public bool TryGetType<T>(NameString typeName, [MaybeNullWhen(false)] out T type)
             where T : INamedType =>
             _types.TryGetType(typeName.EnsureNotEmpty(nameof(typeName)), out type);
 
@@ -98,13 +98,13 @@ namespace HotChocolate
         /// Tries to get the .net type representation of a schema.
         /// </summary>
         /// <param name="typeName">The name of the type.</param>
-        /// <param name="clrType">The resolved .net type.</param>
+        /// <param name="runtimeType">The resolved .net type.</param>
         /// <returns>
         /// <c>true</c>, if a .net type was found that was bound
         /// the the specified schema type, <c>false</c> otherwise.
         /// </returns>
-        public bool TryGetRuntimeType(NameString typeName, [NotNullWhen(true)] out Type? clrType) =>
-            _types.TryGetClrType(typeName.EnsureNotEmpty(nameof(typeName)), out clrType);
+        public bool TryGetRuntimeType(NameString typeName, [MaybeNullWhen(false)] out Type? runtimeType) =>
+            _types.TryGetClrType(typeName.EnsureNotEmpty(nameof(typeName)), out runtimeType);
 
         /// <summary>
         /// Gets the possible object types to

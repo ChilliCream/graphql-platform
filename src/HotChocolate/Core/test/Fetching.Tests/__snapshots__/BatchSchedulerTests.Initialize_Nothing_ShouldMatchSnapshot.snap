@@ -1,3 +1,4 @@
 ﻿{
-  "HasTasks": false
+  "HasTasks": false,
+  "DispatchOnSchedule": false
 }

@@ -8,7 +8,9 @@ namespace HotChocolate.Data.Filters
     /// <see cref="FilterOperationHandler{TContext,T}"/> easier.
     /// <example><see cref="QueryableComparableOperationHandler"/></example>
     /// </summary>
+#pragma warning disable CA1040 // Avoid empty interfaces
     public interface IComparableOperationFilterInputType
     {
     }
+#pragma warning restore CA1040 // Avoid empty interfaces
 }

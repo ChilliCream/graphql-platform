@@ -418,10 +418,13 @@ namespace HotChocolate.Language
             ScalarTypeDefinitionNode node,
             IList<SyntaxNodeInfo> children)
         {
-            ResolveChildren(
-                nameof(node.Description),
-                node.Description,
-                children);
+            if (node.Description is not null)
+            {
+                ResolveChildren(
+                    nameof(node.Description),
+                    node.Description,
+                    children);
+            }
 
             ResolveChildren(
                 nameof(node.Name),
@@ -438,10 +441,13 @@ namespace HotChocolate.Language
             ObjectTypeDefinitionNode node,
             IList<SyntaxNodeInfo> children)
         {
-            ResolveChildren(
-                nameof(node.Description),
-                node.Description,
-                children);
+            if (node.Description is not null)
+            {
+                ResolveChildren(
+                    nameof(node.Description),
+                    node.Description,
+                    children);
+            }
 
             ResolveChildren(
                 nameof(node.Name),
@@ -468,10 +474,13 @@ namespace HotChocolate.Language
             FieldDefinitionNode node,
             IList<SyntaxNodeInfo> children)
         {
-            ResolveChildren(
-                nameof(node.Description),
-                node.Description,
-                children);
+            if (node.Description is not null)
+            {
+                ResolveChildren(
+                    nameof(node.Description),
+                    node.Description,
+                    children);
+            }
 
             ResolveChildren(
                 nameof(node.Name),
@@ -498,10 +507,13 @@ namespace HotChocolate.Language
             InputValueDefinitionNode node,
             IList<SyntaxNodeInfo> children)
         {
-            ResolveChildren(
-                nameof(node.Description),
-                node.Description,
-                children);
+            if (node.Description is not null)
+            {
+                ResolveChildren(
+                    nameof(node.Description),
+                    node.Description,
+                    children);
+            }
 
             ResolveChildren(
                 nameof(node.Name),
@@ -513,10 +525,13 @@ namespace HotChocolate.Language
                 node.Type,
                 children);
 
-            ResolveChildren(
-                nameof(node.DefaultValue),
-                node.DefaultValue,
-                children);
+            if (node.DefaultValue is not null)
+            {
+                ResolveChildren(
+                    nameof(node.DefaultValue),
+                    node.DefaultValue,
+                    children);
+            }
 
             ResolveChildren(
                 nameof(node.Directives),
@@ -528,10 +543,13 @@ namespace HotChocolate.Language
             InterfaceTypeDefinitionNode node,
             IList<SyntaxNodeInfo> children)
         {
-            ResolveChildren(
-                nameof(node.Description),
-                node.Description,
-                children);
+            if (node.Description is not null)
+            {
+                ResolveChildren(
+                    nameof(node.Description),
+                    node.Description,
+                    children);
+            }
 
             ResolveChildren(
                 nameof(node.Name),
@@ -553,10 +571,13 @@ namespace HotChocolate.Language
             UnionTypeDefinitionNode node,
             IList<SyntaxNodeInfo> children)
         {
-            ResolveChildren(
-                nameof(node.Description),
-                node.Description,
-                children);
+            if (node.Description is not null)
+            {
+                ResolveChildren(
+                    nameof(node.Description),
+                    node.Description,
+                    children);
+            }
 
             ResolveChildren(
                 nameof(node.Name),
@@ -578,10 +599,13 @@ namespace HotChocolate.Language
             EnumTypeDefinitionNode node,
             IList<SyntaxNodeInfo> children)
         {
-            ResolveChildren(
-                nameof(node.Description),
-                node.Description,
-                children);
+            if (node.Description is not null)
+            {
+                ResolveChildren(
+                    nameof(node.Description),
+                    node.Description,
+                    children);
+            }
 
             ResolveChildren(
                 nameof(node.Name),
@@ -603,10 +627,13 @@ namespace HotChocolate.Language
            EnumValueDefinitionNode node,
            IList<SyntaxNodeInfo> children)
         {
-            ResolveChildren(
-                nameof(node.Description),
-                node.Description,
-                children);
+            if (node.Description is not null)
+            {
+                ResolveChildren(
+                    nameof(node.Description),
+                    node.Description,
+                    children);
+            }
 
             ResolveChildren(
                 nameof(node.Name),
@@ -623,10 +650,13 @@ namespace HotChocolate.Language
             InputObjectTypeDefinitionNode node,
             IList<SyntaxNodeInfo> children)
         {
-            ResolveChildren(
-                nameof(node.Description),
-                node.Description,
-                children);
+            if (node.Description is not null)
+            {
+                ResolveChildren(
+                    nameof(node.Description),
+                    node.Description,
+                    children);
+            }
 
             ResolveChildren(
                 nameof(node.Name),
@@ -648,10 +678,13 @@ namespace HotChocolate.Language
             DirectiveDefinitionNode node,
             IList<SyntaxNodeInfo> children)
         {
-            ResolveChildren(
-                nameof(node.Description),
-                node.Description,
-                children);
+            if (node.Description is not null)
+            {
+                ResolveChildren(
+                    nameof(node.Description),
+                    node.Description,
+                    children);
+            }
 
             ResolveChildren(
                 nameof(node.Name),

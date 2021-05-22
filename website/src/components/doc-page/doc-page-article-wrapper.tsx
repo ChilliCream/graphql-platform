@@ -39,5 +39,4 @@ export const ArticleWrapperElement = styled.div`
     grid-template-columns: 1fr;
   `)}
   grid-template-rows: 1fr;
-  padding: 6px;
 `;

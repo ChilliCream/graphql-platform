@@ -35,7 +35,7 @@ namespace HotChocolate.AspNetCore.Authorization
         private Action<IRequestExecutorBuilder> CreateSchema() =>
             builder => builder
                 .AddQueryType<Query>()
-                .AddAuthorizeDirectiveType();
+                .AddAuthorization();
 
         public IEnumerator<object[]> GetEnumerator()
         {

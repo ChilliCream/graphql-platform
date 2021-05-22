@@ -24,6 +24,11 @@ namespace HotChocolate.AspNetCore
                 requestBuilder.TryAddProperty(WellKnownContextData.EnableTracing, true);
             }
 
+            if (context.IncludeQueryPlan())
+            {
+                requestBuilder.TryAddProperty(WellKnownContextData.IncludeQueryPlan, true);
+            }
+
             return default;
         }
     }

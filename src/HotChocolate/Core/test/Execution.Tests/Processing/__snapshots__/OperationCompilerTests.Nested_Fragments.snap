@@ -1,58 +1,58 @@
 ﻿query($if: Boolean!) {
   ... on Query {
-    human(id: "1000") {
+    human(id: "1000") @__execute(id: 0, kind: DEFAULT, type: COMPOSITE) {
       ... on Human {
-        friends @include(if: $if) @skip(if: $if) {
+        friends @include(if: $if) @skip(if: $if) @__execute(id: 1, kind: DEFAULT, type: COMPOSITE) {
           ... on CharacterConnection {
-            edges @include(if: $if) @skip(if: $if) {
+            edges @include(if: $if) @skip(if: $if) @__execute(id: 2, kind: INLINE, type: COMPOSITE_LIST) {
               ... on CharacterEdge {
-                node @include(if: $if) @skip(if: $if) {
+                node @include(if: $if) @skip(if: $if) @__execute(id: 3, kind: INLINE, type: COMPOSITE) {
                   ... on Human {
-                    __typename @include(if: $if) @skip(if: $if)
-                    friends @include(if: $if) {
+                    __typename @include(if: $if) @skip(if: $if) @__execute(id: 4, kind: PURE, type: LEAF)
+                    friends @include(if: $if) @__execute(id: 5, kind: DEFAULT, type: COMPOSITE) {
                       ... on CharacterConnection {
-                        nodes @include(if: $if) {
+                        nodes @include(if: $if) @__execute(id: 10, kind: PURE, type: COMPOSITE_LIST) {
                           ... on Human {
-                            __typename @include(if: $if)
-                            name @include(if: $if)
-                            otherHuman @include(if: $if) {
+                            __typename @include(if: $if) @__execute(id: 11, kind: PURE, type: LEAF)
+                            name @include(if: $if) @__execute(id: 12, kind: INLINE, type: LEAF)
+                            otherHuman @include(if: $if) @__execute(id: 13, kind: DEFAULT, type: COMPOSITE) {
                               ... on Human {
-                                __typename @include(if: $if)
-                                name @include(if: $if)
+                                __typename @include(if: $if) @__execute(id: 14, kind: PURE, type: LEAF)
+                                name @include(if: $if) @__execute(id: 15, kind: INLINE, type: LEAF)
                               }
                             }
                           }
                           ... on Droid {
-                            __typename @include(if: $if)
+                            __typename @include(if: $if) @__execute(id: 16, kind: PURE, type: LEAF)
                           }
                         }
                       }
                     }
-                    name @skip(if: $if)
-                    otherHuman @skip(if: $if) {
+                    name @skip(if: $if) @__execute(id: 6, kind: INLINE, type: LEAF)
+                    otherHuman @skip(if: $if) @__execute(id: 7, kind: DEFAULT, type: COMPOSITE) {
                       ... on Human {
-                        __typename @skip(if: $if)
-                        name @skip(if: $if)
+                        __typename @skip(if: $if) @__execute(id: 8, kind: PURE, type: LEAF)
+                        name @skip(if: $if) @__execute(id: 9, kind: INLINE, type: LEAF)
                       }
                     }
                   }
                   ... on Droid {
-                    __typename @include(if: $if) @skip(if: $if)
-                    friends @include(if: $if) {
+                    __typename @include(if: $if) @skip(if: $if) @__execute(id: 17, kind: PURE, type: LEAF)
+                    friends @include(if: $if) @__execute(id: 18, kind: DEFAULT, type: COMPOSITE) {
                       ... on CharacterConnection {
-                        nodes @include(if: $if) {
+                        nodes @include(if: $if) @__execute(id: 19, kind: PURE, type: COMPOSITE_LIST) {
                           ... on Human {
-                            __typename @include(if: $if)
-                            name @include(if: $if)
-                            otherHuman @include(if: $if) {
+                            __typename @include(if: $if) @__execute(id: 20, kind: PURE, type: LEAF)
+                            name @include(if: $if) @__execute(id: 21, kind: INLINE, type: LEAF)
+                            otherHuman @include(if: $if) @__execute(id: 22, kind: DEFAULT, type: COMPOSITE) {
                               ... on Human {
-                                __typename @include(if: $if)
-                                name @include(if: $if)
+                                __typename @include(if: $if) @__execute(id: 23, kind: PURE, type: LEAF)
+                                name @include(if: $if) @__execute(id: 24, kind: INLINE, type: LEAF)
                               }
                             }
                           }
                           ... on Droid {
-                            __typename @include(if: $if)
+                            __typename @include(if: $if) @__execute(id: 25, kind: PURE, type: LEAF)
                           }
                         }
                       }

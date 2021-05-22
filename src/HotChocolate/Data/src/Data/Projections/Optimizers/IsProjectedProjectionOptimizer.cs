@@ -18,34 +18,35 @@ namespace HotChocolate.Data.Projections.Handlers
             Selection selection)
         {
             if (context.Type is ObjectType type &&
-                type.ContextData.TryGetValue(AlwaysProjectedFieldsKey, out object? fieldsObj) &&
+                type.ContextData.TryGetValue(AlwaysProjectedFieldsKey, out var fieldsObj) &&
                 fieldsObj is string[] fields)
             {
+                int aliasCount = 0;
                 for (var i = 0; i < fields.Length; i++)
                 {
-                    if (!context.Fields.ContainsKey(fields[i]))
+                    if (!context.Fields.TryGetValue(fields[i], out var field) ||
+                        field.Field.Name != fields[i])
                     {
                         IObjectField nodesField = type.Fields[fields[i]];
+                        var alias = "__projection_alias_" + aliasCount++;
                         var nodesFieldNode = new FieldNode(
                             null,
                             new NameNode(fields[i]),
-                            null,
+                            new NameNode(alias),
                             Array.Empty<DirectiveNode>(),
                             Array.Empty<ArgumentNode>(),
                             null);
 
-                        FieldDelegate nodesPipeline =
-                            context.CompileResolverPipeline(nodesField, nodesFieldNode);
-
                         var compiledSelection = new Selection(
+                            context.GetNextId(),
                             context.Type,
                             nodesField,
                             nodesFieldNode,
-                            nodesPipeline,
+                            context.CompileResolverPipeline(nodesField, nodesFieldNode),
                             arguments: selection.Arguments,
                             internalSelection: true);
 
-                        context.Fields[fields[i]] = compiledSelection;
+                        context.Fields[alias] = compiledSelection;
                     }
                 }
             }

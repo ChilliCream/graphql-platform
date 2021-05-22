@@ -14,13 +14,17 @@ namespace HotChocolate.AspNetCore.Utilities
         public static async Task<ClientQueryResult> PostAsync(
             this TestServer testServer,
             ClientQueryRequest request,
-            string path = "/graphql")
+            string path = "/graphql",
+            bool enableApolloTracing = false,
+            bool includeQueryPlan = false)
         {
             HttpResponseMessage response =
                 await SendPostRequestAsync(
                     testServer,
                     JsonConvert.SerializeObject(request),
-                    path);
+                    path,
+                    enableApolloTracing,
+                    includeQueryPlan);
 
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
@@ -30,7 +34,7 @@ namespace HotChocolate.AspNetCore.Utilities
             var json = await response.Content.ReadAsStringAsync();
             ClientQueryResult result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
             result.StatusCode = response.StatusCode;
-            result.ContentType = response.Content.Headers.ContentType.ToString();
+            result.ContentType = response.Content.Headers.ContentType!.ToString();
             return result;
         }
 
@@ -257,26 +261,52 @@ namespace HotChocolate.AspNetCore.Utilities
         public static Task<HttpResponseMessage> SendPostRequestAsync<TObject>(
             this TestServer testServer,
             TObject requestBody,
-            string path = "/graphql") =>
+            string path = "/graphql",
+            bool enableApolloTracing = false,
+            bool includeQueryPlan = false) =>
             SendPostRequestAsync(
                 testServer,
                 JsonConvert.SerializeObject(requestBody),
-                path);
+                path,
+                enableApolloTracing,
+                includeQueryPlan);
 
         public static Task<HttpResponseMessage> SendPostRequestAsync(
             this TestServer testServer,
             string requestBody,
-            string path = null) =>
-            SendPostRequestAsync(testServer, requestBody, "application/json", path);
+            string path = null,
+            bool enableApolloTracing = false,
+            bool includeQueryPlan = false) =>
+            SendPostRequestAsync(
+                testServer,
+                requestBody,
+                "application/json",
+                path,
+                enableApolloTracing,
+                includeQueryPlan);
 
         public static Task<HttpResponseMessage> SendPostRequestAsync(
             this TestServer testServer,
             string requestBody,
             string contentType,
-            string path) =>
-            testServer.CreateClient().PostAsync(
-                CreateUrl(path),
-                new StringContent(requestBody, Encoding.UTF8, contentType));
+            string path,
+            bool enableApolloTracing = false,
+            bool includeQueryPlan = false)
+        {
+            var content = new StringContent(requestBody, Encoding.UTF8, contentType);
+
+            if (enableApolloTracing)
+            {
+                content.Headers.Add(HttpHeaderKeys.Tracing, HttpHeaderValues.TracingEnabled);
+            }
+
+            if (includeQueryPlan)
+            {
+                content.Headers.Add(HttpHeaderKeys.QueryPlan, HttpHeaderValues.IncludeQueryPlan);
+            }
+
+            return testServer.CreateClient().PostAsync(CreateUrl(path), content);
+        }
 
         public static Task<HttpResponseMessage> SendGetRequestAsync(
             this TestServer testServer,

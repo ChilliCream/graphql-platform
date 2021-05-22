@@ -1230,6 +1230,7 @@ namespace HotChocolate.Execution.Processing
                     FieldDelegate bazPipeline = context.CompileResolverPipeline(baz, bazSelection);
 
                     var compiledSelection = new Selection(
+                        context.GetNextId(),
                         context.Type,
                         baz,
                         bazSelection,

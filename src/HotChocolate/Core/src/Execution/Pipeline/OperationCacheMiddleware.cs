@@ -33,8 +33,8 @@ namespace HotChocolate.Execution.Pipeline
             }
             else
             {
-                bool addToCache = true;
-                string? operationId = context.OperationId;
+                var addToCache = true;
+                var operationId = context.OperationId;
 
                 if (operationId is null)
                 {

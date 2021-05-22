@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace HotChocolate.Language
 {
@@ -281,7 +281,7 @@ namespace HotChocolate.Language
         }
 
         private static void VisitIfNotNull<T>(
-            T node,
+            T? node,
             TContext context,
             Action<T, TContext> visitor)
             where T : class

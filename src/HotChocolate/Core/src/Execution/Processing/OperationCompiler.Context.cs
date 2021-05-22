@@ -8,7 +8,7 @@ namespace HotChocolate.Execution.Processing
 {
     public sealed partial class OperationCompiler
     {
-        private class CompilerContext
+        internal class CompilerContext
         {
             private readonly HashSet<(SelectionSetNode, NameString)> _processed;
             private readonly Stack<CompilerContext> _backlog;
