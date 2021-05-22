@@ -16,7 +16,7 @@ This file should only be modified after a major release by the maintainers and s
 
 This file contains API changes since the last major version.
 
-## Scenarios
+## Types of public API changes
 
 There are three types of public API changes that need to be documented.
 
@@ -94,7 +94,7 @@ cp scripts/PublicAPI.empty.txt "src/$DIR/PublicAPI.Unshipped.txt"
 
 ## Pipeline Job
 
-A PR to `main` will trigger a Pipeline job that runs this analyzer. Contrary to the development environment, where the analyzer only reports warnings, here it throws an error. This is done to enforce highlighting of public API changes.
+A PR to `main` will trigger a Pipeline job that runs this analyzer. Contrary to the development environment, where the analyzer only reports warnings, here it throws an error (This behavior is only true if the `RequireDocumentationOfPublicApiChanges` environment variable is set). This is done to enforce highlighting of public API changes.
 
 The job is defined as part of [this Pipeline definition](./.devops/azure-pipelines.test-pr-hotchocolate.yml). It can be easily disabled by adding `condition: false` to the `CheckPublicApi` section or commenting out the section.
 

@@ -57,9 +57,6 @@
       <ExcludeAssets>compile</ExcludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-
-    <AdditionalFiles Include="PublicAPI.Shipped.txt" />
-    <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
 
   <Target Name="_CheckIgnoredPublicApiFiles"
