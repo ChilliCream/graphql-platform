@@ -320,5 +320,17 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("ResultHelper_BuildResult_InvalidResult", resourceCulture);
             }
         }
+        
+        internal static string BatchExecutionTask_AddExecutionTask_SerialTasksNotAllowed {
+            get {
+                return ResourceManager.GetString("BatchExecutionTask_AddExecutionTask_SerialTasksNotAllowed", resourceCulture);
+            }
+        }
+        
+        internal static string QueryPlan_InvalidFragmentId {
+            get {
+                return ResourceManager.GetString("QueryPlan_InvalidFragmentId", resourceCulture);
+            }
+        }
     }
 }

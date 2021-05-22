@@ -27,7 +27,8 @@ namespace HotChocolate.Execution.Processing
                     new TransactionOptions
                     {
                         IsolationLevel = IsolationLevel.ReadCommitted
-                    }));
+                    },
+                    TransactionScopeAsyncFlowOption.Enabled));
         }
     }
 }

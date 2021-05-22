@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using static HotChocolate.Execution.Processing.ResolverExecutionHelper;
+using static HotChocolate.Execution.Processing.Tasks.ResolverTaskFactory;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -28,11 +28,14 @@ namespace HotChocolate.Execution.Processing
             ISelectionSet rootSelections =
                 operationContext.Operation.GetRootSelectionSet();
 
-            ResultMap resultMap = rootSelections.EnqueueResolverTasks(
-                operationContext, Path.Root, scopedContext,
-                operationContext.RootValue);
+            ResultMap resultMap = EnqueueResolverTasks(
+                operationContext,
+                rootSelections,
+                operationContext.RootValue,
+                Path.Root,
+                scopedContext);
 
-            await ExecuteTasksAsync(operationContext).ConfigureAwait(false);
+            await ExecutionTaskProcessor.ExecuteAsync(operationContext).ConfigureAwait(false);
 
             return operationContext
                 .TrySetNext()

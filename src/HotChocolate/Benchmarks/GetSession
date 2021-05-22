@@ -1,0 +1,30 @@
+query GetSessions {
+    sessions @execute(id: 1, kind:parallel) {
+        nodes @execute(id: 2, kind:pure type:list) {
+            title @execute(id: 3, kind:inline)
+            abstract @execute(id: 4, kind:inline)
+            track @execute(id: 5, kind:serial) {
+                name @execute(id: 6, kind:inline)
+                name1 @execute(id: 7, kind:inline)
+                name2 @execute(id: 8, kind:inline)
+                name3 @execute(id: 9, kind:inline)
+                name4 @execute(id: 10, kind:inline)
+            }
+        }
+    }
+}
+
+
+mutation Foo {
+    a {
+        b
+        c
+        c2
+    }
+    d {
+        e
+        f
+    }
+
+}
+

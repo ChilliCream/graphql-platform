@@ -1,0 +1,113 @@
+﻿{
+  "type": "Operation",
+  "root": {
+    "type": "Sequence",
+    "nodes": [
+      {
+        "type": "Resolver",
+        "strategy": "Serial",
+        "selections": [
+          {
+            "id": 1,
+            "field": "Query.hero",
+            "responseName": "a"
+          },
+          {
+            "id": 8,
+            "field": "Droid.friends",
+            "responseName": "friends"
+          },
+          {
+            "id": 0,
+            "field": "Query.hero",
+            "responseName": "hero"
+          },
+          {
+            "id": 18,
+            "field": "Droid.friends",
+            "responseName": "friends"
+          }
+        ]
+      },
+      {
+        "type": "Resolver",
+        "strategy": "Parallel",
+        "selections": [
+          {
+            "id": 3,
+            "field": "Human.friends",
+            "responseName": "friends"
+          },
+          {
+            "id": 4,
+            "field": "CharacterConnection.nodes",
+            "responseName": "nodes",
+            "pure": true
+          },
+          {
+            "id": 9,
+            "field": "CharacterConnection.nodes",
+            "responseName": "nodes",
+            "pure": true
+          }
+        ]
+      }
+    ]
+  },
+  "deferred": [
+    {
+      "type": "Sequence",
+      "nodes": [
+        {
+          "type": "Resolver",
+          "strategy": "Serial",
+          "selections": [
+            {
+              "id": 1,
+              "field": "Query.hero",
+              "responseName": "a"
+            },
+            {
+              "id": 8,
+              "field": "Droid.friends",
+              "responseName": "friends"
+            },
+            {
+              "id": 0,
+              "field": "Query.hero",
+              "responseName": "hero"
+            },
+            {
+              "id": 18,
+              "field": "Droid.friends",
+              "responseName": "friends"
+            }
+          ]
+        },
+        {
+          "type": "Resolver",
+          "strategy": "Parallel",
+          "selections": [
+            {
+              "id": 13,
+              "field": "Human.friends",
+              "responseName": "friends"
+            },
+            {
+              "id": 14,
+              "field": "CharacterConnection.nodes",
+              "responseName": "nodes",
+              "pure": true
+            },
+            {
+              "id": 19,
+              "field": "CharacterConnection.nodes",
+              "responseName": "nodes",
+              "pure": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

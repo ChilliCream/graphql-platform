@@ -7,8 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AspNetCore.Authorization
 {
-    public class AuthorizationTestData
-        : IEnumerable<object[]>
+    public class AuthorizationTestData : IEnumerable<object[]>
     {
         private readonly string SchemaCode = @"
             type Query {
@@ -24,7 +23,7 @@ namespace HotChocolate.AspNetCore.Authorization
             }
         ";
 
-        private FieldMiddleware SchemaMiddleware = next => context =>
+        private readonly FieldMiddleware _schemaMiddleware = next => context =>
         {
             context.Result = "foo";
             return next.Invoke(context);
@@ -33,14 +32,14 @@ namespace HotChocolate.AspNetCore.Authorization
         private Action<IRequestExecutorBuilder> CreateSchema() =>
             sb => sb
                 .AddDocumentFromString(SchemaCode)
-                .AddAuthorizeDirectiveType()
-                .UseField(SchemaMiddleware);
+                .AddAuthorization()
+                .UseField(_schemaMiddleware);
 
         private Action<IRequestExecutorBuilder> CreateSchemaWithBuilder() =>
             sb => sb
                 .AddDocumentFromString(SchemaCode)
-                .AddAuthorizeDirectiveType()
-                .UseField(SchemaMiddleware);
+                .AddAuthorization()
+                .UseField(_schemaMiddleware);
 
         public IEnumerator<object[]> GetEnumerator()
         {
