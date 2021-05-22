@@ -15,9 +15,7 @@ namespace HotChocolate.Types
         public override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
-            MemberInfo member)
-        {
+            MemberInfo member) =>
             descriptor.Serial();
-        }
     }
 }

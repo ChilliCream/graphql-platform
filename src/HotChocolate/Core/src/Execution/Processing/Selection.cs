@@ -22,6 +22,7 @@ namespace HotChocolate.Execution.Processing
         private IReadOnlyList<FieldNode>? _syntaxNodes;
         private bool _isReadOnly;
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public Selection(
             int id,
             IObjectType declaringType,
@@ -108,6 +109,7 @@ namespace HotChocolate.Execution.Processing
                 ModifyCondition(true);
             }
         }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         public Selection(Selection selection)
         {

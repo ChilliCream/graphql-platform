@@ -211,7 +211,7 @@ namespace HotChocolate.Execution.Batching
             {
                 if (_requestExecutor.Schema.TryGetType(
                     type.NamedType().Name.Value,
-                    out INamedInputType inputType)
+                    out INamedInputType? inputType)
                     && _typeConverter.TryConvert(
                         typeof(object),
                         inputType.RuntimeType,

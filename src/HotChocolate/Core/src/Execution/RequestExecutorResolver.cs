@@ -243,8 +243,8 @@ namespace HotChocolate.Execution
                 configureServices(serviceCollection);
             }
 
-            var schemaServices = serviceCollection.BuildServiceProvider();
-            var combinedServices = schemaServices.Include(_applicationServices);
+            ServiceProvider schemaServices = serviceCollection.BuildServiceProvider();
+            IServiceProvider combinedServices = schemaServices.Include(_applicationServices);
 
             lazy.Schema =
                 await CreateSchemaAsync(
@@ -314,7 +314,8 @@ namespace HotChocolate.Execution
             RequestExecutorSetup options,
             CancellationToken cancellationToken)
         {
-            var executorOptions = options.RequestExecutorOptions ?? new RequestExecutorOptions();
+            RequestExecutorOptions executorOptions = options.RequestExecutorOptions ??
+                new RequestExecutorOptions();
 
             foreach (RequestExecutorOptionsAction action in options.RequestExecutorOptionsActions)
             {
@@ -417,10 +418,7 @@ namespace HotChocolate.Execution
                 DefinitionBase? definition,
                 IDictionary<string, object?> contextData)
             {
-                if (definition is not null)
-                {
-                    definition.Name = _schemaName;
-                }
+                definition!.Name = _schemaName;
             }
         }
     }
