@@ -39,6 +39,10 @@ This change can be performed automatically by your IDE.
 
 > Note: Currently not every IDE supports Code-Fixes provided by a Roslyn Analyzer. Visual Studio Code for example does not at the moment - Visual Studio 2019 does.
 
+> Note: Be sure to apply the Code-Fix on a solution level, if there are many new APIs that need to be documented.
+> ![image](https://user-images.githubusercontent.com/45513122/119241399-47bbbe80-bb56-11eb-9253-92e2878cd428.png)
+
+
 ### Removed APIs
 
 This case will be indicated by an error/warning like the following:
