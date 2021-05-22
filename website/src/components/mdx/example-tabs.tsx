@@ -11,7 +11,7 @@ export const ExampleTabs: FunctionComponent & ExampleTabsComposition = ({
   children,
 }) => {
   return (
-    <Tabs defaultValue={"annotation"}>
+    <Tabs defaultValue={"annotation"} groupId="code-style">
       <Tabs.List>
         <Tabs.Tab value="annotation">Annotation-based</Tabs.Tab>
         <Tabs.Tab value="code">Code-first</Tabs.Tab>
