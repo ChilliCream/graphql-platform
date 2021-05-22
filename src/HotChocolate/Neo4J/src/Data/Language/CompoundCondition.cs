@@ -13,8 +13,8 @@ namespace HotChocolate.Data.Neo4J.Language
         /// </summary>
         private static readonly CompoundCondition _emptyCondition = new(null);
 
-        private static readonly IReadOnlySet<Operator> _validOperations =
-            new HashSet<Operator> { Operator.And, Operator.Or, Operator.XOr };
+        private static readonly HashSet<Operator> _validOperations =
+            new() { Operator.And, Operator.Or, Operator.XOr };
 
         private readonly Operator? _operator;
 
