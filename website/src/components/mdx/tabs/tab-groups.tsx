@@ -8,14 +8,14 @@ import React, {
 } from "react";
 
 interface GroupMap {
-  [groupId: string]: string | undefined;
+  readonly [groupId: string]: string | undefined;
 }
 
 type SetGroup = (groupId: string, value: string) => void;
 
 interface TabGroupContextShape {
   readonly groups: GroupMap;
-  setGroup: SetGroup;
+  readonly setGroup: SetGroup;
 }
 
 const TabGroupContext = createContext<TabGroupContextShape>({
@@ -70,7 +70,7 @@ export function useActiveTab(
     if (value) {
       setActiveTab(value);
     }
-  }, [groups, groupId]);
+  }, [groups, groupId, setActiveTab]);
 
   if (!groupId) {
     return [activeTab, setActiveTab];

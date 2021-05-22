@@ -23,9 +23,9 @@ export interface TabsComposition {
 const TabsContext = createContext<TabsContext | undefined>(undefined);
 
 export interface TabsProps {
-  defaultValue: string;
-  groupId?: string;
-  children: ReactNode;
+  readonly defaultValue: string;
+  readonly groupId?: string;
+  readonly children: ReactNode;
 }
 
 export const Tabs: FunctionComponent<TabsProps> & TabsComposition = ({
