@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,7 +39,11 @@ namespace HotChocolate.Data.MongoDb.Paging
 
             return (CursorPagingHandler)_createHandler
                 .MakeGenericMethod(source.ElementType?.Source ?? source.Source)
-                .Invoke(null, new object[] { options })!;
+                .Invoke(null,
+                    new object[]
+                    {
+                        options
+                    })!;
         }
 
         private static MongoDbCursorPagingHandler<TEntity> CreateHandlerInternal<TEntity>(
@@ -58,8 +63,38 @@ namespace HotChocolate.Data.MongoDb.Paging
                 CursorPagingArguments arguments)
             {
                 IMongoPagingContainer<TEntity> f = CreatePagingContainer(source);
-                return ResolveAsync(f, arguments, context.RequestAborted);
+                return CursorPagingHelper.ApplyPagination(
+                    f,
+                    arguments,
+                    ApplySkip,
+                    ApplyTake,
+                    ToIndexEdgesAsync,
+                    CountAsync,
+                    context.RequestAborted);
             }
+
+            private static ValueTask<IReadOnlyList<IndexEdge<TEntity>>>
+                ToIndexEdgesAsync(
+                IMongoPagingContainer<TEntity> source,
+                int offset,
+                CancellationToken cancellationToken)
+            {
+                return source.ToIndexEdgesAsync(offset, cancellationToken);
+            }
+
+            private static IMongoPagingContainer<TEntity> ApplySkip(
+                IMongoPagingContainer<TEntity> source,
+                int skip) => source.Skip(skip);
+
+
+            private static IMongoPagingContainer<TEntity> ApplyTake(
+                IMongoPagingContainer<TEntity> source,
+                int take) => source.Take(take);
+
+            private static async ValueTask<int> CountAsync(
+                IMongoPagingContainer<TEntity> source,
+                CancellationToken cancellationToken) =>
+                await source.CountAsync(cancellationToken);
 
             private IMongoPagingContainer<TEntity> CreatePagingContainer(object source)
             {
@@ -78,184 +113,7 @@ namespace HotChocolate.Data.MongoDb.Paging
                     _ => throw ThrowHelper.PagingTypeNotSupported(source.GetType())
                 };
             }
-
-            private async ValueTask<Connection> ResolveAsync(
-                IMongoPagingContainer<TEntity> source,
-                CursorPagingArguments arguments = default,
-                CancellationToken cancellationToken = default)
-            {
-                var count = await source.CountAsync(cancellationToken).ConfigureAwait(false);
-
-                int? after = arguments.After is { } a
-                    ? (int?)IndexEdge<TEntity>.DeserializeCursor(a)
-                    : null;
-
-                int? before = arguments.Before is { } b
-                    ? (int?)IndexEdge<TEntity>.DeserializeCursor(b)
-                    : null;
-
-                IReadOnlyList<IndexEdge<TEntity>> selectedEdges =
-                    await GetSelectedEdgesAsync(
-                            source,
-                            arguments.First,
-                            arguments.Last,
-                            after,
-                            before,
-                            cancellationToken)
-                        .ConfigureAwait(false);
-
-                IndexEdge<TEntity>? firstEdge = selectedEdges.Count == 0
-                    ? null
-                    : selectedEdges[0];
-
-                IndexEdge<TEntity>? lastEdge = selectedEdges.Count == 0
-                    ? null
-                    : selectedEdges[selectedEdges.Count - 1];
-
-                var pageInfo = new ConnectionPageInfo(
-                    lastEdge?.Index < count - 1,
-                    firstEdge?.Index > 0,
-                    firstEdge?.Cursor,
-                    lastEdge?.Cursor,
-                    count);
-
-                return new Connection<TEntity>(
-                    selectedEdges,
-                    pageInfo,
-                    ct => new ValueTask<int>(pageInfo.TotalCount ?? 0));
-            }
-
-            private async ValueTask<IReadOnlyList<IndexEdge<TEntity>>> GetSelectedEdgesAsync(
-                IMongoPagingContainer<TEntity> allEdges,
-                int? first,
-                int? last,
-                int? after,
-                int? before,
-                CancellationToken cancellationToken)
-            {
-                var (offset, edges) =
-                    await GetEdgesToReturnAsync(
-                            allEdges,
-                            first,
-                            last,
-                            after,
-                            before,
-                            cancellationToken)
-                        .ConfigureAwait(false);
-
-                return await ExecuteQueryableAsync(edges, offset, cancellationToken);
-            }
-
-            private async Task<(int, IMongoPagingContainer<TEntity>)> GetEdgesToReturnAsync(
-                IMongoPagingContainer<TEntity> allEdges,
-                int? first,
-                int? last,
-                int? after,
-                int? before,
-                CancellationToken cancellationToken)
-            {
-                IMongoPagingContainer<TEntity> edges = ApplyCursorToEdges(allEdges, after, before);
-
-                var offset = 0;
-                if (after.HasValue)
-                {
-                    offset = after.Value + 1;
-                }
-
-                if (first.HasValue)
-                {
-                    edges = GetFirstEdges(edges, first.Value);
-                }
-
-                if (last.HasValue)
-                {
-                    var (newOffset, newEdges) =
-                        await GetLastEdgesAsync(edges, last.Value, offset, cancellationToken)
-                            .ConfigureAwait(false);
-
-                    edges = newEdges;
-                    offset = newOffset;
-                }
-
-                return (offset, edges);
-            }
-
-            protected virtual IMongoPagingContainer<TEntity> GetFirstEdges(
-                IMongoPagingContainer<TEntity> edges,
-                int first)
-            {
-                if (first < 0)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(first));
-                }
-
-                return edges.Take(first);
-            }
-
-            protected virtual Task<(int, IMongoPagingContainer<TEntity>)> GetLastEdgesAsync(
-                IMongoPagingContainer<TEntity> edges,
-                int last,
-                int offset,
-                CancellationToken cancellationToken)
-            {
-                if (last < 0)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(last));
-                }
-
-                return GetLastEdgesAsyncInternal(edges, last, offset, cancellationToken);
-            }
-
-            private async Task<(int, IMongoPagingContainer<TEntity>)>
-                GetLastEdgesAsyncInternal(
-                    IMongoPagingContainer<TEntity> edges,
-                    int last,
-                    int offset,
-                    CancellationToken cancellationToken)
-            {
-                IMongoPagingContainer<TEntity> temp = edges;
-
-                var count = await edges.CountAsync(cancellationToken).ConfigureAwait(false);
-                var skip = count - last;
-
-                if (skip > 0)
-                {
-                    temp = temp.Skip(skip);
-                    offset += count;
-                    offset -= await edges.CountAsync(cancellationToken).ConfigureAwait(false);
-                }
-
-                return (offset, temp);
-            }
-
-            protected virtual IMongoPagingContainer<TEntity> ApplyCursorToEdges(
-                IMongoPagingContainer<TEntity> allEdges,
-                int? after,
-                int? before)
-            {
-                IMongoPagingContainer<TEntity> edges = allEdges;
-
-                if (after.HasValue)
-                {
-                    edges = edges.Skip(after.Value + 1);
-                }
-
-                if (before.HasValue)
-                {
-                    edges = edges.Take(before.Value);
-                }
-
-                return edges;
-            }
-
-            protected virtual async ValueTask<IReadOnlyList<IndexEdge<TEntity>>>
-                ExecuteQueryableAsync(
-                    IMongoPagingContainer<TEntity> container,
-                    int offset,
-                    CancellationToken cancellationToken)
-            {
-                return await container.ToIndexEdgesAsync(offset, cancellationToken);
-            }
         }
     }
+
 }

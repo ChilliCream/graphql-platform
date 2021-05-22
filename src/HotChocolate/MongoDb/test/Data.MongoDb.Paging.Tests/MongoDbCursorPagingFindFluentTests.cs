@@ -130,6 +130,38 @@ namespace HotChocolate.Data.MongoDb.Paging
         }
 
         [Fact]
+        public async Task Simple_StringList_Last_1_Before()
+        {
+            Snapshot.FullName();
+
+            IRequestExecutor executor = await CreateSchemaAsync();
+
+            IExecutionResult result = await executor
+                .ExecuteAsync(
+                    @"
+                {
+                    foos(last: 1 before: ""NA=="") {
+                        edges {
+                            node {
+                                bar
+                            }
+                            cursor
+                        }
+                        nodes {
+                            bar
+                        }
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                            startCursor
+                            endCursor
+                        }
+                    }
+                }");
+            result.MatchDocumentSnapshot();
+        }
+
+        [Fact]
         public async Task Simple_StringList_Global_DefaultItem_2()
         {
             Snapshot.FullName();

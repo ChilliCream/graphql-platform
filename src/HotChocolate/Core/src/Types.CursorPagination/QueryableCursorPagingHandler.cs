@@ -34,42 +34,40 @@ namespace HotChocolate.Types.Pagination
             CursorPagingArguments arguments = default,
             CancellationToken cancellationToken = default)
         {
-            var count = await Task.Run(source.Count, cancellationToken)
-                .ConfigureAwait(false);
-
-            int? after = arguments.After is { } a
-                ? (int?)IndexEdge<TEntity>.DeserializeCursor(a)
-                : null;
-
-            int? before = arguments.Before is { } b
-                ? (int?)IndexEdge<TEntity>.DeserializeCursor(b)
-                : null;
-
-            IReadOnlyList<IndexEdge<TEntity>> selectedEdges =
-                await GetSelectedEdgesAsync(
-                    source, arguments.First, arguments.Last, after, before, cancellationToken)
-                    .ConfigureAwait(false);
-
-            IndexEdge<TEntity>? firstEdge = selectedEdges.Count == 0
-                ? null
-                : selectedEdges[0];
-
-            IndexEdge<TEntity>? lastEdge = selectedEdges.Count == 0
-                ? null
-                : selectedEdges[selectedEdges.Count - 1];
-
-            var pageInfo = new ConnectionPageInfo(
-                lastEdge?.Index < count - 1,
-                firstEdge?.Index > 0,
-                firstEdge?.Cursor,
-                lastEdge?.Cursor,
-                count);
-
-            return new Connection<TEntity>(
-                selectedEdges,
-                pageInfo,
-                ct => new ValueTask<int>(pageInfo.TotalCount ?? 0));
+            return await CursorPagingHelper.ApplyPagination(
+                source,
+                arguments,
+                ApplySkip,
+                ApplyTake,
+                ToIndexEdgesAsync,
+                CountAsync,
+                cancellationToken);
         }
+
+        public ValueTask<IReadOnlyList<IndexEdge<TEntity>>>
+            ToIndexEdgesAsync(
+            IQueryable<TEntity> source,
+            int offset,
+            CancellationToken cancellationToken)
+        {
+            return ExecuteQueryableAsync(source, offset, cancellationToken);
+        }
+
+        public IQueryable<TEntity> ApplySkip(
+            IQueryable<TEntity> source,
+            int skip) => source.Skip(skip);
+
+
+        public IQueryable<TEntity> ApplyTake(
+            IQueryable<TEntity> source,
+            int take) => source.Take(take);
+
+        //Move to conditional fetch
+        public async ValueTask<int> CountAsync(
+            IQueryable<TEntity> source,
+            CancellationToken cancellationToken) =>
+            await Task.Run(source.Count, cancellationToken)
+                .ConfigureAwait(false);
 
         private async ValueTask<IReadOnlyList<IndexEdge<TEntity>>> GetSelectedEdgesAsync(
             IQueryable<TEntity> allEdges,
@@ -80,7 +78,11 @@ namespace HotChocolate.Types.Pagination
             CancellationToken cancellationToken)
         {
             IQueryable<TEntity> edges = GetEdgesToReturn(
-                allEdges, first, last, after, before,
+                allEdges,
+                first,
+                last,
+                after,
+                before,
                 out var offset);
 
             return await ExecuteQueryableAsync(edges, offset, cancellationToken)
@@ -117,13 +119,15 @@ namespace HotChocolate.Types.Pagination
         }
 
         protected virtual IQueryable<TEntity> GetFirstEdges(
-            IQueryable<TEntity> edges, int first,
+            IQueryable<TEntity> edges,
+            int first,
             ref int offset)
         {
             if (first < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(first));
             }
+
             return edges.Take(first);
         }
 
@@ -191,19 +195,20 @@ namespace HotChocolate.Types.Pagination
             else
             {
                 await Task.Run(() =>
-                    {
-                        var index = offset;
-                        foreach (TEntity item in queryable)
                         {
-                            if (cancellationToken.IsCancellationRequested)
+                            var index = offset;
+                            foreach (TEntity item in queryable)
                             {
-                                break;
+                                if (cancellationToken.IsCancellationRequested)
+                                {
+                                    break;
+                                }
+
+                                list.Add(IndexEdge<TEntity>.Create(item, index++));
                             }
-                            list.Add(IndexEdge<TEntity>.Create(item, index++));
-                        }
-                    },
-                    cancellationToken)
-                .ConfigureAwait(false);
+                        },
+                        cancellationToken)
+                    .ConfigureAwait(false);
             }
 
             return list;
