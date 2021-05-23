@@ -10,7 +10,6 @@ namespace HotChocolate.Execution.Pipeline
     internal sealed class OperationVariableCoercionMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly IDiagnosticEvents _diagnosticEvents;
         private readonly VariableCoercionHelper _coercionHelper;
 
         public OperationVariableCoercionMiddleware(
@@ -20,8 +19,6 @@ namespace HotChocolate.Execution.Pipeline
         {
             _next = next ??
                 throw new ArgumentNullException(nameof(next));
-            _diagnosticEvents = diagnosticEvents ??
-                throw new ArgumentNullException(nameof(diagnosticEvents));
             _coercionHelper = coercionHelper ??
                 throw new ArgumentNullException(nameof(coercionHelper));
         }

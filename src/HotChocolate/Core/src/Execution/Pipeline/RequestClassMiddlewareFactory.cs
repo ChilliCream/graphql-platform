@@ -48,13 +48,13 @@ namespace HotChocolate.Execution.Pipeline
                 TMiddleware middleware =
                     MiddlewareCompiler<TMiddleware>
                         .CompileFactory<IRequestCoreMiddlewareContext, RequestDelegate>(
-                            (c, n) => CreateFactoryParameterHandlers(
+                            (c, _) => CreateFactoryParameterHandlers(
                                 c, context.Options, typeof(TMiddleware)))
                         .Invoke(context, next);
 
                 ClassQueryDelegate<TMiddleware, IRequestContext> compiled =
                     MiddlewareCompiler<TMiddleware>.CompileDelegate<IRequestContext>(
-                        (c, m) => CreateDelegateParameterHandlers(c, context.Options));
+                        (c, _) => CreateDelegateParameterHandlers(c, context.Options));
 
                 return c => compiled(c, middleware);
             };
