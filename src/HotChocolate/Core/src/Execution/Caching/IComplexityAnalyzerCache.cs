@@ -1,13 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Pipeline.Complexity;
-using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Caching
 {
     internal interface IComplexityAnalyzerCache
     {
         /// <summary>
-        /// Gets maximum amount of operation analyzers that can be cached. The default
+        /// Gets maximum amount of operation complexity analyzers that can be cached. The default
         /// value is <c>100</c>. The minimum allowed value is <c>10</c>.
         /// </summary>
         int Capacity { get; }
@@ -18,17 +17,17 @@ namespace HotChocolate.Execution.Caching
         int Count { get; }
 
         /// <summary>
-        /// Try get a compiled operation by it <paramref name="operationId" />.
+        /// Try get a compiled operation complexity analyzer by it <paramref name="operationId" />.
         /// </summary>
         /// <param name="operationId">
         /// The internal operation id.
         /// </param>
         /// <param name="analyzer">
-        /// The operation that is associated with the id or null if no operation was found
-        /// that matches the specified id.
+        /// The operation complexity analyzer that is associated with the id or null
+        /// if no operation complexity analyzer was found that matches the specified id.
         /// </param>
         /// <returns>
-        /// <c>true</c> if an operation was found that matches the specified
+        /// <c>true</c> if an operation complexity analyzer was found that matches the specified
         /// <paramref name="operationId"/>, otherwise <c>false</c>.
         /// </returns>
         bool TryGetOperation(
@@ -36,13 +35,13 @@ namespace HotChocolate.Execution.Caching
             [NotNullWhen(true)] out ComplexityAnalyzerDelegate? analyzer);
 
         /// <summary>
-        /// Tries to add a new compiled operation to the cache.
+        /// Tries to add a new operation complexity analyzer to the cache.
         /// </summary>
         /// <param name="operationId">
         /// The internal operation id.
         /// </param>
         /// <param name="analyzer">
-        /// The operation that shall be cached.
+        /// The operation complexity analyzer that shall be cached.
         /// </param>
         void TryAddOperation(
             string operationId,
