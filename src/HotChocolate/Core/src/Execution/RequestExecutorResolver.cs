@@ -164,7 +164,7 @@ namespace HotChocolate.Execution
             RequestExecutorSetup options,
             CancellationToken cancellationToken)
         {
-            var version = 0UL;
+            ulong version;
 
             unchecked
             {
@@ -247,7 +247,12 @@ namespace HotChocolate.Execution
             IServiceProvider combinedServices = schemaServices.Include(_applicationServices);
 
             lazy.Schema =
-                await CreateSchemaAsync(schemaName, options, combinedServices, cancellationToken)
+                await CreateSchemaAsync(
+                    schemaName,
+                    options,
+                    executorOptions,
+                    combinedServices,
+                    cancellationToken)
                     .ConfigureAwait(false);
 
             return schemaServices;
@@ -256,6 +261,7 @@ namespace HotChocolate.Execution
         private async ValueTask<ISchema> CreateSchemaAsync(
             NameString schemaName,
             RequestExecutorSetup options,
+            RequestExecutorOptions executorOptions,
             IServiceProvider serviceProvider,
             CancellationToken cancellationToken)
         {
@@ -266,8 +272,12 @@ namespace HotChocolate.Execution
             }
 
             ISchemaBuilder schemaBuilder = options.SchemaBuilder ?? new SchemaBuilder();
+            ComplexityAnalyzerSettings complexitySettings = executorOptions.Complexity;
 
-            schemaBuilder.AddServices(serviceProvider);
+            schemaBuilder
+                .AddServices(serviceProvider)
+                .SetContextData(typeof(RequestExecutorOptions).FullName!, executorOptions)
+                .SetContextData(typeof(ComplexityAnalyzerSettings).FullName!, complexitySettings);
 
             foreach (SchemaBuilderAction action in options.SchemaBuilderActions)
             {

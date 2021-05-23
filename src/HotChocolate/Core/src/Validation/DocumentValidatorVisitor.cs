@@ -3,8 +3,7 @@ using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Validation
 {
-    public class DocumentValidatorVisitor
-        : SyntaxWalker<IDocumentValidatorContext>
+    public class DocumentValidatorVisitor : SyntaxWalker<IDocumentValidatorContext>
     {
         protected DocumentValidatorVisitor(SyntaxVisitorOptions options = default)
             : base(Continue, options)

@@ -15,6 +15,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
     public class ObjectFieldDefinition : OutputFieldDefinitionBase
     {
         private List<FieldMiddleware>? _middlewareComponents;
+        private List<object>? _customSettings;
 
         /// <summary>
         /// The object runtime type.
@@ -79,6 +80,13 @@ namespace HotChocolate.Types.Descriptors.Definitions
             _middlewareComponents ??= new List<FieldMiddleware>();
 
         /// <summary>
+        /// A list of custom settings objects that can be user in the type interceptors.
+        /// Custom settings are not copied to the actual type system object.
+        /// </summary>
+        public IList<object> CustomSettings =>
+            _customSettings ??= new List<object>();
+
+        /// <summary>
         /// Defines if this field configuration represents an introspection field.
         /// </summary>
         public bool IsIntrospectionField { get; internal set; }
@@ -101,6 +109,21 @@ namespace HotChocolate.Types.Descriptors.Definitions
             return _middlewareComponents;
         }
 
+        /// <summary>
+        /// A list of custom settings objects that can be user in the type interceptors.
+        /// Custom settings are not copied to the actual type system object.
+        /// </summary>
+        internal IReadOnlyList<object> GetCustomSettings()
+        {
+            if (_customSettings is null)
+            {
+                return Array.Empty<object>();
+            }
+
+            return _customSettings;
+        }
+
+
         internal void CopyTo(ObjectFieldDefinition target)
         {
             base.CopyTo(target);
@@ -108,6 +131,11 @@ namespace HotChocolate.Types.Descriptors.Definitions
             if (_middlewareComponents is { Count: > 0 })
             {
                 target._middlewareComponents = new List<FieldMiddleware>(_middlewareComponents);
+            }
+
+            if (_customSettings is { Count: > 0 })
+            {
+                target._customSettings = new List<object>(_customSettings);
             }
 
             target.SourceType = SourceType;
@@ -130,6 +158,12 @@ namespace HotChocolate.Types.Descriptors.Definitions
             {
                 target._middlewareComponents ??= new List<FieldMiddleware>();
                 target._middlewareComponents.AddRange(_middlewareComponents);
+            }
+
+            if (_customSettings is { Count: > 0 })
+            {
+                target._customSettings ??= new List<object>();
+                target._customSettings.AddRange(_customSettings);
             }
 
             if (ResolverType is not null)
