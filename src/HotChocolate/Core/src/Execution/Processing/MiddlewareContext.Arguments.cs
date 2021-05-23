@@ -85,7 +85,7 @@ namespace HotChocolate.Execution.Processing
 
         private T CoerceArgumentValue<T>(ArgumentValue argument)
         {
-            object? value = argument.Value;
+            var value = argument.Value;
 
             // if the argument is final and has an already coerced
             // runtime version we can skip over parsing it.

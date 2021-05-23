@@ -414,7 +414,6 @@ services
 
 **Available Scalars:**
 
- 
 | Type             | Description
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------|
 | EmailAddress     | The `EmailAddress` scalar type represents a email address, represented as UTF-8 character sequences that follows the specification defined in RFC 5322.

@@ -13,16 +13,16 @@ namespace HotChocolate
         {
             // arrange
             var scheduler = new BatchScheduler();
-            Func<ValueTask> dispatch = () => default;
+            ValueTask Dispatch() => default;
 
-            scheduler.Schedule(dispatch);
+            scheduler.Schedule(Dispatch);
             Assert.True(scheduler.HasTasks);
 
             // act
-            scheduler.Dispatch(d => { });
+            scheduler.Dispatch(_ => { });
 
             // assert
-            Assert.False(scheduler.HasTasks);
+            Assert.True(scheduler.HasTasks);
         }
 
         [Fact]
@@ -40,10 +40,10 @@ namespace HotChocolate
         {
             // arrange
             var scheduler = new BatchScheduler();
-            Func<ValueTask> dispatch = () => default;
+            ValueTask Dispatch() => default;
 
             // act
-            scheduler.Schedule(dispatch);
+            scheduler.Schedule(Dispatch);
 
             // assert
             Assert.True(scheduler.HasTasks);
@@ -55,15 +55,12 @@ namespace HotChocolate
             // arrange
             var hasBeenRaised = false;
             var scheduler = new BatchScheduler();
-            Func<ValueTask> dispatch = () => default;
+            ValueTask Dispatch() => default;
 
-            scheduler.TaskEnqueued += (s, e) =>
-            {
-                hasBeenRaised = true;
-            };
+            scheduler.TaskEnqueued += (_, _) => hasBeenRaised = true;
 
             // act
-            scheduler.Schedule(dispatch);
+            scheduler.Schedule(Dispatch);
 
             // assert
             Assert.True(hasBeenRaised);

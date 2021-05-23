@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using HotChocolate.Language;
 
 namespace HotChocolate.Validation
 {
     /// <summary>
-    /// The document validator will analyze if the query is valid in the current schema context.
+    /// The document validator will analyze if the GraphQL request document is valid
+    /// in the current schema context.
     /// </summary>
     public interface IDocumentValidator
     {
@@ -20,7 +22,9 @@ namespace HotChocolate.Validation
         /// <returns>
         /// The result of the document validation.
         /// </returns>
-        DocumentValidatorResult Validate(ISchema schema, DocumentNode document);
+        DocumentValidatorResult Validate(
+            ISchema schema,
+            DocumentNode document);
 
         /// <summary>
         /// Validates the current document against the current schema context.
@@ -40,6 +44,6 @@ namespace HotChocolate.Validation
         DocumentValidatorResult Validate(
             ISchema schema,
             DocumentNode document,
-            IEnumerable<KeyValuePair<string, object?>>? contextData);
+            IDictionary<string, object?> contextData);
     }
 }

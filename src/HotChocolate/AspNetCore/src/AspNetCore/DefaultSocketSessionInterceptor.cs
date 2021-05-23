@@ -27,9 +27,14 @@ namespace HotChocolate.AspNetCore
             requestBuilder.TryAddProperty(nameof(HttpContext), context);
             requestBuilder.TryAddProperty(nameof(ClaimsPrincipal), context.User);
 
-            if (connection.HttpContext.IsTracingEnabled())
+            if (context.IsTracingEnabled())
             {
                 requestBuilder.TryAddProperty(WellKnownContextData.EnableTracing, true);
+            }
+
+            if (context.IncludeQueryPlan())
+            {
+                requestBuilder.TryAddProperty(WellKnownContextData.IncludeQueryPlan, true);
             }
 
             return default;

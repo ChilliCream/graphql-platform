@@ -1,0 +1,40 @@
+﻿{
+  "type": "Operation",
+  "root": {
+    "type": "Sequence",
+    "nodes": [
+      {
+        "type": "Resolver",
+        "strategy": "Serial",
+        "selections": [
+          {
+            "id": 0,
+            "field": "Mutation.createReview",
+            "responseName": "createReview"
+          },
+          {
+            "id": 5,
+            "field": "Review.commentary",
+            "responseName": "commentary"
+          }
+        ]
+      },
+      {
+        "type": "Resolver",
+        "strategy": "Serial",
+        "selections": [
+          {
+            "id": 1,
+            "field": "Mutation.createReview",
+            "responseName": "b"
+          },
+          {
+            "id": 3,
+            "field": "Review.commentary",
+            "responseName": "commentary"
+          }
+        ]
+      }
+    ]
+  }
+}

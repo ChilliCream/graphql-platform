@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -9,6 +9,8 @@ using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
+
+#nullable enable
 
 namespace HotChocolate.Execution
 {

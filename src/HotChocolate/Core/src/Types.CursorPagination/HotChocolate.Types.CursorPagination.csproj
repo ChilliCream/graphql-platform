@@ -8,7 +8,7 @@
   <PropertyGroup>
     <PackageId>HotChocolate.Types.CursorPagination</PackageId>
     <AssemblyName>HotChocolate.Types.CursorPagination</AssemblyName>
-    <RootNamespace>HHotChocolate.Types.Pagination</RootNamespace>
+    <RootNamespace>HotChocolate.Types.Pagination</RootNamespace>
     <Description>Contains middleware and types for cursor based pagination.</Description>
   </PropertyGroup>
 

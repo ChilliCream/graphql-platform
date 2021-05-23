@@ -23,7 +23,7 @@ namespace HotChocolate.Types
         /// <summary>
         /// Gets the type kind.
         /// </summary>
-        public TypeKind Kind { get; } = TypeKind.Scalar;
+        public TypeKind Kind => TypeKind.Scalar;
 
         /// <summary>
         /// Defines if this scalar binds implicitly to its runtime type or
@@ -164,7 +164,7 @@ namespace HotChocolate.Types
         /// </exception>
         public virtual object? Serialize(object? runtimeValue)
         {
-            if (TrySerialize(runtimeValue, out object? s))
+            if (TrySerialize(runtimeValue, out var s))
             {
                 return s;
             }
@@ -207,7 +207,7 @@ namespace HotChocolate.Types
         /// </exception>
         public virtual object? Deserialize(object? resultValue)
         {
-            if (TryDeserialize(resultValue, out object? v))
+            if (TryDeserialize(resultValue, out var v))
             {
                 return v;
             }

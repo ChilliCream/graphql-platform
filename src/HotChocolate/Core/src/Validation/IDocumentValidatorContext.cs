@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -49,7 +50,7 @@ namespace HotChocolate.Validation
         /// <summary>
         /// Gets the raw variable values.
         /// </summary>
-        IDictionary<string, object> VariableValues { get; }
+        IVariableValueCollection? VariableValues { get; }
 
         /// <summary>
         /// Gets a map exposing the variable definitions by name.
@@ -112,14 +113,19 @@ namespace HotChocolate.Validation
         ICollection<IError> Errors { get; }
 
         /// <summary>
-        /// Gets ors sets a counter.
+        /// Gets ors sets a single counter.
         /// </summary>
         int Count { get; set; }
 
         /// <summary>
-        /// Gets ors sets a max value counter.
+        /// Gets ors sets a single max value counter.
         /// </summary>
         int Max { get; set; }
+
+        /// <summary>
+        /// Gets a list of objects that can be used by validation rules.
+        /// </summary>
+        IList<object?> List { get; }
 
         /// <summary>
         /// Defines that a visitation has found an unexpected error

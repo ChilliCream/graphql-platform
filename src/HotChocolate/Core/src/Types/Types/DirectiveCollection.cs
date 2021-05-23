@@ -13,7 +13,7 @@ namespace HotChocolate.Types
 {
     public sealed class DirectiveCollection : IDirectiveCollection
     {
-        private static ILookup<NameString, IDirective> _defaultLookup =
+        private static readonly ILookup<NameString, IDirective> _defaultLookup =
             Enumerable.Empty<IDirective>().ToLookup(x => x.Name);
 
         private readonly object _source;
