@@ -42,7 +42,6 @@ This change can be performed automatically by your IDE.
 > Note: Be sure to apply the Code-Fix on a solution level, if there are many new APIs that need to be documented.
 > ![image](https://user-images.githubusercontent.com/45513122/119241399-47bbbe80-bb56-11eb-9253-92e2878cd428.png)
 
-
 ### Removed APIs
 
 This case will be indicated by an error/warning like the following:
@@ -104,7 +103,13 @@ The job is defined as part of [this Pipeline definition](./.devops/azure-pipelin
 
 ## Scripts
 
-There are three scripts to help you manage the `PublicAPI.*.txt` files. They can be found [here](./scripts).
+There are some scripts that can help you manage the `PublicAPI.*.txt` files. They can be found [here](./scripts).
+
+### add-unshipped-apis.ps1
+
+This will download the `dotnet-format` tool and use it to fix all the `RS0016` warnings of the `Microsoft.CodeAnalysis.PublicApiAnalyzers`.
+
+> Note: This requires the `All.sln` file to be present in the `src` directory. Execute one of the build scripts in the root directory to generate the solution file.
 
 ### mark-api-shipped.ps1
 
