@@ -528,7 +528,7 @@ namespace HotChocolate.Types.Pagination
             // assert
             Assert.Equal(8, ToFoo(result).First().Index);
             Assert.Equal(9, ToFoo(result).Last().Index);
-            Assert.True(result.Info.HasNextPage);
+            Assert.False(result.Info.HasNextPage);
             Assert.True(result.Info.HasPreviousPage);
             Assert.Equal(ToBase64(8), result.Info.StartCursor);
             Assert.Equal(ToBase64(9), result.Info.EndCursor);
@@ -603,7 +603,7 @@ namespace HotChocolate.Types.Pagination
 
             // act
             Connection result =
-                    await Apply(data, before: ToBase64(20), last: 4);
+                await Apply(data, before: ToBase64(20), last: 4);
 
             // assert
             Assert.Empty(ToFoo(result));
@@ -642,7 +642,7 @@ namespace HotChocolate.Types.Pagination
 
             // act
             Connection result =
-                    await Apply(data, after: ToBase64(-20), first: 4);
+                await Apply(data, after: ToBase64(-20), first: 4);
 
             // assert
             Assert.Empty(ToFoo(result));
@@ -670,6 +670,222 @@ namespace HotChocolate.Types.Pagination
             Assert.Equal(ToBase64(8), result.Info.StartCursor);
             Assert.Equal(ToBase64(9), result.Info.EndCursor);
             Assert.Equal(10, await result.GetTotalCountAsync(default));
+        }
+
+        [Fact]
+        public async Task ApplyPagination_EmptyList_Default()
+        {
+            // arrange
+            IEnumerable<Foo> data = Enumerable.Empty<Foo>();
+
+            // act
+            Connection result = await Apply(data);
+
+            // assert
+            Assert.Empty(ToFoo(result));
+            Assert.False(result.Info.HasNextPage);
+            Assert.False(result.Info.HasPreviousPage);
+            Assert.Null(result.Info.StartCursor);
+            Assert.Null(result.Info.EndCursor);
+            Assert.Equal(0, await result.GetTotalCountAsync(default));
+        }
+
+        [Fact]
+        public async Task ApplyPagination_EmptyList_First2()
+        {
+            // arrange
+            IEnumerable<Foo> data = Enumerable.Empty<Foo>();
+
+            // act
+            Connection result = await Apply(data, first: 2);
+
+            // assert
+            Assert.Empty(ToFoo(result));
+            Assert.False(result.Info.HasNextPage);
+            Assert.False(result.Info.HasPreviousPage);
+            Assert.Null(result.Info.StartCursor);
+            Assert.Null(result.Info.EndCursor);
+            Assert.Equal(0, await result.GetTotalCountAsync(default));
+        }
+
+        [Fact]
+        public async Task ApplyPagination_EmptyList_Last2()
+        {
+            // arrange
+            IEnumerable<Foo> data = Enumerable.Empty<Foo>();
+
+            // act
+            Connection result = await Apply(data, last: 2);
+
+            // assert
+            Assert.Empty(ToFoo(result));
+            Assert.False(result.Info.HasNextPage);
+            Assert.False(result.Info.HasPreviousPage);
+            Assert.Null(result.Info.StartCursor);
+            Assert.Null(result.Info.EndCursor);
+            Assert.Equal(0, await result.GetTotalCountAsync(default));
+        }
+
+        [Fact]
+        public async Task ApplyPagination_EmptyList_After_2()
+        {
+            // arrange
+            IEnumerable<Foo> data = Enumerable.Empty<Foo>();
+
+            // act
+            Connection result = await Apply(data, after: ToBase64(2));
+
+            // assert
+            Assert.Empty(ToFoo(result));
+            Assert.False(result.Info.HasNextPage);
+            Assert.True(result.Info.HasPreviousPage);
+            Assert.Null(result.Info.StartCursor);
+            Assert.Null(result.Info.EndCursor);
+            Assert.Equal(0, await result.GetTotalCountAsync(default));
+        }
+
+        [Fact]
+        public async Task ApplyPagination_EmptyList_Before_2()
+        {
+            // arrange
+            IEnumerable<Foo> data = Enumerable.Empty<Foo>();
+
+            // act
+            Connection result = await Apply(data, before: ToBase64(2));
+
+            // assert
+            Assert.Empty(ToFoo(result));
+            Assert.False(result.Info.HasNextPage);
+            Assert.False(result.Info.HasPreviousPage);
+            Assert.Null(result.Info.StartCursor);
+            Assert.Null(result.Info.EndCursor);
+            Assert.Equal(0, await result.GetTotalCountAsync(default));
+        }
+
+        [Fact]
+        public async Task ApplyPagination_EmptyList_After_Minut2()
+        {
+            // arrange
+            IEnumerable<Foo> data = Enumerable.Empty<Foo>();
+
+            // act
+            Connection result = await Apply(data, after: ToBase64(-2));
+
+            // assert
+            Assert.Empty(ToFoo(result));
+            Assert.False(result.Info.HasNextPage);
+            Assert.False(result.Info.HasPreviousPage);
+            Assert.Null(result.Info.StartCursor);
+            Assert.Null(result.Info.EndCursor);
+            Assert.Equal(0, await result.GetTotalCountAsync(default));
+        }
+
+        [Fact]
+        public async Task ApplyPagination_EmptyList_After_2_First2()
+        {
+            // arrange
+            IEnumerable<Foo> data = Enumerable.Empty<Foo>();
+
+            // act
+            Connection result = await Apply(data, after: ToBase64(2), first: 2);
+
+            // assert
+            Assert.Empty(ToFoo(result));
+            Assert.False(result.Info.HasNextPage);
+            Assert.True(result.Info.HasPreviousPage);
+            Assert.Null(result.Info.StartCursor);
+            Assert.Null(result.Info.EndCursor);
+            Assert.Equal(0, await result.GetTotalCountAsync(default));
+        }
+
+        [Fact]
+        public async Task ApplyPagination_EmptyList_Before_2_First2()
+        {
+            // arrange
+            IEnumerable<Foo> data = Enumerable.Empty<Foo>();
+
+            // act
+            Connection result = await Apply(data, before: ToBase64(2), first: 2);
+
+            // assert
+            Assert.Empty(ToFoo(result));
+            Assert.False(result.Info.HasNextPage);
+            Assert.False(result.Info.HasPreviousPage);
+            Assert.Null(result.Info.StartCursor);
+            Assert.Null(result.Info.EndCursor);
+            Assert.Equal(0, await result.GetTotalCountAsync(default));
+        }
+
+        [Fact]
+        public async Task ApplyPagination_EmptyList_After_Minus2_First2()
+        {
+            // arrange
+            IEnumerable<Foo> data = Enumerable.Empty<Foo>();
+
+            // act
+            Connection result = await Apply(data, after: ToBase64(-2), first: 2);
+
+            // assert
+            Assert.Empty(ToFoo(result));
+            Assert.False(result.Info.HasNextPage);
+            Assert.False(result.Info.HasPreviousPage);
+            Assert.Null(result.Info.StartCursor);
+            Assert.Null(result.Info.EndCursor);
+            Assert.Equal(0, await result.GetTotalCountAsync(default));
+        }
+
+        [Fact]
+        public async Task ApplyPagination_EmptyList_After_2_Last2()
+        {
+            // arrange
+            IEnumerable<Foo> data = Enumerable.Empty<Foo>();
+
+            // act
+            Connection result = await Apply(data, after: ToBase64(2), last: 2);
+
+            // assert
+            Assert.Empty(ToFoo(result));
+            Assert.False(result.Info.HasNextPage);
+            Assert.True(result.Info.HasPreviousPage);
+            Assert.Null(result.Info.StartCursor);
+            Assert.Null(result.Info.EndCursor);
+            Assert.Equal(0, await result.GetTotalCountAsync(default));
+        }
+
+        [Fact]
+        public async Task ApplyPagination_EmptyList_Before_2_Last2()
+        {
+            // arrange
+            IEnumerable<Foo> data = Enumerable.Empty<Foo>();
+
+            // act
+            Connection result = await Apply(data, before: ToBase64(2), last: 2);
+
+            // assert
+            Assert.Empty(ToFoo(result));
+            Assert.False(result.Info.HasNextPage);
+            Assert.False(result.Info.HasPreviousPage);
+            Assert.Null(result.Info.StartCursor);
+            Assert.Null(result.Info.EndCursor);
+            Assert.Equal(0, await result.GetTotalCountAsync(default));
+        }
+
+        [Fact]
+        public async Task ApplyPagination_EmptyList_After_Minus2_Last2()
+        {
+            // arrange
+            IEnumerable<Foo> data = Enumerable.Empty<Foo>();
+
+            // act
+            Connection result = await Apply(data, after: ToBase64(-2), last: 2);
+
+            // assert
+            Assert.Empty(ToFoo(result));
+            Assert.False(result.Info.HasNextPage);
+            Assert.False(result.Info.HasPreviousPage);
+            Assert.Null(result.Info.StartCursor);
+            Assert.Null(result.Info.EndCursor);
+            Assert.Equal(0, await result.GetTotalCountAsync(default));
         }
 
         private static string ToBase64(int i) =>

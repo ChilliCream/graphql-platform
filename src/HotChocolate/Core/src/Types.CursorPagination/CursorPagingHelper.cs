@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -45,6 +44,79 @@ namespace HotChocolate.Types.Pagination
                 countAsync = (_, _) => new ValueTask<int>(count);
             }
 
+            Range range = SliceRange<TEntity>(arguments, maxElementCount);
+
+            var skip = range.Start;
+            var take = range.Count();
+
+            // we fetch one element more than we requested
+            if (take != maxElementCount)
+            {
+                take++;
+            }
+
+            TSource slicedSource = source;
+            if (skip != 0)
+            {
+                slicedSource = applySkip(source, skip);
+            }
+
+            if (take != maxElementCount)
+            {
+                slicedSource = applyTake(slicedSource, take);
+            }
+
+            IReadOnlyList<IndexEdge<TEntity>> selectedEdges =
+                await toIndexEdgesAsync(slicedSource, skip, cancellationToken);
+
+            bool moreItemsReturnedThanRequested = selectedEdges.Count > range.Count();
+            bool isSequenceFromStart = range.Start == 0;
+
+            selectedEdges = new SkipLastCollection<IndexEdge<TEntity>>(
+                selectedEdges,
+                moreItemsReturnedThanRequested);
+
+            ConnectionPageInfo pageInfo =
+                CreatePageInfo(isSequenceFromStart, moreItemsReturnedThanRequested, selectedEdges);
+
+            return new Connection<TEntity>(
+                selectedEdges,
+                pageInfo,
+                async ct => await countAsync(source, ct));
+        }
+
+        private static ConnectionPageInfo CreatePageInfo<TEntity>(
+            bool isSequenceFromStart,
+            bool moreItemsReturnedThanRequested,
+            IReadOnlyList<IndexEdge<TEntity>> selectedEdges)
+        {
+            // We know that there is a next page if more items than requested are returned
+            bool hasNextPage = moreItemsReturnedThanRequested;
+
+            // There is a previous page if the sequence start is not 0.
+            // If you point to index 2 of a empty list, we assume that there is a previous page
+            bool hasPreviousPage = !isSequenceFromStart;
+
+            IndexEdge<TEntity>? firstEdge = null;
+            IndexEdge<TEntity>? lastEdge = null;
+
+            if (selectedEdges.Count > 0)
+            {
+                firstEdge = selectedEdges[0];
+                lastEdge = selectedEdges[selectedEdges.Count - 1];
+            }
+
+            return new ConnectionPageInfo(
+                hasNextPage,
+                hasPreviousPage,
+                firstEdge?.Cursor,
+                lastEdge?.Cursor);
+        }
+
+        private static Range SliceRange<TEntity>(
+            CursorPagingArguments arguments,
+            int maxElementCount)
+        {
             // [SPEC] if after is set then remove all elements of edges before and including
             // afterEdge.
             //
@@ -69,7 +141,7 @@ namespace HotChocolate.Types.Pagination
                 startIndex = 0;
             }
 
-            Range edges = new(startIndex, before);
+            Range range = new(startIndex, before);
 
             //[SPEC] If first is less than 0 throw an error
             ValidateFirst(arguments, out int? first);
@@ -83,165 +155,30 @@ namespace HotChocolate.Types.Pagination
             }
 
             //[SPEC] Slice edges to be of length first by removing edges from the end of edges.
-            edges.Take(first);
+            range.Take(first);
 
             //[SPEC] if last is less than 0 throw an error
             ValidateLast(arguments, out int? last);
             //[SPEC] Slice edges to be of length last by removing edges from the start of edges.
-            edges.TakeLast(last);
+            range.TakeLast(last);
 
-
-            // In case last was not provided we assume that we do forward pagination. We do need
-            // to know the direction of the pagination to know where the overfetched element is
-            var isForwardPagination = arguments.Last is null;
-            var isSequenceFromStart = edges.Start == 0;
-            bool skipIsReducedByOne = false;
-
-            var skip = edges.Start;
-            var take = edges.Count();
-
-            if (isForwardPagination)
-            {
-                // in case we do forward pagination we want to have one element more than requested
-                // at the end of the sequence. This element shows us if there is a next page
-                if (take != maxElementCount)
-                {
-                    take++;
-                }
-            }
-            else
-            {
-                if (!isSequenceFromStart)
-                {
-                    // in case we do backwards pagination we want to have an additional element at
-                    // the start of the sequence. There for we reduce the skip by one and increase
-                    // take by one.
-                    skipIsReducedByOne = true;
-                    skip--;
-                    if (take != int.MaxValue)
-                    {
-                        take++;
-                    }
-                }
-            }
-
-            TSource slicedSource = applySkip(source, skip);
-            if (take != maxElementCount)
-            {
-                slicedSource = applyTake(slicedSource, take);
-            }
-
-            IReadOnlyList<IndexEdge<TEntity>> selectedEdges =
-                await toIndexEdgesAsync(slicedSource, skip, cancellationToken);
-
-            bool lessItemsReturnedThanRequested = selectedEdges.Count < edges.Count();
-            bool moreItemsReturnedThanRequested = selectedEdges.Count > edges.Count();
-
-            // There can only be a next page if the last edge does not point to the last element in
-            // the list. We either know this because of the maxElementCount or because we
-            // overfetched
-            bool hasNextPage = edges.End < maxElementCount;
-            bool hasPreviousPage = edges.Start > 0;
-            IndexEdge<TEntity>? firstEdge = null;
-            IndexEdge<TEntity>? lastEdge = null;
-
-            // we know that we over-fetched if more items are returned than requested.
-            // we always over-fetched if skip was reduced by one
-            bool isOverfetched = moreItemsReturnedThanRequested || skipIsReducedByOne;
-
-            if (isForwardPagination)
-            {
-                if (isOverfetched)
-                {
-                    // in case that we do forward pagination and we over-fetched, the additional
-                    // element is at the end of the list.
-                    // We know that there is a next page
-                    selectedEdges =
-                        new SkipFirstOrLastCollection<IndexEdge<TEntity>>(
-                            selectedEdges,
-                            skipLast: true);
-
-                    selectedEdges.Take(edges.Count()).ToArray();
-                    hasNextPage = true;
-                }
-                else
-                {
-                    // if no additional item is returned, we know that there is no next page
-                    hasNextPage = false;
-                }
-
-                // we do not need to check for `lessItemsReturnedThanRequested` as we corrected
-                // the start index already
-            }
-            else
-            {
-                if (isOverfetched)
-                {
-                    // in case that we do backward pagination and we over-fetched, the
-                    // additional element is at the beginning of the list.
-                    // we skip this element and know that there is a previous page
-                    selectedEdges =
-                        new SkipFirstOrLastCollection<IndexEdge<TEntity>>(
-                            selectedEdges,
-                            skipFirst: true);
-
-                    hasPreviousPage = true;
-                }
-                else
-                {
-                    // in case no additional element is returned, there is no previous page
-                    hasPreviousPage = false;
-                }
-
-                if (lessItemsReturnedThanRequested)
-                {
-                    // if less item than requested are returned, we also know that there is
-                    // no next page
-                    hasNextPage = false;
-                }
-            }
-
-            if (selectedEdges.Count > 0)
-            {
-                firstEdge = selectedEdges[0];
-                lastEdge = selectedEdges[selectedEdges.Count - 1];
-            }
-
-            var pageInfo = new ConnectionPageInfo(
-                hasNextPage,
-                hasPreviousPage,
-                firstEdge?.Cursor,
-                lastEdge?.Cursor,
-                0);
-
-            return new Connection<TEntity>(
-                selectedEdges,
-                pageInfo,
-                async ct => await countAsync(source, ct));
+            return range;
         }
 
-        private class SkipFirstOrLastCollection<T> : IReadOnlyList<T>
+        private class SkipLastCollection<T> : IReadOnlyList<T>
         {
             private readonly IReadOnlyList<T> _items;
-            private readonly bool _skipFirst;
             private readonly bool _skipLast;
 
-            public SkipFirstOrLastCollection(
+            public SkipLastCollection(
                 IReadOnlyList<T> items,
-                bool skipFirst = false,
                 bool skipLast = false)
             {
                 _items = items;
-                _skipFirst = skipFirst;
                 _skipLast = skipLast;
                 Count = _items.Count;
 
-                if (skipFirst)
-                {
-                    Count--;
-                }
-
-                if (skipLast)
+                if (skipLast && Count > 0)
                 {
                     Count--;
                 }
@@ -253,11 +190,6 @@ namespace HotChocolate.Types.Pagination
             {
                 for (var i = 0; i < _items.Count; i++)
                 {
-                    if (i == 0 && _skipFirst)
-                    {
-                        continue;
-                    }
-
                     if (i == _items.Count - 1 && _skipLast)
                     {
                         break;
@@ -269,10 +201,10 @@ namespace HotChocolate.Types.Pagination
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-            public T this[int index] => _skipFirst ? _items[index + 1] : _items[index];
+            public T this[int index] => _items[index];
         }
 
-        public class Range
+        internal class Range
         {
             public Range(int start, int end)
             {
@@ -284,7 +216,16 @@ namespace HotChocolate.Types.Pagination
 
             public int End { get; private set; }
 
-            public int Count() => End - Start;
+            public int Count()
+            {
+                if (End < Start)
+                {
+                    return 0;
+                }
+
+                return End - Start;
+            }
+
 
             public void Take(int? first)
             {
