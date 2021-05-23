@@ -226,7 +226,6 @@ namespace HotChocolate.Types.Pagination
                 return End - Start;
             }
 
-
             public void Take(int? first)
             {
                 if (first is { })

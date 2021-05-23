@@ -268,7 +268,6 @@ namespace HotChocolate.Types.Pagination
             Assert.Equal(4, await result.GetTotalCountAsync(default));
         }
 
-
         [Fact]
         public async Task ApplyPagination_Before_Default()
         {
