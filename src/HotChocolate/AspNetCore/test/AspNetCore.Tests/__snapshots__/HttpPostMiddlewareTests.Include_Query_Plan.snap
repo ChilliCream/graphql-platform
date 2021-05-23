@@ -6,7 +6,7 @@
   },
   "Errors": null,
   "Extensions": {
-    "query-plan": {
+    "queryPlan": {
       "flow": {
         "type": "Operation",
         "root": {

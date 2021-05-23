@@ -110,7 +110,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public static IRequestExecutorBuilder UseOperationComplexityAnalyzer(
             this IRequestExecutorBuilder builder) =>
-            builder.UseRequest<OperationComplexityAnalyzer>();
+            builder.UseRequest<OperationComplexityMiddleware>();
 
         public static IRequestExecutorBuilder UseOperationExecution(
             this IRequestExecutorBuilder builder) =>

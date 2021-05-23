@@ -180,7 +180,6 @@ namespace HotChocolate.Execution.Pipeline
             var parserMiddleware = new DocumentParserMiddleware(
                 context => default,
                 new NoopDiagnosticEvents(),
-                cache,
                 hashProvider);
 
             var middleware = new DocumentCacheMiddleware(
