@@ -1,5 +1,6 @@
 name-template: '$RESOLVED_VERSION'
 tag-template: '$RESOLVED_VERSION'
+commitish: main
 change-template: '- $TITLE by @$AUTHOR (#$NUMBER)'
 no-changes-template: '- No changes'
 categories:
@@ -27,45 +28,9 @@ categories:
   - title: '🧰 Maintenance'
     labels:
       - '🧰 maintenance'
-version-resolver:
-  major:
-    labels:
-      - 'major'
-  minor:
-    labels:
-      - 'minor'
-  patch:
-    labels:
-      - 'patch'
-  default: patch
 template: |
   $CHANGES
 
   ## 👨🏼‍💻 Contributors
 
   $CONTRIBUTORS
-autolabeler:
-  - label: '🌶️ banana cake pop'
-    files:
-      - 'src/BananaCakePop'
-  - label: '🌶️ green donut'
-    files:
-      - 'src/GreenDonut'
-  - label: '🌶️ hot chocolate'
-    files:
-      - 'src/HotChocolate'
-  - label: '🌶️ marshmallow pie'
-    files:
-      - 'src/MarshmallowPie'
-  - label: '🌶️ strawberry shake'
-    files:
-      - 'src/StrawberryShake'
-  - label: '🌶️ website'
-    files:
-      - 'website'
-  - label: '🧰 maintenance'
-    files:
-      - '.build/**/*'
-      - '.github/**/*'
-      - '.devops/**/*'
-      - '.vscode/**/*'
