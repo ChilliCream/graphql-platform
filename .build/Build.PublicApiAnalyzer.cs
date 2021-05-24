@@ -1,3 +1,4 @@
+using System.IO;
 using Colorful;
 using Nuke.Common;
 using Nuke.Common.CI;
@@ -15,6 +16,7 @@ partial class Build : NukeBuild
 {
     [Parameter] readonly string From;
     [Parameter] readonly string To;
+    [Parameter] readonly bool Breaking;
 
     Target CheckPublicApi => _ => _
         .DependsOn(Restore)
@@ -59,10 +61,47 @@ partial class Build : NukeBuild
                 DotNetBuildSonarSolution(AllSolutionFile);
             }
 
+            var from = string.IsNullOrEmpty(From) ? GitRepository.Branch : From;
+            var to = string.IsNullOrEmpty(To) ? "main" : To;
+
+            if (from == to)
+            {
+                Console.WriteLine("Nothing to diff here.");
+                return;
+            }
+
             AbsolutePath shippedPath = SourceDirectory / "**" / "PublicAPI.Shipped.txt";
 
-            Git($@" --no-pager diff --minimal -U0 --word-diff ""{From}"" ""{To}"" -- ""{shippedPath}""", RootDirectory);
+            Git($@" --no-pager diff --minimal -U0 --word-diff ""{from}"" ""{to}"" -- ""{shippedPath}""", RootDirectory);
         });
 
+    Target DisplayUnshippedApi => _ => _
+        .DependsOn(Restore)
+        .Executes(() =>
+        {
+            // first we ensure that the All.sln exists.
+            if (!InvokedTargets.Contains(Restore))
+            {
+                DotNetBuildSonarSolution(AllSolutionFile);
+            }
 
+
+        });
+
+    Target MarkApiShipped => _ => _
+        .DependsOn(Restore)
+        .Executes(() =>
+        {
+            // first we ensure that the All.sln exists.
+            if (!InvokedTargets.Contains(Restore))
+            {
+                DotNetBuildSonarSolution(AllSolutionFile);
+            }
+
+            foreach (var file in Directory.GetFiles(SourceDirectory, "PublicApi.Shipped.txt", SearchOption.AllDirectories))
+            {
+
+            }
+
+        });
 }
