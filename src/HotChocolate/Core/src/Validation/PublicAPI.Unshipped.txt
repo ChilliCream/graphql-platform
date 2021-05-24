@@ -1,1 +1,8 @@
-
+HotChocolate.Validation.DocumentValidator.Validate(HotChocolate.ISchema! schema, HotChocolate.Language.DocumentNode! document, System.Collections.Generic.IDictionary<string!, object?>! contextData) -> HotChocolate.Validation.DocumentValidatorResult!
+HotChocolate.Validation.DocumentValidatorContext.ContextData.set -> void
+HotChocolate.Validation.DocumentValidatorContext.List.get -> System.Collections.Generic.IList<object?>!
+HotChocolate.Validation.DocumentValidatorContext.VariableValues.get -> HotChocolate.Execution.IVariableValueCollection?
+HotChocolate.Validation.DocumentValidatorContext.VariableValues.set -> void
+HotChocolate.Validation.IDocumentValidator.Validate(HotChocolate.ISchema! schema, HotChocolate.Language.DocumentNode! document, System.Collections.Generic.IDictionary<string!, object?>! contextData) -> HotChocolate.Validation.DocumentValidatorResult!
+HotChocolate.Validation.IDocumentValidatorContext.List.get -> System.Collections.Generic.IList<object?>!
+HotChocolate.Validation.IDocumentValidatorContext.VariableValues.get -> HotChocolate.Execution.IVariableValueCollection?

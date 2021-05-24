@@ -1,4 +1,36 @@
 HotChocolate.Execution.Instrumentation.IDiagnosticEvents.ScaleTaskProcessors(HotChocolate.Execution.IRequestContext! context, int backlogSize, int processors) -> void
+HotChocolate.Execution.Options.ComplexityAnalyzerSettings
+HotChocolate.Execution.Options.ComplexityAnalyzerSettings.ApplyDefaults.get -> bool
+HotChocolate.Execution.Options.ComplexityAnalyzerSettings.ApplyDefaults.set -> void
+HotChocolate.Execution.Options.ComplexityAnalyzerSettings.Calculation.get -> HotChocolate.Execution.Pipeline.Complexity.ComplexityCalculation!
+HotChocolate.Execution.Options.ComplexityAnalyzerSettings.Calculation.set -> void
+HotChocolate.Execution.Options.ComplexityAnalyzerSettings.ComplexityAnalyzerSettings() -> void
+HotChocolate.Execution.Options.ComplexityAnalyzerSettings.ContextDataKey.get -> string!
+HotChocolate.Execution.Options.ComplexityAnalyzerSettings.ContextDataKey.set -> void
+HotChocolate.Execution.Options.ComplexityAnalyzerSettings.DefaultComplexity.get -> int
+HotChocolate.Execution.Options.ComplexityAnalyzerSettings.DefaultComplexity.set -> void
+HotChocolate.Execution.Options.ComplexityAnalyzerSettings.DefaultResolverComplexity.get -> int
+HotChocolate.Execution.Options.ComplexityAnalyzerSettings.DefaultResolverComplexity.set -> void
+HotChocolate.Execution.Options.ComplexityAnalyzerSettings.Enable.get -> bool
+HotChocolate.Execution.Options.ComplexityAnalyzerSettings.Enable.set -> void
+HotChocolate.Execution.Options.ComplexityAnalyzerSettings.MaximumAllowed.get -> int
+HotChocolate.Execution.Options.ComplexityAnalyzerSettings.MaximumAllowed.set -> void
+HotChocolate.Execution.Options.IComplexityAnalyzerOptionsAccessor
+HotChocolate.Execution.Options.IComplexityAnalyzerOptionsAccessor.Complexity.get -> HotChocolate.Execution.Options.ComplexityAnalyzerSettings!
+HotChocolate.Execution.Options.RequestExecutorOptions.Complexity.get -> HotChocolate.Execution.Options.ComplexityAnalyzerSettings!
+HotChocolate.Execution.Pipeline.Complexity.ComplexityCalculation
+HotChocolate.Execution.Pipeline.Complexity.ComplexityContext
+HotChocolate.Execution.Pipeline.Complexity.ComplexityContext.ChildComplexity.get -> int
+HotChocolate.Execution.Pipeline.Complexity.ComplexityContext.Complexity.get -> int
+HotChocolate.Execution.Pipeline.Complexity.ComplexityContext.ComplexityContext() -> void
+HotChocolate.Execution.Pipeline.Complexity.ComplexityContext.ComplexityContext(HotChocolate.Types.IOutputField! field, HotChocolate.Language.FieldNode! selection, HotChocolate.Types.CostDirective? cost, int fieldDepth, int nodeDepth, int childComplexity, int defaultComplexity, HotChocolate.Execution.IVariableValueCollection! valueCollection) -> void
+HotChocolate.Execution.Pipeline.Complexity.ComplexityContext.DefaultMultiplier.get -> int?
+HotChocolate.Execution.Pipeline.Complexity.ComplexityContext.Field.get -> HotChocolate.Types.IOutputField!
+HotChocolate.Execution.Pipeline.Complexity.ComplexityContext.FieldDepth.get -> int
+HotChocolate.Execution.Pipeline.Complexity.ComplexityContext.Multipliers.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Types.MultiplierPathString>!
+HotChocolate.Execution.Pipeline.Complexity.ComplexityContext.NodeDepth.get -> int
+HotChocolate.Execution.Pipeline.Complexity.ComplexityContext.Selection.get -> HotChocolate.Language.FieldNode!
+HotChocolate.Execution.Pipeline.Complexity.ComplexityContext.TryGetArgumentValue<T>(string! name, out T value) -> bool
 HotChocolate.Execution.Processing.Fragment.Fragment(int fragmentId, HotChocolate.Types.IObjectType! typeCondition, HotChocolate.Language.FragmentSpreadNode! fragmentSpread, HotChocolate.Language.FragmentDefinitionNode! fragmentDefinition, HotChocolate.Execution.Processing.ISelectionSet! selectionSet, bool internalFragment, HotChocolate.Execution.Processing.SelectionIncludeCondition? includeCondition) -> void
 HotChocolate.Execution.Processing.Fragment.Fragment(int fragmentId, HotChocolate.Types.IObjectType! typeCondition, HotChocolate.Language.InlineFragmentNode! inlineFragment, HotChocolate.Execution.Processing.ISelectionSet! selectionSet, bool internalFragment, HotChocolate.Execution.Processing.SelectionIncludeCondition? includeCondition) -> void
 HotChocolate.Execution.Processing.Fragment.Id.get -> int
@@ -23,5 +55,7 @@ HotChocolate.Execution.Processing.SelectionExecutionStrategy.Inline = 3 -> HotCh
 HotChocolate.Execution.Processing.SelectionExecutionStrategy.Pure = 2 -> HotChocolate.Execution.Processing.SelectionExecutionStrategy
 HotChocolate.Execution.Processing.SelectionExecutionStrategy.Serial = 1 -> HotChocolate.Execution.Processing.SelectionExecutionStrategy
 HotChocolate.Execution.Processing.SelectionOptimizerContext.GetNextId() -> int
+static HotChocolate.Execution.Options.ComplexityAnalyzerSettings.DefaultCalculation(HotChocolate.Execution.Pipeline.Complexity.ComplexityContext context) -> int
 static HotChocolate.Execution.Processing.ArgumentCoercionHelper.TryCoerceArguments(this HotChocolate.Execution.Processing.IArgumentMap! arguments, HotChocolate.Resolvers.IResolverContext! resolverContext, out System.Collections.Generic.IReadOnlyDictionary<HotChocolate.NameString, HotChocolate.Execution.Processing.ArgumentValue!>? coercedArgs) -> bool
+static Microsoft.Extensions.DependencyInjection.RequestExecutorBuilderExtensions.UseOperationComplexityAnalyzer(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
 virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.ScaleTaskProcessors(HotChocolate.Execution.IRequestContext! context, int backlogSize, int processors) -> void
