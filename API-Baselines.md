@@ -10,7 +10,7 @@ Each project contains two files tracking the public API surface of said project.
 
 This file contains APIs that were released in the last major version.
 
-This file should only be modified after a major release by the maintainers and should never be modified otherwise. There is a [script](#scripts) to perform this automatically.
+This file should only be modified after a major release by the maintainers and should never be modified otherwise. There is a [script](#MarkApiShipped) to perform this automatically.
 
 ### PublicAPI.Unshipped.txt
 
@@ -35,9 +35,7 @@ It can be resolved by adding the new symbol to the `PublicAPI.Unshipped.txt` fil
 Microsoft.AspNetCore.Builder.NewApplicationBuilder.New() -> Microsoft.AspNetCore.Builder.IApplicationBuilder!
 ```
 
-This change can be performed automatically by your IDE.
-
-> Note: Currently not every IDE supports Code-Fixes provided by a Roslyn Analyzer. Visual Studio Code for example does not at the moment - Visual Studio 2019 does.
+This change can be performed automatically by your IDE or using a [script](#AddUnshipped).
 
 > Note: Be sure to apply the Code-Fix on a solution level, if there are many new APIs that need to be documented.
 > ![image](https://user-images.githubusercontent.com/45513122/119241399-47bbbe80-bb56-11eb-9253-92e2878cd428.png)
@@ -97,42 +95,62 @@ cp scripts/PublicAPI.empty.txt "src/$DIR/PublicAPI.Unshipped.txt"
 
 ## Pipeline Job
 
-A PR to `main` will trigger a Pipeline job that runs this analyzer. Contrary to the development environment, where the analyzer only reports warnings, here it throws an error (This behavior is only true if the `RequireDocumentationOfPublicApiChanges` environment variable is set). This is done to enforce highlighting of public API changes.
+A PR to `main` will trigger a Pipeline job that runs the [CheckPublicApi script](#CheckPublicApi).
 
 The job is defined as part of [this Pipeline definition](./.github/workflows/check-public-api.yml).
 
 ## Scripts
 
-There are some scripts that can help you manage the `PublicAPI.*.txt` files. They can be found [here](./scripts).
+There are some helpful scripts that accommodate working with the analyzer.
 
-### add-unshipped-apis.ps1
+The scripts can be executed via _Nuke_. Choose the appropriate `build` script for your platform (in the root directory) and pass one of the following arguments.
 
-This will download the `dotnet-format` tool and use it to fix all the `RS0016` warnings of the `Microsoft.CodeAnalysis.PublicApiAnalyzers`.
+### CheckPublicApi
 
-> Note: This requires the `All.sln` file to be present in the `src` directory. Execute one of the build scripts in the root directory to generate the solution file.
+Executes a build and fails if there are undocumented changes.
 
-### mark-api-shipped.ps1
+```bash
+./build.sh CheckPublicApi
+```
+
+### AddUnshipped
+
+This will use the `dotnet-format` tool to fix all the `RS0016` warnings of the `Microsoft.CodeAnalysis.PublicApiAnalyzers`.
+
+```bash
+./build.sh AddUnshipped
+```
+
+### DiffShippedApi
+
+This shows all changes of `PublicAPI.Shipped.txt` files between git refs. Tags, commit hashes and branch names are supported.
+
+```bash
+./build.sh DiffShippedApi --from 11.0.0 --to 12.0.0
+```
+
+### DisplayUnshippedApi
+
+This will output the contents of all `PublicAPI.Unshipped.txt` files throughout the project.
+
+```bash
+./build.sh DisplayUnshippedApi
+```
+
+If we only want to see the breaking changes, we can add the `breaking` flag:
+
+<!-- todo: this parameter is not yet used -->
+
+```bash
+./build.sh DisplayUnshippedApi --breaking
+```
+
+### MarkApiShipped
 
 This transfers all changes in the `PublicAPI.Unshipped.txt` to the `PublicAPI.Shipped.txt` files.
 
 It also takes care of removing lines marked with `*REMOVE*` (removals of APIs).
 
-### display-unshipped-api.ps1
-
-This will output the contents of all `PublicAPI.Unshipped.txt` files throughout the project.
-
-If we only want to see the breaking changes, we can add the `breaking` flag:
-
-```sh
-display-unshipped-api.ps1 -breaking $true
-```
-
-### diff-shipped-api.ps1
-
-This shows all changes of `PublicAPI.Shipped.txt` files between git refs. Tags, commit hashes and branch names are supported.
-
-Example:
-
-```sh
-diff-shipped-api.ps1 -from 11.0.0 -to 12.0.0
+```bash
+./build.sh MarkApiShipped
 ```
