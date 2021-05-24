@@ -15,7 +15,7 @@ namespace HotChocolate.Types
             CancellationToken cancellationToken = default) =>
             OffsetPagingHelper.ApplyPagination(
                 source,
-                new OffsetPagingArguments(skip, take),
+                new OffsetPagingArguments(skip, take ?? 0),
                 (x, s) => x.Skip(s),
                 (x, t) => x.Take(t),
                 OffsetPagingHelper.ExecuteEnumerable,
