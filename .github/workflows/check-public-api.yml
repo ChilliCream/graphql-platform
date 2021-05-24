@@ -1,0 +1,17 @@
+name: check-public-api
+
+on: 
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-public-api:
+    name: "Check public API"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      # todo: this should get the SDK from global.json, not sure if it's working though
+      - uses: actions/setup-dotnet@v1
+      - run:  ./build.sh CheckPublicApi
+        name: "Check for undocumented public API changes"
