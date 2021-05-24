@@ -4,9 +4,9 @@ title: "Extending Types"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-GraphQL types tend to become pretty large, especially root types like the query type.
+GraphQL types tend to become pretty large, especially root types like the query type. Type extensions allow us to extend existing types.
 
-Type extensions allow us to extend to existing types. A type can have one or more type extensions, which will form a combined schema type at runtime.
+A type can have one or more type extensions, which will form a combined schema type at runtime.
 
 # Usage
 

@@ -216,7 +216,7 @@ public class Author
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
-Per default the name of the object type in the schema is either the class name, if we are inheriting from `ObjectType`, or the name of the POCO, if we are inheriting from `ObjectType<T>`.
+By default, the name of the object type in the schema is either the class name, if we are inheriting from `ObjectType`, or the name of the POCO (`T`) if we are inheriting from `ObjectType<T>`.
 
 We can override these defaults using the `Name` method on the `IObjectTypeDescriptor` / `IObjectFieldDescriptor`.
 
