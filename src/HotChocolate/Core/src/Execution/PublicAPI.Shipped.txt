@@ -220,6 +220,7 @@ HotChocolate.Execution.Processing.ArgumentValue.Kind.get -> HotChocolate.Types.V
 HotChocolate.Execution.Processing.ArgumentValue.Type.get -> HotChocolate.Types.IInputType!
 HotChocolate.Execution.Processing.ArgumentValue.Value.get -> object?
 HotChocolate.Execution.Processing.ArgumentValue.ValueLiteral.get -> HotChocolate.Language.IValueNode?
+HotChocolate.Execution.Processing.CompileResolverPipeline
 HotChocolate.Execution.Processing.DefaultTransactionScope
 HotChocolate.Execution.Processing.DefaultTransactionScope.Complete() -> void
 HotChocolate.Execution.Processing.DefaultTransactionScope.Context.get -> HotChocolate.Execution.IRequestContext!
@@ -230,6 +231,8 @@ HotChocolate.Execution.Processing.DefaultTransactionScopeHandler
 HotChocolate.Execution.Processing.DefaultTransactionScopeHandler.DefaultTransactionScopeHandler() -> void
 HotChocolate.Execution.Processing.Fragment
 HotChocolate.Execution.Processing.Fragment.Directives.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.DirectiveNode!>!
+HotChocolate.Execution.Processing.Fragment.Fragment(HotChocolate.Types.IObjectType! typeCondition, HotChocolate.Language.FragmentSpreadNode! fragmentSpread, HotChocolate.Language.FragmentDefinitionNode! fragmentDefinition, HotChocolate.Execution.Processing.ISelectionSet! selectionSet, bool internalFragment, HotChocolate.Execution.Processing.SelectionIncludeCondition? includeCondition) -> void
+HotChocolate.Execution.Processing.Fragment.Fragment(HotChocolate.Types.IObjectType! typeCondition, HotChocolate.Language.InlineFragmentNode! inlineFragment, HotChocolate.Execution.Processing.ISelectionSet! selectionSet, bool internalFragment, HotChocolate.Execution.Processing.SelectionIncludeCondition? includeCondition) -> void
 HotChocolate.Execution.Processing.Fragment.GetLabel(HotChocolate.Execution.IVariableValueCollection! variables) -> string?
 HotChocolate.Execution.Processing.Fragment.InclusionKind.get -> HotChocolate.Execution.Processing.SelectionInclusionKind
 HotChocolate.Execution.Processing.Fragment.IsConditional.get -> bool
@@ -263,10 +266,12 @@ HotChocolate.Execution.Processing.IPreparedOperation.GetRootSelectionSet() -> Ho
 HotChocolate.Execution.Processing.IPreparedOperation.GetSelectionSet(HotChocolate.Language.SelectionSetNode! selectionSet, HotChocolate.Types.IObjectType! typeContext) -> HotChocolate.Execution.Processing.ISelectionSet!
 HotChocolate.Execution.Processing.IPreparedOperation.Id.get -> string!
 HotChocolate.Execution.Processing.IPreparedOperation.Print() -> string!
+HotChocolate.Execution.Processing.IPreparedOperation.ProposedTaskCount.get -> int
 HotChocolate.Execution.Processing.IPreparedOperation.SelectionVariants.get -> System.Collections.Generic.IEnumerable<HotChocolate.Execution.Processing.ISelectionVariants!>!
 HotChocolate.Execution.Processing.ISelection
 HotChocolate.Execution.Processing.ISelection.Arguments.get -> HotChocolate.Execution.Processing.IArgumentMap!
 HotChocolate.Execution.Processing.ISelection.DeclaringType.get -> HotChocolate.Types.IObjectType!
+HotChocolate.Execution.Processing.ISelection.ResolverPipeline.get -> HotChocolate.Resolvers.FieldDelegate!
 HotChocolate.Execution.Processing.ISelection.SelectionSet.get -> HotChocolate.Language.SelectionSetNode?
 HotChocolate.Execution.Processing.ISelectionOptimizer
 HotChocolate.Execution.Processing.ISelectionOptimizer.AllowFragmentDeferral(HotChocolate.Execution.Processing.SelectionOptimizerContext context, HotChocolate.Language.FragmentSpreadNode! fragmentSpread, HotChocolate.Language.FragmentDefinitionNode! fragmentDefinition) -> bool
@@ -338,7 +343,10 @@ HotChocolate.Execution.Processing.Selection.InclusionKind.get -> HotChocolate.Ex
 HotChocolate.Execution.Processing.Selection.IsConditional.get -> bool
 HotChocolate.Execution.Processing.Selection.IsIncluded(HotChocolate.Execution.IVariableValueCollection! variableValues, bool allowInternals = false) -> bool
 HotChocolate.Execution.Processing.Selection.IsInternal.get -> bool
+HotChocolate.Execution.Processing.Selection.ResolverPipeline.get -> HotChocolate.Resolvers.FieldDelegate!
 HotChocolate.Execution.Processing.Selection.ResponseName.get -> HotChocolate.NameString
+HotChocolate.Execution.Processing.Selection.Selection(HotChocolate.Execution.Processing.Selection! selection) -> void
+HotChocolate.Execution.Processing.Selection.Selection(HotChocolate.Types.IObjectType! declaringType, HotChocolate.Types.IObjectField! field, HotChocolate.Language.FieldNode! selection, HotChocolate.Resolvers.FieldDelegate! resolverPipeline, HotChocolate.NameString? responseName = null, System.Collections.Generic.IReadOnlyDictionary<HotChocolate.NameString, HotChocolate.Execution.Processing.ArgumentValue!>? arguments = null, HotChocolate.Execution.Processing.SelectionIncludeCondition? includeCondition = null, bool internalSelection = false) -> void
 HotChocolate.Execution.Processing.Selection.SelectionSet.get -> HotChocolate.Language.SelectionSetNode?
 HotChocolate.Execution.Processing.Selection.SyntaxNode.get -> HotChocolate.Language.FieldNode!
 HotChocolate.Execution.Processing.Selection.SyntaxNodes.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldNode!>!
@@ -361,6 +369,7 @@ HotChocolate.Execution.Processing.SelectionOptimizerContext.Fields.get -> System
 HotChocolate.Execution.Processing.SelectionOptimizerContext.Path.get -> System.Collections.Immutable.IImmutableStack<HotChocolate.Types.IObjectField!>!
 HotChocolate.Execution.Processing.SelectionOptimizerContext.Schema.get -> HotChocolate.ISchema!
 HotChocolate.Execution.Processing.SelectionOptimizerContext.SelectionOptimizerContext() -> void
+HotChocolate.Execution.Processing.SelectionOptimizerContext.SelectionOptimizerContext(HotChocolate.ISchema! schema, System.Collections.Immutable.IImmutableStack<HotChocolate.Types.IObjectField!>! path, HotChocolate.Types.IObjectType! type, HotChocolate.Language.SelectionSetNode! selectionSet, System.Collections.Generic.IDictionary<string!, HotChocolate.Execution.Processing.Selection!>! fields, HotChocolate.Execution.Processing.CompileResolverPipeline! compileResolverPipeline) -> void
 HotChocolate.Execution.Processing.SelectionOptimizerContext.SelectionSet.get -> HotChocolate.Language.SelectionSetNode!
 HotChocolate.Execution.Processing.SelectionOptimizerContext.Type.get -> HotChocolate.Types.IObjectType!
 HotChocolate.Execution.Processing.SelectionOptimizerHelper
@@ -427,6 +436,7 @@ static HotChocolate.Execution.ExecutionRequestExecutorExtensions.ExecuteAsync(th
 static HotChocolate.Execution.ExecutionRequestExecutorExtensions.ExecuteAsync(this HotChocolate.Execution.IRequestExecutor! executor, string! query) -> System.Threading.Tasks.Task<HotChocolate.Execution.IExecutionResult!>!
 static HotChocolate.Execution.ExecutionRequestExecutorExtensions.ExecuteAsync(this HotChocolate.Execution.IRequestExecutor! executor, System.Action<HotChocolate.Execution.IQueryRequestBuilder!>! buildRequest, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<HotChocolate.Execution.IExecutionResult!>!
 static HotChocolate.Execution.ExecutionRequestExecutorExtensions.ExecuteAsync(this HotChocolate.Execution.IRequestExecutor! executor, System.Action<HotChocolate.Execution.IQueryRequestBuilder!>! buildRequest) -> System.Threading.Tasks.Task<HotChocolate.Execution.IExecutionResult!>!
+static HotChocolate.Execution.Processing.ArgumentCoercionHelper.TryCoerceArguments(this HotChocolate.Execution.Processing.IArgumentMap! arguments, HotChocolate.Execution.IVariableValueCollection! variables, System.Action<HotChocolate.IError!>! reportError, out System.Collections.Generic.IReadOnlyDictionary<HotChocolate.NameString, HotChocolate.Execution.Processing.ArgumentValue!>? coercedArgs) -> bool
 static HotChocolate.Execution.Processing.OperationCompiler.Compile(string! operationId, HotChocolate.Language.DocumentNode! document, HotChocolate.Language.OperationDefinitionNode! operation, HotChocolate.ISchema! schema, HotChocolate.Types.ObjectType! rootType, System.Collections.Generic.IEnumerable<HotChocolate.Execution.Processing.ISelectionOptimizer!>? optimizers = null) -> HotChocolate.Execution.Processing.IPreparedOperation!
 static HotChocolate.Execution.Processing.SelectionOptimizerHelper.RegisterOptimizer(System.Collections.Generic.IDictionary<string!, object?>! contextData, HotChocolate.Execution.Processing.ISelectionOptimizer! optimizer) -> void
 static HotChocolate.Execution.Processing.SelectionOptimizerHelper.TryGetOptimizers(System.Collections.Generic.IReadOnlyDictionary<string!, object?>! contextData, out System.Collections.Generic.IReadOnlyList<HotChocolate.Execution.Processing.ISelectionOptimizer!>? optimizers) -> bool

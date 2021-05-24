@@ -143,6 +143,11 @@ override HotChocolate.Language.SyntaxWalkerBase<TStart, TContext>.VisitVariable(
 static HotChocolate.Language.DocumentRewriterExtensions.Rewrite<T, TContext>(this HotChocolate.Language.QuerySyntaxRewriter<TContext>! rewriter, T node, TContext context) -> T
 static HotChocolate.Language.DocumentRewriterExtensions.Rewrite<TRewriter, TContext>(this HotChocolate.Language.DocumentNode! node, TContext context) -> HotChocolate.Language.DocumentNode!
 static HotChocolate.Language.ListExtensions.Peek<T>(this System.Collections.Generic.IList<T>! list) -> T
+static HotChocolate.Language.ListExtensions.PeekOrDefault<T>(this System.Collections.Generic.IList<T>! list, T defaultValue = default(T)) -> T
+static HotChocolate.Language.ListExtensions.Pop<T>(this System.Collections.Generic.IList<T>! list) -> T
+static HotChocolate.Language.ListExtensions.Push<T>(this System.Collections.Generic.IList<T>! list, T item) -> void
+static HotChocolate.Language.ListExtensions.TryPeek<T>(this System.Collections.Generic.IList<T>! list, out T item) -> bool
+static HotChocolate.Language.ListExtensions.TryPop<T>(this System.Collections.Generic.IList<T>! list, out T item) -> bool
 static HotChocolate.Language.Parser.Default.get -> HotChocolate.Language.Parser!
 static HotChocolate.Language.ParserExtensions.Parse(this HotChocolate.Language.Parser! parser, string! sourceText, HotChocolate.Language.ParserOptions! options) -> HotChocolate.Language.DocumentNode!
 static HotChocolate.Language.ParserExtensions.Parse(this HotChocolate.Language.Parser! parser, string! sourceText) -> HotChocolate.Language.DocumentNode!
