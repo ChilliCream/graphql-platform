@@ -1,19 +1,25 @@
 using System.IO;
+using System.Linq;
 using Colorful;
 using Nuke.Common;
-using Nuke.Common.CI;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
-using Nuke.Common.Tools.Git;
-using Nuke.Common.Tools.SonarScanner;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.Git.GitTasks;
-using static Nuke.Common.Tools.SonarScanner.SonarScannerTasks;
 using static Helpers;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Text;
+using System;
+using System.Drawing;
 
 partial class Build : NukeBuild
 {
+    private readonly string _shippedApiFile = "PublicAPI.Shipped.txt";
+    private readonly string _unshippedApiFile = "PublicAPI.Unshipped.txt";
+    private readonly string _removedApiPrefix = "*REMOVED*";
+
     [Parameter] readonly string From;
     [Parameter] readonly string To;
     [Parameter] readonly bool Breaking;
@@ -52,56 +58,77 @@ partial class Build : NukeBuild
         });
 
     Target DiffShippedApi => _ => _
-        .DependsOn(Restore)
         .Executes(() =>
         {
-            // first we ensure that the All.sln exists.
-            if (!InvokedTargets.Contains(Restore))
-            {
-                DotNetBuildSonarSolution(AllSolutionFile);
-            }
-
             var from = string.IsNullOrEmpty(From) ? GitRepository.Branch : From;
             var to = string.IsNullOrEmpty(To) ? "main" : To;
 
             if (from == to)
             {
-                Console.WriteLine("Nothing to diff here.");
+                Colorful.Console.WriteLine("Nothing to diff here.", Color.Yellow);
                 return;
             }
 
-            AbsolutePath shippedPath = SourceDirectory / "**" / "PublicAPI.Shipped.txt";
+            AbsolutePath shippedPath = SourceDirectory / "**" / _shippedApiFile;
 
             Git($@" --no-pager diff --minimal -U0 --word-diff ""{from}"" ""{to}"" -- ""{shippedPath}""", RootDirectory);
         });
 
     Target DisplayUnshippedApi => _ => _
-        .DependsOn(Restore)
         .Executes(() =>
         {
-            // first we ensure that the All.sln exists.
-            if (!InvokedTargets.Contains(Restore))
-            {
-                DotNetBuildSonarSolution(AllSolutionFile);
-            }
-
-
         });
 
     Target MarkApiShipped => _ => _
-        .DependsOn(Restore)
-        .Executes(() =>
+        .Executes(async () =>
         {
-            // first we ensure that the All.sln exists.
-            if (!InvokedTargets.Contains(Restore))
+            var shippedFiles = Directory.GetFiles(SourceDirectory, _shippedApiFile, SearchOption.AllDirectories);
+
+            foreach (var shippedFile in shippedFiles)
             {
-                DotNetBuildSonarSolution(AllSolutionFile);
+                var projectDir = Path.GetDirectoryName(shippedFile);
+                var unshippedFile = Path.Join(projectDir, _unshippedApiFile);
+
+                if (!File.Exists(unshippedFile))
+                {
+                    continue;
+                }
+
+                List<string> unshippedApis = await GetNonEmptyLinesAsync(unshippedFile);
+
+                if (!unshippedApis.Any())
+                {
+                    continue;
+                }
+
+                List<string> shippedApis = await GetNonEmptyLinesAsync(shippedFile);
+
+                List<string> removedApis = new();
+
+                foreach (var unshippedApi in unshippedApis)
+                {
+                    if (unshippedApi.StartsWith(_removedApiPrefix))
+                    {
+                        var value = unshippedApi[_removedApiPrefix.Length..];
+                        removedApis.Add(value);
+                    }
+                    else
+                    {
+                        shippedApis.Add(unshippedApi);
+                    }
+                }
+
+                IOrderedEnumerable<string> newShippedApis = shippedApis.Where(s => !removedApis.Contains(s)).Distinct().OrderBy(s => s);
+
+                await File.WriteAllLinesAsync(shippedFile, newShippedApis, Encoding.ASCII);
+                await File.WriteAllTextAsync(unshippedFile, "", Encoding.ASCII);
             }
-
-            foreach (var file in Directory.GetFiles(SourceDirectory, "PublicApi.Shipped.txt", SearchOption.AllDirectories))
-            {
-
-            }
-
         });
+
+    private static async Task<List<string>> GetNonEmptyLinesAsync(string filepath)
+    {
+        var lines = await File.ReadAllLinesAsync(filepath);
+
+        return lines.Where(c => !string.IsNullOrWhiteSpace(c)).ToList();
+    }
 }
