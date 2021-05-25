@@ -75,8 +75,48 @@ partial class Build : NukeBuild
         });
 
     Target DisplayUnshippedApi => _ => _
-        .Executes(() =>
+        .Executes(async () =>
         {
+            var unshippedFiles = Directory.GetFiles(SourceDirectory, _unshippedApiFile, SearchOption.AllDirectories);
+
+            if (Breaking)
+            {
+                Colorful.Console.WriteLine("Unshipped breaking changes:", Color.Red);
+            }
+            else
+            {
+                Colorful.Console.WriteLine("Unshipped changes:");
+            }
+
+            Colorful.Console.WriteLine();
+
+            foreach (var unshippedFile in unshippedFiles)
+            {
+                IEnumerable<string> unshippedApis = await GetNonEmptyLinesAsync(unshippedFile);
+
+                if (Breaking)
+                {
+                    unshippedApis = unshippedApis.Where(u => u.StartsWith(_removedApiPrefix)).ToList();
+                }
+
+                if (!unshippedApis.Any())
+                {
+                    continue;
+                }
+
+                foreach (var unshippedApi in unshippedApis)
+                {
+                    if (unshippedApi.StartsWith(_removedApiPrefix))
+                    {
+                        var value = unshippedApi[_removedApiPrefix.Length..];
+                        Colorful.Console.WriteLine(value);
+                    }
+                    else
+                    {
+                        Colorful.Console.WriteLine(unshippedApi);
+                    }
+                }
+            }
         });
 
     Target MarkApiShipped => _ => _
@@ -118,7 +158,10 @@ partial class Build : NukeBuild
                     }
                 }
 
-                IOrderedEnumerable<string> newShippedApis = shippedApis.Where(s => !removedApis.Contains(s)).Distinct().OrderBy(s => s);
+                IOrderedEnumerable<string> newShippedApis = shippedApis
+                    .Where(s => !removedApis.Contains(s))
+                    .Distinct()
+                    .OrderBy(s => s);
 
                 await File.WriteAllLinesAsync(shippedFile, newShippedApis, Encoding.ASCII);
                 await File.WriteAllTextAsync(unshippedFile, "", Encoding.ASCII);
