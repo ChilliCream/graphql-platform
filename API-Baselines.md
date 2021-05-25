@@ -139,8 +139,6 @@ This will output the contents of all `PublicAPI.Unshipped.txt` files throughout 
 
 If we only want to see the breaking changes, we can add the `breaking` flag:
 
-<!-- todo: this parameter is not yet used -->
-
 ```bash
 ./build.sh DisplayUnshippedApi --breaking
 ```
