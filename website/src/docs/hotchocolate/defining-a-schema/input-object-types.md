@@ -17,7 +17,7 @@ input BookInput {
 
 # Usage
 
-Input object types can be defined like the following
+Input object types can be defined like the following.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>

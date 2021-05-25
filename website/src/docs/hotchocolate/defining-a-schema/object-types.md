@@ -111,9 +111,9 @@ public class Startup
 
 In the Annotation-based approach all public properties and methods are implicitly mapped to fields of the schema object type.
 
-In the Code-first approach we have a little more control over this behavior. By default all public properties of our POCO are mapped to fields of the schema object type. This behavior is called implicit binding. There is also an explicit binding behavior, where we have to opt-in properties we want to include.
+In the Code-first approach we have a little more control over this behavior. By default all public properties and methods of our POCO are mapped to fields of the schema object type. This behavior is called implicit binding. There is also an explicit binding behavior, where we have to opt-in properties we want to include.
 
-We can configure our preferred binding behavior globally like the following:
+We can configure our preferred binding behavior globally like the following.
 
 ```csharp
 services
@@ -211,6 +211,7 @@ public class Author
 {
     [GraphQLName("fullName")]
     public string Name { get; set; }
+}
 ```
 
 </ExampleTabs.Annotation>
@@ -254,14 +255,10 @@ type BookAuthor {
 
 Hot Chocolate will, most of the time, correctly infer the schema types of our fields. Sometimes we might have to be explicit about it though, for example when we are working with custom scalars.
 
-We can define explicit schema types like the following.
-
 <ExampleTabs>
 <ExampleTabs.Annotation>
 
-Per default the name of the class is the name of the object type in the schema and the names of the properties are the names of the fields of that object type.
-
-We can override these defaults using the `[GraphQLName]` attribute.
+In the annotation-based approach we can use the `[GraphQLType]` attribute.
 
 ```csharp
 public class Author
@@ -439,7 +436,7 @@ public class ResponseType<TSchemaType, TRuntimeType>
 
 ## Naming
 
-If we were to add another field of the type `ResponseType<DateTimeType>`, we would get an error, since both `ResponseType` have the same name.
+If we were to use the above type with two different generic arguments, we would get an error, since both `ResponseType` have the same name.
 
 We can change the name of our generic object type depending on the used generic type.
 

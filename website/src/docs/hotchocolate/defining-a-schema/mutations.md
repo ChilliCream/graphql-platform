@@ -144,7 +144,7 @@ Hot Chocolate provides for this the `ITransactionScopeHandler` which is used by 
 
 Hot Chocolate provides a default implementation based on the `System.Transactions.TransactionScope` which works with Microsoft ADO.NET data provider and hence can be used in combination with Entity Framework.
 
-The default transaction scope handler can be added like the following:
+The default transaction scope handler can be added like the following.
 
 ```csharp
 services
