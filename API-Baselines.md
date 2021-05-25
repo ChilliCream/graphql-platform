@@ -85,12 +85,12 @@ If you need to manually ignore a project, include the following in its `.csproj`
 
 The two text files mentioned above need to be added to each new project.
 
-There is a template file called `PublicAPI.empty.txt` in the `scripts` directory that can be copied over into a new project.
+There is a template file called `PublicAPI.empty.txt` in the `src` directory that can be copied over into a new project.
 
 ```sh
 DIR="<new-project-folder>"
-cp scripts/PublicAPI.empty.txt "src/$DIR/PublicAPI.Shipped.txt"
-cp scripts/PublicAPI.empty.txt "src/$DIR/PublicAPI.Unshipped.txt"
+cp "src/PublicAPI.empty.txt" "src/$DIR/PublicAPI.Shipped.txt"
+cp "src/PublicAPI.empty.txt" "src/$DIR/PublicAPI.Unshipped.txt"
 ```
 
 ## Pipeline Job
