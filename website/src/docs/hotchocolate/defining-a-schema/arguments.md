@@ -100,7 +100,21 @@ if (username.HasValue)
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-TODO
+```csharp
+services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Query {
+          user(username: String!): User
+        }
+    ")
+    .AddResolver("Query", "user", (context) =>
+    {
+        var username = context.ArgumentValue<string>("username");
+
+        // Omitted code for brevity
+    });
+```
 
 </ExampleTabs.Schema>
 </ExampleTabs>

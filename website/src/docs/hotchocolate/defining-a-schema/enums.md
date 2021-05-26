@@ -142,7 +142,27 @@ public class QueryType : ObjectType
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-TODO
+```csharp
+services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Query {
+          user(role: UserRole): User
+        }
+
+        enum UserRole {
+          GUEST,
+          DEFAULT,
+          ADMINISTRATOR
+        }
+    ")
+    .AddResolver("Query", "user", (context) =>
+    {
+        var role = context.ArgumentValue<string>("role");
+
+        // Omitted code for brevity
+    })
+```
 
 </ExampleTabs.Schema>
 </ExampleTabs>
