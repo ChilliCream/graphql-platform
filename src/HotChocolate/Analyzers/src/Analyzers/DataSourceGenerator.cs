@@ -38,7 +38,11 @@ namespace HotChocolate.Data.Neo4J.Analyzers
             }
             catch (Exception ex)
             {
-                context.AddSource("error.cs", "/*" + Environment.NewLine + ex.Message + Environment.NewLine + ex.StackTrace + Environment.NewLine + "*/");
+                context.AddSource(
+                    "error.cs",
+                    "/*" + Environment.NewLine +
+                    ex.Message + Environment.NewLine +
+                    ex.StackTrace + Environment.NewLine + "*/");
             }
         }
 
@@ -77,6 +81,8 @@ namespace HotChocolate.Data.Neo4J.Analyzers
             {
                 queryDeclaration = queryDeclaration.AddMembers(
                     CreateQueryResolver(dataContext, objectType));
+
+                GenerateObjectType(context, dataContext, @namespace, objectType);
             }
 
             NamespaceDeclarationSyntax namespaceDeclaration =
@@ -94,9 +100,40 @@ namespace HotChocolate.Data.Neo4J.Analyzers
 
         private static void GenerateObjectType(
             GeneratorExecutionContext context,
-            ObjectTypeDefinitionNode objectTypeDefinition)
+            DataGeneratorContext dataContext,
+            string @namespace,
+            IObjectType objectType)
         {
+            var typeNameDirective = objectType.GetFirstDirective<TypeNameDirective>("typeName");
+            string typeName = typeNameDirective?.Name ?? objectType.Name.Value;
 
+            ClassDeclarationSyntax modelDeclaration =
+                ClassDeclaration(typeName)
+                    .AddModifiers(
+                        Token(SyntaxKind.PublicKeyword),
+                        Token(SyntaxKind.PartialKeyword))
+                    .AddGeneratedAttribute();
+
+            foreach (IObjectField field in objectType.Fields.Where(t => !t.IsIntrospectionField))
+            {
+                modelDeclaration =
+                    modelDeclaration.AddProperty(
+                        field.GetPropertyName(),
+                        IdentifierName(field.GetTypeName(@namespace)),
+                        field.Description);
+            }
+
+            NamespaceDeclarationSyntax namespaceDeclaration =
+                NamespaceDeclaration(IdentifierName(@namespace))
+                    .AddMembers(modelDeclaration);
+
+            CompilationUnitSyntax compilationUnit =
+                CompilationUnit()
+                    .AddMembers(namespaceDeclaration);
+
+            compilationUnit = compilationUnit.NormalizeWhitespace(elasticTrivia: true);
+
+            context.AddSource(@namespace + $".{typeName}.cs", compilationUnit.ToFullString());
         }
 
         private static MethodDeclarationSyntax CreateQueryResolver(
@@ -168,6 +205,103 @@ namespace HotChocolate.Data.Neo4J.Analyzers
             }
 
             return directive.ToObject<T>();
+        }
+
+        public static string GetPropertyName(this IObjectField field)
+        {
+            if (field.Name.Value.Length == 1)
+            {
+                return field.Name.Value.ToUpperInvariant();
+            }
+
+            return field.Name.Value.Substring(0, 1).ToUpperInvariant() +
+                field.Name.Value.Substring(1);
+        }
+
+        public static string GetTypeName(this IObjectField field, string @namespace)
+        {
+            return CreateTypeName(field.Type, @namespace);
+        }
+
+        public static string CreateTypeName(IType type, string @namespace, bool nullable = true)
+        {
+            if (type.IsNonNullType())
+            {
+                return CreateTypeName(type.InnerType(), @namespace, false);
+            }
+
+            if (type.IsListType())
+            {
+                string elementType = CreateTypeName(type.ElementType(), @namespace, true);
+                string listType = Generics(Global(TypeNames.List), elementType);
+
+                if (nullable)
+                {
+                    return Nullable(listType);
+                }
+
+                return listType;
+            }
+
+            if (type.IsScalarType())
+            {
+                Type runtimeType = type.ToRuntimeType();
+
+                if (runtimeType.IsGenericType &&
+                    runtimeType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                {
+                    runtimeType = runtimeType.GetGenericArguments()[0];
+                }
+
+                return Global(ToTypeName(runtimeType));
+            }
+
+            if (type is ObjectType objectType)
+            {
+                var typeNameDirective = objectType.GetFirstDirective<TypeNameDirective>("typeName");
+                string typeName = typeNameDirective?.Name ?? objectType.Name.Value;
+                return Global(typeName);
+            }
+
+            throw new NotSupportedException();
+        }
+
+        private static string ToTypeName(this Type type)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            return type.IsGenericType
+                ? CreateGenericTypeName(type)
+                : CreateTypeName(type, type.Name);
+        }
+
+        private static string CreateGenericTypeName(Type type)
+        {
+            string name = type.Name.Substring(0, type.Name.Length - 2);
+            IEnumerable<string> arguments = type.GetGenericArguments().Select(ToTypeName);
+            return CreateTypeName(type, $"{name}<{string.Join(", ", arguments)}>");
+        }
+
+        private static string CreateTypeName(Type type, string typeName)
+        {
+            string ns = GetNamespace(type);
+            if (ns is null)
+            {
+                return typeName;
+            }
+            return $"{ns}.{typeName}";
+        }
+
+        private static string GetNamespace(Type type)
+        {
+            if (type.IsNested)
+            {
+                return $"{GetNamespace(type.DeclaringType)}.{type.DeclaringType.Name}";
+            }
+            return type.Namespace;
         }
     }
 }

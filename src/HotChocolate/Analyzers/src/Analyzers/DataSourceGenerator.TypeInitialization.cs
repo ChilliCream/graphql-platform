@@ -7,9 +7,10 @@ namespace HotChocolate.Data.Neo4J.Analyzers
 {
     public partial class DataSourceGenerator
     {
-        private static string _location = "/Users/michael/local/hc-1/src/HotChocolate/Analyzers/src/Analyzers/bin/Debug/netstandard2.0";
-        
-        
+
+        private static string _location = "/Users/michaelstaib/local/hc-1/src/HotChocolate/Analyzers/src/Analyzers/bin/Debug/netstandard2.0"; //"/Users/michael/local/hc-1/src/HotChocolate/Analyzers/src/Analyzers/bin/Debug/netstandard2.0";
+
+
         /*IOPath.GetDirectoryName(
             typeof(DataSourceGenerator).Assembly.Location)!;*/
 
@@ -24,8 +25,6 @@ namespace HotChocolate.Data.Neo4J.Analyzers
         {
             try
             {
-                File.AppendAllText("/Users/michael/local/hc-1/src/HotChocolate/Analyzers/test/Analyzers.Tests/obj/gen.txt" + Environment.NewLine, _location);
-
                 var assemblyName = new AssemblyName(args.Name);
                 var path = IOPath.Combine(_location, assemblyName.Name + ".dll");
                 return Assembly.LoadFrom(path);
