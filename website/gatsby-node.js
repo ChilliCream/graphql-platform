@@ -129,7 +129,8 @@ exports.onCreateNode = async ({ node, actions, getNode }) => {
     value: filepath,
   });
 
-  let authorName, lastUpdated;
+  let authorName;
+  let lastUpdated;
 
   // we only run "git log" when building the production bundle
   // for development purposes we fallback to dummy values
@@ -227,7 +228,7 @@ function createDocPages(createPage, data) {
   });
 }
 
-async function getGitLog(filepath) {
+function getGitLog(filepath) {
   const logOptions = {
     file: filepath,
     n: 1,
@@ -237,5 +238,5 @@ async function getGitLog(filepath) {
     },
   };
 
-  return await git().log(logOptions);
+  return git().log(logOptions);
 }
