@@ -30,42 +30,38 @@ function getTocItemsFromHeadings(
       continue;
     }
 
-    const headingDepth = heading.depth ?? 0;
+    const headingDepth = heading.depth;
 
-    if (headingDepth > MAX_DEPTH) {
+    if (!headingDepth || headingDepth > MAX_DEPTH) {
       continue;
     }
 
     const item: TableOfContentItem = {
       title: heading.value,
+      // todo: all headings need to be slugged no matter their depth.
+      // otherwise the slugger could incorrectly slug items
       slug: slugger.slug(heading.value),
       items: [],
     };
 
-    if (headingDepth === 1) {
-      items.push(item);
+    // we went up in depth, so lets remove parents until we find the parent
+    // directly above us
+    while (parents.length >= headingDepth) {
+      parents.pop();
+    }
 
-      parents = [item];
+    const parent = parents[parents.length - 1];
+
+    parents.push(item);
+
+    if (parent?.items) {
+      parent.items.push(item);
     } else {
-      // we went up in depth, so lets remove parents until we find the parent
-      // directly above us
-      while (parents.length >= headingDepth) {
-        parents.pop();
-      }
-
-      const parent = parents[parents.length - 1];
-
-      parent.items?.push(item);
-
-      parents.push(item);
+      items.push(item);
     }
   }
 
   return items;
-}
-
-export function getElementIdFromSlug(slug: string): string {
-  return "link-" + slug;
 }
 
 function useActiveSlug(items: TableOfContentItem[]) {
@@ -82,18 +78,24 @@ function useActiveSlug(items: TableOfContentItem[]) {
 
     const headings = items
       .flatMap((item) => [item, ...(item.items ?? [])])
-      .map<Heading>((item) => {
-        const elementId = getElementIdFromSlug(item.slug);
-        const element = document.getElementById(elementId);
+      .map((item) => {
+        const element = document.getElementById(item.slug);
 
-        const offsetTop = element?.offsetTop ?? 80;
+        if (!element) {
+          return null;
+        }
 
-        return {
+        const offsetTop = element.offsetTop;
+
+        const heading: Heading = {
           slug: item.slug,
           position: offsetTop - 80,
         };
+
+        return heading;
       })
-      .reverse();
+      .filter((item) => !!item)
+      .reverse() as Heading[];
 
     const subscription = yScrollPosition$.subscribe((yScrollPosition) => {
       for (let i = 0; i < headings.length; i++) {

@@ -29,7 +29,6 @@ import {
 } from "../articles/article-elements";
 import { ArticleSections } from "../articles/article-sections";
 import { TabGroupProvider } from "../mdx/tabs/tab-groups";
-import { useSlugger } from "../slugger-context";
 import {
   ArticleWrapper,
   ArticleWrapperElement,
@@ -58,15 +57,10 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
   const selectedVersion = (result && result[2]) || "";
   const title = frontmatter!.title!;
   const responsiveMenuRef = useRef<HTMLDivElement>(null);
-  const slugger = useSlugger();
 
   const hasScrolled$ = useObservable((state) => {
     return state.common.yScrollPosition > 20;
   });
-
-  useEffect(() => {
-    slugger.reset();
-  }, [slug]);
 
   const handleToggleTOC = useCallback(() => {
     dispatch(toggleTOC());
