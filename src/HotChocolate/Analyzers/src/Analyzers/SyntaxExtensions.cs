@@ -288,12 +288,25 @@ namespace HotChocolate.Data.Neo4J.Analyzers
                         .WithNameEquals(
                             NameEquals(IdentifierName(nameof(directive.IncludeTotalCount)))));
 
-            return methodSyntax
-                .WithAttributeLists(
-                    SingletonList(
-                        AttributeList(
-                            SingletonSeparatedList(
-                                attribute))));
+            return methodSyntax.AddAttributeLists(AttributeList(SingletonSeparatedList(attribute)));
+        }
+
+        public static MethodDeclarationSyntax AddFilteringAttribute(
+            this MethodDeclarationSyntax methodSyntax)
+        {
+            AttributeSyntax attribute =
+                Attribute(IdentifierName(Global(UseFilteringAttribute)));
+
+            return methodSyntax.AddAttributeLists(AttributeList(SingletonSeparatedList(attribute)));
+        }
+
+        public static MethodDeclarationSyntax AddSortingAttribute(
+            this MethodDeclarationSyntax methodSyntax)
+        {
+            AttributeSyntax attribute =
+                Attribute(IdentifierName(Global(UseSortingAttribute)));
+
+            return methodSyntax.AddAttributeLists(AttributeList(SingletonSeparatedList(attribute)));
         }
     }
 }

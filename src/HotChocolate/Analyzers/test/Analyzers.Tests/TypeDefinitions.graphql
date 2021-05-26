@@ -6,7 +6,8 @@ type Movie @typeName(name: "Foo", pluralName: "Bars") {
 
 
 #settings would be annotated to the schema and translate directly into schema options
-schema @paging(kind: NONE)
+schema @paging(kind: CURSOR, defaultPageSize: 30, includeTotalCount: true) @filtering
 {
   query: Query
 }
+

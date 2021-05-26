@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using HotChocolate.Data.Neo4J.Analyzers.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -12,7 +10,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static HotChocolate.Data.Neo4J.Analyzers.TypeNames;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-using IOPath = System.IO.Path;
 using SyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
 
@@ -110,11 +107,12 @@ namespace HotChocolate.Data.Neo4J.Analyzers
 
             dataContext = DataGeneratorContext.FromMember(objectType, dataContext);
 
-            var typeNameDirective = GetFirstDirective<TypeNameDirective>(objectType, "typeName");
+            var typeNameDirective = objectType.GetFirstDirective<TypeNameDirective>("typeName");
             string typeName = typeNameDirective?.Name ?? objectType.Name.Value;
             string pluralTypeName = typeNameDirective?.PluralName ?? typeName + "s";
 
-            return MethodDeclaration(
+            MethodDeclarationSyntax resolverSyntax =
+                MethodDeclaration(
                     GenericName(Identifier(Global(Neo4JExecutable)))
                         .WithTypeArgumentList(
                             TypeArgumentList(
@@ -140,17 +138,33 @@ namespace HotChocolate.Data.Neo4J.Analyzers
                                     Argument(IdentifierName("session")))))))
                 .WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
                 .AddPagingAttribute(dataContext.Paging);
-        }
 
-        private static T? GetFirstDirective<T>(
-            HotChocolate.Types.IHasDirectives hasDirectives,
-            string name)
+            if (dataContext.Filtering)
+            {
+                resolverSyntax = resolverSyntax.AddFilteringAttribute();
+            }
+
+            if (dataContext.Sorting)
+            {
+                resolverSyntax = resolverSyntax.AddSortingAttribute();
+            }
+
+            return resolverSyntax;
+        }
+    }
+
+    public static class SchemaExtensions
+    {
+        public static T? GetFirstDirective<T>(
+            this HotChocolate.Types.IHasDirectives hasDirectives,
+            string name,
+            T? defaultValue = default)
         {
             var directive = hasDirectives.Directives[name].FirstOrDefault();
 
             if (directive is null)
             {
-                return default;
+                return defaultValue;
             }
 
             return directive.ToObject<T>();
