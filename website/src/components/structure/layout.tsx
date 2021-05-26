@@ -1,11 +1,12 @@
-import React, { FunctionComponent, useEffect } from "react";
-import { GlobalLayoutStyle, GlobalStyle } from "../misc/global-style";
-import { Header } from "./header";
-import { CookieConsent } from "../misc/cookie-consent";
-import { MainContentContainer } from "./main-content-container/main-content-container";
 import { MDXProvider } from "@mdx-js/react";
-import { CodeBlock } from "../mdx/code-block";
+import React, { FunctionComponent, useEffect } from "react";
 import { AutoLinkedHeading } from "../mdx/auto-linked-heading";
+import { CodeBlock } from "../mdx/code-block";
+import { CookieConsent } from "../misc/cookie-consent";
+import { GlobalLayoutStyle, GlobalStyle } from "../misc/global-style";
+import { SluggerContextProvider } from "../slugger-context";
+import { Header } from "./header";
+import { MainContentContainer } from "./main-content-container/main-content-container";
 
 export const Layout: FunctionComponent = ({ children }) => {
   useEffect(() => {
@@ -38,9 +39,11 @@ export const Layout: FunctionComponent = ({ children }) => {
       <GlobalStyle />
       <GlobalLayoutStyle />
       <Header />
-      <MDXProvider components={components}>
-        <MainContentContainer>{children}</MainContentContainer>
-      </MDXProvider>
+      <SluggerContextProvider>
+        <MDXProvider components={components}>
+          <MainContentContainer>{children}</MainContentContainer>
+        </MDXProvider>
+      </SluggerContextProvider>
       <CookieConsent />
     </>
   );

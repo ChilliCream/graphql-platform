@@ -11,6 +11,12 @@ export const MainContentContainer: FunctionComponent = ({ children }) => {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    dispatch(
+      hasScrolled({
+        yScrollPosition: 0,
+      })
+    );
+
     const handleScroll = () => {
       dispatch(
         hasScrolled({

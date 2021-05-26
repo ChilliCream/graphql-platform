@@ -1,7 +1,9 @@
 import { Link } from "gatsby";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
-import { IsSmallDesktop, IsPhablet } from "../../shared-style";
+import { IsPhablet, IsSmallDesktop } from "../../shared-style";
+import { getElementIdFromSlug } from "../articles/article-sections";
+import { useSlugger } from "../slugger-context";
 const slugger = require("github-slugger").slug;
 
 interface AutoLinkedHeadingProps {
@@ -12,10 +14,14 @@ export const AutoLinkedHeading: FunctionComponent<AutoLinkedHeadingProps> = ({
   children,
   size,
 }) => {
-  const slug = slugger(children);
+  const slugger = useSlugger();
+
+  const slug = slugger.slug(children as string);
+
+  const elementId = getElementIdFromSlug(slug);
 
   return (
-    <Heading as={size} id={slug}>
+    <Heading as={size} id={elementId}>
       <RelativeAnchor>
         <AutoLink to={`#${slug}`}>
           <svg

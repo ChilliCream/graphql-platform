@@ -1,13 +1,15 @@
 import { graphql, Link } from "gatsby";
-import React, { FunctionComponent, useMemo } from "react";
+import GithubSlugger from "github-slugger";
+import React, { FunctionComponent, useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { ArticleSectionsFragment } from "../../../graphql-types";
+import { useObservable } from "../../state";
 import { closeAside } from "../../state/common";
 import { MostProminentSection } from "../doc-page/doc-page-elements";
-const slugger = require("github-slugger").slug;
 
-const MAX_DEPTH = 3;
+// todo: place these methods elsewhere
+const MAX_DEPTH = 2;
 
 function getTocItemsFromHeadings(
   headings: ArticleSectionsFragment["headings"]
@@ -17,6 +19,8 @@ function getTocItemsFromHeadings(
   if (!headings || headings?.length < 1) {
     return items;
   }
+
+  const slugger = new GithubSlugger();
 
   // this represents a path to the current item
   let parents: TableOfContentItem[] = [];
@@ -34,7 +38,7 @@ function getTocItemsFromHeadings(
 
     const item: TableOfContentItem = {
       title: heading.value,
-      slug: slugger(heading.value),
+      slug: slugger.slug(heading.value),
       items: [],
     };
 
@@ -51,8 +55,6 @@ function getTocItemsFromHeadings(
 
       const parent = parents[parents.length - 1];
 
-      item.slug = `${parent.slug}-${item.slug}`;
-
       parent.items?.push(item);
 
       parents.push(item);
@@ -60,6 +62,66 @@ function getTocItemsFromHeadings(
   }
 
   return items;
+}
+
+export function getElementIdFromSlug(slug: string): string {
+  return "link-" + slug;
+}
+
+function useActiveSlug(items: TableOfContentItem[]) {
+  const [activeSlug, setActiveSlug] = useState<string>();
+
+  const yScrollPosition$ = useObservable(
+    (state) => state.common.yScrollPosition
+  );
+
+  useEffect(() => {
+    if (items.length < 1) {
+      return;
+    }
+
+    const headings = items
+      .flatMap((item) => [item, ...(item.items ?? [])])
+      .map<Heading>((item) => {
+        const elementId = getElementIdFromSlug(item.slug);
+        const element = document.getElementById(elementId);
+
+        const offsetTop = element?.offsetTop ?? 80;
+
+        return {
+          slug: item.slug,
+          position: offsetTop - 80,
+        };
+      })
+      .reverse();
+
+    const subscription = yScrollPosition$.subscribe((yScrollPosition) => {
+      for (let i = 0; i < headings.length; i++) {
+        if (yScrollPosition < headings[i].position) {
+          if (i === headings.length - 1) {
+            setActiveSlug(undefined);
+          }
+
+          continue;
+        }
+
+        const activeHeading = headings[i];
+
+        if (!activeHeading || activeHeading.slug === activeSlug) {
+          return;
+        }
+
+        setActiveSlug(activeHeading.slug);
+        break;
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [items]);
+
+  return activeSlug;
 }
 
 interface ArticleSectionsProperties {
@@ -75,7 +137,7 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
     data.headings,
   ]);
 
-  console.log({ tocItems });
+  const activeSlug = useActiveSlug(tocItems);
 
   if (tocItems.length < 1) {
     return null;
@@ -90,113 +152,35 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
       <Title>In this article</Title>
       <MostProminentSection>
         <div onClick={handleCloseClick}>
-          <TableOfContent items={tocItems} />
+          <TableOfContent items={tocItems} activeSlug={activeSlug} />
         </div>
       </MostProminentSection>
     </Container>
   );
-
-  // const dispatch = useDispatch();
-  // const yScrollPosition$ = useObservable(
-  //   (state) => state.common.yScrollPosition
-  // );
-
-  // const handleCloseClick = useCallback(() => {
-  //   dispatch(closeAside());
-  // }, [dispatch]);
-
-  // useEffect(() => {
-  //   const headings = (
-  //     (data.tableOfContents.items as TableOfContentItem[]) ?? []
-  //   )
-  //     .flatMap((item) => [item, ...(item.items ?? [])])
-  //     .map<Heading>((item) => ({
-  //       id: item.url,
-  //       title: item.title,
-  //       position:
-  //         (document.getElementById(item.url.substring(1))?.offsetTop ?? 80) -
-  //         80,
-  //     }))
-  //     .reverse();
-  //   let currentActiveId: string | undefined;
-  //   let currentActiveClass: string = "";
-  //   // let timeoutHandler: number | undefined;
-  //   let subscription: Subscription | undefined;
-
-  //   if (headings.length > 0) {
-  //     subscription = yScrollPosition$.subscribe((yScrollPosition) => {
-  //       let newActiveId: string | undefined;
-  //       let title: string | undefined;
-
-  //       for (let i = 0; i < headings.length; i++) {
-  //         if (yScrollPosition >= headings[i].position) {
-  //           newActiveId = headings[i].id;
-  //           title = headings[i].title;
-  //           break;
-  //         }
-  //       }
-
-  //       if (currentActiveId !== newActiveId) {
-  //         if (currentActiveId) {
-  //           document.getElementById(
-  //             harmonizeId(currentActiveId)
-  //           )!.className = currentActiveClass;
-  //         }
-
-  //         currentActiveId = newActiveId;
-  //         // clearTimeout(timeoutHandler);
-
-  //         if (currentActiveId) {
-  //           const element = document.getElementById(
-  //             harmonizeId(currentActiveId)
-  //           )!;
-
-  //           currentActiveClass = element.className;
-  //           element.className = currentActiveClass + " active";
-  //           // timeoutHandler = window.setTimeout(() => {
-  //           //   window.history.pushState(
-  //           //     undefined,
-  //           //     title ?? "ChilliCream Docs", // todo: default heading should be the doc title
-  //           //     `./${currentActiveId ?? ""}`
-  //           //   );
-  //           // }, 250);
-  //         }
-  //         // else {
-  //         //   timeoutHandler = window.setTimeout(() => {
-  //         //     window.history.pushState(
-  //         //       undefined,
-  //         //       "ChilliCream Docs", // todo: default heading should be the doc title
-  //         //       "./"
-  //         //     );
-  //         //   }, 250);
-  //         // }
-  //       }
-  //     });
-  //   }
-
-  //   return () => {
-  //     subscription?.unsubscribe();
-  //   };
-  // }, [data]);
 };
 
 interface Heading {
-  readonly id: string;
-  readonly title: string;
+  readonly slug: string;
   readonly position: number;
 }
 
 interface TableOfContentProps {
   readonly items: TableOfContentItem[];
+  readonly activeSlug?: string;
 }
 
-const TableOfContent: FunctionComponent<TableOfContentProps> = ({ items }) => {
+const TableOfContent: FunctionComponent<TableOfContentProps> = ({
+  items,
+  activeSlug,
+}) => {
   return (
     <TocItemContainer>
       {items.map((item) => (
-        <TocListItem key={item.slug} id={"link-" + item.slug}>
+        <TocListItem key={item.slug} active={activeSlug === item.slug}>
           <TocLink to={"#" + item.slug}>{item.title}</TocLink>
-          {item.items && <TableOfContent items={item.items ?? []} />}
+          {item.items && (
+            <TableOfContent items={item.items ?? []} activeSlug={activeSlug} />
+          )}
         </TocListItem>
       ))}
     </TocItemContainer>
@@ -205,7 +189,7 @@ const TableOfContent: FunctionComponent<TableOfContentProps> = ({ items }) => {
 
 interface TableOfContentItem {
   readonly title: string;
-  slug: string;
+  readonly slug: string;
   readonly items?: TableOfContentItem[];
 }
 
@@ -251,7 +235,11 @@ const TocLink = styled((props) => <Link {...props} />)`
   }
 `;
 
-const TocListItem = styled.li`
+interface TocListItemProperties {
+  active: boolean;
+}
+
+const TocListItem = styled.li<TocListItemProperties>`
   flex: 0 0 auto;
   margin: 5px 0;
   padding: 0;
@@ -261,7 +249,11 @@ const TocListItem = styled.li`
     padding-right: 0;
   }
 
-  &.active > ${TocLink} {
-    font-weight: bold;
-  }
+  ${({ active }) =>
+    active &&
+    css`
+      > ${TocLink} {
+        font-weight: bold;
+      }
+    `}
 `;
