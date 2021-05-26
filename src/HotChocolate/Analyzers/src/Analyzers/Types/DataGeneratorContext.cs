@@ -30,9 +30,15 @@ namespace HotChocolate.Data.Neo4J.Analyzers.Types
             ISchema schema) =>
             new DataGeneratorContext(
                 schema.Directives["operation"].FirstOrDefault()?.ToObject<OperationDirective>() ??
-                new OperationDirective(new [] { OperationKind.All }),
+                new OperationDirective { Operations = new[] { OperationKind.All } },
                 schema.Directives["operation"].FirstOrDefault()?.ToObject<PagingDirective>() ??
-                new PagingDirective(PagingKind.Cursor, 10, 50, false),
+                new PagingDirective
+                { 
+                    Kind = PagingKind.Cursor, 
+                    DefaultPageSize = 10, 
+                    MaxPageSize = 50, 
+                    IncludeTotalCount = false 
+                },
                 true,
                 true);
 

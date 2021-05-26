@@ -5,20 +5,17 @@
     <IsPackable>false</IsPackable>
     <AssemblyName>HotChocolate.Analyzers.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Analyzers</RootNamespace>
-    <EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
     <AdditionalFiles Include="**\*.graphql" />
+    <Watch Include="**\*.graphql" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Analyzers\HotChocolate.Analyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <AdditionalFiles Include="**\*.graphql" />  
   </ItemGroup>
 
   <ItemGroup>

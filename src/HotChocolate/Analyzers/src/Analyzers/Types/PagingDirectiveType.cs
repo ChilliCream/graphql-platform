@@ -25,7 +25,7 @@ namespace HotChocolate.Data.Neo4J.Analyzers.Types
                 .DefaultValue(50);
 
             descriptor
-                .Argument(t => t.MaxPageSize)
+                .Argument(t => t.IncludeTotalCount)
                 .Type<BooleanType>()
                 .DefaultValue(false);
         }

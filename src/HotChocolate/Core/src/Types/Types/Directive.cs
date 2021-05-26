@@ -64,7 +64,7 @@ namespace HotChocolate.Types
 
         public DirectiveNode ToNode(bool removeNullArguments)
         {
-            if (_parsedDirective is null)
+            if (_parsedDirective is null!)
             {
                 _parsedDirective = ParseValue(Type, _customDirective);
             }
@@ -148,7 +148,7 @@ namespace HotChocolate.Types
             Dictionary<string, ArgumentNode> arguments = GetArguments();
             if (arguments.TryGetValue(argument.Name, out ArgumentNode? argumentValue))
             {
-                object? parsedValue = Type.DeserializeArgument(
+                var parsedValue = Type.DeserializeArgument(
                     argument, argumentValue.Value, property.PropertyType);
 
                 property.SetValue(obj, parsedValue);
@@ -317,7 +317,7 @@ namespace HotChocolate.Types
             foreach (Argument argument in directiveType.Arguments)
             {
                 PropertyInfo? property = properties[argument.Name].FirstOrDefault();
-                object? propertyValue = property?.GetValue(directive);
+                var propertyValue = property?.GetValue(directive);
 
                 IValueNode valueNode = argument.Type.ParseValue(propertyValue);
                 arguments.Add(new ArgumentNode(argument.Name, valueNode));

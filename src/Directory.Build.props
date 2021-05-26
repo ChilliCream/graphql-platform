@@ -52,12 +52,12 @@
     <WarningsAsErrors Condition=" '$(RequireDocumentationOfPublicApiChanges)' != '' ">$(WarningsAsErrors);RS0016;RS0017;RS0024</WarningsAsErrors>
   </PropertyGroup>
 
-  <!--ItemGroup Condition=" $(AddPublicApiAnalyzers) ">
+  <ItemGroup Condition=" $(AddPublicApiAnalyzers) ">
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.2">
       <ExcludeAssets>compile</ExcludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-  </ItemGroup-->
+  </ItemGroup>
 
   <Target Name="_CheckIgnoredPublicApiFiles"
       BeforeTargets="Build;Restore"

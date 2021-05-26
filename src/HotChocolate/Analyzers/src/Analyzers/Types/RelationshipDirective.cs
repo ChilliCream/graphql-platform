@@ -2,14 +2,8 @@ namespace HotChocolate.Data.Neo4J.Analyzers.Types
 {
     public class RelationshipDirective
     {
-        public RelationshipDirective(string type, RelationshipDirection direction)
-        {
-            Type = type;
-            Direction = direction;
-        }
+        public string Type { get; set; } = default!;
 
-        public string Type { get; }
-
-        public RelationshipDirection Direction { get; }
+        public RelationshipDirection Direction { get; set; } = default!;
     }
 }

@@ -6,6 +6,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using static HotChocolate.Data.Neo4J.Analyzers.TypeNames;
+using HotChocolate.Data.Neo4J.Analyzers.Types;
 
 namespace HotChocolate.Data.Neo4J.Analyzers
 {
@@ -249,6 +251,49 @@ namespace HotChocolate.Data.Neo4J.Analyzers
                         : IdentifierName(parameterName));
 
             return constructor.AddBodyStatements(ExpressionStatement(assignmentExpression));
+        }
+
+        public static MethodDeclarationSyntax AddPagingAttribute(
+            this MethodDeclarationSyntax methodSyntax,
+            PagingDirective directive)
+        {
+            if (directive.Kind == PagingKind.None)
+            {
+                return methodSyntax;
+            }
+
+            AttributeSyntax attribute =
+                Attribute(IdentifierName(Global(
+                    directive.Kind == PagingKind.Cursor
+                        ? UsePagingAttribute
+                        : UseOffsetPagingAttribute)))
+                    .AddArgumentListArguments(
+                        AttributeArgument(
+                            LiteralExpression(
+                                SyntaxKind.NumericLiteralExpression,
+                                Literal(directive.DefaultPageSize)))
+                        .WithNameEquals(
+                            NameEquals(IdentifierName(nameof(directive.DefaultPageSize)))),
+                        AttributeArgument(
+                            LiteralExpression(
+                                SyntaxKind.NumericLiteralExpression,
+                                Literal(directive.MaxPageSize)))
+                        .WithNameEquals(
+                            NameEquals(IdentifierName(nameof(directive.MaxPageSize)))),
+                        AttributeArgument(
+                            LiteralExpression(
+                                directive.IncludeTotalCount
+                                    ? SyntaxKind.TrueLiteralExpression
+                                    : SyntaxKind.FalseLiteralExpression))
+                        .WithNameEquals(
+                            NameEquals(IdentifierName(nameof(directive.IncludeTotalCount)))));
+
+            return methodSyntax
+                .WithAttributeLists(
+                    SingletonList(
+                        AttributeList(
+                            SingletonSeparatedList(
+                                attribute))));
         }
     }
 }

@@ -9,6 +9,10 @@ namespace HotChocolate.Data.Neo4J.Analyzers.Types
             descriptor
                 .Name("relationship")
                 .Location(DirectiveLocation.FieldDefinition);
+
+            descriptor
+                .Argument(t => t.Direction)
+                .Type<NonNullType<RelationshipDirectionType>>();
         }
     }
 }

@@ -13,6 +13,7 @@ namespace HotChocolate.Data.Neo4J.Analyzers
             GeneratorExecutionContext context) =>
             context.AdditionalFiles
                 .Select(t => t.Path)
+                .Distinct()
                 .Where(t => IOPath.GetExtension(t).Equals(
                     ".graphql",
                     StringComparison.OrdinalIgnoreCase))

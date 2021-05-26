@@ -16,7 +16,7 @@ namespace HotChocolate.Data.Neo4J.Analyzers.Types
 
             descriptor
                 .Argument(t => t.PluralName)
-                .Type<NonNullType<StringType>>();
+                .Type<StringType>();
         }
     }
 }

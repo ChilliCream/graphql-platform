@@ -215,7 +215,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(valueNode));
             }
 
-            object? obj = argument.Type.ParseLiteral(valueNode);
+            var obj = argument.Type.ParseLiteral(valueNode);
 
             if (targetType.IsInstanceOfType(obj))
             {

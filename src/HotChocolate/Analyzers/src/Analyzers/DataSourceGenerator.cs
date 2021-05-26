@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using HotChocolate.Data.Neo4J.Analyzers.Types;
 using HotChocolate.Language;
+using HotChocolate.Types;
+using HotChocolate.Types.Introspection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16,32 +19,8 @@ using SyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 namespace HotChocolate.Data.Neo4J.Analyzers
 {
     [Generator]
-    public class DataSourceGenerator : ISourceGenerator
+    public partial class DataSourceGenerator : ISourceGenerator
     {
-        private static string _location = IOPath.GetDirectoryName(
-            typeof(DataSourceGenerator).Assembly.Location)!;
-
-        static DataSourceGenerator()
-        {
-            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainOnAssemblyResolve;
-        }
-
-        private static Assembly? CurrentDomainOnAssemblyResolve(
-            object sender,
-            ResolveEventArgs args)
-        {
-            try
-            {
-                var assemblyName = new AssemblyName(args.Name);
-                var path = IOPath.Combine(_location, assemblyName.Name + ".dll");
-                return Assembly.LoadFrom(path);
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
         public void Initialize(GeneratorInitializationContext context)
         {
 
@@ -56,9 +35,11 @@ namespace HotChocolate.Data.Neo4J.Analyzers
                 if (files.Count > 0)
                 {
                     ISchema schema = SchemaHelper.CreateSchema(files);
+                    DataGeneratorContext dataContext = DataGeneratorContext.FromSchema(schema);
+                    GenerateTypes(context, dataContext, schema);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 context.AddSource("error.cs", "/*" + Environment.NewLine + ex.Message + Environment.NewLine + ex.StackTrace + Environment.NewLine + "*/");
             }
@@ -66,17 +47,26 @@ namespace HotChocolate.Data.Neo4J.Analyzers
 
         private static void GenerateTypes(
             GeneratorExecutionContext context,
-            IReadOnlyList<ObjectTypeDefinitionNode> typeDefinitions)
+            DataGeneratorContext dataContext,
+            ISchema schema)
         {
             const string @namespace = "Foo.Bar";
 
-            GenerateQueryType(context, @namespace, typeDefinitions);
+            GenerateQueryType(
+                context,
+                dataContext,
+                @namespace,
+                schema.Types
+                    .OfType<ObjectType>()
+                    .Where(type => !IntrospectionTypes.IsIntrospectionType(type))
+                    .ToList());
         }
 
         private static void GenerateQueryType(
             GeneratorExecutionContext context,
+            DataGeneratorContext dataContext,
             string @namespace,
-            IReadOnlyList<ObjectTypeDefinitionNode> objectTypes)
+            IReadOnlyList<IObjectType> objectTypes)
         {
             ClassDeclarationSyntax queryDeclaration =
                 ClassDeclaration("Query") // todo : we need to read the name from the config
@@ -88,11 +78,8 @@ namespace HotChocolate.Data.Neo4J.Analyzers
 
             foreach (var objectType in objectTypes)
             {
-                string typeName = objectType.Name.Value;
-                string pluralTypeName = typeName + "s"; // TODO : plural directive
-
                 queryDeclaration = queryDeclaration.AddMembers(
-                    CreateQueryResolver(typeName, pluralTypeName));
+                    CreateQueryResolver(dataContext, objectType));
             }
 
             NamespaceDeclarationSyntax namespaceDeclaration =
@@ -116,18 +103,24 @@ namespace HotChocolate.Data.Neo4J.Analyzers
         }
 
         private static MethodDeclarationSyntax CreateQueryResolver(
-            string typeName,
-            string pluralTypeName)
+            DataGeneratorContext dataContext,
+            IObjectType objectType)
         {
             const string session = nameof(session);
 
+            dataContext = DataGeneratorContext.FromMember(objectType, dataContext);
+
+            var typeNameDirective = GetFirstDirective<TypeNameDirective>(objectType, "typeName");
+            string typeName = typeNameDirective?.Name ?? objectType.Name.Value;
+            string pluralTypeName = typeNameDirective?.PluralName ?? typeName + "s";
+
             return MethodDeclaration(
-                    GenericName(Identifier(Neo4JExecutable))
+                    GenericName(Identifier(Global(Neo4JExecutable)))
                         .WithTypeArgumentList(
                             TypeArgumentList(
                                 SingletonSeparatedList<TypeSyntax>(
                                     IdentifierName(typeName)))),
-                    Identifier(pluralTypeName))
+                    Identifier("Get" + pluralTypeName))
                 .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
                 .WithParameterList(
                     ParameterList(
@@ -144,7 +137,23 @@ namespace HotChocolate.Data.Neo4J.Analyzers
                         ImplicitObjectCreationExpression()
                             .WithArgumentList(
                                 ArgumentList(SingletonSeparatedList(
-                                    Argument(IdentifierName("session")))))));
+                                    Argument(IdentifierName("session")))))))
+                .WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
+                .AddPagingAttribute(dataContext.Paging);
+        }
+
+        private static T? GetFirstDirective<T>(
+            HotChocolate.Types.IHasDirectives hasDirectives,
+            string name)
+        {
+            var directive = hasDirectives.Directives[name].FirstOrDefault();
+
+            if (directive is null)
+            {
+                return default;
+            }
+
+            return directive.ToObject<T>();
         }
     }
 }

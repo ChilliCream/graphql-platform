@@ -7,7 +7,7 @@ namespace HotChocolate.Data.Neo4J.Analyzers.Types
         protected override void Configure(IDirectiveTypeDescriptor<SortableDirective> descriptor)
         {
             descriptor
-                .Name("filterable")
+                .Name("sortable")
                 .Location(DirectiveLocation.FieldDefinition |
                     DirectiveLocation.Schema |
                     DirectiveLocation.Scalar);
