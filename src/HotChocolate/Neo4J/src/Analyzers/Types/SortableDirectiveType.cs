@@ -1,0 +1,20 @@
+using HotChocolate.Types;
+
+namespace HotChocolate.Data.Neo4J.Analyzers.Types
+{
+    public class SortableDirectiveType : DirectiveType<SortableDirective>
+    {
+        protected override void Configure(IDirectiveTypeDescriptor<SortableDirective> descriptor)
+        {
+            descriptor
+                .Name("filterable")
+                .Location(DirectiveLocation.FieldDefinition |
+                    DirectiveLocation.Schema |
+                    DirectiveLocation.Scalar);
+
+            descriptor
+                .Argument(t => t.Direction)
+                .Type<SortDirectionType>();
+        }
+    }
+}

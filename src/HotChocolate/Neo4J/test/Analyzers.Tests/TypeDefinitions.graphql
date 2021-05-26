@@ -1,0 +1,56 @@
+type Movie @operation(operations: NONE) {
+  title: String
+  year: Int @filterable
+  imdbRating: Float
+}
+
+
+#settings would be annotated to the schema and translate directly into schema options
+schema @paging(kind: CURSOR, defaultPageSize: 30) @filtering @operation(operations: READ) @filterable(operations: NONE) {
+  query: Query
+}
+
+extend scalar Int @filterable(operations: EQ)
+
+#repeatable
+directive @relationship(type: String!, direction: _RelationshipDirection)  on FIELD_DEFINITION
+
+directive @typeName(name: String, pluralName: String) on OBJECT
+
+directive @paging(kind: _PagingKind, defaultPageSize: Int, maxPageSize: Int, includeTotalCount: Boolean) on FIELD_DEFINITION | SCHEMA
+
+directive @filterable(operations: [_FilterOperation!]) on FIELD_DEFINITION | SCHEMA | SCALAR
+
+directive @filtering on FIELD_DEFINITION | SCHEMA
+
+directive @sorting on FIELD_DEFINITION | SCHEMA
+
+directive @operation(operations: [_OperationKind]) on OBJECT | SCHEMA
+
+enum _RelationshipDirection {
+  IN
+  OUT
+  BOTH
+}
+
+enum _PagingKind {
+  CURSOR
+  OFFSET
+  NONE
+}
+
+enum _FilterOperation {
+  EQ,
+  NEQ,
+  ALL,
+  NONE
+}
+
+enum _OperationKind {
+  READ,
+  CREATE,
+  UPDATE,
+  DELETE,
+  ALL,
+  NONE
+}

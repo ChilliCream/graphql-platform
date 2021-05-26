@@ -1,0 +1,95 @@
+
+type Movie @operation(operations: ALL) {
+  title: String
+}
+
+schema
+  @paging(kind: CURSOR, defaultPageSize: 30)
+  @filtering(scope: "Document")
+  @operation(operations: READ)
+  @filterable(operations: NONE)
+  @database(name: "neo4j") {
+  query: Query
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+enum _RelationshipDirection {
+  IN
+  OUT
+  BOTH
+}
+
+enum _PagingKind {
+  CURSOR
+  OFFSET
+  NONE
+}
+
+enum _FilterOperation {
+  EQ,
+  NEQ,
+  ALL,
+  NONE
+}
+
+enum _OperationKind {
+  READ,
+  CREATE,
+  UPDATE,
+  DELETE,
+  ALL,
+  NONE
+}
+
+extend scalar Int @filterable(operations: EQ)
+
+#repeatable
+directive @relationship(type: String!, direction: _RelationshipDirection)  on FIELD_DEFINITION
+
+directive @typeName(name: String, pluralName: String) on OBJECT
+
+directive @paging(kind: _PagingKind, defaultPageSize: Int, maxPageSize: Int, includeTotalCount: Int) on FIELD_DEFINITION | SCHEMA
+
+directive @filterable(operations: [_FilterOperation!]) on FIELD_DEFINITION | SCHEMA | SCALAR
+
+directive @filtering(scope: String) on FIELD_DEFINITION | SCHEMA
+
+directive @sorting(scope: String) on FIELD_DEFINITION | SCHEMA
+
+directive @operation(operations: [_OperationKind]) on OBJECT | SCHEMA
+
+directive @database(name: String!) on SCHEMA
