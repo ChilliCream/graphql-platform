@@ -1,22 +1,47 @@
-using System.Linq;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using HotChocolate.Data.Neo4J.Analyzers.Types;
+using HotChocolate.Language;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using HotChocolate.Language;
-using HotChocolate.Types;
-using Microsoft.CodeAnalysis;
-using SyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
-using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using static HotChocolate.Data.Neo4J.Analyzers.TypeNames;
-using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
-using IHasDirectives = HotChocolate.Language.IHasDirectives;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using IOPath = System.IO.Path;
+using SyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
+
 
 namespace HotChocolate.Data.Neo4J.Analyzers
 {
+    [Generator]
     public class DataSourceGenerator : ISourceGenerator
     {
+        private static string _location = IOPath.GetDirectoryName(
+            typeof(DataSourceGenerator).Assembly.Location)!;
+
+        static DataSourceGenerator()
+        {
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainOnAssemblyResolve;
+        }
+
+        private static Assembly? CurrentDomainOnAssemblyResolve(
+            object sender,
+            ResolveEventArgs args)
+        {
+            try
+            {
+                var assemblyName = new AssemblyName(args.Name);
+                var path = IOPath.Combine(_location, assemblyName.Name + ".dll");
+                return Assembly.LoadFrom(path);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         public void Initialize(GeneratorInitializationContext context)
         {
 
@@ -24,27 +49,18 @@ namespace HotChocolate.Data.Neo4J.Analyzers
 
         public void Execute(GeneratorExecutionContext context)
         {
-            context.AddSource("Foo.cs", "bar");
-
-            context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
-                "build_property.StrawberryShake_State", out var value);
-            string path = System.IO.Path.Combine(value!, "foo.txt");
-
-            if (!Directory.Exists(value))
+            try
             {
-                Directory.CreateDirectory(value);
+                IReadOnlyList<string> files = Files.GetGraphQLFiles(context);
+
+                if (files.Count > 0)
+                {
+                    ISchema schema = SchemaHelper.CreateSchema(files);
+                }
             }
-
-
-            File.WriteAllText(path, "hello");
-            File.AppendAllText(path, string.Join(", ", context.Compilation.Assembly.TypeNames));
-
-            IReadOnlyList<string> files = Files.GetGraphQLFiles(context);
-
-            if (files.Count > 0)
+            catch(Exception ex)
             {
-                ISchema schema = SchemaHelper.CreateSchema(files);
-                File.AppendAllText(path, schema.Print());
+                context.AddSource("error.cs", "/*" + Environment.NewLine + ex.Message + Environment.NewLine + ex.StackTrace + Environment.NewLine + "*/");
             }
         }
 

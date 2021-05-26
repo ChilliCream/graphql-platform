@@ -25,27 +25,6 @@ namespace HotChocolate.Data.Neo4J.Analyzers
         public void Execute(GeneratorExecutionContext context)
         {
             context.AddSource("Foo.cs", "bar");
-
-            context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
-                "build_property.StrawberryShake_State", out var value);
-            string path = System.IO.Path.Combine(value!, "foo.txt");
-
-            if (!Directory.Exists(value))
-            {
-                Directory.CreateDirectory(value);
-            }
-
-
-            File.WriteAllText(path, "hello");
-            File.AppendAllText(path, string.Join(", ", context.Compilation.Assembly.TypeNames));
-
-            IReadOnlyList<string> files = Files.GetGraphQLFiles(context);
-
-            if (files.Count > 0)
-            {
-                ISchema schema = SchemaHelper.CreateSchema(files);
-                File.AppendAllText(path, schema.Print());
-            }
         }
 
         private static void GenerateTypes(
@@ -70,7 +49,7 @@ namespace HotChocolate.Data.Neo4J.Analyzers
                     .AddGeneratedAttribute()
                     .AddExtendObjectTypeAttribute("Query");
 
-            foreach (var objectType in objectTypes)
+            foreach (ObjectTypeDefinitionNode objectType in objectTypes)
             {
                 string typeName = objectType.Name.Value;
                 string pluralTypeName = typeName + "s"; // TODO : plural directive

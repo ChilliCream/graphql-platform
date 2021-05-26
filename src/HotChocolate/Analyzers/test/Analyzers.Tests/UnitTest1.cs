@@ -9,6 +9,6 @@ namespace Analyzers.Tests
         public void Test1()
         {
 
-        }
+        }   
     }
 }

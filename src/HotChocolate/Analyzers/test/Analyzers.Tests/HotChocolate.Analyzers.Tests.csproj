@@ -5,6 +5,8 @@
     <IsPackable>false</IsPackable>
     <AssemblyName>HotChocolate.Analyzers.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Analyzers</RootNamespace>
+    <EmitCompilerGeneratedFiles>false</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
