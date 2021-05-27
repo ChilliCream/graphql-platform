@@ -71,7 +71,7 @@ services
 
 After migrating the schema configuration, the next area that has fundamentally changed is the schema middleware.
 
-Hot Chocolate server now embraces the new endpoint routing API from ASP.NET core and with that brings a lot of new features. Head over [here](aspnetcore) to read more about the ASP.NET Core integration.
+Hot Chocolate server now embraces the new endpoint routing API from ASP.NET core and with that brings a lot of new features. Head over [here](/docs/hotchocolate/api-reference/aspnetcore) to read more about the ASP.NET Core integration.
 
 **Old:**
 

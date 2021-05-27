@@ -23,7 +23,7 @@ type Book {
 
 In GraphQL, we have three root types from which only the Query type has to be defined. Root types provide the entry points that let you fetch data, mutate data, or subscribe to events. Root types themselves are object types.
 
-> Read more about GraphQL operation types [here](operations).
+> Read more about GraphQL operation types [here](/docs/hotchocolate/defining-a-schema/operations).
 
 ```sdl
 schema {

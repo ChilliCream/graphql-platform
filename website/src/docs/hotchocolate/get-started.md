@@ -119,7 +119,7 @@ Now that your server is finished let us try it out by executing a simple GraphQL
 dotnet run --project ./Demo
 ```
 
-2. Open your browser and head over to `http://localhost:5000/graphql` to open our built-in GraphQL IDE [Banana Cake Pop](/docs/bananacakepop/).
+2. Open your browser and head over to `http://localhost:5000/graphql` to open our built-in GraphQL IDE [Banana Cake Pop](/docs/bananacakepop).
 
 ![GraphQL IDE](../../images/get-started-bcp.png)
 
