@@ -73,10 +73,9 @@ module.exports = {
                       </svg>`,
             },
           },
-          // todo: enable and fix
-          // note: disabled for now, because # hash links are not recognized.
-          // we probably need this plugin again gatsby-remark-autolink-headers.
-          // `gatsby-remark-check-links`,
+          {
+            resolve: require.resolve(`./plugins/detect-broken-links`),
+          },
         ],
       },
     },
