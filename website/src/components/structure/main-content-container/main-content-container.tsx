@@ -18,9 +18,13 @@ export const MainContentContainer: FunctionComponent = ({ children }) => {
     );
 
     const handleScroll = () => {
+      if (!ref.current?.scrollTop) {
+        return;
+      }
+
       dispatch(
         hasScrolled({
-          yScrollPosition: ref.current?.scrollTop ?? 0,
+          yScrollPosition: ref.current.scrollTop,
         })
       );
     };

@@ -2,13 +2,15 @@ import { graphql, Link } from "gatsby";
 import GithubSlugger from "github-slugger";
 import React, { FunctionComponent, useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
+import { asyncScheduler } from "rxjs";
+import { throttleTime } from "rxjs/operators";
 import styled, { css } from "styled-components";
 import { ArticleSectionsFragment } from "../../../graphql-types";
 import { useObservable } from "../../state";
 import { closeAside } from "../../state/common";
 import { MostProminentSection } from "../doc-page/doc-page-elements";
 
-const MAX_DEPTH = 2;
+const MAX_TOC_DEPTH = 2;
 
 interface ArticleSectionsProperties {
   readonly data: ArticleSectionsFragment;
@@ -44,11 +46,6 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
     </Container>
   );
 };
-
-interface Heading {
-  readonly slug: string;
-  readonly position: number;
-}
 
 interface TableOfContentProps {
   readonly items: TableOfContentItem[];
@@ -171,7 +168,7 @@ function getTocItemsFromHeadings(
 
     const headingDepth = heading.depth;
 
-    if (!headingDepth || headingDepth > MAX_DEPTH) {
+    if (!headingDepth || headingDepth > MAX_TOC_DEPTH) {
       continue;
     }
 
@@ -195,6 +192,11 @@ function getTocItemsFromHeadings(
   return items;
 }
 
+interface Heading {
+  readonly slug: string;
+  readonly element: HTMLElement | null;
+}
+
 function useActiveSlug(items: TableOfContentItem[]) {
   const [activeSlug, setActiveSlug] = useState<string>();
 
@@ -203,51 +205,50 @@ function useActiveSlug(items: TableOfContentItem[]) {
   );
 
   useEffect(() => {
-    if (items.length < 1) {
-      return;
-    }
-
-    const headings = items
-      .flatMap((item) => [item, ...(item.items ?? [])])
-      .map((item) => {
-        const element = document.getElementById(item.slug);
-
-        if (!element) {
-          return null;
-        }
-
-        const offsetTop = element.offsetTop;
-
-        const heading: Heading = {
+    const headings =
+      items
+        ?.flatMap((item) => [item, ...(item.items ?? [])])
+        .map<Heading>((item) => ({
           slug: item.slug,
-          position: offsetTop - 80,
-        };
+          element: document.getElementById(item.slug),
+        }))
+        .reverse() ?? [];
 
-        return heading;
-      })
-      .filter((item) => !!item)
-      .reverse() as Heading[];
+    const subscription = yScrollPosition$
+      .pipe(
+        throttleTime(100, asyncScheduler, { leading: true, trailing: true })
+      )
+      .subscribe((yScrollPosition) => {
+        // the yScrollPosition is the scrollTop relative to the main-content.
+        // the offsetTop of the headings is relative to the article-sections.
+        // the article-section has some space between itself and the main-content.
+        // that's why we add this space to get accurate results.
+        yScrollPosition += 95;
 
-    const subscription = yScrollPosition$.subscribe((yScrollPosition) => {
-      for (let i = 0; i < headings.length; i++) {
-        if (yScrollPosition < headings[i].position) {
-          if (i === headings.length - 1) {
-            setActiveSlug(undefined);
+        // traverse headings from bottom to top
+        for (let i = 0; i < headings.length; i++) {
+          const currentHeading = headings[i];
+
+          if (!currentHeading.element) {
+            continue;
           }
 
-          continue;
+          const headingPosition = currentHeading.element.offsetTop;
+
+          // the active item is above the current item
+          if (yScrollPosition < headingPosition) {
+            // there are no other active items above us
+            if (i === headings.length - 1) {
+              setActiveSlug(undefined);
+            }
+
+            continue;
+          }
+
+          setActiveSlug(currentHeading.slug);
+          break;
         }
-
-        const activeHeading = headings[i];
-
-        if (!activeHeading || activeHeading.slug === activeSlug) {
-          return;
-        }
-
-        setActiveSlug(activeHeading.slug);
-        break;
-      }
-    });
+      });
 
     return () => {
       subscription.unsubscribe();
