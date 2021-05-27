@@ -20,6 +20,11 @@ stages:
           parallel: 5
         steps:
           - task: UseDotNet@2
+            displayName: "Install .NET Core 3.1"
+            inputs:
+              packageType: 'sdk'
+              version: '3.1.100'
+          - task: UseDotNet@2
             displayName: "Install .NET Core"
             inputs:
               packageType: 'sdk'
@@ -38,6 +43,11 @@ stages:
         dependsOn: [Cover]
         steps:
           - task: UseDotNet@2
+            displayName: "Install .NET Core 3.1"
+            inputs:
+              packageType: 'sdk'
+              version: '3.1.100'
+          - task: UseDotNet@2
             displayName: "Install .NET Core"
             inputs:
               packageType: 'sdk'
@@ -55,6 +65,11 @@ stages:
         displayName: "Sonar"
         dependsOn: [Cover]
         steps:
+          - task: UseDotNet@2
+            displayName: "Install .NET Core 3.1"
+            inputs:
+              packageType: 'sdk'
+              version: '3.1.100'
           - task: UseDotNet@2
             displayName: "Install .NET Core"
             inputs:
