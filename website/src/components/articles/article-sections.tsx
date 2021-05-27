@@ -8,123 +8,7 @@ import { useObservable } from "../../state";
 import { closeAside } from "../../state/common";
 import { MostProminentSection } from "../doc-page/doc-page-elements";
 
-// todo: place these methods elsewhere
 const MAX_DEPTH = 2;
-
-function getTocItemsFromHeadings(
-  headings: ArticleSectionsFragment["headings"]
-): TableOfContentItem[] {
-  const items: TableOfContentItem[] = [];
-
-  if (!headings || headings?.length < 1) {
-    return items;
-  }
-
-  const slugger = new GithubSlugger();
-
-  // this represents a path to the current item
-  let parents: TableOfContentItem[] = [];
-
-  for (const heading of headings) {
-    if (!heading?.value) {
-      continue;
-    }
-
-    const headingDepth = heading.depth;
-
-    if (!headingDepth || headingDepth > MAX_DEPTH) {
-      continue;
-    }
-
-    const item: TableOfContentItem = {
-      title: heading.value,
-      // todo: all headings need to be slugged no matter their depth.
-      // otherwise the slugger could incorrectly slug items
-      slug: slugger.slug(heading.value),
-      items: [],
-    };
-
-    // we went up in depth, so lets remove parents until we find the parent
-    // directly above us
-    while (parents.length >= headingDepth) {
-      parents.pop();
-    }
-
-    const parent = parents[parents.length - 1];
-
-    parents.push(item);
-
-    if (parent?.items) {
-      parent.items.push(item);
-    } else {
-      items.push(item);
-    }
-  }
-
-  return items;
-}
-
-function useActiveSlug(items: TableOfContentItem[]) {
-  const [activeSlug, setActiveSlug] = useState<string>();
-
-  const yScrollPosition$ = useObservable(
-    (state) => state.common.yScrollPosition
-  );
-
-  useEffect(() => {
-    if (items.length < 1) {
-      return;
-    }
-
-    const headings = items
-      .flatMap((item) => [item, ...(item.items ?? [])])
-      .map((item) => {
-        const element = document.getElementById(item.slug);
-
-        if (!element) {
-          return null;
-        }
-
-        const offsetTop = element.offsetTop;
-
-        const heading: Heading = {
-          slug: item.slug,
-          position: offsetTop - 80,
-        };
-
-        return heading;
-      })
-      .filter((item) => !!item)
-      .reverse() as Heading[];
-
-    const subscription = yScrollPosition$.subscribe((yScrollPosition) => {
-      for (let i = 0; i < headings.length; i++) {
-        if (yScrollPosition < headings[i].position) {
-          if (i === headings.length - 1) {
-            setActiveSlug(undefined);
-          }
-
-          continue;
-        }
-
-        const activeHeading = headings[i];
-
-        if (!activeHeading || activeHeading.slug === activeSlug) {
-          return;
-        }
-
-        setActiveSlug(activeHeading.slug);
-        break;
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [items]);
-
-  return activeSlug;
-}
 
 interface ArticleSectionsProperties {
   readonly data: ArticleSectionsFragment;
@@ -238,7 +122,7 @@ const TocLink = styled((props) => <Link {...props} />)`
 `;
 
 interface TocListItemProperties {
-  active: boolean;
+  readonly active: boolean;
 }
 
 const TocListItem = styled.li<TocListItemProperties>`
@@ -259,3 +143,116 @@ const TocListItem = styled.li<TocListItemProperties>`
       }
     `}
 `;
+
+function getTocItemsFromHeadings(
+  headings: ArticleSectionsFragment["headings"]
+): TableOfContentItem[] {
+  const items: TableOfContentItem[] = [];
+
+  if (!headings || headings?.length < 1) {
+    return items;
+  }
+
+  const slugger = new GithubSlugger();
+
+  // this represents a path to the current item
+  let parents: TableOfContentItem[] = [];
+
+  for (const heading of headings) {
+    if (!heading?.value) {
+      continue;
+    }
+
+    const item: TableOfContentItem = {
+      title: heading.value,
+      slug: slugger.slug(heading.value),
+      items: [],
+    };
+
+    const headingDepth = heading.depth;
+
+    if (!headingDepth || headingDepth > MAX_DEPTH) {
+      continue;
+    }
+
+    // we went up in depth, so lets remove parents until we find the parent
+    // directly above us
+    while (parents.length >= headingDepth) {
+      parents.pop();
+    }
+
+    const parent = parents[parents.length - 1];
+
+    parents.push(item);
+
+    if (parent?.items) {
+      parent.items.push(item);
+    } else {
+      items.push(item);
+    }
+  }
+
+  return items;
+}
+
+function useActiveSlug(items: TableOfContentItem[]) {
+  const [activeSlug, setActiveSlug] = useState<string>();
+
+  const yScrollPosition$ = useObservable(
+    (state) => state.common.yScrollPosition
+  );
+
+  useEffect(() => {
+    if (items.length < 1) {
+      return;
+    }
+
+    const headings = items
+      .flatMap((item) => [item, ...(item.items ?? [])])
+      .map((item) => {
+        const element = document.getElementById(item.slug);
+
+        if (!element) {
+          return null;
+        }
+
+        const offsetTop = element.offsetTop;
+
+        const heading: Heading = {
+          slug: item.slug,
+          position: offsetTop - 80,
+        };
+
+        return heading;
+      })
+      .filter((item) => !!item)
+      .reverse() as Heading[];
+
+    const subscription = yScrollPosition$.subscribe((yScrollPosition) => {
+      for (let i = 0; i < headings.length; i++) {
+        if (yScrollPosition < headings[i].position) {
+          if (i === headings.length - 1) {
+            setActiveSlug(undefined);
+          }
+
+          continue;
+        }
+
+        const activeHeading = headings[i];
+
+        if (!activeHeading || activeHeading.slug === activeSlug) {
+          return;
+        }
+
+        setActiveSlug(activeHeading.slug);
+        break;
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [items]);
+
+  return activeSlug;
+}
