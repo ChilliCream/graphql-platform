@@ -59,6 +59,7 @@ HotChocolate.Execution.PureExecutionTask.PureExecutionTask() -> void
 HotChocolate.Execution.PureExecutionTask.State.get -> object?
 HotChocolate.Execution.PureExecutionTask.State.set -> void
 HotChocolate.Execution.PureExecutionTask.WaitForCompletionAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+HotChocolate.Execution.QueryRequestBuilderExtensions
 HotChocolate.Execution.SerialExecutionTask
 HotChocolate.Execution.SerialExecutionTask.BeginExecute(System.Threading.CancellationToken cancellationToken) -> void
 HotChocolate.Execution.SerialExecutionTask.IsCompleted.get -> bool
@@ -75,4 +76,14 @@ HotChocolate.Execution.SerialExecutionTask.SerialExecutionTask() -> void
 HotChocolate.Execution.SerialExecutionTask.State.get -> object?
 HotChocolate.Execution.SerialExecutionTask.State.set -> void
 HotChocolate.Execution.SerialExecutionTask.WaitForCompletionAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+~const HotChocolate.ErrorCodes.Execution.ComplexityExceeded = "HC0047" -> string
+~const HotChocolate.ErrorCodes.Execution.ComplexityStateInvalid = "HC0048" -> string
 ~const HotChocolate.WellKnownContextData.IncludeQueryPlan = "HotChocolate.Execution.EmitQueryPlan" -> string
+~const HotChocolate.WellKnownContextData.MaximumAllowedComplexity = "HotChocolate.Execution.AllowedComplexity" -> string
+~const HotChocolate.WellKnownContextData.OperationComplexity = "HotChocolate.Execution.OperationComplexity" -> string
+~const HotChocolate.WellKnownContextData.SkipComplexityAnalysis = "HotChocolate.Execution.NoComplexityAnalysis" -> string
+~static HotChocolate.Execution.QueryRequestBuilderExtensions.AllowIntrospection(this HotChocolate.Execution.IQueryRequestBuilder builder) -> HotChocolate.Execution.IQueryRequestBuilder
+~static HotChocolate.Execution.QueryRequestBuilderExtensions.SetIntrospectionNotAllowedMessage(this HotChocolate.Execution.IQueryRequestBuilder builder, string message) -> HotChocolate.Execution.IQueryRequestBuilder
+~static HotChocolate.Execution.QueryRequestBuilderExtensions.SetIntrospectionNotAllowedMessage(this HotChocolate.Execution.IQueryRequestBuilder builder, System.Func<string> messageFactory) -> HotChocolate.Execution.IQueryRequestBuilder
+~static HotChocolate.Execution.QueryRequestBuilderExtensions.SetMaximumAllowedComplexity(this HotChocolate.Execution.IQueryRequestBuilder builder, int maximumAllowedComplexity) -> HotChocolate.Execution.IQueryRequestBuilder
+~static HotChocolate.Execution.QueryRequestBuilderExtensions.SkipComplexityAnalysis(this HotChocolate.Execution.IQueryRequestBuilder builder) -> HotChocolate.Execution.IQueryRequestBuilder

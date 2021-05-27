@@ -21,12 +21,19 @@ HotChocolate.Resolvers.PureFieldResolverDelegate
 HotChocolate.Schema.TryGetRuntimeType(HotChocolate.NameString typeName, out System.Type? runtimeType) -> bool
 HotChocolate.Schema.Types.get -> System.Collections.Generic.IReadOnlyCollection<HotChocolate.Types.INamedType!>!
 HotChocolate.SchemaBuilder
+HotChocolate.Types.CostDirective.DefaultMultiplier.get -> int?
+HotChocolate.Types.Descriptors.Definitions.ObjectFieldDefinition.CustomSettings.get -> System.Collections.Generic.IList<object!>!
 HotChocolate.Types.Descriptors.Definitions.ObjectFieldDefinition.InlineResolver.get -> HotChocolate.Resolvers.InlineFieldDelegate?
 HotChocolate.Types.Descriptors.Definitions.ObjectFieldDefinition.InlineResolver.set -> void
 HotChocolate.Types.Descriptors.Definitions.ObjectFieldDefinition.IsParallelExecutable.get -> bool
 HotChocolate.Types.Descriptors.Definitions.ObjectFieldDefinition.IsParallelExecutable.set -> void
 HotChocolate.Types.Descriptors.Definitions.ObjectFieldDefinition.PureResolver.get -> HotChocolate.Resolvers.PureFieldResolverDelegate?
 HotChocolate.Types.Descriptors.Definitions.ObjectFieldDefinition.PureResolver.set -> void
+HotChocolate.Types.ICostSettings
+HotChocolate.Types.ICostSettings.ApplyDefaults.get -> bool
+HotChocolate.Types.ICostSettings.DefaultComplexity.get -> int
+HotChocolate.Types.ICostSettings.DefaultResolverComplexity.get -> int
+HotChocolate.Types.ICostSettings.Enable.get -> bool
 HotChocolate.Types.IDescriptorExtension<T>.Definition.get -> T!
 HotChocolate.Types.IObjectField.InlineResolver.get -> HotChocolate.Resolvers.InlineFieldDelegate?
 HotChocolate.Types.IObjectField.IsParallelExecutable.get -> bool
@@ -86,7 +93,8 @@ HotChocolate.Types.SerialAttribute
 HotChocolate.Types.SerialAttribute.SerialAttribute() -> void
 override HotChocolate.Types.ParallelAttribute.OnConfigure(HotChocolate.Types.Descriptors.IDescriptorContext! context, HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Reflection.MemberInfo! member) -> void
 override HotChocolate.Types.SerialAttribute.OnConfigure(HotChocolate.Types.Descriptors.IDescriptorContext! context, HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Reflection.MemberInfo! member) -> void
-~HotChocolate.Types.Descriptors.InterfaceTypeDescriptor.Interface(HotChocolate.Language.NamedTypeNode type) -> HotChocolate.Types.IInterfaceTypeDescriptor
+~HotChocolate.Types.CostDirective.CostDirective(int complexity, int defaultMultiplier, params HotChocolate.Types.MultiplierPathString[] multipliers) -> void
+~HotChocolate.Types.Descriptors.InterfaceTypeDescriptor.Interface(HotChocolate.Language.NamedTypeNode namedType) -> HotChocolate.Types.IInterfaceTypeDescriptor
 ~HotChocolate.Types.Descriptors.InterfaceTypeDescriptor.Interface<TInterface>() -> HotChocolate.Types.IInterfaceTypeDescriptor
 ~static HotChocolate.Types.ObjectFieldDescriptorExtensions.Parallel(this HotChocolate.Types.IObjectFieldDescriptor descriptor) -> HotChocolate.Types.IObjectFieldDescriptor
 ~static HotChocolate.Types.ObjectFieldDescriptorExtensions.Serial(this HotChocolate.Types.IObjectFieldDescriptor descriptor) -> HotChocolate.Types.IObjectFieldDescriptor

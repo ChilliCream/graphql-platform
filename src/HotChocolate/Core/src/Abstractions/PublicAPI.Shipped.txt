@@ -262,8 +262,14 @@ HotChocolate.Execution.IExecutionResult.Errors.get -> System.Collections.Generic
 HotChocolate.Execution.IExecutionResult.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
 HotChocolate.Execution.IExecutionTask
 HotChocolate.Execution.IExecutionTask.BeginExecute(System.Threading.CancellationToken cancellationToken) -> void
+HotChocolate.Execution.IExecutionTask.IsCanceled.get -> bool
 HotChocolate.Execution.IExecutionTask.IsCompleted.get -> bool
 HotChocolate.Execution.IExecutionTaskContext
+HotChocolate.Execution.IExecutionTaskContext.Completed() -> void
+HotChocolate.Execution.IExecutionTaskContext.Started() -> void
+HotChocolate.Execution.IExecutionTaskDefinition
+HotChocolate.Execution.IQuery
+HotChocolate.Execution.IQuery.AsSpan() -> System.ReadOnlySpan<byte>
 HotChocolate.Execution.IQueryRequest
 HotChocolate.Execution.IQueryRequest.AllowedOperations.get -> HotChocolate.Language.OperationType[]?
 HotChocolate.Execution.IQueryRequest.ContextData.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
