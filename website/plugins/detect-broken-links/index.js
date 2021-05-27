@@ -46,28 +46,29 @@ module.exports = async function plugin({
 
   const parent = await getNode(markdownNode.parent);
 
-  let path = markdownNode.fields.slug;
+  // todo: this is a temporary solution
+  let documentSlug = markdownNode.fields.slug;
   if (parent.sourceInstanceName) {
-    path = "/" + parent.sourceInstanceName + path;
+    documentSlug = "/" + parent.sourceInstanceName + documentSlug;
   }
 
   // remove trailing slashes
-  path = path.replace(/\/+$/, "");
+  documentSlug = documentSlug.replace(/\/+$/, "");
 
   cache.set(getCacheKey(parent), {
-    path,
+    slug: documentSlug,
     links,
     headingSlugs,
+    absolutePath: parent.absolutePath,
   });
 
-  // lookup for heading slugs per document path
-  const headingSlugMap = {};
-  // lookup for links per document path
-  const linkMap = {};
+  // local cache of all markdown documents
+  const documentMap = {};
 
   // check if all other files have entries in the cache
   for (let index = 0; index < files.length; index++) {
     const file = files[index];
+
     // ignore non mdx files
     if (!/^mdx?$/.test(file.extension)) {
       continue;
@@ -85,8 +86,7 @@ module.exports = async function plugin({
     }
 
     if (cacheEntry) {
-      headingSlugMap[cacheEntry.path] = cacheEntry.headingSlugs;
-      linkMap[cacheEntry.path] = cacheEntry.links;
+      documentMap[cacheEntry.slug] = cacheEntry;
 
       continue;
     }
@@ -96,41 +96,39 @@ module.exports = async function plugin({
   }
 
   let totalBrokenLinks = 0;
+  for (const slug in documentMap) {
+    const document = documentMap[slug];
 
-  for (const path in linkMap) {
-    const linksInDocument = linkMap[path];
-
-    if (!linksInDocument || linksInDocument.length < 1) {
+    if (!document || document.links.length < 1) {
       continue;
     }
 
-    const brokenLinks = linksInDocument.filter((link) => {
-      const { key, hasHash, hashIndex } = getHeadingsMapKey(link.url, path);
+    const brokenLinks = document.links.filter((link) => {
+      const { key, hasHash, hashIndex } = getHeadingsMapKey(link.url, slug);
 
-      const headingsSlugsInDocument = headingSlugMap[key];
+      const linkedDoc = documentMap[key];
 
-      if (!headingsSlugsInDocument) {
+      if (!linkedDoc) {
         return true;
       }
 
-      if (headingsSlugsInDocument.length < 1) {
+      if (linkedDoc.headingSlugs.length < 1) {
         return false;
       }
 
       if (hasHash) {
-        const slug = link.url.slice(hashIndex + 1);
+        const headingSlug = link.url.slice(hashIndex + 1);
 
-        return !headingsSlugsInDocument.includes(slug);
+        return !linkedDoc.headingSlugs.includes(headingSlug);
       }
 
       return false;
     });
 
     if (brokenLinks.length > 0) {
-      // todo: this won't work with index.md files
-      const filepath = `./src${path}.md`;
+      const filepath = document.absolutePath;
 
-      console.warn(`${brokenLinks.length} broken link(s) found in ${filepath}`);
+      console.warn(`${brokenLinks.length} broken link(s) found in ${slug}`);
 
       for (const link of brokenLinks) {
         let lineColumn = "";
@@ -146,7 +144,7 @@ module.exports = async function plugin({
           lineColumn = `:${line + offset}:${column}`;
         }
 
-        console.warn(`- ${link.url} [${filepath}${lineColumn}]`);
+        console.warn(`- ${link.url} ( ${filepath}${lineColumn} )`);
       }
 
       console.log("");
@@ -172,12 +170,13 @@ function getCacheKey(node) {
   return `detect-broken-links-${node.id}-${node.internal.contentDigest}`;
 }
 
-function getHeadingsMapKey(link, path) {
+// todo: rework this method
+function getHeadingsMapKey(link, slug) {
   let key = link;
   const hashIndex = link.indexOf("#");
   const hasHash = hashIndex !== -1;
   if (hasHash) {
-    key = link.startsWith("#") ? path : link.slice(0, hashIndex);
+    key = link.startsWith("#") ? slug : link.slice(0, hashIndex);
   }
 
   return {
