@@ -65,8 +65,10 @@ public class ImageContent : IPostContent
 
 public class Query
 {
-    public IPostContent GetContent([Service] IContentRepository repository)
-        => repository.GetContent();
+    public IPostContent GetContent()
+    {
+        // Omitted code for brevity
+    }
 }
 
 public class Startup
@@ -86,6 +88,26 @@ public class Startup
 <ExampleTabs.Code>
 
 ```csharp
+public class TextContent
+{
+    public string Text { get; set; }
+}
+
+public class TextContentType : ObjectType<TextContent>
+{
+}
+
+public class ImageContent
+{
+    public string ImageUrl { get; set; }
+
+    public int Height { get; set; }
+}
+
+public class ImageContentType : ObjectType<ImageContent>
+{
+}
+
 public class PostContentType : UnionType
 {
     protected override void Configure(IUnionTypeDescriptor descriptor)
@@ -100,8 +122,10 @@ public class PostContentType : UnionType
 
 public class Query
 {
-    public object GetContent([Service] IContentRepository repository)
-        => repository.GetContent();
+    public object GetContent()
+    {
+        // Omitted code for brevity
+    }
 }
 
 
@@ -124,28 +148,48 @@ We can use a marker interface, as in the annotation-based approach, to type our 
 <ExampleTabs.Schema>
 
 ```csharp
-services
-    .AddGraphQLServer()
-    .AddDocumentFromString(@"
-        type Query {
-          content: PostContent
-        }
+public class TextContent
+{
+    public string Text { get; set; }
+}
 
-        type TextContent {
-          text: String!
-        }
+public class ImageContent
+{
+    public string ImageUrl { get; set; }
 
-        type ImageContent {
-          imageUrl: String!
-          height: Int!
-        }
+    public int Height { get; set; }
+}
 
-        union PostContent = TextContent | ImageContent
-    ")
-    .AddResolver("Query", "content", (context) =>
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
     {
-        // Omitted code for brevity
-    });
+        services
+            .AddGraphQLServer()
+            .AddDocumentFromString(@"
+                type Query {
+                  content: PostContent
+                }
+
+                type TextContent {
+                  text: String!
+                }
+
+                type ImageContent {
+                  imageUrl: String!
+                  height: Int!
+                }
+
+                union PostContent = TextContent | ImageContent
+            ")
+            .BindComplexType<TextContent>()
+            .BindComplexType<ImageContent>()
+            .AddResolver("Query", "content", (context) =>
+            {
+                // Omitted code for brevity
+            });
+    }
+}
 ```
 
 </ExampleTabs.Schema>
