@@ -95,7 +95,11 @@ public class QueryType : ObjectType
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-TODO
+```sdl
+type Query {
+  users: [User]
+}
+```
 
 </ExampleTabs.Schema>
 </ExampleTabs>

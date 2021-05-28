@@ -117,7 +117,40 @@ public class MutationType : ObjectType
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-TODO
+```csharp
+public class BookInput
+{
+    public string Title { get; set; }
+
+    public string Author { get; set; }
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddDocumentFromString(@"
+                input BookInput {
+                  title: String
+                  author: String
+                }
+
+                type Mutation {
+                  addBook(input: BookInput): Book
+                }
+            ")
+            .BindComplexType<BookInput>()
+            .AddResolver( "Mutation", "addBook", (context) =>
+            {
+                var input = context.ArgumentValue<BookInput>("input");
+
+                // Omitted code for brevity
+            });
+    }
+}
+```
 
 </ExampleTabs.Schema>
 </ExampleTabs>

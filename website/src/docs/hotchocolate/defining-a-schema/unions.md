@@ -124,32 +124,28 @@ We can use a marker interface, as in the annotation-based approach, to type our 
 <ExampleTabs.Schema>
 
 ```csharp
-public void ConfigureServices(IServiceCollection services)
-{
-    services
-        .AddRouting()
-        .AddGraphQLServer()
-        .AddDocumentFromString(@"
-            type Query {
-              content: PostContent
-            }
+services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Query {
+          content: PostContent
+        }
 
-            type TextContent {
-              text: String!
-            }
+        type TextContent {
+          text: String!
+        }
 
-            type ImageContent {
-              imageUrl: String!
-              height: Int!
-            }
+        type ImageContent {
+          imageUrl: String!
+          height: Int!
+        }
 
-            union PostContent = TextContent | ImageContent
-        ")
-        .AddResolver(
-            "Query",
-            "content",
-            (context, ct) => context.Service<IContentRepository>().GetContent());
-}
+        union PostContent = TextContent | ImageContent
+    ")
+    .AddResolver("Query", "content", (context) =>
+    {
+        // Omitted code for brevity
+    });
 ```
 
 </ExampleTabs.Schema>

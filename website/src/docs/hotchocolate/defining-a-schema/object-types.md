@@ -175,7 +175,7 @@ public class BookType : ObjectType<Book>
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-TODO
+We do not have to ignore fields in the Schema-first approach.
 
 </ExampleTabs.Schema>
 </ExampleTabs>
@@ -307,7 +307,7 @@ public class Author
 
     public DateTime AdditionalField()
     {
-        return DateTime.Now;
+        // Omitted code for brevity
     }
 }
 ```
@@ -326,7 +326,7 @@ public class AuthorType : ObjectType<Author>
             .Field("AdditionalField")
             .Resolve(context =>
             {
-                return DateTime.Now;
+                // Omitted code for brevity
             })
     }
 }
@@ -335,7 +335,32 @@ public class AuthorType : ObjectType<Author>
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-TODO
+```csharp
+public class Author
+{
+    public string Name { get; set; }
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddDocumentFromString(@"
+                type Author {
+                  name: String
+                  additionalField: DateTime!
+                }
+            ")
+            .BindComplexType<Author>()
+            .AddResolver("Author", "additionalField", (context) =>
+            {
+                // Omitted code for brevity
+            });
+    }
+}
+```
 
 </ExampleTabs.Schema>
 </ExampleTabs>

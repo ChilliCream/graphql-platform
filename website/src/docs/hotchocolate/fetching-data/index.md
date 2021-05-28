@@ -106,7 +106,6 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services
-            .AddRouting()
             .AddGraphQLServer()
             .AddQueryType<Query>();
     }
@@ -144,7 +143,6 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services
-            .AddRouting()
             .AddGraphQLServer()
             .AddQueryType<QueryType>();
     }
@@ -169,7 +167,6 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services
-            .AddRouting()
             .AddGraphQLServer()
             .AddDocumentFromString(@"
                 type Query {
@@ -215,7 +212,6 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services
-            .AddRouting()
             .AddGraphQLServer()
             .AddQueryType<Query>();
     }
@@ -264,7 +260,6 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services
-            .AddRouting()
             .AddGraphQLServer()
             .AddQueryType<Query>()
             .AddDataLoader<MyDataLoader>();

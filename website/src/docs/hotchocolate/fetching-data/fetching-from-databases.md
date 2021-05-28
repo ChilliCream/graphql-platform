@@ -9,13 +9,14 @@ In this section, you find a simple example on how you can fetch data from a data
 **HotChocolate is not bound to a specific database, pattern or architecture.**
 [We do have a few integrations](/docs/hotchocolate/integrations), that help with a variety of databases, though these are just additions on top of HotChocolate.
 You can couple your business logic close to the GraphQL server, or cleanly decouple your domain layer from the GraphQL layer over abstractions.
-The GraphQL server only knows its schema, types and resolvers, what you do in these resolvers and what types you expose, is up to you. 
+The GraphQL server only knows its schema, types and resolvers, what you do in these resolvers and what types you expose, is up to you.
 
-In this example, we will directly fetch data from MongoDB in a resolver. 
+In this example, we will directly fetch data from MongoDB in a resolver.
 
 # Setting up the Query
-The query type in a GraphQL schema is the root type. Each field defined on this type is available at the root of a query. 
-If a field is requested, the resolver of the field is called. 
+
+The query type in a GraphQL schema is the root type. Each field defined on this type is available at the root of a query.
+If a field is requested, the resolver of the field is called.
 The data of this resolver is used for further execution.
 If you return a scalar, value (e.g. `string`, `int` ...) the value is serialized and added to the response.
 If you return an object, this object is the parent of the resolver in the subtree.
@@ -49,7 +50,6 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services
-            .AddRouting()
             .AddGraphQLServer()
             .AddQueryType<Query>();
     }
@@ -114,7 +114,6 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services
-            .AddRouting()
             .AddGraphQLServer()
             .AddQueryType<QueryType>();
     }
@@ -144,7 +143,6 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services
-            .AddRouting()
             .AddGraphQLServer()
             .AddDocumentFromString(@"
                 type Query {
@@ -165,5 +163,3 @@ public class Startup
 
 </ExampleTabs.Schema>
 </ExampleTabs>
-
-

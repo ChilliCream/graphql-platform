@@ -27,18 +27,22 @@ The GraphQL specification defines the following scalars
 
 In addition to the scalars defined by the specification, HotChocolate also supports the following set of scalar types:
 
-| Type        | Description                                                 |
-| ----------- | ----------------------------------------------------------- |
-| `Byte`      | TODO                                                        |
-| `ByteArray` | Base64 encoded array of bytes                               |
-| `Short`     | Signed 16-bit numeric non-fractional value                  |
-| `Long`      | Signed 64-bit numeric non-fractional value                  |
-| `Decimal`   | .NET Floating Point Type                                    |
-| `Url`       | Url                                                         |
-| `DateTime`  | ISO-8601 date time                                          |
-| `Date`      | ISO-8601 date                                               |
-| `Uuid`      | GUID                                                        |
-| `Any`       | This type can be anything, string, int, list or object etc. |
+| Type             | Description                                                 |
+| ---------------- | ----------------------------------------------------------- |
+| `Byte`           | TODO                                                        |
+| `ByteArray`      | Base64 encoded array of bytes                               |
+| `Short`          | Signed 16-bit numeric non-fractional value                  |
+| `Long`           | Signed 64-bit numeric non-fractional value                  |
+| `Decimal`        | .NET Floating Point Type                                    |
+| `Url`            | Url                                                         |
+| `DateTime`       | ISO-8601 date time                                          |
+| `Date`           | ISO-8601 date                                               |
+| `TimeSpan`       | TODO                                                        |
+| `Url`            | TODO                                                        |
+| `MultiplierPath` | TODO                                                        |
+| `Name`           | TODO                                                        |
+| `Uuid`           | GUID                                                        |
+| `Any`            | This type can be anything, string, int, list or object etc. |
 
 # Usage
 
@@ -188,20 +192,17 @@ public class UserType : ObjectType<User>
 <ExampleTabs.Schema>
 
 ```csharp
-public class Startup
+public void ConfigureServices(IServiceCollection services)
 {
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                type User {
-                  userName: NonEmptyString
-                }
-            ")
-            .BindComplexType<User>()
-            .AddType<NonEmptyStringType>();
-    }
+    services
+        .AddGraphQLServer()
+        .AddDocumentFromString(@"
+            type User {
+              userName: NonEmptyString
+            }
+        ")
+        .BindComplexType<User>()
+        .AddType<NonEmptyStringType>();
 }
 ```
 

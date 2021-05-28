@@ -34,7 +34,6 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services
-            .AddRouting()
             .AddGraphQLServer()
             .AddQueryType<Query>()
 
@@ -60,7 +59,6 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services
-            .AddRouting()
             .AddGraphQLServer()
             .AddQueryType<Query>()
 

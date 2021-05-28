@@ -63,8 +63,10 @@ public class TextMessage : IMessage
 
 public class Query
 {
-  public IMessage[] GetMessages([Service] IMessageRepository repository)
-      => repository.GetMessages();
+    public IMessage[] GetMessages()
+    {
+        // Omitted code for brevity
+    }
 }
 
 public class Startup
@@ -150,8 +152,10 @@ public class TextMessageType : ObjectType<TextMessage>
 
 public class Query
 {
-    public IMessage[] GetMessages([Service] IMessageRepository repository)
-        => repository.GetMessages();
+    public IMessage[] GetMessages()
+    {
+        // Omitted code for brevity
+    }
 }
 
 public class QueryType : ObjectType<Query>
@@ -179,31 +183,49 @@ public class Startup
 <ExampleTabs.Schema>
 
 ```csharp
-public void ConfigureServices(IServiceCollection services)
+public interface IMessage
 {
-    services
-        .AddRouting()
-        .AddGraphQLServer()
-        .AddDocumentFromString(@"
-            type Query {
-              messages: [Message]
-            }
+    string Author { get; set; }
 
-            interface Message {
-              author: User!
-              createdAt: DateTime!
-            }
+    DateTime CreatedAt { get; set; }
+}
+public class TextMessage : IMessage
+{
+    public string Author { get; set; }
 
-            type TextMessage implements Message {
-              author: User!
-              createdAt: DateTime!
-              content: String!
-            }
-        ")
-        .AddResolver(
-            "Query",
-            "messages",
-            (context, ct) => context.Service<IMessageRepository>().GetMessages());
+    public DateTime CreatedAt { get; set; }
+
+    public string Content { get; set; }
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddDocumentFromString(@"
+                type Query {
+                  messages: [Message]
+                }
+
+                interface Message {
+                  author: User!
+                  createdAt: DateTime!
+                }
+
+                type TextMessage implements Message {
+                  author: User!
+                  createdAt: DateTime!
+                  content: String!
+                }
+            ")
+            .BindComplexType<TextMessage>()
+            .AddResolver("Query", "messages", (context) =>
+            {
+                // Omitted code for brevity
+            });
+    }
 }
 ```
 
@@ -266,8 +288,10 @@ public class TextMessage : IDatedMessage
 
 public class Query
 {
-  public IMessage[] GetMessages([Service] IMessageRepository repository)
-      => repository.GetMessages();
+    public IMessage[] GetMessages()
+    {
+        // Omitted code for brevity
+    }
 }
 
 public class Startup
@@ -337,8 +361,10 @@ public class TextMessageType : ObjectType<TextMessage>
 
 public class Query
 {
-    public IMessage[] GetMessages([Service] IMessageRepository repository)
-        => repository.GetMessages();
+    public IMessage[] GetMessages()
+    {
+        // Omitted code for brevity
+    }
 }
 
 public class QueryType : ObjectType<Query>
@@ -367,35 +393,57 @@ public class Startup
 <ExampleTabs.Schema>
 
 ```csharp
-public void ConfigureServices(IServiceCollection services)
+public interface IMessage
 {
-    services
-        .AddRouting()
-        .AddGraphQLServer()
-        .AddDocumentFromString(@"
-            type Query {
-              messages: [Message]
-            }
+    User Author { get; set; }
+}
 
-            interface Message {
-              author: User
-            }
+public interface IDatedMessage : IMessage
+{
+    DateTime CreatedAt { get; set; }
+}
 
-            interface DatedMessage implements Message {
-              createdAt: DateTime!
-              author: User
-            }
+public class TextMessage : IDatedMessage
+{
+    public User Author { get; set; }
 
-            type TextMessage implements DatedMessage & Message {
-              author: User
-              createdAt: DateTime!
-              content: String
-            }
-        ")
-        .AddResolver(
-            "Query",
-            "messages",
-            (context, ct) => context.Service<IMessageRepository>().GetMessages());
+    public DateTime CreatedAt { get; set; }
+
+    public string Content { get; set; }
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddDocumentFromString(@"
+                type Query {
+                  messages: [Message]
+                }
+
+                interface Message {
+                  author: User
+                }
+
+                interface DatedMessage implements Message {
+                  createdAt: DateTime!
+                  author: User
+                }
+
+                type TextMessage implements DatedMessage & Message {
+                  author: User
+                  createdAt: DateTime!
+                  content: String
+                }
+            ")
+            .BindComplexType<TextMessage>()
+            .AddResolver("Query", "messages", (context) =>
+            {
+                // Omitted code for brevity
+            });
+    }
 }
 ```
 
@@ -408,11 +456,9 @@ public void ConfigureServices(IServiceCollection services)
 > services.AddType<DatedMessageType>()
 > ```
 
-<!-- todo: this name feels not correct -->
+# Dynamic fields
 
-# Custom Resolvers
-
-We can also declare additional resolvers on our interfaces.
+We can also declare additional dynamic fields (resolvers) on our interfaces.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
@@ -480,15 +526,116 @@ public class TextMessageType : ObjectType<TextMessage>
 
 If we do not want to pollute our interface with methods, we can also declare them directly on the interface type.
 
-TODO: should this cover `descriptor.Field`? What is the recommended approach?
+```csharp
+public class MessageType : InterfaceType<IMessage>
+{
+    protected override void Configure(IInterfaceTypeDescriptor<IMessage> descriptor)
+    {
+        descriptor.Name("Message");
 
-Before properties on our interfaces were automatically transformed into default resolvers on the implementing types.
-Now that we have specified custom resolvers, all implementing types need to provide an implementation of this resolver.
+        // this is an additional field
+        descriptor
+            .Field("createdAt")
+            .Type<DateTimeType>();
+    }
+}
+
+public class TextMessage : IMessage
+{
+    public User Author { get; set; }
+}
+
+public class TextMessageType : ObjectType<TextMessage>
+{
+    protected override void Configure(IObjectTypeDescriptor<TextMessage> descriptor)
+    {
+        descriptor.Name("TextMessage");
+
+        // The interface that is being implemented
+        descriptor.Implements<MessageType>();
+
+        descriptor
+            .Field("createdAt")
+            .Resolve(context =>
+            {
+                // Omitted code for brevity
+            });
+    }
+}
+```
+
+We do not have to use the `descriptor`, we could also create a new method or property named `CreatedAt` in the `TextMessage` class.
+
+If we are dealing with lots of interface implementations, which all have the same logic for resolving a dynamic field, we can create an extension method for the field declarations.
+
+```csharp
+public static class MessageExtensions
+{
+    public static void AddCreatedAt<T>(this IObjectTypeDescriptor<T> descriptor) where T : IMessage
+    {
+        descriptor
+            .Field("createdAt")
+            .Resolve(context =>
+            {
+                // Omitted code for brevity
+            });
+    }
+}
+
+public class TextMessageType : ObjectType<TextMessage>
+{
+    protected override void Configure(IObjectTypeDescriptor<TextMessage> descriptor)
+    {
+        descriptor.Name("TextMessage");
+
+        // The interface that is being implemented
+        descriptor.Implements<MessageType>();
+
+        // call to our extension method defined above
+        descriptor.AddCreatedAt();
+    }
+}
+```
 
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-TODO
+```csharp
+public interface IMessage
+{
+    string Author { get; set; }
+}
+
+public class TextMessage : IMessage
+{
+    public string Author { get; set; }
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddDocumentFromString(@"
+                interface Message {
+                  author: User
+                  createdAt: DateTime!
+                }
+
+                type TextMessage implements Message {
+                  author: User
+                  createdAt: DateTime!
+                }
+            ")
+            .BindComplexType<TextMessage>()
+            .AddResolver("TextMessage", "createdAt", (context) =>
+            {
+                // Omitted code for brevity
+            });
+    }
+}
+```
 
 </ExampleTabs.Schema>
 </ExampleTabs>

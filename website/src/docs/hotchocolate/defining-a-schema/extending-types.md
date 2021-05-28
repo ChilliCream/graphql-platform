@@ -66,34 +66,10 @@ TODO
 
 TODO
 
-```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                type Book {
-                  id: Int!
-                  title: String!
-                  authorId: Int!
-                }
-
-                extend type Book {
-                  genres: [String!]!
-                }
-            ");
-    }
-}
-```
-
 </ExampleTabs.Schema>
 </ExampleTabs>
 
 One of the most common use-cases for this would be adding new resolvers to one of our root types.
-
-<!-- todo: maybe with example tabs -->
 
 ```csharp
 [ExtendObjectType(typeof(Query))]
@@ -188,8 +164,6 @@ Simply replace the field on the existing type.
 
 </ExampleTabs.Schema>
 </ExampleTabs>
-
-<!-- todo: example tabs for the section below? -->
 
 # Extending multiple types
 

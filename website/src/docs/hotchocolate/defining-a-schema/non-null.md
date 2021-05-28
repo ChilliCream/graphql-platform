@@ -97,7 +97,12 @@ public class BookType : ObjectType<Book>
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-TODO
+```sdl
+type User {
+  name: String!
+  nullableName: String
+}
+```
 
 </ExampleTabs.Schema>
 </ExampleTabs>
