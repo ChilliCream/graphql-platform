@@ -177,4 +177,7 @@
   <data name="SingleValueExtensionData_KeyIsEmpty" xml:space="preserve">
     <value>Value cannot be null or empty.</value>
   </data>
+  <data name="GraphQLTypeAttribute_TypeSyntaxCannotBeNullOrEmpty" xml:space="preserve">
+    <value>Value cannot be null or empty.</value>
+  </data>
 </root>

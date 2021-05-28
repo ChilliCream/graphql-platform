@@ -13,8 +13,7 @@ namespace HotChocolate.Types
     /// A fluent configuration API for GraphQL object type fields.
     /// </summary>
     public interface IObjectFieldDescriptor
-        : IDescriptor<ObjectFieldDefinition>
-        , IFluent
+        : IOutputMemberDescriptor<IObjectFieldDescriptor, ObjectFieldDefinition>
     {
         /// <summary>
         /// Associates the specified <paramref name="fieldDefinition"/>
@@ -25,23 +24,6 @@ namespace HotChocolate.Types
         /// </param>
         IObjectFieldDescriptor SyntaxNode(
             FieldDefinitionNode? fieldDefinition);
-
-        /// <summary>
-        /// Defines the name of the <see cref="ObjectField"/>.
-        /// </summary>
-        /// <param name="value">The object field name.</param>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="value"/> is <c>null</c> or
-        /// <see cref="string.Empty"/>.
-        /// </exception>
-        IObjectFieldDescriptor Name(NameString value);
-
-        /// <summary>
-        /// Adds explanatory text to the <see cref="ObjectField"/>
-        /// that can be accessed via introspection.
-        /// </summary>
-        /// <param name="value">The object field description.</param>
-        IObjectFieldDescriptor Description(string? value);
 
         /// <summary>
         /// Specifies a deprecation reason for this field.
@@ -62,44 +44,13 @@ namespace HotChocolate.Types
         IObjectFieldDescriptor Deprecated();
 
         /// <summary>
-        /// Defines the type of the object field.
-        /// </summary>
-        /// <typeparam name="TOutputType">
-        /// The type.
-        /// </typeparam>
-        IObjectFieldDescriptor Type<TOutputType>()
-            where TOutputType : class, IOutputType;
-
-        /// <summary>
-        /// Defines the type of the object field.
-        /// </summary>
-        /// <typeparam name="TOutputType">
-        /// The type.
-        /// </typeparam>
-        /// <param name="outputType">
-        /// The output type instance.
-        /// </param>
-        IObjectFieldDescriptor Type<TOutputType>(TOutputType outputType)
-            where TOutputType : class, IOutputType;
-
-        /// <summary>
-        /// Defines the type of the object field.
-        /// </summary>
-        IObjectFieldDescriptor Type(ITypeNode typeNode);
-
-        /// <summary>
-        /// Defines the type of the object field.
-        /// </summary>
-        IObjectFieldDescriptor Type(Type type);
-
-        /// <summary>
         /// Defines a field argument.
         /// </summary>
         /// <param name="argumentName">
         /// The field argument name.
         /// </param>
         /// <param name="argumentDescriptor">
-        /// The argument descriptor to specify the argument configuration. 
+        /// The argument descriptor to specify the argument configuration.
         /// </param>
         IObjectFieldDescriptor Argument(
             NameString argumentName,

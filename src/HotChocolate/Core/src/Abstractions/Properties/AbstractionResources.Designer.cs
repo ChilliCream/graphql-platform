@@ -164,5 +164,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SingleValueExtensionData_KeyIsEmpty", resourceCulture);
             }
         }
+        
+        internal static string GraphQLTypeAttribute_TypeSyntaxCannotBeNullOrEmpty {
+            get {
+                return ResourceManager.GetString("GraphQLTypeAttribute_TypeSyntaxCannotBeNullOrEmpty", resourceCulture);
+            }
+        }
     }
 }

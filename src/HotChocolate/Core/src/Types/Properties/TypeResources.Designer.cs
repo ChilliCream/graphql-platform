@@ -1188,9 +1188,9 @@ namespace HotChocolate.Properties {
         internal static string ErrorHelper_ObjectField_HasNoResolver {
             get {
                 return ResourceManager.GetString("ErrorHelper_ObjectField_HasNoResolver", resourceCulture);
-                      }
+            }
         }
-
+        
         internal static string ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed {
             get {
                 return ResourceManager.GetString("ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed", resourceCulture);
@@ -1248,6 +1248,12 @@ namespace HotChocolate.Properties {
         internal static string CostDirective_DefaultMultiplierCannotBeBelowTwo {
             get {
                 return ResourceManager.GetString("CostDirective_DefaultMultiplierCannotBeBelowTwo", resourceCulture);
+            }
+        }
+        
+        internal static string ObjectFieldDescriptorExtensions_Type_TypeSyntaxCannotBeNull {
+            get {
+                return ResourceManager.GetString("ObjectFieldDescriptorExtensions_Type_TypeSyntaxCannotBeNull", resourceCulture);
             }
         }
     }

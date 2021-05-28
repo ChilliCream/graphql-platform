@@ -5,40 +5,20 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types
 {
     public interface IInputFieldDescriptor
-        : IDescriptor<InputFieldDefinition>
-        , IFluent
+        : IInputMemberDescriptor<IInputFieldDescriptor, InputFieldDefinition>
+        , IDirectiveDescriptor<IInputFieldDescriptor>
+        , IDefaultValueDescriptor<IInputFieldDescriptor>
     {
+        /// <summary>
+        /// Associates the specified <paramref name="inputValueDefinitionNode"/>
+        /// with the <see cref="InputField"/>.
+        /// </summary>
+        /// <param name="inputValueDefinitionNode">
+        /// The <see cref="InputValueDefinitionNode"/> of a parsed schema.
+        /// </param>
         IInputFieldDescriptor SyntaxNode(
             InputValueDefinitionNode inputValueDefinitionNode);
 
-        IInputFieldDescriptor Name(NameString value);
-
-        IInputFieldDescriptor Description(string value);
-
-        IInputFieldDescriptor Type<TInputType>()
-            where TInputType : IInputType;
-
-        IInputFieldDescriptor Type<TInputType>(TInputType inputType)
-            where TInputType : class, IInputType;
-
-        IInputFieldDescriptor Type(ITypeNode typeNode);
-
-        IInputFieldDescriptor Type(Type type);
-
         IInputFieldDescriptor Ignore(bool ignore = true);
-
-        IInputFieldDescriptor DefaultValue(IValueNode value);
-
-        IInputFieldDescriptor DefaultValue(object value);
-
-        IInputFieldDescriptor Directive<T>(T directiveInstance)
-            where T : class;
-
-        IInputFieldDescriptor Directive<T>()
-            where T : class, new();
-
-        IInputFieldDescriptor Directive(
-            NameString name,
-            params ArgumentNode[] arguments);
     }
 }

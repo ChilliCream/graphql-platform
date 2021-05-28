@@ -11,7 +11,7 @@ namespace HotChocolate.Types
     /// Allows for access to the type definition.
     /// </summary>
     /// <typeparam name="T">The type definition.</typeparam>
-    public interface IDescriptorExtension<T> : IHasDescriptorContext
+    public interface IDescriptorExtension<out T> : IHasDescriptorContext
         where T : DefinitionBase
     {
         /// <summary>
@@ -44,8 +44,8 @@ namespace HotChocolate.Types
         /// <summary>
         /// Allows to rewrite the type definition before the type
         /// is completed but after
-        /// <see cref="OnBeforeNaming(Action{ITypeCompletionContext, T})"/>.
-        /// </summary>        
+        /// <see cref="OnBeforeCompletion(Action{ITypeCompletionContext, T})"/>.
+        /// </summary>
         ICompletedDependencyDescriptor OnBeforeCompletion(
             Action<ITypeCompletionContext, T> configure);
     }

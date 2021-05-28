@@ -1,5 +1,7 @@
 using System;
 
+#nullable enable
+
 namespace HotChocolate
 {
     public sealed class RootPathSegment : Path

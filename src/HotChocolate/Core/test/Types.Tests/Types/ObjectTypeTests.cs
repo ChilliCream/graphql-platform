@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Relay;
@@ -39,6 +40,31 @@ namespace HotChocolate.Types
             ObjectType type = schema.GetType<ObjectType>("StringFoo");
             Assert.NotNull(type);
         }
+
+        [Fact]
+        public void Define_Field_With_TypeSyntax()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new ObjectType(d => d
+                    .Name("abc")
+                    .Field("bar")
+                    .Type("String")
+                    .Resolver("foo")));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            schema.GetType<ObjectType>("abc")
+                .Fields["bar"]
+                .Type
+                .ToTypeNode()
+                .Print()
+                .MatchSnapshot();
+        }
+
 
         [Fact]
         public void ObjectType_DynamicName_NonGeneric()

@@ -96,7 +96,7 @@ namespace HotChocolate.Types.Descriptors
                 .Where(m => CanBeHandled(m, includeIgnored));
 
         /// <inheritdoc />
-        public virtual ExtendedTypeReference GetReturnTypeRef(
+        public virtual ITypeReference GetReturnTypeRef(
             MemberInfo member,
             TypeContext context = TypeContext.None,
             string? scope = null,
@@ -105,6 +105,12 @@ namespace HotChocolate.Types.Descriptors
             if (member is null)
             {
                 throw new ArgumentNullException(nameof(member));
+            }
+
+            if (!ignoreAttributes &&
+                member.GetCustomAttribute<GraphQLTypeAttribute>() is { TypeSyntax: not null } attr)
+            {
+                return TypeReference.Create(attr.TypeSyntax!, context, scope);
             }
 
             return TypeReference.Create(GetReturnType(member), context, scope);
@@ -550,7 +556,8 @@ namespace HotChocolate.Types.Descriptors
             IExtendedType type,
             ICustomAttributeProvider attributeProvider)
         {
-            if (TryGetAttribute(attributeProvider, out GraphQLTypeAttribute? typeAttribute))
+            if (TryGetAttribute(attributeProvider, out GraphQLTypeAttribute? typeAttribute) &&
+                typeAttribute.Type is not null)
             {
                 return GetType(typeAttribute.Type);
             }

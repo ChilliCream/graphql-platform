@@ -37,12 +37,12 @@ namespace HotChocolate
             _path = error.Path;
             _exception = error.Exception;
 
-            if (error.Extensions is { } && error.Extensions.Count > 0)
+            if (error.Extensions is { Count: > 0 })
             {
                 _extensions = new OrderedDictionary<string, object?>(error.Extensions);
             }
 
-            if (error.Locations is { } && error.Locations.Count > 0)
+            if (error.Locations is { Count: > 0 })
             {
                 _locations = new List<Location>(error.Locations);
             }
@@ -218,10 +218,10 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(dict));
             }
 
-            var builder = ErrorBuilder.New();
-            builder.SetMessage((string)dict["message"]);
+            ErrorBuilder builder = New();
+            builder.SetMessage((string)dict["message"]!);
 
-            if (dict.TryGetValue("extensions", out object? obj) &&
+            if (dict.TryGetValue("extensions", out var obj) &&
                 obj is IDictionary<string, object> extensions)
             {
                 foreach (KeyValuePair<string, object> item in extensions)

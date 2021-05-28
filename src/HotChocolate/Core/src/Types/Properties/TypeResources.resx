@@ -726,4 +726,7 @@ Type: `{0}`</value>
   <data name="CostDirective_DefaultMultiplierCannotBeBelowTwo" xml:space="preserve">
     <value>Default multiplier cannot be below two.</value>
   </data>
+  <data name="ObjectFieldDescriptorExtensions_Type_TypeSyntaxCannotBeNull" xml:space="preserve">
+    <value>Value cannot be null or empty.</value>
+  </data>
 </root>

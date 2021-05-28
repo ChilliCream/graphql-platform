@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Internal;
+using HotChocolate.Language.Utilities;
 using Xunit;
 
 namespace HotChocolate.Types.Descriptors
@@ -172,11 +173,30 @@ namespace HotChocolate.Types.Descriptors
             var typeInspector = new DefaultTypeInspector();
 
             // act
-            ExtendedTypeReference typeReference =
+            ITypeReference typeReference =
                 typeInspector.GetReturnTypeRef(method!, TypeContext.Output);
 
             // assert
-            Assert.Equal("List<String!>!", typeReference.Type.ToString());
+            Assert.Equal("List<String!>!", ((ExtendedTypeReference)typeReference).Type.ToString());
+            Assert.Equal(TypeContext.Output, typeReference.Context);
+            Assert.Null(typeReference.Scope);
+        }
+
+        [Fact]
+        public void GetReturnTypeRef_FromMethod_With_TypeSyntax()
+        {
+            // arrange
+            MethodInfo method = typeof(Foo).GetMethod(nameof(Foo.Quox));
+            var typeInspector = new DefaultTypeInspector();
+
+            // act
+            ITypeReference typeReference =
+                typeInspector.GetReturnTypeRef(method!, TypeContext.Output);
+
+            // assert
+            Assert.Equal(
+                "[String]",
+                Assert.IsType<SyntaxTypeReference>(typeReference).Type.Print());
             Assert.Equal(TypeContext.Output, typeReference.Context);
             Assert.Null(typeReference.Scope);
         }
@@ -188,11 +208,11 @@ namespace HotChocolate.Types.Descriptors
             var typeInspector = new DefaultTypeInspector();
             MethodInfo method = typeof(Foo).GetMethod(nameof(Foo.Bar));
             // act
-            ExtendedTypeReference typeReference =
+            ITypeReference typeReference =
                 typeInspector.GetReturnTypeRef(method!, TypeContext.Output, "abc");
 
             // assert
-            Assert.Equal("List<String!>!", typeReference.Type.ToString());
+            Assert.Equal("List<String!>!", ((ExtendedTypeReference)typeReference).Type.ToString());
             Assert.Equal(TypeContext.Output, typeReference.Context);
             Assert.Equal("abc", typeReference.Scope);
         }
@@ -565,10 +585,10 @@ namespace HotChocolate.Types.Descriptors
             IExtendedType extendedType = typeInspector.GetType(typeof(StringType));
 
             // act
-            bool?[] nullability = typeInspector.CollectNullability(extendedType);
+            var nullability = typeInspector.CollectNullability(extendedType);
 
             // assert
-            Assert.Collection(nullability, item => Assert.True(item));
+            Assert.Collection(nullability, Assert.True);
         }
 
         [Fact]
@@ -579,7 +599,7 @@ namespace HotChocolate.Types.Descriptors
             IExtendedType extendedType = typeInspector.GetType(typeof(NonNullType<StringType>));
 
             // act
-            bool?[] nullability = typeInspector.CollectNullability(extendedType);
+            var nullability = typeInspector.CollectNullability(extendedType);
 
             // assert
             Assert.Collection(nullability, item => Assert.False(item));
@@ -710,7 +730,7 @@ namespace HotChocolate.Types.Descriptors
                 IDescriptor descriptor,
                 ICustomAttributeProvider element)
             {
-                throw new System.NotImplementedException();
+                throw new NotImplementedException();
             }
         }
 
@@ -721,6 +741,9 @@ namespace HotChocolate.Types.Descriptors
             public List<string> Bar() => throw new NotImplementedException();
 
             public List<string> Baz(string s) => throw new NotImplementedException();
+
+            [GraphQLType("[String]")]
+            public List<string> Quox() => throw new NotImplementedException();
         }
 
 #nullable restore

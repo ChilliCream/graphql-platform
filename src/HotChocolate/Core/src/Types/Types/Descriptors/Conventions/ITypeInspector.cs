@@ -79,7 +79,7 @@ namespace HotChocolate.Types.Descriptors
         /// <returns>
         /// Returns a type reference describing the type of the field.
         /// </returns>
-        ExtendedTypeReference GetReturnTypeRef(
+        ITypeReference GetReturnTypeRef(
             MemberInfo member,
             TypeContext context = TypeContext.None,
             string? scope = null,

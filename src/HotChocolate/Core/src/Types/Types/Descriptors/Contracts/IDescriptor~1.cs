@@ -4,8 +4,15 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
+    /// <summary>
+    /// A descriptor is used to specify the configuration of a type system member.
+    /// </summary>
     public interface IDescriptor<T> : IDescriptor where T : DefinitionBase
     {
-        IDescriptorExtension<T> Extend();
+        /// <summary>
+        /// Allows for type system member configuration methods to modify the underlying
+        /// type system member definition object.
+        /// </summary>
+        new IDescriptorExtension<T> Extend();
     }
 }
