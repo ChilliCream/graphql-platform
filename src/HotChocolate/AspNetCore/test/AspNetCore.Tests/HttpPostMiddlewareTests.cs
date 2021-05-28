@@ -146,6 +146,44 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
+        public async Task SingleRequest_CreateReview_InputObject()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientQueryResult result =
+                await server.PostAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                    mutation ($input: CreateReviewInput!) {
+                        createReview2(input: $input) {
+                            review { stars }
+                        }
+                    }",
+                    Variables = new Dictionary<string, object>
+                    {
+                        {
+                            "input",
+                            new Dictionary<string, object>
+                            {
+                                { "episode", "NEW_HOPE" },
+                                { "review", new Dictionary<string, object>
+                                    {
+                                        { "stars", 1 },
+                                        { "commentary", "Good Movie!" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task SingleRequest_GetHumanName_With_StringVariable()
         {
             // arrange

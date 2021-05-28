@@ -29,30 +29,25 @@ namespace HotChocolate.StarWars
         /// <summary>
         /// Creates a review for a given Star Wars episode.
         /// </summary>
-        /// <param name="episode">The episode to review.</param>
-        /// <param name="review">The review.</param>
-        /// <param name="repository">The review repository.</param>
-        /// <param name="eventSender">The event sending service.</param>
-        /// <returns>The created review.</returns>
-        public async Task<ReviewPayload> CreateReview2(
-            ReviewInput input,
+        public async Task<CreateReviewPayload> CreateReview2(
+            CreateReviewInput input,
             [Service]ReviewRepository repository,
             [Service]ITopicEventSender eventSender)
         {
             repository.AddReview(input.Episode, input.Review);
             await eventSender.SendAsync(input.Episode, input.Review);
-            return new ReviewPayload { Review = input.Review};
+            return new CreateReviewPayload { Review = input.Review};
         }
     }
 
-    public class ReviewInput
+    public class CreateReviewInput
     {
         public Episode Episode { get; set; }
 
         public Review Review { get; set; }
     }
 
-    public class ReviewPayload
+    public class CreateReviewPayload
     {
         public Review Review { get; set; }
     }
