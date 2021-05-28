@@ -73,9 +73,7 @@ module.exports = {
                       </svg>`,
             },
           },
-          {
-            resolve: require.resolve(`./plugins/detect-broken-links`),
-          },
+          require.resolve(`./plugins/detect-broken-links`),
         ],
       },
     },

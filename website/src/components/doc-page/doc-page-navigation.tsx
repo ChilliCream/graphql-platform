@@ -212,8 +212,8 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
                 key={product!.path!}
                 to={
                   product!.versions![0]!.path! === ""
-                    ? `/docs/${product!.path!}/`
-                    : `/docs/${product!.path!}/${product!.versions![0]!.path!}/`
+                    ? `/docs/${product!.path!}`
+                    : `/docs/${product!.path!}/${product!.versions![0]!.path!}`
                 }
               >
                 <ProductTitle>{product!.title!}</ProductTitle>
@@ -235,8 +235,8 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
               <ProductVersionLink
                 to={
                   version!.path! === ""
-                    ? `/docs/${activeProduct!.path!}/`
-                    : `/docs/${activeProduct!.path!}/${version!.path!}/`
+                    ? `/docs/${activeProduct!.path!}`
+                    : `/docs/${activeProduct!.path!}/${version!.path!}`
                 }
               >
                 {version!.title}
@@ -279,7 +279,7 @@ function containsActiveItem(selectedPath: string, itemPath: string) {
 }
 
 function isActive(selectedPath: string, itemPath: string) {
-  return itemPath === selectedPath.substring(0, selectedPath.lastIndexOf("/"));
+  return itemPath === selectedPath;
 }
 
 export const DocPageNavigationGraphQLFragment = graphql`

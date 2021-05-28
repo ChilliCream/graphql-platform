@@ -50,13 +50,16 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
 }) => {
   const dispatch = useDispatch();
   const { fields, frontmatter, body } = data.file!.childMdx!;
-  // todo: this is stupid
-  const path = fields!.slug! + "/";
-  const slug = path.substring(6);
-  const productAndVersionPattern = /^([\w-]*?)\/(v\d+)?/g;
+  const slug = fields!.slug!;
+  const productAndVersionPattern = /^\/docs\/([\w-]+)(?:\/(v\d+))?/g;
   const result = productAndVersionPattern.exec(slug);
-  const selectedProduct = result![1]! || "";
-  const selectedVersion = (result && result[2]) || "";
+
+  if (!result) {
+    throw new Error(`Slug ${slug} could not be parsed`);
+  }
+
+  const selectedProduct = result[1] || "";
+  const selectedVersion = result[2] || "";
   const title = frontmatter!.title!;
   const responsiveMenuRef = useRef<HTMLDivElement>(null);
 
@@ -92,7 +95,7 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
       <Container>
         <DocPageNavigation
           data={data}
-          selectedPath={path}
+          selectedPath={slug}
           selectedProduct={selectedProduct}
           selectedVersion={selectedVersion}
         />
@@ -125,7 +128,7 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
                 />
               </ArticleContent>
             </Article>
-            {false && <ArticleComments data={data} path={path} title={title} />}
+            {false && <ArticleComments data={data} path={slug} title={title} />}
           </ArticleContainer>
         </ArticleWrapper>
         <DocPageAside>

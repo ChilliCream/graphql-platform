@@ -3,7 +3,6 @@
 
 const visit = require("unist-util-visit");
 
-// todo: non-inline links are not correctly handled
 module.exports = async function plugin({
   markdownAST,
   markdownNode,
@@ -45,6 +44,22 @@ module.exports = async function plugin({
     });
   });
 
+  // collect all links from definitions (non-inline links)
+  visit(markdownAST, "definition", (node, _, parent) => {
+    const isHttpLink = /^https?\:\/\//.test(node.url);
+
+    // if this is a link that does not point to one of our documents
+    if (isHttpLink) {
+      return;
+    }
+
+    links.push({
+      position: node.position,
+      url: node.url,
+      frontmatter: markdownNode.frontmatter,
+    });
+  });
+
   const parent = await getNode(markdownNode.parent);
 
   cache.set(getCacheKey(parent), {
@@ -54,13 +69,10 @@ module.exports = async function plugin({
     absolutePath: parent.absolutePath,
   });
 
-  // todo: ideally we would have a lifecycle method that runs after
-  // all of this is done, so we don't have to loop over all files for each file
-
-  // local cache of all markdown documents
   const documentMap = {};
 
   // check if all other files have entries in the cache
+  // and if they do populate the local cache above
   for (let index = 0; index < files.length; index++) {
     const file = files[index];
 
@@ -89,8 +101,6 @@ module.exports = async function plugin({
     // don't continue if a page hasn't been visited yet
     return markdownAST;
   }
-
-  // todo: the below part is run twice
 
   let totalBrokenLinks = 0;
 
