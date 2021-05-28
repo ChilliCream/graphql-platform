@@ -294,7 +294,7 @@ The new collection of scalars are published in the package [HotChocolate.Types.S
 
 Most of the work on this new library was done by [Gregory], who also put his free time into Hot Chocolate. We are happy to have you onboard, Gregory!
 
-> More about this topic can be read [here](https://chillicream.com/docs/hotchocolate/defining-a-schema/scalars/).
+> More about this topic can be read [here](/docs/hotchocolate/defining-a-schema/scalars).
 
 ## Type Extensions
 
@@ -474,7 +474,7 @@ As I initially said, a lot of these thing could already be achieved by using the
 
 It also completes the annotation-based approach further and gives us more tools to create schemas with only C#.
 
-> More about this topic can be read [here](https://chillicream.com/docs/hotchocolate/defining-a-schema/extending-types/).
+> More about this topic can be read [here](/docs/hotchocolate/defining-a-schema/extending-types).
 
 ## MongoDB integration
 
@@ -536,7 +536,7 @@ public IExecutable<Person> GetPersonById(
 
 This feature was implemented by [Pascal], who is the third person who became a Chilli. Together [Pascal] and [I] are building most of the Hot Chocolate server and gateway.
 
-> More about this topic can be read [here](https://chillicream.com/docs/hotchocolate/integrations/mongodb/).
+> More about this topic can be read [here](/docs/hotchocolate/integrations/mongodb).
 
 ## Mutation Transactions
 
@@ -592,7 +592,7 @@ services
     .AddTransactionScopeHandler<CustomTransactionScopeHandler>();
 ```
 
-> More about this topic can be read [here](https://chillicream.com/docs/hotchocolate/defining-a-schema/operations/#mutation-transactions/).
+> More about this topic can be read [here](/docs/hotchocolate/defining-a-schema/operations#mutation-transactions).
 
 ## Directive Introspection
 
@@ -711,4 +711,4 @@ We are doing as before a community gathering where we will walk you through all 
 [rafael]: https://twitter.com/rafaelstaib
 [pascal]: https://twitter.com/Pascal_Senn
 [fred]: https://github.com/fredericbirke
-[documentation]: https://chillicream.com/docs/strawberryshake/
+[documentation]: /docs/strawberryshake

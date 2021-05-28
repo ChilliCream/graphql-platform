@@ -13,7 +13,7 @@
     "url": "https://github.com/ChilliCream/hotchocolate/issues"
   },
   "scripts": {
-    "build": "gatsby build",
+    "build": "yarn clean && gatsby build",
     "develop": "gatsby develop",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "start": "yarn develop",
@@ -44,7 +44,6 @@
     "gatsby-plugin-ts": "^2.2.3",
     "gatsby-plugin-web-font-loader": "^1.0.4",
     "gatsby-remark-autolink-headers": "^4.3.0",
-    "gatsby-remark-check-links": "^2.1.0",
     "gatsby-remark-images": "^3.11.0",
     "gatsby-remark-mermaid": "^2.1.0",
     "gatsby-remark-reading-time": "^1.1.0",

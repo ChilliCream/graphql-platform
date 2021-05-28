@@ -3,6 +3,7 @@
 
 const visit = require("unist-util-visit");
 
+// todo: non-inline links are not correctly handled
 module.exports = async function plugin({
   markdownAST,
   markdownNode,
@@ -16,7 +17,7 @@ module.exports = async function plugin({
     return markdownAST;
   }
 
-  const headingSlugs = [];
+  const headingAnchors = [];
   const links = [];
 
   // collect all links and headings from the current file
@@ -25,8 +26,8 @@ module.exports = async function plugin({
     // note: this method of header discovery assumes that every header
     //       is covered by gatsby-remark-autolink-headers
     if (parent.type === "heading") {
-      // the id is the generated slug for this heading
-      headingSlugs.push(parent.data.id);
+      // the id is the generated link for this heading
+      headingAnchors.push(parent.data.id);
       return;
     }
 
@@ -46,21 +47,15 @@ module.exports = async function plugin({
 
   const parent = await getNode(markdownNode.parent);
 
-  // todo: this is a temporary solution
-  let documentSlug = markdownNode.fields.slug;
-  if (parent.sourceInstanceName) {
-    documentSlug = "/" + parent.sourceInstanceName + documentSlug;
-  }
-
-  // remove trailing slashes
-  documentSlug = documentSlug.replace(/\/+$/, "");
-
   cache.set(getCacheKey(parent), {
-    slug: documentSlug,
+    slug: markdownNode.fields.slug,
     links,
-    headingSlugs,
+    headingAnchors: headingAnchors,
     absolutePath: parent.absolutePath,
   });
+
+  // todo: ideally we would have a lifecycle method that runs after
+  // all of this is done, so we don't have to loop over all files for each file
 
   // local cache of all markdown documents
   const documentMap = {};
@@ -92,34 +87,40 @@ module.exports = async function plugin({
     }
 
     // don't continue if a page hasn't been visited yet
-    return;
+    return markdownAST;
   }
 
-  let totalBrokenLinks = 0;
-  for (const slug in documentMap) {
-    const document = documentMap[slug];
+  // todo: the below part is run twice
 
+  let totalBrokenLinks = 0;
+
+  // iterate over all documents
+  for (const documentSlug in documentMap) {
+    const document = documentMap[documentSlug];
+
+    // document contains no links
     if (!document || document.links.length < 1) {
       continue;
     }
 
+    // iterate over all links of the current document
     const brokenLinks = document.links.filter((link) => {
-      const { key, hasHash, hashIndex } = getHeadingsMapKey(link.url, slug);
+      // extract potential heading from link
+      const { link: key, hash: headingAnchor } = deconstructLink(
+        link.url,
+        documentSlug
+      );
 
       const linkedDoc = documentMap[key];
 
+      // no document with the used slug was found --> dead link
       if (!linkedDoc) {
         return true;
       }
 
-      if (linkedDoc.headingSlugs.length < 1) {
-        return false;
-      }
-
-      if (hasHash) {
-        const headingSlug = link.url.slice(hashIndex + 1);
-
-        return !linkedDoc.headingSlugs.includes(headingSlug);
+      // does the linked document contain the heading
+      if (headingAnchor) {
+        return !linkedDoc.headingAnchors.includes(headingAnchor);
       }
 
       return false;
@@ -128,8 +129,11 @@ module.exports = async function plugin({
     if (brokenLinks.length > 0) {
       const filepath = document.absolutePath;
 
-      console.warn(`${brokenLinks.length} broken link(s) found in ${slug}`);
+      console.warn(
+        `${brokenLinks.length} broken link(s) found in ${documentSlug}`
+      );
 
+      // output links to location of broken links
       for (const link of brokenLinks) {
         let lineColumn = "";
 
@@ -154,7 +158,7 @@ module.exports = async function plugin({
   }
 
   if (totalBrokenLinks > 0) {
-    const message = `${totalBrokenLinks} broken links found`;
+    const message = `${totalBrokenLinks} broken link(s) found`;
 
     if (process.env.NODE_ENV === "production") {
       throw new Error(message);
@@ -170,18 +174,26 @@ function getCacheKey(node) {
   return `detect-broken-links-${node.id}-${node.internal.contentDigest}`;
 }
 
-// todo: rework this method
-function getHeadingsMapKey(link, slug) {
-  let key = link;
-  const hashIndex = link.indexOf("#");
-  const hasHash = hashIndex !== -1;
-  if (hasHash) {
-    key = link.startsWith("#") ? slug : link.slice(0, hashIndex);
+function deconstructLink(targetLink, documentSlug) {
+  let link = targetLink;
+  let hash = null;
+
+  const hashIndex = targetLink.indexOf("#");
+
+  if (hashIndex > -1) {
+    // link to heading within same document
+    if (hashIndex === 0) {
+      link = documentSlug;
+      // link to heading in (potentially) another document
+    } else {
+      link = targetLink.slice(0, hashIndex);
+    }
+
+    hash = targetLink.slice(hashIndex + 1);
   }
 
   return {
-    key,
-    hasHash,
-    hashIndex,
+    link,
+    hash,
   };
 }

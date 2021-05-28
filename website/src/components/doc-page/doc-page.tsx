@@ -50,8 +50,9 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
 }) => {
   const dispatch = useDispatch();
   const { fields, frontmatter, body } = data.file!.childMdx!;
-  const slug = fields!.slug!.substring(1);
-  const path = `/docs/${slug}`;
+  // todo: this is stupid
+  const path = fields!.slug! + "/";
+  const slug = path.substring(6);
   const productAndVersionPattern = /^([\w-]*?)\/(v\d+)?/g;
   const result = productAndVersionPattern.exec(slug);
   const selectedProduct = result![1]! || "";

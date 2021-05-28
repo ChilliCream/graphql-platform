@@ -11,11 +11,9 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
         filter: { frontmatter: { path: { regex: "//blog(/.*)?/" } } }
         sort: { order: DESC, fields: [frontmatter___date] }
       ) {
-        posts: edges {
-          post: node {
-            frontmatter {
-              path
-            }
+        posts: nodes {
+          fields {
+            slug
           }
         }
         tags: group(field: frontmatter___tags) {
@@ -29,6 +27,11 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
         pages: nodes {
           name
           relativeDirectory
+          childMdx {
+            fields {
+              slug
+            }
+          }
         }
       }
     }
@@ -120,12 +123,27 @@ exports.onCreateNode = async ({ node, actions, getNode }) => {
     return;
   }
 
-  const filepath = createFilePath({ node, getNode });
+  // if the path is defined on the frontmatter (like for posts) use that as slug
+  let path = node.frontmatter?.path;
+
+  if (!path) {
+    path = createFilePath({ node, getNode });
+
+    const parent = getNode(node.parent);
+
+    // if the current file is emitted from the docs directory
+    if (parent?.sourceInstanceName === "docs") {
+      path = "/docs" + path;
+    }
+
+    // remove trailing slashes
+    path = path.replace(/\/+$/, "");
+  }
 
   createNodeField({
     name: `slug`,
     node,
-    value: filepath,
+    value: path,
   });
 
   let authorName = "Unknown";
@@ -172,9 +190,9 @@ function createBlogArticles(createPage, data) {
   const { posts, tags } = data;
 
   // Create Single Pages
-  posts.forEach(({ post }) => {
+  posts.forEach((post) => {
     createPage({
-      path: post.frontmatter.path,
+      path: post.fields.slug,
       component: blogArticleTemplate,
       context: {},
     });
@@ -212,20 +230,17 @@ function createBlogArticles(createPage, data) {
 }
 
 function createDocPages(createPage, data) {
-  const pageTemplate = path.resolve(`src/templates/doc-page-template.tsx`);
+  const docTemplate = path.resolve(`src/templates/doc-page-template.tsx`);
   const { pages } = data;
 
   // Create Single Pages
-  pages.forEach(({ name, relativeDirectory }) => {
-    const path =
-      name === "index"
-        ? `/docs/${relativeDirectory}`
-        : `/docs/${relativeDirectory}/${name}`;
-    const originPath = `${relativeDirectory}/${name}.md`;
+  pages.forEach((page) => {
+    const path = page.childMdx.fields.slug;
+    const originPath = `${page.relativeDirectory}/${page.name}.md`;
 
     createPage({
       path,
-      component: pageTemplate,
+      component: docTemplate,
       context: {
         originPath,
       },
