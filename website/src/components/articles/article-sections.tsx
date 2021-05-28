@@ -25,7 +25,7 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
     data.headings,
   ]);
 
-  const activeSlug = useActiveSlug(tocItems);
+  const activeHeadingLink = useActiveHeadingLink(tocItems);
 
   if (tocItems.length < 1) {
     return null;
@@ -40,7 +40,10 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
       <Title>In this article</Title>
       <MostProminentSection>
         <div onClick={handleCloseClick}>
-          <TableOfContent items={tocItems} activeSlug={activeSlug} />
+          <TableOfContent
+            items={tocItems}
+            activeHeadingLink={activeHeadingLink}
+          />
         </div>
       </MostProminentSection>
     </Container>
@@ -49,20 +52,26 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
 
 interface TableOfContentProps {
   readonly items: TableOfContentItem[];
-  readonly activeSlug?: string;
+  readonly activeHeadingLink?: string;
 }
 
 const TableOfContent: FunctionComponent<TableOfContentProps> = ({
   items,
-  activeSlug,
+  activeHeadingLink,
 }) => {
   return (
     <TocItemContainer>
       {items.map((item) => (
-        <TocListItem key={item.slug} active={activeSlug === item.slug}>
-          <TocLink to={"#" + item.slug}>{item.title}</TocLink>
+        <TocListItem
+          key={item.headingLink}
+          active={activeHeadingLink === item.headingLink}
+        >
+          <TocLink to={"#" + item.headingLink}>{item.title}</TocLink>
           {item.items && (
-            <TableOfContent items={item.items ?? []} activeSlug={activeSlug} />
+            <TableOfContent
+              items={item.items ?? []}
+              activeHeadingLink={activeHeadingLink}
+            />
           )}
         </TocListItem>
       ))}
@@ -72,7 +81,7 @@ const TableOfContent: FunctionComponent<TableOfContentProps> = ({
 
 interface TableOfContentItem {
   readonly title: string;
-  readonly slug: string;
+  readonly headingLink: string;
   readonly items?: TableOfContentItem[];
 }
 
@@ -162,7 +171,7 @@ function getTocItemsFromHeadings(
 
     const item: TableOfContentItem = {
       title: heading.value,
-      slug: slugger.slug(heading.value),
+      headingLink: slugger.slug(heading.value),
       items: [],
     };
 
@@ -193,12 +202,12 @@ function getTocItemsFromHeadings(
 }
 
 interface Heading {
-  readonly slug: string;
+  readonly link: string;
   readonly element: HTMLElement | null;
 }
 
-function useActiveSlug(items: TableOfContentItem[]) {
-  const [activeSlug, setActiveSlug] = useState<string>();
+function useActiveHeadingLink(items: TableOfContentItem[]) {
+  const [activeHeadingLink, setActiveHeadingLink] = useState<string>();
 
   const yScrollPosition$ = useObservable(
     (state) => state.common.yScrollPosition
@@ -209,8 +218,8 @@ function useActiveSlug(items: TableOfContentItem[]) {
       items
         ?.flatMap((item) => [item, ...(item.items ?? [])])
         .map<Heading>((item) => ({
-          slug: item.slug,
-          element: document.getElementById(item.slug),
+          link: item.headingLink,
+          element: document.getElementById(item.headingLink),
         }))
         .reverse() ?? [];
 
@@ -239,13 +248,13 @@ function useActiveSlug(items: TableOfContentItem[]) {
           if (yScrollPosition < headingPosition) {
             // there are no other active items above us
             if (i === headings.length - 1) {
-              setActiveSlug(undefined);
+              setActiveHeadingLink(undefined);
             }
 
             continue;
           }
 
-          setActiveSlug(currentHeading.slug);
+          setActiveHeadingLink(currentHeading.link);
           break;
         }
       });
@@ -255,5 +264,5 @@ function useActiveSlug(items: TableOfContentItem[]) {
     };
   }, [items]);
 
-  return activeSlug;
+  return activeHeadingLink;
 }
