@@ -66,9 +66,7 @@ services
         type Query {
           users: [User] @deprecated(""Use the `authors` field instead"")
         }
-    ")
-    // Omitted code for brevity
-
+    ");
 ```
 
 </ExampleTabs.Schema>

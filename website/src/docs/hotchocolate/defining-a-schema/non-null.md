@@ -53,7 +53,10 @@ We can also be explicit about the nullability of our fields.
 public class Query
 {
     [GraphQLNonNullType]
-    public Book GetBook() => new Book { Title  = "C# in depth", Author = "Jon Skeet" };
+    public Book GetBook()
+    {
+        return new Book { Title  = "C# in depth", Author = "Jon Skeet" };
+    }
 }
 
 public class Book

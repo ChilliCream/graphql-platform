@@ -64,7 +64,7 @@ TODO
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-TODO
+Simply add a new field to the existing type.
 
 </ExampleTabs.Schema>
 </ExampleTabs>
@@ -116,7 +116,7 @@ TODO
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-Simply remove the field from the original type.
+Simply remove the field from the existing type.
 
 </ExampleTabs.Schema>
 </ExampleTabs>

@@ -39,7 +39,10 @@ A query type can be defined like the following.
 ```csharp
 public class Query
 {
-    public Book GetBook() => new Book { Title  = "C# in depth", Author = "Jon Skeet" };
+    public Book GetBook()
+    {
+        return new Book { Title  = "C# in depth", Author = "Jon Skeet" };
+    }
 }
 
 public class Startup
@@ -59,7 +62,10 @@ public class Startup
 ```csharp
 public class Query
 {
-    public Book GetBook() => new Book { Title  = "C# in depth", Author = "Jon Skeet" };
+    public Book GetBook()
+    {
+        return new Book { Title  = "C# in depth", Author = "Jon Skeet" };
+    }
 }
 
 public class QueryType : ObjectType<Query>
@@ -103,7 +109,10 @@ public class Startup
 ```csharp
 public class Query
 {
-    public Book GetBook() => new Book { Title  = "C# in depth", Author = "Jon Skeet" };
+    public Book GetBook()
+    {
+        return new Book { Title  = "C# in depth", Author = "Jon Skeet" };
+    }
 }
 
 public class Startup

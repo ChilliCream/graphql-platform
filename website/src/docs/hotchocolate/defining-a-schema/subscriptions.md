@@ -254,7 +254,8 @@ public class Subscription
         [Service] ITopicEventReceiver receiver)
     {
         string topic = $"{author}_PublishedBook";
-        ISourceStream<Book> stream = receiver.SubscribeAsync<string, Book>(topic);
+        ISourceStream<Book> stream =
+            receiver.SubscribeAsync<string, Book>(topic);
 
         return stream;
     }

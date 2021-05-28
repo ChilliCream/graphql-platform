@@ -6,4 +6,4 @@ title: "Overview"
 
 In this section we will learn everything that is needed to build an expressive GraphQL schema.
 
-<!-- In GraphQL, there are three root types from which only the Query type has to be defined. Root types provide the entry points that lets us fetch data, mutate data, or subscribe to events. Root types themselves are object types and are commonly referred to as operations. -->
+<!-- todo: this needs to be finished -->

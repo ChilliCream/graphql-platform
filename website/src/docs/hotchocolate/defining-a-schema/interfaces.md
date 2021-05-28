@@ -124,7 +124,8 @@ public interface IMessage
 
 public class MessageType : InterfaceType<IMessage>
 {
-    protected override void Configure(IInterfaceTypeDescriptor<IMessage> descriptor)
+    protected override void Configure(
+        IInterfaceTypeDescriptor<IMessage> descriptor)
     {
         descriptor.Name("Message");
     }
@@ -141,7 +142,8 @@ public class TextMessage : IMessage
 
 public class TextMessageType : ObjectType<TextMessage>
 {
-    protected override void Configure(IObjectTypeDescriptor<TextMessage> descriptor)
+    protected override void Configure(
+        IObjectTypeDescriptor<TextMessage> descriptor)
     {
         descriptor.Name("TextMessage");
 
@@ -318,7 +320,8 @@ public interface IMessage
 
 public class MessageType : InterfaceType<IMessage>
 {
-    protected override void Configure(IInterfaceTypeDescriptor<IMessage> descriptor)
+    protected override void Configure(
+        IInterfaceTypeDescriptor<IMessage> descriptor)
     {
         descriptor.Name("Message");
     }
@@ -331,7 +334,8 @@ public interface IDatedMessage : IMessage
 
 public class DatedMessageType : InterfaceType<IDatedMessage>
 {
-    protected override void Configure(IInterfaceTypeDescriptor<IDatedMessage> descriptor)
+    protected override void Configure(
+        IInterfaceTypeDescriptor<IDatedMessage> descriptor)
     {
         descriptor.Name("DatedMessage");
 
@@ -350,7 +354,8 @@ public class TextMessage : IDatedMessage
 
 public class TextMessageType : ObjectType<TextMessage>
 {
-    protected override void Configure(IObjectTypeDescriptor<TextMessage> descriptor)
+    protected override void Configure(
+        IObjectTypeDescriptor<TextMessage> descriptor)
     {
         descriptor.Name("TextMessage");
 
@@ -496,7 +501,8 @@ public interface IMessage
 
 public class MessageType : InterfaceType<IMessage>
 {
-    protected override void Configure(IInterfaceTypeDescriptor<IMessage> descriptor)
+    protected override void Configure(
+        IInterfaceTypeDescriptor<IMessage> descriptor)
     {
         descriptor.Name("Message");
     }
@@ -514,7 +520,8 @@ public class TextMessage : IMessage
 
 public class TextMessageType : ObjectType<TextMessage>
 {
-    protected override void Configure(IObjectTypeDescriptor<TextMessage> descriptor)
+    protected override void Configure(
+        IObjectTypeDescriptor<TextMessage> descriptor)
     {
         descriptor.Name("TextMessage");
 
@@ -529,7 +536,8 @@ If we do not want to pollute our interface with methods, we can also declare the
 ```csharp
 public class MessageType : InterfaceType<IMessage>
 {
-    protected override void Configure(IInterfaceTypeDescriptor<IMessage> descriptor)
+    protected override void Configure(
+        IInterfaceTypeDescriptor<IMessage> descriptor)
     {
         descriptor.Name("Message");
 
@@ -547,7 +555,8 @@ public class TextMessage : IMessage
 
 public class TextMessageType : ObjectType<TextMessage>
 {
-    protected override void Configure(IObjectTypeDescriptor<TextMessage> descriptor)
+    protected override void Configure(
+        IObjectTypeDescriptor<TextMessage> descriptor)
     {
         descriptor.Name("TextMessage");
 
@@ -571,7 +580,8 @@ If we are dealing with lots of interface implementations, which all have the sam
 ```csharp
 public static class MessageExtensions
 {
-    public static void AddCreatedAt<T>(this IObjectTypeDescriptor<T> descriptor) where T : IMessage
+    public static void AddCreatedAt<T>(this IObjectTypeDescriptor<T> descriptor)
+        where T : IMessage
     {
         descriptor
             .Field("createdAt")
@@ -584,7 +594,8 @@ public static class MessageExtensions
 
 public class TextMessageType : ObjectType<TextMessage>
 {
-    protected override void Configure(IObjectTypeDescriptor<TextMessage> descriptor)
+    protected override void Configure(
+        IObjectTypeDescriptor<TextMessage> descriptor)
     {
         descriptor.Name("TextMessage");
 

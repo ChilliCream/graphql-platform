@@ -103,7 +103,8 @@ public class QueryType : ObjectType
         descriptor
             .Field("user")
             .Description("A query field")
-            .Argument("username", a => a.Type<StringType>().Description("An argument"))
+            .Argument("username", a => a.Type<StringType>()
+                                        .Description("An argument"))
             .Resolve(context =>
             {
                 // Omitted code for brevity

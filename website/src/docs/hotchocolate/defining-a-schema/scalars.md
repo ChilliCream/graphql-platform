@@ -27,22 +27,23 @@ The GraphQL specification defines the following scalars
 
 In addition to the scalars defined by the specification, HotChocolate also supports the following set of scalar types:
 
-| Type             | Description                                                 |
-| ---------------- | ----------------------------------------------------------- |
-| `Byte`           | TODO                                                        |
-| `ByteArray`      | Base64 encoded array of bytes                               |
-| `Short`          | Signed 16-bit numeric non-fractional value                  |
-| `Long`           | Signed 64-bit numeric non-fractional value                  |
-| `Decimal`        | .NET Floating Point Type                                    |
-| `Url`            | Url                                                         |
-| `DateTime`       | ISO-8601 date time                                          |
-| `Date`           | ISO-8601 date                                               |
-| `TimeSpan`       | TODO                                                        |
-| `Url`            | TODO                                                        |
-| `MultiplierPath` | TODO                                                        |
-| `Name`           | TODO                                                        |
-| `Uuid`           | GUID                                                        |
-| `Any`            | This type can be anything, string, int, list or object etc. |
+<!-- todo: i think there should be examples of what these could look like in a query -->
+
+| Type             | Description                                                  |
+| ---------------- | ------------------------------------------------------------ |
+| `Byte`           | TODO                                                         |
+| `ByteArray`      | Base64 encoded array of bytes                                |
+| `Short`          | Signed 16-bit numeric non-fractional value                   |
+| `Long`           | Signed 64-bit numeric non-fractional value                   |
+| `Decimal`        | .NET Floating Point Type                                     |
+| `Url`            | Url                                                          |
+| `DateTime`       | ISO-8601 date time                                           |
+| `Date`           | ISO-8601 date                                                |
+| `TimeSpan`       | TODO                                                         |
+| `MultiplierPath` | TODO                                                         |
+| `Name`           | TODO                                                         |
+| `Uuid`           | GUID                                                         |
+| `Any`            | This type can be anything, string, int, list or object, etc. |
 
 # Usage
 
@@ -301,27 +302,27 @@ public sealed class CreditCardNumberType : ScalarType<string, StringValueNode>
         Description = "Represents a credit card number";
     }
 
-    // is another StringValueNode compatible with CreditCardNumberType
+    // is another StringValueNode an instance of this scalar
     protected override bool IsInstanceOfType(StringValueNode valueSyntax)
         => IsInstanceOfType(valueSyntax.Value);
 
-    // todo: document
+    // is another string .NET type an instance of this scalar
     protected override bool IsInstanceOfType(string runtimeValue)
         => _validator.ValidateCreditCard(runtimeValue);
 
-    // todo: document
+    // todo: when is this useful? + add comment
     public override IValueNode ParseResult(object? resultValue)
         => ParseValue(resultValue);
 
-    // todo: document
+    // define how a value node is parsed to the string .NET type
     protected override string ParseLiteral(StringValueNode valueSyntax)
         => valueSyntax.Value;
 
-    // todo: document
+    // define how the string .NET type is parsed to a value node
     protected override StringValueNode ParseValue(string runtimeValue)
         => new StringValueNode(runtimeValue);
 
-    // todo: document
+    // todo: add comment
     public override bool TryDeserialize(object? resultValue,
         out object? runtimeValue)
     {
@@ -336,7 +337,7 @@ public sealed class CreditCardNumberType : ScalarType<string, StringValueNode>
         return false;
     }
 
-    // todo: document
+    // todo: add comment
     public override bool TrySerialize(object? runtimeValue,
         out object? resultValue)
     {
@@ -371,7 +372,7 @@ public class CreditCardNumberType : ScalarType
     // define which .NET type represents your type
     public override Type RuntimeType { get; } = typeof(string);
 
-    // define which literals this type can be parsed from.
+    // define which value nodes this type can be parsed from
     public override bool IsInstanceOfType(IValueNode valueSyntax)
     {
         if (valueSyntax == null)
@@ -383,7 +384,7 @@ public class CreditCardNumberType : ScalarType
             _validator.ValidateCreditCard(stringValueNode.Value);
     }
 
-    // define how a literal is parsed to the native .NET type.
+    // define how a value node is parsed to the native .NET type
     public override object ParseLiteral(IValueNode valueSyntax,
         bool withDefaults = true)
     {
@@ -399,7 +400,7 @@ public class CreditCardNumberType : ScalarType
             this);
     }
 
-    // define how a .NET type is parsed to a literal,
+    // define how the .NET type is parsed to a value node
     public override IValueNode ParseValue(object? runtimeValue)
     {
         if (runtimeValue is string s &&
@@ -414,7 +415,7 @@ public class CreditCardNumberType : ScalarType
             this);
     }
 
-    // todo: when is this useful?
+    // todo: when is this useful? + add comment
     public override IValueNode ParseResult(object? resultValue)
     {
         if (resultValue is string s &&
@@ -429,7 +430,7 @@ public class CreditCardNumberType : ScalarType
             this);
     }
 
-    // todo: document
+    // todo: add comment
     public override bool TrySerialize(object? runtimeValue,
         out object? resultValue)
     {
@@ -445,8 +446,9 @@ public class CreditCardNumberType : ScalarType
         return false;
     }
 
-    // todo: document
-    public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
+    // todo: add comment
+    public override bool TryDeserialize(object? resultValue,
+        out object? runtimeValue)
     {
         runtimeValue = null;
 
