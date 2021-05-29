@@ -14,7 +14,7 @@ Instead we have opted to provide diagnostic events through Microsoft`s diagnosti
 
 This post will walk you through on how to add a logger of your choice to Hot Chocolate and get exactly the right amount of information for your project.
 
-In this blog we will use the ASP.Net core logging API to show how a logger can be attached to our diagnostic events.
+In this blog we will use the ASP.NET core logging API to show how a logger can be attached to our diagnostic events.
 
 ## Setup
 

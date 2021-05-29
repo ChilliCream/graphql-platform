@@ -9,7 +9,7 @@ The schemas can either be pushed to a Redis cache and then pulled from the gatew
 
 # Federation with Redis
 
-HotChocolate uses the Redis cache as a pub/sub system to signal changes on the downstream services.
+Hot Chocolate uses the Redis cache as a pub/sub system to signal changes on the downstream services.
 With a cache, the gateway schema is also more stable and faster in bootstrapping, because it does not require to call all downstream services on startup.
 
 You will need to add a package reference to `HotChocolate.Stitching.Redis` to all your services:

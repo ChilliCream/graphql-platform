@@ -416,7 +416,7 @@
             "items": [
               {
                 "path": "index",
-                "title": "ASP.Net"
+                "title": "ASP.NET"
               },
               {
                 "path": "dependency-injection",
@@ -442,7 +442,7 @@
               },
               {
                 "path": "dotnet-cli",
-                "title": ".Net CLI"
+                "title": ".NET CLI"
               }
             ]
           },

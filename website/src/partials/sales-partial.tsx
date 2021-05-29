@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { SalesCard } from "../components/support/sales-card";
 import { SalesCardPerk } from "../components/support/sales-card-perk";
 import { SalesCardPerkItem } from "../components/support/sales-card-perk-item";
-import { IsMobile, IsSmallDesktop, IsPhablet } from "../shared-style";
+import { IsMobile, IsPhablet, IsSmallDesktop } from "../shared-style";
 
 type Cycle = "monthly" | "biannually" | "annually";
 type Plan = "Basic" | "Enterprise";
@@ -29,7 +29,7 @@ export const SalesPartial: FunctionComponent = () => {
       <SwiterContainer>
         <Title>Support Plans</Title>
         <LeadingText>
-          Do you use HotChocolate or any other ChilliCream product? Do you need
+          Do you use Hot Chocolate or any other ChilliCream product? Do you need
           help?<br></br>Choose one of our support plans.
         </LeadingText>
         <CycleContainer>

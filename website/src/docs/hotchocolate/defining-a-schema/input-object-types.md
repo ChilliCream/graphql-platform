@@ -39,7 +39,7 @@ public class Mutation
 }
 ```
 
-> Note: If a class is used as an argument to a resolver and it does not end in `Input`, HotChocolate (by default) will append `Input` to the type name in the resulting schema.
+> Note: If a class is used as an argument to a resolver and it does not end in `Input`, Hot Chocolate (by default) will append `Input` to the type name in the resulting schema.
 
 We can also use a class both as an output- and an input-type.
 

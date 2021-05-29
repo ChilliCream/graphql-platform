@@ -27,7 +27,7 @@ The GraphQL specification defines the following scalars
 
 # .NET Scalars
 
-In addition to the scalars defined by the specification, HotChocolate also supports the following set of scalar types:
+In addition to the scalars defined by the specification, Hot Chocolate also supports the following set of scalar types:
 
 | Type        | Description                                                  |
 | ----------- | ------------------------------------------------------------ |
@@ -246,7 +246,7 @@ services
 
 # Custom Scalars
 
-All scalars in HotChocolate are defined through a `ScalarType`.
+All scalars in Hot Chocolate are defined through a `ScalarType`.
 The easiest way to create a custom scalar is to extend `ScalarType<TRuntimeType, TLiteral>`.
 This base class already includes basic serialization and parsing logic.
 

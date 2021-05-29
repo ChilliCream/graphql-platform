@@ -11,7 +11,7 @@ You can also extend types and delegate resolvers to a specific backend service.
 
 With this, we can create a consistent GraphQL schema that hides the implementation details of our backend services and provides the consumer of our endpoint with the capability to fetch the data they need with one call, no under- or over-fetching and most importantly no repeated fetching
 
-Every HotChocolate GraphQL server can be used for schema stitching or federations.
+Every Hot Chocolate GraphQL server can be used for schema stitching or federations.
 You can also use both approaches on the same gateway.
 You can for example stitch third-party services and use federations for domain services.
 

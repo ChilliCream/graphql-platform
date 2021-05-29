@@ -16,7 +16,7 @@ In case a name is duplicated, an exception is thrown and the schema will not com
 This behaviour is good for the standalone server but can be an issue in distributed schemas.
 Even with domain services covering domain-specific topics, a type may be duplicated.
 
-To avoid an invalid schema, HotChocolate will prefix duplicated types with the schema name and auto resolves name collisions if they are not structurally equal.
+To avoid an invalid schema, Hot Chocolate will prefix duplicated types with the schema name and auto resolves name collisions if they are not structurally equal.
 
 Let us assume we have a product and an inventory service. Both define a type called `Category`:
 
@@ -33,7 +33,7 @@ type Category {
 }
 ```
 
-The collision resolver of HotChocolate will resolve the following on the stitching layer:
+The collision resolver of Hot Chocolate will resolve the following on the stitching layer:
 
 ```sdl
 type Category @source(name: "Category", schema: "products") {
@@ -46,7 +46,7 @@ type inventory_Category @source(name: "Category", schema: "inventory") {
 }
 ```
 
-HotChocolate allows you to rename types to avoid collision auto resolving:
+Hot Chocolate allows you to rename types to avoid collision auto resolving:
 
 ```sdl
 type Category @source(name: "Category", schema: "inventory") {
@@ -109,7 +109,7 @@ type Query {
 }
 ```
 
-HotChocolate will autoresolve the nameing conflict by prefixing the field with the schema name:
+Hot Chocolate will autoresolve the nameing conflict by prefixing the field with the schema name:
 
 ```sdl
 type Query {
@@ -118,7 +118,7 @@ type Query {
 }
 ```
 
-HotChocolate allows you to rename fields to avoid collision auto resolving:
+Hot Chocolate allows you to rename fields to avoid collision auto resolving:
 
 ```sdl
 type Query {
@@ -205,7 +205,7 @@ services
 
 ## Ignore Field
 
-HotChocolate has a convenience API to ignore fields of types.
+Hot Chocolate has a convenience API to ignore fields of types.
 This can be useful when you want to merge root fields of domain services, but ignore some specific fields
 
 ### Schema Stitching

@@ -12,7 +12,6 @@ import {
 import { Hero, Intro, Teaser, Title } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
-
 import UnderConstructionSvg from "../images/under-construction.svg";
 
 const PlatformPage: FunctionComponent = () => {
