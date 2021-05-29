@@ -25,47 +25,23 @@ The GraphQL specification defines the following scalars
 | `Boolean` | Boolean type representing true or false                     |
 | `ID`      | Unique identifier                                           |
 
+# .NET Scalars
+
 In addition to the scalars defined by the specification, HotChocolate also supports the following set of scalar types:
 
-<!-- todo: i think there should be examples of what these could look like in a query -->
-
-| Type             | Description                                                  |
-| ---------------- | ------------------------------------------------------------ |
-| `Byte`           | TODO                                                         |
-| `ByteArray`      | Base64 encoded array of bytes                                |
-| `Short`          | Signed 16-bit numeric non-fractional value                   |
-| `Long`           | Signed 64-bit numeric non-fractional value                   |
-| `Decimal`        | .NET Floating Point Type                                     |
-| `Url`            | Url                                                          |
-| `DateTime`       | ISO-8601 date time                                           |
-| `Date`           | ISO-8601 date                                                |
-| `TimeSpan`       | TODO                                                         |
-| `MultiplierPath` | TODO                                                         |
-| `Name`           | TODO                                                         |
-| `Uuid`           | GUID                                                         |
-| `Any`            | This type can be anything, string, int, list or object, etc. |
-
-# Usage
-
-HotChocolate will automatically detect which scalars are in use and will only expose those in the introspection. This keeps the schema definition small, simple and clean.
-
-The schema discovers .NET types and binds the matching scalar to the type.
-HotChocolate, for example, automatically binds the `StringType` on a member of the type `System.String`.
-We can override these mappings by explicitly specifying type bindings on the request executor builder.
-
-```csharp
-services
-    .AddGraphQLServer()
-    .BindRuntimeType<string, StringType>();
-```
-
-Furthermore, we can also bind scalars to arrays or type structures:
-
-```csharp
-services
-    .AddGraphQLServer()
-    .BindRuntimeType<byte[], ByteArrayType>();
-```
+| Type        | Description                                                  |
+| ----------- | ------------------------------------------------------------ |
+| `Byte`      | Byte                                                         |
+| `ByteArray` | Base64 encoded array of bytes                                |
+| `Short`     | Signed 16-bit numeric non-fractional value                   |
+| `Long`      | Signed 64-bit numeric non-fractional value                   |
+| `Decimal`   | .NET Floating Point Type                                     |
+| `Url`       | Url                                                          |
+| `DateTime`  | ISO-8601 date time                                           |
+| `Date`      | ISO-8601 date                                                |
+| `TimeSpan`  | ISO-8601 duration                                            |
+| `Uuid`      | GUID                                                         |
+| `Any`       | This type can be anything, string, int, list or object, etc. |
 
 ## Uuid Type
 
@@ -153,7 +129,7 @@ Lists can be accessed generically by getting them as `IReadOnlyList<object>` or 
 
 # Additional Scalars
 
-HotChocolate provides additional scalars for more specific usecases.
+There is also a separate package with scalars for more specific usecases.
 
 To use these scalars we have to add the `HotChocolate.Types.Scalars` package.
 
@@ -161,100 +137,75 @@ To use these scalars we have to add the `HotChocolate.Types.Scalars` package.
 dotnet add package HotChocolate.Types.Scalars
 ```
 
-These additional scalars are not mapped by HotChocolate automatically, we need to specify them manually.
-
-<ExampleTabs>
-<ExampleTabs.Annotation>
-
-```csharp
-public class User
-{
-    [GraphQLType(typeof(NonEmptyStringType))]
-    public string UserName { get; set; }
-}
-```
-
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
-
-```csharp
-public class UserType : ObjectType<User>
-{
-    protected override void Configure(IObjectTypeDescriptor<User> descriptor)
-    {
-        descriptor
-            .Field(f => f.UserName)
-            .Type<NonEmptyStringType>();
-    }
-}
-```
-
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
-
-```csharp
-public void ConfigureServices(IServiceCollection services)
-{
-    services
-        .AddGraphQLServer()
-        .AddDocumentFromString(@"
-            type User {
-              userName: NonEmptyString
-            }
-        ")
-        .BindComplexType<User>()
-        .AddType<NonEmptyStringType>();
-}
-```
-
-</ExampleTabs.Schema>
-</ExampleTabs>
-
 **Available Scalars:**
 
-| Type             | Description                                                                                                                                               |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| EmailAddress     | An email address, represented as UTF-8 character sequences that follows the specification defined in RFC 5322.                                            |
-| HexColor         | A valid HEX color code.                                                                                                                                   |
-| Hsl              | A valid a CSS HSL color as defined [here][1].                                                                                                             |
-| Hsla             | A valid a CSS HSLA color as defined [here][1].                                                                                                            |
-| IPv4             | A valid IPv4 address as defined [here](https://en.wikipedia.org/wiki/IPv4).                                                                               |
-| IPv6             | A valid IPv6 address as defined in [RFC8064](https://tools.ietf.org/html/rfc8064).                                                                        |
-| Isbn             | An ISBN-10 or ISBN-13 number as defined [here](https://en.wikipedia.org/wiki/International_Standard_Book_Number).                                         |
-| Latitude         | A valid decimal degrees latitude number.                                                                                                                  |
-| Longitude        | A valid decimal degrees longitude number.                                                                                                                 |
-| LocalCurrency    | A currency string.                                                                                                                                        |
-| LocalDate        | An ISO date string, represented as UTF-8 character sequences yyyy-mm-dd, as defined in [RFC3339][2].                                                      |
-| LocalTime        | A local time string (i.e., with no associated timezone) in 24-hr `HH:mm:ss]`.                                                                             |
-| MacAddress       | IEEE 802 48-bit (MAC-48/EUI-48) and 64-bit (EUI-64) Mac addresses, represented as UTF-8 character sequences, as defined in [RFC7042][3] and [RFC7043][4]. |
-| NegativeFloat    | A double‐precision fractional value less than 0.                                                                                                          |
-| NegativeInt      | A signed 32-bit numeric non-fractional with a maximum of -1.                                                                                              |
-| NonEmptyString   | Non empty textual data, represented as UTF‐8 character sequences with at least one character.                                                             |
-| NonNegativeFloat | A double‐precision fractional value greater than or equal to 0.                                                                                           |
-| NonNegativeInt   | An unsigned 32-bit numeric non-fractional value greater than or equal to 0.                                                                               |
-| NonPositiveFloat | A double‐precision fractional value less than or equal to 0.                                                                                              |
-| NonPositiveInt   | A signed 32-bit numeric non-fractional value less than or equal to 0.                                                                                     |
-| PhoneNumber      | A value that conforms to the standard E.164 format as defined [here](https://en.wikipedia.org/wiki/E.164).                                                |
-| PositiveInt      | A signed 32‐bit numeric non‐fractional value of at least the value 1.                                                                                     |
-| PostalCode       | A valid postal code.                                                                                                                                      |
-| Port             | A valid TCP port within the range of 0 to 65535.                                                                                                          |
-| Rgb              | A valid CSS RGB color as defined [here](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb_colors).                                         |
-| Rgba             | A valid CSS RGBA color as defined [here](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb_colors).                                        |
-| UnsignedInt      | An unsigned 32‐bit numeric non‐fractional value greater than or equal to 0.                                                                               |
-| UnsignedLong     | An unsigned 64‐bit numeric non‐fractional value greater than or equal to 0.                                                                               |
-| UtcOffset        | A value of format `±hh:mm`.                                                                                                                               |
+| Type             | Description                                                                                                                                              |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| EmailAddress     | Email address, represented as UTF-8 character sequences that follows the specification defined in RFC 5322                                               |
+| HexColor         | HEX color code                                                                                                                                           |
+| Hsl              | CSS HSL color as defined [here][1]                                                                                                                       |
+| Hsla             | CSS HSLA color as defined [here][1]                                                                                                                      |
+| IPv4             | IPv4 address as defined [here](https://en.wikipedia.org/wiki/IPv4)                                                                                       |
+| IPv6             | IPv6 address as defined in [RFC8064](https://tools.ietf.org/html/rfc8064)                                                                                |
+| Isbn             | ISBN-10 or ISBN-13 number as defined [here](https://en.wikipedia.org/wiki/International_Standard_Book_Number)                                            |
+| Latitude         | Decimal degrees latitude number                                                                                                                          |
+| Longitude        | Decimal degrees longitude number                                                                                                                         |
+| LocalCurrency    | Currency string                                                                                                                                          |
+| LocalDate        | ISO date string, represented as UTF-8 character sequences yyyy-mm-dd, as defined in [RFC3339][2]                                                         |
+| LocalTime        | Local time string (i.e., with no associated timezone) in 24-hr `HH:mm:ss`                                                                                |
+| MacAddress       | IEEE 802 48-bit (MAC-48/EUI-48) and 64-bit (EUI-64) Mac addresses, represented as UTF-8 character sequences, as defined in [RFC7042][3] and [RFC7043][4] |
+| NegativeFloat    | Double‐precision fractional value less than 0                                                                                                            |
+| NegativeInt      | Signed 32-bit numeric non-fractional with a maximum of -1                                                                                                |
+| NonEmptyString   | Non empty textual data, represented as UTF‐8 character sequences with at least one character                                                             |
+| NonNegativeFloat | Double‐precision fractional value greater than or equal to 0                                                                                             |
+| NonNegativeInt   | Unsigned 32-bit numeric non-fractional value greater than or equal to 0                                                                                  |
+| NonPositiveFloat | Double‐precision fractional value less than or equal to 0                                                                                                |
+| NonPositiveInt   | Signed 32-bit numeric non-fractional value less than or equal to 0                                                                                       |
+| PhoneNumber      | A value that conforms to the standard E.164 format as defined [here](https://en.wikipedia.org/wiki/E.164)                                                |
+| PositiveInt      | Signed 32‐bit numeric non‐fractional value of at least the value 1                                                                                       |
+| PostalCode       | Postal code                                                                                                                                              |
+| Port             | TCP port within the range of 0 to 65535                                                                                                                  |
+| Rgb              | CSS RGB color as defined [here](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb_colors)                                                 |
+| Rgba             | CSS RGBA color as defined [here](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb_colors)                                                |
+| UnsignedInt      | Unsigned 32‐bit numeric non‐fractional value greater than or equal to 0                                                                                  |
+| UnsignedLong     | Unsigned 64‐bit numeric non‐fractional value greater than or equal to 0                                                                                  |
+| UtcOffset        | A value of format `±hh:mm`                                                                                                                               |
 
 [1]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors
 [2]: https://tools.ietf.org/html/rfc3339
 [3]: https://tools.ietf.org/html/rfc7042#page-19
 [4]: https://tools.ietf.org/html/rfc7043
 
+These additional scalars are not mapped by Hot Chocolate automatically, we need to [specify them manually](/docs/hotchocolate/defining-a-schema/object-types/#explicit-types).
+
+# Binding behavior
+
+Hot Chocolate binds most of the native .NET types automatically.
+A `System.String` is for example automatically mapped to a `StringType` in the schema.
+
+We can override these mappings by explicitly specifying type bindings.
+
+```csharp
+services
+    .AddGraphQLServer()
+    .BindRuntimeType<string, StringType>();
+```
+
+Furthermore, we can also bind scalars to arrays or type structures:
+
+```csharp
+services
+    .AddGraphQLServer()
+    .BindRuntimeType<byte[], ByteArrayType>();
+```
+
+Hot Chocolate only exposes the used scalars in the generated schema, keeping it simple and clean.
+
 # Custom Converters
 
-HotChocolate converts .Net types to match the types supported by the scalar of the field.
-By default, all standard .Net types have converters registered.
-We can register converters and reuse the built-in scalar types.
-In case we use a non-standard library, e.g. [NodaTime](https://nodatime.org/), we can register a converter and use the standard `DateTimeType`.
+We can reuse existing scalar types and bind them to different runtime types by specifying converters.
+
+We could for example register converters between [NodaTime](https://nodatime.org/)'s `OffsetDateTime` and .NET's `DateTimeOffset` to reuse the existing `DateTimeType`.
 
 ```csharp
 public class Query
@@ -279,6 +230,18 @@ public class Startup
                 x => OffsetDateTime.FromDateTimeOffset(x));
     }
 }
+```
+
+# Scalar Options
+
+Some scalars like `TimeSpan` or `Uuid` have options like their serialization format.
+
+We can specify these options by registering the scalar explictly.
+
+```csharp
+services
+   .AddGraphQLServer()
+   .AddType(new UuidType('D'));
 ```
 
 # Custom Scalars
@@ -464,4 +427,4 @@ public class CreditCardNumberType : ScalarType
 }
 ```
 
-Checkout how we have implemented [Hot Chocolate's scalars](https://github.com/ChilliCream/hotchocolate/tree/main/src/HotChocolate/Core/src/Types.Scalars).
+The implementation of [Hot Chocolate's own scalars](https://github.com/ChilliCream/hotchocolate/tree/main/src/HotChocolate/Core/src/Types.Scalars) can be used as a reference for writing custom scalars.
