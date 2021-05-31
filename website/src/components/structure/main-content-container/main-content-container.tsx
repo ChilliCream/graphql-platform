@@ -18,7 +18,7 @@ export const MainContentContainer: FunctionComponent = ({ children }) => {
     );
 
     const handleScroll = () => {
-      if (!ref.current?.scrollTop) {
+      if (!ref.current || ref.current.scrollTop === undefined) {
         return;
       }
 

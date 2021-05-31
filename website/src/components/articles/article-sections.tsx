@@ -27,15 +27,11 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
 
   const activeHeadingLink = useActiveHeadingLink(tocItems);
 
-  if (tocItems.length < 1) {
-    return null;
-  }
-
   const handleCloseClick = () => {
     dispatch(closeAside());
   };
 
-  return (
+  return tocItems.length < 1 ? null : (
     <Container>
       <Title>In this article</Title>
       <MostProminentSection>
@@ -155,14 +151,14 @@ function getTocItemsFromHeadings(
 ): TableOfContentItem[] {
   const items: TableOfContentItem[] = [];
 
-  if (!headings || headings?.length < 1) {
+  if (!headings?.length) {
     return items;
   }
 
   const slugger = new GithubSlugger();
 
   // this represents a path to the current item
-  let parents: TableOfContentItem[] = [];
+  const parents: TableOfContentItem[] = [];
 
   for (const heading of headings) {
     if (!heading?.value) {
@@ -206,7 +202,7 @@ interface Heading {
   readonly element: HTMLElement | null;
 }
 
-function useActiveHeadingLink(items: TableOfContentItem[]) {
+function useActiveHeadingLink(items: TableOfContentItem[]): string | undefined {
   const [activeHeadingLink, setActiveHeadingLink] = useState<string>();
 
   const yScrollPosition$ = useObservable(
