@@ -4,7 +4,7 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     public sealed class BooleanLiteral : Literal<bool>
     {
-        private BooleanLiteral(bool context) : base(context)
+        public BooleanLiteral(bool context) : base(context)
         {
         }
 

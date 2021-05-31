@@ -2,7 +2,7 @@ namespace HotChocolate.Data.Neo4J.Language
 {
     public class Exists : Visitable
     {
-        private Exists()
+        public Exists()
         {
         }
 

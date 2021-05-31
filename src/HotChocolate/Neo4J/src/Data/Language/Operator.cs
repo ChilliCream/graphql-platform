@@ -6,15 +6,13 @@
     /// </summary>
     public partial class Operator : Visitable
     {
-        private Operator(string rep, OperatorType type = OperatorType.Binary)
+        public Operator(string rep, OperatorType type = OperatorType.Binary)
         {
             Representation = rep;
             Type = type;
         }
 
         public override ClauseKind Kind => ClauseKind.Operator;
-
-        public bool IsUnary() => Type != OperatorType.Binary;
 
         public OperatorType Type { get; }
 
