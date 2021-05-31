@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
 
 namespace StrawberryShake.Tools
@@ -7,22 +7,20 @@ namespace StrawberryShake.Tools
     {
         internal static Task<int> Main(string[] args)
         {
-            using CommandLineApplication init = InitCommand.Create();
-            using CommandLineApplication upd = UpdateCommand.Create();
-            using CommandLineApplication down = DownloadCommand.Create();
-            
-            using var root = new CommandLineApplication
+            using var root = new CommandLineApplication();
+
+            root.Description = "Strawberry Shake GraphQL Generator";
+
+            root.HelpOption(inherited: true);
+            root.Command("init", InitCommand.Build);
+            root.Command("update", UpdateCommand.Build);
+            root.Command("download", DownloadCommand.Build);
+
+            root.OnExecute(() =>
             {
-                HelpTextGenerator = new RootHelpTextGenerator()
-            };
-
-            root.AddSubcommand(init);
-            root.AddSubcommand(upd);
-            root.AddSubcommand(down);
-
-            root.HelpOption("-h|--help");
-
-            root.OnExecute(() => root.HelpTextGenerator.Generate(root, root.Out));
+                root.ShowHelp();
+                return 1;
+            });
 
             return root.ExecuteAsync(args);
         }
