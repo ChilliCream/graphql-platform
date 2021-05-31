@@ -64,6 +64,7 @@
     "react-responsive-carousel": "^3.2.11",
     "react-share": "^4.2.1",
     "rxjs": "^7.0.1",
+    "simple-git": "^2.39.0",
     "styled-components": "^5.2.3"
   },
   "devDependencies": {
