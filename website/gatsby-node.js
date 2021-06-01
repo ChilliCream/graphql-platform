@@ -136,14 +136,14 @@ exports.onCreateNode = async ({ node, actions, getNode }) => {
   if (process.env.NODE_ENV === "production") {
     try {
       const result = await getGitLog(node.fileAbsolutePath);
-      const data = result?.latest;
+      const data = result.latest;
 
-      if (data?.authorName) {
-        authorName = data?.authorName;
+      if (data.authorName) {
+        authorName = data.authorName;
       }
 
-      if (data?.date) {
-        lastUpdated = data?.date;
+      if (data.date) {
+        lastUpdated = data.date;
       }
     } catch (error) {
       console.error(
