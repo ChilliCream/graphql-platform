@@ -1,7 +1,6 @@
 const { createFilePath } = require("gatsby-source-filesystem");
 const path = require("path");
 const git = require("simple-git/promise");
-const moment = require("moment");
 
 exports.createPages = async ({ actions, graphql, reporter }) => {
   const { createPage, createRedirect } = actions;
@@ -129,8 +128,8 @@ exports.onCreateNode = async ({ node, actions, getNode }) => {
     value: filepath,
   });
 
-  let authorName;
-  let lastUpdated;
+  let authorName = "Unknown";
+  let lastUpdated = "0000-00-00";
 
   // we only run "git log" when building the production bundle
   // for development purposes we fallback to dummy values
@@ -138,25 +137,31 @@ exports.onCreateNode = async ({ node, actions, getNode }) => {
     try {
       const result = await getGitLog(node.fileAbsolutePath);
       const data = result?.latest;
-      const date = data?.date;
 
-      authorName = data?.authorName;
-
-      if (date) {
-        lastUpdated = moment(date, "YYYY-MM-DD HH:mm:ss Z");
+      if (data?.authorName) {
+        authorName = data?.authorName;
       }
-    } catch {}
+
+      if (data?.date) {
+        lastUpdated = data?.date;
+      }
+    } catch (error) {
+      console.error(
+        `Could not retrieve git information for ${node.fileAbsolutePath}`,
+        error
+      );
+    }
   }
 
   createNodeField({
     node,
     name: `lastAuthorName`,
-    value: authorName ?? "Unknown",
+    value: authorName,
   });
   createNodeField({
     node,
     name: `lastUpdated`,
-    value: lastUpdated?.format("YYYY-MM-DD") ?? "0000-00-00",
+    value: lastUpdated,
   });
 };
 
@@ -233,7 +238,7 @@ function getGitLog(filepath) {
     file: filepath,
     n: 1,
     format: {
-      date: `%ai`,
+      date: `%cs`,
       authorName: `%an`,
     },
   };
