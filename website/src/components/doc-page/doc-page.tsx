@@ -22,12 +22,14 @@ import { useObservable } from "../../state";
 import { toggleAside, toggleTOC } from "../../state/common";
 import { Article } from "../articles/article";
 import { ArticleComments } from "../articles/article-comments";
+import { ArticleContentFooter } from "../articles/article-content-footer";
 import {
   ArticleContent,
   ArticleHeader,
   ArticleTitle,
 } from "../articles/article-elements";
 import { ArticleSections } from "../articles/article-sections";
+import { TabGroupProvider } from "../mdx/tabs/tab-groups";
 import {
   ArticleWrapper,
   ArticleWrapperElement,
@@ -85,42 +87,52 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
   }, [hasScrolled$]);
 
   return (
-    <Container>
-      <DocPageNavigation
-        data={data}
-        selectedPath={path}
-        selectedProduct={selectedProduct}
-        selectedVersion={selectedVersion}
-      />
-      <ArticleWrapper>
-        <ArticleContainer>
-          <Article>
-            {false && <DocPageLegacy />}
-            <ArticleHeader kind="doc">
-              <ResponsiveMenuWrapper>
-                <ResponsiveMenu ref={responsiveMenuRef}>
-                  <Button onClick={handleToggleTOC} className="toc-toggle">
-                    <ListAltIconSvg /> Table of contents
-                  </Button>
-                  <Button onClick={handleToggleAside} className="aside-toggle">
-                    <NewspaperIconSvg /> About this article
-                  </Button>
-                </ResponsiveMenu>
-              </ResponsiveMenuWrapper>
-              <ArticleTitle>{title}</ArticleTitle>
-            </ArticleHeader>
-            <ArticleContent>
-              <MDXRenderer>{body}</MDXRenderer>
-            </ArticleContent>
-          </Article>
-          {false && <ArticleComments data={data} path={path} title={title} />}
-        </ArticleContainer>
-      </ArticleWrapper>
-      <DocPageAside>
-        <DocPageCommunity data={data} originPath={originPath} />
-        <ArticleSections data={data.file!.childMdx!} />
-      </DocPageAside>
-    </Container>
+    <TabGroupProvider>
+      <Container>
+        <DocPageNavigation
+          data={data}
+          selectedPath={path}
+          selectedProduct={selectedProduct}
+          selectedVersion={selectedVersion}
+        />
+        <ArticleWrapper>
+          <ArticleContainer>
+            <Article>
+              {false && <DocPageLegacy />}
+              <ArticleHeader kind="doc">
+                <ResponsiveMenuWrapper>
+                  <ResponsiveMenu ref={responsiveMenuRef}>
+                    <Button onClick={handleToggleTOC} className="toc-toggle">
+                      <ListAltIconSvg /> Table of contents
+                    </Button>
+                    <Button
+                      onClick={handleToggleAside}
+                      className="aside-toggle"
+                    >
+                      <NewspaperIconSvg /> About this article
+                    </Button>
+                  </ResponsiveMenu>
+                </ResponsiveMenuWrapper>
+                <ArticleTitle>{title}</ArticleTitle>
+              </ArticleHeader>
+              <ArticleContent>
+                <MDXRenderer>{body}</MDXRenderer>
+
+                <ArticleContentFooter
+                  lastUpdated={fields!.lastUpdated!}
+                  lastAuthorName={fields!.lastAuthorName!}
+                />
+              </ArticleContent>
+            </Article>
+            {false && <ArticleComments data={data} path={path} title={title} />}
+          </ArticleContainer>
+        </ArticleWrapper>
+        <DocPageAside>
+          <DocPageCommunity data={data} originPath={originPath} />
+          <ArticleSections data={data.file!.childMdx!} />
+        </DocPageAside>
+      </Container>
+    </TabGroupProvider>
   );
 };
 
@@ -133,6 +145,8 @@ export const DocPageGraphQLFragment = graphql`
       childMdx {
         fields {
           slug
+          lastUpdated
+          lastAuthorName
         }
         frontmatter {
           title

@@ -1,0 +1,31 @@
+import React, { FunctionComponent } from "react";
+import styled from "styled-components";
+
+interface ArticleContentFooterProperties {
+  readonly lastUpdated: string;
+  readonly lastAuthorName: string;
+}
+
+export const ArticleContentFooter: FunctionComponent<ArticleContentFooterProperties> = ({
+  lastUpdated,
+  lastAuthorName,
+}) => {
+  return (
+    <Footer>
+      <Small>
+        Last updated on <strong>{lastUpdated}</strong> by{" "}
+        <strong>{lastAuthorName}</strong>
+      </Small>
+    </Footer>
+  );
+};
+
+const Small = styled.small`
+  font-style: italic;
+  font-size: 0.7em;
+`;
+
+const Footer = styled.div`
+  text-align: right;
+  margin-top: 30px;
+`;
