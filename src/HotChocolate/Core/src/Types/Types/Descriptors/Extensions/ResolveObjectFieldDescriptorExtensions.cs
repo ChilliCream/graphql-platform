@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
@@ -76,7 +76,7 @@ namespace HotChocolate.Types
 
         public static IObjectFieldDescriptor Resolve<TResult>(
             this IObjectFieldDescriptor descriptor,
-            Func<IResolverContext, Task<TResult>> resolver)
+            Func<IResolverContext, Task<TResult>?> resolver)
         {
             if (descriptor is null)
             {
@@ -91,7 +91,7 @@ namespace HotChocolate.Types
             return descriptor.Resolve(
                 async ctx =>
                 {
-                    Task<TResult> resolverTask = resolver(ctx);
+                    Task<TResult>? resolverTask = resolver(ctx);
                     if (resolverTask is null)
                     {
                         return default;
@@ -158,7 +158,7 @@ namespace HotChocolate.Types
 
         public static IObjectFieldDescriptor Resolve<TResult>(
             this IObjectFieldDescriptor descriptor,
-            Func<Task<TResult>> resolver)
+            Func<Task<TResult>?> resolver)
         {
             if (descriptor is null)
             {
@@ -173,7 +173,7 @@ namespace HotChocolate.Types
             return descriptor.Resolve(
                 async ctx =>
                 {
-                    Task<TResult> resolverTask = resolver();
+                    Task<TResult>? resolverTask = resolver();
                     if (resolverTask is null)
                     {
                         return default;
@@ -224,7 +224,7 @@ namespace HotChocolate.Types
 
         public static IObjectFieldDescriptor Resolve<TResult>(
             this IObjectFieldDescriptor descriptor,
-            Func<IResolverContext, CancellationToken, Task<TResult>> resolver)
+            Func<IResolverContext, CancellationToken, Task<TResult>?> resolver)
         {
             if (descriptor is null)
             {
@@ -239,7 +239,7 @@ namespace HotChocolate.Types
             return descriptor.Resolve(
                  async ctx =>
                 {
-                    Task<TResult> resolverTask = resolver(ctx, ctx.RequestAborted);
+                    Task<TResult>? resolverTask = resolver(ctx, ctx.RequestAborted);
                     if (resolverTask is null)
                     {
                         return default;
