@@ -1,12 +1,16 @@
 import { graphql, Link } from "gatsby";
-import React, { FunctionComponent, useCallback, useEffect } from "react";
+import GithubSlugger from "github-slugger";
+import React, { FunctionComponent, useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
-import { Subscription } from "rxjs";
-import styled from "styled-components";
+import { asyncScheduler } from "rxjs";
+import { throttleTime } from "rxjs/operators";
+import styled, { css } from "styled-components";
 import { ArticleSectionsFragment } from "../../../graphql-types";
 import { useObservable } from "../../state";
 import { closeAside } from "../../state/common";
 import { MostProminentSection } from "../doc-page/doc-page-elements";
+
+const MAX_TOC_DEPTH = 2;
 
 interface ArticleSectionsProperties {
   readonly data: ArticleSectionsFragment;
@@ -16,137 +20,73 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
   data,
 }) => {
   const dispatch = useDispatch();
-  const yScrollPosition$ = useObservable(
-    (state) => state.common.yScrollPosition
-  );
 
-  const handleCloseClick = useCallback(() => {
+  const tocItems = useMemo(() => getTocItemsFromHeadings(data.headings), [
+    data.headings,
+  ]);
+
+  const activeHeadingLink = useActiveHeadingLink(tocItems);
+
+  const handleCloseClick = () => {
     dispatch(closeAside());
-  }, [dispatch]);
+  };
 
-  useEffect(() => {
-    const headings = (
-      (data.tableOfContents.items as TableOfContentItem[]) ?? []
-    )
-      .flatMap((item) => [item, ...(item.items ?? [])])
-      .map<Heading>((item) => ({
-        id: item.url,
-        title: item.title,
-        position:
-          (document.getElementById(item.url.substring(1))?.offsetTop ?? 80) -
-          80,
-      }))
-      .reverse();
-    let currentActiveId: string | undefined;
-    let currentActiveClass: string = "";
-    let timeoutHandler: number | undefined;
-    let subscription: Subscription | undefined;
-
-    if (headings.length > 0) {
-      subscription = yScrollPosition$.subscribe((yScrollPosition) => {
-        let newActiveId: string | undefined;
-        let title: string | undefined;
-
-        for (let i = 0; i < headings.length; i++) {
-          if (yScrollPosition >= headings[i].position) {
-            newActiveId = headings[i].id;
-            title = headings[i].title;
-            break;
-          }
-        }
-
-        if (currentActiveId !== newActiveId) {
-          if (currentActiveId) {
-            document.getElementById(
-              harmonizeId(currentActiveId)
-            )!.className = currentActiveClass;
-          }
-
-          currentActiveId = newActiveId;
-          clearTimeout(timeoutHandler);
-
-          if (currentActiveId) {
-            const element = document.getElementById(
-              harmonizeId(currentActiveId)
-            )!;
-
-            currentActiveClass = element.className;
-            element.className = currentActiveClass + " active";
-            timeoutHandler = window.setTimeout(() => {
-              window.history.pushState(
-                undefined,
-                title ?? "ChilliCream Docs", // todo: default heading should be the doc title
-                `./${currentActiveId ?? ""}`
-              );
-            }, 250);
-          } else {
-            timeoutHandler = window.setTimeout(() => {
-              window.history.pushState(
-                undefined,
-                "ChilliCream Docs", // todo: default heading should be the doc title
-                "./"
-              );
-            }, 250);
-          }
-        }
-      });
-    }
-
-    return () => {
-      subscription?.unsubscribe();
-    };
-  }, [data]);
-
-  const tocItems: TableOfContentItem[] = data.tableOfContents.items ?? [];
-
-  return tocItems.length > 0 ? (
+  return tocItems.length < 1 ? null : (
     <Container>
       <Title>In this article</Title>
       <MostProminentSection>
         <div onClick={handleCloseClick}>
-          <TableOfContent items={tocItems} />
+          <TableOfContent
+            items={tocItems}
+            activeHeadingLink={activeHeadingLink}
+          />
         </div>
       </MostProminentSection>
     </Container>
-  ) : null;
+  );
 };
-
-interface Heading {
-  readonly id: string;
-  readonly title: string;
-  readonly position: number;
-}
 
 interface TableOfContentProps {
   readonly items: TableOfContentItem[];
+  readonly activeHeadingLink?: string;
 }
 
-const TableOfContent: FunctionComponent<TableOfContentProps> = ({ items }) => {
+const TableOfContent: FunctionComponent<TableOfContentProps> = ({
+  items,
+  activeHeadingLink,
+}) => {
   return (
     <TocItemContainer>
       {items.map((item) => (
-        <TocListItem key={item.url} id={harmonizeId(item.url)}>
-          <TocLink to={item.url}>{item.title}</TocLink>
-          {item.items && <TableOfContent items={item.items ?? []} />}
+        <TocListItem
+          key={item.headingLink}
+          active={activeHeadingLink === item.headingLink}
+        >
+          <TocLink to={"#" + item.headingLink}>{item.title}</TocLink>
+          {item.items && (
+            <TableOfContent
+              items={item.items ?? []}
+              activeHeadingLink={activeHeadingLink}
+            />
+          )}
         </TocListItem>
       ))}
     </TocItemContainer>
   );
 };
 
-function harmonizeId(id: string): string {
-  return id.replace("#", "link-");
-}
-
 interface TableOfContentItem {
   readonly title: string;
-  readonly url: string;
+  readonly headingLink: string;
   readonly items?: TableOfContentItem[];
 }
 
 export const ArticleSectionsGraphQLFragment = graphql`
   fragment ArticleSections on Mdx {
-    tableOfContents(maxDepth: 2)
+    headings {
+      depth
+      value
+    }
   }
 `;
 
@@ -183,7 +123,11 @@ const TocLink = styled((props) => <Link {...props} />)`
   }
 `;
 
-const TocListItem = styled.li`
+interface TocListItemProperties {
+  readonly active: boolean;
+}
+
+const TocListItem = styled.li<TocListItemProperties>`
   flex: 0 0 auto;
   margin: 5px 0;
   padding: 0;
@@ -193,7 +137,128 @@ const TocListItem = styled.li`
     padding-right: 0;
   }
 
-  &.active > ${TocLink} {
-    font-weight: bold;
-  }
+  ${({ active }) =>
+    active &&
+    css`
+      > ${TocLink} {
+        font-weight: bold;
+      }
+    `}
 `;
+
+function getTocItemsFromHeadings(
+  headings: ArticleSectionsFragment["headings"]
+): TableOfContentItem[] {
+  const items: TableOfContentItem[] = [];
+
+  if (!headings?.length) {
+    return items;
+  }
+
+  const slugger = new GithubSlugger();
+
+  // this represents a path to the current item
+  const parents: TableOfContentItem[] = [];
+
+  for (const heading of headings) {
+    if (!heading?.value) {
+      continue;
+    }
+
+    const item: TableOfContentItem = {
+      title: heading.value,
+      headingLink: slugger.slug(heading.value),
+      items: [],
+    };
+
+    const headingDepth = heading.depth;
+
+    if (!headingDepth || headingDepth > MAX_TOC_DEPTH) {
+      continue;
+    }
+
+    // we went up in depth, so lets remove parents until we find the parent
+    // directly above us
+    while (parents.length >= headingDepth) {
+      parents.pop();
+    }
+
+    const parent = parents[parents.length - 1];
+
+    parents.push(item);
+
+    if (parent?.items) {
+      parent.items.push(item);
+    } else {
+      items.push(item);
+    }
+  }
+
+  return items;
+}
+
+interface Heading {
+  readonly link: string;
+  readonly element: HTMLElement | null;
+}
+
+function useActiveHeadingLink(items: TableOfContentItem[]): string | undefined {
+  const [activeHeadingLink, setActiveHeadingLink] = useState<string>();
+
+  const yScrollPosition$ = useObservable(
+    (state) => state.common.yScrollPosition
+  );
+
+  useEffect(() => {
+    const headings =
+      items
+        ?.flatMap((item) => [item, ...(item.items ?? [])])
+        .map<Heading>((item) => ({
+          link: item.headingLink,
+          element: document.getElementById(item.headingLink),
+        }))
+        .reverse() ?? [];
+
+    const subscription = yScrollPosition$
+      .pipe(
+        throttleTime(100, asyncScheduler, { leading: true, trailing: true })
+      )
+      .subscribe((yScrollPosition) => {
+        // the yScrollPosition is the scrollTop relative to the main-content.
+        // the offsetTop of the headings is relative to the article-sections.
+        // the article-section has some space between itself and the main-content.
+        // that's why we add this space to get accurate results.
+        yScrollPosition += 95;
+
+        // traverse headings from bottom to top
+        for (let i = 0; i < headings.length; i++) {
+          const currentHeading = headings[i];
+
+          if (!currentHeading.element) {
+            continue;
+          }
+
+          const headingPosition = currentHeading.element.offsetTop;
+
+          // the active item is above the current item
+          if (yScrollPosition < headingPosition) {
+            // there are no other active items above us
+            if (i === headings.length - 1) {
+              setActiveHeadingLink(undefined);
+            }
+
+            continue;
+          }
+
+          setActiveHeadingLink(currentHeading.link);
+          break;
+        }
+      });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [items]);
+
+  return activeHeadingLink;
+}
