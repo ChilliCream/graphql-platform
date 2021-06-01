@@ -247,4 +247,19 @@ export const GlobalStyle = createGlobalStyle`
     background-color: initial;
     color: #666;
   }
+
+  a.anchor {
+    position: absolute;
+    left: 0;
+    visibility: hidden;
+  }
+  
+  h1:hover a.anchor,
+  h2:hover a.anchor,
+  h3:hover a.anchor,
+  h4:hover a.anchor,
+  h5:hover a.anchor,
+  h6:hover a.anchor {
+    visibility: visible;
+  }  
 `;
