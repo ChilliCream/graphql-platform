@@ -6,9 +6,11 @@ import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
 GraphQL types tend to become pretty large, especially root types like the query type. Type extensions allow us to extend existing types.
 
+<!-- todo: add more infos about when this is useful -->
+
 A type can have one or more type extensions, which will form a combined schema type at runtime.
 
-# Usage
+# Object Types
 
 Given is the following entity that we want to extend with functionality.
 
@@ -164,6 +166,14 @@ Simply replace the field on the existing type.
 
 </ExampleTabs.Schema>
 </ExampleTabs>
+
+# Interface Types
+
+TODO
+
+# Enum Types
+
+TODO
 
 # Extending multiple types
 

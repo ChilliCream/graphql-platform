@@ -73,6 +73,10 @@
                 "title": "Unions"
               },
               {
+                "path": "extending-types",
+                "title": "Extending Types"
+              },
+              {
                 "path": "directives",
                 "title": "Directives"
               },
@@ -83,10 +87,6 @@
               {
                 "path": "versioning",
                 "title": "Versioning"
-              },
-              {
-                "path": "extending-types",
-                "title": "Extending types"
               }
             ]
           },

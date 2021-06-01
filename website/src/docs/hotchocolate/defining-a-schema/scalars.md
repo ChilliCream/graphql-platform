@@ -129,7 +129,7 @@ Lists can be accessed generically by getting them as `IReadOnlyList<object>` or 
 
 # Additional Scalars
 
-There is also a separate package with scalars for more specific usecases.
+We also offer a separate package with scalars for more specific usecases.
 
 To use these scalars we have to add the `HotChocolate.Types.Scalars` package.
 
@@ -141,7 +141,7 @@ dotnet add package HotChocolate.Types.Scalars
 
 | Type             | Description                                                                                                                                              |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| EmailAddress     | Email address, represented as UTF-8 character sequences that follows the specification defined in RFC 5322                                               |
+| EmailAddress     | Email address, represented as UTF-8 character sequences, as defined in [RFC5322](https://tools.ietf.org/html/rfc5322)                                    |
 | HexColor         | HEX color code                                                                                                                                           |
 | Hsl              | CSS HSL color as defined [here][1]                                                                                                                       |
 | Hsla             | CSS HSLA color as defined [here][1]                                                                                                                      |

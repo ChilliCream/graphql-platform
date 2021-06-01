@@ -107,7 +107,17 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 }
 ```
 
-> Note: We also have a template, which includes the configurations we have just made. Just install the template using `dotnet new -i HotChocolate.Templates.Server` and now you can use `dotnet new graphql` to bootstrap your future GraphQL servers!
+We also offer a template, which includes the configurations we have just made. Install the template like the following:
+
+```bash
+dotnet new -i HotChocolate.Templates.Server
+```
+
+Now we can use the following to bootstrap our future GraphQL servers:
+
+```bash
+dotnet new graphql
+```
 
 # Step 3: Execute a GraphQL query
 
