@@ -11,10 +11,20 @@ export const MainContentContainer: FunctionComponent = ({ children }) => {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    dispatch(
+      hasScrolled({
+        yScrollPosition: 0,
+      })
+    );
+
     const handleScroll = () => {
+      if (!ref.current || ref.current.scrollTop === undefined) {
+        return;
+      }
+
       dispatch(
         hasScrolled({
-          yScrollPosition: ref.current?.scrollTop ?? 0,
+          yScrollPosition: ref.current.scrollTop,
         })
       );
     };

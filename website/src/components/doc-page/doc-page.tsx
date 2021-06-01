@@ -22,6 +22,7 @@ import { useObservable } from "../../state";
 import { toggleAside, toggleTOC } from "../../state/common";
 import { Article } from "../articles/article";
 import { ArticleComments } from "../articles/article-comments";
+import { ArticleContentFooter } from "../articles/article-content-footer";
 import {
   ArticleContent,
   ArticleHeader,
@@ -116,6 +117,11 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
               </ArticleHeader>
               <ArticleContent>
                 <MDXRenderer>{body}</MDXRenderer>
+
+                <ArticleContentFooter
+                  lastUpdated={fields!.lastUpdated!}
+                  lastAuthorName={fields!.lastAuthorName!}
+                />
               </ArticleContent>
             </Article>
             {false && <ArticleComments data={data} path={path} title={title} />}
@@ -139,6 +145,8 @@ export const DocPageGraphQLFragment = graphql`
       childMdx {
         fields {
           slug
+          lastUpdated
+          lastAuthorName
         }
         frontmatter {
           title
