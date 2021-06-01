@@ -173,10 +173,6 @@
               {
                 "path": "operation-complexity",
                 "title": "Operation Complexity"
-              },
-              {
-                "path": "introspection",
-                "title": "Introspection"
               }
             ]
           },
