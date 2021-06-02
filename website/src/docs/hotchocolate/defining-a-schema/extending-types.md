@@ -6,8 +6,6 @@ import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
 GraphQL types tend to become pretty large, especially root types like the query type. Type extensions allow us to extend existing types.
 
-<!-- todo: add more infos about when this is useful -->
-
 A type can have one or more type extensions, which will form a combined schema type at runtime.
 
 # Object Types
@@ -321,10 +319,7 @@ public class ObjectExtensions
 }
 ```
 
-# Interface Types
-
-<ExampleTabs>
-<ExampleTabs.Annotation>
+We can also modify all object types that are connected by an interface.
 
 ```csharp
 [InterfaceType]
@@ -345,36 +340,3 @@ public class PostExtensions
 ```
 
 > Note: The `newField` property is only added to types implementing the `IPost` interface, not the interface itself.
-
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
-
-TODO
-
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
-
-TODO
-
-</ExampleTabs.Schema>
-</ExampleTabs>
-
-# Enum Types
-
-<ExampleTabs>
-<ExampleTabs.Annotation>
-
-TODO
-
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
-
-TODO
-
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
-
-TODO
-
-</ExampleTabs.Schema>
-</ExampleTabs>
