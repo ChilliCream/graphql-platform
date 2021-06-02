@@ -43,7 +43,7 @@ public class Book
 
 ## Adding fields
 
-We can easily add new fields to an existing type.
+We can easily add new fields to our existing `Book` type.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
@@ -334,8 +334,6 @@ public class ObjectExtensions
 
 We can also modify all object types that are connected by a base type, like an interface.
 
-> Note: Below `IPost` is annotated with `[InterfaceType]` to include it in the GraphQL schema, but that isn't necessary for the type extension to work. You can use any base type, like `object`, an `abstract` base class, as an extension point without necessarily exposing the base type in your GraphQL schema.
-
 ```csharp
 [InterfaceType]
 public interface IPost
@@ -344,6 +342,7 @@ public interface IPost
 }
 
 // this extends every type that implements the IPost interface
+// note: the interface itself is not extended in the schema
 [ExtendObjectType(typeof(IPost))]
 public class PostExtensions
 {
@@ -354,4 +353,5 @@ public class PostExtensions
 }
 ```
 
-> Note: The `newField` property is only added to types implementing the `IPost` interface, not the interface itself.
+> Note: The `IPost` is annotated with `[InterfaceType]` to include it in the GraphQL schema, but that isn't necessary for the type extension to work.
+> We can use any base type, like `object` or an `abstract` base class, as an extension point without necessarily exposing the base type in our GraphQL schema.
