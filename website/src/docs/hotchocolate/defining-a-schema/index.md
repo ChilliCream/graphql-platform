@@ -36,7 +36,7 @@ Besides regular types, like scalars and object types, there are also _type modif
 
 A [Non-Null](/docs/hotchocolate/defining-a-schema/non-null) field for example indicates that a client can always expect a non-null value to be returned from the field.
 
-[List](/docs/hotchocolate/defining-a-schema/lists) fields indicate to a client that the field will return an ordered list in the specified shape.
+[List](/docs/hotchocolate/defining-a-schema/lists) fields indicate to a client that the field will return an list in the specified shape.
 
 ## Extending Types
 
