@@ -73,7 +73,9 @@ module.exports = {
                       </svg>`,
             },
           },
-          require.resolve(`./plugins/detect-broken-links`),
+          {
+            resolve: require.resolve(`./plugins/gatsby-remark-gather-links`),
+          },
         ],
       },
     },
@@ -103,6 +105,9 @@ module.exports = {
         name: `images`,
         path: `${__dirname}/src/images`,
       },
+    },
+    {
+      resolve: require.resolve(`./plugins/gatsby-plugin-validate-links`),
     },
     {
       resolve: `gatsby-plugin-react-svg`,

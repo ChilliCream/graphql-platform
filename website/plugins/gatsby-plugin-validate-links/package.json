@@ -1,0 +1,4 @@
+{
+  "name": "gatsby-plugin-validate-links",
+  "main": "gatsby-node.js"
+}
