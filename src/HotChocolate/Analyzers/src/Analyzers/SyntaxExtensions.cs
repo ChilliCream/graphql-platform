@@ -5,11 +5,11 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using HotChocolate.Analyzers.Types;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-using static HotChocolate.Data.Neo4J.Analyzers.TypeNames;
-using HotChocolate.Data.Neo4J.Analyzers.Types;
+using static HotChocolate.Analyzers.TypeNames;
 
-namespace HotChocolate.Data.Neo4J.Analyzers
+namespace HotChocolate.Analyzers
 {
     public static class SyntaxExtensions
     {

@@ -1,6 +1,6 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.Data.Neo4J.Analyzers.Types
+namespace HotChocolate.Analyzers.Types
 {
     public class FilterableDirectiveType : DirectiveType<FilterableDirective>
     {
@@ -9,8 +9,8 @@ namespace HotChocolate.Data.Neo4J.Analyzers.Types
             descriptor
                 .Name("filterable")
                 .Location(DirectiveLocation.FieldDefinition |
-                          DirectiveLocation.Schema |
-                          DirectiveLocation.Scalar);
+                    DirectiveLocation.Schema |
+                    DirectiveLocation.Scalar);
 
             descriptor
                 .Argument(t => t.Operations)

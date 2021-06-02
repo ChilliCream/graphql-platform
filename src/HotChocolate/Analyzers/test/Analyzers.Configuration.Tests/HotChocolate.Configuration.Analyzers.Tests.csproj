@@ -3,26 +3,17 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <IsPackable>false</IsPackable>
-    <AssemblyName>HotChocolate.Analyzers.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.Analyzers</RootNamespace>
-    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
-    <HotChocolate_BinDir>$(MSBuildThisFileDirectory)\..\..\src\Analyzers\bin\Debug\netstandard2.0</HotChocolate_BinDir>
+    <AssemblyName>HotChocolate.Analyzers.Configuration.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Analyzers.Configuration</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <AdditionalFiles Include="**\*.graphql" />
-    <Watch Include="**\*.graphql" />
-    <AdditionalFiles Include="**\.graphqlrc.json" />
-    <Watch Include="**\.graphqlrc.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Analyzers\HotChocolate.Analyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\..\src\Analyzers.Configuration\HotChocolate.Analyzers.Configuration.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.8.0" />
+    <PackageReference Include="Snapshooter.Xunit" Version="0.6.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">

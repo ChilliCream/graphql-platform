@@ -1,6 +1,6 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.Data.Neo4J.Analyzers.Types
+namespace HotChocolate.Analyzers.Types
 {
     public class SortingDirectiveType : DirectiveType
     {

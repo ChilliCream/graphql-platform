@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using HotChocolate.Language;
 
-namespace HotChocolate.Data.Neo4J.Analyzers.Types
+namespace HotChocolate.Analyzers.Types
 {
     public static class SchemaHelper
     {
-        public static ISchema CreateSchema(IEnumerable<string> sourceTexts)
+        public static ISchema CreateSchema(IEnumerable<DocumentNode> documents)
         {
             var schemaBuilder = new SchemaBuilder();
 
@@ -21,9 +21,9 @@ namespace HotChocolate.Data.Neo4J.Analyzers.Types
             schemaBuilder.ModifyOptions(o => o.StrictValidation = false);
             schemaBuilder.Use(next => next);
 
-            foreach (var sourceText in sourceTexts)
+            foreach (var document in documents)
             {
-                schemaBuilder.AddDocument(Utf8GraphQLParser.Parse(sourceText));
+                schemaBuilder.AddDocument(document);
             }
 
             return schemaBuilder.Create();

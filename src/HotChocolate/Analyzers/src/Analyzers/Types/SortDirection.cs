@@ -1,4 +1,4 @@
-namespace HotChocolate.Data.Neo4J.Analyzers.Types
+namespace HotChocolate.Analyzers.Types
 {
     public enum SortDirection
     {

@@ -1,7 +1,7 @@
 
 using System.Collections.Generic;
 
-namespace HotChocolate.Data.Neo4J.Analyzers.Types
+namespace HotChocolate.Analyzers.Types
 {
     public class OperationDirective
     {

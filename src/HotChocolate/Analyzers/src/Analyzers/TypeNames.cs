@@ -1,4 +1,4 @@
-namespace HotChocolate.Data.Neo4J.Analyzers
+namespace HotChocolate.Analyzers
 {
     public static class TypeNames
     {

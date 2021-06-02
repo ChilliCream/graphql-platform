@@ -3,15 +3,22 @@ type Movie @typeName(name: "Foo", pluralName: "Bars") {
   year: Int
   imdbRating: Float
   baz: Baz
+  quox: String
+}
+
+type Actor {
+  name: String
 }
 
 type Baz {
   foo: String
 }
 
-
 #settings would be annotated to the schema and translate directly into schema options
-schema @paging(kind: CURSOR, defaultPageSize: 30, includeTotalCount: true) @filtering
+schema 
+  @paging(kind: NONE) 
+  @filtering
+  @sorting
 {
   query: Query
 }
