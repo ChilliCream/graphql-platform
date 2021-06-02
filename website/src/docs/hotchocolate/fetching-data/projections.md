@@ -5,7 +5,7 @@ title: Projections
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
 Every GraphQL request specifies exactly what data should be returned. Over or under fetching can be reduced
-or even eliminated. HotChocolate projections leverage this concept and directly projects incoming queries
+or even eliminated. Hot Chocolate projections leverage this concept and directly projects incoming queries
 to the database.
 
 Projections operate on `IQueryable` by default, but it is possible to create custom providers for projections

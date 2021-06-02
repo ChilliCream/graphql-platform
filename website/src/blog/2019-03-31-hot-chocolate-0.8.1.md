@@ -14,7 +14,7 @@ Today we release version 8.1 (0.8.1) of Hot Chocolate. This release brings impro
 
 One focus of this release was to open up our diagnostic events to be used by developers. When we started thinking about how Hot Chocolate should provide information about its inner workings to users of the library, we opted against using one specific logging framework.
 
-Instead we have looked at what Microsoft was doing in ASP.Net core and other components with diagnostic sources. Diagnostic sources let us create events that have non-serializable payloads.
+Instead we have looked at what Microsoft was doing in ASP.NET core and other components with diagnostic sources. Diagnostic sources let us create events that have non-serializable payloads.
 
 This means that we can provide an event that gives full access to our context objects like the `IQueryContext` or the `IResolverContext`.
 

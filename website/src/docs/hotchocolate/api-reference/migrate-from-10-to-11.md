@@ -337,7 +337,7 @@ services.AddGraphQLServer()
 
 ## Enum Type
 
-HotChocolate server 11 now follows the spec recommendation with the new enum name conventions and formats the enum values by default as UPPER_SNAIL_CASE.
+Hot Chocolate server 11 now follows the spec recommendation with the new enum name conventions and formats the enum values by default as UPPER_SNAIL_CASE.
 
 To avoid breaking changes to your schema, you will have to override the naming convention:
 
