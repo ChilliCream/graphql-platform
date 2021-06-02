@@ -332,7 +332,9 @@ public class ObjectExtensions
 }
 ```
 
-We can also modify all object types that are connected by an interface.
+We can also modify all object types that are connected by a base type, like an interface.
+
+> Note: Below `IPost` is annotated with `[InterfaceType]` to include it in the GraphQL schema, but that isn't necessary for the type extension to work. You can use any base type, like `object`, an `abstract` base class, as an extension point without necessarily exposing the base type in your GraphQL schema.
 
 ```csharp
 [InterfaceType]
