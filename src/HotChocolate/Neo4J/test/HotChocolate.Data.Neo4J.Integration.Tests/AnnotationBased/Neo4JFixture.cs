@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Neo4j.Driver;
 using Squadron;
 
-namespace HotChocolate.Data.Neo4J.Integration
+namespace HotChocolate.Data.Neo4J.Integration.AnnotationBased
 {
     public class Neo4JFixture : Neo4jResource<Neo4JConfig>
     {

@@ -5,16 +5,24 @@
     <IsPackable>false</IsPackable>
     <AssemblyName>HotChocolate.Analyzers.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Analyzers</RootNamespace>
+    
+    <!-- Outputs the generated code to the bin directory.  -->
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
+
+    <!-- The directory where all the analyzer bin files are for development time. -->
     <HotChocolate_BinDir>$(MSBuildThisFileDirectory)\..\..\src\Analyzers\bin\Debug\netstandard2.0</HotChocolate_BinDir>
   </PropertyGroup>
 
+  <!--This item group needs to be in the consuming project.-->
   <ItemGroup>
     <AdditionalFiles Include="**\*.graphql" />
-    <Watch Include="**\*.graphql" />
     <AdditionalFiles Include="**\.graphqlrc.json" />
+    <Watch Include="**\*.graphql" />
     <Watch Include="**\.graphqlrc.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <CompilerVisibleProperty Include="HotChocolate_BinDir" />
   </ItemGroup>
 

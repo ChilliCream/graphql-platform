@@ -119,11 +119,26 @@ namespace HotChocolate.Analyzers
 
             foreach (IObjectField field in objectType.Fields.Where(t => !t.IsIntrospectionField))
             {
+                RelationshipDirective? relationship =
+                    field.GetFirstDirective<RelationshipDirective>("relationship");
+
                 modelDeclaration =
                     modelDeclaration.AddProperty(
                         field.GetPropertyName(),
                         IdentifierName(field.GetTypeName(@namespace)),
-                        field.Description);
+                        field.Description,
+                        setable: true,
+                        configure: p =>
+                        {
+                            if (relationship is not null)
+                            {
+                                p = p.AddNeo4JRelationshipAttribute(
+                                    relationship.Name,
+                                    relationship.Direction);
+                            }
+
+                            return p;
+                        });
             }
 
             NamespaceDeclarationSyntax namespaceDeclaration =
@@ -176,8 +191,9 @@ namespace HotChocolate.Analyzers
                                     Argument(IdentifierName("session")))))))
                 .WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
                 .AddGraphQLNameAttribute(GraphQLFieldName(pluralTypeName))
-                .AddUseNeo4JDatabaseAttribute(settings.DatabaseName)
-                .AddPagingAttribute(dataContext.Paging);
+                .AddNeo4JDatabaseAttribute(settings.DatabaseName)
+                .AddPagingAttribute(dataContext.Paging)
+                .AddProjectionAttribute();
 
             if (dataContext.Filtering)
             {

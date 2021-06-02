@@ -197,7 +197,9 @@ namespace HotChocolate.Analyzers
             this T type,
             string name,
             TypeSyntax typeSyntax,
-            string? description)
+            string? description,
+            bool setable = false,
+            Func<PropertyDeclarationSyntax, PropertyDeclarationSyntax>? configure = null)
             where T : TypeDeclarationSyntax
         {
             PropertyDeclarationSyntax propertyDeclaration =
@@ -211,9 +213,21 @@ namespace HotChocolate.Analyzers
 
             propertyDeclaration = propertyDeclaration.AddSummary(description);
 
-            propertyDeclaration = type is RecordDeclarationSyntax
-                ? propertyDeclaration.WithGetterAndInit()
-                : propertyDeclaration.WithGetter();
+            if (setable)
+            {
+                propertyDeclaration = propertyDeclaration.WithGetterAndSetter();
+            }
+            else
+            {
+                propertyDeclaration = type is RecordDeclarationSyntax
+                    ? propertyDeclaration.WithGetterAndInit()
+                    : propertyDeclaration.WithGetter();
+            }
+
+            if (configure is not null)
+            {
+                propertyDeclaration = configure(propertyDeclaration);
+            }
 
             return (T)type.AddMembers(propertyDeclaration);
         }
@@ -309,7 +323,16 @@ namespace HotChocolate.Analyzers
             return methodSyntax.AddAttributeLists(AttributeList(SingletonSeparatedList(attribute)));
         }
 
-        public static MethodDeclarationSyntax AddUseNeo4JDatabaseAttribute(
+        public static MethodDeclarationSyntax AddProjectionAttribute(
+            this MethodDeclarationSyntax methodSyntax)
+        {
+            AttributeSyntax attribute =
+                Attribute(IdentifierName(Global(UseProjectionAttribute)));
+
+            return methodSyntax.AddAttributeLists(AttributeList(SingletonSeparatedList(attribute)));
+        }
+
+        public static MethodDeclarationSyntax AddNeo4JDatabaseAttribute(
             this MethodDeclarationSyntax methodSyntax,
             string databaseName)
         {
@@ -325,6 +348,41 @@ namespace HotChocolate.Analyzers
 
             return methodSyntax.AddAttributeLists(AttributeList(SingletonSeparatedList(attribute)));
         }
+
+        public static PropertyDeclarationSyntax AddNeo4JRelationshipAttribute(
+            this PropertyDeclarationSyntax methodSyntax,
+            string name,
+            RelationshipDirection direction)
+        {
+            AttributeSyntax attribute =
+                Attribute(IdentifierName(Global(Neo4JRelationshipAttribute)))
+                    .AddArgumentListArguments(
+                        AttributeArgument(
+                            LiteralExpression(
+                                SyntaxKind.NumericLiteralExpression,
+                                Literal(name)))
+                        .WithNameColon(
+                            NameColon(IdentifierName(nameof(name)))),
+                        AttributeArgument(
+                             MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                IdentifierName(Global(Neo4JRelationshipDirection)),
+                                IdentifierName(MapDirection(direction))))
+                        .WithNameColon(
+                            NameColon(IdentifierName(nameof(direction)))));
+
+            return methodSyntax.AddAttributeLists(AttributeList(SingletonSeparatedList(attribute)));
+        }
+
+        private static string MapDirection(RelationshipDirection direction) =>
+            direction switch
+            {
+                RelationshipDirection.In => "Incoming",
+                RelationshipDirection.Out => "Outgoing",
+                RelationshipDirection.Both => "None",
+                _ => throw new NotSupportedException(
+                    $"RelationshipDirection {direction} is not supported.")
+            };
 
         public static MethodDeclarationSyntax AddGraphQLNameAttribute(
             this MethodDeclarationSyntax methodSyntax,
