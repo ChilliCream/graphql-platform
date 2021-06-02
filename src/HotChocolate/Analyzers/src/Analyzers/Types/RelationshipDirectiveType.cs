@@ -11,8 +11,13 @@ namespace HotChocolate.Analyzers.Types
                 .Location(DirectiveLocation.FieldDefinition);
 
             descriptor
+                .Argument(t => t.Name)
+                .Type<NonNullType<StringType>>();
+
+            descriptor
                 .Argument(t => t.Direction)
-                .Type<NonNullType<RelationshipDirectionType>>();
+                .Type<NonNullType<RelationshipDirectionType>>()
+                .DefaultValue(RelationshipDirection.Out);
         }
     }
 }

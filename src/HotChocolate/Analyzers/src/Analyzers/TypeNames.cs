@@ -14,10 +14,14 @@ namespace HotChocolate.Analyzers
             nameof(UseOffsetPagingAttribute);
         public const string UseFilteringAttribute = Data + "." + nameof(UseFilteringAttribute);
         public const string UseSortingAttribute = Data + "." + nameof(UseSortingAttribute);
+        public const string UseProjectionAttribute = Data + "." + nameof(UseProjectionAttribute);
         public const string List = SystemCollections + "." + nameof(List);
         public const string IAsyncSession = Driver + "." + nameof(IAsyncSession);
         public const string UseNeo4JDatabaseAttribute = Neo4J + "." + 
             nameof(UseNeo4JDatabaseAttribute);
+        public const string Neo4JRelationshipAttribute = Neo4J + "." + 
+            nameof(Neo4JRelationshipAttribute);
+        public const string Neo4JRelationshipDirection = Neo4J + "." + "RelationshipDirection";
 
         public static string Global(string s)
         {

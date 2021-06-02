@@ -3,7 +3,7 @@ using HotChocolate.Data.Neo4J.Execution;
 using HotChocolate.Types;
 using Neo4j.Driver;
 
-namespace HotChocolate.Data.Neo4J.Integration
+namespace HotChocolate.Data.Neo4J.Integration.AnnotationBased
 {
     [ExtendObjectType("Query")]
     public class Queries
