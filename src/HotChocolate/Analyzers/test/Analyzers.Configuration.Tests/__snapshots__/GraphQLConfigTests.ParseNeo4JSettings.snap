@@ -1,0 +1,10 @@
+﻿{
+  "Schema": "schema.graphql",
+  "Documents": "**/*.graphql",
+  "Location": null,
+  "Extensions": {
+    "Neo4J": {
+      "Namespace": "Foo.Bar"
+    }
+  }
+}

@@ -8,20 +8,13 @@
   <PropertyGroup>
     <PackageId>HotChocolate.Types.CursorPagination</PackageId>
     <AssemblyName>HotChocolate.Types.CursorPagination</AssemblyName>
-    <RootNamespace>HHotChocolate.Types.Pagination</RootNamespace>
+    <RootNamespace>HotChocolate.Types.Pagination</RootNamespace>
     <Description>Contains middleware and types for cursor based pagination.</Description>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
     <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!--PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference-->
   </ItemGroup>
 
   <ItemGroup>
