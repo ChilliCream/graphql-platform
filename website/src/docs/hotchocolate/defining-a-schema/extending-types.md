@@ -58,6 +58,29 @@ public class Startup
 }
 ```
 
+One of the most common use-cases for this would be adding new resolvers to one of our root types.
+
+```csharp
+[ExtendObjectType(typeof(Query))]
+public class QueryBookResolvers
+{
+    public IEnumerable<Book> GetBooks()
+    {
+        // Omitted code for brevity
+    }
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddTypeExtension<QueryBookResolvers>();
+    }
+}
+```
+
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
@@ -92,6 +115,38 @@ public class Startup
 }
 ```
 
+One of the most common use-cases for this would be adding new resolvers to one of our root types.
+
+```csharp
+public class QueryTypeBookResolvers : ObjectTypeExtension
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor.Name(OperationTypeNames.Query);
+
+        descriptor
+            .Field("books")
+            .Type<ListType<BookType>>()
+            .Resolve(context =>
+            {
+                // Omitted code for brevity
+            });
+    }
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddTypeExtension<QueryTypeBookResolvers>();
+    }
+}
+```
+
+> Note: We can use `OperationTypeNames.Query` instead of `"Query"`. `OperationTypeNames` contain the names of the three root types.
+
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
@@ -99,19 +154,6 @@ Simply add a new field to the existing type.
 
 </ExampleTabs.Schema>
 </ExampleTabs>
-
-One of the most common use-cases for this would be adding new resolvers to one of our root types.
-
-```csharp
-[ExtendObjectType(typeof(Query))]
-public class QueryBookResolvers
-{
-    public IEnumerable<Book> GetBooks()
-    {
-        // Omitted code for brevity
-    }
-}
-```
 
 ## Removing fields
 
@@ -141,7 +183,7 @@ public class Startup
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
-**This is currently not working ([#3776](https://github.com/ChilliCream/hotchocolate/issues/3776)).**
+**This is currently not working ([#3776](https://github.com/ChilliCream/hotchocolate/issues/3776))**
 
 ```csharp
 public class BookTypeExtensions : ObjectTypeExtension<Book>
@@ -208,7 +250,7 @@ public class Startup
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
-**This is currently not working ([#3776](https://github.com/ChilliCream/hotchocolate/issues/3776)).**
+**This is currently not working ([#3776](https://github.com/ChilliCream/hotchocolate/issues/3776))**
 
 ```csharp
 public class BookTypeExtensions : ObjectTypeExtension<Book>
@@ -250,29 +292,41 @@ Simply replace the field on the existing type.
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-# Interface Types
+## Extending base types
 
-TODO
-
-# Enum Types
-
-TODO
-
-# Extending multiple types
-
-We can extend multiple types at once by extending upon base types or interfaces.
+We can also extend multiple types at once, but still dedicate specific resolvers to specific types.
 
 ```csharp
 // this extends every type that inherits from object (essentially every type)
 [ExtendObjectType(typeof(object))]
 public class ObjectExtensions
 {
+    // this field is added to every object type
     public string NewField()
     {
         // Omitted code for brevity
     }
-}
 
+    // this field is only added to the Book type
+    public Author GetAuthor([Parent] Book book)
+    {
+        // Omitted code for brevity
+    }
+
+    // this field is only added to the Author type
+    public IEnumerable<Book> GetBooks([Parent] Author author)
+    {
+        // Omitted code for brevity
+    }
+}
+```
+
+# Interface Types
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
 [InterfaceType]
 public interface IPost
 {
@@ -292,25 +346,35 @@ public class PostExtensions
 
 > Note: The `newField` property is only added to types implementing the `IPost` interface, not the interface itself.
 
-## Specific resolvers
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
 
-We can also extend multiple types at once, but dedicate specific resolvers to specific types.
+TODO
 
-```csharp
-// this extends every type that inherits from object (essentially every type)
-[ExtendObjectType(typeof(object))]
-public class ObjectExtensions
-{
-    // this field is only added to the Book type
-    public Author GetAuthor([Parent] Book book)
-    {
-        // Omitted code for brevity
-    }
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
 
-    // this field is only added to the Author type
-    public IEnumerable<Book> GetBooks([Parent] Author author)
-    {
-        // Omitted code for brevity
-    }
-}
-```
+TODO
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+# Enum Types
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+TODO
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+TODO
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+TODO
+
+</ExampleTabs.Schema>
+</ExampleTabs>

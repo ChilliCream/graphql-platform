@@ -28,21 +28,25 @@ Besides those there are also [enums](/docs/hotchocolate/defining-a-schema/enums)
 
 We can pass [arguments](/docs/hotchocolate/defining-a-schema/arguments) to individual fields on an object type and access their values inside the field's resolver.
 
-Nested (object) types can also be arguments in the form of [input object types](/docs/hotchocolate/defining-a-schema/input-object-types). These are most commonly used when passing a payload to a mutation.
+Nested (object) types can also be used as arguments by declaring so called [input object types](/docs/hotchocolate/defining-a-schema/input-object-types). These are most commonly used when passing a payload to a mutation.
 
-## Lists and Non-Null
+## Type Modifiers
 
-TODO
+Besides regular types, like scalars and object types, there are also _type modifiers_.
 
-## Type extensions
+A [Non-Null](/docs/hotchocolate/defining-a-schema/non-null) field for example indicates that a client can always expect a non-null value to be returned from the field.
+
+[List](/docs/hotchocolate/defining-a-schema/lists) fields indicate to a client that the field will return an ordered list in the specified shape.
+
+## Extending Types
 
 TODO
 
 ## Directives
 
-TODO
+[Directives](/docs/hotchocolate/defining-a-schema/directives) allow us to decorate parts of our GraphQL schema with additional configuration.
 
-<!-- todo: not sure about this title -->
+This configuration can be used as metadata for client tools or alternate our GraphQL server's runtime execution and type validation behavior.
 
 ## Schema maintenance
 
