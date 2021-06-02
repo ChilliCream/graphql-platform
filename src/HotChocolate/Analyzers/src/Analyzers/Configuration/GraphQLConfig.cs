@@ -32,7 +32,7 @@ namespace HotChocolate.Analyzers.Configuration
                     nameof(json));
             }
 
-            return JsonConvert.DeserializeObject<GraphQLConfig>(json, CreateJsonSettings());
+            return JsonConvert.DeserializeObject<GraphQLConfig>(json, CreateJsonSettings())!;
         }
 
         private static JsonSerializerSettings CreateJsonSettings()

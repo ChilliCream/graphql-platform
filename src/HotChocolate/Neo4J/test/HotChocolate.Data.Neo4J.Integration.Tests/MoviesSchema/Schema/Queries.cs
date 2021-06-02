@@ -19,9 +19,9 @@ namespace HotChocolate.Data.Neo4J.Integration
 
         [GraphQLName("movies")]
         [UseNeo4JDatabase(databaseName: "neo4j")]
-        [UseProjection(Scope = "Neo4J")]
-        [UseFiltering(Scope = "Neo4J")]
-        [UseSorting(Scope = "Neo4J")]
+        [UseProjection]
+        [UseFiltering]
+        [UseSorting]
         public Neo4JExecutable<Movie> GetMovies(
             [ScopedService] IAsyncSession session) =>
             new (session);

@@ -9,6 +9,7 @@ type Actor {
 
 type Movie {
   title: String!
+  generes: [Actor!]!
 }
 
 type Query {
@@ -27,6 +28,13 @@ input ActorSortInput {
   name: SortEnumType
 }
 
+input ListFilterInputTypeOfActorFilterInput {
+  all: ActorFilterInput
+  none: ActorFilterInput
+  some: ActorFilterInput
+  any: Boolean
+}
+
 input ListFilterInputTypeOfMovieFilterInput {
   all: MovieFilterInput
   none: MovieFilterInput
@@ -38,6 +46,7 @@ input MovieFilterInput {
   and: [MovieFilterInput!]
   or: [MovieFilterInput!]
   title: StringOperationFilterInput
+  generes: ListFilterInputTypeOfActorFilterInput
 }
 
 input MovieSortInput {

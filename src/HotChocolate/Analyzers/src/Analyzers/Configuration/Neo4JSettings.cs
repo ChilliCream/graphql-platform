@@ -10,7 +10,7 @@ namespace HotChocolate.Analyzers.Configuration
         /// Gets the Neo4J database name.
         /// </summary>
         /// <value></value>
-        public string DatabaseName { get; set; } = default!;
+        public string DatabaseName { get; set; } = "neo4j";
 
         /// <summary>
         /// Gets or sets the namespace.

@@ -23,6 +23,7 @@ namespace Analyzers.Tests
                 ""documents"": ""**/*.graphql"",
                 ""extensions"": {
                     ""neo4j"": {
+                        ""databaseName"": ""abc"",
                         ""namespace"": ""Foo.Bar""
                     }
                 }
@@ -49,4 +50,3 @@ namespace Analyzers.Tests
 
 
 
-    
