@@ -40,7 +40,7 @@ A [Non-Null](/docs/hotchocolate/defining-a-schema/non-null) field for example in
 
 ## Extending Types
 
-TODO
+Hot Chocolate allows us to [extend existing types](/docs/hotchocolate/defining-a-schema/extending-types), helping us keep our code organized.
 
 ## Directives
 
@@ -50,8 +50,8 @@ This configuration can be used as metadata for client tools or alternate our Gra
 
 ## Schema maintenance
 
-In GraphQL we have a variety of tools to expose information about our API to consumers:
+We also have other means of exposing information about our API to consumers, besides [Directives](/docs/hotchocolate/defining-a-schema/directives):
 
 - We can add [documentation](/docs/hotchocolate/defining-a-schema/documentation) for almost everything in our schema.
 
-- [Versioning](/docs/hotchocolate/defining-a-schema/versioning) in GraphQL works a little different than in REST APIs. We try to evolve our schema in a non-breaking manner, by deprecating existing fields.
+- Fields can be [deprecated](/docs/hotchocolate/defining-a-schema/versioning), signaling to consumers that a field should no longer be used.
