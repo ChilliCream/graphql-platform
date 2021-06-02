@@ -99,7 +99,7 @@ namespace HotChocolate.Types.Filters
         protected ExtendedTypeReference GetTypeReference() =>
             Context.TypeInspector.GetTypeRef(
                 typeof(FilterInputType<>).MakeGenericType(_type),
-                Definition.Type.Context);
+                Definition.Type!.Context);
 
         private ArrayFilterOperationDescriptor GetOrCreateOperation(
             FilterOperationKind operationKind)

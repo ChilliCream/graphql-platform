@@ -32,19 +32,28 @@ namespace HotChocolate.Execution.Processing
         bool IsRunning { get; }
 
         /// <summary>
-        /// Try to take a task from the backlog.
+        /// Tries to get some work from the backlog.
         /// </summary>
-        /// <param name="task">
-        /// The task that was acquired from the backlog.
-        /// The task is not null when the method returns<c>true</c>
+        /// <param name="buffer">
+        /// The task buffer that shall be filled with work.
         /// </param>
-        /// <returns>Return <c>true</c> if there was a task on the backlog.</returns>
-        bool TryTake([NotNullWhen(true)] out IExecutionTask? task);
+        /// <param name="main">
+        /// Defines if the main processor is asking for work.
+        /// </param>
+        /// <returns>
+        /// Returns the amount of work that was put into the buffer.
+        /// </returns>
+        int TryTake(IExecutionTask?[] buffer, bool main);
 
         /// <summary>
         /// Registers work with the task backlog.
         /// </summary>
         void Register(IExecutionTask task);
+
+        /// <summary>
+        /// Registers work with the task backlog.
+        /// </summary>
+        void Register(IExecutionTask?[] tasks, int length);
 
         /// <summary>
         /// Complete a task

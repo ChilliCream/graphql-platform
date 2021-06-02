@@ -11,5 +11,6 @@
   "FieldMiddleware": "AllFields",
   "EnableDirectiveIntrospection": false,
   "DefaultDirectiveVisibility": "Public",
-  "AllowInlining": true
+  "AllowInlining": true,
+  "DefaultResolverStrategy": "Parallel"
 }

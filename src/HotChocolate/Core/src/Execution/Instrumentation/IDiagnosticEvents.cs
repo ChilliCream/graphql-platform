@@ -206,7 +206,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// <param name="exception">
         /// The exception that occurred.
         /// </param>
-        void SubscriptionTransportError(ISubscription subscription, Exception exception);
+        void SubscriptionTransportError(ISubscription subscription, Exception exception);       
 
         /// <summary>
         /// A GraphQL request document was added to the document cache.

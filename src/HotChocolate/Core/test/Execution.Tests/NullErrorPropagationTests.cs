@@ -93,8 +93,7 @@ namespace HotChocolate.Execution
                     .Create();
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                request, CancellationToken.None);
+            IExecutionResult result = await executor.ExecuteAsync(request, CancellationToken.None);
 
             // assert
             result.MatchSnapshot(fieldType);

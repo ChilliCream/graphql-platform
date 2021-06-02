@@ -14,7 +14,8 @@ namespace HotChocolate.Execution.Processing
     {
         private readonly ISchema _schema;
         private readonly FragmentCollection _fragments;
-        private uint _nextId;
+        private int _nextSelectionId;
+        private int _nextFragmentId;
 
         private OperationCompiler(
             ISchema schema,
@@ -28,7 +29,7 @@ namespace HotChocolate.Execution.Processing
 
         internal FragmentCollection Fragments => _fragments;
 
-        internal uint GetNextId() => _nextId++;
+        internal int GetNextId() => _nextSelectionId++;
 
         public static IPreparedOperation Compile(
             string operationId,
@@ -241,9 +242,12 @@ namespace HotChocolate.Execution.Processing
                                     selection.SelectionSet.Selections))
                             : selection,
                         responseName: responseName,
-                        resolverPipeline: TryCreateFieldMiddleware(field, selection),
+                        resolverPipeline: CreateFieldMiddleware(field, selection),
                         pureResolver: TryCreatePureField(field, selection),
                         inlineResolver: TryCreateInlineField(field, selection),
+                        strategy: field.IsParallelExecutable
+                            ? null // use default strategy
+                            : SelectionExecutionStrategy.Serial,
                         arguments: CoerceArgumentValues(field, selection, responseName),
                         includeCondition: includeCondition,
                         internalSelection: context.IsInternalSelection);
@@ -304,6 +308,7 @@ namespace HotChocolate.Execution.Processing
                     CompileSelectionSet(deferContext);
 
                     context.RegisterFragment(new Fragment(
+                        _nextFragmentId++,
                         context.Type,
                         fragmentSpread,
                         fragmentDefinition,
@@ -347,6 +352,7 @@ namespace HotChocolate.Execution.Processing
                     CompileSelectionSet(deferContext);
 
                     context.RegisterFragment(new Fragment(
+                        _nextFragmentId++,
                         context.Type,
                         inlineFragment,
                         deferContext.GetSelectionSet(),
@@ -543,18 +549,6 @@ namespace HotChocolate.Execution.Processing
             return argument.Formatter is not null
                 ? argument.Formatter.OnAfterDeserialize(runtimeValue)
                 : runtimeValue;
-        }
-
-        private FieldDelegate? TryCreateFieldMiddleware(
-            IObjectField field,
-            FieldNode selection)
-        {
-            if (field.PureResolver is not null && selection.Directives.Count == 0)
-            {
-                return null;
-            }
-
-            return CreateFieldMiddleware(field, selection);
         }
 
         internal FieldDelegate CreateFieldMiddleware(
@@ -791,6 +785,6 @@ namespace HotChocolate.Execution.Processing
         }
 
         private static bool HasErrors(object? result) =>
-            result is IError || result is IEnumerable<IError>;
+            result is IError or IEnumerable<IError>;
     }
 }

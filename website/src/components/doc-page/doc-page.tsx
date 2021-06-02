@@ -1,7 +1,12 @@
 import { graphql } from "gatsby";
 import { MDXRenderer } from "gatsby-plugin-mdx";
-import React, { FunctionComponent, useCallback } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, {
+  FunctionComponent,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
+import { useDispatch } from "react-redux";
 import styled from "styled-components";
 import { DocPageFragment } from "../../../graphql-types";
 import ListAltIconSvg from "../../images/list-alt.svg";
@@ -13,16 +18,18 @@ import {
   IsSmallDesktop,
   IsTablet,
 } from "../../shared-style";
-import { State } from "../../state";
+import { useObservable } from "../../state";
 import { toggleAside, toggleTOC } from "../../state/common";
 import { Article } from "../articles/article";
 import { ArticleComments } from "../articles/article-comments";
+import { ArticleContentFooter } from "../articles/article-content-footer";
 import {
   ArticleContent,
   ArticleHeader,
   ArticleTitle,
 } from "../articles/article-elements";
 import { ArticleSections } from "../articles/article-sections";
+import { TabGroupProvider } from "../mdx/tabs/tab-groups";
 import {
   ArticleWrapper,
   ArticleWrapperElement,
@@ -33,8 +40,8 @@ import { DocPageLegacy } from "./doc-page-legacy";
 import { DocPageNavigation, Navigation } from "./doc-page-navigation";
 
 interface DocPageProperties {
-  data: DocPageFragment;
-  originPath: string;
+  readonly data: DocPageFragment;
+  readonly originPath: string;
 }
 
 export const DocPage: FunctionComponent<DocPageProperties> = ({
@@ -50,9 +57,10 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
   const selectedProduct = result![1]! || "";
   const selectedVersion = (result && result[2]) || "";
   const title = frontmatter!.title!;
+  const responsiveMenuRef = useRef<HTMLDivElement>(null);
 
-  const hasScrolled = useSelector<State, boolean>((state) => {
-    return state.common.yScrollPosition > 10;
+  const hasScrolled$ = useObservable((state) => {
+    return state.common.yScrollPosition > 20;
   });
 
   const handleToggleTOC = useCallback(() => {
@@ -63,43 +71,68 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
     dispatch(toggleAside());
   }, []);
 
+  useEffect(() => {
+    const classes = responsiveMenuRef.current?.className ?? "";
+
+    const subscription = hasScrolled$.subscribe((hasScrolled) => {
+      if (responsiveMenuRef.current) {
+        responsiveMenuRef.current.className =
+          classes + (hasScrolled ? " scrolled" : "");
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [hasScrolled$]);
+
   return (
-    <Container>
-      <DocPageNavigation
-        data={data}
-        selectedPath={path}
-        selectedProduct={selectedProduct}
-        selectedVersion={selectedVersion}
-      />
-      <ArticleWrapper>
-        <ArticleContainer>
-          <Article>
-            {false && <DocPageLegacy />}
-            <ArticleHeader kind="doc">
-              <ResponsiveMenuWrapper>
-                <ResponsiveMenu hasScrolled={hasScrolled}>
-                  <Button onClick={handleToggleTOC} className="toc-toggle">
-                    <ListAltIconSvg /> Table of contents
-                  </Button>
-                  <Button onClick={handleToggleAside} className="aside-toggle">
-                    <NewspaperIconSvg /> About this article
-                  </Button>
-                </ResponsiveMenu>
-              </ResponsiveMenuWrapper>
-              <ArticleTitle>{title}</ArticleTitle>
-            </ArticleHeader>
-            <ArticleContent>
-              <MDXRenderer>{body}</MDXRenderer>
-            </ArticleContent>
-          </Article>
-          {false && <ArticleComments data={data} path={path} title={title} />}
-        </ArticleContainer>
-      </ArticleWrapper>
-      <DocPageAside>
-        <DocPageCommunity data={data} originPath={originPath} />
-        <ArticleSections data={data.file!.childMdx!} />
-      </DocPageAside>
-    </Container>
+    <TabGroupProvider>
+      <Container>
+        <DocPageNavigation
+          data={data}
+          selectedPath={path}
+          selectedProduct={selectedProduct}
+          selectedVersion={selectedVersion}
+        />
+        <ArticleWrapper>
+          <ArticleContainer>
+            <Article>
+              {false && <DocPageLegacy />}
+              <ArticleHeader kind="doc">
+                <ResponsiveMenuWrapper>
+                  <ResponsiveMenu ref={responsiveMenuRef}>
+                    <Button onClick={handleToggleTOC} className="toc-toggle">
+                      <ListAltIconSvg /> Table of contents
+                    </Button>
+                    <Button
+                      onClick={handleToggleAside}
+                      className="aside-toggle"
+                    >
+                      <NewspaperIconSvg /> About this article
+                    </Button>
+                  </ResponsiveMenu>
+                </ResponsiveMenuWrapper>
+                <ArticleTitle>{title}</ArticleTitle>
+              </ArticleHeader>
+              <ArticleContent>
+                <MDXRenderer>{body}</MDXRenderer>
+
+                <ArticleContentFooter
+                  lastUpdated={fields!.lastUpdated!}
+                  lastAuthorName={fields!.lastAuthorName!}
+                />
+              </ArticleContent>
+            </Article>
+            {false && <ArticleComments data={data} path={path} title={title} />}
+          </ArticleContainer>
+        </ArticleWrapper>
+        <DocPageAside>
+          <DocPageCommunity data={data} originPath={originPath} />
+          <ArticleSections data={data.file!.childMdx!} />
+        </DocPageAside>
+      </Container>
+    </TabGroupProvider>
   );
 };
 
@@ -112,6 +145,8 @@ export const DocPageGraphQLFragment = graphql`
       childMdx {
         fields {
           slug
+          lastUpdated
+          lastAuthorName
         }
         frontmatter {
           title
@@ -196,27 +231,29 @@ const Container = styled.div`
   }
 `;
 
-const ResponsiveMenu = styled.div<{ readonly hasScrolled: boolean }>`
+const ResponsiveMenu = styled.div`
   position: fixed;
-  transition: all 100ms linear 0s;
-  ${({ hasScrolled }) => (hasScrolled ? "top: 60px;" : "top: 80px;")}
-  box-sizing: border-box;
-  z-index: 3;
   display: flex;
+  z-index: 3;
+  box-sizing: border-box;
   flex-direction: row;
   align-items: center;
+  top: 80px;
+  margin: 0 auto;
+  width: 820px;
+  height: 60px;
+  padding: 0 20px;
   border-radius: 4px 4px 0 0;
   background: linear-gradient(
     180deg,
     #ffffff 30%,
     rgba(255, 255, 255, 0.75) 100%
   );
+  transition: all 100ms linear 0s;
 
-  width: 820px;
-  height: 60px;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 0 20px;
+  &.scrolled {
+    top: 60px;
+  }
 
   ${IsPhablet(`
     left: 0;

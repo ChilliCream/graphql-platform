@@ -22,8 +22,9 @@ namespace HotChocolate.Execution.Processing
         private IReadOnlyList<FieldNode>? _syntaxNodes;
         private bool _isReadOnly;
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public Selection(
-            uint id,
+            int id,
             IObjectType declaringType,
             IObjectField field,
             FieldNode selection,
@@ -47,7 +48,7 @@ namespace HotChocolate.Execution.Processing
         { }
 
         public Selection(
-            uint id,
+            int id,
             IObjectType declaringType,
             IObjectField field,
             FieldNode selection,
@@ -57,13 +58,14 @@ namespace HotChocolate.Execution.Processing
             NameString? responseName = null,
             IReadOnlyDictionary<NameString, ArgumentValue>? arguments = null,
             SelectionIncludeCondition? includeCondition = null,
-            bool internalSelection = false)
+            bool internalSelection = false,
+            SelectionExecutionStrategy? strategy = null)
         {
             if (resolverPipeline is null && pureResolver is null)
             {
                 throw new ArgumentNullException(nameof(resolverPipeline));
             }
-            
+
             Id = id;
             DeclaringType = declaringType
                 ?? throw new ArgumentNullException(nameof(declaringType));
@@ -84,17 +86,21 @@ namespace HotChocolate.Execution.Processing
                 ? SelectionInclusionKind.Internal
                 : SelectionInclusionKind.Always;
 
-            if (InlineResolver is not null)
+            if (strategy is not null)
             {
-                Kind = SelectionExecutionKind.Inline;
+                Strategy = strategy.Value;
+            }
+            else if (InlineResolver is not null)
+            {
+                Strategy = SelectionExecutionStrategy.Inline;
             }
             else if (PureResolver is not null)
             {
-                Kind = SelectionExecutionKind.Pure;
+                Strategy = SelectionExecutionStrategy.Pure;
             }
             else
             {
-                Kind = SelectionExecutionKind.Default;
+                Strategy = SelectionExecutionStrategy.Default;
             }
 
             if (includeCondition is not null)
@@ -103,11 +109,12 @@ namespace HotChocolate.Execution.Processing
                 ModifyCondition(true);
             }
         }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         public Selection(Selection selection)
         {
             Id = selection.Id;
-            Kind = selection.Kind;
+            Strategy = selection.Strategy;
             _includeConditions = selection._includeConditions;
             _selections = selection._selections;
             _isReadOnly = selection._isReadOnly;
@@ -125,10 +132,10 @@ namespace HotChocolate.Execution.Processing
         }
 
         /// <inheritdoc />
-        public uint Id { get; }
+        public int Id { get; }
 
         /// <inheritdoc />
-        public SelectionExecutionKind Kind { get; }
+        public SelectionExecutionStrategy Strategy { get; }
 
         /// <inheritdoc />
         public IObjectType DeclaringType { get; }

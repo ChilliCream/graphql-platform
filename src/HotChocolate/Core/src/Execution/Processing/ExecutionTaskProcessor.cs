@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -28,16 +27,47 @@ namespace HotChocolate.Execution.Processing
         {
             IExecutionContext executionContext = _context.Execution;
             CancellationToken cancellationToken = _context.RequestAborted;
+            IExecutionTask?[] buffer = executionContext.TaskBuffers.Get();
 
             do
             {
                 try
                 {
-                    while (!cancellationToken.IsCancellationRequested &&
-                        executionContext.Work.TryTake(out IExecutionTask? task))
+                    do
                     {
-                        task.BeginExecute(cancellationToken);
-                    }
+                        var work = executionContext.Work.TryTake(buffer, true);
+
+                        if (work == 0)
+                        {
+                            break;
+                        }
+
+                        if (buffer[0]!.IsSerial)
+                        {
+                            try
+                            {
+                                executionContext.BatchDispatcher.DispatchOnSchedule = true;
+
+                                for (var i = 0; i < work; i++)
+                                {
+                                    IExecutionTask task = buffer[i]!;
+                                    task.BeginExecute(cancellationToken);
+                                    await task.WaitForCompletionAsync(cancellationToken);
+                                }
+                            }
+                            finally
+                            {
+                                executionContext.BatchDispatcher.DispatchOnSchedule = false;
+                            }
+                        }
+                        else
+                        {
+                            for (var i = 0; i < work; i++)
+                            {
+                                buffer[i]!.BeginExecute(cancellationToken);
+                            }
+                        }
+                    } while (!cancellationToken.IsCancellationRequested);
 
                     await executionContext.Work
                         .WaitForWorkAsync(cancellationToken)
@@ -52,6 +82,8 @@ namespace HotChocolate.Execution.Processing
                 }
             } while (!cancellationToken.IsCancellationRequested &&
                 !executionContext.IsCompleted);
+
+            executionContext.TaskBuffers.Return(buffer);
         }
 
         private async Task ExecuteSecondaryProcessorAsync()
@@ -60,16 +92,26 @@ namespace HotChocolate.Execution.Processing
             CancellationToken cancellationToken = _context.RequestAborted;
 
             await Task.Yield();
-            bool completed;
-RESTART:
 
+            IExecutionTask?[] buffer = executionContext.TaskBuffers.Get();
+
+            RESTART:
             try
             {
-                while (!cancellationToken.IsCancellationRequested &&
-                       executionContext.Work.TryTake(out IExecutionTask? task))
+                do
                 {
-                    task.BeginExecute(cancellationToken);
-                }
+                    var work = executionContext.Work.TryTake(buffer, false);
+
+                    if (work == 0)
+                    {
+                        break;
+                    }
+
+                    for (var i = 0; i < work; i++)
+                    {
+                        buffer[i]!.BeginExecute(cancellationToken);
+                    }
+                } while (!cancellationToken.IsCancellationRequested);
             }
             catch (Exception ex)
             {
@@ -78,15 +120,13 @@ RESTART:
                     HandleError(ex);
                 }
             }
-            finally
-            {
-                completed = executionContext.Work.TryCompleteProcessor();
-            }
 
-            if (!completed)
+            if (!executionContext.Work.TryCompleteProcessor())
             {
                 goto RESTART;
             }
+
+            executionContext.TaskBuffers.Return(buffer);
         }
 
         private void HandleError(Exception exception)
@@ -98,8 +138,6 @@ RESTART:
                     .Build();
 
             error = _context.ErrorHandler.Handle(error);
-
-            // TODO : this error needs to be reported!
             _context.Result.AddError(error);
         }
 

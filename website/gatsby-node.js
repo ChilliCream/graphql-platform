@@ -1,5 +1,6 @@
 const { createFilePath } = require("gatsby-source-filesystem");
-const path = require(`path`);
+const path = require("path");
+const git = require("simple-git/promise");
 
 exports.createPages = async ({ actions, graphql, reporter }) => {
   const { createPage, createRedirect } = actions;
@@ -112,17 +113,56 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
   });
 };
 
-exports.onCreateNode = ({ node, actions, getNode }) => {
+exports.onCreateNode = async ({ node, actions, getNode }) => {
   const { createNodeField } = actions;
 
-  if (node.internal.type === `Mdx`) {
-    const value = createFilePath({ node, getNode });
-    createNodeField({
-      name: `slug`,
-      node,
-      value,
-    });
+  if (node.internal.type !== `Mdx`) {
+    return;
   }
+
+  const filepath = createFilePath({ node, getNode });
+
+  createNodeField({
+    name: `slug`,
+    node,
+    value: filepath,
+  });
+
+  let authorName = "Unknown";
+  let lastUpdated = "0000-00-00";
+
+  // we only run "git log" when building the production bundle
+  // for development purposes we fallback to dummy values
+  if (process.env.NODE_ENV === "production") {
+    try {
+      const result = await getGitLog(node.fileAbsolutePath);
+      const data = result.latest;
+
+      if (data.authorName) {
+        authorName = data.authorName;
+      }
+
+      if (data.date) {
+        lastUpdated = data.date;
+      }
+    } catch (error) {
+      console.error(
+        `Could not retrieve git information for ${node.fileAbsolutePath}`,
+        error
+      );
+    }
+  }
+
+  createNodeField({
+    node,
+    name: `lastAuthorName`,
+    value: authorName,
+  });
+  createNodeField({
+    node,
+    name: `lastUpdated`,
+    value: lastUpdated,
+  });
 };
 
 function createBlogArticles(createPage, data) {
@@ -191,4 +231,17 @@ function createDocPages(createPage, data) {
       },
     });
   });
+}
+
+function getGitLog(filepath) {
+  const logOptions = {
+    file: filepath,
+    n: 1,
+    format: {
+      date: `%cs`,
+      authorName: `%an`,
+    },
+  };
+
+  return git().log(logOptions);
 }

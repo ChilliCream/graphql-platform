@@ -55,11 +55,6 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services,
             int maximumRetained = 256)
         {
-            services.TryAddSingleton<ObjectPool<BatchExecutionTask>>(
-                _ => new ExecutionTaskPool<BatchExecutionTask>(
-                    new BatchExecutionTaskPoolPolicy(),
-                    maximumRetained / 4));
-
             services.TryAddSingleton<ObjectPool<ResolverTask>>(
                 _ => new ExecutionTaskPool<ResolverTask>(
                     new ResolverTaskPoolPolicy(),
@@ -69,7 +64,12 @@ namespace Microsoft.Extensions.DependencyInjection
                 _ => new ExecutionTaskPool<PureResolverTask>(
                     new PureResolverTaskPoolPolicy(),
                     maximumRetained));
-            
+
+            services.TryAddSingleton<ObjectPool<IExecutionTask?[]>>(
+                _ => new DefaultObjectPool<IExecutionTask?[]>(
+                    new TaskBufferPoolPolicy(),
+                    maximumRetained / 8));
+
             return services;
         }
 
@@ -116,6 +116,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 _ => new DefaultDocumentCache());
             services.TryAddSingleton<IPreparedOperationCache>(
                 _ => new DefaultPreparedOperationCache());
+            services.TryAddSingleton<IComplexityAnalyzerCache>(
+                _ => new DefaultComplexityAnalyzerCache());
+            services.TryAddSingleton<IQueryPlanCache>(
+                _ => new DefaultQueryPlanCache());
             return services;
         }
 

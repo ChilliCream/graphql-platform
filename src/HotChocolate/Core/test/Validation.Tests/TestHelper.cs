@@ -42,13 +42,15 @@ namespace HotChocolate.Validation
             var rule = services.GetRequiredService<IValidationConfiguration>()
                 .GetRules(Schema.DefaultName).First();
 
-            IDocumentValidatorContext context = ValidationUtils.CreateContext(schema);
+            DocumentValidatorContext context = ValidationUtils.CreateContext(schema);
             DocumentNode query = Utf8GraphQLParser.Parse(sourceText);
             context.Prepare(query);
 
+            context.ContextData = new Dictionary<string, object>();
+
             if (contextData is not null)
             {
-                foreach ((var key, object value) in contextData)
+                foreach ((var key, var value) in contextData)
                 {
                     context.ContextData[key] = value;
                 }
@@ -95,13 +97,15 @@ namespace HotChocolate.Validation
             var rule = services.GetRequiredService<IValidationConfiguration>()
                 .GetRules(Schema.DefaultName).First();
 
-            IDocumentValidatorContext context = ValidationUtils.CreateContext(schema);
+            DocumentValidatorContext context = ValidationUtils.CreateContext(schema);
             DocumentNode query = Utf8GraphQLParser.Parse(sourceText);
             context.Prepare(query);
 
+            context.ContextData = new Dictionary<string, object>();
+
             if (contextData is not null)
             {
-                foreach ((var key, object value) in contextData)
+                foreach ((var key, var value) in contextData)
                 {
                     context.ContextData[key] = value;
                 }

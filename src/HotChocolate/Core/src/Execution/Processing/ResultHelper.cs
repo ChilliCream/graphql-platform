@@ -40,7 +40,7 @@ namespace HotChocolate.Execution.Processing
 
             lock (_syncMap)
             {
-                if (!_resultOwner.ResultMaps.TryPeek(out ResultObjectBuffer<ResultMap> buffer) ||
+                if (!_resultOwner.ResultMaps.TryPeek(out ResultObjectBuffer<ResultMap>? buffer) ||
                     !buffer.TryPop(out map))
                 {
                     buffer = _resultPool.GetResultMap();
@@ -60,7 +60,7 @@ namespace HotChocolate.Execution.Processing
             lock (_syncMapList)
             {
                 if (!_resultOwner.ResultMapLists.TryPeek(
-                    out ResultObjectBuffer<ResultMapList> buffer) ||
+                    out ResultObjectBuffer<ResultMapList>? buffer) ||
                     !buffer.TryPop(out mapList))
                 {
                     buffer = _resultPool.GetResultMapList();
@@ -78,7 +78,7 @@ namespace HotChocolate.Execution.Processing
 
             lock (_syncList)
             {
-                if (!_resultOwner.ResultLists.TryPeek(out ResultObjectBuffer<ResultList> buffer) ||
+                if (!_resultOwner.ResultLists.TryPeek(out ResultObjectBuffer<ResultList>? buffer) ||
                     !buffer.TryPop(out list))
                 {
                     buffer = _resultPool.GetResultList();

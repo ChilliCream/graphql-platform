@@ -8,7 +8,7 @@ namespace HotChocolate.Execution.Processing
         private readonly DeferredWorkQueue _queue = new();
 
         /// <inheritdoc />
-        public bool IsEmpty => _queue.IsEmpty;
+        public bool HasWork => !_queue.IsEmpty;
 
         /// <inheritdoc />
         public bool TryTake([NotNullWhen(true)] out IDeferredExecutionTask? executionTask) =>

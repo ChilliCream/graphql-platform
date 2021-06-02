@@ -13,7 +13,7 @@ namespace HotChocolate.Execution.Processing
         private readonly DeferredWorkBacklog _deferredWorkBacklog;
         private readonly ObjectPool<ResolverTask> _resolverTasks;
         private readonly ObjectPool<PureResolverTask> _pureResolverTasks;
-        private readonly ObjectPool<BatchExecutionTask> _batchTasks;
+        private readonly ObjectPool<IExecutionTask?[]> _taskBuffers;
 
         private CancellationTokenSource _completed = default!;
         private IBatchDispatcher _batchDispatcher = default!;
@@ -23,14 +23,14 @@ namespace HotChocolate.Execution.Processing
             OperationContext operationContext,
             ObjectPool<ResolverTask> resolverTasks,
             ObjectPool<PureResolverTask> pureResolverTasks,
-            ObjectPool<BatchExecutionTask> batchTasks)
+            ObjectPool<IExecutionTask?[]> taskBuffers)
         {
             _operationContext = operationContext;
-            _workBacklog = new WorkBacklog(() => _operationContext.RequestContext);
+            _workBacklog = new WorkBacklog();
             _deferredWorkBacklog = new DeferredWorkBacklog();
             _resolverTasks = resolverTasks;
             _pureResolverTasks = pureResolverTasks;
-            _batchTasks = batchTasks;
+            _taskBuffers = taskBuffers;
             _workBacklog.BacklogEmpty += BatchDispatcherEventHandler;
         }
 
@@ -43,26 +43,9 @@ namespace HotChocolate.Execution.Processing
 
             _batchDispatcher = batchDispatcher;
             _batchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
-
             _isInitialized = true;
-        }
 
-        private void TryComplete()
-        {
-            if (_completed is not null!)
-            {
-                try
-                {
-                    if (!_completed.IsCancellationRequested)
-                    {
-                        _completed.Cancel();
-                    }
-                }
-                catch
-                {
-                    // ignore if we could not cancel the completed task source.
-                }
-            }
+            _workBacklog.Initialize(_operationContext, _operationContext.QueryPlan);
         }
 
         public void Clean()
@@ -88,13 +71,37 @@ namespace HotChocolate.Execution.Processing
 
         public void Reset()
         {
-            _workBacklog.Clear();
+            ResetStateMachine();
 
             if (_completed is not null!)
             {
                 TryComplete();
                 _completed.Dispose();
                 _completed = new CancellationTokenSource();
+            }
+        }
+
+        public void ResetStateMachine()
+        {
+            _workBacklog.Clear();
+            _workBacklog.Initialize(_operationContext, _operationContext.QueryPlan);
+        }
+
+        private void TryComplete()
+        {
+            if (_completed is not null!)
+            {
+                try
+                {
+                    if (!_completed.IsCancellationRequested)
+                    {
+                        _completed.Cancel();
+                    }
+                }
+                catch
+                {
+                    // ignore if we could not cancel the completed task source.
+                }
             }
         }
 

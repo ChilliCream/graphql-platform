@@ -1,0 +1,125 @@
+﻿{
+  "type": "Operation",
+  "root": {
+    "type": "Resolver",
+    "strategy": "Parallel",
+    "selections": [
+      {
+        "id": 1,
+        "field": "Query.hero",
+        "responseName": "a"
+      },
+      {
+        "id": 3,
+        "field": "Human.friends",
+        "responseName": "friends"
+      },
+      {
+        "id": 4,
+        "field": "CharacterConnection.nodes",
+        "responseName": "nodes",
+        "pure": true
+      },
+      {
+        "id": 8,
+        "field": "Droid.friends",
+        "responseName": "friends"
+      },
+      {
+        "id": 9,
+        "field": "CharacterConnection.nodes",
+        "responseName": "nodes",
+        "pure": true
+      },
+      {
+        "id": 0,
+        "field": "Query.hero",
+        "responseName": "hero"
+      },
+      {
+        "id": 13,
+        "field": "Human.friends",
+        "responseName": "friends"
+      },
+      {
+        "id": 14,
+        "field": "CharacterConnection.nodes",
+        "responseName": "nodes",
+        "pure": true
+      },
+      {
+        "id": 18,
+        "field": "Droid.friends",
+        "responseName": "friends"
+      },
+      {
+        "id": 19,
+        "field": "CharacterConnection.nodes",
+        "responseName": "nodes",
+        "pure": true
+      }
+    ]
+  },
+  "deferred": [
+    {
+      "type": "Resolver",
+      "strategy": "Parallel",
+      "selections": [
+        {
+          "id": 1,
+          "field": "Query.hero",
+          "responseName": "a"
+        },
+        {
+          "id": 3,
+          "field": "Human.friends",
+          "responseName": "friends"
+        },
+        {
+          "id": 4,
+          "field": "CharacterConnection.nodes",
+          "responseName": "nodes",
+          "pure": true
+        },
+        {
+          "id": 8,
+          "field": "Droid.friends",
+          "responseName": "friends"
+        },
+        {
+          "id": 9,
+          "field": "CharacterConnection.nodes",
+          "responseName": "nodes",
+          "pure": true
+        },
+        {
+          "id": 0,
+          "field": "Query.hero",
+          "responseName": "hero"
+        },
+        {
+          "id": 13,
+          "field": "Human.friends",
+          "responseName": "friends"
+        },
+        {
+          "id": 14,
+          "field": "CharacterConnection.nodes",
+          "responseName": "nodes",
+          "pure": true
+        },
+        {
+          "id": 18,
+          "field": "Droid.friends",
+          "responseName": "friends"
+        },
+        {
+          "id": 19,
+          "field": "CharacterConnection.nodes",
+          "responseName": "nodes",
+          "pure": true
+        }
+      ]
+    }
+  ]
+}

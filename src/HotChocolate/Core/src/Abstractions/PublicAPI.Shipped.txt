@@ -86,14 +86,14 @@
 ~const HotChocolate.WellKnownDirectives.Stream = "stream" -> string
 ~HotChocolate.DataLoaderAttribute.DataLoaderAttribute(string key) -> void
 ~HotChocolate.DataLoaderAttribute.Key.get -> string
-~HotChocolate.Execution.IExecutionTaskContext.ReportError(HotChocolate.Execution.IExecutionTask task, HotChocolate.IError error) -> void
-~HotChocolate.Execution.IExecutionTaskContext.ReportError(HotChocolate.Execution.IExecutionTask task, System.Exception exception) -> void
-~HotChocolate.Execution.IExecutionTaskContext.Track(HotChocolate.Execution.IExecutionTask task) -> System.IDisposable
+HotChocolate.Execution.IExecutionTaskContext.ReportError(HotChocolate.Execution.IExecutionTask! task, HotChocolate.IError! error) -> void
+HotChocolate.Execution.IExecutionTaskContext.ReportError(HotChocolate.Execution.IExecutionTask! task, System.Exception! exception) -> void
+HotChocolate.Execution.IExecutionTaskContext.Track(HotChocolate.Execution.IExecutionTask! task) -> System.IDisposable!
 ~HotChocolate.Execution.IExecutionTaskDefinition.Create(HotChocolate.Execution.IExecutionTaskContext context) -> HotChocolate.Execution.IExecutionTask
-~HotChocolate.Execution.IQuery.ToString() -> string
-~HotChocolate.Execution.IQuery.WriteTo(System.IO.Stream output) -> void
-~HotChocolate.Execution.IQuery.WriteToAsync(System.IO.Stream output, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
-~HotChocolate.Execution.IQuery.WriteToAsync(System.IO.Stream output) -> System.Threading.Tasks.Task
+HotChocolate.Execution.IQuery.ToString() -> string!
+HotChocolate.Execution.IQuery.WriteTo(System.IO.Stream! output) -> void
+HotChocolate.Execution.IQuery.WriteToAsync(System.IO.Stream! output, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+HotChocolate.Execution.IQuery.WriteToAsync(System.IO.Stream! output) -> System.Threading.Tasks.Task!
 ~HotChocolate.Execution.OrderedDictionary<TKey, TValue>.Clone() -> HotChocolate.Execution.OrderedDictionary<TKey, TValue>
 ~HotChocolate.Execution.OrderedDictionary<TKey, TValue>.CopyTo(System.Collections.Generic.KeyValuePair<TKey, TValue>[] array, int arrayIndex) -> void
 ~HotChocolate.Execution.OrderedDictionary<TKey, TValue>.GetEnumerator() -> System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<TKey, TValue>>

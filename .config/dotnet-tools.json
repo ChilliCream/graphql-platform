@@ -8,16 +8,22 @@
         "dotnet-sonarscanner"
       ]
     },
-    "nuke.globaltool": {
-      "version": "0.24.11",
-      "commands": [
-        "nuke"
-      ]
-    },
     "boost.tool": {
       "version": "0.2.2",
       "commands": [
         "boo"
+      ]
+    },
+    "dotnet-format": {
+      "version": "5.1.225507",
+      "commands": [
+        "dotnet-format"
+      ]
+    },
+    "nuke.globaltool": {
+      "version": "5.1.2",
+      "commands": [
+        "nuke"
       ]
     }
   }

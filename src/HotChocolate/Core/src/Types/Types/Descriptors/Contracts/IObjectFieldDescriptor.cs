@@ -92,6 +92,15 @@ namespace HotChocolate.Types
         /// </summary>
         IObjectFieldDescriptor Type(Type type);
 
+        /// <summary>
+        /// Defines a field argument.
+        /// </summary>
+        /// <param name="argumentName">
+        /// The field argument name.
+        /// </param>
+        /// <param name="argumentDescriptor">
+        /// The argument descriptor to specify the argument configuration. 
+        /// </param>
         IObjectFieldDescriptor Argument(
             NameString argumentName,
             Action<IArgumentDescriptor> argumentDescriptor);

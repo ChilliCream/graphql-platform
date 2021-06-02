@@ -159,6 +159,28 @@
             ]
           },
           {
+            "path": "security",
+            "title": "Security",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "authorization",
+                "title": "Authorization"
+              },
+              {
+                "path": "introspection",
+                "title": "Introspection"
+              },
+              {
+                "path": "operation-complexity",
+                "title": "Operation Complexity"
+              }
+            ]
+          },
+          {
             "path": "api-reference",
             "title": "API Reference",
             "items": [
@@ -201,6 +223,10 @@
               {
                 "path": "apollo-tracing",
                 "title": "Apollo Tracing"
+              },
+              {
+                "path": "coding-approaches",
+                "title": "Coding Approaches"
               },
               {
                 "path": "migrate-from-10-to-11",

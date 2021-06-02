@@ -11,7 +11,7 @@
                     __typename @include(if: $if) @skip(if: $if) @__execute(id: 4, kind: PURE, type: LEAF)
                     friends @include(if: $if) @__execute(id: 5, kind: DEFAULT, type: COMPOSITE) {
                       ... on CharacterConnection {
-                        nodes @include(if: $if) @__execute(id: 10, kind: DEFAULT, type: COMPOSITE_LIST) {
+                        nodes @include(if: $if) @__execute(id: 10, kind: PURE, type: COMPOSITE_LIST) {
                           ... on Human {
                             __typename @include(if: $if) @__execute(id: 11, kind: PURE, type: LEAF)
                             name @include(if: $if) @__execute(id: 12, kind: INLINE, type: LEAF)
@@ -40,7 +40,7 @@
                     __typename @include(if: $if) @skip(if: $if) @__execute(id: 17, kind: PURE, type: LEAF)
                     friends @include(if: $if) @__execute(id: 18, kind: DEFAULT, type: COMPOSITE) {
                       ... on CharacterConnection {
-                        nodes @include(if: $if) @__execute(id: 19, kind: DEFAULT, type: COMPOSITE_LIST) {
+                        nodes @include(if: $if) @__execute(id: 19, kind: PURE, type: COMPOSITE_LIST) {
                           ... on Human {
                             __typename @include(if: $if) @__execute(id: 20, kind: PURE, type: LEAF)
                             name @include(if: $if) @__execute(id: 21, kind: INLINE, type: LEAF)

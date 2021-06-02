@@ -466,7 +466,7 @@ namespace HotChocolate.Types.Pagination
 
             public CancellationToken RequestAborted => default;
 
-            public IDictionary<string, object> ContextData => throw new NotImplementedException();
+            public IDictionary<string, object?> ContextData => throw new NotImplementedException();
 
             public T Argument<T>(NameString name)
             {

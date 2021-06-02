@@ -1,6 +1,8 @@
 using HotChocolate.Types.Relay;
 using static HotChocolate.Types.WellKnownContextData;
 
+#nullable enable
+
 namespace HotChocolate
 {
     public static class IdSchemaBuilderExtensions
@@ -10,7 +12,7 @@ namespace HotChocolate
         /// </summary>
         public static ISchemaBuilder EnableRelaySupport(
             this ISchemaBuilder schemaBuilder,
-            RelayOptions options = null)
+            RelayOptions? options = null)
         {
             options ??= new();
 

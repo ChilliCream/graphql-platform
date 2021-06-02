@@ -17,7 +17,7 @@ namespace HotChocolate.Types.Pagination
             var connection = new Connection(
                 edges,
                 pageInfo,
-                ct => throw new NotSupportedException());
+                _ => throw new NotSupportedException());
 
             // assert
             Assert.Equal(pageInfo, connection.Info);
@@ -31,11 +31,13 @@ namespace HotChocolate.Types.Pagination
             var edges = new List<Edge<string>>();
 
             // act
-            Action a = () => new Connection<string>(
-                edges, null, ct => throw new NotSupportedException());
+            void Action() => new Connection<string>(
+                edges,
+                null!,
+                _ => throw new NotSupportedException());
 
             // assert
-            Assert.Throws<ArgumentNullException>(a);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -45,11 +47,13 @@ namespace HotChocolate.Types.Pagination
             var pageInfo = new ConnectionPageInfo(true, true, "a", "b", null);
 
             // act
-            Action a = () => new Connection<string>(
-                null, pageInfo, ct => throw new NotSupportedException());
+            void Action() => new Connection<string>(
+                null!,
+                pageInfo,
+                _ => throw new NotSupportedException());
 
             // assert
-            Assert.Throws<ArgumentNullException>(a);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -60,11 +64,13 @@ namespace HotChocolate.Types.Pagination
             var edges = new List<Edge<string>>();
 
             // act
-            Action a = () => new Connection<string>(
-                edges, pageInfo, null);
+            void Action() => new Connection<string>(
+                edges,
+                pageInfo,
+                null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(a);
+            Assert.Throws<ArgumentNullException>(Action);
         }
     }
 }

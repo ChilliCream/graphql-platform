@@ -1,4 +1,5 @@
 ﻿using System;
+using HotChocolate.Execution;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
@@ -37,6 +38,7 @@ namespace HotChocolate.Configuration
             EnableDirectiveIntrospection = options.EnableDirectiveIntrospection;
             DefaultDirectiveVisibility = options.DefaultDirectiveVisibility;
             AllowInlining = options.AllowInlining;
+            DefaultResolverStrategy = options.DefaultResolverStrategy;
         }
 
         /// <summary>
@@ -105,5 +107,10 @@ namespace HotChocolate.Configuration
         /// Defines if field inlining is allowed.
         /// </summary>
         public bool AllowInlining { get; }
+
+        /// <summary>
+        /// Defines that the default resolver execution strategy. 
+        /// </summary>
+        public ExecutionStrategy DefaultResolverStrategy { get; }
     }
 }

@@ -14,12 +14,12 @@ namespace HotChocolate.Execution.Processing
         /// <summary>
         /// Gets an operation unique identifier of this selection.
         /// </summary>
-        uint Id { get; }
+        int Id { get; }
 
         /// <summary>
         /// Gets the execution kind.
         /// </summary>
-        SelectionExecutionKind Kind { get; }
+        SelectionExecutionStrategy Strategy { get; }
 
         /// <summary>
         /// The type that declares the field that is selected by this selection.

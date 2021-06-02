@@ -49,9 +49,7 @@ namespace HotChocolate.Execution.Processing
 
         public bool ContainsKey(NameString key) => _arguments.ContainsKey(key);
 
-        public bool TryGetValue(
-            NameString key,
-            [NotNullWhen(true)] out ArgumentValue? value) =>
+        public bool TryGetValue(NameString key, [MaybeNullWhen(false)] out ArgumentValue value) =>
             _arguments.TryGetValue(key, out value);
 
         public IEnumerator<KeyValuePair<NameString, ArgumentValue>> GetEnumerator() =>

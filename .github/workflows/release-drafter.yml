@@ -4,15 +4,10 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    types:
-      - opened
-      - reopened
-      - synchronize
   workflow_dispatch:
 
 jobs:
-  update_release_draft:
+  release-drafter:
     runs-on: ubuntu-latest
     steps:
       - uses: release-drafter/release-drafter@v5

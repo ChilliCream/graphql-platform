@@ -1,1 +1,39 @@
-
+HotChocolate.Validation.DocumentValidator.Validate(HotChocolate.ISchema! schema, HotChocolate.Language.DocumentNode! document, System.Collections.Generic.IDictionary<string!, object?>! contextData) -> HotChocolate.Validation.DocumentValidatorResult!
+HotChocolate.Validation.DocumentValidatorContext.ContextData.set -> void
+HotChocolate.Validation.DocumentValidatorContext.List.get -> System.Collections.Generic.IList<object?>!
+HotChocolate.Validation.DocumentValidatorContext.VariableValues.get -> HotChocolate.Execution.IVariableValueCollection?
+HotChocolate.Validation.DocumentValidatorContext.VariableValues.set -> void
+HotChocolate.Validation.IDocumentValidator.Validate(HotChocolate.ISchema! schema, HotChocolate.Language.DocumentNode! document, System.Collections.Generic.IDictionary<string!, object?>! contextData) -> HotChocolate.Validation.DocumentValidatorResult!
+HotChocolate.Validation.IDocumentValidatorContext.List.get -> System.Collections.Generic.IList<object?>!
+HotChocolate.Validation.IDocumentValidatorContext.VariableValues.get -> HotChocolate.Execution.IVariableValueCollection?
+*REMOVED*static Microsoft.Extensions.DependencyInjection.HotChocolateValidationBuilderExtensions.SetComplexityCalculation(this HotChocolate.Validation.Options.IValidationBuilder! builder, HotChocolate.Validation.Options.ComplexityCalculation! calculation) -> HotChocolate.Validation.Options.IValidationBuilder!
+*REMOVED*static Microsoft.Extensions.DependencyInjection.HotChocolateValidationBuilderExtensions.AddMaxComplexityRule(this HotChocolate.Validation.Options.IValidationBuilder! builder, int maxAllowedComplexity) -> HotChocolate.Validation.Options.IValidationBuilder!
+*REMOVED*HotChocolate.Validation.Options.ValidationOptions.DefaultComplexity.get -> int
+*REMOVED*HotChocolate.Validation.Options.ValidationOptions.DefaultComplexity.set -> void
+*REMOVED*HotChocolate.Validation.Options.ValidationOptions.MaxAllowedComplexity.get -> int?
+*REMOVED*HotChocolate.Validation.Options.ValidationOptions.MaxAllowedComplexity.set -> void
+*REMOVED*static HotChocolate.Validation.Options.ValidationOptions.DefaultCalculation(HotChocolate.Types.IOutputField! field, HotChocolate.Language.FieldNode! selection, HotChocolate.Types.CostDirective? cost, int fieldDepth, int nodeDepth, System.Func<string!, object?>! getVariable, HotChocolate.Validation.Options.IMaxComplexityOptionsAccessor! options) -> int
+*REMOVED*HotChocolate.Validation.Options.ValidationOptions.UseComplexityMultipliers.get -> bool
+*REMOVED*HotChocolate.Validation.Options.ValidationOptions.UseComplexityMultipliers.set -> void
+*REMOVED*HotChocolate.Validation.Options.ValidationOptions.ComplexityCalculation.get -> HotChocolate.Validation.Options.ComplexityCalculation!
+*REMOVED*HotChocolate.Validation.Options.ValidationOptions.ComplexityCalculation.set -> void
+*REMOVED*HotChocolate.Validation.DocumentValidator.Validate(HotChocolate.ISchema! schema, HotChocolate.Language.DocumentNode! document, System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, object?>>? contextData) -> HotChocolate.Validation.DocumentValidatorResult!
+*REMOVED*HotChocolate.Validation.DocumentValidatorContext.VariableValues.get -> System.Collections.Generic.IDictionary<string!, object!>!
+*REMOVED*HotChocolate.Validation.IDocumentValidator.Validate(HotChocolate.ISchema! schema, HotChocolate.Language.DocumentNode! document, System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, object?>>? contextData) -> HotChocolate.Validation.DocumentValidatorResult!
+*REMOVED*HotChocolate.Validation.IDocumentValidatorContext.VariableValues.get -> System.Collections.Generic.IDictionary<string!, object!>!
+*REMOVED*HotChocolate.Validation.Options.ComplexityCalculation
+*REMOVED*HotChocolate.Validation.Options.IMaxComplexityOptionsAccessor
+*REMOVED*HotChocolate.Validation.Options.IMaxComplexityOptionsAccessor.ComplexityCalculation.get -> HotChocolate.Validation.Options.ComplexityCalculation!
+*REMOVED*HotChocolate.Validation.Options.IMaxComplexityOptionsAccessor.DefaultComplexity.get -> int
+*REMOVED*HotChocolate.Validation.Options.IMaxComplexityOptionsAccessor.MaxAllowedComplexity.get -> int?
+*REMOVED*HotChocolate.Validation.Options.IMaxComplexityOptionsAccessor.UseComplexityMultipliers.get -> bool
+*REMOVED*HotChocolate.Validation.DocumentValidator.Validate(HotChocolate.ISchema! schema, HotChocolate.Language.DocumentNode! document, System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, object?>>? contextData) -> HotChocolate.Validation.DocumentValidatorResult!
+*REMOVED*HotChocolate.Validation.DocumentValidatorContext.VariableValues.get -> System.Collections.Generic.IDictionary<string!, object!>!
+*REMOVED*HotChocolate.Validation.IDocumentValidator.Validate(HotChocolate.ISchema! schema, HotChocolate.Language.DocumentNode! document, System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, object?>>? contextData) -> HotChocolate.Validation.DocumentValidatorResult!
+*REMOVED*HotChocolate.Validation.IDocumentValidatorContext.VariableValues.get -> System.Collections.Generic.IDictionary<string!, object!>!
+*REMOVED*HotChocolate.Validation.Options.ComplexityCalculation
+*REMOVED*HotChocolate.Validation.Options.IMaxComplexityOptionsAccessor
+*REMOVED*HotChocolate.Validation.Options.IMaxComplexityOptionsAccessor.ComplexityCalculation.get -> HotChocolate.Validation.Options.ComplexityCalculation!
+*REMOVED*HotChocolate.Validation.Options.IMaxComplexityOptionsAccessor.DefaultComplexity.get -> int
+*REMOVED*HotChocolate.Validation.Options.IMaxComplexityOptionsAccessor.MaxAllowedComplexity.get -> int?
+*REMOVED*HotChocolate.Validation.Options.IMaxComplexityOptionsAccessor.UseComplexityMultipliers.get -> bool
