@@ -308,5 +308,46 @@ namespace HotChocolate.Analyzers
 
             return methodSyntax.AddAttributeLists(AttributeList(SingletonSeparatedList(attribute)));
         }
+
+        public static MethodDeclarationSyntax AddUseNeo4JDatabaseAttribute(
+            this MethodDeclarationSyntax methodSyntax,
+            string databaseName)
+        {
+            AttributeSyntax attribute =
+                Attribute(IdentifierName(Global(UseNeo4JDatabaseAttribute)))
+                    .AddArgumentListArguments(
+                        AttributeArgument(
+                            LiteralExpression(
+                                SyntaxKind.NumericLiteralExpression,
+                                Literal(databaseName)))
+                        .WithNameColon(
+                            NameColon(IdentifierName(nameof(databaseName)))));
+
+            return methodSyntax.AddAttributeLists(AttributeList(SingletonSeparatedList(attribute)));
+        }
+
+        public static MethodDeclarationSyntax AddGraphQLNameAttribute(
+            this MethodDeclarationSyntax methodSyntax,
+            string name)
+        {
+            AttributeSyntax attribute =
+                Attribute(IdentifierName(Global(typeof(GraphQLNameAttribute).FullName)))
+                    .AddArgumentListArguments(
+                        AttributeArgument(
+                            LiteralExpression(
+                                SyntaxKind.NumericLiteralExpression,
+                                Literal(name))));
+
+            return methodSyntax.AddAttributeLists(AttributeList(SingletonSeparatedList(attribute)));
+        }
+
+        public static ParameterSyntax AddScopedServiceAttribute(
+            this ParameterSyntax methodSyntax)
+        {
+            AttributeSyntax attribute =
+                Attribute(IdentifierName(Global(typeof(ScopedServiceAttribute).FullName)));
+
+            return methodSyntax.AddAttributeLists(AttributeList(SingletonSeparatedList(attribute)));
+        }
     }
 }

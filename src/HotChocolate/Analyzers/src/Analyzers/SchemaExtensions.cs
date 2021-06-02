@@ -78,7 +78,7 @@ namespace HotChocolate.Analyzers
             {
                 var typeNameDirective = objectType.GetFirstDirective<TypeNameDirective>("typeName");
                 string typeName = typeNameDirective?.Name ?? objectType.Name.Value;
-                return Global(typeName);
+                return Global(@namespace + "." + typeName);
             }
 
             throw new NotSupportedException();

@@ -71,7 +71,7 @@ namespace HotChocolate.Analyzers
             {
                 try
                 {
-                    DocumentNode document = Utf8GraphQLParser.Parse(file);
+                    DocumentNode document = Utf8GraphQLParser.Parse(File.ReadAllBytes(file));
 
                     if (!document.Definitions.OfType<IExecutableDefinitionNode>().Any())
                     {

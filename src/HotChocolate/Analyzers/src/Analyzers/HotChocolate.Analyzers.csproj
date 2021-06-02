@@ -16,7 +16,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
-    <ProjectReference Include="..\Analyzers.Configuration\HotChocolate.Analyzers.Configuration.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using HotChocolate.Analyzers.Configuration;
 using HotChocolate.Analyzers.Diagnostics;
 using HotChocolate.Analyzers.Types;
@@ -26,26 +27,22 @@ namespace HotChocolate.Analyzers
         public void Execute(GeneratorExecutionContext context)
         {
             _location = context.GetBinDirectory();
+            ExecuteInternal(context);
+        }
 
+        private void ExecuteInternal(GeneratorExecutionContext context)
+        {
             try
             {
                 foreach (GraphQLConfig config in context.GetConfigurations())
                 {
 
-                    if (config.Extensions.Neo4J is not null)
+                    if (config.Extensions.Neo4J is not null &&
+                        context.GetSchemaDocuments(config) is { Count: > 0 } schemaDocuments)
                     {
-                        context.AddSource("abc.cs", "// abc");
-                        var schemaDocuments = context.GetSchemaDocuments(config);
-                        context.AddSource("def.cs", "// abc");
-
-                        if (schemaDocuments.Count > 0)
-                        {
-                            context.AddSource("def1.cs", "// abc");
-                            config.Extensions.Neo4J.Namespace ??= "GraphQL";
-                            ISchema schema = SchemaHelper.CreateSchema(schemaDocuments);
-                            DataGeneratorContext dataContext = DataGeneratorContext.FromSchema(schema);
-                            GenerateTypes(context, dataContext, config.Extensions.Neo4J, schema);
-                        }
+                        ISchema schema = SchemaHelper.CreateSchema(schemaDocuments);
+                        DataGeneratorContext dataContext = DataGeneratorContext.FromSchema(schema);
+                        GenerateTypes(context, dataContext, config.Extensions.Neo4J, schema);
                     }
                 }
             }
@@ -88,7 +85,7 @@ namespace HotChocolate.Analyzers
             foreach (var objectType in objectTypes)
             {
                 queryDeclaration = queryDeclaration.AddMembers(
-                    CreateQueryResolver(dataContext, objectType));
+                    CreateQueryResolver(dataContext, settings, objectType));
 
                 GenerateObjectType(context, dataContext, settings.Namespace!, objectType);
             }
@@ -146,6 +143,7 @@ namespace HotChocolate.Analyzers
 
         private static MethodDeclarationSyntax CreateQueryResolver(
             DataGeneratorContext dataContext,
+            Neo4JSettings settings,
             IObjectType objectType)
         {
             const string session = nameof(session);
@@ -169,12 +167,8 @@ namespace HotChocolate.Analyzers
                     ParameterList(
                         SingletonSeparatedList(
                             Parameter(Identifier(session))
-                                .WithAttributeLists(
-                                    SingletonList(
-                                        AttributeList(
-                                            SingletonSeparatedList(
-                                                Attribute(IdentifierName("ScopedService"))))))
-                                .WithType(IdentifierName("IAsyncSession")))))
+                                .AddScopedServiceAttribute()
+                                .WithType(IdentifierName(Global(IAsyncSession))))))
                 .WithExpressionBody(
                     ArrowExpressionClause(
                         ImplicitObjectCreationExpression()
@@ -182,6 +176,8 @@ namespace HotChocolate.Analyzers
                                 ArgumentList(SingletonSeparatedList(
                                     Argument(IdentifierName("session")))))))
                 .WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
+                .AddGraphQLNameAttribute(GraphQLFieldName(pluralTypeName))
+                .AddUseNeo4JDatabaseAttribute(settings.DatabaseName)
                 .AddPagingAttribute(dataContext.Paging);
 
             if (dataContext.Filtering)
@@ -195,6 +191,27 @@ namespace HotChocolate.Analyzers
             }
 
             return resolverSyntax;
+        }
+
+        private static string GraphQLFieldName(string s)
+        {
+            var buffer = new char[s.Length];
+            bool lower = true;
+
+            for (int i = 0; i < s.Length; i++)
+            {
+                if (lower && char.IsUpper(s[i]))
+                {
+                    buffer[i] = char.ToLowerInvariant(s[i]);
+                }
+                else
+                {
+                    lower = false;
+                    buffer[i] = s[i];
+                }
+            }
+
+            return new string(buffer);
         }
     }
 }

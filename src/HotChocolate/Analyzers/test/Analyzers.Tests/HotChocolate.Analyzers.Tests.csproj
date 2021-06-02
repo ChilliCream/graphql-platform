@@ -15,10 +15,12 @@
     <Watch Include="**\*.graphql" />
     <AdditionalFiles Include="**\.graphqlrc.json" />
     <Watch Include="**\.graphqlrc.json" />
+    <CompilerVisibleProperty Include="HotChocolate_BinDir" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Analyzers\HotChocolate.Analyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\..\..\Neo4J\src\Data\HotChocolate.Data.Neo4J.csproj" />
   </ItemGroup>
 
   <ItemGroup>
