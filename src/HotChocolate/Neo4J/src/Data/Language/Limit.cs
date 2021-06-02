@@ -2,24 +2,24 @@
 {
     public class Limit : Visitable
     {
-        private readonly IntegerLiteral _limitAmount;
-
-        public Limit(IntegerLiteral limitAmount)
+        public Limit(IntegerLiteral amount)
         {
-            _limitAmount = limitAmount;
+            Amount = amount;
         }
 
-        public Limit(int value)
+        public Limit(int amount)
         {
-            _limitAmount = new IntegerLiteral(value);
+            Amount = new IntegerLiteral(amount);
         }
 
         public override ClauseKind Kind => ClauseKind.Limit;
 
+        public IntegerLiteral Amount { get; }
+
         public override void Visit(CypherVisitor cypherVisitor)
         {
             cypherVisitor.Enter(this);
-            _limitAmount.Visit(cypherVisitor);
+            Amount.Visit(cypherVisitor);
             cypherVisitor.Leave(this);
         }
     }

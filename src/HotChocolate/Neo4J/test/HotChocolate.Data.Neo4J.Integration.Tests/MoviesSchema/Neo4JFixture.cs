@@ -54,25 +54,25 @@ namespace HotChocolate.Data.Neo4J.Integration
 
         public async Task<IRequestExecutor> CreateSchema()
         {
-                IAsyncSession session = GetAsyncSession();
-                IResultCursor cursor = await session.RunAsync(seedCypher);
-                await cursor.ConsumeAsync();
+            IAsyncSession session = GetAsyncSession();
+            IResultCursor cursor = await session.RunAsync(seedCypher);
+            await cursor.ConsumeAsync();
 
-                return new ServiceCollection()
-                    .AddSingleton(Driver)
-                    .AddGraphQL()
-                        .AddQueryType(d => d.Name("Query"))
-                            .AddType<Queries>()
-                        .AddNeo4JProjections()
-                        .AddNeo4JFiltering()
-                        .AddNeo4JSorting()
-                    .UseDefaultPipeline()
-                    .Services
-                    .BuildServiceProvider()
-                    .GetRequiredService<IRequestExecutorResolver>()
-                    .GetRequestExecutorAsync()
-                    .GetAwaiter()
-                    .GetResult();
+            return new ServiceCollection()
+                .AddSingleton(Driver)
+                .AddGraphQL()
+                .AddQueryType(d => d.Name("Query"))
+                .AddType<Queries>()
+                .AddNeo4JProjections()
+                .AddNeo4JFiltering()
+                .AddNeo4JSorting()
+                .UseDefaultPipeline()
+                .Services
+                .BuildServiceProvider()
+                .GetRequiredService<IRequestExecutorResolver>()
+                .GetRequestExecutorAsync()
+                .GetAwaiter()
+                .GetResult();
         }
     }
 }

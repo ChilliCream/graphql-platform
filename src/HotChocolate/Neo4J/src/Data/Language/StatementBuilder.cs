@@ -7,7 +7,6 @@ namespace HotChocolate.Data.Neo4J.Language
     {
         private Match? _match;
         private Return? _return;
-
         private OrderBy? _orderBy;
         private Skip? _skip;
         private Limit? _limit;

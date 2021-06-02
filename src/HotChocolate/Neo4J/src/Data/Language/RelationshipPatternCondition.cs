@@ -3,21 +3,21 @@ namespace HotChocolate.Data.Neo4J.Language
     /// <summary>
     /// Internal wrapper for marking a path pattern as a condition.
     /// </summary>
-    class RelationshipPatternCondition : Condition
+    public class RelationshipPatternCondition : Condition
     {
-        private readonly IRelationshipPattern _pattern;
-
         public RelationshipPatternCondition(IRelationshipPattern pattern)
         {
-            _pattern = pattern;
+            Pattern = pattern;
         }
 
         public override ClauseKind Kind => ClauseKind.RelationshipPatternCondition;
 
+        public IRelationshipPattern Pattern { get; }
+
         public override void Visit(CypherVisitor cypherVisitor)
         {
             cypherVisitor.Enter(this);
-            _pattern.Visit(cypherVisitor);
+            Pattern.Visit(cypherVisitor);
             cypherVisitor.Leave(this);
         }
     }

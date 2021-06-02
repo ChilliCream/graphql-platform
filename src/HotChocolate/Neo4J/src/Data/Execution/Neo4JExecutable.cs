@@ -10,90 +10,102 @@ using Neo4j.Driver;
 
 namespace HotChocolate.Data.Neo4J.Execution
 {
-    public class Neo4JExecutable<T> : INeo4JExecutable, IExecutable<T>
+    /// <summary>
+    /// Represents a executable for Neo4j database.
+    /// </summary>
+    public class Neo4JExecutable<T>
+        : INeo4JExecutable
+        , IExecutable<T>
     {
-        private readonly IAsyncSession _session;
-
         private static Node Node => Cypher.NamedNode(typeof(T).Name);
+
+        private readonly IAsyncSession _session;
 
         /// <summary>
         /// The filter definition that was set by <see cref="WithFiltering"/>
         /// </summary>
-        private CompoundCondition? Filters { get; set; }
+        private CompoundCondition? _filters;
 
         /// <summary>
         /// The sort definition that was set by <see cref="WithSorting"/>
         /// </summary>
-        private Neo4JSortDefinition[]? Sorting { get; set; }
+        private Neo4JSortDefinition[]? _sorting;
 
         /// <summary>
         /// The projection definition that was set by <see cref="WithProjection"/>
         /// </summary>
-        private object[]? Projection { get; set; }
+        private object[]? _projection;
 
         /// <summary>
         /// The skip paging definition
         /// </summary>
-        private int? Skip { get; set; }
+        private int? _skip;
 
         /// <summary>
         /// The limit paging definition
         /// </summary>
-        private int? Limit { get; set; }
-
+        private int? _limit;
 
         public Neo4JExecutable(IAsyncSession session)
         {
             _session = session;
         }
 
-        public object? Source { get; }
+        /// <inheritdoc />
+        public object? Source => _session;
 
+        /// <inheritdoc />
         public async ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
         {
             IResultCursor cursor = await _session.RunAsync(Pipeline().Build());
             return await cursor.MapAsync<T>().ConfigureAwait(false);
         }
 
+        /// <inheritdoc />
         public ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc />
         public ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc />
         public string Print() => Pipeline().Build();
 
         public Neo4JExecutable<T> WithSkip(int skip)
         {
-            Skip = skip;
+            _skip = skip;
             return this;
         }
 
         public Neo4JExecutable<T> WithLimit(int limit)
         {
-            Limit = limit;
+            _limit = limit;
             return this;
         }
 
+        /// <inheritdoc />
         public INeo4JExecutable WithFiltering(CompoundCondition filters)
         {
-            Filters = filters;
+            _filters = filters;
             return this;
         }
 
+        /// <inheritdoc />
         public INeo4JExecutable WithSorting(Neo4JSortDefinition[] sorting)
         {
-            Sorting = sorting;
+            _sorting = sorting;
             return this;
         }
 
+        /// <inheritdoc />
         public INeo4JExecutable WithProjection(object[] projection)
         {
-            Projection = projection;
+            _projection = projection;
             return this;
         }
 
@@ -101,24 +113,24 @@ namespace HotChocolate.Data.Neo4J.Execution
         {
             StatementBuilder statement = Cypher.Match(Node).Return(Node);
 
-            if (Filters is not null)
+            if (_filters is not null)
             {
-                statement.Match(new Where(Filters), Node);
+                statement.Match(new Where(_filters), Node);
             }
 
-            if (Projection is not null)
+            if (_projection is not null)
             {
-                statement.Return(Node.Project(Projection));
+                statement.Return(Node.Project(_projection));
             }
 
-            if (Sorting is null)
+            if (_sorting is null)
             {
                 return statement;
             }
 
             var sorts = new List<SortItem>();
 
-            foreach (Neo4JSortDefinition sort in Sorting)
+            foreach (Neo4JSortDefinition sort in _sorting)
             {
                 SortItem sortItem = Cypher.Sort(Node.Property(sort.Field));
                 if (sort.Direction == SortDirection.Ascending)
@@ -133,14 +145,14 @@ namespace HotChocolate.Data.Neo4J.Execution
 
             statement.OrderBy(sorts);
 
-            if (Limit is not null)
+            if (_limit is not null)
             {
-                statement.Limit((int)Limit);
+                statement.Limit((int)_limit);
             }
 
-            if (Skip is not null)
+            if (_skip is not null)
             {
-                statement.Limit((int)Skip);
+                statement.Limit((int)_skip);
             }
 
             return statement;

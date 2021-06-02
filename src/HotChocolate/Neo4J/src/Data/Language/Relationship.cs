@@ -38,7 +38,6 @@ namespace HotChocolate.Data.Neo4J.Language
         public Relationship Named(string newSymbolicName) =>
             new(Left, Details.Named(newSymbolicName), Right);
 
-
         public Relationship Unbounded() =>
             new(Left, Details.Unbounded(), Right);
 

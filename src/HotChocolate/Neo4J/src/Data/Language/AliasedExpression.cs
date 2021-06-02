@@ -7,11 +7,9 @@ namespace HotChocolate.Data.Neo4J.Language
         : Expression
         , IAliased
     {
-        private readonly Expression _expression;
-
         public AliasedExpression(Expression expression, string alias)
         {
-            _expression = expression;
+            Expression = expression;
             Alias = alias;
         }
 
@@ -19,12 +17,14 @@ namespace HotChocolate.Data.Neo4J.Language
 
         public string Alias { get; }
 
+        public Expression Expression { get; }
+
         public SymbolicName AsName() => SymbolicName.Of(Alias);
 
         public override void Visit(CypherVisitor cypherVisitor)
         {
             cypherVisitor.Enter(this);
-            Expressions.NameOrExpression(_expression).Visit(cypherVisitor);
+            Expressions.NameOrExpression(Expression).Visit(cypherVisitor);
             cypherVisitor.Leave(this);
         }
     }

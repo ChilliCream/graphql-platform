@@ -5,23 +5,23 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class Return : Visitable
     {
-        private readonly ProjectionBody _returnItems;
-
         public Return(
             ExpressionList returnItems,
             OrderBy? orderBy = null,
             Skip? skip = null,
             Limit? limit = null)
         {
-            _returnItems = new ProjectionBody(returnItems, orderBy, skip, limit);
+            Items = new ProjectionBody(returnItems, orderBy, skip, limit);
         }
 
         public override ClauseKind Kind => ClauseKind.Return;
 
+        public ProjectionBody Items { get; }
+
         public override void Visit(CypherVisitor cypherVisitor)
         {
             cypherVisitor.Enter(this);
-            _returnItems.Visit(cypherVisitor);
+            Items.Visit(cypherVisitor);
             cypherVisitor.Leave(this);
         }
     }

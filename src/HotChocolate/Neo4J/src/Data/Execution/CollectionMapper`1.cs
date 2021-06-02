@@ -5,7 +5,7 @@ using ServiceStack.Text;
 
 namespace HotChocolate.Data.Neo4J
 {
-    public class CollectionMapper<TResult> : ICollectionMapper
+    internal class CollectionMapper<TResult> : ICollectionMapper
     {
         public IEnumerable MapValues(IEnumerable fromList, Type toInstanceOfType)
         {

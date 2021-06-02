@@ -5,19 +5,19 @@ namespace HotChocolate.Data.Neo4J.Language
     /// </summary>
     public class ListExpression : Expression
     {
-        private readonly ExpressionList _content;
-
         public ListExpression(ExpressionList content)
         {
-            _content = content;
+            Content = content;
         }
 
         public override ClauseKind Kind => ClauseKind.ListExpression;
 
+        public ExpressionList Content { get; }
+
         public override void Visit(CypherVisitor cypherVisitor)
         {
             cypherVisitor.Enter(this);
-            _content.Visit(cypherVisitor);
+            Content.Visit(cypherVisitor);
             cypherVisitor.Leave(this);
         }
 

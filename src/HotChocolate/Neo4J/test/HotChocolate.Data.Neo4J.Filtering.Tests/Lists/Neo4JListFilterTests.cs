@@ -58,23 +58,42 @@ namespace HotChocolate.Data.Neo4J.Filtering.Lists
         public class FooFilterType
             : FilterInputType<Foo>
         {
-
         }
-
-
 
         [Fact]
         public async Task Create_ArrayAllObjectStringEqual_Expression()
         {
             // arrange
-            IRequestExecutor tester = await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
+            IRequestExecutor tester =
+                await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
 
             // act
             // assert
+            const string query1 =
+                @"{
+                    root(where: {
+                        barString: {
+                            eq: ""a""
+                        }
+                        fooNested: {
+                            all: {
+                                bar: { eq: ""a"" }
+                            }
+                        }
+                    }){
+                        barString
+                        fooNested {
+                            bar
+                            barNested {
+                                foo
+                            }
+                        }
+                    }
+                }";
+
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { barString: {eq: \"a\" } fooNested: { all: { bar: { eq: \"a\" }}}}){ barString fooNested { bar barNested { foo } }}}")
+                    .SetQuery(query1)
                     .Create());
 
             res1.MatchDocumentSnapshot("all");

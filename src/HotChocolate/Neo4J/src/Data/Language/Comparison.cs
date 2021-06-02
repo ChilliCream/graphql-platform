@@ -5,33 +5,35 @@
     /// </summary>
     public class Comparison : Condition
     {
-        private readonly Expression? _left;
-        private readonly Operator _operator;
-        private readonly Expression? _right;
-
         private Comparison(Expression left, Operator op, Expression right)
         {
-            _left = NestedIfCondition(left);
-            _operator = op;
-            _right = NestedIfCondition(right);
+            Left = NestedIfCondition(left);
+            Operator = op;
+            Right = NestedIfCondition(right);
         }
 
         public override ClauseKind Kind => ClauseKind.Comparison;
+
+        public Expression? Left { get; }
+
+        public Operator Operator { get; }
+
+        public Expression? Right { get; }
 
         public override void Visit(CypherVisitor cypherVisitor)
         {
             cypherVisitor.Enter(this);
 
-            if (_left is not null)
+            if (Left is not null)
             {
-                Expressions.NameOrExpression(_left).Visit(cypherVisitor);
+                Expressions.NameOrExpression(Left).Visit(cypherVisitor);
             }
 
-            _operator.Visit(cypherVisitor);
+            Operator.Visit(cypherVisitor);
 
-            if (_right is not null)
+            if (Right is not null)
             {
-                Expressions.NameOrExpression(_right).Visit(cypherVisitor);
+                Expressions.NameOrExpression(Right).Visit(cypherVisitor);
             }
 
             cypherVisitor.Leave(this);

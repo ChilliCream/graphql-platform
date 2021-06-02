@@ -2,24 +2,24 @@
 {
     public class Skip : Visitable
     {
-        private readonly IntegerLiteral _skipAmount;
-
-        public Skip(IntegerLiteral skipAmount)
+        public Skip(IntegerLiteral amount)
         {
-            _skipAmount = skipAmount;
+            Amount = amount;
         }
 
         public Skip(int skipAmount)
         {
-            _skipAmount = new IntegerLiteral(skipAmount);
+            Amount = new IntegerLiteral(skipAmount);
         }
 
         public override ClauseKind Kind => ClauseKind.Skip;
 
+        public IntegerLiteral Amount { get; }
+
         public override void Visit(CypherVisitor cypherVisitor)
         {
             cypherVisitor.Enter(this);
-            _skipAmount.Visit(cypherVisitor);
+            Amount.Visit(cypherVisitor);
             cypherVisitor.Leave(this);
         }
 

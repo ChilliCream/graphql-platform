@@ -11,7 +11,12 @@ namespace HotChocolate.Data.Neo4J.Paging
         private readonly Neo4JFixture _fixture;
 
         private const string FooEntitiesCypher = @"
-            CREATE (:Foo {Bar: 'a'}), (:Foo {Bar: 'b'}), (:Foo {Bar: 'd'}), (:Foo {Bar: 'e'}), (:Foo {Bar: 'f'})
+            CREATE
+                (:Foo {Bar: 'a'}),
+                (:Foo {Bar: 'b'}),
+                (:Foo {Bar: 'd'}),
+                (:Foo {Bar: 'e'}),
+                (:Foo {Bar: 'f'})
         ";
 
         private class Foo
@@ -64,7 +69,7 @@ namespace HotChocolate.Data.Neo4J.Paging
 
             //act
             IExecutionResult result = await tester.ExecuteAsync(
-                    @"{
+                @"{
                             root(take: 2) {
                                 items {
                                     bar
@@ -88,7 +93,7 @@ namespace HotChocolate.Data.Neo4J.Paging
 
             // act
             IExecutionResult result = await tester.ExecuteAsync(
-                    @"{
+                @"{
                             root(take: 2 skip: 2) {
                                 items {
                                     bar

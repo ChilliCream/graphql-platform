@@ -11,6 +11,6 @@ namespace HotChocolate.Data.Neo4J.Filtering
         /// <summary>
         /// The path from the root to the current position in the input object
         /// </summary>
-        public Stack<string> Path { get; } = new ();
+        public Stack<string> Path { get; } = new();
     }
 }

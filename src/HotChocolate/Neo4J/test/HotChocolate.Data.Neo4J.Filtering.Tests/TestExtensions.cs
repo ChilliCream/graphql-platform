@@ -1,4 +1,4 @@
-﻿using HotChocolate.Execution;
+using HotChocolate.Execution;
 using Snapshooter;
 using Snapshooter.Xunit;
 
@@ -10,8 +10,13 @@ namespace HotChocolate.Data.Neo4J.Filtering
             this IExecutionResult? result,
             string snapshotName)
         {
-            if (result is null) return;
+            if (result is null)
+            {
+                return;
+            }
+
             result.ToJson().MatchSnapshot(new SnapshotNameExtension(snapshotName));
+
             if (result.ContextData is { } &&
                 result.ContextData.TryGetValue("query", out var queryResult) &&
                 queryResult is string queryString &&

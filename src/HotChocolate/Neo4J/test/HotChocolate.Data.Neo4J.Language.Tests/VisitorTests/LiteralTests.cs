@@ -10,7 +10,7 @@ namespace HotChocolate.Data.Neo4J.Language
         {
             var visitor = new CypherVisitor();
 
-            StringLiteral literal = new ("Test");
+            StringLiteral literal = new("Test");
             literal.Visit(visitor);
             visitor.Print().MatchSnapshot();
         }
@@ -30,7 +30,7 @@ namespace HotChocolate.Data.Neo4J.Language
         {
             var visitor = new CypherVisitor();
 
-            IntegerLiteral literal = new (1);
+            IntegerLiteral literal = new(1);
             literal.Visit(visitor);
             visitor.Print().MatchSnapshot();
         }
@@ -40,7 +40,7 @@ namespace HotChocolate.Data.Neo4J.Language
         {
             var visitor = new CypherVisitor();
 
-            DoubleLiteral literal = new (1.11);
+            DoubleLiteral literal = new(1.11);
             literal.Visit(visitor);
             visitor.Print().MatchSnapshot();
         }
