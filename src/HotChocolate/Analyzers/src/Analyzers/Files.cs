@@ -36,7 +36,7 @@ namespace HotChocolate.Analyzers
                             .SetMessage(ex.Message)
                             .SetException(ex)
                             .SetExtension(ErrorHelper.File, configLocation)
-                            .AddLocation(new HotChocolate.Location(1, 1))
+                            .AddLocation(new Location(1, 1))
                             .Build());
                 }
             }

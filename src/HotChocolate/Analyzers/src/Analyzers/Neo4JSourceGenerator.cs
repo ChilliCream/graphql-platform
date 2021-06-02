@@ -1,14 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using HotChocolate.Analyzers.Configuration;
 using HotChocolate.Analyzers.Diagnostics;
 using HotChocolate.Analyzers.Types;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static HotChocolate.Analyzers.TypeNames;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -87,7 +85,7 @@ namespace HotChocolate.Analyzers
                 queryDeclaration = queryDeclaration.AddMembers(
                     CreateQueryResolver(dataContext, settings, objectType));
 
-                GenerateObjectType(context, dataContext, settings.Namespace!, objectType);
+                GenerateObjectType(context, settings.Namespace!, objectType);
             }
 
             NamespaceDeclarationSyntax namespaceDeclaration =
@@ -105,11 +103,11 @@ namespace HotChocolate.Analyzers
 
         private static void GenerateObjectType(
             GeneratorExecutionContext context,
-            DataGeneratorContext dataContext,
             string @namespace,
             IObjectType objectType)
         {
-            var typeNameDirective = objectType.GetFirstDirective<TypeNameDirective>("typeName");
+            TypeNameDirective? typeNameDirective =
+                objectType.GetFirstDirective<TypeNameDirective>("typeName");
             string typeName = typeNameDirective?.Name ?? objectType.Name.Value;
 
             ClassDeclarationSyntax modelDeclaration =
@@ -150,7 +148,8 @@ namespace HotChocolate.Analyzers
 
             dataContext = DataGeneratorContext.FromMember(objectType, dataContext);
 
-            var typeNameDirective = objectType.GetFirstDirective<TypeNameDirective>("typeName");
+            TypeNameDirective? typeNameDirective =
+                objectType.GetFirstDirective<TypeNameDirective>("typeName");
             string typeName = typeNameDirective?.Name ?? objectType.Name.Value;
             string pluralTypeName = typeNameDirective?.PluralName ?? typeName + "s";
 
@@ -196,9 +195,9 @@ namespace HotChocolate.Analyzers
         private static string GraphQLFieldName(string s)
         {
             var buffer = new char[s.Length];
-            bool lower = true;
+            var lower = true;
 
-            for (int i = 0; i < s.Length; i++)
+            for (var i = 0; i < s.Length; i++)
             {
                 if (lower && char.IsUpper(s[i]))
                 {

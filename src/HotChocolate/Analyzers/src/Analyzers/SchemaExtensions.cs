@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Analyzers.Types;
-using HotChocolate.Language;
 using HotChocolate.Types;
 using static HotChocolate.Analyzers.TypeNames;
 
@@ -11,7 +10,7 @@ namespace HotChocolate.Analyzers
     public static class SchemaExtensions
     {
         public static T? GetFirstDirective<T>(
-            this HotChocolate.Types.IHasDirectives hasDirectives,
+            this IHasDirectives hasDirectives,
             string name,
             T? defaultValue = default)
         {
@@ -50,8 +49,8 @@ namespace HotChocolate.Analyzers
 
             if (type.IsListType())
             {
-                string elementType = CreateTypeName(type.ElementType(), @namespace, true);
-                string listType = Generics(Global(TypeNames.List), elementType);
+                string elementType = CreateTypeName(type.ElementType(), @namespace);
+                string listType = Generics(Global(List), elementType);
 
                 if (nullable)
                 {
@@ -76,7 +75,8 @@ namespace HotChocolate.Analyzers
 
             if (type is ObjectType objectType)
             {
-                var typeNameDirective = objectType.GetFirstDirective<TypeNameDirective>("typeName");
+                TypeNameDirective? typeNameDirective =
+                    objectType.GetFirstDirective<TypeNameDirective>("typeName");
                 string typeName = typeNameDirective?.Name ?? objectType.Name.Value;
                 return Global(@namespace + "." + typeName);
             }
@@ -105,19 +105,21 @@ namespace HotChocolate.Analyzers
 
         private static string CreateTypeName(Type type, string typeName)
         {
-            string ns = GetNamespace(type);
+            var ns = GetNamespace(type);
+
             if (ns is null)
             {
                 return typeName;
             }
+
             return $"{ns}.{typeName}";
         }
 
-        private static string GetNamespace(Type type)
+        private static string? GetNamespace(Type type)
         {
             if (type.IsNested)
             {
-                return $"{GetNamespace(type.DeclaringType)}.{type.DeclaringType.Name}";
+                return $"{GetNamespace(type.DeclaringType!)}.{type.DeclaringType!.Name}";
             }
             return type.Namespace;
         }

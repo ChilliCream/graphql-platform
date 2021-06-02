@@ -14,9 +14,8 @@ namespace HotChocolate.Analyzers
             {
                 return value.Replace(AltDirectorySeparatorChar, DirectorySeparatorChar);
             }
-            
-            return System.IO.Path.GetDirectoryName(
-                typeof(Directories).Assembly.Location);
+
+            return GetDirectoryName(typeof(Directories).Assembly.Location)!;
         }
     }
 }
