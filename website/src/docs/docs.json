@@ -199,10 +199,6 @@
                 "title": "Overview"
               },
               {
-                "path": "object-type",
-                "title": "Object Type"
-              },
-              {
                 "path": "custom-attributes",
                 "title": "Custom Attributes"
               },
@@ -233,10 +229,6 @@
               {
                 "path": "apollo-tracing",
                 "title": "Apollo Tracing"
-              },
-              {
-                "path": "coding-approaches",
-                "title": "Coding Approaches"
               },
               {
                 "path": "migrate-from-10-to-11",
