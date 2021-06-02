@@ -12,6 +12,7 @@ class Helpers
     {
         "GreenDonut",
         // Path.Combine("HotChocolate", "ApolloFederation"),
+        Path.Combine("HotChocolate", "Analyzers"),
         Path.Combine("HotChocolate", "AspNetCore"),
         Path.Combine("HotChocolate", "Core"),
         Path.Combine("HotChocolate", "Language"),
