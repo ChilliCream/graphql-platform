@@ -42,13 +42,15 @@ A [Non-Null](/docs/hotchocolate/defining-a-schema/non-null) field for example in
 
 Hot Chocolate allows us to [extend existing types](/docs/hotchocolate/defining-a-schema/extending-types), helping us keep our code organized.
 
+Rather than adding more and more fields to the Query type in the same class for instance, we can _extend_ the Query type with a new field from another location in our codebase where that field logically should live.
+
 ## Directives
 
 [Directives](/docs/hotchocolate/defining-a-schema/directives) allow us to decorate parts of our GraphQL schema with additional configuration.
 
 This configuration can be used as metadata for client tools or alternate our GraphQL server's runtime execution and type validation behavior.
 
-## Schema maintenance
+## Maintaining and documenting your schema
 
 We also have other means of exposing information about our API to consumers, besides [Directives](/docs/hotchocolate/defining-a-schema/directives):
 
