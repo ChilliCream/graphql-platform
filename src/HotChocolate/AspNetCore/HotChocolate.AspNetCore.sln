@@ -37,7 +37,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.AspNetCore", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.AspNetCore.Tests", "test\AspNetCore.Tests\HotChocolate.AspNetCore.Tests.csproj", "{F62C1404-5CB2-45BF-B9F8-87760034FEAE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.StarWars", "..\Core\test\StarWars\HotChocolate.StarWars.csproj", "{6E957940-24FD-4163-BBD5-4786C9373E56}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.StarWars.Tests", "..\Core\test\StarWars\HotChocolate.StarWars.Tests.csproj", "{6E957940-24FD-4163-BBD5-4786C9373E56}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Subscriptions.InMemory", "..\Core\src\Subscriptions.InMemory\HotChocolate.Subscriptions.InMemory.csproj", "{86C6C9FB-3AF3-4DB6-AEC2-0F3941FEA664}"
 EndProject
