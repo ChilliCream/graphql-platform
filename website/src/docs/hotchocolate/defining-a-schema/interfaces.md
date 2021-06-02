@@ -81,9 +81,9 @@ public class Startup
 }
 ```
 
-<!-- TODO: This is currently broken: https://github.com/ChilliCream/hotchocolate/issues/3577 -->
+**The following does not currently work ([3577](https://github.com/ChilliCream/hotchocolate/issues/3577)).**
 
-<!-- We can also use classes to define an interface.
+We can also use classes to define an interface.
 
 ```csharp
 [InterfaceType]
@@ -109,7 +109,7 @@ public class Startup
             .AddType<TextMessage>();
     }
 }
-``` -->
+```
 
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>

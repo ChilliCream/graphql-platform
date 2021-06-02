@@ -61,7 +61,36 @@ public class Startup
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
-TODO
+```csharp
+public class BookTypeExtensions : ObjectTypeExtension<Book>
+{
+    protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
+    {
+        // this needs to match the name of the actual object type
+        descriptor.Name("Book");
+
+        descriptor
+            .Field("genres")
+            .Type<ListType<StringType>>()
+            .Resolve(context =>
+            {
+                var parent = context.Parent<Book>();
+
+                // Omitted code for brevity
+            });
+    }
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddTypeExtension<BookTypeExtensions>();
+    }
+}
+```
 
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
@@ -92,7 +121,6 @@ We can also ignore fields of the type we are extending.
 <ExampleTabs.Annotation>
 
 ```csharp
-
 [ExtendObjectType(typeof(Book),
     IgnoreProperties = new[] { nameof(Book.AuthorId) })]
 public class BookExtensions
@@ -113,7 +141,30 @@ public class Startup
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
-TODO
+**This is currently not working ([#3776](https://github.com/ChilliCream/hotchocolate/issues/3776)).**
+
+```csharp
+public class BookTypeExtensions : ObjectTypeExtension<Book>
+{
+    protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
+    {
+        // this needs to match the name of the actual object type
+        descriptor.Name("Book");
+
+        descriptor.Ignore(f => f.AuthorId);
+    }
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddTypeExtension<BookTypeExtensions>();
+    }
+}
+```
 
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
@@ -157,7 +208,39 @@ public class Startup
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
-TODO
+**This is currently not working ([#3776](https://github.com/ChilliCream/hotchocolate/issues/3776)).**
+
+```csharp
+public class BookTypeExtensions : ObjectTypeExtension<Book>
+{
+    protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
+    {
+        // this needs to match the name of the actual object type
+        descriptor.Name("Book");
+
+        descriptor
+            .Field(f => f.AuthorId)
+            .Type<AuthorType>()
+            .Name("author")
+            .Resolve(context =>
+            {
+                var parent = context.Parent<Book>();
+
+                // Omitted code for brevity
+            });
+    }
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddTypeExtension<BookTypeExtensions>();
+    }
+}
+```
 
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
