@@ -273,7 +273,6 @@ public sealed class CreditCardNumberType : ScalarType<string, StringValueNode>
     protected override bool IsInstanceOfType(string runtimeValue)
         => _validator.ValidateCreditCard(runtimeValue);
 
-    // todo: when is this useful? + add comment
     public override IValueNode ParseResult(object? resultValue)
         => ParseValue(resultValue);
 
@@ -285,7 +284,6 @@ public sealed class CreditCardNumberType : ScalarType<string, StringValueNode>
     protected override StringValueNode ParseValue(string runtimeValue)
         => new StringValueNode(runtimeValue);
 
-    // todo: add comment
     public override bool TryDeserialize(object? resultValue,
         out object? runtimeValue)
     {
@@ -300,7 +298,6 @@ public sealed class CreditCardNumberType : ScalarType<string, StringValueNode>
         return false;
     }
 
-    // todo: add comment
     public override bool TrySerialize(object? runtimeValue,
         out object? resultValue)
     {
@@ -378,7 +375,6 @@ public class CreditCardNumberType : ScalarType
             this);
     }
 
-    // todo: when is this useful? + add comment
     public override IValueNode ParseResult(object? resultValue)
     {
         if (resultValue is string s &&
@@ -393,7 +389,6 @@ public class CreditCardNumberType : ScalarType
             this);
     }
 
-    // todo: add comment
     public override bool TrySerialize(object? runtimeValue,
         out object? resultValue)
     {
@@ -409,7 +404,6 @@ public class CreditCardNumberType : ScalarType
         return false;
     }
 
-    // todo: add comment
     public override bool TryDeserialize(object? resultValue,
         out object? runtimeValue)
     {

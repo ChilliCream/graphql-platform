@@ -4,9 +4,27 @@ title: "Extending Types"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-GraphQL types tend to become pretty large, especially root types like the query type. Type extensions allow us to extend existing types.
+GraphQL allows us to extend existing types with new functionality.
 
-A type can have one or more type extensions, which will form a combined schema type at runtime.
+```sdl
+type Query {
+  foo: String
+}
+
+extend type Query {
+  bar: String
+}
+```
+
+In Hot Chocolate type extensions work a little different. Instead of generating the `extend` syntax in the schema, the original type definition and its type extensions are merged at runtime into a combined type.
+
+Type extensions make most sense, if
+
+- we want to split up types into separate classes.
+
+- we can not modify the original type.
+
+> Note: If we just want to organize the fields of one of our types in different files, we can use [partial classes](https://docs.microsoft.com/dotnet/csharp/programming-guide/classes-and-structs/partial-classes-and-methods) in the Annotation-based approach.
 
 # Object Types
 
@@ -20,11 +38,6 @@ public class Book
     public string Title { get; set; }
 
     public int AuthorId { get; set; }
-}
-
-// This is only relevant for the Code-first approach
-public class BookType : ObjectType<Book>
-{
 }
 ```
 
