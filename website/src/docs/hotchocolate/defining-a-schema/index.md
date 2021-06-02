@@ -18,7 +18,7 @@ First we will look at the three root types, often called _Operations_, that repr
 
 Each GraphQL schema is made up of two basic building blocks:
 
-- [_Object types_](/docs/hotchocolate/defining-a-schema/object-types) contain fields and describe our entities.<br />[Operations](#Operations) for example are nothing more than simple object types.
+- [_Object types_](/docs/hotchocolate/defining-a-schema/object-types) contain fields and describe our entities.<br />[_Operations_](#operations) for example are nothing more than simple object types.
 
 - [Scalars](/docs/hotchocolate/defining-a-schema/scalars) are the primitives of our GraphQL schema: `String`, `Int`, etc.<br />We can also define custom scalars to more precisely describe our business domain.
 

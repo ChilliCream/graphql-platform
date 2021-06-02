@@ -592,7 +592,7 @@ services
     .AddTransactionScopeHandler<CustomTransactionScopeHandler>();
 ```
 
-> More about this topic can be read [here](/docs/hotchocolate/defining-a-schema/operations#mutation-transactions).
+> More about this topic can be read [here](/docs/hotchocolate/defining-a-schema/mutations#transactions).
 
 ## Directive Introspection
 

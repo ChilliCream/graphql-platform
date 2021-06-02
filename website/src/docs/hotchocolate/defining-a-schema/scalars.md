@@ -176,7 +176,7 @@ dotnet add package HotChocolate.Types.Scalars
 [3]: https://tools.ietf.org/html/rfc7042#page-19
 [4]: https://tools.ietf.org/html/rfc7043
 
-These additional scalars are not mapped by Hot Chocolate automatically, we need to [specify them manually](/docs/hotchocolate/defining-a-schema/object-types/#explicit-types).
+These additional scalars are not mapped by Hot Chocolate automatically, we need to [specify them manually](/docs/hotchocolate/defining-a-schema/object-types#explicit-types).
 
 # Binding behavior
 
