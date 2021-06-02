@@ -28,7 +28,7 @@ Type extensions make most sense, if
 
 # Object Types
 
-Given is the following entity that we want to extend with functionality.
+Consider we have the following entity that we want to extend with functionality.
 
 ```csharp
 public class Book
