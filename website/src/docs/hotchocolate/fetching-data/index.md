@@ -86,8 +86,6 @@ Excellent, now that we know what resolvers are and how they work in a bigger pic
 
 A resolver is a function that takes zero or many arguments and returns one value. The simplest resolver to write is a resolver that takes zero arguments and returns a simple value type (e.g., a string). For simplicity, we will do precisely that in our first example. Creating a resolver named `Say` with no arguments, which returns just a static string value `Hello World!`.
 
-> **Note:** Every single code example will be shown in three different approaches, annotation-based (previously known as pure code-first), code-first, and schema-first. However, they will always result in the same outcome on a GraphQL schema perspective and internally in Hot Chocolate. All three approaches have their pros and cons and can be combined when needed with each other. If you would like to learn more about the three approaches in Hot Chocolate, click on [Coding Approaches](/docs/hotchocolate/api-reference/coding-approaches).
-
 ## Basic resolver example
 
 <ExampleTabs>
@@ -106,7 +104,6 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services
-            .AddRouting()
             .AddGraphQLServer()
             .AddQueryType<Query>();
     }
@@ -144,7 +141,6 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services
-            .AddRouting()
             .AddGraphQLServer()
             .AddQueryType<QueryType>();
     }
@@ -169,7 +165,6 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services
-            .AddRouting()
             .AddGraphQLServer()
             .AddDocumentFromString(@"
                 type Query {
@@ -215,7 +210,6 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services
-            .AddRouting()
             .AddGraphQLServer()
             .AddQueryType<Query>();
     }
@@ -264,7 +258,6 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services
-            .AddRouting()
             .AddGraphQLServer()
             .AddQueryType<Query>()
             .AddDataLoader<MyDataLoader>();
