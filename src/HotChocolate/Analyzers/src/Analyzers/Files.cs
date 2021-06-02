@@ -64,8 +64,8 @@ namespace HotChocolate.Analyzers
 
             foreach (string file in context.AdditionalFiles
                 .Select(t => t.Path)
-                .Where(t => GetFileName(t).Equals(
-                    FileNames.GraphQLConfigFile,
+                .Where(t => GetExtension(t).Equals(
+                    GraphQLExtension,
                     StringComparison.OrdinalIgnoreCase))
                 .Where(t => t.StartsWith(rootDirectory) && glob.IsMatch(t)))
             {
@@ -80,8 +80,7 @@ namespace HotChocolate.Analyzers
                 }
                 catch (SyntaxException ex)
                 {
-                    // todo
-                    throw ex;
+                    context.ReportError(ex);
                 }
             }
 

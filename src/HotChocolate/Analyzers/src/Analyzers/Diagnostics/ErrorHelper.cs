@@ -123,7 +123,7 @@ namespace HotChocolate.Analyzers.Diagnostics
             ReportError(
                 context,
                 ErrorBuilder.New()
-                    .SetMessage(exception.Message)
+                    .SetMessage(exception.Message + Environment.NewLine + exception.GetType().Name)
                     .SetException(exception)
                     .Build());
                     

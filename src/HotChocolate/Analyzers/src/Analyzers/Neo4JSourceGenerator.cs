@@ -26,17 +26,21 @@ namespace HotChocolate.Analyzers
         public void Execute(GeneratorExecutionContext context)
         {
             _location = context.GetBinDirectory();
-    
+
             try
             {
                 foreach (GraphQLConfig config in context.GetConfigurations())
                 {
+
                     if (config.Extensions.Neo4J is not null)
                     {
+                        context.AddSource("abc.cs", "// abc");
                         var schemaDocuments = context.GetSchemaDocuments(config);
+                        context.AddSource("def.cs", "// abc");
 
                         if (schemaDocuments.Count > 0)
                         {
+                            context.AddSource("def1.cs", "// abc");
                             config.Extensions.Neo4J.Namespace ??= "GraphQL";
                             ISchema schema = SchemaHelper.CreateSchema(schemaDocuments);
                             DataGeneratorContext dataContext = DataGeneratorContext.FromSchema(schema);
