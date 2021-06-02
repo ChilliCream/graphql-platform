@@ -101,6 +101,35 @@ _configuration_
 ```csharp
 serviceCollection.AddSerializer<PositiveIntSerializer>();
 ```
+
+### Any or JSONObject types
+
+Some GraphQL schemes contain untyped fields, whose types are often called Any or JSONObject. Strawberry Shake allows
+you to access the raw `JsonElement` provided by `System.Text.Json` to decode this value yourself.
+
+_schema.extensions.graphql_
+```graphql
+extend scalar Any 
+      @serializationType(name: "global::System.Object") 
+      @runtimeType(name: "global::System.Text.Json.JsonElement")
+```
+
+_serializer_
+```csharp
+public class JsonObjectSerializer 
+    : ILeafValueParser<JsonElement, object>
+{
+	public string TypeName => "JSONObject";
+
+    // Parses the value that is returned from the server (Output)
+    public override object Parse(JsonElement serializedValue)
+    {
+		// Here you could decode serializedValue in any way you want.
+        return parsedValue;
+    }
+}
+```
+
 ### Advanced Example
 Your schema contains `X509Certificate`'s. These are serialized to `Base64` on the server and transported as strings.
 
