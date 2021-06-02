@@ -4,7 +4,7 @@ title: "Schema Stitching"
 
 In the centralized approach of schema distribution, all the configuration is done on the gateway.
 
-HotChocolate uses the schema name as an identifier for schemas. This schema name is used to create HTTP clients and references the schema in various places. It is good practice to store these schema names as a constant.
+Hot Chocolate uses the schema name as an identifier for schemas. This schema name is used to create HTTP clients and references the schema in various places. It is good practice to store these schema names as a constant.
 
 You will need to add a package reference to `HotChocolate.Stitching` to your gateway:
 
