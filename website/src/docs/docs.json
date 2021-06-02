@@ -133,6 +133,10 @@
               {
                 "path": "mongodb",
                 "title": "MongoDB"
+              },
+              {
+                "path": "neo4j",
+                "title": "Neo4J Database"
               }
             ]
           },

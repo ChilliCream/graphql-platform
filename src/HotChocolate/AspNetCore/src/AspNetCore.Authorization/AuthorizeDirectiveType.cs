@@ -2,11 +2,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate.AspNetCore.Authorization
 {
-    public sealed class AuthorizeDirectiveType
-        : DirectiveType<AuthorizeDirective>
+    public sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
     {
-        protected override void Configure(
-            IDirectiveTypeDescriptor<AuthorizeDirective> descriptor)
+        protected override void Configure(IDirectiveTypeDescriptor<AuthorizeDirective> descriptor)
         {
             descriptor
                 .Name("authorize")
