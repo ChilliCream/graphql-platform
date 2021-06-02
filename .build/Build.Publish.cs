@@ -46,9 +46,19 @@ partial class Build : NukeBuild
                 DotNetBuildSonarSolution(AllSolutionFile);
             }
 
+            DotNetBuild(c => c
+                .SetProjectFile(AllSolutionFile)
+                .SetNoRestore(InvokedTargets.Contains(Restore))
+                .SetConfiguration(Configuration)
+                .SetAssemblyVersion(GitVersion.AssemblySemVer)
+                .SetFileVersion(GitVersion.AssemblySemFileVer)
+                .SetInformationalVersion(GitVersion.InformationalVersion)
+                .SetVersion(GitVersion.SemVer));
+
             DotNetPack(c => c
                 .SetProject(AllSolutionFile)
-                .SetNoBuild(InvokedTargets.Contains(Compile))
+                .SetNoRestore(true)
+                .SetNoBuild(true)
                 .SetConfiguration(Configuration)
                 .SetOutputDirectory(PackageDirectory)
                 .SetVersion(GitVersion.SemVer));
