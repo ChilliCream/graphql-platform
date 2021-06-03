@@ -83,5 +83,29 @@ namespace HotChocolate.Utilities
             service = default!;
             return false;
         }
+
+        public static bool TryGetService(
+            this IServiceProvider services,
+            Type type,
+            out object? service)
+        {
+            if (services is null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            try
+            {
+                service = services.GetService(type);
+                return service is not null;
+            }
+            // azure functions does not honor the interface and throws if the service
+            // is not known.
+            catch
+            {
+                service = null;
+                return false;
+            }
+        }
     }
 }

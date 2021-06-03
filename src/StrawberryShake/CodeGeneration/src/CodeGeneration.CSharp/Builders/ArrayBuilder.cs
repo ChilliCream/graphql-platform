@@ -21,7 +21,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public ArrayBuilder AddAssigment(ICode code)
+        public ArrayBuilder AddAssignment(ICode code)
         {
             _assigment.Add(code);
             return this;

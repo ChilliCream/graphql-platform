@@ -20,6 +20,7 @@ namespace HotChocolate.Types
             Arguments = FieldCollection<Argument>.From(
                 definition
                     .GetArguments()
+                    .Where(t => !t.Ignore)
                     .Select(t => new Argument(t, fieldCoordinate.With(argumentName: t.Name))),
                 sortArgumentsByName);
             IsDeprecated = !string.IsNullOrEmpty(definition.DeprecationReason);

@@ -95,14 +95,9 @@ namespace HotChocolate
                             bindingLookup));
                 }
 
-                if (builder._schema is null)
-                {
-                    types.Add(new SchemaTypeReference(new Schema()));
-                }
-                else
-                {
-                    types.Add(builder._schema(context.TypeInspector));
-                }
+                types.Add(builder._schema is null
+                    ? new SchemaTypeReference(new Schema())
+                    : builder._schema(context.TypeInspector));
 
                 return types;
             }
@@ -208,8 +203,7 @@ namespace HotChocolate
                     typeReferences,
                     builder._resolverTypes,
                     builder._isOfType,
-                    type => IsQueryType(context.TypeInspector, type, operations),
-                    type => IsMutationType(context.TypeInspector, type, operations));
+                    type => GetOperationKind(type, context.TypeInspector, operations));
 
                 foreach (FieldMiddleware component in builder._globalComponents)
                 {
@@ -219,7 +213,7 @@ namespace HotChocolate
                 foreach (FieldReference reference in builder._resolvers.Keys)
                 {
                     initializer.Resolvers[reference] = new RegisteredResolver(
-                        typeof(object), builder._resolvers[reference]);
+                        typeof(object), typeof(object), builder._resolvers[reference]);
                 }
 
                 foreach (RegisteredResolver resolver in
@@ -275,69 +269,79 @@ namespace HotChocolate
                 }
             }
 
-            private static bool IsQueryType(
-                ITypeInspector typeInspector,
+            private static RootTypeKind GetOperationKind(
                 TypeSystemObjectBase type,
+                ITypeInspector typeInspector,
                 Dictionary<OperationType, ITypeReference> operations)
             {
                 if (type is ObjectType objectType)
                 {
-                    if (operations.TryGetValue(OperationType.Query, out ITypeReference? typeRef))
+                    if (IsOperationType(
+                        objectType,
+                        OperationType.Query,
+                        typeInspector,
+                        operations))
                     {
-                        if (typeRef is SchemaTypeReference sr)
-                        {
-                            return sr.Type == objectType;
-                        }
-
-                        if (typeRef is ExtendedTypeReference cr)
-                        {
-                            return cr.Type == typeInspector.GetType(objectType.GetType())
-                                || cr.Type == typeInspector.GetType(objectType.RuntimeType);
-                        }
-
-                        if (typeRef is SyntaxTypeReference str)
-                        {
-                            return objectType.Name.Equals(str.Type.NamedType().Name.Value);
-                        }
+                        return RootTypeKind.Query;
                     }
-                    else
+
+                    if (IsOperationType(
+                        objectType,
+                        OperationType.Mutation,
+                        typeInspector,
+                        operations))
                     {
-                        return type.Name.Equals(WellKnownTypes.Query);
+                        return RootTypeKind.Mutation;
+                    }
+
+                    if (IsOperationType(
+                        objectType,
+                        OperationType.Subscription,
+                        typeInspector,
+                        operations))
+                    {
+                        return RootTypeKind.Subscription;
                     }
                 }
 
-                return false;
+                return RootTypeKind.None;
             }
 
-            private static bool IsMutationType(
+            private static bool IsOperationType(
+                ObjectType objectType,
+                OperationType operationType,
                 ITypeInspector typeInspector,
-                TypeSystemObjectBase type,
                 Dictionary<OperationType, ITypeReference> operations)
             {
-                if (type is ObjectType objectType)
+                if (operations.TryGetValue(operationType, out ITypeReference? typeRef))
                 {
-                    if (operations.TryGetValue(OperationType.Mutation, out ITypeReference? typeRef))
+                    if (typeRef is SchemaTypeReference sr)
                     {
-                        if (typeRef is SchemaTypeReference sr)
-                        {
-                            return sr.Type == objectType;
-                        }
-
-                        if (typeRef is ExtendedTypeReference cr)
-                        {
-                            return cr.Type == typeInspector.GetType(objectType.GetType())
-                                || cr.Type == typeInspector.GetType(objectType.RuntimeType);
-                        }
-
-                        if (typeRef is SyntaxTypeReference str)
-                        {
-                            return objectType.Name.Equals(str.Type.NamedType().Name.Value);
-                        }
+                        return sr.Type == objectType;
                     }
-                    else
+
+                    if (typeRef is ExtendedTypeReference cr)
                     {
-                        return type.Name.Equals(WellKnownTypes.Mutation);
+                        return cr.Type == typeInspector.GetType(objectType.GetType())
+                            || cr.Type == typeInspector.GetType(objectType.RuntimeType);
                     }
+
+                    if (typeRef is SyntaxTypeReference str)
+                    {
+                        return objectType.Name.Equals(str.Type.NamedType().Name.Value);
+                    }
+                }
+                else if(operationType == OperationType.Query)
+                {
+                    return objectType.Name.Equals(OperationTypeNames.Query);
+                }
+                else if(operationType == OperationType.Mutation)
+                {
+                    return objectType.Name.Equals(OperationTypeNames.Mutation);
+                }
+                else if(operationType == OperationType.Subscription)
+                {
+                    return objectType.Name.Equals(OperationTypeNames.Subscription);
                 }
 
                 return false;

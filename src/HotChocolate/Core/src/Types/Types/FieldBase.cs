@@ -65,7 +65,7 @@ namespace HotChocolate.Types
             TDefinition definition)
         {
             DeclaringType = context.Type;
-            Type = context.GetType<TType>(definition.Type);
+            Type = context.GetType<TType>(definition.Type!);
             RuntimeType = Type is IHasRuntimeType hasClrType
                 ? hasClrType.RuntimeType
                 : typeof(object);

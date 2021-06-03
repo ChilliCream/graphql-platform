@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Tests;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;
@@ -350,77 +352,6 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void ObjectTypeExtension_ReplaceDirectiveOnType()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(new ObjectType<Foo>(t => t
-                    .Directive("dummy_arg", new ArgumentNode("a", "a"))))
-                .AddType(new ObjectTypeExtension(d => d
-                    .Name("Foo")
-                    .Directive("dummy_arg", new ArgumentNode("a", "b"))))
-                .AddDirectiveType<DummyWithArgDirective>()
-                .Create();
-
-            // assert
-            ObjectType type = schema.GetType<ObjectType>("Foo");
-            string value = type.Directives["dummy_arg"]
-                .First().GetArgument<string>("a");
-            Assert.Equal("b", value);
-        }
-
-        [Fact]
-        public void ObjectTypeExtension_ReplaceDirectiveOnField()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(new ObjectType<Foo>(t => t
-                    .Field(f => f.Description)
-                    .Directive("dummy_arg", new ArgumentNode("a", "a"))))
-                .AddType(new ObjectTypeExtension(d => d
-                    .Name("Foo")
-                    .Field("description")
-                    .Directive("dummy_arg", new ArgumentNode("a", "b"))))
-                .AddDirectiveType<DummyWithArgDirective>()
-                .Create();
-
-            // assert
-            ObjectType type = schema.GetType<ObjectType>("Foo");
-            string value = type.Fields["description"].Directives["dummy_arg"]
-                .First().GetArgument<string>("a");
-            Assert.Equal("b", value);
-        }
-
-        [Fact]
-        public void ObjectTypeExtension_ReplaceDirectiveOnArgument()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(new ObjectType<Foo>(t => t
-                    .Field(f => f.GetName(default))
-                    .Argument("a", a => a
-                        .Type<StringType>()
-                        .Directive("dummy_arg", new ArgumentNode("a", "a")))))
-                .AddType(new ObjectTypeExtension(d => d
-                    .Name("Foo")
-                    .Field("name")
-                    .Argument("a", a =>
-                        a.Directive("dummy_arg", new ArgumentNode("a", "b")))))
-                .AddDirectiveType<DummyWithArgDirective>()
-                .Create();
-
-            // assert
-            ObjectType type = schema.GetType<ObjectType>("Foo");
-            string value = type.Fields["name"].Arguments["a"]
-                .Directives["dummy_arg"]
-                .First().GetArgument<string>("a");
-            Assert.Equal("b", value);
-        }
-
-        [Fact]
         public void ObjectTypeExtension_CopyDependencies_ToType()
         {
             // arrange
@@ -629,6 +560,77 @@ namespace HotChocolate.Types
             schema.Print().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Replace_Field_With_The_Same_Name()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType()
+                .AddTypeExtension<Replace_Field_PersonDto_2_Query>()
+                .AddTypeExtension<Replace_Field_PersonResolvers_2>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Replace_Field_With_The_Same_Name_Execute()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType()
+                .AddTypeExtension<Replace_Field_PersonDto_2_Query>()
+                .AddTypeExtension<Replace_Field_PersonResolvers_2>()
+                .ExecuteRequestAsync("{ person { someId(arg: \"efg\") } }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Extended_Field_Overwrites_Extended_Field()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType()
+                .AddTypeExtension<ExtensionA>()
+                .AddTypeExtension<ExtensionB>()
+                .ExecuteRequestAsync("{ foo }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_Member_And_ResolverMember_Are_Correctly_Set_When_Extending()
+        {
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<ObjectField_Test_Query>()
+                    .AddTypeExtension<ObjectField_Test_Query_Extension>()
+                    .BuildSchemaAsync();
+
+            IObjectField field = schema.QueryType.Fields["foo1"];
+            Assert.Equal("GetFoo", field.Member?.Name);
+            Assert.Equal("GetFoo1", field.ResolverMember?.Name);
+        }
+
+        [Fact]
+        public async Task Ensure_Member_And_ResolverMember_Are_The_Same_When_Not_Extending()
+        {
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<ObjectField_Test_Query>()
+                    .BuildSchemaAsync();
+
+            IObjectField field = schema.QueryType.Fields["foo"];
+            Assert.Equal("GetFoo", field.Member?.Name);
+            Assert.Equal("GetFoo", field.ResolverMember?.Name);
+        }
+
         public class FooType
             : ObjectType<Foo>
         {
@@ -785,7 +787,7 @@ namespace HotChocolate.Types
         [ExtendObjectType(typeof(BindResolver_With_Property_PersonDto))]
         public class BindResolver_With_Property_PersonResolvers
         {
-            [BindProperty(nameof(BindResolver_With_Property_PersonDto.FriendId))]
+            [BindMember(nameof(BindResolver_With_Property_PersonDto.FriendId))]
             public List<BindResolver_With_Property_PersonDto> Friends() =>
                 new List<BindResolver_With_Property_PersonDto>();
         }
@@ -843,7 +845,7 @@ namespace HotChocolate.Types
         public class Remove_Fields_BindProperty_PersonResolvers
         {
             [GraphQLIgnore]
-            [BindProperty(nameof(Remove_Fields_BindProperty_PersonDto.InternalId))]
+            [BindMember(nameof(Remove_Fields_BindProperty_PersonDto.InternalId))]
             public int SomeId { get; } = 1;
         }
 
@@ -857,8 +859,56 @@ namespace HotChocolate.Types
         [ExtendObjectType(typeof(Replace_Field_PersonDto))]
         public class Replace_Field_PersonResolvers
         {
-            [BindProperty(nameof(Replace_Field_PersonDto.InternalId))]
+            [BindMember(nameof(Replace_Field_PersonDto.InternalId))]
             public string SomeId { get; } = "abc";
+        }
+
+        public interface IPersonDto
+        {
+            string SomeId();
+        }
+
+        [ExtendObjectType("Query")]
+        public class Replace_Field_PersonDto_2_Query
+        {
+            public Replace_Field_PersonDto_2 GetPerson() => new();
+        }
+
+        public class Replace_Field_PersonDto_2 : IPersonDto
+        {
+            public string SomeId() => "1";
+        }
+
+        [ExtendObjectType(typeof(IPersonDto))]
+        public class Replace_Field_PersonResolvers_2
+        {
+            [BindMember(nameof(Replace_Field_PersonDto_2.SomeId))]
+            public string SomeId([Parent] IPersonDto dto, string arg = "abc") =>
+                dto.SomeId() + arg;
+        }
+
+        [ExtendObjectType(OperationTypeNames.Query)]
+        public class ExtensionA
+        {
+            public string Foo() => "abc";
+        }
+
+        [ExtendObjectType(OperationTypeNames.Query)]
+        public class ExtensionB
+        {
+            public string Foo() => "def";
+        }
+
+        public class ObjectField_Test_Query
+        {
+            public string GetFoo() => null;
+        }
+
+        [ExtendObjectType(typeof(ObjectField_Test_Query))]
+        public class ObjectField_Test_Query_Extension
+        {
+            [BindMember(nameof(ObjectField_Test_Query.GetFoo))]
+            public string GetFoo1() => null;
         }
     }
 }

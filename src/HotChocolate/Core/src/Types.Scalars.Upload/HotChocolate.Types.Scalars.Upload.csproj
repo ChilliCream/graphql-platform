@@ -7,7 +7,7 @@
   <PropertyGroup>
     <PackageId>HotChocolate.Types.Scalars.Upload</PackageId>
     <AssemblyName>HotChocolate.Types.Scalars.Upload</AssemblyName>
-    <RootNamespace>HotChocolate.Types.Scalars.Upload</RootNamespace>
+    <RootNamespace>HotChocolate.Types</RootNamespace>
     <Description>Contains the GraphQL Upload Scalar.</Description>
   </PropertyGroup>
 

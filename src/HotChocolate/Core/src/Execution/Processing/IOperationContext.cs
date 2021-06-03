@@ -18,7 +18,7 @@ namespace HotChocolate.Execution.Processing
         ISchema Schema { get; }
 
         /// <summary>
-        /// Gets the request scope services
+        /// Gets the request scoped services
         /// </summary>
         IServiceProvider Services { get; }
 

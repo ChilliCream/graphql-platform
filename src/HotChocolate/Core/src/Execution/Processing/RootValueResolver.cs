@@ -1,6 +1,7 @@
 using System;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using static HotChocolate.Execution.Properties.Resources;
 
 namespace HotChocolate.Execution.Processing
@@ -34,7 +35,7 @@ namespace HotChocolate.Execution.Processing
             // that from the request services.
             if (rootType.RuntimeType != typeof(object))
             {
-                object? rootValue = services.GetService(rootType.RuntimeType);
+                services.TryGetService(rootType.RuntimeType, out object? rootValue);
 
                 // if the request services did not provide a rootValue and the runtime
                 // representation is a instantiatable class we will create a singleton ourselfs
@@ -45,7 +46,9 @@ namespace HotChocolate.Execution.Processing
                 {
                     try
                     {
-                        rootValue = context.Activator.CreateInstance(rootType.RuntimeType);
+                        rootValue = context.Activator.CreateInstance(
+                            rootType.RuntimeType,
+                            context.Services);
                         cachedValue = rootValue;
                     }
                     catch

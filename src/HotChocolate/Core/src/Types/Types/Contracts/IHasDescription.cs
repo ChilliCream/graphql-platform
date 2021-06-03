@@ -2,6 +2,9 @@
 
 namespace HotChocolate.Types
 {
+    /// <summary>
+    /// GraphQL type system members that have a description.
+    /// </summary>
     public interface IHasDescription
     {
         /// <summary>

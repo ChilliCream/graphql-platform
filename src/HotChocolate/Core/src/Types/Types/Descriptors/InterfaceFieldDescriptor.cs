@@ -55,17 +55,18 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        internal protected override InterfaceFieldDefinition Definition { get; protected set; } =
+        protected internal override InterfaceFieldDefinition Definition { get; protected set; } =
             new InterfaceFieldDefinition();
 
         protected override void OnCreateDefinition(InterfaceFieldDefinition definition)
         {
-            if (Definition.Member is { })
+            if (!Definition.AttributesAreApplied && Definition.Member is not null)
             {
                 Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.Member);
+                Definition.AttributesAreApplied = true;
             }
 
             base.OnCreateDefinition(definition);

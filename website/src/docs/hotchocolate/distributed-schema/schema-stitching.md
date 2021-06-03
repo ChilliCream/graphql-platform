@@ -4,7 +4,7 @@ title: "Schema Stitching"
 
 In the centralized approach of schema distribution, all the configuration is done on the gateway.
 
-HotChocolate uses the schema name as an identifier for schemas. This schema name is used to create HTTP clients and references the schema in various places. It is good practice to store these schema names as a constant.
+Hot Chocolate uses the schema name as an identifier for schemas. This schema name is used to create HTTP clients and references the schema in various places. It is good practice to store these schema names as a constant.
 
 You will need to add a package reference to `HotChocolate.Stitching` to your gateway:
 
@@ -13,7 +13,7 @@ dotnet add package HotChocolate.Stitching
 ```
 
 ```csharp
-public static class WellKnownSchemaNames 
+public static class WellKnownSchemaNames
 {
     public const string Accounts = "accounts";
     public const string Inventory = "inventory";
@@ -59,4 +59,5 @@ services
 For further configuration with extension files, have a look at [Schema Configuration](/docs/hotchocolate/distributed-schema/schema-configuration)
 
 # Example
+
 You can find a full schema stitching example here [Centralized Schema Stitching](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/Stitching/centralized)

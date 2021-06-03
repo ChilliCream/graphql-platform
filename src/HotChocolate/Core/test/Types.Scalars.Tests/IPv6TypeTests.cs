@@ -3,7 +3,7 @@ using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     public class IPv6TypeTests : ScalarTypeTestBase
     {
@@ -562,7 +562,6 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(StringValueNode), "5:4:3:2:1::")]
         [InlineData(typeof(StringValueNode), "6:5:4:3:2:1::")]
         [InlineData(typeof(StringValueNode), "7:6:5:4:3:2:1::")]
-        [InlineData(typeof(NullValueNode), null)]
         [InlineData(typeof(NullValueNode), null)]
         public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
         {

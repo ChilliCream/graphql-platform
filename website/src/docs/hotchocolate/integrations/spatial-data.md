@@ -121,7 +121,7 @@ type Query {
 
 # Spatial Types
 
-HotChocolate supports GeoJSON input and output types. There is also a GeoJSON scalar to make generic inputs possible.
+Hot Chocolate supports GeoJSON input and output types. There is also a GeoJSON scalar to make generic inputs possible.
 
 ## Output Types
 

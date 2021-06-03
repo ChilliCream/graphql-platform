@@ -11,7 +11,7 @@ namespace HotChocolate.Configuration
 {
     internal sealed class TypeCompletionContext : ITypeCompletionContext
     {
-        private readonly HashSet<NameString> _alternateNames = new HashSet<NameString>();
+        private readonly HashSet<NameString> _alternateNames = new();
         private readonly TypeDiscoveryContext _initializationContext;
         private readonly TypeReferenceResolver _typeReferenceResolver;
         private readonly IDictionary<FieldReference, RegisteredResolver> _resolvers;
@@ -43,6 +43,8 @@ namespace HotChocolate.Configuration
         public bool? IsQueryType { get; set; }
 
         public bool? IsMutationType { get; set; }
+
+        public bool? IsSubscriptionType { get; set; }
 
         public IReadOnlyList<FieldMiddleware> GlobalComponents { get; }
 

@@ -1007,7 +1007,7 @@ namespace HotChocolate.Types
                 message;
         }
 
-        [ExtendObjectType(Name = "Subscription")]
+        [ExtendObjectType("Subscription")]
         public class MySubscriptionExtension
         {
             public async ValueTask<ISourceStream<string>> SubscribeToOnExplicit(

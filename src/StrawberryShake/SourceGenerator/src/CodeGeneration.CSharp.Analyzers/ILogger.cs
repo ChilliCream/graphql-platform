@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 {
@@ -30,5 +31,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         void Error(Exception exception);
 
         void End();
+
+        void Flush();
     }
 }

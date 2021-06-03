@@ -90,7 +90,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         {
             base.CopyTo(target);
 
-            if (_middlewareComponents is not null)
+            if (_middlewareComponents is { Count: > 0 })
             {
                 target._middlewareComponents = new List<FieldMiddleware>(_middlewareComponents);
             }
@@ -105,6 +105,52 @@ namespace HotChocolate.Types.Descriptors.Definitions
             target.Resolver = Resolver;
             target.SubscribeResolver = SubscribeResolver;
             target.IsIntrospectionField = IsIntrospectionField;
+        }
+
+        internal void MergeInto(ObjectFieldDefinition target)
+        {
+            base.MergeInto(target);
+
+            if (_middlewareComponents is { Count: > 0 })
+            {
+                target._middlewareComponents ??= new List<FieldMiddleware>();
+                target._middlewareComponents.AddRange(_middlewareComponents);
+            }
+
+            if (ResolverType is not null)
+            {
+                target.ResolverType = ResolverType;
+            }
+
+            if (Member is not null)
+            {
+                target.Member = Member;
+            }
+
+            if (ResolverMember is not null)
+            {
+                target.ResolverMember = ResolverMember;
+            }
+
+            if (Expression is not null)
+            {
+                target.Expression = Expression;
+            }
+
+            if (ResultType is not null)
+            {
+                target.ResultType = ResultType;
+            }
+
+            if (Resolver is not null)
+            {
+                target.Resolver = Resolver;
+            }
+
+            if (SubscribeResolver is not null)
+            {
+                target.SubscribeResolver = SubscribeResolver;
+            }
         }
     }
 }

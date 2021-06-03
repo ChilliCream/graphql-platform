@@ -1,9 +1,9 @@
 import { graphql } from "gatsby";
 import React, { FunctionComponent } from "react";
 import { DocPageFragment } from "../../graphql-types";
+import { DocPage } from "../components/doc-page/doc-page";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
-import { DocPage } from "../components/doc-page/doc-page";
 
 interface DocPageTemplateProperties {
   data: DocPageFragment;

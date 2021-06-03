@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 using MongoDB.Driver;
 
@@ -46,8 +45,7 @@ namespace HotChocolate.Data.MongoDb.Paging
         }
 
         private static MongoDbOffsetPagingHandler<TEntity> CreateHandlerInternal<TEntity>(
-            PagingOptions options) => new MongoDbOffsetPagingHandler<TEntity>(options);
-
+            PagingOptions options) => new(options);
 
         private class MongoDbOffsetPagingHandler<TEntity> : OffsetPagingHandler
         {
@@ -61,7 +59,14 @@ namespace HotChocolate.Data.MongoDb.Paging
                 OffsetPagingArguments arguments)
             {
                 IMongoPagingContainer<TEntity> f = CreatePagingContainer(source);
-                return ResolveAsync(context, f, arguments);
+                return OffsetPagingHelper.ApplyPagination(
+                    f,
+                    arguments,
+                    ApplySkip,
+                    ApplyTake,
+                    Execute,
+                    CountAsync,
+                    context.RequestAborted);
             }
 
             private IMongoPagingContainer<TEntity> CreatePagingContainer(object source)
@@ -82,71 +87,26 @@ namespace HotChocolate.Data.MongoDb.Paging
                 };
             }
 
-            private async ValueTask<CollectionSegment> ResolveAsync(
-                IResolverContext context,
-                IMongoPagingContainer<TEntity> queryable,
-                OffsetPagingArguments arguments = default)
+            private static async ValueTask<IReadOnlyList<TEntity>> Execute(
+                IMongoPagingContainer<TEntity> source,
+                CancellationToken cancellationToken)
             {
-                IMongoPagingContainer<TEntity> original = queryable;
-
-                if (arguments.Skip.HasValue)
-                {
-                    queryable = queryable.Skip(arguments.Skip.Value);
-                }
-
-                queryable = queryable.Take(arguments.Take + 1);
-
-                List<TEntity> items = await queryable
-                    .ToListAsync(context.RequestAborted)
-                    .ConfigureAwait(false);
-
-                var pageInfo = new CollectionSegmentInfo(
-                    items.Count == arguments.Take + 1,
-                    (arguments.Skip ?? 0) > 0);
-
-                if (items.Count > arguments.Take)
-                {
-                    items.RemoveAt(arguments.Take);
-                }
-
-                Func<CancellationToken, ValueTask<int>> getTotalCount =
-                    ct => throw new InvalidOperationException();
-
-                // TotalCount is one of the heaviest operations. It is only necessary to load totalCount
-                // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
-                if (IncludeTotalCount &&
-                    context.Field.Type is ObjectType objectType &&
-                    context.FieldSelection.SelectionSet is {} selectionSet)
-                {
-                    IReadOnlyList<IFieldSelection> selections = context
-                        .GetSelections(objectType, selectionSet, true);
-
-                    var includeTotalCount = false;
-                    for (var i = 0; i < selections.Count; i++)
-                    {
-                        if (selections[i].Field.Name.Value is "totalCount")
-                        {
-                            includeTotalCount = true;
-                            break;
-                        }
-                    }
-
-                    // When totalCount is included in the selection set we prefetch it, then capture the
-                    // count in a variable, to pass it into the clojure
-                    if (includeTotalCount)
-                    {
-                        var captureCount = await original
-                            .CountAsync(context.RequestAborted)
-                            .ConfigureAwait(false);
-                        getTotalCount = ct => new ValueTask<int>(captureCount);
-                    }
-                }
-
-                return new CollectionSegment(
-                    (IReadOnlyCollection<object>)items,
-                    pageInfo,
-                    getTotalCount);
+                return await source.ToListAsync(cancellationToken);
             }
+
+            private static IMongoPagingContainer<TEntity> ApplySkip(
+                IMongoPagingContainer<TEntity> source,
+                int skip) => source.Skip(skip);
+
+
+            private static IMongoPagingContainer<TEntity> ApplyTake(
+                IMongoPagingContainer<TEntity> source,
+                int take) => source.Take(take);
+
+            private static async ValueTask<int> CountAsync(
+                IMongoPagingContainer<TEntity> source,
+                CancellationToken cancellationToken) =>
+                await source.CountAsync(cancellationToken);
         }
     }
 }

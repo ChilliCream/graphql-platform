@@ -364,9 +364,47 @@ namespace Microsoft.Extensions.DependencyInjection
                         onAfterCompleteType: onAfterCompleteType)));
         }
 
+        public static IRequestExecutorBuilder OnBeforeSchemaCreate(
+            this IRequestExecutorBuilder builder,
+            OnBeforeSchemaCreate onBeforeCreate)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (onBeforeCreate is null)
+            {
+                throw new ArgumentNullException(nameof(onBeforeCreate));
+            }
+
+            return builder.ConfigureSchema(
+                b => b.TryAddSchemaInterceptor(
+                    new DelegateSchemaInterceptor(onBeforeCreate: onBeforeCreate)));
+        }
+
+        public static IRequestExecutorBuilder OnAfterSchemaCreate(
+            this IRequestExecutorBuilder builder,
+            OnAfterSchemaCreate onAfterCreate)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (onAfterCreate is null)
+            {
+                throw new ArgumentNullException(nameof(onAfterCreate));
+            }
+
+            return builder.ConfigureSchema(
+                b => b.TryAddSchemaInterceptor(
+                    new DelegateSchemaInterceptor(onAfterCreate: onAfterCreate)));
+        }
+
         public static IRequestExecutorBuilder OnSchemaError(
             this IRequestExecutorBuilder builder,
-            Action<IDescriptorContext, Exception> onError)
+            OnSchemaError onError)
         {
             if (builder is null)
             {

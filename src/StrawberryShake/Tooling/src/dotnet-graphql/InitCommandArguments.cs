@@ -8,12 +8,12 @@ namespace StrawberryShake.Tools
         public InitCommandArguments(
             CommandArgument uri,
             CommandOption path,
-            CommandOption Name,
+            CommandOption name,
             AuthArguments authArguments)
         {
             Uri = uri;
             Path = path;
-            this.Name = Name;
+            Name = name;
             AuthArguments = authArguments;
         }
 

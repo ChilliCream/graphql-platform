@@ -52,18 +52,9 @@ namespace StrawberryShake
             var entityStore = new EntityStore();
             var entityId = new EntityId(nameof(MockEntity), 1);
 
-            ISet<EntityId> updated = new HashSet<EntityId>();
-            ulong version = 0;
-
             entityStore.Update(session =>
             {
                 session.SetEntity(entityId, new MockEntity("abc", 1));
-            });
-
-            using IDisposable subscription = entityStore.Watch().Subscribe(update =>
-            {
-                updated = update.UpdatedEntityIds;
-                version = update.Version;
             });
 
             // act
@@ -80,13 +71,6 @@ namespace StrawberryShake
 
             // assert
             Assert.Empty(entityStore.CurrentSnapshot.GetEntityIds());
-            Assert.Collection(
-                updated,
-                item =>
-                {
-                    Assert.Equal(entityId, item);
-                });
-            Assert.Equal(2ul, version);
         }
 
         [Fact]
@@ -96,9 +80,6 @@ namespace StrawberryShake
             var entityStore = new EntityStore();
             var entityId1 = new EntityId(nameof(MockEntity), 1);
             var entityId2 = new EntityId(nameof(MockEntity) + "a", 2);
-
-            IReadOnlyList<MockEntity> updated = Array.Empty<MockEntity>();
-            ulong version = 0;
 
             entityStore.Update(session =>
             {

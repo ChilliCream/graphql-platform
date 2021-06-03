@@ -33,7 +33,7 @@ namespace HotChocolate.Types
                 .AddType<FooType>()
                 .AddType(new EnumTypeExtension(d => d
                     .Name("Foo")
-                    .Item("FOOBAR")))
+                    .Value("FOOBAR")))
                 .Create();
 
             // assert
@@ -134,8 +134,8 @@ namespace HotChocolate.Types
                 IEnumTypeDescriptor<Foo> descriptor)
             {
                 descriptor.BindValues(BindingBehavior.Explicit);
-                descriptor.Item(Foo.Bar);
-                descriptor.Item(Foo.Baz);
+                descriptor.Value(Foo.Bar);
+                descriptor.Value(Foo.Baz);
             }
         }
 
@@ -145,7 +145,7 @@ namespace HotChocolate.Types
             protected override void Configure(IEnumTypeDescriptor descriptor)
             {
                 descriptor.Name("Foo");
-                descriptor.Item(Foo.Quox).Name("_QUOX");
+                descriptor.Value(Foo.Quox).Name("_QUOX");
             }
         }
 

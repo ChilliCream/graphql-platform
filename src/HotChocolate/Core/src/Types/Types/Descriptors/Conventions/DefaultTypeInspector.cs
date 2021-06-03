@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Internal;
+using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 using CompDefaultValueAttribute = System.ComponentModel.DefaultValueAttribute;
 using TypeInfo = HotChocolate.Internal.TypeInfo;
@@ -14,6 +15,10 @@ using TypeInfo = HotChocolate.Internal.TypeInfo;
 
 namespace HotChocolate.Types.Descriptors
 {
+    /// <summary>
+    /// The default type inspector implementation that provides helpers to inspect .NET types and
+    /// infer GraphQL type structures.
+    /// </summary>
     public class DefaultTypeInspector
         : Convention
         , ITypeInspector
@@ -65,7 +70,7 @@ namespace HotChocolate.Types.Descriptors
         public virtual IEnumerable<MemberInfo> GetMembers(Type type) => GetMembers(type, false);
 
         /// <inheritdoc />
-        public IEnumerable<MemberInfo> GetMembers(Type type, bool includeIgnored)
+        public virtual IEnumerable<MemberInfo> GetMembers(Type type, bool includeIgnored)
         {
             if (type is null)
             {
@@ -73,6 +78,17 @@ namespace HotChocolate.Types.Descriptors
             }
 
             return GetMembersInternal(type, includeIgnored);
+        }
+
+        /// <inheritdoc />
+        public virtual bool IsMemberIgnored(MemberInfo member)
+        {
+            if (member is null)
+            {
+                throw new ArgumentNullException(nameof(member));
+            }
+
+            return member.IsDefined(typeof(GraphQLIgnoreAttribute));
         }
 
         private IEnumerable<MemberInfo> GetMembersInternal(Type type, bool includeIgnored) =>
@@ -297,6 +313,7 @@ namespace HotChocolate.Types.Descriptors
         private static bool IsPossibleNodeResolver(
             MemberInfo member,
             Type nodeType) =>
+            member.IsDefined(typeof(NodeResolverAttribute)) ||
             member.Name.Equals(
                 "Get",
                 StringComparison.OrdinalIgnoreCase) ||
@@ -308,6 +325,7 @@ namespace HotChocolate.Types.Descriptors
         private static bool IsPossibleExternalNodeResolver(
             MemberInfo member,
             Type nodeType) =>
+            member.IsDefined(typeof(NodeResolverAttribute)) ||
             member.Name.Equals(
                 $"Get{nodeType.Name}",
                 StringComparison.OrdinalIgnoreCase) ||
@@ -348,10 +366,9 @@ namespace HotChocolate.Types.Descriptors
             IDescriptor descriptor,
             ICustomAttributeProvider attributeProvider)
         {
-            foreach (var attribute in
-                GetCustomAttributes<DescriptorAttribute>(attributeProvider, true))
+            foreach (var attr in GetCustomAttributes<DescriptorAttribute>(attributeProvider, true))
             {
-                attribute.TryConfigure(context, descriptor, attributeProvider);
+                attr.TryConfigure(context, descriptor, attributeProvider);
             }
         }
 
@@ -582,14 +599,14 @@ namespace HotChocolate.Types.Descriptors
             return false;
         }
 
-        private static bool CanBeHandled(MemberInfo member, bool includeIgnored)
+        private bool CanBeHandled(MemberInfo member, bool includeIgnored)
         {
             if (IsSystemMember(member))
             {
                 return false;
             }
 
-            if (!includeIgnored && member.IsDefined(typeof(GraphQLIgnoreAttribute)))
+            if (!includeIgnored && IsMemberIgnored(member))
             {
                 return false;
             }
@@ -753,6 +770,7 @@ namespace HotChocolate.Types.Descriptors
                 element.IsDefined(typeof(ServiceAttribute), true) ||
                 element.IsDefined(typeof(GlobalStateAttribute), true) ||
                 element.IsDefined(typeof(ScopedServiceAttribute), true) ||
+                element.IsDefined(typeof(ScopedStateAttribute), true) ||
                 element.IsDefined(typeof(LocalStateAttribute), true) ||
                 element.IsDefined(typeof(DescriptorAttribute), true);
         }

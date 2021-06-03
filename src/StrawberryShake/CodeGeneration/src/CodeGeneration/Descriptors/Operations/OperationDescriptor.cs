@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.CodeGeneration.Descriptors.Operations
 {
@@ -29,6 +30,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.Operations
             HashAlgorithm = hashAlgorithm;
             HashValue = hashValue;
             Strategy = strategy;
+            InterfaceType = new("I" + runtimeType.Name, runtimeType.Namespace);
         }
 
         /// <summary>
@@ -49,7 +51,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.Operations
         /// <summary>
         /// Gets the GraphQL Document.
         /// </summary>
-        public byte[] Body { get;  }
+        public byte[] Body { get; }
 
         /// <summary>
         /// Gets the GraphQL Document as readable string.
@@ -72,8 +74,13 @@ namespace StrawberryShake.CodeGeneration.Descriptors.Operations
         public IReadOnlyList<PropertyDescriptor> Arguments { get; }
 
         /// <summary>
-        ///
+        /// The request strategy.
         /// </summary>
         public RequestStrategy Strategy { get; }
+
+        /// <summary>
+        /// The interface of this operation
+        /// </summary>
+        public RuntimeTypeInfo InterfaceType { get; }
     }
 }

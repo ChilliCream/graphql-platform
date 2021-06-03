@@ -3,7 +3,7 @@ using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     public class MacAddressTypeTests : ScalarTypeTestBase
     {
@@ -40,6 +40,9 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(StringValueNode), "9d-f7-56-d1-73-a4", true)]
         [InlineData(typeof(StringValueNode), "fa:7e:9e:9f:13:78", true)]
         [InlineData(typeof(StringValueNode), "fa-7e-9e-9f-13-78", true)]
+        [InlineData(typeof(StringValueNode), "fa-7e-9e-ff-fe-9f-13-78", true)]
+        [InlineData(typeof(StringValueNode), "fa:7e:9e:ff:fe:9f:13:78", true)]
+        [InlineData(typeof(StringValueNode), "fa7e.9eff.fe9f.1378", true)]
         [InlineData(typeof(NullValueNode), null, true)]
         public void IsInstanceOfType_GivenValueNode_MatchExpected(
             Type type,
@@ -76,6 +79,9 @@ namespace HotChocolate.Types.Scalars
         [InlineData("9d-f7-56-d1-73-a4", true)]
         [InlineData("fa:7e:9e:9f:13:78", true)]
         [InlineData("fa-7e-9e-9f-13-78", true)]
+        [InlineData("fa-7e-9e-ff-fe-9f-13-78", true)]
+        [InlineData("fa:7e:9e:ff:fe:9f:13:78", true)]
+        [InlineData("fa7e.9eff.fe9f.1378", true)]
         [InlineData(null, true)]
         public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
         {
@@ -91,6 +97,9 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(StringValueNode), "9d-f7-56-d1-73-a4", "9d-f7-56-d1-73-a4")]
         [InlineData(typeof(StringValueNode), "00:00:00:00:00:00", "00:00:00:00:00:00")]
         [InlineData(typeof(StringValueNode), "ff-ff-ff-ff-ff-ff", "ff-ff-ff-ff-ff-ff")]
+        [InlineData(typeof(StringValueNode), "fa-7e-9e-ff-fe-9f-13-78", "fa-7e-9e-ff-fe-9f-13-78")]
+        [InlineData(typeof(StringValueNode), "fa:7e:9e:ff:fe:9f:13:78", "fa:7e:9e:ff:fe:9f:13:78")]
+        [InlineData(typeof(StringValueNode), "fa7e.9eff.fe9f.1378", "fa7e.9eff.fe9f.1378")]
         [InlineData(typeof(NullValueNode), null, null)]
         public void ParseLiteral_GivenValueNode_MatchExpected(
             Type type,
@@ -133,6 +142,9 @@ namespace HotChocolate.Types.Scalars
         [InlineData("9d-f7-56-d1-73-a4", "9d-f7-56-d1-73-a4")]
         [InlineData("00:00:00:00:00:00", "00:00:00:00:00:00")]
         [InlineData("ff-ff-ff-ff-ff-ff", "ff-ff-ff-ff-ff-ff")]
+        [InlineData("fa-7e-9e-ff-fe-9f-13-78", "fa-7e-9e-ff-fe-9f-13-78")]
+        [InlineData("fa:7e:9e:ff:fe:9f:13:78", "fa:7e:9e:ff:fe:9f:13:78")]
+        [InlineData("fa7e.9eff.fe9f.1378", "fa7e.9eff.fe9f.1378")]
         [InlineData(null, null)]
         public void Deserialize_GivenValue_MatchExpected(
             object resultValue,
@@ -170,6 +182,9 @@ namespace HotChocolate.Types.Scalars
         [InlineData("9d-f7-56-d1-73-a4", "9d-f7-56-d1-73-a4")]
         [InlineData("00:00:00:00:00:00", "00:00:00:00:00:00")]
         [InlineData("ff-ff-ff-ff-ff-ff", "ff-ff-ff-ff-ff-ff")]
+        [InlineData("fa-7e-9e-ff-fe-9f-13-78", "fa-7e-9e-ff-fe-9f-13-78")]
+        [InlineData("fa:7e:9e:ff:fe:9f:13:78", "fa:7e:9e:ff:fe:9f:13:78")]
+        [InlineData("fa7e.9eff.fe9f.1378", "fa7e.9eff.fe9f.1378")]
         [InlineData(null, null)]
         public void Serialize_GivenObject_MatchExpectedType(
             object runtimeValue,
@@ -207,6 +222,9 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(StringValueNode), "9d-f7-56-d1-73-a4")]
         [InlineData(typeof(StringValueNode), "00:00:00:00:00:00")]
         [InlineData(typeof(StringValueNode), "ff-ff-ff-ff-ff-ff")]
+        [InlineData(typeof(StringValueNode), "fa-7e-9e-ff-fe-9f-13-78")]
+        [InlineData(typeof(StringValueNode), "fa:7e:9e:ff:fe:9f:13:78")]
+        [InlineData(typeof(StringValueNode), "fa7e.9eff.fe9f.1378")]
         [InlineData(typeof(NullValueNode), null)]
         public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
         {
@@ -242,6 +260,9 @@ namespace HotChocolate.Types.Scalars
         [InlineData(typeof(StringValueNode), "9d-f7-56-d1-73-a4")]
         [InlineData(typeof(StringValueNode), "00:00:00:00:00:00")]
         [InlineData(typeof(StringValueNode), "ff-ff-ff-ff-ff-ff")]
+        [InlineData(typeof(StringValueNode), "fa-7e-9e-ff-fe-9f-13-78")]
+        [InlineData(typeof(StringValueNode), "fa:7e:9e:ff:fe:9f:13:78")]
+        [InlineData(typeof(StringValueNode), "fa7e.9eff.fe9f.1378")]
         [InlineData(typeof(NullValueNode), null)]
         public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
         {

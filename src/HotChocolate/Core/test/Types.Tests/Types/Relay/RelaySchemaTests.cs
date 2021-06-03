@@ -126,7 +126,7 @@ namespace HotChocolate.Types.Relay
             public FooPayload Foo() => new();
         }
 
-        [ExtendObjectType(Name = "Mutation")]
+        [ExtendObjectType("Mutation")]
         public class MutationExtension
         {
             public FooPayload Foo() => new();

@@ -44,12 +44,11 @@ namespace HotChocolate.Data.Sorting.Expressions
                 IValueNode sort = context.ArgumentLiteral<IValueNode>(argumentName);
 
                 // if no sort is defined we can stop here and yield back control.
-                if (sort.IsNull() ||
-                    (context.LocalContextData.TryGetValue(
-                            SkipSortingKey,
-                            out object? skipObject) &&
-                        skipObject is bool skip &&
-                        skip))
+                var skipSorting =
+                    context.LocalContextData.TryGetValue(SkipSortingKey, out object? skip) &&
+                    skip is true;
+
+                if (sort.IsNull() || skipSorting)
                 {
                     return;
                 }
@@ -63,8 +62,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                     executorObj is VisitSortArgument executor)
                 {
                     var inMemory =
-                        context.Result is QueryableExecutable<TEntityType> executable &&
-                        executable.InMemory ||
+                        context.Result is QueryableExecutable<TEntityType> { InMemory: true } ||
                         context.Result is not IQueryable ||
                         context.Result is EnumerableQuery;
 

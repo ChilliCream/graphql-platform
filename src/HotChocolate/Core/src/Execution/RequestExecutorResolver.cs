@@ -215,10 +215,9 @@ namespace HotChocolate.Execution
                 serviceCollection.AddSingleton(diagnosticEventListener);
             }
 
-            serviceCollection.AddSingleton<IActivator>(
-                _ => new DefaultActivator(_applicationServices));
+            serviceCollection.AddSingleton<IActivator, DefaultActivator>();
 
-            serviceCollection.AddSingleton(
+                serviceCollection.AddSingleton(
                 sp => CreatePipeline(
                     schemaName,
                     options.Pipeline,

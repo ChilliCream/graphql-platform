@@ -11,7 +11,7 @@ namespace HotChocolate.Execution.Processing
         {
             get
             {
-                AssertNotPooled();
+                AssertInitialized();
                 return _requestContext.Schema;
             }
         }
@@ -20,7 +20,7 @@ namespace HotChocolate.Execution.Processing
         {
             get
             {
-                AssertNotPooled();
+                AssertInitialized();
                 return _requestContext.ErrorHandler;
             }
         }
@@ -29,7 +29,7 @@ namespace HotChocolate.Execution.Processing
         {
             get
             {
-                AssertNotPooled();
+                AssertInitialized();
                 return _requestContext.Converter;
             }
         }
@@ -38,7 +38,7 @@ namespace HotChocolate.Execution.Processing
         {
             get
             {
-                AssertNotPooled();
+                AssertInitialized();
                 return _requestContext.Activator;
             }
         }
@@ -47,7 +47,7 @@ namespace HotChocolate.Execution.Processing
         {
             get
             {
-                AssertNotPooled();
+                AssertInitialized();
                 return _requestContext.DiagnosticEvents;
             }
         }
@@ -56,7 +56,7 @@ namespace HotChocolate.Execution.Processing
         {
             get
             {
-                AssertNotPooled();
+                AssertInitialized();
                 return _requestContext.ContextData;
             }
         }
@@ -65,7 +65,7 @@ namespace HotChocolate.Execution.Processing
         {
             get
             {
-                AssertNotPooled();
+                AssertInitialized();
                 return _requestContext.RequestAborted;
             }
         }

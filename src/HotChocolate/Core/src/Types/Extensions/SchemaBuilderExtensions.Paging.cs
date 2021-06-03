@@ -1,6 +1,4 @@
 using System;
-using HotChocolate.Configuration.Bindings;
-using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 
 namespace HotChocolate

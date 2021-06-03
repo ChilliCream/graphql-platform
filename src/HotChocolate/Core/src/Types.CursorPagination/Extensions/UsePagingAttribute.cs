@@ -28,8 +28,12 @@ namespace HotChocolate.Types
         /// <summary>
         /// The schema type representation of the item type.
         /// </summary>
-        [Obsolete("Use Type.")]
-        public Type? SchemaType { get => Type; set => Type = value; }
+        
+        public Type? SchemaType 
+        { 
+            [Obsolete("Use Type.")] get => Type; 
+            [Obsolete("Use the new constructor.")] set => Type = value; 
+        }
 
         /// <summary>
         /// The schema type representation of the item type.

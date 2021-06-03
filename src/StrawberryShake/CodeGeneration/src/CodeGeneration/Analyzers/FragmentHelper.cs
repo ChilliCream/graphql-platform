@@ -237,10 +237,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             Path path)
         {
             // the fragment type is a complex type we will generate a interface with fields.
-            if (fragmentNode.Fragment.TypeCondition is IComplexOutputType complexType)
+            if (fragmentNode.Fragment.TypeCondition is INamedOutputType type && 
+                type.IsCompositeType())
             {
                 var fieldMap = new OrderedDictionary<string, FieldSelection>();
-                CollectFields(fragmentNode, complexType, fieldMap, path);
+                CollectFields(fragmentNode, type, fieldMap, path);
 
                 if (fieldMap.Count > 0)
                 {
@@ -273,21 +274,21 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         private static void CollectFields(
             FragmentNode fragmentNode,
-            IComplexOutputType complexType,
+            INamedOutputType outputType,
             IDictionary<string, FieldSelection> fields,
             Path path)
         {
             foreach (var inlineFragment in fragmentNode.Nodes.Where(
                 t => t.Fragment.Kind == FragmentKind.Inline &&
-                     t.Fragment.TypeCondition.IsAssignableFrom(complexType)))
+                     t.Fragment.TypeCondition.IsAssignableFrom(outputType)))
             {
-                CollectFields(inlineFragment, complexType, fields, path);
+                CollectFields(inlineFragment, outputType, fields, path);
             }
 
             foreach (FieldNode selection in
                 fragmentNode.Fragment.SelectionSet.Selections.OfType<FieldNode>())
             {
-                FieldCollector.ResolveFieldSelection(selection, complexType, path, fields);
+                FieldCollector.ResolveFieldSelection(selection, outputType, path, fields);
             }
         }
 

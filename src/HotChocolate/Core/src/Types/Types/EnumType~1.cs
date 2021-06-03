@@ -54,7 +54,7 @@ namespace HotChocolate.Types
             var descriptor =
                 EnumTypeDescriptor.New<T>(context.DescriptorContext);
 
-            _configure(descriptor);
+            _configure!(descriptor);
             _configure = null;
 
             return descriptor.CreateDefinition();

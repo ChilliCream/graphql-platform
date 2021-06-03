@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The `HSLA` scalar type represents a valid a CSS HSLA color as defined
@@ -16,11 +16,25 @@ namespace HotChocolate.Types.Scalars
         /// Initializes a new instance of the <see cref="HslaType"/> class.
         /// </summary>
         public HslaType()
-            : base(
+            : this(
                 WellKnownScalarTypes.Hsla,
+                ScalarResources.HslaType_Description)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HslaType"/> class.
+        /// </summary>
+        public HslaType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(
+                name,
                 _validationPattern,
-                ScalarResources.HslaType_Description,
-                RegexOptions.Compiled | RegexOptions.IgnoreCase)
+                description,
+                RegexOptions.Compiled | RegexOptions.IgnoreCase,
+                bind)
         {
         }
 

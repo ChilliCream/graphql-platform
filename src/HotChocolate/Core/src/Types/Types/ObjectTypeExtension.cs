@@ -16,7 +16,8 @@ namespace HotChocolate.Types
     /// Any type extension instance is will not survive the initialization and instead is
     /// merged into the target type.
     /// </summary>
-    public class ObjectTypeExtension : NamedTypeExtensionBase<ObjectTypeDefinition>
+    public class ObjectTypeExtension
+        : NamedTypeExtensionBase<ObjectTypeDefinition>
     {
         private Action<IObjectTypeDescriptor>? _configure;
 
@@ -60,7 +61,7 @@ namespace HotChocolate.Types
         {
             if (type is ObjectType objectType)
             {
-                // we first assert that extension and type are mutable and by 
+                // we first assert that extension and type are mutable and by
                 // this that they do have a type definition.
                 AssertMutable();
                 objectType.AssertMutable();
@@ -69,39 +70,18 @@ namespace HotChocolate.Types
                     Definition!,
                     objectType.Definition!);
 
-                TypeExtensionHelper.MergeContextData(
-                    Definition!,
-                    objectType.Definition!);
-
-                TypeExtensionHelper.MergeDirectives(
-                    context,
-                    Definition!.Directives,
-                    objectType.Definition!.Directives);
-
-                TypeExtensionHelper.MergeInterfaces(
-                    Definition!,
-                    objectType.Definition!);
-
-                TypeExtensionHelper.MergeObjectFields(
-                    context,
-                    objectType.Definition!.RuntimeType,
-                    Definition!.Fields,
-                    objectType.Definition!.Fields);
-
-                TypeExtensionHelper.MergeConfigurations(
-                    Definition!.Configurations,
-                    objectType.Definition!.Configurations);
+                Definition!.MergeInto(objectType.Definition!);
             }
             else
             {
                 throw new ArgumentException(
-                    TypeResources.ObjectTypeExtension_CannotMerge, 
+                    TypeResources.ObjectTypeExtension_CannotMerge,
                     nameof(type));
             }
         }
 
         private void ApplyGlobalFieldIgnores(
-            ObjectTypeDefinition extensionDef, 
+            ObjectTypeDefinition extensionDef,
             ObjectTypeDefinition typeDef)
         {
             IReadOnlyList<ObjectFieldBinding> fieldIgnores = extensionDef.GetFieldIgnores();

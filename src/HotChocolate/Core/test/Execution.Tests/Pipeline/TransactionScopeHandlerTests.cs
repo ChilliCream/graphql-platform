@@ -44,7 +44,6 @@ namespace HotChocolate.Execution.Pipeline
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
-                .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromMilliseconds(100))
                 .AddTransactionScopeHandler(_ => new MockTransactionScopeHandler(Complete, Dispose))
                 .ExecuteRequestAsync("mutation { doError }");
 
@@ -61,7 +60,6 @@ namespace HotChocolate.Execution.Pipeline
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
-                .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromMilliseconds(100))
                 .AddDefaultTransactionScopeHandler()
                 .ExecuteRequestAsync("mutation { foundTransactionScope }")
                 .MatchSnapshotAsync();
@@ -76,7 +74,6 @@ namespace HotChocolate.Execution.Pipeline
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
-                .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromMilliseconds(100))
                 .ExecuteRequestAsync("mutation { foundTransactionScope }")
                 .MatchSnapshotAsync();
         }

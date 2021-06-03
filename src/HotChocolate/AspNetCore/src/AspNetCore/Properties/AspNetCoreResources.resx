@@ -30,8 +30,8 @@
   <data name="ThrowHelper_DataStartMessageHandler_RequestTypeNotSupported" xml:space="preserve">
     <value>The response type is not supported.</value>
   </data>
-  <data name="ThrowHelper_HttpMultipartMiddleware_Form_Incomplete" xml:space="preserve">
-    <value>At least an 'operations' field and a 'map' field need to be present.</value>
+  <data name="ThrowHelper_HttpMultipartMiddleware_Invalid_Form" xml:space="preserve">
+    <value>The multipart form could not be read.</value>
   </data>
   <data name="ThrowHelper_HttpMultipartMiddleware_No_Operations_Specified" xml:space="preserve">
     <value>No 'operations' specified.</value>
@@ -77,5 +77,14 @@
   </data>
   <data name="ErrorHelper_ResponseTypeNotSupported" xml:space="preserve">
     <value>The response type is not supported.</value>
+  </data>
+  <data name="Subscription_SendResultsAsync" xml:space="preserve">
+    <value>Unexpected Execution Error</value>
+  </data>
+  <data name="WebSocketSession_SessionEnded" xml:space="preserve">
+    <value>Session ended.</value>
+  </data>
+  <data name="DataStartMessageHandler_Not_A_SubscriptionResult" xml:space="preserve">
+    <value>The specified result object is not a valid subscription result.</value>
   </data>
 </root>

@@ -78,6 +78,10 @@ namespace HotChocolate.Execution.Processing
                     }
                     rewrittenItems[i] = rewritten;
                 }
+                else if (rewrittenItems is { })
+                {
+                    rewrittenItems[i] = node.Fields[i];
+                }
             }
 
             if (rewrittenItems is { })
@@ -137,6 +141,10 @@ namespace HotChocolate.Execution.Processing
                         }
                     }
                     rewrittenItems[i] = rewritten;
+                }
+                else if (rewrittenItems is { })
+                {
+                    rewrittenItems[i] = node.Items[i];
                 }
             }
 
