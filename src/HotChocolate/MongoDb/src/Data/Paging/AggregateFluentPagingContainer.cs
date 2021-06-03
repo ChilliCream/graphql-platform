@@ -63,7 +63,6 @@ namespace HotChocolate.Data.MongoDb.Paging
         }
 
         public static AggregateFluentPagingContainer<TEntity> New(
-            IAggregateFluent<TEntity> aggregate) =>
-            new AggregateFluentPagingContainer<TEntity>(aggregate);
+            IAggregateFluent<TEntity> aggregate) => new(aggregate);
     }
 }

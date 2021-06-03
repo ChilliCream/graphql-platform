@@ -2,7 +2,7 @@
 title: "Get started with Hot Chocolate"
 ---
 
-> We are still working on the documentation for Hot Chocolate 11.1 so help us by finding typos, missing things or write some additional docs with us.
+> We are still working on the documentation for Hot Chocolate so help us by finding typos, missing things or write some additional docs with us.
 
 In this tutorial, we will walk you through the basics of creating a GraphQL server with Hot Chocolate. If you want to dig deeper into Hot Chocolate, we have our [GraphQL workshop](https://github.com/ChilliCream/graphql-workshop), which touches on topics like schema design, DataLoader, and many more things.
 
@@ -107,7 +107,17 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 }
 ```
 
-> Note: We also have a template, which includes the configurations we have just made. Just install the template using `dotnet new -i HotChocolate.Templates.Server` and now you can use `dotnet new graphql` to bootstrap your future GraphQL servers!
+We also offer a template, which includes the configurations we have just made. Install the template like the following:
+
+```bash
+dotnet new -i HotChocolate.Templates.Server
+```
+
+Now we can use the following to bootstrap our future GraphQL servers:
+
+```bash
+dotnet new graphql
+```
 
 # Step 3: Execute a GraphQL query
 

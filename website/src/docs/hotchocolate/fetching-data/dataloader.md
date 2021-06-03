@@ -6,9 +6,9 @@ import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
 > If you want to read more about data loaders in general, you can head over to Facebook's [GitHub repository](https://github.com/facebook/dataloader).
 
-Every data fetching technology suffers the _n+1_ problem. 
+Every data fetching technology suffers the _n+1_ problem.
 The difference between GraphQL and e.g. REST is, that the _n+1_ problem occurs on the server, rather than on the client.
-The clear benefit is, that we only have to deal with this problem once on the server, rather than on every client. 
+The clear benefit is, that we only have to deal with this problem once on the server, rather than on every client.
 
 To depict the issue that data loaders solve in this context, let assume we have this schema:
 
@@ -61,7 +61,7 @@ This means that we reduced the round-trips from our client to our server with Gr
 
 With data loaders we can now centralise the data fetching and reduce the number of round trips to our data source.
 
-Instead of fetching the data from the repository directly, we fetch the data from the data loader. 
+Instead of fetching the data from the repository directly, we fetch the data from the data loader.
 The data loader batches all the requests together into one request to the database.
 
 ```csharp
@@ -91,38 +91,42 @@ public class PersonBatchDataLoader : BatchDataLoader<string, Person>
 }
 
 
-public class Query 
+public class Query
 {
     public async Task<Person> GetPerson(
-        string id, 
+        string id,
         PersonBatchDataLoader dataLoader)
         => await dataLoader.LoadAsync(id);
 }
 ```
 
-# Execution 
-With a data loader, you can fetch entities with a key. 
+# Execution
+
+With a data loader, you can fetch entities with a key.
 These are the two generics you have in the class data loaders:
+
 ```csharp
 public class BatchDataLoader<TId, TEntity>
 ```
+
 `TId` is used as an identifier of `TEntity`. `TId` is the type of the values you put into `LoadAsync`.
 
-The execution engine of HotChocolate tries to batch as much as possible.
-It executes resolvers until the queue is empty and then triggers the data loader to resolve the data for the waiting resolvers. 
-
+The execution engine of Hot Chocolate tries to batch as much as possible.
+It executes resolvers until the queue is empty and then triggers the data loader to resolve the data for the waiting resolvers.
 
 # Data Consistency
-Dataloader do not only batch calls to the database, they also cache the database response.
-A data loader guarantees data consistency in a single request. 
-If you load an entity with a data loader in your request more than once, it is given that these two entities are equivalent. 
 
-Data loaders do not fetch an entity if there is already an entity with the requested key in the cache. 
+Dataloader do not only batch calls to the database, they also cache the database response.
+A data loader guarantees data consistency in a single request.
+If you load an entity with a data loader in your request more than once, it is given that these two entities are equivalent.
+
+Data loaders do not fetch an entity if there is already an entity with the requested key in the cache.
 
 # Types of Data loaders
-In HotChocolate you can declare data loaders in two different ways. 
+
+In Hot Chocolate you can declare data loaders in two different ways.
 You can separate the data loading concern into separate classes or you can use a delegate in the resolver to define data loaders on the fly.
-Below you will find the different types of data loaders with examples for class and delegate definition. 
+Below you will find the different types of data loaders with examples for class and delegate definition.
 
 ## Batch DataLoader
 
@@ -159,16 +163,17 @@ public class PersonBatchDataLoader : BatchDataLoader<string, Person>
 }
 
 
-public class Query 
+public class Query
 {
     public async Task<Person> GetPerson(
-        string id, 
+        string id,
         PersonBatchDataLoader dataLoader)
         => await dataLoader.LoadAsync(id);
 }
 ```
 
 ### Delegate
+
 ```csharp
 public Task<Person> GetPerson(
     string id,
@@ -188,7 +193,8 @@ public Task<Person> GetPerson(
 _An example with the **Batch Dataloader** can be found [here](https://github.com/ChilliCream/graphql-workshop/blob/master/code/complete/GraphQL/DataLoader/TrackByIdDataLoader.cs)._
 
 ## Group DataLoader
-> One - To - Many, usually used for fields like `personsByLastName` or one to many relations 
+
+> One - To - Many, usually used for fields like `personsByLastName` or one to many relations
 
 The group data loader is also a batch data loader but instead of returning one entity per key, it returns multiple entities per key. As with the batch data loader retrieved collections are cached within a request.
 
@@ -221,10 +227,10 @@ public class PersonsByLastNameDataloader
     }
 }
 
-public class Query 
+public class Query
 {
     public async Task<Person> GetPersonByLastName(
-        string lastName, 
+        string lastName,
         PersonsByLastNameDataloader dataLoader)
         => await dataLoader.LoadAsync(lastName);
 }
@@ -234,8 +240,8 @@ public class Query
 
 ```csharp
 public Task<IEnumerable<Person>> GetPersonByLastName(
-   string lastName, 
-   IResolverContext context, 
+   string lastName,
+   IResolverContext context,
    [Service]IPersonRepository repository)
 {
     return context.GroupDataLoader<string, Person>(
@@ -247,7 +253,6 @@ public Task<IEnumerable<Person>> GetPersonByLastName(
         .LoadAsync(lastName);
 }
 ```
-
 
 ## Cache DataLoader
 
@@ -262,15 +267,14 @@ public Task<Person> GetPerson(string id, IResolverContext context, [Service]IPer
 }
 ```
 
-
 # Stacked DataLoader Calls
 
-This is more like an edge case that is supported than a certain type of data loader. Sometimes we have more complex resolvers that might first fetch data from one data loader and use that to fetch data from the next. 
+This is more like an edge case that is supported than a certain type of data loader. Sometimes we have more complex resolvers that might first fetch data from one data loader and use that to fetch data from the next.
 
 ```csharp
 public Task<IEnumerable<Customer>> GetCustomers(
-    string personId, 
-    PersonByIdDataLoader personByIdDataLoader, 
+    string personId,
+    PersonByIdDataLoader personByIdDataLoader,
     CustomerByIdsDataLoader customerByIdsDataloader)
 {
     Person person = await personByIdDataLoader.LoadAsync(id);
