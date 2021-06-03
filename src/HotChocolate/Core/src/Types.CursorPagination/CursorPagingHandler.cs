@@ -15,11 +15,15 @@ namespace HotChocolate.Types.Pagination
             {
                 DefaultPageSize = MaxPageSize;
             }
+
+            IncludeTotalCount = options.IncludeTotalCount ?? PagingDefaults.IncludeTotalCount;
         }
 
         protected int DefaultPageSize { get; }
 
         protected int MaxPageSize { get; }
+
+        protected bool IncludeTotalCount { get; }
 
         public void ValidateContext(IResolverContext context)
         {
