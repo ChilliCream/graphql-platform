@@ -116,7 +116,7 @@ namespace HotChocolate.Types.Pagination
             return edges;
         }
 
-        private async Task<int> GetTotalCountAsync(IQueryable<TEntity> source, IndexEdge<TEntity>? lastEdge, CancellationToken cancellationToken)
+        private async Task<int?> GetTotalCountAsync(IQueryable<TEntity> source, IndexEdge<TEntity>? lastEdge, CancellationToken cancellationToken)
         {
             if (IncludeTotalCount)
             {
@@ -125,7 +125,7 @@ namespace HotChocolate.Types.Pagination
 
             if (lastEdge is null)
             {
-                return 0;
+                return null;
             }
 
             // TODO: DefaultPageSize vs MaxPageSize
