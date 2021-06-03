@@ -174,7 +174,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
 
                 if (name is { Value: StringValueNode stringValue })
                 {
-                    BooleanValueNode? valueTypeValue = valueType?.Value as BooleanValueNode;
+                    var valueTypeValue = valueType?.Value as BooleanValueNode;
                     return new(stringValue.Value, valueTypeValue?.Value);
                 }
             }
@@ -232,7 +232,16 @@ namespace StrawberryShake.CodeGeneration.Utilities
             TryAddLeafType(leafTypes, ScalarNames.DateTime, TypeNames.DateTimeOffset);
             TryAddLeafType(leafTypes, ScalarNames.Date, TypeNames.DateTime);
             TryAddLeafType(leafTypes, ScalarNames.TimeSpan, TypeNames.TimeSpan);
-            TryAddLeafType(leafTypes, ScalarNames.ByteArray, TypeNames.ByteArray, TypeNames.ByteArray);
+            TryAddLeafType(
+                leafTypes,
+                typeName: ScalarNames.ByteArray,
+                runtimeType: TypeNames.ByteArray,
+                serializationType: TypeNames.ByteArray);
+            TryAddLeafType(
+                leafTypes,
+                typeName: ScalarNames.Any,
+                runtimeType: TypeNames.JsonDocument,
+                serializationType: TypeNames.JsonElement);
         }
 
         private static bool TryGetKeys(

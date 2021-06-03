@@ -1,5 +1,8 @@
 namespace StrawberryShake.Serialization
 {
+    /// <summary>
+    /// The built-in scalar names.
+    /// </summary>
     public static class BuiltInScalarNames
     {
         public const string String = "String";

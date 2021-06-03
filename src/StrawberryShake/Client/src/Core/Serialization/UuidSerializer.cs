@@ -2,8 +2,10 @@ using System;
 
 namespace StrawberryShake.Serialization
 {
-    public class UuidSerializer
-        : ScalarSerializer<Guid>
+    /// <summary>
+    /// This serializer handles UUID scalars.
+    /// </summary>
+    public class UuidSerializer : ScalarSerializer<Guid>
     {
         public UuidSerializer(string typeName = BuiltInScalarNames.Uuid)
             : base(typeName)
