@@ -4,22 +4,7 @@ const { getCacheKey } = require("../shared");
 module.exports = async ({ markdownAST, markdownNode, cache, getNode }) => {
   // if there's no slug, it is not a markdown file we're interested in
   if (!markdownNode.fields?.slug) {
-    console.log("no slug", markdownNode.fileAbsolutePath);
-
     return markdownAST;
-  }
-
-  // get the file this markdown belongs to
-  const parent = await getNode(markdownNode.parent);
-  const cacheKey = getCacheKey(parent);
-
-  const cacheEntry = await cache.get(cacheKey);
-
-  // file has not changed since we last checked it
-  if (cacheEntry) {
-    console.log("already cached", markdownNode.fileAbsolutePath);
-
-    return;
   }
 
   const headingAnchors = [];
@@ -68,14 +53,16 @@ module.exports = async ({ markdownAST, markdownNode, cache, getNode }) => {
     });
   });
 
+  // get the file this markdown belongs to
+  const parent = await getNode(markdownNode.parent);
+  const cacheKey = getCacheKey(parent);
+
   cache.set(cacheKey, {
     slug: markdownNode.fields.slug,
     links,
     headingAnchors: headingAnchors,
     absolutePath: parent.absolutePath,
   });
-
-  console.log("set cache of", markdownNode.fields.slug);
 
   return markdownAST;
 };

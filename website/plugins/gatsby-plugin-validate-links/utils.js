@@ -18,8 +18,6 @@ async function getDocumentsCache(files, cache, getCache) {
     }
 
     if (!cacheEntry) {
-      console.debug("No cache found for", file.fileAbsolutePath);
-
       return null;
     }
 
@@ -92,7 +90,7 @@ function displayBrokenLinks(brokenLinks, filepath) {
       lineColumn = `:${line + offset}:${column}`;
     }
 
-    console.warn(`- ${link.url} ( ${filepath}${lineColumn} )`);
+    console.warn(`${filepath}${lineColumn} ("${link.url}")`);
   }
 }
 

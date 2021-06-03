@@ -116,7 +116,7 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
   });
 };
 
-exports.onCreateNode = async ({ node, actions, getNode }) => {
+exports.onCreateNode = async ({ node, actions, getNode, reporter }) => {
   const { createNodeField } = actions;
 
   if (node.internal.type !== `Mdx`) {
@@ -164,7 +164,7 @@ exports.onCreateNode = async ({ node, actions, getNode }) => {
         lastUpdated = data.date;
       }
     } catch (error) {
-      console.error(
+      reporter.error(
         `Could not retrieve git information for ${node.fileAbsolutePath}`,
         error
       );
@@ -260,15 +260,3 @@ function getGitLog(filepath) {
 
   return git().log(logOptions);
 }
-
-// exports.onPostBootstrap = ({ getNodesByType, getNodes }) => {
-//   const allNodes = getNodes();
-//   const fileNodes = getNodesByType("File");
-//   const mdxNodes = getNodesByType("Mdx");
-
-//   fs.writeFileSync("allNodes.json", JSON.stringify(allNodes));
-//   fs.writeFileSync("fileNodes.json", JSON.stringify(fileNodes));
-//   fs.writeFileSync("mdxNodes.json", JSON.stringify(mdxNodes));
-
-//   console.log("bruh");
-// };

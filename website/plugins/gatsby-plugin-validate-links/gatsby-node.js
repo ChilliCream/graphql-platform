@@ -4,23 +4,29 @@ const {
   displayBrokenLinks,
 } = require("./utils");
 
-exports.onPostBuild = async ({ getNodesByType, getNode, cache, getCache }) => {
-  console.log("VALIDATE LINKS");
+exports.onPreBuild = async ({
+  getNodesByType,
+  getNode,
+  cache,
+  getCache,
+  reporter,
+}) => {
+  const activity = reporter.activityTimer(`validate markdown links`, {
+    id: `validate-markdown-links`,
+  });
+
+  activity.start();
 
   const files = getNodesByType("Mdx").map((node) => getNode(node.parent));
 
   if (files.some((file) => !file)) {
-    console.warn("MDX nodes without a parent encountered");
-
-    return;
+    activity.panicOnBuild("MDX nodes without a parent encountered");
   }
 
   const documents = await getDocumentsCache(files, cache, getCache);
 
   if (!documents) {
-    console.warn("Document cache failed to load");
-
-    return;
+    activity.panicOnBuild("Document cache failed to load");
   }
 
   let totalBrokenLinks = 0;
@@ -36,6 +42,8 @@ exports.onPostBuild = async ({ getNodesByType, getNode, cache, getCache }) => {
     const brokenLinks = getBrokenLinks(document, documents);
 
     if (brokenLinks.length > 0) {
+      console.log("");
+
       console.warn(
         `${brokenLinks.length} broken link(s) found in ${document.slug}`
       );
@@ -43,20 +51,14 @@ exports.onPostBuild = async ({ getNodesByType, getNode, cache, getCache }) => {
       const filepath = document.absolutePath;
 
       displayBrokenLinks(brokenLinks, filepath);
-
-      console.log("");
     }
 
     totalBrokenLinks += brokenLinks.length;
   }
 
   if (totalBrokenLinks > 0) {
-    const message = `${totalBrokenLinks} broken link(s) found`;
-
-    if (process.env.NODE_ENV === "production") {
-      throw new Error(message);
-    } else {
-      console.warn(message);
-    }
+    activity.panicOnBuild(`${totalBrokenLinks} broken link(s) found`);
   }
+
+  activity.end();
 };
