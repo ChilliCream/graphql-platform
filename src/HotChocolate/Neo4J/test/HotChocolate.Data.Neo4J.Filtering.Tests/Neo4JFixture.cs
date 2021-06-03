@@ -34,7 +34,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
             IResultCursor cursor = await session.RunAsync(cypher);
             await cursor.ConsumeAsync();
 
-            return new ServiceCollection()
+            return await new ServiceCollection()
                 .AddGraphQL()
                 .AddNeo4JProjections()
                 .AddFiltering(x => x.BindRuntimeType<TEntity, T>().AddNeo4JDefaults())
@@ -72,9 +72,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
                 .Services
                 .BuildServiceProvider()
                 .GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync()
-                .GetAwaiter()
-                .GetResult();
+                .GetRequestExecutorAsync();
         }
     }
 }

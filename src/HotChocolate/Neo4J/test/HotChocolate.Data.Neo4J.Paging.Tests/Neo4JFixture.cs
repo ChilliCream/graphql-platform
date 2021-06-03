@@ -35,7 +35,7 @@ namespace HotChocolate.Data.Neo4J.Paging
             IResultCursor cursor = await session.RunAsync(cypher);
             await cursor.ConsumeAsync();
 
-            return new ServiceCollection()
+            return await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(
                     c => c
@@ -70,9 +70,7 @@ namespace HotChocolate.Data.Neo4J.Paging
                 .Services
                 .BuildServiceProvider()
                 .GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync()
-                .GetAwaiter()
-                .GetResult();
+                .GetRequestExecutorAsync();
         }
     }
 }

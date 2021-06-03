@@ -35,7 +35,7 @@ namespace HotChocolate.Data.Neo4J.Sorting
             IResultCursor cursor = await session.RunAsync(cypher);
             await cursor.ConsumeAsync();
 
-            return new ServiceCollection()
+            return await new ServiceCollection()
                 .AddGraphQL()
                 .AddSorting(x => x.BindRuntimeType<TEntity, T>().AddNeo4JDefaults())
                 .AddQueryType(
@@ -71,9 +71,7 @@ namespace HotChocolate.Data.Neo4J.Sorting
                 .Services
                 .BuildServiceProvider()
                 .GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync()
-                .GetAwaiter()
-                .GetResult();
+                .GetRequestExecutorAsync();
         }
     }
 }

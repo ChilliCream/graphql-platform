@@ -58,7 +58,7 @@ namespace HotChocolate.Data.Neo4J.Integration.SchemaFirst
             IResultCursor cursor = await session.RunAsync(seedCypher);
             await cursor.ConsumeAsync();
 
-            return new ServiceCollection()
+            return await new ServiceCollection()
                 .AddSingleton(Driver)
                 .AddGraphQL()
                 .AddQueryType()
@@ -70,9 +70,7 @@ namespace HotChocolate.Data.Neo4J.Integration.SchemaFirst
                 .Services
                 .BuildServiceProvider()
                 .GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync()
-                .GetAwaiter()
-                .GetResult();
+                .GetRequestExecutorAsync();
         }
     }
 }
