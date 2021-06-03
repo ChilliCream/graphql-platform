@@ -102,35 +102,54 @@ _configuration_
 serviceCollection.AddSerializer<PositiveIntSerializer>();
 ```
 
-### Any or JSONObject types
+### Any or JSON
 
-Some GraphQL schemes contain untyped fields, whose types are often called Any or JSONObject. Strawberry Shake allows
-you to access the raw `JsonElement` provided by `System.Text.Json` to decode this value yourself.
+Some GraphQL schemas contain untyped fields, whose types are often called Any or JSON. Strawberry Shake allows
+you to access these fields.
+
+By default Strawberry Shake will use the built-in `JsonSerializer` to represent these fields as `JsonDocument`. If you want a different representation or use a different JSON library you can do so by providing a custom serializer that handles JSON scalars.
+
+Json objects are internally handled as `JsonElement` provided by `System.Text.Json`. You can use this to handle serialization by yourself.
+
+> NOTE: if you want the raw json from the `JsonElement` use `GetRawText`.
+
+In order to have a custom serializer you need to specify runtime and serialization type.
 
 _schema.extensions.graphql_
+
 ```graphql
 extend scalar Any 
       @serializationType(name: "global::System.Object") 
       @runtimeType(name: "global::System.Text.Json.JsonElement")
 ```
 
-_serializer_
-```csharp
-public class JsonObjectSerializer 
-    : ILeafValueParser<JsonElement, object>
-{
-	public string TypeName => "JSONObject";
+Also you need to provide a custom serializer to handle the parsing of the `JsonElement` to whatever type you desire.
 
-    // Parses the value that is returned from the server (Output)
+_serializer_
+
+```csharp
+public class MyJsonSerializer : ScalarSerializer<JsonElement, object>
+{
+    public JsonSerializer(string typeName = BuiltInScalarNames.Any)
+        : base(typeName)
+    {
+    }
+
     public override object Parse(JsonElement serializedValue)
     {
-		// Here you could decode serializedValue in any way you want.
-        return parsedValue;
+        // hand the serialization of the JsonElement
+    }
+
+    protected override JsonElement Format(object runtimeValue)
+    {
+        // handle the serialization of the runtime representation in case
+        // the scalar is used as a variable.
     }
 }
 ```
 
 ### Advanced Example
+
 Your schema contains `X509Certificate`'s. These are serialized to `Base64` on the server and transported as strings.
 
 
