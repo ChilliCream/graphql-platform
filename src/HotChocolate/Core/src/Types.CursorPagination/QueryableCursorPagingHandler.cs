@@ -59,10 +59,10 @@ namespace HotChocolate.Types.Pagination
                 .ConfigureAwait(false);
 
             var pageInfo = new ConnectionPageInfo(
-                lastEdge?.Index < totalCount - 1,
-                firstEdge?.Index > 0,
-                firstEdge?.Cursor,
-                lastEdge?.Cursor,
+                hasNextPage: lastEdge?.Index < totalCount - 1,
+                hasPreviousPage: firstEdge?.Index > 0,
+                startCursor: firstEdge?.Cursor,
+                endCursor: lastEdge?.Cursor,
                 totalCount);
 
             return new Connection<TEntity>(
