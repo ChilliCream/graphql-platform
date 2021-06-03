@@ -55,7 +55,10 @@ namespace HotChocolate.Types.Pagination
                 ? null
                 : selectedEdges[selectedEdges.Count - 1];
 
-            var totalCount = await GetTotalCountAsync(source, lastEdge, cancellationToken)
+            var pageSize = arguments.First ?? arguments.Last ?? DefaultPageSize;
+
+            var totalCount = await GetTotalCountAsync(
+                    source, pageSize, lastEdge, cancellationToken)
                 .ConfigureAwait(false);
 
             var pageInfo = new ConnectionPageInfo(
@@ -116,7 +119,7 @@ namespace HotChocolate.Types.Pagination
             return edges;
         }
 
-        private async Task<int?> GetTotalCountAsync(IQueryable<TEntity> source, IndexEdge<TEntity>? lastEdge, CancellationToken cancellationToken)
+        private async Task<int?> GetTotalCountAsync(IQueryable<TEntity> source, int pageSize, IndexEdge<TEntity>? lastEdge, CancellationToken cancellationToken)
         {
             if (IncludeTotalCount)
             {
@@ -128,8 +131,7 @@ namespace HotChocolate.Types.Pagination
                 return null;
             }
 
-            // TODO: DefaultPageSize vs MaxPageSize
-            source = source.Skip(lastEdge.Index).Take(DefaultPageSize + 1);
+            source = source.Skip(lastEdge.Index).Take(pageSize + 1);
 
             var count = await Task.Run(source.Count, cancellationToken).ConfigureAwait(false);
 
