@@ -10,7 +10,7 @@ partial class Build : NukeBuild
     /// </summary>
     [Parameter] readonly string GitHubRepository = Environment.GetEnvironmentVariable("GITHUB_REPOSITORY");
 
-    /// /// <summary>
+    /// <summary>
     /// Unique identifier of your PR. Must correspond to the key of the PR in GitHub.
     /// E.G.: sonar.pullrequest.key=5
     /// </summary>

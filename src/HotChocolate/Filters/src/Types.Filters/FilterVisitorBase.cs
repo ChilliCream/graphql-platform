@@ -4,6 +4,7 @@ using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class FilterVisitorBase<TContext>
         : SyntaxWalker<TContext>
         where TContext : IFilterVisitorContextBase

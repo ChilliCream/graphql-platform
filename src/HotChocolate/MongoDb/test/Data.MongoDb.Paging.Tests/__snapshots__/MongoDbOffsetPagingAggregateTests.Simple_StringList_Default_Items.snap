@@ -1,0 +1,28 @@
+﻿{
+  "data": {
+    "foos": {
+      "items": [
+        {
+          "bar": "a"
+        },
+        {
+          "bar": "b"
+        },
+        {
+          "bar": "d"
+        },
+        {
+          "bar": "e"
+        },
+        {
+          "bar": "f"
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": false,
+        "hasPreviousPage": false
+      },
+      "totalCount": 5
+    }
+  }
+}

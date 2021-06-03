@@ -12,6 +12,50 @@
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 18,
+        "End": 108,
+        "Line": 2,
+        "Column": 17
+      },
+      "Name": null,
+      "Operation": "Query",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 18,
+          "End": 108,
+          "Line": 2,
+          "Column": 17
+        },
+        "Selections": [
+          {
+            "Kind": "FragmentSpread",
+            "Location": {
+              "Start": 40,
+              "End": 66,
+              "Line": 3,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 43,
+                "End": 66,
+                "Line": 3,
+                "Column": 24
+              },
+              "Value": "FragA"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
   }
 ]

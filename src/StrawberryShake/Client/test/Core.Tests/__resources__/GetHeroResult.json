@@ -1,0 +1,17 @@
+{
+  "data": {
+    "hero": {
+      "__typename": "Droid",
+      "id": "abc",
+      "name": "R2-D2",
+      "friends": [
+        {
+          "__typename": "Human",
+          "id": "def",
+          "name": "Luke"
+        }
+      ]
+    },
+    "version": "123"
+  }
+}

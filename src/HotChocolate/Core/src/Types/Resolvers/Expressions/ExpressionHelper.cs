@@ -51,8 +51,9 @@ namespace HotChocolate.Resolvers.Expressions
 
         public static TContextData GetGlobalState<TContextData>(
             IDictionary<string, object> contextData,
-            string key) =>
-            GetGlobalStateWithDefault<TContextData>(contextData, key, false, default);
+            string key,
+            bool defaultIfNotExists = false) =>
+            GetGlobalStateWithDefault<TContextData>(contextData, key, defaultIfNotExists, default);
 
         public static TContextData GetGlobalStateWithDefault<TContextData>(
             IDictionary<string, object> contextData,
@@ -122,8 +123,9 @@ namespace HotChocolate.Resolvers.Expressions
 
         public static TContextData GetScopedState<TContextData>(
             IReadOnlyDictionary<string, object> contextData,
-            string key) =>
-            GetScopedStateWithDefault<TContextData>(contextData, key, false, default);
+            string key,
+            bool defaultIfNotExists = false) =>
+            GetScopedStateWithDefault<TContextData>(contextData, key, defaultIfNotExists, default);
 
         public static TContextData GetScopedStateWithDefault<TContextData>(
             IReadOnlyDictionary<string, object> contextData,
@@ -131,7 +133,7 @@ namespace HotChocolate.Resolvers.Expressions
             bool hasDefaultValue,
             TContextData defaultValue)
         {
-            if (contextData.TryGetValue(key, out object value))
+            if (contextData.TryGetValue(key, out var value))
             {
                 if (value is null)
                 {

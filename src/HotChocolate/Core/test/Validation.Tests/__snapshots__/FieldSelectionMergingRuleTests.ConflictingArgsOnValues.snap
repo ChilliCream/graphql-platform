@@ -24,6 +24,59 @@
       "responseNameB": "doesKnowCommand",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [
+        {
+          "Kind": "Argument",
+          "Location": {
+            "Start": 285,
+            "End": 302,
+            "Line": 10,
+            "Column": 37
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 285,
+              "End": 296,
+              "Line": 10,
+              "Column": 37
+            },
+            "Value": "dogCommand"
+          },
+          "Value": {
+            "Kind": "EnumValue",
+            "Location": {
+              "Start": 297,
+              "End": 302,
+              "Line": 10,
+              "Column": 49
+            },
+            "Value": "HEEL"
+          }
+        }
+      ],
+      "SelectionSet": null,
+      "Location": {
+        "Start": 269,
+        "End": 320,
+        "Line": 10,
+        "Column": 21
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 269,
+          "End": 285,
+          "Line": 10,
+          "Column": 21
+        },
+        "Value": "doesKnowCommand"
+      },
+      "Directives": []
+    }
   }
 ]

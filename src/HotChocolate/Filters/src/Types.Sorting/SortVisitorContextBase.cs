@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class SortVisitorContextBase
         : ISortVisitorContextBase
     {

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
@@ -5,6 +6,7 @@ using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete]
     public class BooleanFilterInputTypeTests
         : TypeTestBase
     {

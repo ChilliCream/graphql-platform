@@ -1,5 +1,7 @@
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
@@ -38,7 +40,11 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
                 : Expression.Call(
                     getGlobalState,
                     contextData,
-                    key);
+                    key,
+                    Expression.Constant(
+                        new NullableHelper(parameter.ParameterType)
+                            .GetFlags(parameter).FirstOrDefault() ?? false,
+                        typeof(bool)));
         }
 
         protected abstract PropertyInfo GetStateProperty();

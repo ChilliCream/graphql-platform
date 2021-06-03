@@ -3,6 +3,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public interface IComparableFilterFieldDescriptor
         : IFluent
     {

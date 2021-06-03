@@ -1,0 +1,30 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "OS-COMMENT1": "Use IntelliSense to find out which attributes exist for C# debugging",
+            "OS-COMMENT2": "Use hover for the description of the existing attributes",
+            "OS-COMMENT3": "For further information visit https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md",
+            "name": ".NET Core Launch (console)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "OS-COMMENT4": "If you have changed target frameworks, make sure to update the program path.",
+            "program": "${workspaceFolder}/bin/Debug/net5.0/HotChocolate.Execution.Benchmarks.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "OS-COMMENT5": "For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": ".NET Core Attach",
+            "type": "coreclr",
+            "request": "attach",
+            "processId": "${command:pickProcess}"
+        }
+    ]
+}

@@ -11,7 +11,8 @@ using static HotChocolate.Data.ThrowHelper;
 namespace HotChocolate.Data.Projections
 {
     /// <summary>
-    /// The filter convention provides defaults for inferring filters.
+    /// A <see cref="ProjectionProvider"/> translates a incoming query to another
+    /// object structure at runtime
     /// </summary>
     public abstract class ProjectionProvider
         : Convention<ProjectionProviderDefinition>
@@ -43,6 +44,7 @@ namespace HotChocolate.Data.Projections
 
         internal new ProjectionProviderDefinition? Definition => base.Definition;
 
+        /// <inheritdoc />
         protected override ProjectionProviderDefinition CreateDefinition(
             IConventionContext context)
         {
@@ -61,6 +63,15 @@ namespace HotChocolate.Data.Projections
             return descriptor.CreateDefinition();
         }
 
+        /// <summary>
+        /// This method is called on initialization of the provider but before the provider is
+        /// completed. The default implementation of this method does nothing. It can be overriden
+        /// by a derived class such that the provider can be further configured before it is
+        /// completed
+        /// </summary>
+        /// <param name="descriptor">
+        /// The descriptor that can be used to configure the provider
+        /// </param>
         protected virtual void Configure(IProjectionProviderDescriptor descriptor)
         {
         }
@@ -189,7 +200,11 @@ namespace HotChocolate.Data.Projections
             base.Initialize(context);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Creates the executor that is attached to the middleware pipeline of the field
+        /// </summary>
+        /// <typeparam name="TEntityType">The runtime type of the entity</typeparam>
+        /// <returns>A middleware</returns>
         public abstract FieldMiddleware CreateExecutor<TEntityType>();
     }
 }

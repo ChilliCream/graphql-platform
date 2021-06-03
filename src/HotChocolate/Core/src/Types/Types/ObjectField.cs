@@ -19,7 +19,7 @@ namespace HotChocolate.Types
         , IObjectField
     {
         private static readonly FieldDelegate _empty = _ => throw new InvalidOperationException();
-        private readonly List<IDirective> _executableDirectives = new();
+        private IDirective[] _executableDirectives = Array.Empty<IDirective>();
 
         internal ObjectField(
             ObjectFieldDefinition definition,
@@ -27,12 +27,12 @@ namespace HotChocolate.Types
             bool sortArgumentsByName = false)
             : base(definition, fieldCoordinate, sortArgumentsByName)
         {
-            Member = definition.Member ?? definition.ResolverMember;
+            Member = definition.Member;
+            ResolverMember = definition.ResolverMember ?? definition.Member;
             Middleware = _empty;
             Resolver = definition.Resolver!;
-            Expression = definition.Expression;
+            ResolverExpression = definition.Expression;
             SubscribeResolver = definition.SubscribeResolver;
-            ExecutableDirectives = _executableDirectives.AsReadOnly();
             IsIntrospectionField = definition.IsIntrospectionField;
         }
 
@@ -61,19 +61,34 @@ namespace HotChocolate.Types
         /// <summary>
         /// Gets all executable directives that are associated with this field.
         /// </summary>
-        public IReadOnlyList<IDirective> ExecutableDirectives { get; }
+        public IReadOnlyList<IDirective> ExecutableDirectives => _executableDirectives;
 
         /// <summary>
-        /// Gets the associated .net type member of this field.
-        /// This member can be <c>null</c>.
+        /// Gets the associated member of the runtime type for this field.
+        /// This property can be <c>null</c> if this field is not associated to
+        /// a concrete member on the runtime type.
         /// </summary>
         public MemberInfo? Member { get; }
+
+        /// <summary>
+        /// Gets the resolver member of this filed.
+        /// If this field has no explicit resolver member
+        /// this property will return <see cref="Member"/>.
+        /// </summary>
+        public MemberInfo? ResolverMember { get; }
 
         /// <summary>
         /// Gets the associated resolver expression.
         /// This expression can be <c>null</c>.
         /// </summary>
-        public Expression? Expression { get; }
+        [Obsolete("Use resolver expression.")]
+        public Expression? Expression => ResolverExpression;
+
+        /// <summary>
+        /// Gets the associated resolver expression.
+        /// This expression can be <c>null</c>.
+        /// </summary>
+        public Expression? ResolverExpression { get; }
 
         /// <summary>
         /// Defines if this field as a introspection field.
@@ -106,15 +121,22 @@ namespace HotChocolate.Types
             ISet<string> processed,
             IEnumerable<IDirective> directives)
         {
+            List<IDirective>? executableDirectives = null;
             foreach (IDirective directive in directives.Where(t => t.Type.HasMiddleware))
             {
+                executableDirectives ??= new List<IDirective>(_executableDirectives);
                 if (!processed.Add(directive.Name) && !directive.Type.IsRepeatable)
                 {
-                    IDirective remove = _executableDirectives
+                    IDirective remove = executableDirectives
                         .First(t => t.Name.Equals(directive.Name));
-                    _executableDirectives.Remove(remove);
+                    executableDirectives.Remove(remove);
                 }
-                _executableDirectives.Add(directive);
+                executableDirectives.Add(directive);
+            }
+
+            if (executableDirectives is not null)
+            {
+                _executableDirectives = executableDirectives.ToArray();
             }
         }
 
@@ -122,8 +144,7 @@ namespace HotChocolate.Types
             ITypeCompletionContext context,
             ObjectFieldDefinition definition)
         {
-            var isIntrospectionField = IsIntrospectionField
-                || DeclaringType.IsIntrospectionType();
+            var isIntrospectionField = IsIntrospectionField || DeclaringType.IsIntrospectionType();
 
             Resolver = definition.Resolver!;
 
@@ -144,13 +165,13 @@ namespace HotChocolate.Types
 
             Middleware = FieldMiddlewareCompiler.Compile(
                 context.GlobalComponents,
-                definition.MiddlewareComponents.ToArray(),
+                definition.GetMiddlewareComponents(),
                 Resolver,
                 skipMiddleware);
 
             if (Resolver is null! && Middleware is null)
             {
-                if (_executableDirectives.Count > 0)
+                if (_executableDirectives.Length > 0)
                 {
                     Middleware = _ => default;
                 }

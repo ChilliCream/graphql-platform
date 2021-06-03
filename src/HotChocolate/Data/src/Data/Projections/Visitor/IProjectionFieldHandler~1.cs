@@ -3,6 +3,7 @@ using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Data.Projections
 {
+    /// <inheritdoc/>
     public interface IProjectionFieldHandler<TContext>
         : IProjectionFieldHandler
         where TContext : IProjectionVisitorContext

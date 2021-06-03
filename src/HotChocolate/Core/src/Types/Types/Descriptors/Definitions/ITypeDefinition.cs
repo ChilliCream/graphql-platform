@@ -1,10 +1,10 @@
 namespace HotChocolate.Types.Descriptors.Definitions
 {
-    public interface ITypeDefinition 
+    public interface ITypeDefinition
         : IHasSyntaxNode
-        , IHasRuntimeType 
+        , IHasRuntimeType
         , IHasDirectiveDefinition
-
+        , IHasExtendsType
     {
     }
 }

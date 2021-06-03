@@ -3,6 +3,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public interface ISortingNamingConvention : IConvention
     {
         NameString ArgumentName { get; }

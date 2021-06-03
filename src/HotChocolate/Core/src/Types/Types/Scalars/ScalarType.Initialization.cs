@@ -101,8 +101,8 @@ namespace HotChocolate.Types
                             context.TypeInspector.GetTypeRef(typeof(SpecifiedByDirectiveType)))
                     };
 
-            Directives = DirectiveCollection.CreateAndComplete(
-                context, this, directiveDefinitions);
+            Directives =
+                DirectiveCollection.CreateAndComplete(context, this, directiveDefinitions);
         }
     }
 }

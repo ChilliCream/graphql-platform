@@ -17,7 +17,27 @@
       "fragment": "UnknownFragment1",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-target-defined"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentSpread",
+      "Location": {
+        "Start": 78,
+        "End": 125,
+        "Line": 4,
+        "Column": 25
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 81,
+          "End": 125,
+          "Line": 4,
+          "Column": 28
+        },
+        "Value": "UnknownFragment1"
+      },
+      "Directives": []
+    }
   },
   {
     "Message": "The specified fragment `UnknownFragment2` does not exist.",
@@ -37,7 +57,27 @@
       "fragment": "UnknownFragment2",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-target-defined"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentSpread",
+      "Location": {
+        "Start": 165,
+        "End": 210,
+        "Line": 6,
+        "Column": 29
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 168,
+          "End": 210,
+          "Line": 6,
+          "Column": 32
+        },
+        "Value": "UnknownFragment2"
+      },
+      "Directives": []
+    }
   },
   {
     "Message": "The specified fragment `HumanFields` is not used within the current document.",
@@ -53,6 +93,100 @@
       "fragment": "HumanFields",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragments-Must-Be-Used"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentDefinition",
+      "VariableDefinitions": [],
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 291,
+          "End": 298,
+          "Line": 10,
+          "Column": 41
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 291,
+            "End": 298,
+            "Line": 10,
+            "Column": 41
+          },
+          "Value": "Human"
+        }
+      },
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 297,
+          "End": 394,
+          "Line": 10,
+          "Column": 47
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 319,
+              "End": 347,
+              "Line": 11,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 319,
+                "End": 347,
+                "Line": 11,
+                "Column": 21
+              },
+              "Value": "name"
+            },
+            "Directives": []
+          },
+          {
+            "Kind": "FragmentSpread",
+            "Location": {
+              "Start": 344,
+              "End": 381,
+              "Line": 12,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 347,
+                "End": 381,
+                "Line": 12,
+                "Column": 24
+              },
+              "Value": "UnknownFragment3"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 267,
+        "End": 394,
+        "Line": 10,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 276,
+          "End": 290,
+          "Line": 10,
+          "Column": 26
+        },
+        "Value": "HumanFields"
+      },
+      "Directives": []
+    }
   }
 ]

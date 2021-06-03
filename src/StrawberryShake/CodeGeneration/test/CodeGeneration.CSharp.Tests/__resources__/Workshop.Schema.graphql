@@ -1,0 +1,450 @@
+﻿schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+type Query {
+  node(id: ID!): Node
+  attendees(first: Int after: String last: Int before: String): AttendeeConnection
+  attendeeById(id: ID!): Attendee!
+  attendeesById(ids: [ID!]!): [Attendee!]!
+  sessions(first: Int after: String last: Int before: String where: SessionFilterInput order: [SessionSortInput]): SessionConnection
+  sessionById(id: ID!): Session!
+  sessionsById(ids: [ID!]!): [Session!]!
+  speakers(first: Int after: String last: Int before: String): SpeakerConnection
+  speakerById(id: ID!): Speaker!
+  speakersById(ids: [ID!]!): [Speaker!]!
+  tracks(first: Int after: String last: Int before: String): TrackConnection
+  trackByName(name: String!): Track!
+  trackByNames(names: [String!]!): [Track!]!
+  trackById(id: ID!): Track!
+}
+
+type Mutation {
+  registerAttendee(input: RegisterAttendeeInput!): RegisterAttendeePayload!
+  checkInAttendee(input: CheckInAttendeeInput!): CheckInAttendeePayload!
+  addSession(input: AddSessionInput!): AddSessionPayload!
+  scheduleSession(input: ScheduleSessionInput!): ScheduleSessionPayload!
+  addSpeaker(input: AddSpeakerInput!): AddSpeakerPayload!
+  modifySpeaker(input: ModifySpeakerInput!): ModifySpeakerPayload!
+  addTrack(input: AddTrackInput!): AddTrackPayload!
+  renameTrack(input: RenameTrackInput!): RenameTrackPayload!
+}
+
+type Subscription {
+  onAttendeeCheckedIn(sessionId: ID!): SessionAttendeeCheckIn!
+  onSessionScheduled: Session!
+}
+
+type Attendee implements Node {
+  id: ID!
+  sessions: [Session]
+  firstName: String!
+  lastName: String!
+  userName: String!
+  emailAddress: String
+}
+
+type Session implements Node {
+  id: ID!
+  speakers: [Speaker]
+  attendees: [Attendee]
+  track: Track
+  trackId: ID
+  title: String!
+  abstract: String
+  startTime: DateTime
+  endTime: DateTime
+  duration: TimeSpan!
+}
+
+type Speaker implements Node {
+  id: ID!
+  sessions: [Session]
+  name: String!
+  bio: String
+  webSite: String
+}
+
+type Track implements Node {
+  id: ID!
+  sessions(first: Int after: String last: Int before: String): SessionConnection
+  name: String!
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
+"A connection to a list of items."
+type SessionConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [SessionEdge!]
+  "A flattened list of the nodes."
+  nodes: [Session!]
+}
+
+"Information about pagination in a connection."
+type PageInfo {
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
+}
+
+"An edge in a connection."
+type SessionEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Session!
+}
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime
+
+"The `TimeSpan` scalar represents an ISO-8601 compliant duration type."
+scalar TimeSpan
+
+"A connection to a list of items."
+type AttendeeConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [AttendeeEdge!]
+  "A flattened list of the nodes."
+  nodes: [Attendee!]
+}
+
+input SessionFilterInput {
+  and: [SessionFilterInput!]
+  or: [SessionFilterInput!]
+  id: ComparableOperationFilterInputOfInt32FilterInput
+  title: StringOperationFilterInput
+  abstract: StringOperationFilterInput
+  startTime: ComparableOperationFilterInputOfNullableOfDateTimeOffsetFilterInput
+  endTime: ComparableOperationFilterInputOfNullableOfDateTimeOffsetFilterInput
+  duration: ComparableOperationFilterInputOfTimeSpanFilterInput
+  trackId: ComparableOperationFilterInputOfNullableOfInt32FilterInput
+  sessionSpeakers: ListFilterInputOfFilterInputTypeOfSessionSpeakerFilterInput
+  sessionAttendees: ListFilterInputOfFilterInputTypeOfSessionAttendeeFilterInput
+  track: TrackFilterInput
+}
+
+input SessionSortInput {
+  id: DefaultSortEnumType
+  title: DefaultSortEnumType
+  abstract: DefaultSortEnumType
+  startTime: DefaultSortEnumType
+  endTime: DefaultSortEnumType
+  duration: DefaultSortEnumType
+  trackId: DefaultSortEnumType
+  track: TrackSortInput
+}
+
+"A connection to a list of items."
+type SpeakerConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [SpeakerEdge!]
+  "A flattened list of the nodes."
+  nodes: [Speaker!]
+}
+
+"A connection to a list of items."
+type TrackConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [TrackEdge!]
+  "A flattened list of the nodes."
+  nodes: [Track!]
+}
+
+"An edge in a connection."
+type AttendeeEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Attendee!
+}
+
+input ComparableOperationFilterInputOfInt32FilterInput {
+  eq: Int
+  neq: Int
+  in: [Int!]
+  nin: [Int!]
+  gt: Int
+  ngt: Int
+  gte: Int
+  ngte: Int
+  lt: Int
+  nlt: Int
+  lte: Int
+  nlte: Int
+}
+
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
+  eq: String
+  neq: String
+  contains: String
+  ncontains: String
+  in: [String]
+  nin: [String]
+  startsWith: String
+  nstartsWith: String
+  endsWith: String
+  nendsWith: String
+}
+
+input ComparableOperationFilterInputOfNullableOfDateTimeOffsetFilterInput {
+  eq: DateTime
+  neq: DateTime
+  in: [DateTime]
+  nin: [DateTime]
+  gt: DateTime
+  ngt: DateTime
+  gte: DateTime
+  ngte: DateTime
+  lt: DateTime
+  nlt: DateTime
+  lte: DateTime
+  nlte: DateTime
+}
+
+input ComparableOperationFilterInputOfTimeSpanFilterInput {
+  eq: TimeSpan
+  neq: TimeSpan
+  in: [TimeSpan!]
+  nin: [TimeSpan!]
+  gt: TimeSpan
+  ngt: TimeSpan
+  gte: TimeSpan
+  ngte: TimeSpan
+  lt: TimeSpan
+  nlt: TimeSpan
+  lte: TimeSpan
+  nlte: TimeSpan
+}
+
+input ComparableOperationFilterInputOfNullableOfInt32FilterInput {
+  eq: Int
+  neq: Int
+  in: [Int]
+  nin: [Int]
+  gt: Int
+  ngt: Int
+  gte: Int
+  ngte: Int
+  lt: Int
+  nlt: Int
+  lte: Int
+  nlte: Int
+}
+
+input ListFilterInputOfFilterInputTypeOfSessionSpeakerFilterInput {
+  all: SessionSpeakerFilterInput
+  none: SessionSpeakerFilterInput
+  some: SessionSpeakerFilterInput
+  any: Boolean
+}
+
+input ListFilterInputOfFilterInputTypeOfSessionAttendeeFilterInput {
+  all: SessionAttendeeFilterInput
+  none: SessionAttendeeFilterInput
+  some: SessionAttendeeFilterInput
+  any: Boolean
+}
+
+input TrackFilterInput {
+  and: [TrackFilterInput!]
+  or: [TrackFilterInput!]
+  id: ComparableOperationFilterInputOfInt32FilterInput
+  name: StringOperationFilterInput
+  sessions: ListFilterInputOfFilterInputTypeOfSessionFilterInput
+}
+
+enum DefaultSortEnumType {
+  ASC
+  DESC
+}
+
+input TrackSortInput {
+  id: DefaultSortEnumType
+  name: DefaultSortEnumType
+}
+
+"An edge in a connection."
+type SpeakerEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Speaker!
+}
+
+"An edge in a connection."
+type TrackEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Track!
+}
+
+input SessionSpeakerFilterInput {
+  and: [SessionSpeakerFilterInput!]
+  or: [SessionSpeakerFilterInput!]
+  sessionId: ComparableOperationFilterInputOfInt32FilterInput
+  session: SessionFilterInput
+  speakerId: ComparableOperationFilterInputOfInt32FilterInput
+  speaker: SpeakerFilterInput
+}
+
+input SessionAttendeeFilterInput {
+  and: [SessionAttendeeFilterInput!]
+  or: [SessionAttendeeFilterInput!]
+  sessionId: ComparableOperationFilterInputOfInt32FilterInput
+  session: SessionFilterInput
+  attendeeId: ComparableOperationFilterInputOfInt32FilterInput
+  attendee: AttendeeFilterInput
+}
+
+input ListFilterInputOfFilterInputTypeOfSessionFilterInput {
+  all: SessionFilterInput
+  none: SessionFilterInput
+  some: SessionFilterInput
+  any: Boolean
+}
+
+input SpeakerFilterInput {
+  and: [SpeakerFilterInput!]
+  or: [SpeakerFilterInput!]
+  id: ComparableOperationFilterInputOfInt32FilterInput
+  name: StringOperationFilterInput
+  bio: StringOperationFilterInput
+  webSite: StringOperationFilterInput
+  sessionSpeakers: ListFilterInputOfFilterInputTypeOfSessionSpeakerFilterInput
+}
+
+input AttendeeFilterInput {
+  and: [AttendeeFilterInput!]
+  or: [AttendeeFilterInput!]
+  id: ComparableOperationFilterInputOfInt32FilterInput
+  firstName: StringOperationFilterInput
+  lastName: StringOperationFilterInput
+  userName: StringOperationFilterInput
+  emailAddress: StringOperationFilterInput
+  sessionsAttendees: ListFilterInputOfFilterInputTypeOfSessionAttendeeFilterInput
+}
+
+input ModifySpeakerInput {
+  id: ID!
+  name: String
+  bio: String
+  webSite: String
+}
+
+input AddSpeakerInput {
+  name: String!
+  bio: String
+  webSite: String
+}
+
+type ModifySpeakerPayload {
+  speaker: Speaker
+  errors: [UserError!]
+}
+
+type AddSpeakerPayload {
+  speaker: Speaker
+  errors: [UserError!]
+}
+
+input ScheduleSessionInput {
+  sessionId: ID!
+  trackId: ID!
+  startTime: DateTime!
+  endTime: DateTime!
+}
+
+input AddSessionInput {
+  title: String!
+  abstract: String
+  speakerIds: [ID!]!
+}
+
+type ScheduleSessionPayload {
+  track: Track
+  speakers: [Speaker!]
+  session: Session
+  errors: [UserError!]
+}
+
+type AddSessionPayload {
+  session: Session
+  errors: [UserError!]
+}
+
+input CheckInAttendeeInput {
+  sessionId: ID!
+  attendeeId: ID!
+}
+
+input RegisterAttendeeInput {
+  firstName: String!
+  lastName: String!
+  userName: String!
+  emailAddress: String!
+}
+
+type CheckInAttendeePayload {
+  session: Session
+  attendee: Attendee
+  errors: [UserError!]
+}
+
+type RegisterAttendeePayload {
+  attendee: Attendee
+  errors: [UserError!]
+}
+
+type AddTrackPayload {
+  track: Track
+  errors: [UserError!]
+}
+
+type RenameTrackPayload {
+  track: Track
+  errors: [UserError!]
+}
+
+input AddTrackInput {
+  name: String!
+}
+
+input RenameTrackInput {
+  id: ID!
+  name: String!
+}
+
+type SessionAttendeeCheckIn {
+  checkInCount: Int!
+  attendee: Attendee!
+  attendeeId: ID!
+  sessionId: ID!
+}
+
+type UserError {
+  message: String!
+  code: String!
+}

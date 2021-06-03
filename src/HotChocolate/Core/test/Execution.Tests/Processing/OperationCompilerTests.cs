@@ -700,6 +700,84 @@ namespace HotChocolate.Execution.Processing
         }
 
         [Fact]
+        public void Nested_Fragments()
+        {
+            // arrange
+            var vFalse = new Mock<IVariableValueCollection>();
+            vFalse.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(false);
+
+            var vTrue = new Mock<IVariableValueCollection>();
+            vTrue.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(true);
+
+            ISchema schema = SchemaBuilder.New()
+                .AddStarWarsTypes()
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                @"
+                query ($if: Boolean!) {
+                    human(id: ""1000"") {
+                        ... Human1 @include(if: $if)
+                        ... Human2 @skip(if: $if)
+                    }
+                }
+                fragment Human1 on Human {
+                    friends {
+                        edges {
+                            ... FriendEdge1
+                        }
+                    }
+                }
+                fragment FriendEdge1 on CharacterEdge {
+                    node {
+                        __typename
+                        friends {
+                            nodes {
+                                __typename
+                                ... Human3
+                            }
+                        }
+                    }
+                }
+                fragment Human2 on Human {
+                    friends {
+                        edges {
+                            node {
+                                __typename
+                                ... Human3
+                            }
+                        }
+                    }
+                }
+                fragment Human3 on Human {
+                    # This works
+                    name
+
+                    # This is returned as an empty object but should be populated
+                    otherHuman {
+                      __typename
+                      name
+                    }
+                }
+                ");
+
+            OperationDefinitionNode operationDefinition =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+            // act
+            var operation =
+                (Operation)OperationCompiler.Compile(
+                    "a",
+                    document,
+                    operationDefinition,
+                    schema,
+                    schema.QueryType);
+
+            // assert
+            operation.Print().MatchSnapshot();
+        }
+
+        [Fact]
         public void Object_Field_Visibility_Is_Correctly_Inherited_2()
         {
             // arrange

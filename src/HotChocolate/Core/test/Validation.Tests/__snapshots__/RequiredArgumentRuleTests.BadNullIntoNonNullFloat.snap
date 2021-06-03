@@ -19,6 +19,35 @@
       "argument": "floatArg",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Argument",
+      "Location": {
+        "Start": 96,
+        "End": 111,
+        "Line": 4,
+        "Column": 46
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 96,
+          "End": 105,
+          "Line": 4,
+          "Column": 46
+        },
+        "Value": "floatArg"
+      },
+      "Value": {
+        "Kind": "NullValue",
+        "Location": {
+          "Start": 106,
+          "End": 111,
+          "Line": 4,
+          "Column": 56
+        },
+        "Value": null
+      }
+    }
   }
 ]

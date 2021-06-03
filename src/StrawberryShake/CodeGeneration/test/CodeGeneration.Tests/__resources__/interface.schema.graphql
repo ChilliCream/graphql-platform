@@ -1,0 +1,44 @@
+type Query {
+  store: Store!
+  searchableStore: SearchableStore!
+  books: [Book!]
+  authors: [Author!]
+  search: SearchResult
+  prints: [Print]
+}
+
+type Book implements Print {
+  isbn: String!
+  title: String!
+  author: Author!
+}
+
+type Magazine implements Print {
+  isbn: String!
+  coverImageUrl: String
+}
+
+type Author {
+  name: String!
+  genres: [String]
+  books: [Book!]
+}
+
+type Store {
+  id: String!
+  books: [Book]
+  authors: [Author]
+}
+
+type SearchableStore {
+  id: String!
+  books: [Book]
+  search: SearchResult
+}
+
+union SearchResult = Author | Book
+union Humans = Author
+
+interface Print {
+  isbn: String!
+}

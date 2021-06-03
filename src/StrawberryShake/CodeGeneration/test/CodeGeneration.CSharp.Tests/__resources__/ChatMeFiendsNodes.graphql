@@ -1,0 +1,11 @@
+query GetPeople {
+  me {
+    friends {
+      nodes {
+        name
+        email
+        isOnline
+      }
+    }
+  }
+}

@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Filters
@@ -5,6 +6,7 @@ namespace HotChocolate.Types.Filters
     /// <summary>
     /// Represents a field that can be filtered.
     /// </summary>
+    [Obsolete("Use HotChocolate.Data.")]
     public class FilterFieldDefintion
         : InputFieldDefinition
     {

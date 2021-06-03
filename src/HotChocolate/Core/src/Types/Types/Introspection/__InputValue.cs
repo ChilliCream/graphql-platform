@@ -1,4 +1,5 @@
 #pragma warning disable IDE1006 // Naming Styles
+using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Properties;
@@ -48,6 +49,14 @@ namespace HotChocolate.Types.Introspection
 
                     return field.DefaultValue?.Print();
                 });
+
+            if (descriptor.Extend().Context.Options.EnableDirectiveIntrospection)
+            {
+                descriptor
+                    .Field(t => t.Directives.Where(d => d.Type.IsPublic).Select(d => d.ToNode()))
+                    .Type<NonNullType<ListType<NonNullType<__AppliedDirective>>>>()
+                    .Name(Names.AppliedDirectives);
+            }
         }
 
         public static class Names
@@ -57,6 +66,7 @@ namespace HotChocolate.Types.Introspection
             public const string Description = "description";
             public const string DefaultValue = "defaultValue";
             public const string Type = "type";
+            public const string AppliedDirectives = "appliedDirectives";
         }
     }
 }

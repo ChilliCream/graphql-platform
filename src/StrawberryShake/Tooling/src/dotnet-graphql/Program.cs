@@ -7,16 +7,23 @@ namespace StrawberryShake.Tools
     {
         internal static Task<int> Main(string[] args)
         {
-            using var root = new CommandLineApplication();
-            root.HelpTextGenerator = new RootHelpTextGenerator();
-            root.AddSubcommand(InitCommand.Create());
-            root.AddSubcommand(UpdateCommand.Create());
-            root.AddSubcommand(CompileCommand.Create());
-            root.AddSubcommand(GenerateCommand.Create());
-            root.AddSubcommand(DownloadCommand.Create());
-            root.AddSubcommand(PublishCommand.Create());
+            using CommandLineApplication init = InitCommand.Create();
+            using CommandLineApplication upd = UpdateCommand.Create();
+            using CommandLineApplication down = DownloadCommand.Create();
+            
+            using var root = new CommandLineApplication
+            {
+                HelpTextGenerator = new RootHelpTextGenerator()
+            };
+
+            root.AddSubcommand(init);
+            root.AddSubcommand(upd);
+            root.AddSubcommand(down);
+
             root.HelpOption("-h|--help");
+
             root.OnExecute(() => root.HelpTextGenerator.Generate(root, root.Out));
+
             return root.ExecuteAsync(args);
         }
     }

@@ -86,5 +86,15 @@ namespace HotChocolate.Types
         /// in a single location.
         /// </summary>
         IDirectiveTypeDescriptor Repeatable();
+
+        /// <summary>
+        /// Directive is public and visible within the type system and through introspection.
+        /// </summary>
+        IDirectiveTypeDescriptor Public();
+
+        /// <summary>
+        /// Directive is internal and only visible within the type system.
+        /// </summary>
+        IDirectiveTypeDescriptor Internal();
     }
 }

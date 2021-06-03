@@ -36,6 +36,7 @@ namespace HotChocolate
                     _schema = value ?? throw new ArgumentNullException(nameof(value));
                     _isSet = true;
                     Completed?.Invoke(this, EventArgs.Empty);
+                    Completed = null;
                 }
             }
         }

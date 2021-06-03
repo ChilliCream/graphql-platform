@@ -38,8 +38,10 @@ namespace HotChocolate.Execution.Pipeline
                 {
                     using (_diagnosticEvents.ValidateDocument(context))
                     {
-                        context.ValidationResult =
-                            _documentValidator.Validate(context.Schema, context.Document!);
+                        context.ValidationResult = _documentValidator.Validate(
+                            context.Schema,
+                            context.Document,
+                            context.ContextData);
                     }
                 }
 

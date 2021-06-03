@@ -17,12 +17,11 @@ namespace HotChocolate
     {
         private class Error : ISchemaError
         {
-            private static readonly JsonWriterOptions _serializationOptions =
-                new JsonWriterOptions
-                {
-                    Indented = true,
-                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-                };
+            private static readonly JsonWriterOptions _serializationOptions =  new()
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
 
             public string Message { get; set; } = default!;
 
@@ -44,7 +43,7 @@ namespace HotChocolate
 
             public Exception? Exception { get; set; }
 
-            public unsafe override string ToString()
+            public override unsafe string ToString()
             {
                 using var buffer = new ArrayWriter();
 
@@ -89,7 +88,7 @@ namespace HotChocolate
                     writer.WriteEndArray();
                 }
 
-                if (Extensions is { })
+                if (Extensions is not null)
                 {
                     writer.WritePropertyName("extensions");
                     writer.WriteStartObject();

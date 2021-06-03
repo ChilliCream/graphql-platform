@@ -4,6 +4,10 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters
 {
+    /// <summary>
+    /// A <see cref="IFilterProvider"/> translates a incoming query to another
+    /// object structure at runtime
+    /// </summary>
     public interface IFilterProvider
     {
         /// <summary>

@@ -9,8 +9,7 @@ namespace HotChocolate.Types
             this IObjectFieldDescriptor descriptor)
             where TMiddleware : class
         {
-            return descriptor.Use(
-                FieldClassMiddlewareFactory.Create<TMiddleware>());
+            return descriptor.Use(FieldClassMiddlewareFactory.Create<TMiddleware>());
         }
 
         public static IObjectFieldDescriptor Use<TMiddleware>(
@@ -23,8 +22,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(factory));
             }
 
-            return descriptor.Use(
-                FieldClassMiddlewareFactory.Create(factory));
+            return descriptor.Use(FieldClassMiddlewareFactory.Create(factory));
         }
     }
 }

@@ -1,0 +1,13 @@
+query AllExpenses {
+  expense {
+    id
+    amount
+    date
+    description
+    category
+    paymentMethod
+    tags {
+      name
+    }
+  }
+}

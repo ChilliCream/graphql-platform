@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Language;
 
 #nullable enable
 
@@ -22,6 +23,8 @@ namespace HotChocolate
         IErrorBuilder AddLocation(Location location);
 
         IErrorBuilder AddLocation(int line, int column);
+
+        IErrorBuilder SetSyntaxNode(ISyntaxNode? syntaxNode);
 
         IErrorBuilder ClearLocations();
 

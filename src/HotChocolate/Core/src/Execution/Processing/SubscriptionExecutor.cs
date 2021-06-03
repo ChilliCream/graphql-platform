@@ -24,7 +24,7 @@ namespace HotChocolate.Execution.Processing
 
         public async Task<IExecutionResult> ExecuteAsync(
             IRequestContext requestContext,
-            Func<object> resolveQueryValue)
+            Func<object?> resolveQueryValue)
         {
             if (requestContext is null)
             {
@@ -65,7 +65,10 @@ namespace HotChocolate.Execution.Processing
                 return new SubscriptionResult(
                     subscription.ExecuteAsync,
                     null,
-                    session: subscription);
+                    session: subscription,
+                    contextData: new SingleValueExtensionData(
+                        WellKnownContextData.Subscription,
+                        subscription));
             }
             catch (GraphQLException ex)
             {

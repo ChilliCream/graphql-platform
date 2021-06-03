@@ -3,6 +3,7 @@ using System.Reflection;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Utilities
 {
@@ -92,8 +93,8 @@ namespace HotChocolate.Utilities
             MemberInfo member) =>
             new SchemaException(
                 SchemaErrorBuilder.New()
-                    .SetMessage("The UsePaging attribute needs a valid node schema type.")
-                    .SetCode("ATTR_USEPAGING_SCHEMATYPE_INVALID")
+                    .SetMessage(TypeResources.ThrowHelper_UsePagingAttribute_NodeTypeUnknown)
+                    .SetCode(ErrorCodes.Types.NodeTypeUnkown)
                     .SetExtension(nameof(member), member)
                     .Build());
 
@@ -140,8 +141,8 @@ namespace HotChocolate.Utilities
                 SchemaErrorBuilder.New()
                     .SetMessage(
                         "The specified node resolver `{0}` does not exist on `{1}`.",
-                        type.FullName ?? type.Name,
-                        nodeResolver)
+                        nodeResolver,
+                        type.FullName ?? type.Name)
                     .Build());
 
         public static SchemaException NodeAttribute_IdFieldNotFound(
@@ -151,8 +152,8 @@ namespace HotChocolate.Utilities
                 SchemaErrorBuilder.New()
                     .SetMessage(
                         "The specified id field `{0}` does not exist on `{1}`.",
-                        type.FullName ?? type.Name,
-                        idField)
+                        idField,
+                        type.FullName ?? type.Name)
                     .Build());
 
 #nullable enable
@@ -191,6 +192,13 @@ namespace HotChocolate.Utilities
                     .SetMessage(
                         "The provided type {0} is not a dataloader",
                         dataLoaderType.FullName ?? dataLoaderType.Name)
+                    .Build());
+
+        public static SchemaException NonGenericExecutableNotAllowed() =>
+            new SchemaException(
+                SchemaErrorBuilder
+                    .New()
+                    .SetMessage(ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed)
                     .Build());
     }
 }

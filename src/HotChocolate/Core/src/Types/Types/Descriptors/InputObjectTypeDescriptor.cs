@@ -50,12 +50,13 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             InputObjectTypeDefinition definition)
         {
-            if (Definition.RuntimeType is not null)
+            if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
             {
                 Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.RuntimeType);
+                Definition.AttributesAreApplied = true;
             }
 
             var fields = new Dictionary<NameString, InputFieldDefinition>();

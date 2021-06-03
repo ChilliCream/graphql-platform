@@ -14,7 +14,7 @@ Today we are releasing Hot Chocolate version 8 (0.8.0) which mainly focused on s
 
 Since, my last blog post we were heavily at work ironing out bugs and making schema stitching easier.
 
-Now, with the release finished, schema stitching with ASP.Net core has become super easy and feels quite nice to use.
+Now, with the release finished, schema stitching with ASP.NET core has become super easy and feels quite nice to use.
 
 Head over to our new documentation for [schema stitching](https://hotchocolate.io/docs/stitching).
 
@@ -28,9 +28,9 @@ Also, with version 8 we have invested some time to smooth out the `@authorize`-d
 
 The `@authorize`-directive does now mirror almost the behavior of the authorize directive.
 
-In contrast to the ASP.Net attribute we can specify the directive on field definitions and thereby have a fine-grained control over what data we want to give access to.
+In contrast to the ASP.NET attribute we can specify the directive on field definitions and thereby have a fine-grained control over what data we want to give access to.
 
-If you are using ASP.Net core then you can use authorization-policies with your `@authorize`-directive giving you even more control over your data.
+If you are using ASP.NET core then you can use authorization-policies with your `@authorize`-directive giving you even more control over your data.
 
 Head over to our [authorization documentation](https://hotchocolate.io/docs/authorization) to learn more.
 
@@ -102,7 +102,7 @@ We are planning around four to six weeks for version 9 with the first previews c
 
 We will really start hammering out the details on version 9 in the next three weeks.
 
-If you have ideas or suggestions pleas head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and join the discussion.
+If you have ideas or suggestions pleas head over to our slack channel and join the discussion.
 
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

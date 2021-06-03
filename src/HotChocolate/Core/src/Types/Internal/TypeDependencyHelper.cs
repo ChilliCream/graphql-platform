@@ -24,43 +24,12 @@ namespace HotChocolate.Internal
             }
 
             context.RegisterDependencyRange(
-                definition.Interfaces,
+                definition.GetInterfaces(),
                 TypeDependencyKind.Completed);
 
             RegisterAdditionalDependencies(context, definition);
             RegisterDirectiveDependencies(context, definition);
             RegisterFieldDependencies(context, definition.Fields);
-
-            foreach (ObjectFieldDefinition field in definition.Fields)
-            {
-                if (field.Resolver is null)
-                {
-                    if (field.Expression is not null)
-                    {
-                        context.RegisterResolver(
-                            field.Name,
-                            field.Expression,
-                            definition.RuntimeType,
-                            field.ResolverType);
-                    }
-                    else if (field.ResolverMember is not null)
-                    {
-                        context.RegisterResolver(
-                            field.Name,
-                            field.ResolverMember,
-                            definition.RuntimeType,
-                            field.ResolverType);
-                    }
-                    else if (field.Member is not null)
-                    {
-                        context.RegisterResolver(
-                            field.Name,
-                            field.Member,
-                            definition.RuntimeType,
-                            field.ResolverType);
-                    }
-                }
-            }
         }
 
         public static void RegisterDependencies(
@@ -78,7 +47,7 @@ namespace HotChocolate.Internal
             }
 
             context.RegisterDependencyRange(
-                definition.Interfaces,
+                definition.GetInterfaces(),
                 TypeDependencyKind.Completed);
 
             RegisterAdditionalDependencies(context, definition);
@@ -133,7 +102,7 @@ namespace HotChocolate.Internal
                 }
 
                 context.RegisterDependencyRange(
-                    field.Directives.Select(t => t.TypeReference),
+                    field.GetDirectives().Select(t => t.TypeReference),
                     TypeDependencyKind.Completed);
             }
         }
@@ -144,7 +113,7 @@ namespace HotChocolate.Internal
             where T : class, ISyntaxNode
         {
             context.RegisterDependencyRange(
-                definition.Directives.Select(t => t.TypeReference),
+                definition.GetDirectives().Select(t => t.TypeReference),
                 TypeDependencyKind.Completed);
         }
 
@@ -152,8 +121,7 @@ namespace HotChocolate.Internal
             this ITypeDiscoveryContext context,
             DefinitionBase definition)
         {
-            context.RegisterDependencyRange(
-                definition.Dependencies);
+            context.RegisterDependencyRange(definition.GetDependencies());
         }
 
         private static void RegisterFieldDependencies(
@@ -171,12 +139,12 @@ namespace HotChocolate.Internal
                 }
 
                 context.RegisterDependencyRange(
-                    field.Directives.Select(t => t.TypeReference),
+                    field.GetDirectives().Select(t => t.TypeReference),
                     TypeDependencyKind.Completed);
             }
 
             RegisterFieldDependencies(context,
-                fields.SelectMany(t => t.Arguments));
+                fields.SelectMany(t => t.GetArguments()));
         }
 
         private static void RegisterFieldDependencies(
@@ -194,7 +162,7 @@ namespace HotChocolate.Internal
                 }
 
                 context.RegisterDependencyRange(
-                    field.Directives.Select(t => t.TypeReference),
+                    field.GetDirectives().Select(t => t.TypeReference),
                     TypeDependencyKind.Completed);
             }
         }
@@ -208,7 +176,7 @@ namespace HotChocolate.Internal
                 RegisterAdditionalDependencies(context, enumValue);
 
                 context.RegisterDependencyRange(
-                    enumValue.Directives.Select(t => t.TypeReference),
+                    enumValue.GetDirectives().Select(t => t.TypeReference),
                     TypeDependencyKind.Completed);
             }
         }

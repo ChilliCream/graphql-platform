@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Instrumentation
 {
     internal sealed class AggregateDiagnosticEvents : IDiagnosticEvents
     {
-        private static EmptyActivityScope _empty = new EmptyActivityScope();
+        private static EmptyActivityScope _empty = new();
         private readonly IDiagnosticEventListener[] _listeners;
         private readonly IDiagnosticEventListener[] _resolverListener;
 
@@ -124,6 +125,54 @@ namespace HotChocolate.Execution.Instrumentation
             for (var i = 0; i < _listeners.Length; i++)
             {
                 _listeners[i].TaskError(task, error);
+            }
+        }
+
+        public IActivityScope ExecuteSubscription(ISubscription subscription)
+        {
+            var scopes = new IActivityScope[_listeners.Length];
+
+            for (var i = 0; i < _listeners.Length; i++)
+            {
+                scopes[i] = _listeners[i].ExecuteSubscription(subscription);
+            }
+
+            return new AggregateActivityScope(scopes);
+        }
+
+        public IActivityScope OnSubscriptionEvent(SubscriptionEventContext context)
+        {
+            var scopes = new IActivityScope[_listeners.Length];
+
+            for (var i = 0; i < _listeners.Length; i++)
+            {
+                scopes[i] = _listeners[i].OnSubscriptionEvent(context);
+            }
+
+            return new AggregateActivityScope(scopes);
+        }
+
+        public void SubscriptionEventResult(SubscriptionEventContext context, IQueryResult result)
+        {
+            for (var i = 0; i < _listeners.Length; i++)
+            {
+                _listeners[i].SubscriptionEventResult(context, result);
+            }
+        }
+
+        public void SubscriptionEventError(SubscriptionEventContext context, Exception exception)
+        {
+            for (var i = 0; i < _listeners.Length; i++)
+            {
+                _listeners[i].SubscriptionEventError(context, exception);
+            }
+        }
+
+        public void SubscriptionTransportError(ISubscription subscription, Exception exception)
+        {
+            for (var i = 0; i < _listeners.Length; i++)
+            {
+                _listeners[i].SubscriptionTransportError(subscription, exception);
             }
         }
 

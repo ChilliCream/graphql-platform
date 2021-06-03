@@ -2,6 +2,7 @@ using System;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class FilterNamingConventionPascalCase : FilterNamingConventionBase
     {
         public override NameString ArgumentName => "Where";

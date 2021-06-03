@@ -36,12 +36,12 @@ namespace HotChocolate.Types.Descriptors
         /// <summary>
         /// Gets the schema interceptor.
         /// </summary>
-        ISchemaInterceptor SchemaInterceptor { get; }
+        SchemaInterceptor SchemaInterceptor { get; }
 
         /// <summary>
         /// Gets the type interceptor.
         /// </summary>
-        ITypeInterceptor TypeInterceptor { get; }
+        TypeInterceptor TypeInterceptor { get; }
 
         /// <summary>
         /// Gets a custom convention.

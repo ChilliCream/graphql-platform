@@ -21,6 +21,9 @@ namespace HotChocolate.Language
         private float? _floatValue;
         private double? _doubleValue;
         private decimal? _decimalValue;
+        private ushort? _uShortValue;
+        private uint? _uIntValue;
+        private ulong? _uLongValue;
 
         public IntValueNode(byte value)
             : this(null, value)
@@ -65,6 +68,39 @@ namespace HotChocolate.Language
         {
             Location = location;
             _longValue = value;
+        }
+
+        public IntValueNode(ushort value)
+            : this(null, value)
+        {
+        }
+
+        public IntValueNode(Location? location, ushort value)
+        {
+            Location = location;
+            _uShortValue = value;
+        }
+
+        public IntValueNode(uint value)
+            : this(null, value)
+        {
+        }
+
+        public IntValueNode(Location? location, uint value)
+        {
+            Location = location;
+            _uIntValue = value;
+        }
+
+        public IntValueNode(ulong value)
+            : this(null, value)
+        {
+        }
+
+        public IntValueNode(Location? location, ulong value)
+        {
+            Location = location;
+            _uLongValue = value;
         }
 
         public IntValueNode(ReadOnlyMemory<byte> value)
@@ -298,6 +334,54 @@ namespace HotChocolate.Language
             if (Utf8Parser.TryParse(AsSpan(), out long value, out _))
             {
                 _longValue = value;
+                return value;
+            }
+
+            throw new InvalidFormatException();
+        }
+
+        public ushort ToUInt16()
+        {
+            if (_uShortValue.HasValue)
+            {
+                return _uShortValue.Value;
+            }
+
+            if (Utf8Parser.TryParse(AsSpan(), out ushort value, out _))
+            {
+                _uShortValue = value;
+                return value;
+            }
+
+            throw new InvalidFormatException();
+        }
+
+        public uint ToUInt32()
+        {
+            if (_uIntValue.HasValue)
+            {
+                return _uIntValue.Value;
+            }
+
+            if (Utf8Parser.TryParse(AsSpan(), out uint value, out _))
+            {
+                _uIntValue = value;
+                return value;
+            }
+
+            throw new InvalidFormatException();
+        }
+
+        public ulong ToUInt64()
+        {
+            if (_uLongValue.HasValue)
+            {
+                return _uLongValue.Value;
+            }
+
+            if (Utf8Parser.TryParse(AsSpan(), out ulong value, out _))
+            {
+                _uLongValue = value;
                 return value;
             }
 

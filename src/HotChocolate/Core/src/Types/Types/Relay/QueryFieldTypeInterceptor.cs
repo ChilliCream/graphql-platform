@@ -38,7 +38,8 @@ namespace HotChocolate.Types.Relay
 
                 foreach (ObjectFieldDefinition field in mutation.Definition.Fields)
                 {
-                    if (mutation.Context.TryGetType(field.Type, out IType type) &&
+                    if (field.Type is not null &&
+                        mutation.Context.TryGetType(field.Type, out IType type) &&
                         type.NamedType() is ObjectType objectType &&
                         options.MutationPayloadPredicate.Invoke(objectType) &&
                         _types.TryGetValue(objectType, out TypeInfo payload))

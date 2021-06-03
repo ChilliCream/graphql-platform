@@ -6,7 +6,7 @@ import styled from "styled-components";
 import { GetIndexPageDataQuery } from "../../graphql-types";
 import { BananaCakePop } from "../components/images/banana-cake-pop";
 import { BlogPostEFMeetsGraphQL } from "../components/images/blog-post-ef-meets-graphql";
-import { BlogPostStrawberryShake } from "../components/images/blog-post-strawberry-shake";
+import { BlogPostChilliCreamPlatform } from "../components/images/blog-post-chillicream-platform-11-1";
 import { BlogPostVersion11 } from "../components/images/blog-post-version-11";
 import { Link } from "../components/misc/link";
 import {
@@ -21,7 +21,6 @@ import {
 import { Hero, Intro } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
-
 // Logos
 import AeiLogoSvg from "../images/companies/aei.svg";
 import AtminaLogoSvg from "../images/companies/atmina.svg";
@@ -44,7 +43,6 @@ import SweetGeeksLogoSvg from "../images/companies/sweetgeeks.svg";
 import SwissLifeLogoSvg from "../images/companies/swiss-life.svg";
 import SytadelleLogoSvg from "../images/companies/sytadelle.svg";
 import ZioskLogoSvg from "../images/companies/ziosk.svg";
-
 // Images
 import ContactUsSvg from "../images/contact-us.svg";
 import DashboardSvg from "../images/dashboard.svg";
@@ -108,6 +106,11 @@ const IndexPage: FunctionComponent = () => {
           showThumbs={false}
         >
           <Slide>
+            <Link to="/blog/2021/03/31/chillicream-platform-11-1">
+              <BlogPostChilliCreamPlatform />
+            </Link>
+          </Slide>
+          <Slide>
             <Link to="/blog/2020/11/23/hot-chocolate-11">
               <BlogPostVersion11 />
             </Link>
@@ -133,11 +136,6 @@ const IndexPage: FunctionComponent = () => {
                   Get started with Hot Chocolate and Entity Framework
                 </SlideDescription>
               </SlideContent>
-            </Link>
-          </Slide>
-          <Slide>
-            <Link to="/blog/2019/11/25/strawberry-shake_2">
-              <BlogPostStrawberryShake />
             </Link>
           </Slide>
         </Slideshow>
@@ -172,7 +170,7 @@ const IndexPage: FunctionComponent = () => {
               our startup guide and see how simple it is to create your first
               API.
             </p>
-            <Link to="/docs/hotchocolate/v10/">Learn more</Link>
+            <Link to="/docs/hotchocolate">Learn more</Link>
           </ContentContainer>
         </SectionRow>
       </Section>
@@ -262,7 +260,7 @@ const IndexPage: FunctionComponent = () => {
                   <GiaLogoSvg />
                 </Link>
               </Logo>
-              <Logo width={160}>
+              <Logo width={200}>
                 <Link to="https://www.incloud.de/">
                   <IncloudLogoSvg />
                 </Link>
@@ -448,13 +446,15 @@ const SlideContent = styled.div`
   @media only screen and (min-width: 992px) {
     right: 25%;
     left: 25%;
+    margin: 0 auto;
+    max-width: 600px;
   }
 
   @media only screen and (min-width: 1200px) {
     right: 30%;
     left: 30%;
     margin: 0 auto;
-    max-width: 700px;
+    max-width: 800px;
   }
 `;
 

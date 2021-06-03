@@ -17,7 +17,27 @@
       "fragment": "fragB",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spreads-must-not-form-cycles"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentSpread",
+      "Location": {
+        "Start": 226,
+        "End": 239,
+        "Line": 9,
+        "Column": 41
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 229,
+          "End": 239,
+          "Line": 9,
+          "Column": 44
+        },
+        "Value": "fragB"
+      },
+      "Directives": []
+    }
   },
   {
     "Message": "The graph of fragment spreads must not form any cycles including spreading itself. Otherwise an operation could infinitely spread or infinitely execute on cycles in the underlying data.",
@@ -37,7 +57,27 @@
       "fragment": "fragA",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spreads-must-not-form-cycles"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentSpread",
+      "Location": {
+        "Start": 287,
+        "End": 300,
+        "Line": 10,
+        "Column": 41
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 290,
+          "End": 300,
+          "Line": 10,
+          "Column": 44
+        },
+        "Value": "fragA"
+      },
+      "Directives": []
+    }
   },
   {
     "Message": "The graph of fragment spreads must not form any cycles including spreading itself. Otherwise an operation could infinitely spread or infinitely execute on cycles in the underlying data.",
@@ -57,6 +97,26 @@
       "fragment": "fragB",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spreads-must-not-form-cycles"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentSpread",
+      "Location": {
+        "Start": 297,
+        "End": 307,
+        "Line": 10,
+        "Column": 51
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 300,
+          "End": 307,
+          "Line": 10,
+          "Column": 54
+        },
+        "Value": "fragB"
+      },
+      "Directives": []
+    }
   }
 ]

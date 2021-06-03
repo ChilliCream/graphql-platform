@@ -23,6 +23,80 @@
       "fragment": "intelligentFragment",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-is-possible"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentDefinition",
+      "VariableDefinitions": [],
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 383,
+          "End": 396,
+          "Line": 13,
+          "Column": 49
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 383,
+            "End": 396,
+            "Line": 13,
+            "Column": 49
+          },
+          "Value": "Intelligent"
+        }
+      },
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 395,
+          "End": 414,
+          "Line": 13,
+          "Column": 61
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 397,
+              "End": 401,
+              "Line": 13,
+              "Column": 63
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 397,
+                "End": 401,
+                "Line": 13,
+                "Column": 63
+              },
+              "Value": "iq"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 351,
+        "End": 414,
+        "Line": 13,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 360,
+          "End": 382,
+          "Line": 13,
+          "Column": 26
+        },
+        "Value": "intelligentFragment"
+      },
+      "Directives": []
+    }
   }
 ]

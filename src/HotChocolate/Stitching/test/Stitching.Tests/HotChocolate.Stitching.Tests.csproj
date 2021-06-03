@@ -13,6 +13,13 @@
     <ProjectReference Include="..\..\src\Stitching\HotChocolate.Stitching.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="__resources__\DummyDirective.graphql" />
+    <EmbeddedResource Include="__resources__\DummyDirective.graphql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
   <!--For Visual Studio for Mac Test Explorer we need this reference here-->
   <ItemGroup>
     <PackageReference Include="Squadron.Redis" Version="0.5.0" />
@@ -26,13 +33,6 @@
     <None Update="$(MSBuildProjectDirectory)\xunit.runner.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="__resources__\DummyDirective.graphql" />
-    <EmbeddedResource Include="__resources__\DummyDirective.graphql">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

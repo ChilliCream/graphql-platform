@@ -17,6 +17,40 @@
       "type": "CatOrDog",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "SelectionSet",
+      "Location": {
+        "Start": 66,
+        "End": 156,
+        "Line": 2,
+        "Column": 66
+      },
+      "Selections": [
+        {
+          "Kind": "Field",
+          "Alias": null,
+          "Arguments": [],
+          "SelectionSet": null,
+          "Location": {
+            "Start": 88,
+            "End": 117,
+            "Line": 3,
+            "Column": 21
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 88,
+              "End": 117,
+              "Line": 3,
+              "Column": 21
+            },
+            "Value": "directField"
+          },
+          "Directives": []
+        }
+      ]
+    }
   }
 ]

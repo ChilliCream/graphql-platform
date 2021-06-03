@@ -19,9 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.7.0" />
-    <PackageReference Include="Microsoft.Extensions.DiagnosticAdapter" Version="3.1.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.0" />
+    <PackageReference Include="Microsoft.Extensions.DiagnosticAdapter" Version="3.1.4" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.4" />
     <PackageReference Include="System.Threading.Channels" Version="4.7.0" />
   </ItemGroup>
 

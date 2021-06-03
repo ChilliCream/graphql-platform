@@ -11,7 +11,7 @@ namespace HotChocolate.Types
     /// The TimeSpan scalar type represented in two formats:
     /// <see cref="TimeSpanFormat.Iso8601"/> and <see cref="TimeSpanFormat.DotNet"/>
     /// </summary>
-    public sealed class TimeSpanType
+    public class TimeSpanType
         : ScalarType<TimeSpan, StringValueNode>
     {
         private readonly TimeSpanFormat _format;

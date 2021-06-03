@@ -12,6 +12,370 @@
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 17,
+        "End": 149,
+        "Line": 2,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 23,
+          "End": 27,
+          "Line": 2,
+          "Column": 23
+        },
+        "Value": "Foo"
+      },
+      "Operation": "Query",
+      "VariableDefinitions": [
+        {
+          "Kind": "VariableDefinition",
+          "Location": {
+            "Start": 27,
+            "End": 40,
+            "Line": 2,
+            "Column": 27
+          },
+          "Variable": {
+            "Kind": "Variable",
+            "Location": {
+              "Start": 27,
+              "End": 30,
+              "Line": 2,
+              "Column": 27
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 28,
+                "End": 30,
+                "Line": 2,
+                "Column": 28
+              },
+              "Value": "a"
+            },
+            "Value": "a"
+          },
+          "Type": {
+            "Kind": "NamedType",
+            "Location": {
+              "Start": 31,
+              "End": 40,
+              "Line": 2,
+              "Column": 31
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 31,
+                "End": 40,
+                "Line": 2,
+                "Column": 31
+              },
+              "Value": "String"
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        },
+        {
+          "Kind": "VariableDefinition",
+          "Location": {
+            "Start": 39,
+            "End": 52,
+            "Line": 2,
+            "Column": 39
+          },
+          "Variable": {
+            "Kind": "Variable",
+            "Location": {
+              "Start": 39,
+              "End": 42,
+              "Line": 2,
+              "Column": 39
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 40,
+                "End": 42,
+                "Line": 2,
+                "Column": 40
+              },
+              "Value": "b"
+            },
+            "Value": "b"
+          },
+          "Type": {
+            "Kind": "NamedType",
+            "Location": {
+              "Start": 43,
+              "End": 52,
+              "Line": 2,
+              "Column": 43
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 43,
+                "End": 52,
+                "Line": 2,
+                "Column": 43
+              },
+              "Value": "String"
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        },
+        {
+          "Kind": "VariableDefinition",
+          "Location": {
+            "Start": 51,
+            "End": 62,
+            "Line": 2,
+            "Column": 51
+          },
+          "Variable": {
+            "Kind": "Variable",
+            "Location": {
+              "Start": 51,
+              "End": 54,
+              "Line": 2,
+              "Column": 51
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 52,
+                "End": 54,
+                "Line": 2,
+                "Column": 52
+              },
+              "Value": "c"
+            },
+            "Value": "c"
+          },
+          "Type": {
+            "Kind": "NamedType",
+            "Location": {
+              "Start": 55,
+              "End": 62,
+              "Line": 2,
+              "Column": 55
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 55,
+                "End": 62,
+                "Line": 2,
+                "Column": 55
+              },
+              "Value": "String"
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        }
+      ],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 63,
+          "End": 149,
+          "Line": 2,
+          "Column": 63
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [
+              {
+                "Kind": "Argument",
+                "Location": {
+                  "Start": 91,
+                  "End": 99,
+                  "Line": 3,
+                  "Column": 27
+                },
+                "Name": {
+                  "Kind": "Name",
+                  "Location": {
+                    "Start": 91,
+                    "End": 93,
+                    "Line": 3,
+                    "Column": 27
+                  },
+                  "Value": "a"
+                },
+                "Value": {
+                  "Kind": "Variable",
+                  "Location": {
+                    "Start": 94,
+                    "End": 99,
+                    "Line": 3,
+                    "Column": 30
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 95,
+                      "End": 99,
+                      "Line": 3,
+                      "Column": 31
+                    },
+                    "Value": "a"
+                  },
+                  "Value": "a"
+                }
+              },
+              {
+                "Kind": "Argument",
+                "Location": {
+                  "Start": 98,
+                  "End": 106,
+                  "Line": 3,
+                  "Column": 34
+                },
+                "Name": {
+                  "Kind": "Name",
+                  "Location": {
+                    "Start": 98,
+                    "End": 100,
+                    "Line": 3,
+                    "Column": 34
+                  },
+                  "Value": "b"
+                },
+                "Value": {
+                  "Kind": "Variable",
+                  "Location": {
+                    "Start": 101,
+                    "End": 106,
+                    "Line": 3,
+                    "Column": 37
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 102,
+                      "End": 106,
+                      "Line": 3,
+                      "Column": 38
+                    },
+                    "Value": "b"
+                  },
+                  "Value": "b"
+                }
+              },
+              {
+                "Kind": "Argument",
+                "Location": {
+                  "Start": 105,
+                  "End": 113,
+                  "Line": 3,
+                  "Column": 41
+                },
+                "Name": {
+                  "Kind": "Name",
+                  "Location": {
+                    "Start": 105,
+                    "End": 107,
+                    "Line": 3,
+                    "Column": 41
+                  },
+                  "Value": "c"
+                },
+                "Value": {
+                  "Kind": "Variable",
+                  "Location": {
+                    "Start": 108,
+                    "End": 113,
+                    "Line": 3,
+                    "Column": 44
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 109,
+                      "End": 113,
+                      "Line": 3,
+                      "Column": 45
+                    },
+                    "Value": "c"
+                  },
+                  "Value": "c"
+                }
+              },
+              {
+                "Kind": "Argument",
+                "Location": {
+                  "Start": 112,
+                  "End": 118,
+                  "Line": 3,
+                  "Column": 48
+                },
+                "Name": {
+                  "Kind": "Name",
+                  "Location": {
+                    "Start": 112,
+                    "End": 114,
+                    "Line": 3,
+                    "Column": 48
+                  },
+                  "Value": "d"
+                },
+                "Value": {
+                  "Kind": "Variable",
+                  "Location": {
+                    "Start": 115,
+                    "End": 118,
+                    "Line": 3,
+                    "Column": 51
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 116,
+                      "End": 118,
+                      "Line": 3,
+                      "Column": 52
+                    },
+                    "Value": "d"
+                  },
+                  "Value": "d"
+                }
+              }
+            ],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 85,
+              "End": 136,
+              "Line": 3,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 85,
+                "End": 91,
+                "Line": 3,
+                "Column": 21
+              },
+              "Value": "field"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
   }
 ]

@@ -1,7 +1,6 @@
 using System;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Pipeline;
 using System.Collections.Generic;
 
@@ -96,6 +95,10 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder) =>
             builder.UseRequest<ExceptionMiddleware>();
 
+        public static IRequestExecutorBuilder UseTimeout(
+            this IRequestExecutorBuilder builder) =>
+            builder.UseRequest<TimeoutMiddleware>();
+
         public static IRequestExecutorBuilder UseInstrumentations(
             this IRequestExecutorBuilder builder) =>
             builder.UseRequest<InstrumentationMiddleware>();
@@ -148,6 +151,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder
                 .UseInstrumentations()
                 .UseExceptions()
+                .UseTimeout()
                 .UseDocumentCache()
                 .UseReadPersistedQuery()
                 .UseDocumentParser()
@@ -174,6 +178,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder
                 .UseInstrumentations()
                 .UseExceptions()
+                .UseTimeout()
                 .UseDocumentCache()
                 .UseReadPersistedQuery()
                 .UseRequest(next => context =>
@@ -198,6 +203,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             pipeline.Add(RequestClassMiddlewareFactory.Create<InstrumentationMiddleware>());
             pipeline.Add(RequestClassMiddlewareFactory.Create<ExceptionMiddleware>());
+            pipeline.Add(RequestClassMiddlewareFactory.Create<TimeoutMiddleware>());
             pipeline.Add(RequestClassMiddlewareFactory.Create<DocumentCacheMiddleware>());
             pipeline.Add(RequestClassMiddlewareFactory.Create<DocumentParserMiddleware>());
             pipeline.Add(RequestClassMiddlewareFactory.Create<DocumentValidationMiddleware>());

@@ -9,10 +9,12 @@ using HotChocolate.Types.Sorting;
 
 namespace HotChocolate.Types
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public static class SortObjectFieldDescriptorExtensions
     {
         private static readonly Type _middlewareDefinition = typeof(QueryableSortMiddleware<>);
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static IObjectFieldDescriptor UseSorting(
             this IObjectFieldDescriptor descriptor)
         {
@@ -24,6 +26,7 @@ namespace HotChocolate.Types
             return UseSorting(descriptor, null);
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static IObjectFieldDescriptor UseSorting<T>(
             this IObjectFieldDescriptor descriptor)
         {
@@ -40,6 +43,7 @@ namespace HotChocolate.Types
             return UseSorting(descriptor, sortType);
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static IObjectFieldDescriptor UseSorting<T>(
             this IObjectFieldDescriptor descriptor,
             Action<ISortInputTypeDescriptor<T>> configure)
@@ -59,6 +63,7 @@ namespace HotChocolate.Types
             return UseSorting(descriptor, sortType.GetType(), sortType);
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static IObjectFieldDescriptor UseSorting(
             this IObjectFieldDescriptor descriptor,
             Type? sortType,

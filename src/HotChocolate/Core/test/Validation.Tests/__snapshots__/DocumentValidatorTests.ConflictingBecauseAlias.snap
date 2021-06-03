@@ -13,6 +13,112 @@
       "fragment": "conflictingBecauseAlias",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragments-Must-Be-Used"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentDefinition",
+      "VariableDefinitions": [],
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 53,
+          "End": 58,
+          "Line": 2,
+          "Column": 53
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 53,
+            "End": 58,
+            "Line": 2,
+            "Column": 53
+          },
+          "Value": "Dog"
+        }
+      },
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 57,
+          "End": 149,
+          "Line": 2,
+          "Column": 57
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 79,
+                "End": 84,
+                "Line": 3,
+                "Column": 21
+              },
+              "Value": "name"
+            },
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 79,
+              "End": 118,
+              "Line": 3,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 85,
+                "End": 118,
+                "Line": 3,
+                "Column": 27
+              },
+              "Value": "nickname"
+            },
+            "Directives": []
+          },
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 114,
+              "End": 136,
+              "Line": 4,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 114,
+                "End": 136,
+                "Line": 4,
+                "Column": 21
+              },
+              "Value": "name"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 17,
+        "End": 149,
+        "Line": 2,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 26,
+          "End": 52,
+          "Line": 2,
+          "Column": 26
+        },
+        "Value": "conflictingBecauseAlias"
+      },
+      "Directives": []
+    }
   }
 ]

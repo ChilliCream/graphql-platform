@@ -37,6 +37,5 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>CursorResources.resx</DependentUpon>
     </Compile>
-  </ItemGroup>  
-
+  </ItemGroup>
 </Project>

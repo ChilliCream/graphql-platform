@@ -40,7 +40,7 @@ namespace HotChocolate.Execution.Processing
                 var variableName = variableDefinition.Variable.Name.Value;
                 IInputType variableType = AssertInputType(schema, variableDefinition);
 
-                if (!values.TryGetValue(variableName, out object? value) &&
+                if (!values.TryGetValue(variableName, out var value) &&
                     variableDefinition.DefaultValue is { } defaultValue)
                 {
                     value = defaultValue.Kind == SyntaxKind.NullValue ? null : defaultValue;
@@ -52,13 +52,13 @@ namespace HotChocolate.Execution.Processing
                     {
                         throw ThrowHelper.NonNullVariableIsNull(variableDefinition);
                     }
-                    coercedValues[variableName] = new VariableValueOrLiteral(
-                        variableType, null, NullValueNode.Default);
+                    coercedValues[variableName] =
+                        new VariableValueOrLiteral(variableType, null, NullValueNode.Default);
                 }
                 else
                 {
-                    coercedValues[variableName] = CoerceVariableValue(
-                        variableDefinition, variableType, value);
+                    coercedValues[variableName] =
+                        CoerceVariableValue(variableDefinition, variableType, value);
                 }
             }
         }
@@ -86,7 +86,7 @@ namespace HotChocolate.Execution.Processing
                 }
             }
 
-            if (variableType.TryDeserialize(value, out object? deserialized))
+            if (variableType.TryDeserialize(value, out var deserialized))
             {
                 return new VariableValueOrLiteral(
                     variableType,

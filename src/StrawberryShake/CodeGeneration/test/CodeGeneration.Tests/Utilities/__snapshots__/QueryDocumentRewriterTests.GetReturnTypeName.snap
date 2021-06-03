@@ -1,0 +1,31 @@
+﻿query GetHero {
+  hero(episode: NEW_HOPE) {
+    __typename
+    ... Characters
+    ... on Droid {
+      id
+    }
+    ... on Human {
+      id
+    }
+  }
+}
+
+fragment Characters on Character {
+  ... Human
+  ... Droid
+}
+
+fragment Hero on Character {
+  name
+}
+
+fragment Human on Human {
+  ... Hero
+  homePlanet
+}
+
+fragment Droid on Droid {
+  ... Hero
+  primaryFunction
+}

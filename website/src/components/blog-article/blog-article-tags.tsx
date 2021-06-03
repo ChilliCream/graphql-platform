@@ -45,7 +45,7 @@ const Tag = styled.li`
   margin: 0 5px 5px 0;
   border-radius: 4px;
   padding: 0;
-  background-color: #f40010;
+  background-color: var(--brand-color);
   font-size: 0.722em;
   letter-spacing: 0.05em;
   color: #fff;

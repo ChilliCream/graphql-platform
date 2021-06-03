@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <RootNamespace></RootNamespace>
     <NoWarn>CS0649;CS0169</NoWarn>
     <NukeRootDirectory>..</NukeRootDirectory>
@@ -10,12 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nuke.Common" Version="0.24.11" />
-    <PackageDownload Include="GitVersion.Tool" Version="[5.1.1]" />
+    <PackageReference Include="Nuke.Common" Version="5.0.2" />
+    <PackageDownload Include="GitVersion.Tool" Version="[5.6.3]" />
     <PackageDownload Include="NuGet.CommandLine" Version="[5.5.1]" />
-    <PackageDownload Include="dotnet-sonarscanner" Version="[4.7.1]" />
+    <PackageDownload Include="dotnet-sonarscanner" Version="[5.0.4]" />
     <PackageDownload Include="OpenCover" Version="[4.7.922]" />
-    <PackageDownload Include="ReportGenerator" Version="[4.2.16]" />
+    <PackageDownload Include="ReportGenerator" Version="[4.8.5]" />
     <PackageDownload Include="xunit.runner.console" Version="[2.4.1]" />
   </ItemGroup>
 

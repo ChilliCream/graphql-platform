@@ -60,7 +60,6 @@ namespace StrawberryShake.Tools
             var services = new ServiceCollection();
             services.AddSingleton<IHttpClientFactory, DefaultHttpClientFactory>();
             services.AddSingleton<IFileSystem, DefaultFileSystem>();
-            services.AddSingleton<IConfigurationStore, DefaultConfigurationStore>();
 
             if (jsonOutput)
             {

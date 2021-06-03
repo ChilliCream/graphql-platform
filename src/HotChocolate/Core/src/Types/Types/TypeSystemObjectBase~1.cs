@@ -127,6 +127,18 @@ namespace HotChocolate.Types
             MarkCompleted();
         }
 
+        internal sealed override void FinalizeType(ITypeCompletionContext context)
+        {
+            // if the ExtensionData object has no data we will release it so it can be
+            // collected by the GC.
+            if (_contextData!.Count == 0)
+            {
+                _contextData = ExtensionData.Empty;
+            }
+
+            MarkFinalized();
+        }
+
         protected virtual void OnCompleteType(
             ITypeCompletionContext context,
             TDefinition definition)
@@ -290,6 +302,18 @@ namespace HotChocolate.Types
             {
                 throw new InvalidOperationException(
                     TypeResources.TypeSystemObjectBase_DefinitionIsNull);
+            }
+        }
+
+        protected internal void AssertMutable()
+        {
+            Debug.Assert(
+                !IsCompleted,
+                "The type os no longer mutable.");
+
+            if (IsCompleted)
+            {
+                throw new InvalidOperationException("The type is no longer mutable.");
             }
         }
     }

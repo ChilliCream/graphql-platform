@@ -1,0 +1,1 @@
+﻿find({ }).sort({ "Foo.BarBool" : 1 })

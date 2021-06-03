@@ -5,8 +5,7 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake.Tools
 {
-    public class DefaultFileSystem
-        : IFileSystem
+    public class DefaultFileSystem : IFileSystem
     {
         private const string _graphQLFilter = "*.graphql";
 
@@ -44,7 +43,7 @@ namespace StrawberryShake.Tools
         public string GetFileNameWithoutExtension(string path) =>
             Path.GetFileNameWithoutExtension(path);
 
-        public string GetDirectoryName(string path) => Path.GetDirectoryName(path);
+        public string? GetDirectoryName(string path) => Path.GetDirectoryName(path);
 
         public IEnumerable<string> GetGraphQLFiles(string path) =>
             Directory.GetFiles(path, _graphQLFilter);
@@ -63,6 +62,9 @@ namespace StrawberryShake.Tools
 
             return Environment.CurrentDirectory;
         }
+
+        public Task WriteTextAsync(string fileName, string text) =>
+            Task.Run(() => File.WriteAllText(fileName, text));
 
         public Task<byte[]> ReadAllBytesAsync(string fileName) =>
             Task.Run(() => File.ReadAllBytes(fileName));

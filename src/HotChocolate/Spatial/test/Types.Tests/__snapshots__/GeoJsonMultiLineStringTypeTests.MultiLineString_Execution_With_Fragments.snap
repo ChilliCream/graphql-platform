@@ -21,7 +21,139 @@
         "typeCondition": "MultiLineString",
         "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-Spread-Type-Existence"
       },
-      "Exception": null
+      "Exception": null,
+      "SyntaxNode": {
+        "Kind": "InlineFragment",
+        "Location": {
+          "Start": 9,
+          "End": 62,
+          "Line": 1,
+          "Column": 10
+        },
+        "TypeCondition": {
+          "Kind": "NamedType",
+          "Location": {
+            "Start": 16,
+            "End": 33,
+            "Line": 1,
+            "Column": 17
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 16,
+              "End": 33,
+              "Line": 1,
+              "Column": 17
+            },
+            "Value": "MultiLineString"
+          }
+        },
+        "Directives": [],
+        "SelectionSet": {
+          "Kind": "SelectionSet",
+          "Location": {
+            "Start": 32,
+            "End": 62,
+            "Line": 1,
+            "Column": 33
+          },
+          "Selections": [
+            {
+              "Kind": "Field",
+              "Alias": null,
+              "Arguments": [],
+              "SelectionSet": null,
+              "Location": {
+                "Start": 34,
+                "End": 50,
+                "Line": 1,
+                "Column": 35
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 34,
+                  "End": 50,
+                  "Line": 1,
+                  "Column": 35
+                },
+                "Value": "type"
+              },
+              "Directives": []
+            },
+            {
+              "Kind": "Field",
+              "Alias": null,
+              "Arguments": [],
+              "SelectionSet": null,
+              "Location": {
+                "Start": 39,
+                "End": 55,
+                "Line": 1,
+                "Column": 40
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 39,
+                  "End": 55,
+                  "Line": 1,
+                  "Column": 40
+                },
+                "Value": "coordinates"
+              },
+              "Directives": []
+            },
+            {
+              "Kind": "Field",
+              "Alias": null,
+              "Arguments": [],
+              "SelectionSet": null,
+              "Location": {
+                "Start": 51,
+                "End": 59,
+                "Line": 1,
+                "Column": 52
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 51,
+                  "End": 59,
+                  "Line": 1,
+                  "Column": 52
+                },
+                "Value": "bbox"
+              },
+              "Directives": []
+            },
+            {
+              "Kind": "Field",
+              "Alias": null,
+              "Arguments": [],
+              "SelectionSet": null,
+              "Location": {
+                "Start": 56,
+                "End": 61,
+                "Line": 1,
+                "Column": 57
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 56,
+                  "End": 61,
+                  "Line": 1,
+                  "Column": 57
+                },
+                "Value": "crs"
+              },
+              "Directives": []
+            }
+          ]
+        }
+      }
     }
   ],
   "Extensions": null,

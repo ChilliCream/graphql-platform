@@ -17,6 +17,16 @@
       "field": "name",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Required-Fields"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "ObjectValue",
+      "Location": {
+        "Start": 57,
+        "End": 61,
+        "Line": 3,
+        "Column": 39
+      },
+      "Fields": []
+    }
   }
 ]

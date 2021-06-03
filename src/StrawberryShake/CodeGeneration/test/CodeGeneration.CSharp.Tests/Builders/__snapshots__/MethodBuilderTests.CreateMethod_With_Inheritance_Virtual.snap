@@ -1,4 +1,0 @@
-﻿private virtual void GetAbc()
-{
-    return;
-}

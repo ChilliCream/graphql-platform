@@ -1,0 +1,1 @@
+﻿find({ "FooNested" : { "$elemMatch" : { "Bar" : { "$eq" : null } } } })

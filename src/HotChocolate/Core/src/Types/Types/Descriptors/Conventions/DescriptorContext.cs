@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Utilities;
 
@@ -26,8 +25,8 @@ namespace HotChocolate.Types.Descriptors
             IServiceProvider services,
             IDictionary<string, object?> contextData,
             SchemaBuilder.LazySchema schema,
-            ISchemaInterceptor schemaInterceptor,
-            ITypeInterceptor typeInterceptor)
+            SchemaInterceptor schemaInterceptor,
+            TypeInterceptor typeInterceptor)
         {
             Options = options;
             _cFactories = conventionFactories;
@@ -76,9 +75,9 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        public ISchemaInterceptor SchemaInterceptor { get; }
+        public SchemaInterceptor SchemaInterceptor { get; }
 
-        public ITypeInterceptor TypeInterceptor { get; }
+        public TypeInterceptor TypeInterceptor { get; }
 
         public IDictionary<string, object?> ContextData { get; }
 
@@ -167,12 +166,12 @@ namespace HotChocolate.Types.Descriptors
             Convention convention,
             IList<IConventionExtension> extensions)
         {
-            for (var m = 0; m < extensions.Count; m++)
+            foreach (var extension in extensions)
             {
-                if (extensions[m] is Convention extensionConvention)
+                if (extension is Convention extensionConvention)
                 {
                     extensionConvention.Initialize(context);
-                    extensions[m].Merge(context, convention);
+                    extension.Merge(context, convention);
                     extensionConvention.Complete(context);
                 }
             }
@@ -184,8 +183,8 @@ namespace HotChocolate.Types.Descriptors
             IReadOnlyDictionary<(Type, string?), List<CreateConvention>>? conventions = null,
             IDictionary<string, object?>? contextData = null,
             SchemaBuilder.LazySchema? schema = null,
-            ISchemaInterceptor? schemaInterceptor = null,
-            ITypeInterceptor? typeInterceptor = null)
+            SchemaInterceptor? schemaInterceptor = null,
+            TypeInterceptor? typeInterceptor = null)
         {
             return new(
                 options ?? new SchemaOptions(),

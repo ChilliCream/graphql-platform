@@ -19,9 +19,18 @@ namespace HotChocolate.Configuration
             {
                 if (!typeRegistrar.IsResolved(typeReference))
                 {
-                    typeRegistrar.Register(
-                        (TypeSystemObjectBase)typeReference.Type,
-                        typeReference.Scope);
+                    ITypeSystemMember tsm = typeReference.Type;
+
+                    // if it is a type object we will make sure it is unwrapped.
+                    if (typeReference.Type is IType type)
+                    {
+                        tsm = type.NamedType();
+                    }
+
+                    if (tsm is TypeSystemObjectBase tso)
+                    {
+                        typeRegistrar.Register(tso, typeReference.Scope);
+                    }
                 }
             }
         }

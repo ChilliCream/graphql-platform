@@ -1,8 +1,0 @@
-{
-  "schemas": [{
-    "name": "SchemaRegistry",
-    "type": "local",
-    "file": "SchemaRegistry.graphql"
-  }],
-  "clientName": "SchemaRegistryClient"
-}

@@ -69,7 +69,7 @@ const ToastContainer = styled.div`
   transform: translateX(-50%);
   z-index: 9999;
 
-  background-color: #f40010;
+  background-color: var(--brand-color);
   box-shadow: 0px 3px 6px 0px #828282;
   padding: 20px;
   border-radius: 4px;

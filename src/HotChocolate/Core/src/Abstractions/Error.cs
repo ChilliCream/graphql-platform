@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Properties;
 
 #nullable enable
@@ -17,7 +18,8 @@ namespace HotChocolate
             Path? path = null,
             IReadOnlyList<Location>? locations = null,
             IReadOnlyDictionary<string, object?>? extensions = null,
-            Exception? exception = null)
+            Exception? exception = null,
+            ISyntaxNode? syntaxNode = null)
         {
             if (string.IsNullOrEmpty(message))
             {
@@ -32,6 +34,7 @@ namespace HotChocolate
             Locations = locations;
             Extensions = extensions;
             Exception = exception;
+            SyntaxNode = syntaxNode;
 
             if (code is not null && Extensions is null)
             {
@@ -51,6 +54,9 @@ namespace HotChocolate
 
         public Exception? Exception { get; }
 
+        public ISyntaxNode? SyntaxNode { get; }
+
+        /// <inheritdoc />
         public IError WithMessage(string message)
         {
             if (string.IsNullOrEmpty(message))
@@ -63,6 +69,7 @@ namespace HotChocolate
             return new Error(message, Code, Path, Locations, Extensions, Exception);
         }
 
+        /// <inheritdoc />
         public IError WithCode(string? code)
         {
             if (string.IsNullOrEmpty(code))
@@ -76,6 +83,7 @@ namespace HotChocolate
             return new Error(Message, code, Path, Locations, extensions, Exception);
         }
 
+        /// <inheritdoc />
         public IError RemoveCode()
         {
             IReadOnlyDictionary<string, object?>? extensions = Extensions;
@@ -90,6 +98,7 @@ namespace HotChocolate
             return new Error(Message, null, Path, Locations, extensions, Exception);
         }
 
+        /// <inheritdoc />
         public IError WithPath(Path? path)
         {
             return path is null
@@ -97,14 +106,17 @@ namespace HotChocolate
                 : new Error(Message, Code, path, Locations, Extensions, Exception);
         }
 
+        /// <inheritdoc />
         public IError WithPath(IReadOnlyList<object>? path) =>
             WithPath(path is null ? null : Path.FromList(path));
 
+        /// <inheritdoc />
         public IError RemovePath()
         {
             return new Error(Message, Code, null, Locations, Extensions, Exception);
         }
 
+        /// <inheritdoc />
         public IError WithLocations(IReadOnlyList<Location>? locations)
         {
             return locations is null
@@ -112,11 +124,13 @@ namespace HotChocolate
                 : new Error(Message, Code, Path, locations, Extensions, Exception);
         }
 
+        /// <inheritdoc />
         public IError RemoveLocations()
         {
             return new Error(Message, Code, Path, null, Extensions, Exception);
         }
 
+        /// <inheritdoc />
         public IError WithExtensions(IReadOnlyDictionary<string, object?> extensions)
         {
             if (extensions is null)
@@ -127,11 +141,13 @@ namespace HotChocolate
             return new Error(Message, Code, Path, Locations, extensions, Exception);
         }
 
+        /// <inheritdoc />
         public IError RemoveExtensions()
         {
             return new Error(Message, Code, Path, Locations, null, Exception);
         }
 
+        /// <inheritdoc />
         public IError SetExtension(string key, object? value)
         {
             if (string.IsNullOrEmpty(key))
@@ -148,6 +164,7 @@ namespace HotChocolate
             return new Error(Message, Code, Path, Locations, extensions, Exception);
         }
 
+        /// <inheritdoc />
         public IError RemoveExtension(string key)
         {
             if (string.IsNullOrEmpty(key))
@@ -170,16 +187,18 @@ namespace HotChocolate
                 : new Error(Message, Code, Path, Locations, extensions, Exception);
         }
 
+        /// <inheritdoc />
         public IError WithException(Exception? exception)
         {
-            return exception is null ?
-                RemoveException() :
-                new Error(Message, Code, Path, Locations, Extensions, exception);
+            return exception is null
+                ? RemoveException()
+                : new Error(Message, Code, Path, Locations, Extensions, exception);
         }
 
+        /// <inheritdoc />
         public IError RemoveException()
         {
-            return new Error(Message, Code, Path, Locations, Extensions);
+            return new Error(Message, Code, Path, Locations, Extensions, syntaxNode: SyntaxNode);
         }
     }
 }

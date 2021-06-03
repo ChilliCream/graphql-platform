@@ -1,30 +1,30 @@
 ``` ini
 
-BenchmarkDotNet=v0.12.1, OS=macOS Catalina 10.15.7 (19H15) [Darwin 19.6.0]
+BenchmarkDotNet=v0.12.1, OS=macOS 11.2.3 (20D91) [Darwin 20.3.0]
 Intel Core i9-10910 CPU 3.60GHz, 1 CPU, 20 logical and 10 physical cores
-.NET Core SDK=5.0.100-rc.2.20479.15
-  [Host]     : .NET Core 5.0.0 (CoreCLR 5.0.20.47505, CoreFX 5.0.20.47505), X64 RyuJIT
-  DefaultJob : .NET Core 5.0.0 (CoreCLR 5.0.20.47505, CoreFX 5.0.20.47505), X64 RyuJIT
+.NET Core SDK=5.0.103
+  [Host]     : .NET Core 5.0.3 (CoreCLR 5.0.321.7212, CoreFX 5.0.321.7212), X64 RyuJIT
+  DefaultJob : .NET Core 5.0.3 (CoreCLR 5.0.321.7212, CoreFX 5.0.321.7212), X64 RyuJIT
 
 
 ```
-|                     Method | Size |        Mean |     Error |    StdDev |      Median | Rank |  Gen 0 |  Gen 1 | Gen 2 | Allocated |
-|--------------------------- |----- |------------:|----------:|----------:|------------:|-----:|-------:|-------:|------:|----------:|
-| **Create_And_Fill_Dictionary** |    **1** |    **52.43 ns** |  **0.153 ns** |  **0.136 ns** |    **52.43 ns** |    **3** | **0.0229** |      **-** |     **-** |     **240 B** |
-|  Create_And_Fill_ArrayPool |    1 |    29.74 ns |  0.270 ns |  0.239 ns |    29.82 ns |    2 | 0.0023 |      - |     - |      24 B |
-|  Create_And_Fill_ResultMap |    1 |    14.82 ns |  0.305 ns |  0.286 ns |    14.69 ns |    1 | 0.0023 |      - |     - |      24 B |
-| **Create_And_Fill_Dictionary** |    **8** |   **320.14 ns** |  **2.100 ns** |  **1.753 ns** |   **320.61 ns** |    **8** | **0.1130** |      **-** |     **-** |    **1184 B** |
-|  Create_And_Fill_ArrayPool |    8 |   103.81 ns |  1.080 ns |  1.010 ns |   104.11 ns |    5 | 0.0184 |      - |     - |     192 B |
-|  Create_And_Fill_ResultMap |    8 |   102.09 ns |  0.265 ns |  0.234 ns |   102.08 ns |    4 | 0.0184 |      - |     - |     192 B |
-| **Create_And_Fill_Dictionary** |   **16** |   **542.58 ns** |  **5.048 ns** |  **4.475 ns** |   **542.10 ns** |    **9** | **0.1497** | **0.0010** |     **-** |    **1568 B** |
-|  Create_And_Fill_ArrayPool |   16 |   227.88 ns |  1.363 ns |  1.208 ns |   227.85 ns |    6 | 0.0551 |      - |     - |     576 B |
-|  Create_And_Fill_ResultMap |   16 |   242.44 ns |  1.279 ns |  1.196 ns |   242.32 ns |    7 | 0.0548 |      - |     - |     576 B |
-| **Create_And_Fill_Dictionary** |   **50** | **2,149.02 ns** | **21.885 ns** | **20.471 ns** | **2,145.86 ns** |   **14** | **0.6790** | **0.0229** |     **-** |    **7104 B** |
-|  Create_And_Fill_ArrayPool |   50 |   746.83 ns |  4.849 ns |  4.535 ns |   747.37 ns |   10 | 0.2365 | 0.0019 |     - |    2480 B |
-|  Create_And_Fill_ResultMap |   50 |   828.53 ns |  6.307 ns |  4.924 ns |   827.43 ns |   11 | 0.2365 |      - |     - |    2480 B |
-| **Create_And_Fill_Dictionary** |  **100** | **4,228.38 ns** | **75.276 ns** | **70.413 ns** | **4,205.91 ns** |   **17** | **1.4725** | **0.1068** |     **-** |   **15472 B** |
-|  Create_And_Fill_ArrayPool |  100 | 1,556.68 ns | 30.235 ns | 31.049 ns | 1,566.25 ns |   12 | 0.5035 | 0.0095 |     - |    5280 B |
-|  Create_And_Fill_ResultMap |  100 | 1,706.82 ns | 16.799 ns | 14.892 ns | 1,705.31 ns |   13 | 0.5035 | 0.0038 |     - |    5280 B |
-| **Create_And_Fill_Dictionary** |  **200** | **8,382.26 ns** | **68.324 ns** | **60.567 ns** | **8,376.07 ns** |   **18** | **3.1738** | **0.4425** |     **-** |   **33192 B** |
-|  Create_And_Fill_ArrayPool |  200 | 3,367.62 ns | 25.932 ns | 22.988 ns | 3,367.25 ns |   15 | 1.0376 | 0.0381 |     - |   10880 B |
-|  Create_And_Fill_ResultMap |  200 | 3,504.05 ns | 65.722 ns | 61.477 ns | 3,514.07 ns |   16 | 1.0376 | 0.0191 |     - |   10880 B |
+|                     Method | Size |        Mean |      Error |    StdDev |      Median | Rank |  Gen 0 |  Gen 1 | Gen 2 | Allocated |
+|--------------------------- |----- |------------:|-----------:|----------:|------------:|-----:|-------:|-------:|------:|----------:|
+| **Create_And_Fill_Dictionary** |    **1** |    **58.07 ns** |   **0.819 ns** |  **0.766 ns** |    **57.92 ns** |    **3** | **0.0229** |      **-** |     **-** |     **240 B** |
+|  Create_And_Fill_ArrayPool |    1 |    31.62 ns |   0.110 ns |  0.103 ns |    31.63 ns |    2 | 0.0023 |      - |     - |      24 B |
+|  Create_And_Fill_ResultMap |    1 |    15.76 ns |   0.113 ns |  0.105 ns |    15.73 ns |    1 | 0.0023 |      - |     - |      24 B |
+| **Create_And_Fill_Dictionary** |    **8** |   **340.36 ns** |   **2.686 ns** |  **2.513 ns** |   **340.42 ns** |    **7** | **0.1130** | **0.0005** |     **-** |    **1184 B** |
+|  Create_And_Fill_ArrayPool |    8 |   111.04 ns |   0.832 ns |  0.779 ns |   110.97 ns |    4 | 0.0184 |      - |     - |     192 B |
+|  Create_And_Fill_ResultMap |    8 |   110.29 ns |   0.346 ns |  0.323 ns |   110.34 ns |    4 | 0.0184 |      - |     - |     192 B |
+| **Create_And_Fill_Dictionary** |   **16** |   **577.12 ns** |   **6.428 ns** |  **6.013 ns** |   **575.57 ns** |    **8** | **0.1497** | **0.0010** |     **-** |    **1568 B** |
+|  Create_And_Fill_ArrayPool |   16 |   245.34 ns |   1.077 ns |  0.955 ns |   245.55 ns |    5 | 0.0548 |      - |     - |     576 B |
+|  Create_And_Fill_ResultMap |   16 |   266.83 ns |   2.039 ns |  1.807 ns |   266.97 ns |    6 | 0.0548 |      - |     - |     576 B |
+| **Create_And_Fill_Dictionary** |   **50** | **2,275.55 ns** |  **16.905 ns** | **14.986 ns** | **2,276.96 ns** |   **13** | **0.6790** | **0.0229** |     **-** |    **7104 B** |
+|  Create_And_Fill_ArrayPool |   50 |   828.69 ns |  16.400 ns | 26.482 ns |   832.54 ns |    9 | 0.2365 | 0.0019 |     - |    2480 B |
+|  Create_And_Fill_ResultMap |   50 |   930.92 ns |  17.525 ns | 22.163 ns |   925.12 ns |   10 | 0.2365 |      - |     - |    2480 B |
+| **Create_And_Fill_Dictionary** |  **100** | **4,582.92 ns** |  **48.655 ns** | **45.512 ns** | **4,589.86 ns** |   **16** | **1.4725** | **0.1068** |     **-** |   **15472 B** |
+|  Create_And_Fill_ArrayPool |  100 | 1,555.46 ns |   9.892 ns |  8.769 ns | 1,553.91 ns |   11 | 0.5035 | 0.0095 |     - |    5280 B |
+|  Create_And_Fill_ResultMap |  100 | 1,843.95 ns |  18.783 ns | 17.569 ns | 1,841.02 ns |   12 | 0.5035 | 0.0038 |     - |    5280 B |
+| **Create_And_Fill_Dictionary** |  **200** | **9,218.45 ns** | **106.341 ns** | **99.471 ns** | **9,229.71 ns** |   **17** | **3.1738** | **0.4425** |     **-** |   **33192 B** |
+|  Create_And_Fill_ArrayPool |  200 | 3,284.55 ns |  41.825 ns | 37.077 ns | 3,289.38 ns |   14 | 1.0376 | 0.0381 |     - |   10880 B |
+|  Create_And_Fill_ResultMap |  200 | 3,874.70 ns |  38.194 ns | 35.726 ns | 3,869.86 ns |   15 | 1.0376 | 0.0153 |     - |   10880 B |

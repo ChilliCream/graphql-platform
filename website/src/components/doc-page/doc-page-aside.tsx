@@ -9,7 +9,7 @@ import {
   BoxShadow,
   IsSmallDesktop,
   SmallDesktopBreakpointNumber,
-} from "./shared-style";
+} from "../../shared-style";
 
 export const DocPageAside: FunctionComponent = ({ children }) => {
   const showAside = useSelector<State, boolean>(
@@ -42,6 +42,7 @@ export const DocPageAside: FunctionComponent = ({ children }) => {
 export const Aside = styled.aside<{ calculatedHeight: string }>`
   ${DocPageStickySideBarStyle}
 
+  height: 100%;
   margin-left: 0;
   transition: transform 250ms;
   background-color: white;

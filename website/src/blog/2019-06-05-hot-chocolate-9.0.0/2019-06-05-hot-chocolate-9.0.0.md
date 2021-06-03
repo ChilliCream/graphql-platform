@@ -174,7 +174,7 @@ We will provide a plugin model so that you can add your own extensions.
 
 Moreover, as we are introducing our new schema registry with version 10 you will be able to configure your GraphQL gateway via drag&drop, see how each GraphQL server in your network performs, how long each resolver takes and how much memory a resolver uses.
 
-We will start very soon with a private preview and as the version matures, we will release a public preview probably together with version 9.1. If you want to participate in our private preview head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and send a message to `@rafael`.
+We will start very soon with a private preview and as the version matures, we will release a public preview probably together with version 9.1. If you want to participate in our private preview head over to our slack channel and send a message to `@rafael`.
 
 ## Roadmap
 

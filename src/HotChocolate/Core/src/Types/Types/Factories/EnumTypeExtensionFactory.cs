@@ -10,6 +10,7 @@ namespace HotChocolate.Types.Factories
     {
         public EnumTypeExtension Create(
             IBindingLookup bindingLookup,
+            IReadOnlySchemaOptions schemaOptions,
             EnumTypeExtensionNode node)
         {
             if (bindingLookup is null)

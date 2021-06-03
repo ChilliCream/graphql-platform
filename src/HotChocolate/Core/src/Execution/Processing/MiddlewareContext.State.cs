@@ -52,7 +52,7 @@ namespace HotChocolate.Execution.Processing
             }
 
             throw new InvalidCastException(
-                $"The parent cannot be casted to {typeof(T).FullName}.");
+                $"The parent cannot be cast to {typeof(T).FullName}.");
         }
 
         public T Parent<T>() => Source<T>();

@@ -5,12 +5,18 @@ using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
-    public class InterfaceTypeExtension
-        : NamedTypeExtensionBase<InterfaceTypeDefinition>
+    /// <summary>
+    /// This is not a full type and is used to split the type configuration into multiple part.
+    /// Any type extension instance is will not survive the initialization and instead is
+    /// merged into the target type.
+    /// </summary>
+    public class InterfaceTypeExtension : NamedTypeExtensionBase<InterfaceTypeDefinition>
     {
-        private readonly Action<IInterfaceTypeDescriptor> _configure;
+        private Action<IInterfaceTypeDescriptor>? _configure;
 
         protected InterfaceTypeExtension()
         {
@@ -28,14 +34,16 @@ namespace HotChocolate.Types
         protected override InterfaceTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
         {
-            var descriptor = InterfaceTypeDescriptor.New(
-                context.DescriptorContext);
-            _configure(descriptor);
+            var descriptor =
+                InterfaceTypeDescriptor.New(context.DescriptorContext);
+
+            _configure!(descriptor);
+            _configure = null;
+
             return descriptor.CreateDefinition();
         }
 
-        protected virtual void Configure(IInterfaceTypeDescriptor descriptor)
-        { }
+        protected virtual void Configure(IInterfaceTypeDescriptor descriptor) { }
 
         protected override void OnRegisterDependencies(
             ITypeDiscoveryContext context,
@@ -45,29 +53,34 @@ namespace HotChocolate.Types
             context.RegisterDependencies(definition);
         }
 
-        internal override void Merge(
+        protected override void Merge(
             ITypeCompletionContext context,
             INamedType type)
         {
             if (type is InterfaceType interfaceType)
             {
+                // we first assert that extension and type are mutable and by 
+                // this that they do have a type definition.
+                AssertMutable();
+                interfaceType.AssertMutable();
+
                 TypeExtensionHelper.MergeContextData(
-                    Definition,
-                    interfaceType.Definition);
+                    Definition!,
+                    interfaceType.Definition!);
 
                 TypeExtensionHelper.MergeDirectives(
                     context,
-                    Definition.Directives,
-                    interfaceType.Definition.Directives);
+                    Definition!.Directives,
+                    interfaceType.Definition!.Directives);
 
                 TypeExtensionHelper.MergeInterfaceFields(
                     context,
-                    Definition.Fields,
-                    interfaceType.Definition.Fields);
+                    Definition!.Fields,
+                    interfaceType.Definition!.Fields);
 
                 TypeExtensionHelper.MergeConfigurations(
-                    Definition.Configurations,
-                    interfaceType.Definition.Configurations);
+                    Definition!.Configurations,
+                    interfaceType.Definition!.Configurations);
             }
             else
             {

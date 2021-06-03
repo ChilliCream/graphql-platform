@@ -18,6 +18,36 @@
       "argument": "arg1",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Argument-Uniqueness"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Argument",
+      "Location": {
+        "Start": 85,
+        "End": 99,
+        "Line": 3,
+        "Column": 60
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 85,
+          "End": 90,
+          "Line": 3,
+          "Column": 60
+        },
+        "Value": "arg1"
+      },
+      "Value": {
+        "Kind": "StringValue",
+        "Location": {
+          "Start": 91,
+          "End": 99,
+          "Line": 3,
+          "Column": 66
+        },
+        "Value": "value",
+        "Block": false
+      }
+    }
   }
 ]

@@ -6,8 +6,10 @@
     "Locations": null,
     "Extensions": {
       "code": "HC0016",
-      "variable": "abc"
+      "variable": "abc",
+      "underlyingError": "String cannot parse the given literal of type `IntValueNode`."
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": null
   }
 ]

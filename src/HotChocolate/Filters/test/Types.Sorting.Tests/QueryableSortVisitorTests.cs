@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution;
@@ -7,6 +8,7 @@ using Xunit;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete]
     public class QueryableSortVisitorTests
         : TypeTestBase
     {

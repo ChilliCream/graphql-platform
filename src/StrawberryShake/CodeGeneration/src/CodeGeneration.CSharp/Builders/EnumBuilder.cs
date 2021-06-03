@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public class EnumBuilder
-        : ICodeBuilder
+    public class EnumBuilder : ITypeBuilder
     {
-        private readonly List<(string, int?)> _elements = new List<(string, int?)>();
+        private readonly List<(string, long?, XmlCommentBuilder?)> _elements = new();
         private string? _name;
+        private string? _underlyingType;
+        private XmlCommentBuilder? _xmlComment;
 
-        public static EnumBuilder New() => new EnumBuilder();
+        public static EnumBuilder New() => new();
 
         public EnumBuilder SetName(string value)
         {
@@ -18,46 +18,85 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public EnumBuilder AddElement(string name, int? value = null)
+        public EnumBuilder SetUnderlyingType(RuntimeTypeInfo? value)
         {
-            _elements.Add((name, value));
+            _underlyingType = value?.ToString();
             return this;
         }
 
-        public async Task BuildAsync(CodeWriter writer)
+        public EnumBuilder SetUnderlyingType(string? value)
+        {
+            _underlyingType = value;
+            return this;
+        }
+
+        public EnumBuilder AddElement(string name, long? value = null, string? documentation = null)
+        {
+            _elements.Add((
+                name,
+                value,
+                documentation is null
+                    ? null
+                    : XmlCommentBuilder.New().SetSummary(documentation)));
+            return this;
+        }
+
+        public EnumBuilder SetComment(string? xmlComment)
+        {
+            if (xmlComment is not null)
+            {
+                _xmlComment = XmlCommentBuilder.New().SetSummary(xmlComment);
+            }
+
+            return this;
+        }
+
+        public void Build(CodeWriter writer)
         {
             if (writer is null)
             {
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            await writer.WriteGeneratedAttributeAsync().ConfigureAwait(false);
+            _xmlComment?.Build(writer);
 
-            await writer.WriteIndentedLineAsync($"public enum {_name}").ConfigureAwait(false);
-            await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
+            writer.WriteGeneratedAttribute();
+
+            if (_underlyingType is null)
+            {
+                writer.WriteIndentedLine($"public enum {_name}");
+            }
+            else
+            {
+                writer.WriteIndentedLine($"public enum {_name} : {_underlyingType}");
+            }
+
+            writer.WriteIndentedLine("{");
 
             using (writer.IncreaseIndent())
             {
-                for (int i = 0; i < _elements.Count; i++)
+                for (var i = 0; i < _elements.Count; i++)
                 {
-                    await writer.WriteIndentAsync().ConfigureAwait(false);
-                    await writer.WriteAsync(_elements[i].Item1).ConfigureAwait(false);
+                    _elements[i].Item3?.Build(writer);
+
+                    writer.WriteIndent();
+                    writer.Write(_elements[i].Item1);
 
                     if (_elements[i].Item2.HasValue)
                     {
-                        await writer.WriteAsync($" = {_elements[i].Item2}").ConfigureAwait(false);
+                        writer.Write($" = {_elements[i].Item2}");
                     }
 
-                    if (i + 1 == _elements.Count)
+                    if (i + 1 < _elements.Count)
                     {
-                        await writer.WriteAsync($",").ConfigureAwait(false);
+                        writer.Write($",");
                     }
 
-                    await writer.WriteLineAsync().ConfigureAwait(false);
+                    writer.WriteLine();
                 }
             }
 
-            await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
+            writer.WriteIndentedLine("}");
         }
     }
 }

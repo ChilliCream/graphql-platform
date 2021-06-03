@@ -112,7 +112,7 @@ namespace HotChocolate.Configuration
 
             foreach (InterfaceType interfaceType in type.Implements)
             {
-                VisitInterface(interfaceType);
+                Visit(interfaceType);
             }
 
             foreach (ObjectField field in type.Fields)

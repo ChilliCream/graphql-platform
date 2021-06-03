@@ -2,7 +2,7 @@
 title: "Introduction"
 ---
 
-Banana Cake Pop is our brand new GraphQL IDE which works well with Hot Chocolate and any other GraphQL server. It's still in preview so try it out and give us feedback via our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q).
+Banana Cake Pop is our brand new GraphQL IDE which works well with Hot Chocolate and any other GraphQL server. It's still in preview so try it out and give us feedback via our slack channel.
 
 ![Hot Chocolate](../shared/bcp_5.png)
 

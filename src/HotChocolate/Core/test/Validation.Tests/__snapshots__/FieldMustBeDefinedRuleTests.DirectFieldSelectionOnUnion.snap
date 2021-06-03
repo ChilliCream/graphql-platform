@@ -16,5 +16,62 @@
     "type": "CatOrDog",
     "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
   },
-  "Exception": null
+  "Exception": null,
+  "SyntaxNode": {
+    "Kind": "SelectionSet",
+    "Location": {
+      "Start": 218,
+      "End": 306,
+      "Line": 8,
+      "Column": 66
+    },
+    "Selections": [
+      {
+        "Kind": "Field",
+        "Alias": null,
+        "Arguments": [],
+        "SelectionSet": null,
+        "Location": {
+          "Start": 240,
+          "End": 275,
+          "Line": 9,
+          "Column": 21
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 240,
+            "End": 275,
+            "Line": 9,
+            "Column": 21
+          },
+          "Value": "name"
+        },
+        "Directives": []
+      },
+      {
+        "Kind": "Field",
+        "Alias": null,
+        "Arguments": [],
+        "SelectionSet": null,
+        "Location": {
+          "Start": 265,
+          "End": 293,
+          "Line": 10,
+          "Column": 21
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 265,
+            "End": 293,
+            "Line": 10,
+            "Column": 21
+          },
+          "Value": "barkVolume"
+        },
+        "Directives": []
+      }
+    ]
+  }
 }

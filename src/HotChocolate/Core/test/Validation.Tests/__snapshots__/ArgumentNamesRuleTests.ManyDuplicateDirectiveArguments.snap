@@ -18,7 +18,37 @@
       "argument": "arg1",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Argument-Uniqueness"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Argument",
+      "Location": {
+        "Start": 85,
+        "End": 104,
+        "Line": 3,
+        "Column": 60
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 85,
+          "End": 90,
+          "Line": 3,
+          "Column": 60
+        },
+        "Value": "arg1"
+      },
+      "Value": {
+        "Kind": "StringValue",
+        "Location": {
+          "Start": 91,
+          "End": 104,
+          "Line": 3,
+          "Column": 66
+        },
+        "Value": "value",
+        "Block": false
+      }
+    }
   },
   {
     "Message": "More than one argument with the same name in an argument set is ambiguous and invalid.",
@@ -39,6 +69,36 @@
       "argument": "arg1",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Argument-Uniqueness"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Argument",
+      "Location": {
+        "Start": 100,
+        "End": 114,
+        "Line": 3,
+        "Column": 75
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 100,
+          "End": 105,
+          "Line": 3,
+          "Column": 75
+        },
+        "Value": "arg1"
+      },
+      "Value": {
+        "Kind": "StringValue",
+        "Location": {
+          "Start": 106,
+          "End": 114,
+          "Line": 3,
+          "Column": 81
+        },
+        "Value": "value",
+        "Block": false
+      }
+    }
   }
 ]

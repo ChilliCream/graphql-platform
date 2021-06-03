@@ -757,11 +757,13 @@ namespace HotChocolate.Language
             public string Id { get; set; }
         }
 
-        private class DocumentCache
-            : IDocumentCache
+        private class DocumentCache : IDocumentCache
         {
-            private readonly Dictionary<string, DocumentNode> _cache =
-                new Dictionary<string, DocumentNode>();
+            private readonly Dictionary<string, DocumentNode> _cache = new();
+
+            public int Capacity => int.MaxValue;
+
+            public int Count => _cache.Count;
 
             public void TryAddDocument(string documentId, DocumentNode document)
             {
@@ -775,6 +777,11 @@ namespace HotChocolate.Language
                 string documentId,
                 out DocumentNode document) =>
                 _cache.TryGetValue(documentId, out document);
+
+            public void Clear()
+            {
+                _cache.Clear();
+            }
         }
     }
 }

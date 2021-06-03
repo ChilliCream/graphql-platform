@@ -29,7 +29,7 @@ namespace HotChocolate.Execution.Pipeline
 
         public async ValueTask InvokeAsync(IRequestContext context)
         {
-            if (context.Operation is { } )
+            if (context.Operation is not null)
             {
                 if (context.Operation.Definition.VariableDefinitions.Count == 0)
                 {

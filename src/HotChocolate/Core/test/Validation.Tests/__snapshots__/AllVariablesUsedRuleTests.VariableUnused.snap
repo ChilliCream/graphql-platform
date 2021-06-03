@@ -12,6 +12,146 @@
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 17,
+        "End": 181,
+        "Line": 2,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 23,
+          "End": 38,
+          "Line": 2,
+          "Column": 23
+        },
+        "Value": "variableUnused"
+      },
+      "Operation": "Query",
+      "VariableDefinitions": [
+        {
+          "Kind": "VariableDefinition",
+          "Location": {
+            "Start": 38,
+            "End": 61,
+            "Line": 2,
+            "Column": 38
+          },
+          "Variable": {
+            "Kind": "Variable",
+            "Location": {
+              "Start": 38,
+              "End": 52,
+              "Line": 2,
+              "Column": 38
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 39,
+                "End": 52,
+                "Line": 2,
+                "Column": 39
+              },
+              "Value": "atOtherHomes"
+            },
+            "Value": "atOtherHomes"
+          },
+          "Type": {
+            "Kind": "NamedType",
+            "Location": {
+              "Start": 53,
+              "End": 61,
+              "Line": 2,
+              "Column": 53
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 53,
+                "End": 61,
+                "Line": 2,
+                "Column": 53
+              },
+              "Value": "Boolean"
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        }
+      ],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 62,
+          "End": 181,
+          "Line": 2,
+          "Column": 62
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": {
+                "Start": 88,
+                "End": 168,
+                "Line": 3,
+                "Column": 25
+              },
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": {
+                    "Start": 114,
+                    "End": 150,
+                    "Line": 4,
+                    "Column": 25
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 114,
+                      "End": 150,
+                      "Line": 4,
+                      "Column": 25
+                    },
+                    "Value": "isHouseTrained"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": {
+              "Start": 84,
+              "End": 168,
+              "Line": 3,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 84,
+                "End": 89,
+                "Line": 3,
+                "Column": 21
+              },
+              "Value": "dog"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
   }
 ]

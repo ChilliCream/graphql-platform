@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using GreenDonut;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
@@ -197,7 +199,18 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
         internal static bool IsService(ParameterInfo parameter)
         {
-            return parameter.IsDefined(typeof(ServiceAttribute));
+            if (parameter.IsDefined(typeof(ServiceAttribute)))
+            {
+                return true;
+            }
+
+            if (parameter.GetCustomAttributesData()
+                .Any(t => t.AttributeType.Name.EqualsOrdinal("FromServicesAttribute")))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         internal static bool IsParent(ParameterInfo parameter, Type sourceType)

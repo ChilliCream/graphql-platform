@@ -11,6 +11,7 @@ using System;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete]
     public class MongoSortingTests
         : IClassFixture<MongoResource>
     {

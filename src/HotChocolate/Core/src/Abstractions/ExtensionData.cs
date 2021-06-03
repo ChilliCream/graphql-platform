@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using static HotChocolate.Properties.AbstractionResources;
 
 #nullable enable
 
@@ -27,7 +28,9 @@ namespace HotChocolate
         {
             ImmutableDictionary<string, object?>.Builder builder =
                 ImmutableDictionary.CreateBuilder<string, object?>();
+
             builder.AddRange(extensionData);
+
             _dict = builder.ToImmutableDictionary();
         }
 
@@ -61,16 +64,21 @@ namespace HotChocolate
             _dict = _dict.Add(item.Key, item.Value);
         }
 
+        public void AddRange(IEnumerable<KeyValuePair<string, object?>> pairs)
+        {
+            _dict = _dict.AddRange(pairs);
+        }
+
         public bool Remove(string key)
         {
-            bool contains = _dict.ContainsKey(key);
+            var contains = _dict.ContainsKey(key);
             _dict = _dict.Remove(key);
             return contains;
         }
 
         public bool Remove(KeyValuePair<string, object?> item)
         {
-            bool contains = _dict.ContainsKey(item.Key);
+            var contains = _dict.ContainsKey(item.Key);
             _dict = _dict.Remove(item.Key);
             return contains;
         }
@@ -114,8 +122,7 @@ namespace HotChocolate
             return GetEnumerator();
         }
 
-        private sealed class ExtensionDataKeyCollection
-            : ExtensionDataCollection<string>
+        private sealed class ExtensionDataKeyCollection : ExtensionDataCollection<string>
         {
             private readonly ImmutableDictionary<string, object?> _dict;
 
@@ -133,11 +140,11 @@ namespace HotChocolate
                 if (array.Length - arrayIndex < _dict.Count)
                 {
                     throw new ArgumentException(
-                        "The array has not enough space to fit all elements.",
+                        ExtensionDataKeyCollection_CopyTo_ArrayNotBigEnough,
                         nameof(array));
                 }
 
-                int i = arrayIndex;
+                var i = arrayIndex;
 
                 foreach (string key in _dict.Keys)
                 {
@@ -151,8 +158,7 @@ namespace HotChocolate
             }
         }
 
-        private sealed class ExtensionDataValueCollection
-           : ExtensionDataCollection<object?>
+        private sealed class ExtensionDataValueCollection : ExtensionDataCollection<object?>
         {
             private readonly ImmutableDictionary<string, object?> _dict;
 
@@ -170,13 +176,13 @@ namespace HotChocolate
                 if (array.Length - arrayIndex < _dict.Count)
                 {
                     throw new ArgumentException(
-                        "The array has not enough space to fit all elements.",
+                        ExtensionDataKeyCollection_CopyTo_ArrayNotBigEnough,
                         nameof(array));
                 }
 
-                int i = arrayIndex;
+                var i = arrayIndex;
 
-                foreach (object? value in _dict.Values)
+                foreach (var value in _dict.Values)
                 {
                     array[i++] = value;
                 }
@@ -188,12 +194,11 @@ namespace HotChocolate
             }
         }
 
-        private abstract class ExtensionDataCollection<T>
-            : ICollection<T>
+        private abstract class ExtensionDataCollection<T> : ICollection<T>
         {
             private readonly ImmutableDictionary<string, object?> _dict;
 
-            public ExtensionDataCollection(ImmutableDictionary<string, object?> dict)
+            protected ExtensionDataCollection(ImmutableDictionary<string, object?> dict)
             {
                 _dict = dict;
             }
@@ -204,17 +209,17 @@ namespace HotChocolate
 
             public void Add(T item)
             {
-                throw new InvalidOperationException("This collection is read-only.");
+                throw new InvalidOperationException(ExtensionDataCollection_CollectionIsReadOnly);
             }
 
             public bool Remove(T item)
             {
-                throw new InvalidOperationException("This collection is read-only.");
+                throw new InvalidOperationException(ExtensionDataCollection_CollectionIsReadOnly);
             }
 
             public void Clear()
             {
-                throw new InvalidOperationException("This collection is read-only.");
+                throw new InvalidOperationException(ExtensionDataCollection_CollectionIsReadOnly);
             }
 
             public abstract bool Contains(T item);
@@ -228,5 +233,7 @@ namespace HotChocolate
                 return GetEnumerator();
             }
         }
+
+        public static readonly ExtensionData Empty = new();
     }
 }

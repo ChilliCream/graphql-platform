@@ -22,23 +22,71 @@
             "items": [
               {
                 "path": "index",
-                "title": "Schema basics"
+                "title": "Overview"
               },
               {
-                "path": "versioning",
-                "title": "Versioning"
+                "path": "queries",
+                "title": "Queries"
               },
               {
-                "path": "unions-and-interfaces",
-                "title": "Unions and Interfaces"
+                "path": "mutations",
+                "title": "Mutations"
+              },
+              {
+                "path": "subscriptions",
+                "title": "Subscriptions"
+              },
+              {
+                "path": "object-types",
+                "title": "Object Types"
               },
               {
                 "path": "scalars",
                 "title": "Scalars"
               },
               {
+                "path": "arguments",
+                "title": "Arguments"
+              },
+              {
+                "path": "input-object-types",
+                "title": "Input Object Types"
+              },
+              {
+                "path": "lists",
+                "title": "Lists"
+              },
+              {
+                "path": "non-null",
+                "title": "Non-Null"
+              },
+              {
+                "path": "enums",
+                "title": "Enums"
+              },
+              {
+                "path": "interfaces",
+                "title": "Interfaces"
+              },
+              {
+                "path": "unions",
+                "title": "Unions"
+              },
+              {
+                "path": "extending-types",
+                "title": "Extending Types"
+              },
+              {
                 "path": "directives",
                 "title": "Directives"
+              },
+              {
+                "path": "documentation",
+                "title": "Documentation"
+              },
+              {
+                "path": "versioning",
+                "title": "Versioning"
               }
             ]
           },
@@ -81,6 +129,28 @@
             ]
           },
           {
+            "path": "distributed-schema",
+            "title": "Distributed Schemas",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "schema-stitching",
+                "title": "Schema Stitching"
+              },
+              {
+                "path": "schema-federations",
+                "title": "Schema Federations"
+              },
+              {
+                "path": "schema-configuration",
+                "title": "Schema Configuration"
+              }
+            ]
+          },
+          {
             "path": "integrations",
             "title": "Integrations",
             "items": [
@@ -95,6 +165,10 @@
               {
                 "path": "spatial-data",
                 "title": "Spatial Data"
+              },
+              {
+                "path": "mongodb",
+                "title": "MongoDB"
               }
             ]
           },
@@ -125,8 +199,8 @@
                 "title": "Overview"
               },
               {
-                "path": "object-type",
-                "title": "Object Type"
+                "path": "custom-attributes",
+                "title": "Custom Attributes"
               },
               {
                 "path": "language",
@@ -145,8 +219,16 @@
                 "title": "ASP.NET Core"
               },
               {
+                "path": "dependency-injection",
+                "title": "Dependency Injection"
+              },
+              {
                 "path": "executable",
                 "title": "Executable"
+              },
+              {
+                "path": "apollo-tracing",
+                "title": "Apollo Tracing"
               },
               {
                 "path": "migrate-from-10-to-11",
@@ -326,7 +408,7 @@
             "items": [
               {
                 "path": "index",
-                "title": "ASP.Net"
+                "title": "ASP.NET"
               },
               {
                 "path": "dependency-injection",
@@ -352,7 +434,7 @@
               },
               {
                 "path": "dotnet-cli",
-                "title": ".Net CLI"
+                "title": ".NET CLI"
               }
             ]
           },
@@ -400,6 +482,103 @@
           {
             "path": "index",
             "title": "Introduction"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "strawberryshake",
+    "title": "Strawberry Shake",
+    "description": "The only GraphQL client you will every need in the .NET ecosystem.",
+    "versions": [
+      {
+        "path": "",
+        "title": "v11 (preview)",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          },
+          {
+            "path": "get-started",
+            "title": "Get Started",
+            "items": [
+              {
+                "path": "index",
+                "title": "Blazor"
+              },
+              {
+                "path": "xamarin",
+                "title": "Xamarin"
+              },
+              {
+                "path": "console",
+                "title": "Console"
+              }
+            ]
+          },
+          {
+            "path": "subscriptions",
+            "title": "Subscriptions"
+          },
+          {
+            "path": "tooling",
+            "title": "Tooling / CLI"
+          },
+          {
+            "path": "caching",
+            "title": "Caching",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "entities",
+                "title": "Entities"
+              },
+              {
+                "path": "invalidation",
+                "title": "Invalidation"
+              }
+            ]
+          },
+          {
+            "path": "performance",
+            "title": "Performance",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "persisted-queries",
+                "title": "Persisted Queries"
+              },
+              {
+                "path": "persisted-state",
+                "title": "Persisted State"
+              }
+            ]
+          },
+          {
+            "path": "networking",
+            "title": "Networking",
+            "items": [
+              {
+                "path": "index",
+                "title": "Protocols"
+              },
+              {
+                "path": "authentication",
+                "title": "Authentication"
+              }
+            ]
+          },
+          {
+            "path": "scalars",
+            "title": "Scalars"
           }
         ]
       }

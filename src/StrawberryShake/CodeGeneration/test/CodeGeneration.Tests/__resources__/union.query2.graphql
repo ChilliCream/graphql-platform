@@ -1,0 +1,11 @@
+query getStore {
+  store {
+    id
+    authors {
+      name
+    }
+    books {
+      title
+    }
+  }
+}

@@ -1,42 +1,31 @@
 using System;
+using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.Tools
 {
     public class InitCommandContext
     {
         public InitCommandContext(
-            string schemaName,
+            string name,
             string path,
             Uri uri,
             string? token,
             string? scheme)
         {
-            SchemaName = schemaName;
-            SchemaFileName = schemaName + ".graphql";
-            ClientName = schemaName + "Client";
+            SchemaName = "Schema";
+            SchemaFileName = FileNames.SchemaFile;
+            SchemaExtensionFileName = FileNames.SchemaExtensionFile;
+            ClientName = name;
             Path = path;
             Uri = uri;
             Token = token;
             Scheme = scheme;
         }
 
-        public InitCommandContext(
-            string schemaName,
-            string path,
-            string? token,
-            string? scheme)
-        {
-            SchemaName = schemaName;
-            SchemaFileName = schemaName + ".graphql";
-            ClientName = schemaName + "Client";
-            Path = path;
-            Uri = null;
-            Token = token;
-            Scheme = scheme;
-        }
-
         public string SchemaName { get; }
         public string SchemaFileName { get; }
+        public string SchemaExtensionFileName { get; }
+        public string ConfigFileName => FileNames.GraphQLConfigFile;
         public string ClientName { get; }
         public string Path { get; }
         public Uri? Uri { get; }

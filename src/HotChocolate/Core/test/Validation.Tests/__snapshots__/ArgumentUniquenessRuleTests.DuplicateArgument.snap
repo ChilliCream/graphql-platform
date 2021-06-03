@@ -19,6 +19,35 @@
       "argument": "nonNullBooleanArg",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Argument-Uniqueness"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Argument",
+      "Location": {
+        "Start": 264,
+        "End": 288,
+        "Line": 9,
+        "Column": 69
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 264,
+          "End": 282,
+          "Line": 9,
+          "Column": 69
+        },
+        "Value": "nonNullBooleanArg"
+      },
+      "Value": {
+        "Kind": "BooleanValue",
+        "Location": {
+          "Start": 283,
+          "End": 288,
+          "Line": 9,
+          "Column": 88
+        },
+        "Value": true
+      }
+    }
   }
 ]

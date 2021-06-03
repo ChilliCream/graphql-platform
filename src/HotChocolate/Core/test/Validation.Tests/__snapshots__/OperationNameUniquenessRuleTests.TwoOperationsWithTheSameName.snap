@@ -13,6 +13,95 @@
       "operation": "dogOperation",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Operation-Name-Uniqueness"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 150,
+        "End": 285,
+        "Line": 8,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 159,
+          "End": 173,
+          "Line": 8,
+          "Column": 26
+        },
+        "Value": "dogOperation"
+      },
+      "Operation": "Mutation",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 172,
+          "End": 285,
+          "Line": 8,
+          "Column": 39
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": {
+                "Start": 204,
+                "End": 272,
+                "Line": 9,
+                "Column": 31
+              },
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": {
+                    "Start": 230,
+                    "End": 254,
+                    "Line": 10,
+                    "Column": 25
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 230,
+                      "End": 254,
+                      "Line": 10,
+                      "Column": 25
+                    },
+                    "Value": "id"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": {
+              "Start": 194,
+              "End": 272,
+              "Line": 9,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 194,
+                "End": 205,
+                "Line": 9,
+                "Column": 21
+              },
+              "Value": "mutateDog"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
   }
 ]

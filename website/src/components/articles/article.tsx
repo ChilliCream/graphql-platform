@@ -12,7 +12,7 @@ const ArticleElement = styled.article`
   flex-direction: column;
   margin-bottom: 40px;
   padding-bottom: 20px;
-  max-width: 800px;
+  max-width: 820px;
 
   @media only screen and (min-width: 820px) {
     border-radius: 4px;

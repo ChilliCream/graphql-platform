@@ -56,7 +56,7 @@ namespace HotChocolate.Types
         {
             OnCompleteField(context, _definition!);
 
-            ContextData = _definition!.ContextData;
+            ContextData = _definition!.GetContextData();
             _definition = null;
         }
 
@@ -65,12 +65,14 @@ namespace HotChocolate.Types
             TDefinition definition)
         {
             DeclaringType = context.Type;
-            Type = context.GetType<TType>(definition.Type);
-            RuntimeType = Type is IHasRuntimeType hasClrType ? hasClrType.RuntimeType : typeof(object);
+            Type = context.GetType<TType>(definition.Type!);
+            RuntimeType = Type is IHasRuntimeType hasClrType
+                ? hasClrType.RuntimeType
+                : typeof(object);
 
-            var directives = new DirectiveCollection(this, definition.Directives);
-            directives.CompleteCollection(context);
-            Directives = directives;
+            Directives =
+                DirectiveCollection.CreateAndComplete(context, this, definition.GetDirectives());
+
 
             if (!DeclaringType.Name.Equals(Coordinate.TypeName))
             {

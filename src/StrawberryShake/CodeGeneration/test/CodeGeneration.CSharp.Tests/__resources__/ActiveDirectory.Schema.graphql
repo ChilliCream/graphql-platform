@@ -1,0 +1,1214 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+  activeDirectory_node(id: ID!): Node
+  activeDirectoryUserById(id: ID!): ActiveDirectoryUser!
+  activeDirectoryUserBySamAccountName(domain: String! = "ihs.org" samAccountName: String!): ActiveDirectoryUser!
+  activeDirectoryUserByUserPrincipalName(userPrincipalName: String!): ActiveDirectoryUser!
+  activeDirectoryUsers(after: String before: String first: Int last: Int order: [AdUserObjectSortInput!] where: AdUserObjectFilterInput): ActiveDirectoryUserConnection
+  activeDirectoryUsersBySamAccountName(domain: String! = "ihs.org" order: [AdUserObjectSortInput!] samAccountNames: [String!]! where: AdUserObjectFilterInput): [ActiveDirectoryUser!]!
+  activeDirectoryUsersBySamAccountName2(domain: String! = "ihs.org" order: [AdUserObjectSortInput!] samAccountNames: String! where: AdUserObjectFilterInput): [ActiveDirectoryUser!]!
+  activeDirectoryUsersByUserPrincipalName(order: [AdUserObjectSortInput!] userPrincipalNames: [String!]! where: AdUserObjectFilterInput): [ActiveDirectoryUser!]!
+  "Gets a legal hold by its Id"
+  legalHoldById(id: ID! order: [LegalHoldSortInput!] where: LegalHoldFilterInput): LegalHold! @deprecated(reason: "Use node query instead")
+  "Get the reasons for legal hold"
+  legalHoldReasons(order: [LegalHoldReasonSortInput!] where: LegalHoldReasonFilterInput): [LegalHoldReason!]!
+  "Gets all legal holds."
+  legalHolds(after: String before: String first: Int last: Int order: [LegalHoldSortInput!] where: LegalHoldFilterInput): LegalHoldConnection
+  "Get multiple legal holds by their Id"
+  legalHoldsById(ids: [ID!]! order: [LegalHoldSortInput!] where: LegalHoldFilterInput): [LegalHold!]! @deprecated(reason: "Use node query instead")
+  me(order: [AdUserObjectSortInput!] where: AdUserObjectFilterInput): ActiveDirectoryUser
+  node(id: ID!): Node
+  "Gets all person records."
+  people(order: [PersonSortInput!] skip: Int take: Int where: PersonFilterInput): PersonCollectionSegment
+  "Get multiple people by Id"
+  peopleById(ids: [ID!]! order: [PersonSortInput!] where: PersonFilterInput): [Person!]! @deprecated(reason: "Use node query instead.")
+  "Searches for people based on their id, name, and identites."
+  peopleSearch(includeInactive: Boolean! = false skip: Int take: Int term: String!): PersonCollectionSegment
+  "Gets a specific person record by Id."
+  personById(id: ID!): Person! @deprecated(reason: "Use node query instead.")
+  "Get a person by specifying a source system and an identifier. This will be changed to use the id instead of key in the future."
+  personByIdentity(identity: String! systemKey: Long!): Person
+  "Get low threshold matches for linking identites and merging person records that require manual review. This is sorted from high confidence to low confidence by default."
+  personMatches(order: [VwReviewLowThresholdMatchSortInput!] skip: Int take: Int where: VwReviewLowThresholdMatchFilterInput): PersonMatchCollectionSegment
+}
+
+type Mutation {
+  "Approve a pending profile picture."
+  approvePersonPhoto(id: Int!): Person!
+  "Create a new legal hold."
+  createLegalHold(input: CreateLegalHoldInput!): LegalHold!
+  "Deny a pending profile picture."
+  denyPersonPhoto(id: Int!): Person!
+  "Merge two person records"
+  mergePerson(personA: ID! personB: ID!): Person!
+  sendMessage(message: String! topicName: String!): Phone! @deprecated(reason: "This is purely for testing purposes")
+  "Submit a profile picture to be approved or denied."
+  submitPersonPhoto(base64EncodedImage: String!): Person!
+  "Update an existing legal hold."
+  updateLegalHold(input: UpdateLegalHoldInput!): LegalHold!
+  "Verify an existing legal hold."
+  verifyLegalHold("The ID of the legal hold to verify." id: ID!): LegalHold!
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
+"Information about the offset pagination."
+type CollectionSegmentInfo {
+  "Indicates whether more items exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more items exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+}
+
+type Company implements Node {
+  "The identifier for the company from Lawson."
+  companyId: String!
+  "The departments within this company."
+  departments(order: [DepartmentSortInput!] where: DepartmentFilterInput): [Department]
+  id: ID!
+  "The database primary key for the company."
+  key: Long!
+  "The friendly name for the company."
+  name: String!
+}
+
+type Department implements Node {
+  "The affiliate this department belongs to"
+  affiliate: String!
+  "The company this department belongs to."
+  company: Company
+  "The ID of the company this department belongs to."
+  companyId: ID!
+  "The cost center for this department"
+  costCenter: String!
+  "The division this department belongs to"
+  division: String!
+  id: ID!
+  "Determines if this department is active"
+  isActive: Boolean!
+  "The database primary key for this department."
+  key: Long!
+  "The name of the department."
+  name: String!
+  "A list of people belonging to this department."
+  people(order: [PersonSortInput!] where: PersonFilterInput): [Person]
+  "The region this department belongs to."
+  region: Region
+  "The ID of the region this department belongs to."
+  regionId: ID!
+}
+
+type LegalHold implements Node {
+  created: DateTime!
+  createdBy: ActiveDirectoryUser
+  createdByUpn: String!
+  "The department of the person this legal hold is applied to at the time of legal hold creation."
+  department: Department
+  "The ID of the department for the person this legal hold is applied to at the time of legal hold creation."
+  departmentId: ID!
+  "The date the legal hold ended."
+  endDate: Date
+  "The person that lifted the legal hold."
+  holdLiftAuthorizedBy: Person
+  "The ID of the person that lifted the legal hold."
+  holdLiftAuthorizedById: ID
+  holdStatusVerifiedBy: ActiveDirectoryUser
+  "The UPN of the Active Directory user that verified the legal hold."
+  holdStatusVerifiedByUpn: String
+  id: ID!
+  "Determines wether or not the legal hold is active."
+  isActive: Boolean!
+  "The database primary key for this legal hold."
+  key: Int!
+  modified: DateTime!
+  modifiedBy: ActiveDirectoryUser
+  modifiedByUpn: String!
+  "Notes about this legal hold"
+  notes: String
+  "The person this legal hold applies to."
+  person: Person
+  "The ID of the person this legal hold applies to."
+  personId: ID!
+  "The reason for the legal hold."
+  reasonForHold: LegalHoldReason
+  "The ID of the reason for the legal hold."
+  reasonForHoldId: ID!
+  "The person that requested this legal hold was put in place."
+  requestedBy: Person
+  "The ID of the person that requested this legal hold was put in place."
+  requestedById: ID!
+  "The start date of the legal hold."
+  startDate: Date
+  "A list of ticket numbers associated with the legal hold."
+  ticketNumbers: [String]
+  "A list of workstations associated with the legal hold."
+  workstations: [String]
+}
+
+"A connection to a list of items."
+type LegalHoldConnection {
+  "A list of edges."
+  edges: [LegalHoldEdge!]
+  "A flattened list of the nodes."
+  nodes: [LegalHold!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type LegalHoldEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: LegalHold!
+}
+
+type LegalHoldReason implements Node {
+  "The datetime this legal hold reason was created."
+  created: DateTime
+  "The Active Directory account that created this legal hold reason."
+  createdByUpn: String
+  "The date this data freeze is no longer required."
+  dataFreezeEndDate: DateTime
+  "Determines if a data freeze is needed."
+  dataFreezeNeeded: Boolean
+  "The date to begin the data freeze."
+  dataFreezeStartDate: DateTime
+  "The date the lawsuit was settled."
+  dateSettled: DateTime
+  "The person that authorized the hold lift."
+  holdLiftAuthorizedBy: String
+  id: ID!
+  "Determines if the legal hold reason is still active."
+  isActive: Boolean
+  "The database primary key for this hold reason."
+  key: Int!
+  "The date of the lawsuit."
+  lawsuitDate: Date
+  "The name of the legal case."
+  legalCaseName: String
+  "Legal holds that are assigned this reason."
+  legalHolds(order: [LegalHoldSortInput!] where: LegalHoldFilterInput): [LegalHold]
+  "The datetime of when the legal hold reason was last modified."
+  modified: DateTime
+  "The Active Directory account that last modified the legal hold reason."
+  modifiedByUpn: String
+  "The name of the hold reason."
+  name: String!
+  "Notes about the legal hold reason"
+  notes: String
+}
+
+type Location implements Node {
+  "The first line of the location's address."
+  addressLine1: String!
+  "The second line of the location's address."
+  addressLine2: String!
+  "The city the location is in."
+  city: String!
+  "Friendly name for the location."
+  displayName: String!
+  "The region the location is physically located."
+  geoRegion: String
+  id: ID!
+  "The database primary key for this location."
+  key: Long!
+  "People that belong to this location."
+  people(order: [PersonSortInput!] where: PersonFilterInput): [Person]
+  "The state the location is in."
+  state: String!
+  "The zipcode the location is in."
+  zip: String!
+}
+
+"Information about pagination in a connection."
+type PageInfo {
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+}
+
+type Person implements Node {
+  "For internal use only"
+  _primarySamAccountName: String
+  "For internal use only"
+  _samAccountNames: String
+  activeDirectoryUsers: [ActiveDirectoryUser!]
+  "The department the person belongs to."
+  department: Department
+  "The ID of the department the person belongs to."
+  departmentId: ID!
+  "The full of the person."
+  displayName: String
+  "The date of birth for the person"
+  dob: Date
+  "The first name of the person."
+  firstName: String!
+  id: ID!
+  "Url to image, you can specify a size in pixels by appending '?size=300' to get a square image."
+  image("The size in pixels of the image to return" size: Int): Url
+  "Indicates if the person is active."
+  isActive: Boolean!
+  "Indicates if the person is a board member."
+  isBoardMember: Boolean!
+  "Indicates if the person is a contractor."
+  isContractor: Boolean!
+  "Indicates if the person is an employee ."
+  isEmployee: Boolean!
+  "Determines wether a person has any active legal holds"
+  isOnLegalHold: Boolean!
+  "Indicates if this person is a provider."
+  isProvider: Boolean!
+  "Indicates if the person is a student."
+  isStudent: Boolean!
+  "The database primary key for the person."
+  key: Long!
+  "The surname of the person."
+  lastName: String!
+  "Legal holds on the person."
+  legalHolds(order: [LegalHoldSortInput!] where: LegalHoldFilterInput): [LegalHold]
+  "The location the person belongs to."
+  location: Location
+  "The ID of the location the person belongs to."
+  locationId: ID!
+  "The person managing the person."
+  manager: Person
+  "Direct reports to the person."
+  manages(order: [PersonSortInput!] where: PersonFilterInput): [Person]
+  "The middle inital of the person."
+  middleInitial: String
+  "The middle name of the person."
+  middleName: String
+  "The National Provider Identifier for the person."
+  npi: String
+  "Identites in external systems belonging to the person."
+  personIdentities: [PersonIdentity]
+  "The person's phone numbers"
+  phone(order: [PhoneSortInput!] where: PhoneFilterInput): [Phone]
+  primaryActiveDirectoryUser: ActiveDirectoryUser
+  "The job title of the person."
+  title: String!
+}
+
+type PersonCollectionSegment {
+  items: [Person!]
+  "Information to aid in pagination."
+  pageInfo: CollectionSegmentInfo!
+  totalCount: Int!
+}
+
+type PersonIdentity implements Node {
+  "The date of birth configured in the source system."
+  dob: DateTime
+  "The employee id configured in the source system."
+  employeeId: String
+  "The Epic Provider id configured in the source system."
+  epicProvId: String
+  "The first name configured in the source system."
+  firstName: String
+  id: ID!
+  "The unique identifier for this identity in the source system."
+  identity: String!
+  "Indicates wether or not the identity has been disabled in the source system."
+  isActive: Boolean!
+  "Indicates wether or not the identity has been deleted in the source system."
+  isDeleted: Boolean!
+  "The last name configured in the source system."
+  lastName: String
+  "The middle name configured in the source system."
+  middleName: String
+  "The National Provider Identifier configured in the source system."
+  npi: String
+  "The person this identity belongs to."
+  Person: Person
+  "The SAM Account Name configured in the source system."
+  samAccountName: String
+  "The source system this identity resides in."
+  sourceSystem: SourceSystem
+  "The last 4 digits of the Social Security Number configured in the source system."
+  ssnlast4: String
+}
+
+type PersonMatch {
+  "General comments about this potential match."
+  comments: String
+  "The person that the Person or PersonIdentity has been matched to."
+  matchingPerson: Person
+  "The confidence that this is a correct match, higher scores mean it is more likely."
+  matchScore: Int
+  "Indicates what type of match this is. A link is a PersonIdentity to Person and a merge is a Person to Person"
+  matchType: MatchType!
+  "The person that may be a duplicate of MatchingPerson if this is a merge match."
+  person: Person
+  "The person identity that may belong to MatchingPerson if this is a link match."
+  personIdentity: PersonIdentity
+  "The source system of the PersonIdentity if this is a link match."
+  sourceSystem: SourceSystem
+  "The status of this potential match."
+  status: String
+}
+
+type PersonMatchCollectionSegment {
+  items: [PersonMatch!]
+  "Information to aid in pagination."
+  pageInfo: CollectionSegmentInfo!
+  totalCount: Int!
+}
+
+type Phone {
+  isPrivate: Boolean!
+  number: String
+  type: String
+}
+
+type Region implements Node {
+  "Departments belonging to the region."
+  departments(order: [DepartmentSortInput!] where: DepartmentFilterInput): [Department]
+  id: ID!
+  "Determines if the region is geographical."
+  isGeographical: Boolean!
+  "The database primary key for the region."
+  key: Long!
+  "The name of the region."
+  name: String!
+  "People belonging to the region."
+  people(order: [PersonSortInput!] where: PersonFilterInput): [Person]
+}
+
+type SourceSystem implements Node {
+  "The date when the system was decomissioned, if known."
+  decommissionDate: Date
+  "The friendly name for the source system."
+  displayName: String!
+  "The date when the system first when live, if known."
+  firstLiveDate: Date
+  id: ID!
+  "The name for the ID in the source system that will be referenced when using this source system."
+  idTypeDescription: String!
+  "Indicates wether the source system is still used currently."
+  isActive: Boolean!
+  "What type of system this source system is."
+  systemType: String
+}
+
+input BooleanOperationFilterInput {
+  eq: Boolean
+  neq: Boolean
+}
+
+input CompanyFilterInput {
+  and: [CompanyFilterInput!]
+  companyKey: ComparableInt64OperationFilterInput
+  companyName: StringOperationFilterInput
+  departments: ListFilterInputTypeOfDepartmentFilterInput
+  id: StringOperationFilterInput
+  or: [CompanyFilterInput!]
+  systemKey: ComparableInt64OperationFilterInput
+  systemKeyNavigation: SourceSystemFilterInput
+}
+
+input CompanySortInput {
+  companyKey: SortEnumType
+  companyName: SortEnumType
+  id: SortEnumType
+  systemKey: SortEnumType
+  systemKeyNavigation: SourceSystemSortInput
+}
+
+input ComparableDateTimeOperationFilterInput {
+  eq: DateTime
+  gt: DateTime
+  gte: DateTime
+  in: [DateTime!]
+  lt: DateTime
+  lte: DateTime
+  neq: DateTime
+  ngt: DateTime
+  ngte: DateTime
+  nin: [DateTime!]
+  nlt: DateTime
+  nlte: DateTime
+}
+
+input ComparableInt32OperationFilterInput {
+  eq: Int
+  gt: Int
+  gte: Int
+  in: [Int!]
+  lt: Int
+  lte: Int
+  neq: Int
+  ngt: Int
+  ngte: Int
+  nin: [Int!]
+  nlt: Int
+  nlte: Int
+}
+
+input ComparableInt64OperationFilterInput {
+  eq: Long
+  gt: Long
+  gte: Long
+  in: [Long!]
+  lt: Long
+  lte: Long
+  neq: Long
+  ngt: Long
+  ngte: Long
+  nin: [Long!]
+  nlt: Long
+  nlte: Long
+}
+
+input ComparableNullableOfDateTimeOperationFilterInput {
+  eq: DateTime
+  gt: DateTime
+  gte: DateTime
+  in: [DateTime]
+  lt: DateTime
+  lte: DateTime
+  neq: DateTime
+  ngt: DateTime
+  ngte: DateTime
+  nin: [DateTime]
+  nlt: DateTime
+  nlte: DateTime
+}
+
+input ComparableNullableOfInt32OperationFilterInput {
+  eq: Int
+  gt: Int
+  gte: Int
+  in: [Int]
+  lt: Int
+  lte: Int
+  neq: Int
+  ngt: Int
+  ngte: Int
+  nin: [Int]
+  nlt: Int
+  nlte: Int
+}
+
+input ComparableNullableOfInt64OperationFilterInput {
+  eq: Long
+  gt: Long
+  gte: Long
+  in: [Long]
+  lt: Long
+  lte: Long
+  neq: Long
+  ngt: Long
+  ngte: Long
+  nin: [Long]
+  nlt: Long
+  nlte: Long
+}
+
+input CreateLegalHoldInput {
+  "The ID of the legal hold reason."
+  legalHoldReasonId: ID!
+  "Notes about this legal hold."
+  notes: String
+  "The ID of the person to place a legal hold on."
+  personId: ID!
+  "The ID of the person requesting the hold be put into place."
+  requestedByPersonId: ID!
+  "The start date of this legal hold."
+  startDate: DateTime
+  "A list of ticket numbers to associate with this legal hold."
+  ticketNumbers: [String!]
+  "A list of workstations to associate with this legal hold."
+  workstations: [String!]
+}
+
+input DepartmentFilterInput {
+  affiliate: StringOperationFilterInput
+  and: [DepartmentFilterInput!]
+  clinicAdminPersonKey: ComparableInt64OperationFilterInput
+  clinicSupervisorPersonKey: ComparableInt64OperationFilterInput
+  company: StringOperationFilterInput
+  companyKey: ComparableInt64OperationFilterInput
+  companyKeyNavigation: CompanyFilterInput
+  costCenter: StringOperationFilterInput
+  department1: StringOperationFilterInput
+  departmentKey: ComparableInt64OperationFilterInput
+  directorPersonKey: ComparableInt64OperationFilterInput
+  division: StringOperationFilterInput
+  id: StringOperationFilterInput
+  isActive: BooleanOperationFilterInput
+  legalHolds: ListFilterInputTypeOfLegalHoldFilterInput
+  or: [DepartmentFilterInput!]
+  people: ListFilterInputTypeOfPersonFilterInput
+  region: StringOperationFilterInput
+  regionKey: ComparableInt64OperationFilterInput
+  regionKeyNavigation: RegionFilterInput
+  systemKey: ComparableInt64OperationFilterInput
+  systemKeyNavigation: SourceSystemFilterInput
+}
+
+input DepartmentSortInput {
+  affiliate: SortEnumType
+  clinicAdminPersonKey: SortEnumType
+  clinicSupervisorPersonKey: SortEnumType
+  company: SortEnumType
+  companyKey: SortEnumType
+  companyKeyNavigation: CompanySortInput
+  costCenter: SortEnumType
+  department1: SortEnumType
+  departmentKey: SortEnumType
+  directorPersonKey: SortEnumType
+  division: SortEnumType
+  id: SortEnumType
+  isActive: SortEnumType
+  region: SortEnumType
+  regionKey: SortEnumType
+  regionKeyNavigation: RegionSortInput
+  systemKey: SortEnumType
+  systemKeyNavigation: SourceSystemSortInput
+}
+
+input LegalHoldFilterInput {
+  and: [LegalHoldFilterInput!]
+  created: ComparableDateTimeOperationFilterInput
+  createdByUpn: StringOperationFilterInput
+  departmentKey: ComparableInt64OperationFilterInput
+  departmentKeyNavigation: DepartmentFilterInput
+  endDate: ComparableNullableOfDateTimeOperationFilterInput
+  holdLiftAuthorizedByPersonKey: ComparableNullableOfInt64OperationFilterInput
+  holdLiftAuthorizedByPersonKeyNavigation: PersonFilterInput
+  legalHoldKey: ComparableInt32OperationFilterInput
+  modified: ComparableDateTimeOperationFilterInput
+  modifiedByUpn: StringOperationFilterInput
+  notes: StringOperationFilterInput
+  or: [LegalHoldFilterInput!]
+  personKey: ComparableInt64OperationFilterInput
+  personKeyNavigation: PersonFilterInput
+  reasonForHold: ComparableInt32OperationFilterInput
+  reasonForHoldNavigation: LegalHoldReasonFilterInput
+  requestedByPersonKey: ComparableInt64OperationFilterInput
+  requestedByPersonKeyNavigation: PersonFilterInput
+  startDate: ComparableNullableOfDateTimeOperationFilterInput
+  statusVerified: ComparableNullableOfDateTimeOperationFilterInput
+  statusVerifiedByUpn: StringOperationFilterInput
+  ticketNumbers: StringOperationFilterInput
+  workstations: StringOperationFilterInput
+}
+
+input LegalHoldReasonFilterInput {
+  and: [LegalHoldReasonFilterInput!]
+  created: ComparableNullableOfDateTimeOperationFilterInput
+  createdByUpn: StringOperationFilterInput
+  dataFreezeEndDate: ComparableNullableOfDateTimeOperationFilterInput
+  dataFreezeNeeded: BooleanOperationFilterInput
+  dataFreezeStartDate: ComparableNullableOfDateTimeOperationFilterInput
+  dateSettled: ComparableNullableOfDateTimeOperationFilterInput
+  holdLiftAuthorizedBy: StringOperationFilterInput
+  holdReason: StringOperationFilterInput
+  holdReasonId: ComparableInt32OperationFilterInput
+  isActive: BooleanOperationFilterInput
+  lawsuitDate: ComparableNullableOfDateTimeOperationFilterInput
+  legalCaseName: StringOperationFilterInput
+  legalHolds: ListFilterInputTypeOfLegalHoldFilterInput
+  modified: ComparableNullableOfDateTimeOperationFilterInput
+  modifiedByUpn: StringOperationFilterInput
+  notes: StringOperationFilterInput
+  or: [LegalHoldReasonFilterInput!]
+}
+
+input LegalHoldReasonSortInput {
+  created: SortEnumType
+  createdByUpn: SortEnumType
+  dataFreezeEndDate: SortEnumType
+  dataFreezeNeeded: SortEnumType
+  dataFreezeStartDate: SortEnumType
+  dateSettled: SortEnumType
+  holdLiftAuthorizedBy: SortEnumType
+  holdReason: SortEnumType
+  holdReasonId: SortEnumType
+  isActive: SortEnumType
+  lawsuitDate: SortEnumType
+  legalCaseName: SortEnumType
+  modified: SortEnumType
+  modifiedByUpn: SortEnumType
+  notes: SortEnumType
+}
+
+input LegalHoldSortInput {
+  created: SortEnumType
+  createdByUpn: SortEnumType
+  departmentKey: SortEnumType
+  departmentKeyNavigation: DepartmentSortInput
+  endDate: SortEnumType
+  holdLiftAuthorizedByPersonKey: SortEnumType
+  holdLiftAuthorizedByPersonKeyNavigation: PersonSortInput
+  legalHoldKey: SortEnumType
+  modified: SortEnumType
+  modifiedByUpn: SortEnumType
+  notes: SortEnumType
+  personKey: SortEnumType
+  personKeyNavigation: PersonSortInput
+  reasonForHold: SortEnumType
+  reasonForHoldNavigation: LegalHoldReasonSortInput
+  requestedByPersonKey: SortEnumType
+  requestedByPersonKeyNavigation: PersonSortInput
+  startDate: SortEnumType
+  statusVerified: SortEnumType
+  statusVerifiedByUpn: SortEnumType
+  ticketNumbers: SortEnumType
+  workstations: SortEnumType
+}
+
+input ListFilterInputTypeOfCompanyFilterInput {
+  all: CompanyFilterInput
+  any: Boolean
+  none: CompanyFilterInput
+  some: CompanyFilterInput
+}
+
+input ListFilterInputTypeOfDepartmentFilterInput {
+  all: DepartmentFilterInput
+  any: Boolean
+  none: DepartmentFilterInput
+  some: DepartmentFilterInput
+}
+
+input ListFilterInputTypeOfLegalHoldFilterInput {
+  all: LegalHoldFilterInput
+  any: Boolean
+  none: LegalHoldFilterInput
+  some: LegalHoldFilterInput
+}
+
+input ListFilterInputTypeOfLocationFilterInput {
+  all: LocationFilterInput
+  any: Boolean
+  none: LocationFilterInput
+  some: LocationFilterInput
+}
+
+input ListFilterInputTypeOfPersonFilterInput {
+  all: PersonFilterInput
+  any: Boolean
+  none: PersonFilterInput
+  some: PersonFilterInput
+}
+
+input ListFilterInputTypeOfPersonIdentityFilterInput {
+  all: PersonIdentityFilterInput
+  any: Boolean
+  none: PersonIdentityFilterInput
+  some: PersonIdentityFilterInput
+}
+
+input ListFilterInputTypeOfPersonPhotoFilterInput {
+  all: PersonPhotoFilterInput
+  any: Boolean
+  none: PersonPhotoFilterInput
+  some: PersonPhotoFilterInput
+}
+
+input ListFilterInputTypeOfSourceSystemFilterInput {
+  all: SourceSystemFilterInput
+  any: Boolean
+  none: SourceSystemFilterInput
+  some: SourceSystemFilterInput
+}
+
+input LocationFilterInput {
+  addressLine1: StringOperationFilterInput
+  addressLine2: StringOperationFilterInput
+  and: [LocationFilterInput!]
+  city: StringOperationFilterInput
+  displayName: StringOperationFilterInput
+  geoRegion: StringOperationFilterInput
+  geoRegionKey: ComparableNullableOfInt64OperationFilterInput
+  geoRegionKeyNavigation: RegionFilterInput
+  locationKey: ComparableInt64OperationFilterInput
+  or: [LocationFilterInput!]
+  people: ListFilterInputTypeOfPersonFilterInput
+  state: StringOperationFilterInput
+  zip: StringOperationFilterInput
+}
+
+input LocationSortInput {
+  addressLine1: SortEnumType
+  addressLine2: SortEnumType
+  city: SortEnumType
+  displayName: SortEnumType
+  geoRegion: SortEnumType
+  geoRegionKey: SortEnumType
+  geoRegionKeyNavigation: RegionSortInput
+  locationKey: SortEnumType
+  state: SortEnumType
+  zip: SortEnumType
+}
+
+input PersonFilterInput {
+  and: [PersonFilterInput!]
+  departmentKey: ComparableInt64OperationFilterInput
+  departmentKeyNavigation: DepartmentFilterInput
+  dob: ComparableNullableOfDateTimeOperationFilterInput
+  firstName: StringOperationFilterInput
+  inversePrimaryManagerKeyNavigation: ListFilterInputTypeOfPersonFilterInput
+  isActive: BooleanOperationFilterInput
+  isBoardMember: BooleanOperationFilterInput
+  isContractor: BooleanOperationFilterInput
+  isEmployee: BooleanOperationFilterInput
+  isKronosTimeKeeper: BooleanOperationFilterInput
+  isProvider: BooleanOperationFilterInput
+  isStudent: BooleanOperationFilterInput
+  lastName: StringOperationFilterInput
+  legalHoldHoldLiftAuthorizedByPersonKeyNavigations: ListFilterInputTypeOfLegalHoldFilterInput
+  legalHoldPersonKeyNavigations: ListFilterInputTypeOfLegalHoldFilterInput
+  legalHoldRequestedByPersonKeyNavigations: ListFilterInputTypeOfLegalHoldFilterInput
+  middleInitial: StringOperationFilterInput
+  middleName: StringOperationFilterInput
+  npi: StringOperationFilterInput
+  or: [PersonFilterInput!]
+  personIdentities: ListFilterInputTypeOfPersonIdentityFilterInput
+  personKey: ComparableInt64OperationFilterInput
+  personPhotoPersonKeyNavigations: ListFilterInputTypeOfPersonPhotoFilterInput
+  personPhotoProcessedByPersonKeyNavigations: ListFilterInputTypeOfPersonPhotoFilterInput
+  primaryAdidentityKey: ComparableInt64OperationFilterInput
+  primaryAdidentityKeyNavigation: PersonIdentityFilterInput
+  primaryEchoIdentityKey: ComparableInt64OperationFilterInput
+  primaryEchoIdentityKeyNavigation: PersonIdentityFilterInput
+  primaryEpicIdentityKey: ComparableInt64OperationFilterInput
+  primaryEpicIdentityKeyNavigation: PersonIdentityFilterInput
+  primaryLawsonIdentityKey: ComparableInt64OperationFilterInput
+  primaryLawsonIdentityKeyNavigation: PersonIdentityFilterInput
+  primaryLocationKey: ComparableInt64OperationFilterInput
+  primaryLocationKeyNavigation: LocationFilterInput
+  primaryManagerKey: ComparableInt64OperationFilterInput
+  primaryManagerKeyNavigation: PersonFilterInput
+  primaryMsnlawsonIdentityKey: ComparableInt64OperationFilterInput
+  primaryMsnlawsonIdentityKeyNavigation: PersonIdentityFilterInput
+  primaryMsowidentityKey: ComparableInt64OperationFilterInput
+  primaryMsowidentityKeyNavigation: PersonIdentityFilterInput
+  title: StringOperationFilterInput
+}
+
+input PersonIdentityFilterInput {
+  and: [PersonIdentityFilterInput!]
+  dob: ComparableNullableOfDateTimeOperationFilterInput
+  employeeId: StringOperationFilterInput
+  epicProvId: StringOperationFilterInput
+  firstName: StringOperationFilterInput
+  id: StringOperationFilterInput
+  isActive: BooleanOperationFilterInput
+  isDeleted: BooleanOperationFilterInput
+  lastName: StringOperationFilterInput
+  middleName: StringOperationFilterInput
+  npi: StringOperationFilterInput
+  or: [PersonIdentityFilterInput!]
+  personIdentityKey: ComparableInt64OperationFilterInput
+  personKey: ComparableInt64OperationFilterInput
+  personKeyNavigation: PersonFilterInput
+  personPrimaryAdidentityKeyNavigations: ListFilterInputTypeOfPersonFilterInput
+  personPrimaryEchoIdentityKeyNavigations: ListFilterInputTypeOfPersonFilterInput
+  personPrimaryEpicIdentityKeyNavigations: ListFilterInputTypeOfPersonFilterInput
+  personPrimaryLawsonIdentityKeyNavigations: ListFilterInputTypeOfPersonFilterInput
+  personPrimaryMsnlawsonIdentityKeyNavigations: ListFilterInputTypeOfPersonFilterInput
+  personPrimaryMsowidentityKeyNavigations: ListFilterInputTypeOfPersonFilterInput
+  samAccountName: StringOperationFilterInput
+  ssnlast4: StringOperationFilterInput
+  systemKey: ComparableInt64OperationFilterInput
+  systemKeyNavigation: SourceSystemFilterInput
+}
+
+input PersonIdentitySortInput {
+  dob: SortEnumType
+  employeeId: SortEnumType
+  epicProvId: SortEnumType
+  firstName: SortEnumType
+  id: SortEnumType
+  isActive: SortEnumType
+  isDeleted: SortEnumType
+  lastName: SortEnumType
+  middleName: SortEnumType
+  npi: SortEnumType
+  personIdentityKey: SortEnumType
+  personKey: SortEnumType
+  personKeyNavigation: PersonSortInput
+  samAccountName: SortEnumType
+  ssnlast4: SortEnumType
+  systemKey: SortEnumType
+  systemKeyNavigation: SourceSystemSortInput
+}
+
+input PersonPhotoFilterInput {
+  and: [PersonPhotoFilterInput!]
+  approved: BooleanOperationFilterInput
+  notes: StringOperationFilterInput
+  or: [PersonPhotoFilterInput!]
+  personKey: ComparableInt64OperationFilterInput
+  personKeyNavigation: PersonFilterInput
+  personPhotoKey: ComparableInt32OperationFilterInput
+  photo: StringOperationFilterInput
+  processedByPersonKey: ComparableNullableOfInt64OperationFilterInput
+  processedByPersonKeyNavigation: PersonFilterInput
+  processedDateTimeUtc: ComparableNullableOfDateTimeOperationFilterInput
+  submitted: ComparableDateTimeOperationFilterInput
+}
+
+input PersonSortInput {
+  departmentKey: SortEnumType
+  departmentKeyNavigation: DepartmentSortInput
+  dob: SortEnumType
+  firstName: SortEnumType
+  isAduser: SortEnumType
+  isBoardMember: SortEnumType
+  isContractor: SortEnumType
+  isEmployee: SortEnumType
+  isKronosTimeKeeper: SortEnumType
+  isProvider: SortEnumType
+  isStudent: SortEnumType
+  lastName: SortEnumType
+  middleInitial: SortEnumType
+  middleName: SortEnumType
+  npi: SortEnumType
+  personKey: SortEnumType
+  primaryAdidentityKey: SortEnumType
+  primaryAdidentityKeyNavigation: PersonIdentitySortInput
+  primaryEchoIdentityKey: SortEnumType
+  primaryEchoIdentityKeyNavigation: PersonIdentitySortInput
+  primaryEpicIdentityKey: SortEnumType
+  primaryEpicIdentityKeyNavigation: PersonIdentitySortInput
+  primaryLawsonIdentityKey: SortEnumType
+  primaryLawsonIdentityKeyNavigation: PersonIdentitySortInput
+  primaryLocationKey: SortEnumType
+  primaryLocationKeyNavigation: LocationSortInput
+  primaryManagerKey: SortEnumType
+  primaryManagerKeyNavigation: PersonSortInput
+  primaryMsnlawsonIdentityKey: SortEnumType
+  primaryMsnlawsonIdentityKeyNavigation: PersonIdentitySortInput
+  primaryMsowidentityKey: SortEnumType
+  primaryMsowidentityKeyNavigation: PersonIdentitySortInput
+  title: SortEnumType
+}
+
+input PhoneFilterInput {
+  and: [PhoneFilterInput!]
+  isPrivate: BooleanOperationFilterInput
+  number: StringOperationFilterInput
+  or: [PhoneFilterInput!]
+  type: StringOperationFilterInput
+}
+
+input PhoneSortInput {
+  isPrivate: SortEnumType
+  number: SortEnumType
+  type: SortEnumType
+}
+
+input RegionFilterInput {
+  and: [RegionFilterInput!]
+  departments: ListFilterInputTypeOfDepartmentFilterInput
+  isGeographical: BooleanOperationFilterInput
+  lawsonId: ComparableInt32OperationFilterInput
+  locations: ListFilterInputTypeOfLocationFilterInput
+  or: [RegionFilterInput!]
+  regionKey: ComparableInt64OperationFilterInput
+  regionName: StringOperationFilterInput
+}
+
+input RegionSortInput {
+  isGeographical: SortEnumType
+  lawsonId: SortEnumType
+  regionKey: SortEnumType
+  regionName: SortEnumType
+}
+
+input SourceSystemFilterInput {
+  and: [SourceSystemFilterInput!]
+  companies: ListFilterInputTypeOfCompanyFilterInput
+  decommissionDate: ComparableNullableOfDateTimeOperationFilterInput
+  departments: ListFilterInputTypeOfDepartmentFilterInput
+  displayName: StringOperationFilterInput
+  firstLiveDate: ComparableNullableOfDateTimeOperationFilterInput
+  idTypeDescription: StringOperationFilterInput
+  isActive: BooleanOperationFilterInput
+  or: [SourceSystemFilterInput!]
+  personIdentities: ListFilterInputTypeOfPersonIdentityFilterInput
+  systemKey: ComparableInt64OperationFilterInput
+  systemTypeKey: ComparableInt64OperationFilterInput
+  systemTypeKeyNavigation: SourceSystemTypeFilterInput
+}
+
+input SourceSystemSortInput {
+  decommissionDate: SortEnumType
+  displayName: SortEnumType
+  firstLiveDate: SortEnumType
+  idTypeDescription: SortEnumType
+  isActive: SortEnumType
+  systemKey: SortEnumType
+  systemTypeKey: SortEnumType
+  systemTypeKeyNavigation: SourceSystemTypeSortInput
+}
+
+input SourceSystemTypeFilterInput {
+  and: [SourceSystemTypeFilterInput!]
+  or: [SourceSystemTypeFilterInput!]
+  sourceSystems: ListFilterInputTypeOfSourceSystemFilterInput
+  systemType: StringOperationFilterInput
+  systemTypeKey: ComparableInt64OperationFilterInput
+}
+
+input SourceSystemTypeSortInput {
+  systemType: SortEnumType
+  systemTypeKey: SortEnumType
+}
+
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  contains: String
+  endsWith: String
+  eq: String
+  in: [String]
+  ncontains: String
+  nendsWith: String
+  neq: String
+  nin: [String]
+  nstartsWith: String
+  or: [StringOperationFilterInput!]
+  startsWith: String
+}
+
+input UpdateLegalHoldInput {
+  "The date the legal hold was lifted."
+  endDate: DateTime!
+  "The ID of the person authorizing this hold to be lifted."
+  holdLiftAuthorizedByPersonId: ID!
+  "The ID of the legal hold to update."
+  legalHoldId: ID!
+  "The ID of the legal hold reason. This value must be non-null if specified."
+  legalHoldReasonId: ID
+  "Notes about the legal hold."
+  notes: String
+  "The ID of the person requesting the hold be put into place. This value must be non-null if specified."
+  requestedByPersonId: ID
+  "The start date of the legal hold."
+  startDate: DateTime
+  "A list of ticket numbers associated with this legal hold. A complete list must be specified as this field will be completely overwritten, not appended to."
+  ticketNumbers: [String!]
+  "A list of workstation names associated with this legal hold. A complete list must be specified as this field will be completely overwritten, not appended to."
+  workstations: [String!]
+}
+
+input VwReviewLowThresholdMatchFilterInput {
+  and: [VwReviewLowThresholdMatchFilterInput!]
+  approveAndLinkSql: StringOperationFilterInput
+  comments: StringOperationFilterInput
+  dob: ComparableNullableOfDateTimeOperationFilterInput
+  firstName: StringOperationFilterInput
+  flagAsNonDuplicateSql: StringOperationFilterInput
+  id: StringOperationFilterInput
+  isActive: BooleanOperationFilterInput
+  isDeleted: ComparableInt32OperationFilterInput
+  lastName: StringOperationFilterInput
+  matchingPersonDob: ComparableNullableOfDateTimeOperationFilterInput
+  matchingPersonFirstName: StringOperationFilterInput
+  matchingPersonHasActiveAd: BooleanOperationFilterInput
+  matchingPersonKey: ComparableInt64OperationFilterInput
+  matchingPersonLastName: StringOperationFilterInput
+  matchingPersonMiddleName: StringOperationFilterInput
+  matchScore: ComparableNullableOfInt32OperationFilterInput
+  middleName: StringOperationFilterInput
+  or: [VwReviewLowThresholdMatchFilterInput!]
+  personIdentityKey: ComparableInt64OperationFilterInput
+  personKey: ComparableInt64OperationFilterInput
+  recordType: StringOperationFilterInput
+  showIdentityInfo: StringOperationFilterInput
+  showMatchingPersonInfo: StringOperationFilterInput
+  sourceSystem: StringOperationFilterInput
+  status: StringOperationFilterInput
+  systemKey: ComparableInt64OperationFilterInput
+}
+
+input VwReviewLowThresholdMatchSortInput {
+  approveAndLinkSql: SortEnumType
+  comments: SortEnumType
+  dob: SortEnumType
+  firstName: SortEnumType
+  flagAsNonDuplicateSql: SortEnumType
+  id: SortEnumType
+  isActive: SortEnumType
+  isDeleted: SortEnumType
+  lastName: SortEnumType
+  matchingPersonDob: SortEnumType
+  matchingPersonFirstName: SortEnumType
+  matchingPersonHasActiveAd: SortEnumType
+  matchingPersonKey: SortEnumType
+  matchingPersonLastName: SortEnumType
+  matchingPersonMiddleName: SortEnumType
+  matchScore: SortEnumType
+  middleName: SortEnumType
+  personIdentityKey: SortEnumType
+  personKey: SortEnumType
+  recordType: SortEnumType
+  showIdentityInfo: SortEnumType
+  showMatchingPersonInfo: SortEnumType
+  sourceSystem: SortEnumType
+  status: SortEnumType
+  systemKey: SortEnumType
+}
+
+enum ApplyPolicy {
+  BEFORE_RESOLVER
+  AFTER_RESOLVER
+}
+
+enum MatchType {
+  LINK
+  MERGE
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}
+
+type ActiveDirectoryGroup implements Node {
+  "The DistinguishedName of this Active Directory group."
+  distinguishedName: String!
+  id: ID!
+  "Groups the Active Directory group belongs to."
+  memberOf: [ActiveDirectoryGroup]
+  "Active Directory users and groups belonging to this group."
+  members: [ActiveDirectoryGroup]
+  "The SamAccountName of this Active Directory group."
+  samAccountName: String!
+}
+
+type ActiveDirectoryUser {
+  "The date this Active Directory account was created."
+  created: DateTime
+  "The description of this Active Directory account."
+  description: String
+  "The display name of this Active Directory account."
+  displayName: String
+  "The distinguished name of the Active Directory account."
+  distinguishedName: String
+  "The domain the Active Directory account belongs to."
+  domain: String
+  "True if the Active Directory account is currently enabled."
+  enabled: Boolean
+  "The UNC path of this Active Directory account's home directory."
+  homeDirectory: String
+  "The home drive letter of this Active Directory account."
+  homeDrive: String
+  "The last logon time of this Active Directory account."
+  lastLogon: DateTime
+  "The email address of this Active Directory account."
+  mail: String
+  "The groups this account belongs to"
+  memberOf: [ActiveDirectoryGroup]
+  person: Person
+  "The logon name of this Active Directory account."
+  samAccountName: String
+  "The user principal name of this Active Directory account."
+  userPrincipalName: String
+}
+
+"A connection to a list of items."
+type ActiveDirectoryUserConnection {
+  "A list of edges."
+  edges: [ActiveDirectoryUserEdge!]
+  "A flattened list of the nodes."
+  nodes: [ActiveDirectoryUser!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+"An edge in a connection."
+type ActiveDirectoryUserEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: ActiveDirectoryUser!
+}
+
+input AdUserObjectFilterInput {
+  adPhoneListing: StringOperationFilterInput
+  and: [AdUserObjectFilterInput!]
+  description: StringOperationFilterInput
+  displayName: StringOperationFilterInput
+  distinguishedName: StringOperationFilterInput
+  domain: StringOperationFilterInput
+  ea3: StringOperationFilterInput
+  ea4: StringOperationFilterInput
+  givenName: StringOperationFilterInput
+  historicalUpns: StringOperationFilterInput
+  homeDirectory: StringOperationFilterInput
+  isActive: BooleanOperationFilterInput
+  isDeleted: BooleanOperationFilterInput
+  isStudentAccount: BooleanOperationFilterInput
+  lastLogon: ComparableNullableOfDateTimeOperationFilterInput
+  mail: StringOperationFilterInput
+  or: [AdUserObjectFilterInput!]
+  personIdentityKey: ComparableInt64OperationFilterInput
+  samAccountName: StringOperationFilterInput
+  sn: StringOperationFilterInput
+  upn: StringOperationFilterInput
+}
+
+input AdUserObjectSortInput {
+  adPhoneListing: SortEnumType
+  description: SortEnumType
+  displayName: SortEnumType
+  distinguishedName: SortEnumType
+  domain: SortEnumType
+  ea3: SortEnumType
+  ea4: SortEnumType
+  givenName: SortEnumType
+  historicalUpns: SortEnumType
+  homeDirectory: SortEnumType
+  isActive: SortEnumType
+  isDeleted: SortEnumType
+  isStudentAccount: SortEnumType
+  lastLogon: SortEnumType
+  mail: SortEnumType
+  personIdentityKey: SortEnumType
+  samAccountName: SortEnumType
+  sn: SortEnumType
+  upn: SortEnumType
+}
+
+"The name scalar represents a valid GraphQL name as specified in the spec and can be used to refer to fields or types."
+scalar Name
+
+"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+scalar Long
+
+"The `Date` scalar represents an ISO-8601 compliant date type."
+scalar Date
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime
+
+scalar Url
+
+directive @authorize("Defines when when the resolver shall be executed.By default the resolver is executed after the policy has determined that the current user is allowed to access the field." apply: ApplyPolicy! = BEFORE_RESOLVER "The name of the authorization policy that determines access to the annotated resource." policy: String "Roles that are allowed to access the annotated resource." roles: [String!]) repeatable on SCHEMA | OBJECT | FIELD_DEFINITION
+
+"Delegates a resolver to a remote schema."
+directive @delegate("The path to the field on the remote schema." path: String "The name of the schema to which this field shall be delegated to." schema: Name!) on FIELD_DEFINITION
+
+directive @computed("Specifies the fields on which a computed field is dependent on." dependantOn: [Name!]) on FIELD_DEFINITION
+
+"Annotates the original name of a type."
+directive @source("The original name of the annotated type." name: Name! "The name of the schema to which this type belongs to." schema: Name!) repeatable on ENUM | OBJECT | INTERFACE | UNION | INPUT_OBJECT | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM_VALUE

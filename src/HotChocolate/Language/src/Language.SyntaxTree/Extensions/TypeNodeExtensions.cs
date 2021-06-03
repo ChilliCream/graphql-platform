@@ -41,7 +41,7 @@ namespace HotChocolate.Language
 
         public static NamedTypeNode NamedType(this ITypeNode type)
         {
-            if (type.InnerType().InnerType().InnerType() is NamedTypeNode n)
+            if (type.InnerType().InnerType().InnerType().InnerType().InnerType() is NamedTypeNode n)
             {
                 return n;
             }

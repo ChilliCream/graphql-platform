@@ -19,6 +19,113 @@
       "fragment": "humanFragment",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-is-possible"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentDefinition",
+      "VariableDefinitions": [],
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 268,
+          "End": 275,
+          "Line": 9,
+          "Column": 43
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 268,
+            "End": 275,
+            "Line": 9,
+            "Column": 43
+          },
+          "Value": "Human"
+        }
+      },
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 274,
+          "End": 304,
+          "Line": 9,
+          "Column": 49
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": {
+                "Start": 281,
+                "End": 291,
+                "Line": 9,
+                "Column": 56
+              },
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": {
+                    "Start": 283,
+                    "End": 289,
+                    "Line": 9,
+                    "Column": 58
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 283,
+                      "End": 289,
+                      "Line": 9,
+                      "Column": 58
+                    },
+                    "Value": "name"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": {
+              "Start": 276,
+              "End": 291,
+              "Line": 9,
+              "Column": 51
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 276,
+                "End": 282,
+                "Line": 9,
+                "Column": 51
+              },
+              "Value": "pets"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 242,
+        "End": 304,
+        "Line": 9,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 251,
+          "End": 267,
+          "Line": 9,
+          "Column": 26
+        },
+        "Value": "humanFragment"
+      },
+      "Directives": []
+    }
   }
 ]

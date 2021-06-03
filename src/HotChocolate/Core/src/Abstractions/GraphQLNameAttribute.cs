@@ -10,8 +10,7 @@ namespace HotChocolate
         | AttributeTargets.Parameter
         | AttributeTargets.Enum
         | AttributeTargets.Field)]
-    public sealed class GraphQLNameAttribute
-        : Attribute
+    public sealed class GraphQLNameAttribute : Attribute
     {
         public GraphQLNameAttribute(string name)
         {

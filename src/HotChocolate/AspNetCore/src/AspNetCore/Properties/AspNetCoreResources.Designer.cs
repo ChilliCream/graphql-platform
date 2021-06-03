@@ -11,7 +11,7 @@ namespace HotChocolate.AspNetCore.Properties {
     using System;
     
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class AspNetCoreResources {
@@ -66,6 +66,120 @@ namespace HotChocolate.AspNetCore.Properties {
         internal static string ThrowHelper_DataStartMessageHandler_RequestTypeNotSupported {
             get {
                 return ResourceManager.GetString("ThrowHelper_DataStartMessageHandler_RequestTypeNotSupported", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_Invalid_Form {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_Invalid_Form", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_No_Operations_Specified {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_No_Operations_Specified", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_Fields_Misordered {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_Fields_Misordered", resourceCulture);
+            }
+        }
+        
+        internal static string HttpMultipartMiddleware_InsertFilesIntoRequest_VariablesImmutable {
+            get {
+                return ResourceManager.GetString("HttpMultipartMiddleware_InsertFilesIntoRequest_VariablesImmutable", resourceCulture);
+            }
+        }
+        
+        internal static string VariablePath_Parse_FirstSegmentMustBeKey {
+            get {
+                return ResourceManager.GetString("VariablePath_Parse_FirstSegmentMustBeKey", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_NoObjectPath {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_NoObjectPath", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_FileMissing {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_FileMissing", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_VariableNotFound {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_VariableNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_VariableStructureInvalid {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_VariableStructureInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_InvalidPath {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_InvalidPath", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_PathMustStartWithVariable {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_PathMustStartWithVariable", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_InvalidMapJson {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_InvalidMapJson", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_HttpMultipartMiddleware_MapNotSpecified {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_MapNotSpecified", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_InvalidRequest {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InvalidRequest", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_RequestHasNoElements {
+            get {
+                return ResourceManager.GetString("ErrorHelper_RequestHasNoElements", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_ResponseTypeNotSupported {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ResponseTypeNotSupported", resourceCulture);
+            }
+        }
+        
+        internal static string Subscription_SendResultsAsync {
+            get {
+                return ResourceManager.GetString("Subscription_SendResultsAsync", resourceCulture);
+            }
+        }
+        
+        internal static string WebSocketSession_SessionEnded {
+            get {
+                return ResourceManager.GetString("WebSocketSession_SessionEnded", resourceCulture);
+            }
+        }
+        
+        internal static string DataStartMessageHandler_Not_A_SubscriptionResult {
+            get {
+                return ResourceManager.GetString("DataStartMessageHandler_Not_A_SubscriptionResult", resourceCulture);
             }
         }
     }

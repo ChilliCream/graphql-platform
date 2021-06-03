@@ -21,7 +21,37 @@
       "field": "f1",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Field-Uniqueness"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "ObjectField",
+      "Location": {
+        "Start": 223,
+        "End": 266,
+        "Line": 7,
+        "Column": 29
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 223,
+          "End": 226,
+          "Line": 7,
+          "Column": 29
+        },
+        "Value": "f1"
+      },
+      "Value": {
+        "Kind": "StringValue",
+        "Location": {
+          "Start": 227,
+          "End": 266,
+          "Line": 7,
+          "Column": 33
+        },
+        "Value": "value",
+        "Block": false
+      }
+    }
   },
   {
     "Message": "There can be only one input field named `f1`.",
@@ -45,6 +75,36 @@
       "field": "f1",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Field-Uniqueness"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "ObjectField",
+      "Location": {
+        "Start": 264,
+        "End": 277,
+        "Line": 8,
+        "Column": 29
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 264,
+          "End": 267,
+          "Line": 8,
+          "Column": 29
+        },
+        "Value": "f1"
+      },
+      "Value": {
+        "Kind": "StringValue",
+        "Location": {
+          "Start": 268,
+          "End": 277,
+          "Line": 8,
+          "Column": 33
+        },
+        "Value": "value",
+        "Block": false
+      }
+    }
   }
 ]

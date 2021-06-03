@@ -18,7 +18,7 @@ namespace HotChocolate.Configuration
         {
             // arrange
             var context = DescriptorContext.Create();
-            var typeRegistry = new TypeRegistry();
+            var typeRegistry = new TypeRegistry(context.TypeInterceptor);
             var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
 
             var typeDiscoverer = new TypeDiscoverer(
@@ -62,7 +62,7 @@ namespace HotChocolate.Configuration
         {
             // arrange
             var context = DescriptorContext.Create();
-            var typeRegistry = new TypeRegistry();
+            var typeRegistry = new TypeRegistry(context.TypeInterceptor);
             var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
 
             var typeDiscoverer = new TypeDiscoverer(
@@ -105,7 +105,8 @@ namespace HotChocolate.Configuration
         {
             // arrange
             var context = DescriptorContext.Create();
-            var typeRegistry = new TypeRegistry();
+            var typeRegistry = new TypeRegistry(context.TypeInterceptor);
+
             var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
 
             var typeDiscoverer = new TypeDiscoverer(
@@ -148,7 +149,8 @@ namespace HotChocolate.Configuration
         {
             // arrange
             var context = DescriptorContext.Create();
-            var typeRegistry = new TypeRegistry();
+            var typeRegistry = new TypeRegistry(context.TypeInterceptor);
+
             var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
 
             var typeDiscoverer = new TypeDiscoverer(
@@ -192,7 +194,7 @@ namespace HotChocolate.Configuration
         {
             // arrange
             var context = DescriptorContext.Create();
-            var typeRegistry = new TypeRegistry();
+            var typeRegistry = new TypeRegistry(context.TypeInterceptor);
             var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
 
             var typeDiscoverer = new TypeDiscoverer(
@@ -211,7 +213,7 @@ namespace HotChocolate.Configuration
             // assert
             Assert.Collection(
                 errors,
-                error => 
+                error =>
                 {
                     Assert.Equal(ErrorCodes.Schema.UnresolvedTypes, error.Code);
                     Assert.IsType<ObjectType<QueryWithInferError>>(error.TypeSystemObject);
@@ -226,7 +228,7 @@ namespace HotChocolate.Configuration
         {
             // arrange
             var context = DescriptorContext.Create();
-            var typeRegistry = new TypeRegistry();
+            var typeRegistry = new TypeRegistry(context.TypeInterceptor);
             var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
 
             var typeDiscoverer = new TypeDiscoverer(
@@ -246,7 +248,7 @@ namespace HotChocolate.Configuration
             // assert
             Assert.Collection(
                 errors,
-                error => 
+                error =>
                 {
                     Assert.Equal(ErrorCodes.Schema.UnresolvedTypes, error.Code);
                     Assert.IsType<ObjectType<QueryWithInferError>>(error.TypeSystemObject);

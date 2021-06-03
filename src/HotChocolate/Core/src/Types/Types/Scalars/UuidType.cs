@@ -7,7 +7,7 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
-    public sealed class UuidType : ScalarType<Guid, StringValueNode>
+    public class UuidType : ScalarType<Guid, StringValueNode>
     {
         private readonly string _format;
         private readonly bool _enforceFormat;

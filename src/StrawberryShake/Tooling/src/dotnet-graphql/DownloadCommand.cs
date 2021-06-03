@@ -34,7 +34,8 @@ namespace StrawberryShake.Tools
                     uriArg,
                     fileNameArg,
                     authArguments);
-                var handler = CommandTools.CreateHandler<DownloadCommandHandler>(jsonArg);
+                DownloadCommandHandler handler =
+                    CommandTools.CreateHandler<DownloadCommandHandler>(jsonArg);
                 return handler.ExecuteAsync(arguments, cancellationToken);
             });
 

@@ -1,7 +1,9 @@
 using System;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Resolvers.CodeGeneration;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
@@ -49,7 +51,11 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
                 : Expression.Call(
                     getLocalState,
                     contextData,
-                    key);
+                    key,
+                    Expression.Constant(
+                        new NullableHelper(parameter.ParameterType)
+                            .GetFlags(parameter).FirstOrDefault() ?? false,
+                        typeof(bool)));
         }
     }
 }

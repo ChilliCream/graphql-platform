@@ -1,8 +1,10 @@
+using System;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class QueryableSortVisitor
             : SortVisitorBase<QueryableSortVisitorContext>
     {
