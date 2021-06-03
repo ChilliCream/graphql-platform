@@ -119,7 +119,11 @@ namespace HotChocolate.Types.Pagination
             return edges;
         }
 
-        private async Task<int?> GetTotalCountAsync(IQueryable<TEntity> source, int pageSize, IndexEdge<TEntity>? lastEdge, CancellationToken cancellationToken)
+        private async Task<int?> GetTotalCountAsync(
+            IQueryable<TEntity> source,
+            int pageSize,
+            IndexEdge<TEntity>? lastEdge,
+            CancellationToken cancellationToken)
         {
             if (IncludeTotalCount)
             {
