@@ -55,9 +55,9 @@ export const Footer: FunctionComponent = () => {
           <Description>
             We at ChilliCream build the ultimate GraphQL platform.
             <br />
-            Most of our code is open-source and remains forever open-source.
+            Most of our code is open-source and will forever remain open-source.
             <br />
-            You can be part of it by helping us starting today.
+            You can be a valued member of our team. Start helping us today.
           </Description>
           <Connect>
             <ConnectLink to={tools!.github!}>
