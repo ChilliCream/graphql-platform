@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.TestHost;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
@@ -696,6 +698,42 @@ namespace HotChocolate.AspNetCore
                 resultA,
                 resultB
             }.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Throw_Custom_GraphQL_Error()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer(
+                configureServices: s => s.AddGraphQLServer()
+                    .AddHttpRequestInterceptor<ErrorRequestInterceptor>());
+
+            // act
+            ClientQueryResult result =
+                await server.GetAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                    {
+                        hero {
+                            name
+                        }
+                    }"
+                });
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        public class ErrorRequestInterceptor : DefaultHttpRequestInterceptor
+        {
+            public override ValueTask OnCreateAsync(
+                HttpContext context,
+                IRequestExecutor requestExecutor,
+                IQueryRequestBuilder requestBuilder,
+                CancellationToken cancellationToken)
+            {
+                throw new GraphQLException("MyCustomError");
+            }
         }
     }
 }
