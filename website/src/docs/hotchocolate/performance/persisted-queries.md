@@ -70,7 +70,7 @@ Example: `0c95d31ca29272475bf837f944f4e513.graphql`
 
 This file is expected to contain the query the hash was generated from.
 
-> ⚠️ Note: Do not forget to ensure that the directory exists and the server has access to it.
+> ⚠️ Note: Do not forget to ensure that the server has access to the directory.
 
 ### Redis
 
@@ -131,16 +131,23 @@ AddSha256DocumentHashProvider(HashFormat.Base64)
 We can block regular queries and only allow the execution of persisted queries, by implementing a custom request middleware.
 
 ```csharp
-public class BlockRegularQueriesMiddleware : IRequestMiddleware
+public class RequestMiddleware
 {
-    public async Task InvokeAsync(IRequestContext context, HotChocolate.Execution.RequestDelegate next)
+    private readonly HotChocolate.Execution.RequestDelegate _next;
+
+    public RequestMiddleware(HotChocolate.Execution.RequestDelegate next)
+    {
+        _next = next;
+    }
+
+    public async Task InvokeAsync(IRequestContext context)
     {
         if (!context.IsPersistedDocument)
         {
             throw new GraphQLRequestException("Not a persisted document");
         }
 
-        await next(context);
+        await _next(context);
     }
 }
 ```
@@ -154,8 +161,7 @@ public void ConfigureServices(IServiceCollection services)
         .AddGraphQLServer()
         .UsePersistedQueryPipeline()
         // ...
-        .UseRequest<BlockRegularQueriesMiddleware>()
-        .UseDefaultPipeline();
+        .UseRequest<BlockRegularQueriesMiddleware>();
 }
 ```
 
