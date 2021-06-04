@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Types.NodaTime</PackageId>
+    <AssemblyName>HotChocolate.Types.NodaTime</AssemblyName>
+    <RootNamespace>HotChocolate.Types</RootNamespace>
+    <Description>Adds additional scalars that map to NodaTime runtime types</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
+  </ItemGroup>  
+
+  <ItemGroup>
+    <PackageReference Include="NodaTime" Version="3.0.0" />
+  </ItemGroup>
+
+<!--  TODO: Discuss
+<ItemGroup>
+    <EmbeddedResource Update="ScalarResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ScalarResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="ScalarResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ScalarResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  -->
+
+</Project>
