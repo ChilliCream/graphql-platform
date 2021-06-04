@@ -38,7 +38,7 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
       <ArticleWrapper>
         <Article>
           <ArticleHeader kind="blog">
-            {featuredImage && <GatsbyImage image={featuredImage} alt="todo" />}
+            {featuredImage && <GatsbyImage image={featuredImage} alt={title} />}
             <ArticleTitle>{title}</ArticleTitle>
             <BlogArticleMetadata data={mdx!} />
             <BlogArticleTags tags={existingTags} />

@@ -11,7 +11,7 @@ export const GlobalLayoutStyle = createGlobalStyle`
     height: 100%;
     margin: 0;
 
-    > div {
+    > div:first-child {
         height: 100%;
         display: block;
         > div {

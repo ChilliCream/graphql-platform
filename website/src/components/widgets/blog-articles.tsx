@@ -36,7 +36,10 @@ export const BlogArticles: FunctionComponent<BlogArticlesProperties> = ({
             <Article key={`article-${node.id}`}>
               <Link to={node.frontmatter!.path!}>
                 {featuredImage && (
-                  <GatsbyImage image={featuredImage} alt="todo" />
+                  <GatsbyImage
+                    image={featuredImage}
+                    alt={node.frontmatter!.title}
+                  />
                 )}
                 <ArticleTitle>{node.frontmatter!.title}</ArticleTitle>
               </Link>
