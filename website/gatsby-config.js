@@ -35,7 +35,7 @@ module.exports = {
     },
   },
   plugins: [
-    `gatsby-plugin-ts`,
+    `gatsby-plugin-graphql-codegen`,
     `gatsby-plugin-styled-components`,
     `gatsby-plugin-react-helmet`,
     `gatsby-remark-reading-time`,
@@ -122,8 +122,9 @@ module.exports = {
       },
     },
     `gatsby-transformer-json`,
-    `gatsby-transformer-sharp`,
+    `gatsby-plugin-image`,
     `gatsby-plugin-sharp`,
+    `gatsby-transformer-sharp`,
     {
       resolve: "gatsby-plugin-web-font-loader",
       options: {
