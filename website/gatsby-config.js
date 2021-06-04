@@ -214,7 +214,7 @@ module.exports = {
                 edges {
                   node {
                     excerpt
-                    html
+                    body
                     frontmatter {
                       title
                       author
@@ -260,7 +260,7 @@ module.exports = {
                   date,
                   published: date,
                   description: node.excerpt,
-                  content: node.html.replace(
+                  content: node.body.replace(
                     imgSrcPattern,
                     `${siteUrl}/static/`
                   ),
