@@ -1,0 +1,1 @@
+﻿MATCH (u:User)-[:OWNS*3..5]->(b:Bike) RETURN b, u

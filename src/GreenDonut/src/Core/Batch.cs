@@ -6,12 +6,10 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace GreenDonut
 {
-    public class Batch<TKey, TValue>
-        where TKey : notnull
+    public class Batch<TKey, TValue> where TKey : notnull
     {
-        private readonly object _sync = new object();
-        private readonly Dictionary<TKey, TaskCompletionSource<TValue>> _items =
-            new Dictionary<TKey, TaskCompletionSource<TValue>>();
+        private readonly object _sync = new();
+        private readonly Dictionary<TKey, TaskCompletionSource<TValue>> _items = new();
         private bool _hasDispatched;
 
         public IReadOnlyList<TKey> Keys => _items.Keys.ToArray();
@@ -55,7 +53,7 @@ namespace GreenDonut
 
         public ValueTask StartDispatchingAsync(Func<ValueTask> dispatch)
         {
-            bool execute = false;
+            var execute = false;
 
             if (!_hasDispatched)
             {

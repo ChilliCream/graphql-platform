@@ -10,6 +10,7 @@ namespace HotChocolate.Types.Introspection
     /// An Applied Directive is an instances of a directive as applied to a schema element.
     /// This type is NOT specified by the graphql specification presently.
     /// </summary>
+    [Introspection]
     public class __AppliedDirective : ObjectType<DirectiveNode>
     {
         protected override void Configure(

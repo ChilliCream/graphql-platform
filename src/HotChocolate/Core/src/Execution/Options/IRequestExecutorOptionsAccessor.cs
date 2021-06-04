@@ -11,5 +11,6 @@
         , IErrorHandlerOptionsAccessor
         , IDocumentCacheSizeOptionsAccessor
         , IRequestTimeoutOptionsAccessor
+        , IComplexityAnalyzerOptionsAccessor
     { }
 }

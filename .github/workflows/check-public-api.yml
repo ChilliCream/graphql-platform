@@ -1,0 +1,16 @@
+name: Check Public API
+
+on: 
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-public-api:
+    name: "Check Public API"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-dotnet@v1
+      - run:  ./build.sh CheckPublicApi
+        name: "Check for undocumented public API changes"

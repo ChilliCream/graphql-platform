@@ -7,9 +7,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
-    public class DirectiveType<TDirective>
-        : DirectiveType
-        where TDirective : class
+    public class DirectiveType<TDirective> : DirectiveType where TDirective : class
     {
         private Action<IDirectiveTypeDescriptor<TDirective>>? _conf;
 
@@ -18,18 +16,15 @@ namespace HotChocolate.Types
             _conf = Configure;
         }
 
-        public DirectiveType(
-            Action<IDirectiveTypeDescriptor<TDirective>> configure)
+        public DirectiveType(Action<IDirectiveTypeDescriptor<TDirective>> configure)
         {
-            _conf = configure
-                ?? throw new ArgumentNullException(nameof(configure));
+            _conf = configure ?? throw new ArgumentNullException(nameof(configure));
         }
 
         protected override DirectiveTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
         {
-            var descriptor =
-                DirectiveTypeDescriptor.New<TDirective>(context.DescriptorContext);
+            var descriptor = DirectiveTypeDescriptor.New<TDirective>(context.DescriptorContext);
 
             _conf!(descriptor);
             _conf = null;
@@ -37,15 +32,11 @@ namespace HotChocolate.Types
             return descriptor.CreateDefinition();
         }
 
-        protected virtual void Configure(
-            IDirectiveTypeDescriptor<TDirective> descriptor)
+        protected virtual void Configure(IDirectiveTypeDescriptor<TDirective> descriptor)
         {
         }
 
-        protected sealed override void Configure(
-            IDirectiveTypeDescriptor descriptor)
-        {
-            throw new NotSupportedException();
-        }
+        protected sealed override void Configure(IDirectiveTypeDescriptor descriptor)
+            => throw new NotSupportedException();
     }
 }

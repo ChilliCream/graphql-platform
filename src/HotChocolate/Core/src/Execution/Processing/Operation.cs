@@ -25,7 +25,6 @@ namespace HotChocolate.Execution.Processing
             RootType = rootType;
             Type = definition.Operation;
             _selectionSets = selectionSets;
-            ProposedTaskCount = 1;
         }
 
         public string Id { get; }
@@ -41,8 +40,6 @@ namespace HotChocolate.Execution.Processing
         public ObjectType RootType { get; }
 
         public OperationType Type { get; }
-
-        public int ProposedTaskCount { get; }
 
         public IEnumerable<ISelectionVariants> SelectionVariants =>
             _selectionSets.Values;
@@ -88,54 +85,11 @@ namespace HotChocolate.Execution.Processing
                 foreach (Selection selection in selectionVariants.GetSelectionSet(typeContext)
                     .Selections.OfType<Selection>())
                 {
-                    var directives = new List<DirectiveNode>();
-
-                    if (selection.IncludeConditions is { })
-                    {
-                        foreach (SelectionIncludeCondition condition in selection.IncludeConditions)
-                        {
-                            if (condition.Skip is { })
-                            {
-                                directives.Add(
-                                    new DirectiveNode(
-                                        "skip",
-                                        new ArgumentNode("if", condition.Skip)));
-                            }
-
-                            if (condition.Include is { })
-                            {
-                                directives.Add(
-                                    new DirectiveNode(
-                                        "include",
-                                        new ArgumentNode("if", condition.Include)));
-                            }
-                        }
-                    }
-                    if (selection.IsInternal)
-                    {
-                        directives.Add(new DirectiveNode("_internal"));
-                    }
-
-                    if (selection.SelectionSet is null)
-                    {
-                        selections.Add(new FieldNode(
-                            null,
-                            selection.SyntaxNode.Name,
-                            selection.SyntaxNode.Alias,
-                            directives,
-                            selection.SyntaxNode.Arguments,
-                            null));
-                    }
-                    else
-                    {
-                        selections.Add(new FieldNode(
-                            null,
-                            selection.SyntaxNode.Name,
-                            selection.SyntaxNode.Alias,
-                            directives,
-                            selection.SyntaxNode.Arguments,
-                            Visit(_selectionSets[selection.SelectionSet])));
-                    }
+                    SelectionSetNode? selectionSetNode =
+                        selection.SelectionSet is not null
+                            ? Visit(_selectionSets[selection.SelectionSet])
+                            : null;
+                    selections.Add(CreateSelection(selection, selectionSetNode));
                 }
 
                 fragments.Add(new InlineFragmentNode(
@@ -146,6 +100,77 @@ namespace HotChocolate.Execution.Processing
             }
 
             return new SelectionSetNode(fragments);
+        }
+
+        private FieldNode CreateSelection(Selection selection, SelectionSetNode? selectionSet)
+        {
+            var directives = new List<DirectiveNode>();
+
+            if (selection.IncludeConditions is not null)
+            {
+                foreach (SelectionIncludeCondition condition in selection.IncludeConditions)
+                {
+                    if (condition.Skip is not null)
+                    {
+                        directives.Add(
+                            new DirectiveNode(
+                                "skip",
+                                new ArgumentNode("if", condition.Skip)));
+                    }
+
+                    if (condition.Include is not null)
+                    {
+                        directives.Add(
+                            new DirectiveNode(
+                                "include",
+                                new ArgumentNode("if", condition.Include)));
+                    }
+                }
+            }
+
+            directives.Add(CreateExecutionInfo(selection));
+
+            return new FieldNode(
+                null,
+                selection.SyntaxNode.Name,
+                selection.SyntaxNode.Alias,
+                directives,
+                selection.SyntaxNode.Arguments,
+                selectionSet);
+        }
+
+        private static DirectiveNode CreateExecutionInfo(ISelection selection)
+        {
+            var arguments = new ArgumentNode[selection.IsInternal ? 4 : 3];
+            arguments[0] = new ArgumentNode("id", new IntValueNode(selection.Id));
+            arguments[1] = new ArgumentNode("kind", new EnumValueNode(selection.Strategy));
+
+            if (selection.Field.Type.IsListType())
+            {
+                if (selection.Field.Type.NamedType().IsLeafType())
+                {
+                    arguments[2] = new ArgumentNode("type", new EnumValueNode("LEAF_LIST"));
+                }
+                else
+                {
+                    arguments[2] = new ArgumentNode("type", new EnumValueNode("COMPOSITE_LIST"));
+                }
+            }
+            else if (selection.Field.Type.IsCompositeType())
+            {
+                arguments[2] = new ArgumentNode("type", new EnumValueNode("COMPOSITE"));
+            }
+            else if (selection.Field.Type.IsLeafType())
+            {
+                arguments[2] = new ArgumentNode("type", new EnumValueNode("LEAF"));
+            }
+
+            if (selection.IsInternal)
+            {
+                arguments[3] = new ArgumentNode("internal", BooleanValueNode.True);
+            }
+
+            return new DirectiveNode("__execute", arguments);
         }
     }
 }

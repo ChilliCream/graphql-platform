@@ -139,6 +139,20 @@ namespace HotChocolate.Execution.Instrumentation
         /// </param>
         void TaskError(IExecutionTask task, IError error);
 
+        /// This event is called when the request execution pipeline scales
+        /// the task processors up or down.
+        /// </summary>
+        /// <param name="context">
+        /// The request that is being executed.
+        /// </param>
+        /// <param name="backlogSize">
+        /// The current backlog size.
+        /// </param>
+        /// <param name="processors">
+        /// The new processor count.
+        /// </param>
+        void ScaleTaskProcessors(IRequestContext context, int backlogSize, int processors);
+
         /// <summary>
         /// Called when a subscription was created.
         /// </summary>
@@ -184,15 +198,15 @@ namespace HotChocolate.Execution.Instrumentation
         void SubscriptionEventError(SubscriptionEventContext context, Exception exception);
 
         /// <summary>
-        /// Called when an error occured while producing the subscription event result.
+        /// Called when an error occurred while producing the subscription event result.
         /// </summary>
         /// <param name="subscription">
         /// The subscription object.
         /// </param>
         /// <param name="exception">
-        /// The exception that occured.
+        /// The exception that occurred.
         /// </param>
-        void SubscriptionTransportError(ISubscription subscription, Exception exception);
+        void SubscriptionTransportError(ISubscription subscription, Exception exception);       
 
         /// <summary>
         /// A GraphQL request document was added to the document cache.

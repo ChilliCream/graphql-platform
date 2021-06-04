@@ -14,6 +14,8 @@ namespace HotChocolate.Execution.Processing
     {
         private readonly ISchema _schema;
         private readonly FragmentCollection _fragments;
+        private int _nextSelectionId;
+        private int _nextFragmentId;
 
         private OperationCompiler(
             ISchema schema,
@@ -22,6 +24,12 @@ namespace HotChocolate.Execution.Processing
             _schema = schema;
             _fragments = fragments;
         }
+
+        internal ISchema Schema => _schema;
+
+        internal FragmentCollection Fragments => _fragments;
+
+        internal int GetNextId() => _nextSelectionId++;
 
         public static IPreparedOperation Compile(
             string operationId,
@@ -225,6 +233,7 @@ namespace HotChocolate.Execution.Processing
                     // if this is the first time we find a selection to this field we have to
                     // create a new prepared selection.
                     preparedSelection = new Selection(
+                        GetNextId(),
                         context.Type,
                         field,
                         selection.SelectionSet is not null
@@ -234,6 +243,11 @@ namespace HotChocolate.Execution.Processing
                             : selection,
                         responseName: responseName,
                         resolverPipeline: CreateFieldMiddleware(field, selection),
+                        pureResolver: TryCreatePureField(field, selection),
+                        inlineResolver: TryCreateInlineField(field, selection),
+                        strategy: field.IsParallelExecutable
+                            ? null // use default strategy
+                            : SelectionExecutionStrategy.Serial,
                         arguments: CoerceArgumentValues(field, selection, responseName),
                         includeCondition: includeCondition,
                         internalSelection: context.IsInternalSelection);
@@ -243,7 +257,7 @@ namespace HotChocolate.Execution.Processing
 
                 if (includeCondition is not null && selection.SelectionSet is not null)
                 {
-                    var selectionPath = context.SelectionPath.Append(responseName);
+                    SelectionPath selectionPath = context.SelectionPath.Append(responseName);
 
                     for (var i = 0; i < selection.SelectionSet.Selections.Count; i++)
                     {
@@ -294,6 +308,7 @@ namespace HotChocolate.Execution.Processing
                     CompileSelectionSet(deferContext);
 
                     context.RegisterFragment(new Fragment(
+                        _nextFragmentId++,
                         context.Type,
                         fragmentSpread,
                         fragmentDefinition,
@@ -337,6 +352,7 @@ namespace HotChocolate.Execution.Processing
                     CompileSelectionSet(deferContext);
 
                     context.RegisterFragment(new Fragment(
+                        _nextFragmentId++,
                         context.Type,
                         inlineFragment,
                         deferContext.GetSelectionSet(),
@@ -528,14 +544,16 @@ namespace HotChocolate.Execution.Processing
                 ? (IInputType)argument.Type.InnerType()
                 : argument.Type;
 
-            object? runtimeValue = type.ParseLiteral(value);
+            var runtimeValue = type.ParseLiteral(value);
 
             return argument.Formatter is not null
                 ? argument.Formatter.OnAfterDeserialize(runtimeValue)
                 : runtimeValue;
         }
 
-        private FieldDelegate CreateFieldMiddleware(IObjectField field, FieldNode selection)
+        internal FieldDelegate CreateFieldMiddleware(
+            IObjectField field,
+            FieldNode selection)
         {
             FieldDelegate pipeline = field.Middleware;
 
@@ -550,6 +568,30 @@ namespace HotChocolate.Execution.Processing
             }
 
             return pipeline;
+        }
+
+        private PureFieldDelegate? TryCreatePureField(
+            IObjectField field,
+            FieldNode selection)
+        {
+            if (field.PureResolver is not null && selection.Directives.Count == 0)
+            {
+                return field.PureResolver;
+            }
+
+            return null;
+        }
+
+        private InlineFieldDelegate? TryCreateInlineField(
+            IObjectField field,
+            FieldNode selection)
+        {
+            if (field.InlineResolver is not null && selection.Directives.Count == 0)
+            {
+                return field.InlineResolver;
+            }
+
+            return null;
         }
 
         private IReadOnlyList<IDirective> CollectDirectives(
@@ -631,15 +673,7 @@ namespace HotChocolate.Execution.Processing
                 return;
             }
 
-            var optimizerContext = new SelectionOptimizerContext
-            (
-                _schema,
-                context.Path,
-                context.Type,
-                context.SelectionSet,
-                context.Fields,
-                CreateFieldMiddleware
-            );
+            var optimizerContext = new SelectionOptimizerContext(this, context);
 
             if (context.Optimizers.Count == 1)
             {
@@ -662,15 +696,7 @@ namespace HotChocolate.Execution.Processing
                 return true;
             }
 
-            var optimizerContext = new SelectionOptimizerContext
-            (
-                _schema,
-                context.Path,
-                context.Type,
-                context.SelectionSet,
-                context.Fields,
-                CreateFieldMiddleware
-            );
+            var optimizerContext = new SelectionOptimizerContext(this, context);
 
             if (context.Optimizers.Count == 1)
             {
@@ -698,15 +724,7 @@ namespace HotChocolate.Execution.Processing
                 return true;
             }
 
-            var optimizerContext = new SelectionOptimizerContext
-            (
-                _schema,
-                context.Path,
-                context.Type,
-                context.SelectionSet,
-                context.Fields,
-                CreateFieldMiddleware
-            );
+            var optimizerContext = new SelectionOptimizerContext(this, context);
 
             if (context.Optimizers.Count == 1)
             {
@@ -767,6 +785,6 @@ namespace HotChocolate.Execution.Processing
         }
 
         private static bool HasErrors(object? result) =>
-            result is IError || result is IEnumerable<IError>;
+            result is IError or IEnumerable<IError>;
     }
 }

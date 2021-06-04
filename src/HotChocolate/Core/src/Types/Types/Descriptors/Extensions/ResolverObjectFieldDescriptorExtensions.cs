@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
@@ -12,6 +12,7 @@ namespace HotChocolate.Types
     {
         // Resolver(IResolverContext)
 
+        [Obsolete("Use Resolve(...)")]
         public static IObjectFieldDescriptor Resolver(
             this IObjectFieldDescriptor descriptor,
             Func<IResolverContext, object?> resolver)
@@ -29,6 +30,7 @@ namespace HotChocolate.Types
             return descriptor.Resolver(ctx => new ValueTask<object?>(resolver(ctx)));
         }
 
+        [Obsolete("Use Resolve(...)")]
         public static IObjectFieldDescriptor Resolver(
             this IObjectFieldDescriptor descriptor,
             Func<IResolverContext, Task<object?>> resolver)
@@ -54,6 +56,7 @@ namespace HotChocolate.Types
             });
         }
 
+        [Obsolete("Use Resolve(...)")]
         public static IObjectFieldDescriptor Resolver<TResult>(
             this IObjectFieldDescriptor descriptor,
             Func<IResolverContext, TResult> resolver)
@@ -75,6 +78,7 @@ namespace HotChocolate.Types
                     typeof(NativeType<TResult>));
         }
 
+        [Obsolete("Use Resolve(...)")]
         public static IObjectFieldDescriptor Resolver<TResult>(
             this IObjectFieldDescriptor descriptor,
             Func<IResolverContext, Task<TResult>> resolver)
@@ -104,6 +108,7 @@ namespace HotChocolate.Types
 
         // Resolver()
 
+        [Obsolete("Use Resolve(...)")]
         public static IObjectFieldDescriptor Resolver(
             this IObjectFieldDescriptor descriptor,
             Func<object?> resolver)
@@ -121,6 +126,7 @@ namespace HotChocolate.Types
             return descriptor.Resolver(ctx => new ValueTask<object?>(resolver()));
         }
 
+        [Obsolete("Use Resolve(...)")]
         public static IObjectFieldDescriptor Resolver(
             this IObjectFieldDescriptor descriptor,
             Func<Task<object?>> resolver)
@@ -138,6 +144,7 @@ namespace HotChocolate.Types
             return descriptor.Resolver(async ctx => await resolver().ConfigureAwait(false));
         }
 
+        [Obsolete("Use Resolve(...)")]
         public static IObjectFieldDescriptor Resolver<TResult>(
             this IObjectFieldDescriptor descriptor,
             Func<TResult> resolver)
@@ -157,6 +164,7 @@ namespace HotChocolate.Types
                 typeof(NativeType<TResult>));
         }
 
+        [Obsolete("Use Resolve(...)")]
         public static IObjectFieldDescriptor Resolver<TResult>(
             this IObjectFieldDescriptor descriptor,
             Func<Task<TResult>> resolver)
@@ -186,6 +194,7 @@ namespace HotChocolate.Types
 
         // Resolver(IResolverContext, CancellationToken)
 
+        [Obsolete("Use Resolve(...)")]
         public static IObjectFieldDescriptor Resolver(
             this IObjectFieldDescriptor descriptor,
             Func<IResolverContext, CancellationToken, object?> resolver)
@@ -204,6 +213,7 @@ namespace HotChocolate.Types
                 ctx => new ValueTask<object?>(resolver(ctx, ctx.RequestAborted)));
         }
 
+        [Obsolete("Use Resolve(...)")]
         public static IObjectFieldDescriptor Resolver<TResult>(
             this IObjectFieldDescriptor descriptor,
             Func<IResolverContext, CancellationToken, TResult> resolver)
@@ -223,6 +233,7 @@ namespace HotChocolate.Types
                 typeof(NativeType<TResult>));
         }
 
+        [Obsolete("Use Resolve(...)")]
         public static IObjectFieldDescriptor Resolver<TResult>(
             this IObjectFieldDescriptor descriptor,
             Func<IResolverContext, CancellationToken, Task<TResult>> resolver)
@@ -252,6 +263,7 @@ namespace HotChocolate.Types
 
         // Constant
 
+        [Obsolete("Use Resolve(...)")]
         public static IObjectFieldDescriptor Resolver(
             this IObjectFieldDescriptor descriptor,
             object constantResult)
@@ -265,6 +277,7 @@ namespace HotChocolate.Types
                 ctx => new ValueTask<object?>(constantResult));
         }
 
+        [Obsolete("Use Resolve(...)")]
         public static IObjectFieldDescriptor Resolver<TResult>(
             this IObjectFieldDescriptor descriptor,
             TResult constantResult)

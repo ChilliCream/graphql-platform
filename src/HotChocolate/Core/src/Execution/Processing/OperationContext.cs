@@ -1,5 +1,6 @@
 using System;
 using System.Security.Cryptography;
+using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -14,6 +15,21 @@ namespace HotChocolate.Execution.Processing
             {
                 AssertInitialized();
                 return _operation;
+            }
+        }
+
+        public QueryPlan QueryPlan
+        {
+            get
+            {
+                AssertInitialized();
+                return _queryPlan;
+            }
+            set
+            {
+                AssertInitialized();
+                _queryPlan = value;
+                _executionContext.ResetStateMachine();
             }
         }
 
@@ -85,7 +101,7 @@ namespace HotChocolate.Execution.Processing
         {
             AssertInitialized();
 
-            object? query = _resolveQueryRootValue();
+            var query = _resolveQueryRootValue();
 
             if (query is null &&
                 typeof(T) == typeof(object) &&

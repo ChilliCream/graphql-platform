@@ -17,6 +17,11 @@ namespace HotChocolate.Types
         new IObjectType DeclaringType { get; }
 
         /// <summary>
+        /// Defines if this field can be executed in parallel with other fields.
+        /// </summary>
+        bool IsParallelExecutable { get; }
+
+        /// <summary>
         /// Gets the field resolver middleware.
         /// </summary>
         FieldDelegate Middleware { get; }
@@ -24,7 +29,22 @@ namespace HotChocolate.Types
         /// <summary>
         /// Gets the field resolver.
         /// </summary>
-        FieldResolverDelegate Resolver { get; }
+        FieldResolverDelegate? Resolver { get; }
+
+        /// <summary>
+        /// Gets the pure field resolver. The pure field resolver is only available if this field
+        /// can be resolved without side-effects. The execution engine will prefer this resolver
+        /// variant if it is available and there are no executable directives that add a middleware
+        /// to this field.
+        /// </summary>
+        PureFieldDelegate? PureResolver { get; }
+
+        /// <summary>
+        /// Gets a field resolver that can be used to inline the resolver execution into the parent
+        /// resolver. Resolvers can only be inlined if they abide to the rules of the pure-resolver.
+        /// Further inline resolvers cannot have arguments and do not have access to context data.
+        /// </summary>
+        InlineFieldDelegate? InlineResolver { get; }
 
         /// <summary>
         /// Gets the subscription resolver.

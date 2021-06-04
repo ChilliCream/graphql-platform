@@ -34,6 +34,21 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
+        public async Task Include_Query_Plan()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientQueryResult result = await server.PostAsync(
+                new ClientQueryRequest { Query = "{ __typename }" },
+                includeQueryPlan: true);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task Serialize_Payload_With_Whitespaces()
         {
             // arrange
@@ -423,14 +438,14 @@ namespace HotChocolate.AspNetCore
             // act
             ClientQueryResult result =
                 await server.PostAsync(new ClientQueryRequest
-                {
-                    Query = @"
+                    {
+                        Query = @"
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object> { { "d", 1.539 } }
-                },
-                "/arguments");
+                        Variables = new Dictionary<string, object> { { "d", 1.539 } }
+                    },
+                    "/arguments");
 
             // assert
             result.MatchSnapshot();
@@ -445,14 +460,14 @@ namespace HotChocolate.AspNetCore
             // act
             ClientQueryResult result =
                 await server.PostAsync(new ClientQueryRequest
-                {
-                    Query = @"
+                    {
+                        Query = @"
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object> { { "d", double.MaxValue } }
-                },
-                "/arguments");
+                        Variables = new Dictionary<string, object> { { "d", double.MaxValue } }
+                    },
+                    "/arguments");
 
             // assert
             new { double.MaxValue, result }.MatchSnapshot();
@@ -467,14 +482,14 @@ namespace HotChocolate.AspNetCore
             // act
             ClientQueryResult result =
                 await server.PostAsync(new ClientQueryRequest
-                {
-                    Query = @"
+                    {
+                        Query = @"
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object> { { "d", double.MinValue } }
-                },
-                "/arguments");
+                        Variables = new Dictionary<string, object> { { "d", double.MinValue } }
+                    },
+                    "/arguments");
 
             // assert
             new { double.MinValue, result }.MatchSnapshot();
@@ -489,14 +504,14 @@ namespace HotChocolate.AspNetCore
             // act
             ClientQueryResult result =
                 await server.PostAsync(new ClientQueryRequest
-                {
-                    Query = @"
+                    {
+                        Query = @"
                         query ($d: Decimal) {
                              decimal_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object> { { "d", decimal.MaxValue } }
-                },
-                "/arguments");
+                        Variables = new Dictionary<string, object> { { "d", decimal.MaxValue } }
+                    },
+                    "/arguments");
 
             // assert
             new { decimal.MaxValue, result }.MatchSnapshot();
@@ -511,14 +526,14 @@ namespace HotChocolate.AspNetCore
             // act
             ClientQueryResult result =
                 await server.PostAsync(new ClientQueryRequest
-                {
-                    Query = @"
+                    {
+                        Query = @"
                         query ($d: Decimal) {
                              decimal_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object> { { "d", decimal.MinValue } }
-                },
-                "/arguments");
+                        Variables = new Dictionary<string, object> { { "d", decimal.MinValue } }
+                    },
+                    "/arguments");
 
             // assert
             new { decimal.MinValue, result }.MatchSnapshot();

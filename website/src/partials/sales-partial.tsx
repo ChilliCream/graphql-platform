@@ -88,7 +88,7 @@ export const SalesPartial: FunctionComponent = () => {
           <SalesCardPerk>Two prioritized incidents per month</SalesCardPerk>
           <SalesCardPerk>
             12 hours per month at your free disposal
-            <PerkItemlistHeader>The time can be spend on:</PerkItemlistHeader>
+            <PerkItemlistHeader>The time can be spent on:</PerkItemlistHeader>
             <SalesCardPerkItem>
               Educating your team with workshops
             </SalesCardPerkItem>

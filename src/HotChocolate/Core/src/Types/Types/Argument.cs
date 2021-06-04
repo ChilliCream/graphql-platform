@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Globalization;
+using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -23,7 +25,7 @@ namespace HotChocolate.Types
             SyntaxNode = definition.SyntaxNode;
             DefaultValue = definition.DefaultValue;
 
-            var formatters = definition.GetFormatters();
+            IReadOnlyList<IInputValueFormatter> formatters = definition.GetFormatters();
 
             if (formatters.Count == 0)
             {

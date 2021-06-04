@@ -125,11 +125,6 @@ namespace Microsoft.Extensions.DependencyInjection
             return ConfigureValidation(builder, b => b.TryAddValidationRule(factory));
         }
 
-        public static IRequestExecutorBuilder AddMaxComplexityRule(
-            this IRequestExecutorBuilder builder,
-            int maxAllowedComplexity) =>
-            ConfigureValidation(builder, b => b.AddMaxComplexityRule(maxAllowedComplexity));
-
         public static IRequestExecutorBuilder AddMaxExecutionDepthRule(
             this IRequestExecutorBuilder builder,
             int maxAllowedExecutionDepth) =>

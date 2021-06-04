@@ -1,0 +1,11 @@
+{
+  "schema": "TypeDefinitions.graphql",
+  "documents": "**/*.graphql",
+  "extensions": {
+    "neo4j": {
+      "databaseName": "neo4j",
+      "namespace": "StarWarsClient"
+    }
+  }
+}
+

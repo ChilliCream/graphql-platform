@@ -5,11 +5,9 @@ namespace StrawberryShake.Tools
 {
     public static class DownloadCommand
     {
-        public static CommandLineApplication Create()
+        public static void Build(CommandLineApplication download)
         {
-            var download = new CommandLineApplication();
-            download.AddName("download");
-            download.AddHelp<InitHelpTextGenerator>();
+            download.Description = "Download the schema as GraphQL SDL";
 
             CommandArgument uriArg = download.Argument(
                 "uri",
@@ -38,8 +36,6 @@ namespace StrawberryShake.Tools
                     CommandTools.CreateHandler<DownloadCommandHandler>(jsonArg);
                 return handler.ExecuteAsync(arguments, cancellationToken);
             });
-
-            return download;
         }
     }
 }

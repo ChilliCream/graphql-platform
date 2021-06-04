@@ -1,10 +1,10 @@
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
 using HotChocolate.Configuration;
-using HotChocolate.Types;
 using HotChocolate.Tests;
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
 using Snapshot = Snapshooter.Xunit.Snapshot;

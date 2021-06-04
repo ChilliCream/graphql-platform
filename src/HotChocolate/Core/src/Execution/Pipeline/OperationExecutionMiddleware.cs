@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Caching;
 using Microsoft.Extensions.ObjectPool;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using static HotChocolate.Execution.ThrowHelper;
@@ -12,28 +14,26 @@ namespace HotChocolate.Execution.Pipeline
     internal sealed class OperationExecutionMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly IDiagnosticEvents _diagnosticEvents;
         private readonly ObjectPool<OperationContext> _operationContextPool;
         private readonly QueryExecutor _queryExecutor;
         private readonly MutationExecutor _mutationExecutor;
         private readonly SubscriptionExecutor _subscriptionExecutor;
+        private readonly IQueryPlanCache _queryPlanCache;
         private readonly ITransactionScopeHandler _transactionScopeHandler;
         private object? _cachedQuery;
         private object? _cachedMutation;
 
         public OperationExecutionMiddleware(
             RequestDelegate next,
-            IDiagnosticEvents diagnosticEvents,
             ObjectPool<OperationContext> operationContextPool,
             QueryExecutor queryExecutor,
             MutationExecutor mutationExecutor,
             SubscriptionExecutor subscriptionExecutor,
+            IQueryPlanCache queryPlanCache,
             [SchemaService] ITransactionScopeHandler transactionScopeHandler)
         {
             _next = next ??
                 throw new ArgumentNullException(nameof(next));
-            _diagnosticEvents = diagnosticEvents ??
-                throw new ArgumentNullException(nameof(diagnosticEvents));
             _operationContextPool = operationContextPool ??
                 throw new ArgumentNullException(nameof(operationContextPool));
             _queryExecutor = queryExecutor ??
@@ -41,6 +41,8 @@ namespace HotChocolate.Execution.Pipeline
             _mutationExecutor = mutationExecutor ??
                 throw new ArgumentNullException(nameof(mutationExecutor));
             _subscriptionExecutor = subscriptionExecutor ??
+                throw new ArgumentNullException(nameof(subscriptionExecutor));
+            _queryPlanCache = queryPlanCache ??
                 throw new ArgumentNullException(nameof(subscriptionExecutor));
             _transactionScopeHandler = transactionScopeHandler ??
                 throw new ArgumentNullException(nameof(transactionScopeHandler));
@@ -79,10 +81,16 @@ namespace HotChocolate.Execution.Pipeline
             IBatchDispatcher batchDispatcher,
             IPreparedOperation operation)
         {
+            if (!_queryPlanCache.TryGetQueryPlan(context.OperationId!, out QueryPlan? queryPlan))
+            {
+                queryPlan = QueryPlanBuilder.Build(operation);
+                _queryPlanCache.TryAddQueryPlan(context.OperationId!, queryPlan);
+            }
+
             if (operation.Definition.Operation == OperationType.Subscription)
             {
                 context.Result = await _subscriptionExecutor
-                    .ExecuteAsync(context, () => GetQueryRootValue(context))
+                    .ExecuteAsync(context, queryPlan, () => GetQueryRootValue(context))
                     .ConfigureAwait(false);
 
                 await _next(context).ConfigureAwait(false);
@@ -94,10 +102,25 @@ namespace HotChocolate.Execution.Pipeline
                 try
                 {
                     await ExecuteQueryOrMutationAsync(
-                        context, batchDispatcher, operation, operationContext)
+                        context, batchDispatcher, operation, queryPlan, operationContext)
                         .ConfigureAwait(false);
 
-                    if(!operationContext.Execution.DeferredTaskBacklog.IsEmpty &&
+                    if (context.ContextData.ContainsKey(WellKnownContextData.IncludeQueryPlan) &&
+                        context.Result is IQueryResult original)
+                    {
+                        var serializedQueryPlan = new Dictionary<string, object?>
+                        {
+                            { "flow", QueryPlanBuilder.Prepare(operation).Serialize() },
+                            { "selections", operation.Print() }
+                        };
+
+                        context.Result = QueryResultBuilder
+                            .FromResult(original)
+                            .AddExtension("queryPlan", serializedQueryPlan)
+                            .Create();
+                    }
+
+                    if(operationContext.Execution.DeferredWork.HasWork &&
                        context.Result is IQueryResult result)
                     {
                         // if we have deferred query task we will take ownership
@@ -131,17 +154,19 @@ namespace HotChocolate.Execution.Pipeline
             IRequestContext context,
             IBatchDispatcher batchDispatcher,
             IPreparedOperation operation,
+            QueryPlan queryPlan,
             OperationContext operationContext)
         {
             if (operation.Definition.Operation == OperationType.Query)
             {
-                object? query = GetQueryRootValue(context);
+                var query = GetQueryRootValue(context);
 
                 operationContext.Initialize(
                     context,
                     context.Services,
                     batchDispatcher,
                     operation,
+                    queryPlan,
                     context.Variables!,
                     query,
                     () => query);
@@ -155,13 +180,14 @@ namespace HotChocolate.Execution.Pipeline
                 using ITransactionScope transactionScope =
                     _transactionScopeHandler.Create(context);
 
-                object? mutation = GetMutationRootValue(context);
+                var mutation = GetMutationRootValue(context);
 
                 operationContext.Initialize(
                     context,
                     context.Services,
                     batchDispatcher,
                     operation,
+                    queryPlan,
                     context.Variables!,
                     mutation,
                     () => GetQueryRootValue(context));

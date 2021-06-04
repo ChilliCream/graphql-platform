@@ -13,12 +13,10 @@ namespace HotChocolate.Execution.Pipeline
     internal sealed class OperationResolverMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly IDiagnosticEvents _diagnosticEvents;
         private readonly IReadOnlyList<ISelectionOptimizer>? _optimizers;
 
         public OperationResolverMiddleware(
             RequestDelegate next,
-            IDiagnosticEvents diagnosticEvents,
             IEnumerable<ISelectionOptimizer> optimizers)
         {
             if (optimizers is null)
@@ -28,8 +26,6 @@ namespace HotChocolate.Execution.Pipeline
 
             _next = next ??
                 throw new ArgumentNullException(nameof(next));
-            _diagnosticEvents = diagnosticEvents ??
-                throw new ArgumentNullException(nameof(diagnosticEvents));
             _optimizers = optimizers.ToArray();
         }
 

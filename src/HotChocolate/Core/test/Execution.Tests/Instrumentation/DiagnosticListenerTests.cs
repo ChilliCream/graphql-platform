@@ -17,49 +17,45 @@ namespace HotChocolate.Execution.Instrumentation
             // arrange
             var listener = new TestListener();
             IRequestExecutor executor = await CreateExecutorAsync(c => c
-               .AddDiagnosticEventListener(sp => listener)
+               .AddDiagnosticEventListener(_ => listener)
                .AddStarWarsTypes()
                .Services
                .AddStarWarsRepositories());
 
             // act
-            await executor.ExecuteAsync("{ hero { name } }");
+            var result = await executor.ExecuteAsync("{ hero { name } }");
 
             // assert
-            Assert.Collection(listener.Results,
-                r => Assert.IsType<Droid>(r),
-                r => Assert.IsType<string>(r));
+            Assert.Null(result.Errors);
+            Assert.Collection(listener.Results, r => Assert.IsType<Droid>(r));
         }
 
         [Fact]
         public async Task Intercept_Resolver_Result_With_Multiple_Listener()
         {
             // arrange
-            var listener_a = new TestListener();
-            var listener_b = new TestListener();
+            var listenerA = new TestListener();
+            var listenerB = new TestListener();
             IRequestExecutor executor = await CreateExecutorAsync(c => c
-               .AddDiagnosticEventListener(sp => listener_a)
-               .AddDiagnosticEventListener(sp => listener_b)
+               .AddDiagnosticEventListener(_ => listenerA)
+               .AddDiagnosticEventListener(_ => listenerB)
                .AddStarWarsTypes()
                .Services
                .AddStarWarsRepositories());
 
             // act
-            await executor.ExecuteAsync("{ hero { name } }");
+            var result = await executor.ExecuteAsync("{ hero { name } }");
 
             // assert
-            Assert.Collection(listener_a.Results,
-                r => Assert.IsType<Droid>(r),
-                r => Assert.IsType<string>(r));
-            Assert.Collection(listener_b.Results,
-                r => Assert.IsType<Droid>(r),
-                r => Assert.IsType<string>(r));
+            Assert.Null(result.Errors);
+            Assert.Collection(listenerA.Results, r => Assert.IsType<Droid>(r));
+            Assert.Collection(listenerB.Results, r => Assert.IsType<Droid>(r));
         }
 
 
         private class TestListener : DiagnosticEventListener
         {
-            public List<object> Results { get; } = new List<object>();
+            public List<object> Results { get; } = new();
 
             public override bool EnableResolveFieldValue => true;
 

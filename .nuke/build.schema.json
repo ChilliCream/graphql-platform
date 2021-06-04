@@ -1,0 +1,161 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Build Schema",
+  "$ref": "#/definitions/build",
+  "definitions": {
+    "build": {
+      "type": "object",
+      "properties": {
+        "Breaking": {
+          "type": "boolean"
+        },
+        "Configuration": {
+          "type": "string",
+          "description": "Configuration to build - Default is 'Debug' (local) or 'Release' (server)"
+        },
+        "Continue": {
+          "type": "boolean",
+          "description": "Indicates to continue a previously failed build attempt"
+        },
+        "From": {
+          "type": "string"
+        },
+        "GitHubBaseRef": {
+          "type": "string"
+        },
+        "GitHubHeadRef": {
+          "type": "string"
+        },
+        "GitHubPRNumber": {
+          "type": "string"
+        },
+        "GitHubRepository": {
+          "type": "string"
+        },
+        "GitHubToken": {
+          "type": "string"
+        },
+        "Help": {
+          "type": "boolean",
+          "description": "Shows the help text for this build assembly"
+        },
+        "Host": {
+          "type": "string",
+          "description": "Host for execution. Default is 'automatic'",
+          "enum": [
+            "AppVeyor",
+            "AzurePipelines",
+            "Bamboo",
+            "Bitrise",
+            "GitHubActions",
+            "GitLab",
+            "Jenkins",
+            "SpaceAutomation",
+            "TeamCity",
+            "Terminal",
+            "TravisCI"
+          ]
+        },
+        "NoLogo": {
+          "type": "boolean",
+          "description": "Disables displaying the NUKE logo"
+        },
+        "NuGetApiKey": {
+          "type": "string",
+          "description": "NuGet Api Key"
+        },
+        "NuGetSource": {
+          "type": "string",
+          "description": "NuGet Source for Packages"
+        },
+        "Plan": {
+          "type": "boolean",
+          "description": "Shows the execution plan (HTML)"
+        },
+        "Profile": {
+          "type": "array",
+          "description": "Defines the profiles to load",
+          "items": {
+            "type": "string"
+          }
+        },
+        "Root": {
+          "type": "string",
+          "description": "Root directory during build execution"
+        },
+        "Skip": {
+          "type": "array",
+          "description": "List of targets to be skipped. Empty list skips all dependencies",
+          "items": {
+            "type": "string",
+            "enum": [
+              "AddUnshipped",
+              "CheckPublicApi",
+              "Clean",
+              "Compile",
+              "Cover",
+              "DiffShippedApi",
+              "DisplayUnshippedApi",
+              "MarkApiShipped",
+              "Pack",
+              "PackLocal",
+              "Publish",
+              "ReportCoverage",
+              "Restore",
+              "Sonar",
+              "SonarPr",
+              "Test"
+            ]
+          }
+        },
+        "SonarServer": {
+          "type": "string"
+        },
+        "SonarToken": {
+          "type": "string"
+        },
+        "Target": {
+          "type": "array",
+          "description": "List of targets to be invoked. Default is '{default_target}'",
+          "items": {
+            "type": "string",
+            "enum": [
+              "AddUnshipped",
+              "CheckPublicApi",
+              "Clean",
+              "Compile",
+              "Cover",
+              "DiffShippedApi",
+              "DisplayUnshippedApi",
+              "MarkApiShipped",
+              "Pack",
+              "PackLocal",
+              "Publish",
+              "ReportCoverage",
+              "Restore",
+              "Sonar",
+              "SonarPr",
+              "Test"
+            ]
+          }
+        },
+        "TestPartition": {
+          "type": "string"
+        },
+        "To": {
+          "type": "string"
+        },
+        "Verbosity": {
+          "type": "string",
+          "description": "Logging verbosity during build execution. Default is 'Normal'",
+          "enum": [
+            "Minimal",
+            "Normal",
+            "Quiet",
+            "Verbose"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -10,6 +10,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Pipeline;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using HotChocolate.Types.Relay;
@@ -55,8 +56,20 @@ namespace Microsoft.Extensions.DependencyInjection
             int maximumRetained = 256)
         {
             services.TryAddSingleton<ObjectPool<ResolverTask>>(
-                _ => new ResolverTaskPool(
+                _ => new ExecutionTaskPool<ResolverTask>(
+                    new ResolverTaskPoolPolicy(),
+                    maximumRetained / 2));
+
+            services.TryAddSingleton<ObjectPool<PureResolverTask>>(
+                _ => new ExecutionTaskPool<PureResolverTask>(
+                    new PureResolverTaskPoolPolicy(),
                     maximumRetained));
+
+            services.TryAddSingleton<ObjectPool<IExecutionTask?[]>>(
+                _ => new DefaultObjectPool<IExecutionTask?[]>(
+                    new TaskBufferPoolPolicy(),
+                    maximumRetained / 8));
+
             return services;
         }
 
@@ -103,6 +116,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 _ => new DefaultDocumentCache());
             services.TryAddSingleton<IPreparedOperationCache>(
                 _ => new DefaultPreparedOperationCache());
+            services.TryAddSingleton<IComplexityAnalyzerCache>(
+                _ => new DefaultComplexityAnalyzerCache());
+            services.TryAddSingleton<IQueryPlanCache>(
+                _ => new DefaultQueryPlanCache());
             return services;
         }
 

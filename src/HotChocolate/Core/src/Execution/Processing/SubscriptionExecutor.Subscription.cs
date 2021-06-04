@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Fetching;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,6 +21,7 @@ namespace HotChocolate.Execution.Processing
             private readonly IDiagnosticEvents _diagnosticEvents;
             private IActivityScope? _subscriptionScope;
             private readonly IRequestContext _requestContext;
+            private readonly QueryPlan _queryPlan;
             private readonly ObjectType _subscriptionType;
             private readonly ISelectionSet _rootSelections;
             private readonly Func<object?> _resolveQueryRootValue;
@@ -31,6 +33,7 @@ namespace HotChocolate.Execution.Processing
                 ObjectPool<OperationContext> operationContextPool,
                 QueryExecutor queryExecutor,
                 IRequestContext requestContext,
+                QueryPlan queryPlan,
                 ObjectType subscriptionType,
                 ISelectionSet rootSelections,
                 Func<object?> resolveQueryRootValue,
@@ -44,6 +47,7 @@ namespace HotChocolate.Execution.Processing
                 _operationContextPool = operationContextPool;
                 _queryExecutor = queryExecutor;
                 _requestContext = requestContext;
+                _queryPlan = queryPlan;
                 _subscriptionType = subscriptionType;
                 _rootSelections = rootSelections;
                 _resolveQueryRootValue = resolveQueryRootValue;
@@ -62,6 +66,9 @@ namespace HotChocolate.Execution.Processing
             /// </param>
             /// <param name="requestContext">
             /// The original request context.
+            /// </param>
+            /// <param name="queryPlan">
+            /// The subscription query plan.
             /// </param>
             /// <param name="subscriptionType">
             /// The object type that represents the subscription.
@@ -82,6 +89,7 @@ namespace HotChocolate.Execution.Processing
                 ObjectPool<OperationContext> operationContextPool,
                 QueryExecutor queryExecutor,
                 IRequestContext requestContext,
+                QueryPlan queryPlan,
                 ObjectType subscriptionType,
                 ISelectionSet rootSelections,
                 Func<object?> resolveQueryRootValue,
@@ -91,6 +99,7 @@ namespace HotChocolate.Execution.Processing
                     operationContextPool,
                     queryExecutor,
                     requestContext,
+                    queryPlan,
                     subscriptionType,
                     rootSelections,
                     resolveQueryRootValue,
@@ -180,6 +189,7 @@ namespace HotChocolate.Execution.Processing
                         eventServices,
                         dispatcher,
                         _requestContext.Operation!,
+                        _queryPlan,
                         _requestContext.Variables!,
                         rootValue,
                         _resolveQueryRootValue);
@@ -232,6 +242,7 @@ namespace HotChocolate.Execution.Processing
                         _requestContext.Services,
                         NoopBatchDispatcher.Default,
                         _requestContext.Operation!,
+                        _queryPlan,
                         _requestContext.Variables!,
                         rootValue,
                         _resolveQueryRootValue);
@@ -256,8 +267,7 @@ namespace HotChocolate.Execution.Processing
                     // it is important that we correctly coerce the arguments before
                     // invoking subscribe.
                     if (!rootSelection.Arguments.TryCoerceArguments(
-                        middlewareContext.Variables,
-                        middlewareContext.ReportError,
+                        middlewareContext,
                         out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs))
                     {
                         // the middleware context reports errors to the operation context,
