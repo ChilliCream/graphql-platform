@@ -223,9 +223,7 @@ module.exports = {
                       path
                       featuredImage {
                         childImageSharp {
-                          fluid(maxWidth: 800, pngQuality: 90) {
-                            src
-                          }
+                          gatsbyImageData(layout: CONSTRAINED, width: 800, pngOptions: { quality: 90 })
                         }
                       }
                     }
@@ -251,7 +249,8 @@ module.exports = {
                 const link = siteUrl + pathPrefix + node.frontmatter.path;
                 let image = node.frontmatter.featuredImage
                   ? siteUrl +
-                    node.frontmatter.featuredImage.childImageSharp.fluid.src
+                    node.frontmatter.featuredImage.childImageSharp
+                      .gatsbyImageData.src
                   : null;
 
                 return {
