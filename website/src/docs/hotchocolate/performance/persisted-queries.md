@@ -2,7 +2,7 @@
 title: "Persisted queries"
 ---
 
-Persisted queries allow us to pre-register all required queries / mutations of our clients. This can be done by extracting the queries from our client applications at build time and putting them in the server's query storage. Extracting queries is supported by client libraries like [Relay](https://relay.dev/docs/guides/persisted-queries/) or [Apollo](https://www.apollographql.com/docs/apollo-server/performance/apq/).
+Persisted queries allow us to pre-register all required queries / mutations of our clients. This can be done by extracting the queries from our client applications at build time and putting them in the server's query storage. Extracting queries is supported by client libraries like [Relay](https://relay.dev/docs/guides/persisted-queries/) and in the case of [Strawberry Shake](/docs/strawberryshake) we do not have to do any additional work.
 
 # How it works
 
@@ -23,7 +23,7 @@ There are two main benefits to using persisted queries:
   - Queries no longer need to be embeded into the client code, reducing the bundle size in the case of websites.
   - Hot Chocolate can optimize the execution of persisted queries, as they will always be the same.
 
-- Security: The server can be tweaked to [only accept persisted queries](#blocking-non-persisted-queries) and refuse all other queries that have not been "whitelisted" previously. This is useful mainly for public APIs.
+- Security: The server can be tweaked to [only accept persisted queries](#blocking-regular-queries) and refuse all other queries that have not been "whitelisted" previously. This is useful mainly for public APIs.
 
 # Usage
 
@@ -126,9 +126,38 @@ AddSha256DocumentHashProvider(HashFormat.Base64)
 
 > Note: [Relay](https://relay.dev) uses the MD5 hashing algorithm - no additional Hot Chocolate configuration is needed.
 
-# Blocking non-persisted queries
+# Blocking regular queries
 
-TODO
+We can block regular queries and only allow the execution of persisted queries, by implementing a custom request middleware.
+
+```csharp
+public class BlockRegularQueriesMiddleware : IRequestMiddleware
+{
+    public async Task InvokeAsync(IRequestContext context, HotChocolate.Execution.RequestDelegate next)
+    {
+        if (!context.IsPersistedDocument)
+        {
+            throw new GraphQLRequestException("Not a persisted document");
+        }
+
+        await next(context);
+    }
+}
+```
+
+We need to register this middleware like the following.
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    services
+        .AddGraphQLServer()
+        .UsePersistedQueryPipeline()
+        // ...
+        .UseRequest<BlockRegularQueriesMiddleware>()
+        .UseDefaultPipeline();
+}
+```
 
 # Client expectations
 
