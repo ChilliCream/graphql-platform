@@ -94,7 +94,7 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-TODO: Is the query hash the key? What is expected?
+Keys in the specified Redis database are expected to be a query id (hash) and contain the actual query as the value.
 
 ## Hashing algorithms
 
@@ -140,14 +140,14 @@ public class RequestMiddleware
         _next = next;
     }
 
-    public async Task InvokeAsync(IRequestContext context)
+    public ValueTask InvokeAsync(IRequestContext context)
     {
         if (!context.IsPersistedDocument)
         {
             throw new GraphQLRequestException("Not a persisted document");
         }
 
-        await _next(context);
+        return _next(context);
     }
 }
 ```
