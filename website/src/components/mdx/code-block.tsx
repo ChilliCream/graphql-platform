@@ -1,7 +1,7 @@
-import React, { FunctionComponent } from "react";
-import styled from "styled-components";
 import Highlight, { Language } from "prism-react-renderer";
 import Prism from "prismjs";
+import React, { FunctionComponent } from "react";
+import styled from "styled-components";
 import { Copy } from "./copy";
 
 interface CodeBlockProps {
@@ -112,6 +112,11 @@ const codeLanguages: Record<
     content: "XML",
     color: "#fff",
     background: "#999",
+  },
+  js: {
+    content: "JavaScript",
+    color: "#fff",
+    background: "#efd81d",
   },
 };
 
