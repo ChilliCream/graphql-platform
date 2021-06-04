@@ -350,9 +350,6 @@ const IndexPage: FunctionComponent = () => {
 export default IndexPage;
 
 const Slideshow = styled(Carousel)`
-  flex: 0 0 auto;
-  width: 100%;
-
   ul,
   li {
     margin: 0;
@@ -368,10 +365,13 @@ const Slideshow = styled(Carousel)`
     }
 
     .control-dots {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+
       display: flex;
       flex-direction: row;
       justify-content: center;
-      margin-top: 20px;
       list-style: none;
 
       > .dot {
@@ -403,6 +403,7 @@ const Slideshow = styled(Carousel)`
       position: relative;
       display: flex;
       list-style: none;
+      margin-bottom: 25px;
 
       > .slide {
         position: relative;
