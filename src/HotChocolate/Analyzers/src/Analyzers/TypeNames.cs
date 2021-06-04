@@ -24,6 +24,8 @@ namespace HotChocolate.Analyzers
         public const string Neo4JRelationshipAttribute = Neo4J + "." + 
             nameof(Neo4JRelationshipAttribute);
         public const string Neo4JRelationshipDirection = Neo4J + "." + "RelationshipDirection";
+        public const string Neo4JDataRequestBuilderExtensions = Neo4J + "." + 
+            nameof(Neo4JDataRequestBuilderExtensions);
         public const string IRequestExecutorBuilder = Configuration + "." + 
             nameof(IRequestExecutorBuilder); 
         public const string SchemaRequestExecutorBuilderExtensions = DependencyInjection + "." +

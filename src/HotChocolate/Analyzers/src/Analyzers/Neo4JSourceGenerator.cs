@@ -230,6 +230,9 @@ namespace HotChocolate.Analyzers
 
             var statements = new List<StatementSyntax>();
             statements.Add(AddTypeExtension(Global(settings.Namespace + ".Query")));
+            statements.Add(AddNeo4JFiltering());
+            statements.Add(AddNeo4JSorting());
+            statements.Add(AddNeo4JProjections());
             statements.Add(ReturnStatement(IdentifierName("builder")));
 
             MethodDeclarationSyntax addTypes =
@@ -279,8 +282,49 @@ namespace HotChocolate.Analyzers
                 .WithArgumentList(
                     ArgumentList(
                         SingletonSeparatedList<ArgumentSyntax>(
-                            Argument(
-                                IdentifierName("builder"))))));
+                            Argument(IdentifierName("builder"))))));
+        }
+
+        private static ExpressionStatementSyntax AddNeo4JFiltering()
+        {
+            return ExpressionStatement(
+                InvocationExpression(
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        IdentifierName(Global(Neo4JDataRequestBuilderExtensions)),
+                        IdentifierName("AddNeo4JFiltering")))
+                .WithArgumentList(
+                    ArgumentList(
+                        SingletonSeparatedList<ArgumentSyntax>(
+                            Argument(IdentifierName("builder"))))));
+        }
+
+        private static ExpressionStatementSyntax AddNeo4JSorting()
+        {
+            return ExpressionStatement(
+                InvocationExpression(
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        IdentifierName(Global(Neo4JDataRequestBuilderExtensions)),
+                        IdentifierName("AddNeo4JSorting")))
+                .WithArgumentList(
+                    ArgumentList(
+                        SingletonSeparatedList<ArgumentSyntax>(
+                            Argument(IdentifierName("builder"))))));
+        }
+
+        private static ExpressionStatementSyntax AddNeo4JProjections()
+        {
+            return ExpressionStatement(
+                InvocationExpression(
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        IdentifierName(Global(Neo4JDataRequestBuilderExtensions)),
+                        IdentifierName("AddNeo4JProjections")))
+                .WithArgumentList(
+                    ArgumentList(
+                        SingletonSeparatedList<ArgumentSyntax>(
+                            Argument(IdentifierName("builder"))))));
         }
 
         private static string GraphQLFieldName(string s)
