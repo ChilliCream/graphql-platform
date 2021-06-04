@@ -154,7 +154,7 @@ module.exports = {
     },
     `gatsby-plugin-sitemap`,
     {
-      resolve: `@darth-knoppix/gatsby-plugin-feed`,
+      resolve: `gatsby-plugin-feed`,
       options: {
         baseUrl: `https://chillicream.com`,
         query: `{
@@ -274,6 +274,7 @@ module.exports = {
                 };
               }),
             title: "ChilliCream Blog",
+            output: "/rss.xml",
           },
         ],
       },
