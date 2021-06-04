@@ -5,8 +5,10 @@ namespace HotChocolate.Analyzers
         public const string Driver = "Neo4j.Driver";
         public const string Types = "HotChocolate." + nameof(Types);
         public const string Data = "HotChocolate." + nameof(Data);
+        public const string Configuration = "HotChocolate.Execution.Configuration";
         public const string Neo4J = Data + "." + nameof(Neo4J);
         public const string Execution = Neo4J + "." + nameof(Execution);
+        public const string DependencyInjection = "Microsoft.Extensions.DependencyInjection";
         public const string SystemCollections = "System.Collections.Generic";
         public const string Neo4JExecutable = Execution + "." + nameof(Neo4JExecutable);
         public const string UsePagingAttribute = Types + "." + nameof(UsePagingAttribute);
@@ -22,6 +24,10 @@ namespace HotChocolate.Analyzers
         public const string Neo4JRelationshipAttribute = Neo4J + "." + 
             nameof(Neo4JRelationshipAttribute);
         public const string Neo4JRelationshipDirection = Neo4J + "." + "RelationshipDirection";
+        public const string IRequestExecutorBuilder = Configuration + "." + 
+            nameof(IRequestExecutorBuilder); 
+        public const string SchemaRequestExecutorBuilderExtensions = DependencyInjection + "." +
+            nameof(SchemaRequestExecutorBuilderExtensions);
 
         public static string Global(string s)
         {

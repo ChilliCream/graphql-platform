@@ -7,9 +7,13 @@ namespace HotChocolate.Analyzers.Configuration
     public class Neo4JSettings
     {
         /// <summary>
+        /// Gets the name.
+        /// </summary>
+        public string Name { get; set; } = "Neo4J";
+
+        /// <summary>
         /// Gets the Neo4J database name.
         /// </summary>
-        /// <value></value>
         public string DatabaseName { get; set; } = "neo4j";
 
         /// <summary>
