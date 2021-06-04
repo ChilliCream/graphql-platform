@@ -9,7 +9,7 @@
   <PropertyGroup>
     <PackageId>HotChocolate.Types.NodaTime</PackageId>
     <AssemblyName>HotChocolate.Types.NodaTime</AssemblyName>
-    <RootNamespace>HotChocolate.Types</RootNamespace>
+    <RootNamespace>HotChocolate.Types.NodaTime</RootNamespace>
     <Description>Adds additional scalars that map to NodaTime runtime types</Description>
   </PropertyGroup>
 
