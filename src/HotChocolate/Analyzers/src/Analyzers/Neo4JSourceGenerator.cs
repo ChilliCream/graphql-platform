@@ -64,6 +64,11 @@ namespace HotChocolate.Analyzers
                     .OfType<ObjectType>()
                     .Where(type => !IntrospectionTypes.IsIntrospectionType(type))
                     .ToList());
+
+            GenerateDependencyInjectionCode(
+                context,
+                dataContext,
+                settings);
         }
 
         private static void GenerateQueryType(
@@ -206,6 +211,120 @@ namespace HotChocolate.Analyzers
             }
 
             return resolverSyntax;
+        }
+
+        private static void GenerateDependencyInjectionCode(
+            GeneratorExecutionContext context,
+            DataGeneratorContext dataContext,
+            Neo4JSettings settings)
+        {
+            string typeName = settings.Name + "RequestExecutorBuilderExtensions";
+
+            ClassDeclarationSyntax dependencyInjectionCode =
+                ClassDeclaration(typeName)
+                    .AddModifiers(
+                        Token(SyntaxKind.PublicKeyword),
+                        Token(SyntaxKind.StaticKeyword),
+                        Token(SyntaxKind.PartialKeyword))
+                    .AddGeneratedAttribute();
+
+            var statements = new List<StatementSyntax>();
+            statements.Add(AddTypeExtension(Global(settings.Namespace + ".Query")));
+            statements.Add(AddNeo4JFiltering());
+            statements.Add(AddNeo4JSorting());
+            statements.Add(AddNeo4JProjections());
+            statements.Add(ReturnStatement(IdentifierName("builder")));
+
+            MethodDeclarationSyntax addTypes =
+                MethodDeclaration(
+                    IdentifierName(Global(IRequestExecutorBuilder)),
+                    Identifier("Add" + settings.Name + "Types"))
+                .WithModifiers(
+                    TokenList(
+                        Token(SyntaxKind.PublicKeyword),
+                        Token(SyntaxKind.StaticKeyword)))
+                .WithParameterList(
+                    ParameterList(
+                        SingletonSeparatedList(
+                            Parameter(Identifier("builder"))
+                                .WithModifiers(TokenList(Token(SyntaxKind.ThisKeyword)))
+                                .WithType(IdentifierName(Global(IRequestExecutorBuilder))))))
+                .WithBody(Block(statements));
+
+            dependencyInjectionCode =
+                dependencyInjectionCode.AddMembers(addTypes);
+
+            NamespaceDeclarationSyntax namespaceDeclaration =
+                NamespaceDeclaration(IdentifierName(DependencyInjection))
+                    .AddMembers(dependencyInjectionCode);
+
+            CompilationUnitSyntax compilationUnit =
+                CompilationUnit()
+                    .AddMembers(namespaceDeclaration);
+
+            compilationUnit = compilationUnit.NormalizeWhitespace(elasticTrivia: true);
+
+            context.AddSource(DependencyInjection + $".{typeName}.cs", compilationUnit.ToFullString());
+        }
+
+        private static ExpressionStatementSyntax AddTypeExtension(string typeExtensions)
+        {
+            return ExpressionStatement(
+                InvocationExpression(
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        IdentifierName(Global(SchemaRequestExecutorBuilderExtensions)),
+                        GenericName(Identifier("AddTypeExtension"))
+                        .WithTypeArgumentList(
+                            TypeArgumentList(
+                                SingletonSeparatedList<TypeSyntax>(
+                                    IdentifierName(typeExtensions))))))
+                .WithArgumentList(
+                    ArgumentList(
+                        SingletonSeparatedList<ArgumentSyntax>(
+                            Argument(IdentifierName("builder"))))));
+        }
+
+        private static ExpressionStatementSyntax AddNeo4JFiltering()
+        {
+            return ExpressionStatement(
+                InvocationExpression(
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        IdentifierName(Global(Neo4JDataRequestBuilderExtensions)),
+                        IdentifierName("AddNeo4JFiltering")))
+                .WithArgumentList(
+                    ArgumentList(
+                        SingletonSeparatedList<ArgumentSyntax>(
+                            Argument(IdentifierName("builder"))))));
+        }
+
+        private static ExpressionStatementSyntax AddNeo4JSorting()
+        {
+            return ExpressionStatement(
+                InvocationExpression(
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        IdentifierName(Global(Neo4JDataRequestBuilderExtensions)),
+                        IdentifierName("AddNeo4JSorting")))
+                .WithArgumentList(
+                    ArgumentList(
+                        SingletonSeparatedList<ArgumentSyntax>(
+                            Argument(IdentifierName("builder"))))));
+        }
+
+        private static ExpressionStatementSyntax AddNeo4JProjections()
+        {
+            return ExpressionStatement(
+                InvocationExpression(
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        IdentifierName(Global(Neo4JDataRequestBuilderExtensions)),
+                        IdentifierName("AddNeo4JProjections")))
+                .WithArgumentList(
+                    ArgumentList(
+                        SingletonSeparatedList<ArgumentSyntax>(
+                            Argument(IdentifierName("builder"))))));
         }
 
         private static string GraphQLFieldName(string s)

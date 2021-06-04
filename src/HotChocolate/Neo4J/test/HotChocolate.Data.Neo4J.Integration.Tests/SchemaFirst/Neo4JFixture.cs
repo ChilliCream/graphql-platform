@@ -62,11 +62,7 @@ namespace HotChocolate.Data.Neo4J.Integration.SchemaFirst
                 .AddSingleton(Driver)
                 .AddGraphQL()
                 .AddQueryType()
-                .AddType<Query>()
-                .AddNeo4JProjections()
-                .AddNeo4JFiltering()
-                .AddNeo4JSorting()
-                .UseDefaultPipeline()
+                .AddMovieTypes()
                 .Services
                 .BuildServiceProvider()
                 .GetRequiredService<IRequestExecutorResolver>()
