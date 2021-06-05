@@ -96,7 +96,11 @@
             "items": [
               {
                 "path": "index",
-                "title": "Resolver"
+                "title": "Overview"
+              },
+              {
+                "path": "resolvers",
+                "title": "Resolvers"
               },
               {
                 "path": "fetching-from-databases",

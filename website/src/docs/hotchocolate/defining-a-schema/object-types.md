@@ -367,7 +367,7 @@ public class Startup
 
 What we have just created is a resolver. Hot Chocolate automatically creates resolvers for our properties, but we can also define them ourselves.
 
-Head over to the [resolver documentation](/docs/hotchocolate/fetching-data) to learn more.
+[Learn more about resolvers](/docs/hotchocolate/fetching-data/resolvers)
 
 # Generics
 
