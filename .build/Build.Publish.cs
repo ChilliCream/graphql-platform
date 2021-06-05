@@ -43,11 +43,15 @@ partial class Build : NukeBuild
         {
             if (!InvokedTargets.Contains(Restore))
             {
-                DotNetBuildSonarSolution(AllSolutionFile);
+                DotNetBuildSonarSolution(
+                    PackSolutionFile, 
+                    include: file => 
+                        !Path.GetFileNameWithoutExtension(file)
+                            .EndsWith("tests", StringComparison.OrdinalIgnoreCase));
             }
 
             DotNetBuild(c => c
-                .SetProjectFile(AllSolutionFile)
+                .SetProjectFile(PackSolutionFile)
                 .SetNoRestore(InvokedTargets.Contains(Restore))
                 .SetConfiguration(Configuration)
                 .SetAssemblyVersion(GitVersion.AssemblySemVer)
@@ -56,7 +60,7 @@ partial class Build : NukeBuild
                 .SetVersion(GitVersion.SemVer));
 
             DotNetPack(c => c
-                .SetProject(AllSolutionFile)
+                .SetProject(PackSolutionFile)
                 .SetNoRestore(true)
                 .SetNoBuild(true)
                 .SetConfiguration(Configuration)

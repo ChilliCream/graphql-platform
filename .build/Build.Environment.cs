@@ -13,6 +13,7 @@ partial class Build : NukeBuild
     AbsolutePath AllSolutionFile => SourceDirectory / "All.sln";
     AbsolutePath SonarSolutionFile => SourceDirectory / "Sonar.sln";
     AbsolutePath TestSolutionFile => TemporaryDirectory / "All.Test.sln";
+    AbsolutePath PackSolutionFile => SourceDirectory / "All.Pack.sln";
     AbsolutePath SgSolutionFile => SourceDirectory / "StrawberryShake" / "SourceGenerator" / "StrawberryShake.SourceGenerator.sln";
 
     AbsolutePath OutputDirectory => RootDirectory / "output";
