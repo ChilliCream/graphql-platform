@@ -39,7 +39,7 @@ class Helpers
             var fullDirectory = Path.Combine(sourceDirectory, directory);
             foreach (var file in Directory.EnumerateFiles(fullDirectory, "*.csproj", SearchOption.AllDirectories))
             {
-                if (include?.Invoke(file) ?? true
+                if (!(include?.Invoke(file) ?? true)
                     || file.Contains("benchmark", StringComparison.OrdinalIgnoreCase)
                     || file.Contains("demo", StringComparison.OrdinalIgnoreCase)
                     || file.Contains("sample", StringComparison.OrdinalIgnoreCase)
