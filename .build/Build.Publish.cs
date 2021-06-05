@@ -23,7 +23,7 @@ partial class Build : NukeBuild
     [Parameter("NuGet Api Key")] readonly string NuGetApiKey;
 
     Target Pack => _ => _
-        .DependsOn(Restore, PackLocal)
+        .DependsOn(PackLocal)
         .Produces(PackageDirectory / "*.nupkg")
         .Produces(PackageDirectory / "*.snupkg")
         .Requires(() => Configuration.Equals(Release))
@@ -41,14 +41,14 @@ partial class Build : NukeBuild
         .Produces(PackageDirectory / "*.snupkg")
         .Executes(() =>
         {
-            if (!InvokedTargets.Contains(Restore))
-            {
-                DotNetBuildSonarSolution(AllSolutionFile);
-            }
+            DotNetBuildSonarSolution(
+                PackSolutionFile,
+                include: file =>
+                    !Path.GetFileNameWithoutExtension(file)
+                        .EndsWith("tests", StringComparison.OrdinalIgnoreCase));
 
             DotNetBuild(c => c
-                .SetProjectFile(AllSolutionFile)
-                .SetNoRestore(InvokedTargets.Contains(Restore))
+                .SetProjectFile(PackSolutionFile)
                 .SetConfiguration(Configuration)
                 .SetAssemblyVersion(GitVersion.AssemblySemVer)
                 .SetFileVersion(GitVersion.AssemblySemFileVer)
@@ -56,7 +56,7 @@ partial class Build : NukeBuild
                 .SetVersion(GitVersion.SemVer));
 
             DotNetPack(c => c
-                .SetProject(AllSolutionFile)
+                .SetProject(PackSolutionFile)
                 .SetNoRestore(true)
                 .SetNoBuild(true)
                 .SetConfiguration(Configuration)
