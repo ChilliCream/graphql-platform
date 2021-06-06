@@ -163,7 +163,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        [Obsolete]
+        [Obsolete("Use ObjectTypeExtension API.")]
         public new IObjectTypeDescriptor<T> Include<TResolver>()
         {
             base.Include<TResolver>();
