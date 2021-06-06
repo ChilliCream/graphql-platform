@@ -4,6 +4,7 @@ using System.Collections.Generic;
 namespace HotChocolate
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    [Obsolete("Use ExtendObjectTypeAttribute.")]
     public sealed class GraphQLResolverOfAttribute
         : Attribute
     {
