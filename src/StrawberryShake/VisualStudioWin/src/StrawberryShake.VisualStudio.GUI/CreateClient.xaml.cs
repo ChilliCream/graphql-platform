@@ -28,13 +28,11 @@ namespace StrawberryShake.VisualStudio.GUI
         private void HttpDetails_Click(object sender, RoutedEventArgs e)
         {
             HttpDetails httpDetails = new HttpDetails();
-            httpDetails.Scheme.Text = _viewModel.AccessTokenScheme ?? "bearer";
-            httpDetails.Token.Text = _viewModel.AccessTokenValue;
-
+            httpDetails.Headers = _viewModel.Headers;
+            
             if (httpDetails.ShowDialog() ?? false)
             {
-                _viewModel.AccessTokenScheme = httpDetails.Scheme.Text;
-                _viewModel.AccessTokenValue = httpDetails.Token.Text;
+                _viewModel.Headers = httpDetails.Headers;    
             }
         }
 

@@ -37,7 +37,7 @@
     <TextBox HorizontalAlignment="Left" Height="28" Margin="240,401,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="362" FontSize="14" IsEnabled="{Binding UseCustomNamespace}" Text="{Binding CustomNamespace}"/>
 
     <CheckBox Content="" HorizontalAlignment="Left" Margin="220,442,0,0" VerticalAlignment="Top" Width="17" IsChecked="True" Height="15" IsEnabled="False"/>
-    <Label Content="Depnedency Injection" HorizontalAlignment="Left" Margin="240,434,0,0" VerticalAlignment="Top" FontSize="14" Height="29" Width="192"/>
+    <Label Content="Dependency Injection" HorizontalAlignment="Left" Margin="240,434,0,0" VerticalAlignment="Top" FontSize="14" Height="29" Width="192"/>
     <ComboBox HorizontalAlignment="Left" Margin="240,462,0,0" VerticalAlignment="Top" Width="362" FontSize="14" Height="28" SelectedIndex="0" IsEnabled="False">
       <System:String>Microsoft DI</System:String>
     </ComboBox>

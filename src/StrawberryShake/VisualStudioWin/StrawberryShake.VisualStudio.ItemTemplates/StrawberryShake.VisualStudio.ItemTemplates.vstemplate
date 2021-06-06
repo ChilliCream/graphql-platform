@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Item" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">
+  <TemplateData>
+    <Name>GraphQL File</Name>
+    <Description>StrawberryShake.VisualStudio.ItemTemplates</Description>
+    <Icon>StrawberryShake.VisualStudio.ItemTemplates.ico</Icon>
+    <TemplateID>049a4082-7cf8-48d2-ac23-c944528316e5</TemplateID>
+    <ProjectType>CSharp</ProjectType>
+    <RequiredFrameworkVersion>2.0</RequiredFrameworkVersion>
+    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
+    <DefaultName>Query.graphql</DefaultName>
+  </TemplateData>
+  <TemplateContent>
+    <ProjectItem ReplaceParameters="true">Query.graphql</ProjectItem>
+  </TemplateContent>
+</VSTemplate>

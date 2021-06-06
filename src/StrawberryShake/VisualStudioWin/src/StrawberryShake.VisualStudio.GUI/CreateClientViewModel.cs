@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Net.Http;
@@ -21,8 +22,7 @@ namespace StrawberryShake.VisualStudio.GUI
 
         private bool _useServerUrl = true;
         private string _serverUrl = "http://localhost:5000/graphql";
-        private string _accessTokenScheme;
-        private string _accessTokenValue;
+        private IReadOnlyList<HttpHeader> _headers = new HttpHeader[0];
         private string _schemaFile;
         private string _clientName = "StarWarsClient";
         private bool _createClientFolder = false;
@@ -69,26 +69,6 @@ namespace StrawberryShake.VisualStudio.GUI
             }
         }
 
-        public string AccessTokenScheme
-        {
-            get => _accessTokenScheme;
-            set
-            {
-                _accessTokenScheme = value;
-                OnPropertyChanged(nameof(AccessTokenScheme));
-            }
-        }
-
-        public string AccessTokenValue
-        {
-            get => _accessTokenValue;
-            set
-            {
-                _accessTokenValue = value;
-                OnPropertyChanged(nameof(AccessTokenValue));
-            }
-        }
-
         public bool UseSchemaFile
         {
             get => !_useServerUrl;
@@ -98,6 +78,16 @@ namespace StrawberryShake.VisualStudio.GUI
                 OnPropertyChanged(nameof(UseServerUrl));
                 OnPropertyChanged(nameof(UseSchemaFile));
                 ValidateSchema();
+            }
+        }
+
+        public IReadOnlyList<HttpHeader> Headers
+        {
+            get => _headers;
+            set
+            {
+                _headers = value;
+                OnPropertyChanged(nameof(Headers));
             }
         }
 
@@ -305,9 +295,9 @@ namespace StrawberryShake.VisualStudio.GUI
                                 "StrawberryShake.VisualStudio",
                                 GetType().Assembly.GetName().Version.ToString())));
 
-                    if(AccessTokenValue is { Length: > 0 } && AccessTokenScheme is { Length: > 0 })
+                    foreach(HttpHeader header in _headers)
                     {
-                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AccessTokenScheme, AccessTokenValue);
+                        client.DefaultRequestHeaders.TryAddWithoutValidation(header.Name, header.Value);
                     }
 
                     schema = IntrospectionClient.Default.DownloadSchemaAsync(client).Result.ToString(true);
@@ -407,4 +397,10 @@ namespace StrawberryShake.VisualStudio.GUI
             }
         }
     }
+
+    internal class HttpHeader
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
+    } 
 }
