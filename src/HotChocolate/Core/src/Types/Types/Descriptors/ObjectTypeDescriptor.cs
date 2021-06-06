@@ -232,7 +232,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        [Obsolete]
+        [Obsolete("Use ObjectTypeExtension API.")]
         public IObjectTypeDescriptor Include<TResolver>()
         {
             if (typeof(IType).IsAssignableFrom(typeof(TResolver)))
