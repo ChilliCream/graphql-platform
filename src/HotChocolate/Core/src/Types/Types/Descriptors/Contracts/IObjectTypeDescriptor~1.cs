@@ -8,7 +8,13 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
-    public interface IObjectTypeDescriptor<T>
+    /// <summary>
+    /// A fluent configuration API for GraphQL object types.
+    /// </summary>
+    /// <typeparam name="TRuntimeType">
+    /// The runtime type.
+    /// </typeparam>
+    public interface IObjectTypeDescriptor<TRuntimeType>
         : IDescriptor<ObjectTypeDefinition>
         , IFluent
     {
@@ -20,14 +26,14 @@ namespace HotChocolate.Types
         /// <paramref name="value"/> is <c>null</c> or
         /// <see cref="string.Empty"/>.
         /// </exception>
-        IObjectTypeDescriptor<T> Name(NameString value);
+        IObjectTypeDescriptor<TRuntimeType> Name(NameString value);
 
         /// <summary>
         /// Adds explanatory text of the <see cref="ObjectType"/>
         /// that can be accessed via introspection.
         /// </summary>
         /// <param name="value">The object type description.</param>
-        IObjectTypeDescriptor<T> Description(string? value);
+        IObjectTypeDescriptor<TRuntimeType> Description(string? value);
 
         /// <summary>
         /// Defines the field binding behavior.
@@ -41,25 +47,25 @@ namespace HotChocolate.Types
         /// Implicit:
         /// The object type descriptor will try to infer the object type
         /// fields from the specified .net object type representation
-        /// (<typeparamref name="T"/>).
+        /// (<typeparamref name="TRuntimeType"/>).
         ///
         /// Explicit:
         /// All field have to be specified explicitly via
-        /// <see cref="Field(Expression{Func{T, object}})"/>
+        /// <see cref="Field(Expression{Func{TRuntimeType, object}})"/>
         /// or <see cref="Field(NameString)"/>.
         /// </param>
-        IObjectTypeDescriptor<T> BindFields(BindingBehavior behavior);
+        IObjectTypeDescriptor<TRuntimeType> BindFields(BindingBehavior behavior);
 
         /// <summary>
         /// Defines that all fields have to be specified explicitly.
         /// </summary>
-        IObjectTypeDescriptor<T> BindFieldsExplicitly();
+        IObjectTypeDescriptor<TRuntimeType> BindFieldsExplicitly();
 
         /// <summary>
         /// Defines that all fields shall be inferred
         /// from the associated .Net type,
         /// </summary>
-        IObjectTypeDescriptor<T> BindFieldsImplicitly();
+        IObjectTypeDescriptor<TRuntimeType> BindFieldsImplicitly();
 
         /// <summary>
         /// Specifies an interface that is implemented by the
@@ -67,7 +73,7 @@ namespace HotChocolate.Types
         /// </summary>
         /// <typeparam name="TInterface">The interface type.</typeparam>
         [Obsolete("Use Implements.")]
-        IObjectTypeDescriptor<T> Interface<TInterface>()
+        IObjectTypeDescriptor<TRuntimeType> Interface<TInterface>()
             where TInterface : InterfaceType;
 
         /// <summary>
@@ -76,7 +82,7 @@ namespace HotChocolate.Types
         /// </summary>
         /// <typeparam name="TInterface">The interface type.</typeparam>
         [Obsolete("Use Implements.")]
-        IObjectTypeDescriptor<T> Interface<TInterface>(TInterface type)
+        IObjectTypeDescriptor<TRuntimeType> Interface<TInterface>(TInterface type)
             where TInterface : InterfaceType;
 
         /// <summary>
@@ -87,14 +93,14 @@ namespace HotChocolate.Types
         /// A syntax node representing an interface type.
         /// </param>
         [Obsolete("Use Implements.")]
-        IObjectTypeDescriptor<T> Interface(NamedTypeNode type);
+        IObjectTypeDescriptor<TRuntimeType> Interface(NamedTypeNode type);
 
         /// <summary>
         /// Specifies an interface that is implemented by the
         /// <see cref="ObjectType"/>.
         /// </summary>
         /// <typeparam name="TInterface">The interface type.</typeparam>
-        IObjectTypeDescriptor<T> Implements<TInterface>()
+        IObjectTypeDescriptor<TRuntimeType> Implements<TInterface>()
             where TInterface : InterfaceType;
 
         /// <summary>
@@ -102,7 +108,7 @@ namespace HotChocolate.Types
         /// <see cref="ObjectType"/>.
         /// </summary>
         /// <typeparam name="TInterface">The interface type.</typeparam>
-        IObjectTypeDescriptor<T> Implements<TInterface>(TInterface type)
+        IObjectTypeDescriptor<TRuntimeType> Implements<TInterface>(TInterface type)
             where TInterface : InterfaceType;
 
         /// <summary>
@@ -112,14 +118,14 @@ namespace HotChocolate.Types
         /// <param name="type">
         /// A syntax node representing an interface type.
         /// </param>
-        IObjectTypeDescriptor<T> Implements(NamedTypeNode type);
+        IObjectTypeDescriptor<TRuntimeType> Implements(NamedTypeNode type);
 
         /// <summary>
         /// Includes a resolver type and imports all the methods and
         /// fields from it.
         /// </summary>
         /// <typeparam name="TResolver">A resolver type.</typeparam>
-        IObjectTypeDescriptor<T> Include<TResolver>();
+        IObjectTypeDescriptor<TRuntimeType> Include<TResolver>();
 
         /// <summary>
         /// Specifies a delegate that can determine if a resolver result
@@ -128,25 +134,27 @@ namespace HotChocolate.Types
         /// <param name="isOfType">
         /// The delegate that provides the IsInstanceOfType functionality.
         /// </param>
-        IObjectTypeDescriptor<T> IsOfType(IsOfType isOfType);
+        IObjectTypeDescriptor<TRuntimeType> IsOfType(IsOfType isOfType);
 
         /// <summary>
         /// Specifies an object type field.
         /// </summary>
         /// <param name="propertyOrMethod">
         /// An expression selecting a property or method of
-        /// <typeparamref name="T"/>.
+        /// <typeparamref name="TRuntimeType"/>.
         /// </param>
-        IObjectFieldDescriptor Field(Expression<Func<T, object>> propertyOrMethod);
+        IObjectFieldDescriptor Field(
+            Expression<Func<TRuntimeType, object?>> propertyOrMethod);
 
         /// <summary>
         /// Specifies an object type field.
         /// </summary>
         /// <param name="propertyOrMethod">
         /// An expression selecting a property or method of
-        /// <typeparamref name="T"/>.
+        /// <typeparamref name="TRuntimeType"/>.
         /// </param>
-        IObjectFieldDescriptor Field<TValue>(Expression<Func<T, TValue>> propertyOrMethod);
+        IObjectFieldDescriptor Field<TValue>(
+            Expression<Func<TRuntimeType, TValue?>> propertyOrMethod);
 
         /// <summary>
         /// Specifies an object type field.
@@ -164,7 +172,8 @@ namespace HotChocolate.Types
         /// <typeparamref name="TResolver"/>.
         /// The resolver type containing the property or method.
         /// </param>
-        IObjectFieldDescriptor Field<TResolver>(Expression<Func<TResolver, object>> propertyOrMethod);
+        IObjectFieldDescriptor Field<TResolver>(
+            Expression<Func<TResolver, object?>> propertyOrMethod);
 
         /// <summary>
         /// Specifies an object type field which is bound to a resolver type.
@@ -174,14 +183,14 @@ namespace HotChocolate.Types
         /// </param>
         IObjectFieldDescriptor Field(MemberInfo propertyOrMethod);
 
-        IObjectTypeDescriptor<T> Directive<TDirective>(
+        IObjectTypeDescriptor<TRuntimeType> Directive<TDirective>(
             TDirective directiveInstance)
             where TDirective : class;
 
-        IObjectTypeDescriptor<T> Directive<TDirective>()
+        IObjectTypeDescriptor<TRuntimeType> Directive<TDirective>()
             where TDirective : class, new();
 
-        IObjectTypeDescriptor<T> Directive(
+        IObjectTypeDescriptor<TRuntimeType> Directive(
             NameString name,
             params ArgumentNode[] arguments);
 

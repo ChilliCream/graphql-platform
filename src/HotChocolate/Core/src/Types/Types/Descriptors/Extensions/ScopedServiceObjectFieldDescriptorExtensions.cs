@@ -34,7 +34,6 @@ namespace HotChocolate.Types
 
                     if (disposeAsync is { })
                     {
-
                         await disposeAsync(services, scopedService).ConfigureAwait(false);
                     }
                 }

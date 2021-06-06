@@ -1,5 +1,6 @@
 #pragma warning disable IDE1006 // Naming Styles
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Properties;

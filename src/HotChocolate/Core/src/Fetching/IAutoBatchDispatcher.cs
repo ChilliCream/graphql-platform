@@ -2,7 +2,8 @@ using GreenDonut;
 
 namespace HotChocolate.Fetching
 {
-    public interface IAutoBatchDispatcher
-        : IBatchScheduler
-    { }
+    public interface IAutoBatchDispatcher : IBatchScheduler
+    {
+        
+    }
 }

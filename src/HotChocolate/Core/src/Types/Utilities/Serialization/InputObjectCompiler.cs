@@ -80,7 +80,7 @@ namespace HotChocolate.Utilities.Serialization
                 t.Property!.Name,
                 StringComparer.OrdinalIgnoreCase);
 
-            IReadOnlyDictionary<ParameterInfo, InputField> parameterMap =
+            Dictionary<ParameterInfo, InputField> parameterMap =
                 CreateParameterMap(parameters, fields);
 
             foreach (ParameterInfo parameter in parameters)
@@ -89,13 +89,13 @@ namespace HotChocolate.Utilities.Serialization
             }
         }
 
-        private static IReadOnlyDictionary<ParameterInfo, InputField> CreateParameterMap(
+        private static Dictionary<ParameterInfo, InputField> CreateParameterMap(
             ParameterInfo[] parameters,
-            IReadOnlyDictionary<string, InputField> fields)
+            Dictionary<string, InputField> fields)
         {
             var map = new Dictionary<ParameterInfo, InputField>();
 
-            for (int i = 0; i < parameters.Length; i++)
+            for (var i = 0; i < parameters.Length; i++)
             {
                 ParameterInfo parameter = parameters[i];
                 map[parameter] = fields[parameter.Name!];
@@ -154,7 +154,7 @@ namespace HotChocolate.Utilities.Serialization
             string fieldName,
             ITypeConverter converter)
         {
-            if (values.TryGetValue(fieldName, out object? o))
+            if (values.TryGetValue(fieldName, out var o))
             {
                 return o is T casted ? casted : converter.Convert<object, T>(o);
             }
@@ -166,7 +166,7 @@ namespace HotChocolate.Utilities.Serialization
             string fieldName,
             ITypeConverter converter)
         {
-            if (values.TryGetValue(fieldName, out object? o))
+            if (values.TryGetValue(fieldName, out var o))
             {
                 return o is T casted ? casted : converter.Convert<object, T>(o);
             }

@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Pagination
     {
         private static readonly MethodInfo _createHandler =
             typeof(QueryableCursorPagingProvider).GetMethod(
-                nameof(CreateHandlerInternal), 
+                nameof(CreateHandlerInternal),
                 BindingFlags.Static | BindingFlags.NonPublic)!;
 
         public override bool CanHandle(IExtendedType source)
@@ -38,6 +38,6 @@ namespace HotChocolate.Types.Pagination
 
         private static QueryableCursorPagingHandler<TEntity> CreateHandlerInternal<TEntity>(
             PagingOptions options) =>
-            new QueryableCursorPagingHandler<TEntity>(options);
+            new(options);
     }
 }

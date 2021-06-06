@@ -44,5 +44,25 @@ namespace HotChocolate
         /// The key for setting a message that is being used when introspection is not allowed.
         /// </summary>
         public const string IntrospectionMessage = "HotChocolate.Execution.Introspection.Message";
+
+        /// <summary>
+        /// Signals that the complexity analysis shall be skipped.
+        /// </summary>
+        public const string SkipComplexityAnalysis = "HotChocolate.Execution.NoComplexityAnalysis";
+
+        /// <summary>
+        /// The key for setting the operation complexity.
+        /// </summary>
+        public const string OperationComplexity = "HotChocolate.Execution.OperationComplexity";
+
+        /// <summary>
+        /// The key for setting the maximum operation complexity.
+        /// </summary>
+        public const string MaximumAllowedComplexity = "HotChocolate.Execution.AllowedComplexity";
+
+        /// <summary>
+        /// Includes the query plan into the response.
+        /// </summary>
+        public const string IncludeQueryPlan = "HotChocolate.Execution.EmitQueryPlan";
     }
 }

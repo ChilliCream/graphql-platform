@@ -65,7 +65,7 @@ namespace HotChocolate.Execution.Processing
 
                     if (variableValue.ValueLiteral is not null)
                     {
-                        object? temp  = variableValue.Type.ParseLiteral(variableValue.ValueLiteral);
+                        var temp  = variableValue.Type.ParseLiteral(variableValue.ValueLiteral);
                         if (temp is T casted2)
                         {
                             value = casted2;

@@ -6,7 +6,7 @@ using HCErrorBuilder = HotChocolate.ErrorBuilder;
 
 namespace StrawberryShake.Tools
 {
-    public class IntrospectionHelper
+    public static class IntrospectionHelper
     {
         public static async Task<bool> DownloadSchemaAsync(
             HttpClient client,

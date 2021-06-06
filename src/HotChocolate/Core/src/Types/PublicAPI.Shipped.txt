@@ -793,8 +793,8 @@
 ~override HotChocolate.Internal.TypeComponent.ToString() -> string
 ~override HotChocolate.Resolvers.FieldReferenceBase.Equals(object obj) -> bool
 ~override HotChocolate.Resolvers.FieldReferenceBase.ToString() -> string
-~override HotChocolate.Resolvers.FieldResolver.Equals(object obj) -> bool
-~override HotChocolate.Resolvers.FieldResolver.ToString() -> string
+override HotChocolate.Resolvers.FieldResolver.Equals(object? obj) -> bool
+override HotChocolate.Resolvers.FieldResolver.ToString() -> string!
 ~override HotChocolate.Schema.OnCompleteType(HotChocolate.Configuration.ITypeCompletionContext context, HotChocolate.Types.Descriptors.Definitions.SchemaTypeDefinition definition) -> void
 ~override HotChocolate.Schema.OnRegisterDependencies(HotChocolate.Configuration.ITypeDiscoveryContext context, HotChocolate.Types.Descriptors.Definitions.SchemaTypeDefinition definition) -> void
 ~override HotChocolate.Types.Descriptors.ArgumentDescriptor.OnCreateDefinition(HotChocolate.Types.Descriptors.Definitions.ArgumentDefinition definition) -> void
@@ -850,7 +850,7 @@
 ~static HotChocolate.Configuration.SchemaOptions.FromOptions(HotChocolate.Configuration.IReadOnlySchemaOptions options) -> HotChocolate.Configuration.SchemaOptions
 ~static HotChocolate.Configuration.SchemaTypeResolver.TryInferSchemaType(HotChocolate.Types.Descriptors.ITypeInspector typeInspector, HotChocolate.Types.Descriptors.ExtendedTypeReference unresolvedType, out HotChocolate.Types.Descriptors.ExtendedTypeReference schemaType) -> bool
 ~static HotChocolate.Configuration.SchemaTypeResolver.TryInferSchemaTypeKind(HotChocolate.Types.Descriptors.ExtendedTypeReference unresolvedType, out HotChocolate.Types.TypeKind kind) -> bool
-~static HotChocolate.IdSchemaBuilderExtensions.EnableRelaySupport(this HotChocolate.ISchemaBuilder schemaBuilder, HotChocolate.Types.Relay.RelayOptions options = null) -> HotChocolate.ISchemaBuilder
+static HotChocolate.IdSchemaBuilderExtensions.EnableRelaySupport(this HotChocolate.ISchemaBuilder! schemaBuilder, HotChocolate.Types.Relay.RelayOptions? options = null) -> HotChocolate.ISchemaBuilder!
 ~static HotChocolate.Internal.TypeComponent.implicit operator HotChocolate.Internal.TypeComponent((HotChocolate.Internal.TypeComponentKind, HotChocolate.Internal.IExtendedType) component) -> HotChocolate.Internal.TypeComponent
 ~static HotChocolate.Internal.TypeDependencyHelper.RegisterDependencies(this HotChocolate.Configuration.ITypeDiscoveryContext context, HotChocolate.Types.Descriptors.Definitions.EnumTypeDefinition definition) -> void
 ~static HotChocolate.Internal.TypeDependencyHelper.RegisterDependencies(this HotChocolate.Configuration.ITypeDiscoveryContext context, HotChocolate.Types.Descriptors.Definitions.InputObjectTypeDefinition definition) -> void

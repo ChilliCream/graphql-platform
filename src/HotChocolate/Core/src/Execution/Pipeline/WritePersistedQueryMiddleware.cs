@@ -15,20 +15,16 @@ namespace HotChocolate.Execution.Pipeline
         private const string _expectedType = "expectedHashType";
         private const string _expectedFormat = "expectedHashFormat";
         private readonly RequestDelegate _next;
-        private readonly IDiagnosticEvents _diagnosticEvents;
         private readonly IDocumentHashProvider _hashProvider;
         private readonly IWriteStoredQueries _persistedQueryStore;
 
         public WritePersistedQueryMiddleware(
             RequestDelegate next,
-            IDiagnosticEvents diagnosticEvents,
             IDocumentHashProvider documentHashProvider,
             IWriteStoredQueries persistedQueryStore)
         {
             _next = next ??
                 throw new ArgumentNullException(nameof(next));
-            _diagnosticEvents = diagnosticEvents ??
-                throw new ArgumentNullException(nameof(diagnosticEvents));
             _hashProvider = documentHashProvider ??
                 throw new ArgumentNullException(nameof(documentHashProvider));
             _persistedQueryStore = persistedQueryStore ??
@@ -40,7 +36,7 @@ namespace HotChocolate.Execution.Pipeline
             await _next(context).ConfigureAwait(false);
 
             if (!context.IsCachedDocument &&
-                context.Document is { } document &&
+                context.Document is { } &&
                 context.DocumentId is { } documentId &&
                 context.Request.Query is { } query &&
                 context.Result is IReadOnlyQueryResult result &&
@@ -52,7 +48,7 @@ namespace HotChocolate.Execution.Pipeline
                 IQueryResultBuilder builder = QueryResultBuilder.FromResult(result);
 
                 // hash is found and matches the query key -> store the query
-                if (DoHashesMatch(settings, documentId, _hashProvider.Name, out string? userHash))
+                if (DoHashesMatch(settings, documentId, _hashProvider.Name, out var userHash))
                 {
                     // save the query
                     await _persistedQueryStore.WriteQueryAsync(documentId, query)
@@ -93,7 +89,7 @@ namespace HotChocolate.Execution.Pipeline
             string hashName,
             [NotNullWhen(true)] out string? userHash)
         {
-            if (settings.TryGetValue(hashName, out object? h) &&
+            if (settings.TryGetValue(hashName, out var h) &&
                 h is string hash)
             {
                 userHash = hash;

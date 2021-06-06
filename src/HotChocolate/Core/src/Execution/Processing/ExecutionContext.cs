@@ -1,4 +1,6 @@
 using System;
+using System.Threading.Tasks;
+using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
 
@@ -6,51 +8,27 @@ namespace HotChocolate.Execution.Processing
 {
     internal partial class ExecutionContext : IExecutionContext
     {
-        public ITaskBacklog TaskBacklog
+        /// <inheritdoc />
+        public IWorkBacklog Work
         {
             get
             {
                 AssertNotPooled();
-                return _taskBacklog;
+                return _workBacklog;
             }
         }
 
-        public IDeferredTaskBacklog DeferredTaskBacklog
+        /// <inheritdoc />
+        public IDeferredWorkBacklog DeferredWork
         {
             get
             {
                 AssertNotPooled();
-                return _deferredTaskBacklog;
+                return _deferredWorkBacklog;
             }
         }
 
-        public ITaskStatistics TaskStats
-        {
-            get
-            {
-                AssertNotPooled();
-                return _taskStatistics;
-            }
-        }
-
-        public bool IsCompleted
-        {
-            get
-            {
-                AssertNotPooled();
-                return TaskStats.IsCompleted;
-            }
-        }
-
-        public ObjectPool<ResolverTask> TaskPool
-        {
-            get
-            {
-                AssertNotPooled();
-                return _taskPool;
-            }
-        }
-
+        /// <inheritdoc />
         public IBatchDispatcher BatchDispatcher
         {
             get
@@ -60,33 +38,72 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        private void TryDispatchBatches()
+        /// <inheritdoc />
+        public bool IsCompleted
+        {
+            get
+            {
+                AssertNotPooled();
+                return Work.IsEmpty && !Work.IsRunning;
+            }
+        }
+
+        /// <inheritdoc />
+        public ObjectPool<ResolverTask> ResolverTasks
+        {
+            get
+            {
+                AssertNotPooled();
+                return _resolverTasks;
+            }
+        }
+
+        /// <inheritdoc />
+        public ObjectPool<PureResolverTask> PureResolverTasks
+        {
+            get
+            {
+                AssertNotPooled();
+                return _pureResolverTasks;
+            }
+        }
+
+        /// <inheritdoc />
+        public ObjectPool<IExecutionTask?[]> TaskBuffers
+        {
+            get
+            {
+                AssertNotPooled();
+                return _taskBuffers;
+            }
+        }
+
+#pragma warning disable 4014
+        private void BeginTryDispatchBatches() => TryDispatchBatches();
+#pragma warning restore 4014
+
+        private async ValueTask TryDispatchBatches()
         {
             AssertNotPooled();
 
-            if (TaskBacklog.IsEmpty && BatchDispatcher.HasTasks)
+            if (Work.IsEmpty && BatchDispatcher.HasTasks)
             {
-                BatchDispatcher.Dispatch(Register);
+                await Task.Yield();
+
+                if (Work.IsEmpty && BatchDispatcher.HasTasks)
+                {
+                    BatchDispatcher.Dispatch(Register);
+                }
             }
 
             void Register(IExecutionTaskDefinition taskDefinition)
             {
-                TaskBacklog.Register(taskDefinition.Create(_taskContext));
+                Work.Register(taskDefinition.Create(_operationContext));
             }
         }
 
         private void BatchDispatcherEventHandler(
             object? source, EventArgs args) =>
-            TryDispatchBatches();
-
-        private void TaskStatisticsEventHandler(
-            object? source, EventArgs args) =>
-            TryDispatchBatches();
-
-        private void OnCompleted(object? source, EventArgs args)
-        {
-            AssertNotPooled();
-            _taskBacklog.Complete();
-        }
+            BeginTryDispatchBatches();
     }
 }

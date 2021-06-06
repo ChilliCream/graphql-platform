@@ -1,38 +1,34 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+using HotChocolate.Resolvers.CodeGeneration;
 using HotChocolate.Resolvers.Expressions.Parameters;
+
+#nullable enable
 
 namespace HotChocolate.Resolvers.Expressions
 {
     internal sealed class ResolveCompiler : ResolverCompiler
     {
         private static readonly MethodInfo _awaitTaskHelper =
-            typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.AwaitTaskHelper));
+            typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.AwaitTaskHelper))!;
         private static readonly MethodInfo _awaitValueTaskHelper =
-            typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.AwaitValueTaskHelper));
+            typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.AwaitValueTaskHelper))!;
         private static readonly MethodInfo _wrapResultHelper =
-            typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.WrapResultHelper));
-
-        public ResolveCompiler()
-        {
-        }
-
-        public ResolveCompiler(
-            IEnumerable<IResolverParameterCompiler> compilers)
-            : base(compilers)
-        {
-        }
+            typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.WrapResultHelper))!;
 
         public FieldResolver Compile(ResolverDescriptor descriptor)
         {
             if (descriptor.Field.Member is not null)
             {
                 FieldResolverDelegate resolver;
+                PureFieldResolverDelegate? pureResolver = null;
 
-                if (descriptor.Field.Member is MethodInfo m && m.IsStatic)
+                if (descriptor.Field.Member is MethodInfo { IsStatic: true })
                 {
                     resolver = CreateResolver(
                         descriptor.Field.Member,
@@ -40,16 +36,25 @@ namespace HotChocolate.Resolvers.Expressions
                 }
                 else
                 {
+                    Expression resolverInstance = CreateResolverInstance(descriptor);
+
                     resolver = CreateResolver(
-                        CreateResolverInstance(descriptor),
+                        resolverInstance,
                         descriptor.Field.Member,
                         descriptor.SourceType);
+
+                    pureResolver = CreatePureResolver(
+                        resolverInstance,
+                        descriptor.Field.Member,
+                        descriptor.SourceType,
+                        descriptor.ResolverType ?? descriptor.SourceType);
                 }
 
                 return new FieldResolver(
                     descriptor.Field.TypeName,
                     descriptor.Field.FieldName,
-                    resolver);
+                    resolver,
+                    pureResolver);
             }
 
             if (descriptor.Field.Expression is LambdaExpression lambda)
@@ -82,11 +87,6 @@ namespace HotChocolate.Resolvers.Expressions
             MemberInfo member,
             Type sourceType)
         {
-            if (member is null)
-            {
-                throw new ArgumentNullException(nameof(member));
-            }
-
             if (member is MethodInfo method)
             {
                 IEnumerable<Expression> parameters =
@@ -104,11 +104,6 @@ namespace HotChocolate.Resolvers.Expressions
             MemberInfo member,
             Type sourceType)
         {
-            if (member is null)
-            {
-                throw new ArgumentNullException(nameof(member));
-            }
-
             if (member is MethodInfo method)
             {
                 IEnumerable<Expression> parameters = CreateParameters(
@@ -127,6 +122,35 @@ namespace HotChocolate.Resolvers.Expressions
             }
 
             throw new NotSupportedException();
+        }
+
+        private PureFieldResolverDelegate? CreatePureResolver(
+            Expression resolverInstance,
+            MemberInfo member,
+            Type sourceType,
+            Type resolverType)
+        {
+            if (member is PropertyInfo property && IsPureResult(property.PropertyType))
+            {
+                MemberExpression propertyAccessor = Expression.Property(resolverInstance, property);
+                Expression result = Expression.Convert(propertyAccessor, typeof(object));
+                return Expression.Lambda<PureFieldResolverDelegate>(result, Context).Compile();
+            }
+
+            if (member is MethodInfo method &&
+                IsPureMethod(method, resolverType) &&
+                IsPureResult(method.ReturnType) &&
+                method.GetParameters().All(p => ArgumentHelper.IsPure(p, sourceType)))
+            {
+                IEnumerable<Expression> parameters =
+                    CreateParameters(method.GetParameters(), sourceType);
+                MethodCallExpression resolverCall =
+                    Expression.Call(resolverInstance, method, parameters);
+                Expression result = Expression.Convert(resolverCall, typeof(object));
+                return Expression.Lambda<PureFieldResolverDelegate>(result, Context).Compile();
+            }
+
+            return null;
         }
 
         private static Expression HandleResult(
@@ -155,6 +179,49 @@ namespace HotChocolate.Resolvers.Expressions
             }
 
             return WrapResult(resolverExpression, resultType);
+        }
+
+        private static bool IsPureMethod(MethodInfo methodInfo, Type resolverType)
+        {
+            if (methodInfo.IsDefined(typeof(PureAttribute)))
+            {
+                return true;
+            }
+
+            ConstructorInfo[] constructors = resolverType.GetConstructors();
+            if (constructors.Length == 1 && constructors[0].GetParameters().Length == 0)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsPureResult(Type resultType)
+        {
+            if (resultType == typeof(ValueTask<object>))
+            {
+                return false;
+            }
+
+            if (typeof(IExecutable).IsAssignableFrom(resultType) ||
+                typeof(IQueryable).IsAssignableFrom(resultType) ||
+                typeof(Task).IsAssignableFrom(resultType))
+            {
+                return false;
+            }
+
+            if (resultType.IsGenericType)
+            {
+                Type type = resultType.GetGenericTypeDefinition();
+                if (type == typeof(ValueTask<>) ||
+                    type == typeof(IAsyncEnumerable<>))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static MethodCallExpression AwaitTaskMethodCall(

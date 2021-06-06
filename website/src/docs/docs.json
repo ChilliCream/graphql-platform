@@ -169,6 +169,10 @@
               {
                 "path": "mongodb",
                 "title": "MongoDB"
+              },
+              {
+                "path": "neo4j",
+                "title": "Neo4J Database"
               }
             ]
           },
@@ -187,6 +191,28 @@
               {
                 "path": "automatic-persisted-queries",
                 "title": "Automatic persisted queries"
+              }
+            ]
+          },
+          {
+            "path": "security",
+            "title": "Security",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "authorization",
+                "title": "Authorization"
+              },
+              {
+                "path": "introspection",
+                "title": "Introspection"
+              },
+              {
+                "path": "operation-complexity",
+                "title": "Operation Complexity"
               }
             ]
           },

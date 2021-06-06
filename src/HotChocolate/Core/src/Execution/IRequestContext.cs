@@ -2,6 +2,7 @@
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;

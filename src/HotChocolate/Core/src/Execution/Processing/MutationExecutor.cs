@@ -1,60 +1,41 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using static HotChocolate.Execution.Processing.ResolverExecutionHelper;
+using static HotChocolate.Execution.Processing.Tasks.ResolverTaskFactory;
 
 namespace HotChocolate.Execution.Processing
 {
     internal sealed class MutationExecutor
     {
-        public Task<IQueryResult> ExecuteAsync(
-            IOperationContext operationContext)
+        public Task<IQueryResult> ExecuteAsync(IOperationContext operationContext)
         {
             if (operationContext is null)
             {
                 throw new ArgumentNullException(nameof(operationContext));
             }
 
-            ISelectionSet selectionSet = operationContext.Operation.GetRootSelectionSet();
-            IReadOnlyList<ISelection> selections = selectionSet.Selections;
-            ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
+            if (operationContext is null)
+            {
+                throw new ArgumentNullException(nameof(operationContext));
+            }
 
-            return ExecuteSelectionsAsync(operationContext, selections, resultMap);
+            return ExecuteInternalAsync(operationContext);
         }
 
-        private static async Task<IQueryResult> ExecuteSelectionsAsync(
-            IOperationContext operationContext,
-            IReadOnlyList<ISelection> selections,
-            ResultMap resultMap)
+        private static async Task<IQueryResult> ExecuteInternalAsync(
+            IOperationContext operationContext)
         {
-            var responseIndex = 0;
-            ImmutableDictionary<string, object?> scopedContext =
-                ImmutableDictionary<string, object?>.Empty;
+            ISelectionSet rootSelections =
+                operationContext.Operation.GetRootSelectionSet();
 
-            for (var i = 0; i < selections.Count; i++)
-            {
-                ISelection selection = selections[i];
-                if (selection.IsIncluded(operationContext.Variables))
-                {
-                    operationContext.Execution.TaskBacklog.Register(
-                        new ResolverTaskDefinition(
-                            operationContext,
-                            selection,
-                            responseIndex++,
-                            resultMap,
-                            operationContext.RootValue,
-                            Path.New(selection.ResponseName),
-                            scopedContext));
+            ResultMap resultMap = EnqueueResolverTasks(
+                operationContext,
+                rootSelections,
+                operationContext.RootValue,
+                Path.Root,
+                ImmutableDictionary<string, object?>.Empty);
 
-                    await ExecuteTasksAsync(operationContext).ConfigureAwait(false);
-
-                    if (i + 1 < selections.Count)
-                    {
-                        operationContext.Execution.Reset();
-                    }
-                }
-            }
+            await ExecutionTaskProcessor.ExecuteAsync(operationContext).ConfigureAwait(false);
 
             return operationContext
                 .TrySetNext()

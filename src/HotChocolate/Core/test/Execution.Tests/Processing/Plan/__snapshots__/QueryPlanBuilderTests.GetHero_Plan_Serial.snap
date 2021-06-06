@@ -1,0 +1,47 @@
+﻿{
+  "type": "Operation",
+  "root": {
+    "type": "Sequence",
+    "nodes": [
+      {
+        "type": "Resolver",
+        "strategy": "Serial",
+        "selections": [
+          {
+            "id": 0,
+            "field": "Query.hero",
+            "responseName": "hero"
+          },
+          {
+            "id": 7,
+            "field": "Droid.friends",
+            "responseName": "friends"
+          }
+        ]
+      },
+      {
+        "type": "Resolver",
+        "strategy": "Parallel",
+        "selections": [
+          {
+            "id": 2,
+            "field": "Human.friends",
+            "responseName": "friends"
+          },
+          {
+            "id": 3,
+            "field": "CharacterConnection.nodes",
+            "responseName": "nodes",
+            "pure": true
+          },
+          {
+            "id": 8,
+            "field": "CharacterConnection.nodes",
+            "responseName": "nodes",
+            "pure": true
+          }
+        ]
+      }
+    ]
+  }
+}

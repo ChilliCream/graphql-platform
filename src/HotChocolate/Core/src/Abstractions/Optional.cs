@@ -154,7 +154,7 @@ namespace HotChocolate
         /// Creates an empty optional that provides a default value.
         /// </summary>
         /// <param name="defaultValue">The default value.</param>
-        public static Optional<T> Empty([MaybeNull]T defaultValue = default) =>
+        public static Optional<T> Empty([MaybeNull]T defaultValue = default!) =>
             new Optional<T>(defaultValue, false);
     }
 }

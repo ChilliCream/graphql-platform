@@ -104,6 +104,7 @@ namespace HotChocolate.AspNetCore
                             statusCode = HttpStatusCode.BadRequest;
                             result = QueryResultBuilder.CreateError(error);
                         }
+
                         break;
                     }
                     // if the HTTP request body contains a single GraphQL request and

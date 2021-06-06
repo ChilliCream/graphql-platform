@@ -1,0 +1,1 @@
+﻿MATCH (fooNullable:FooNullable) WHERE NOT (fooNullable.BarShort IN [ 12, 13 ]) RETURN fooNullable {.BarShort}

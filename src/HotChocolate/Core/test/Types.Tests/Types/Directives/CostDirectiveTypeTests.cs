@@ -276,6 +276,11 @@ namespace HotChocolate.Types
                     Assert.IsType<MultiplierPathType>(
                         Assert.IsType<NonNullType>(
                             Assert.IsType<ListType>(t.Type).ElementType).Type);
+                },
+                t =>
+                {
+                    Assert.Equal("defaultMultiplier", t.Name);
+                    Assert.IsType<IntType>(t.Type);
                 });
             Assert.Collection(directive.Locations,
                 t => Assert.Equal(DirectiveLocation.FieldDefinition, t));
