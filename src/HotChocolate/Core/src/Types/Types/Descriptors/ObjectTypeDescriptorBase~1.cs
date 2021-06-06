@@ -163,6 +163,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        [Obsolete]
         public new IObjectTypeDescriptor<T> Include<TResolver>()
         {
             base.Include<TResolver>();

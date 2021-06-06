@@ -97,6 +97,7 @@ namespace HotChocolate.Types
         /// fields from it.
         /// </summary>
         /// <typeparam name="TResolver">A resolver type.</typeparam>
+        [Obsolete]
         IObjectTypeDescriptor Include<TResolver>();
 
         /// <summary>
