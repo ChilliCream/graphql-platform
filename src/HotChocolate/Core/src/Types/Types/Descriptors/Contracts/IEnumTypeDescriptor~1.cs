@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -33,10 +34,12 @@ namespace HotChocolate.Types
         /// </param>
         IEnumTypeDescriptor<T> Description(string value);
 
+        [Obsolete("Use `Value`.")]
         IEnumValueDescriptor Item(T value);
 
         IEnumValueDescriptor Value(T value);
 
+        [Obsolete("Use `BindValues`.")]
         IEnumTypeDescriptor<T> BindItems(BindingBehavior behavior);
 
         IEnumTypeDescriptor<T> BindValues(BindingBehavior behavior);

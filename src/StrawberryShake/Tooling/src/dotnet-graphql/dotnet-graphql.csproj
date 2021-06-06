@@ -25,4 +25,8 @@
     <ProjectReference Include="..\..\..\..\HotChocolate\Utilities\src\Utilities.Introspection\HotChocolate.Utilities.Introspection.csproj" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
+  </PropertyGroup>
+
 </Project>

@@ -2,7 +2,7 @@
 title: "Introduction"
 ---
 
-> We are still working on the documentation for Hot Chocolate 11.1 so help us by finding typos, missing things or write some additional docs with us.
+> We are still working on the documentation for Hot Chocolate so help us by finding typos, missing things or write some additional docs with us.
 
 Hot Chocolate is an open-source GraphQL server for the Microsoft .NET platform that is compliant with the newest GraphQL 2021 draft spec, which makes Hot Chocolate compatible to all GraphQL compliant clients like Strawberry Shake, Relay, Apollo Client, and various other clients and tools.
 

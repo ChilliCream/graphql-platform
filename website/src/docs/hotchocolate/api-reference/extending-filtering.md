@@ -284,8 +284,10 @@ A little simplified this is what happens during visitation:
 ```graphql
 {
   users(
-    where: # level[0] = [] # instance[0] = x # Create SCOPE 1 with parameter x of type User
-    {
+    # level[0] = []
+    # instance[0] = x
+    # Create SCOPE 1 with parameter x of type User
+    where: {
       # Push property User.Company onto the scope
       # instance[1] =  x.Company
       # level[1] = []
@@ -400,7 +402,7 @@ services.AddGraphQLServer()
     .AddFiltering<CustomFilteringConvention>();
 ```
 
-To make this registration easier, HotChocolate also supports convention and provider extensions.
+To make this registration easier, Hot Chocolate also supports convention and provider extensions.
 Instead of creating a custom `FilterConvention`, you can also do the follwing:
 
 ```csharp

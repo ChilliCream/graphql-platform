@@ -2,10 +2,10 @@
 title: MongoDB
 ---
 
-HotChocolate has a data integration for MongoDB.
+Hot Chocolate has a data integration for MongoDB.
 With this integration, you can translate paging, filtering, sorting, and projections, directly into native MongoDB queries.
 
-You can find a example project in [HotChocolate Examples](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/MongoDB)
+You can find a example project in [Hot Chocolate Examples](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/MongoDB)
 
 # Get Started
 
@@ -244,7 +244,7 @@ query GetPersons {
 
 Sometimes you may want to return only a single object of a collection.
 To limit the response to one element you can use the `UseFirstOrDefault` or `UseSingleOrDefault` middleware.
-HotChocolate will rewrite the type of the field from a list type to an object type.
+Hot Chocolate will rewrite the type of the field from a list type to an object type.
 
 ```csharp
 [UseFirstOrDefault]

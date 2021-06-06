@@ -18,6 +18,10 @@ Various libraries, packages, etc. that developers can add to their own project a
 
 - [AutoGuru.HotChocolate.PolymorphicIds](https://github.com/autoguru-au/hotchocolate-polymorphic-ids) - Polymorphic Relay IDs for HotChocolate
 
+### Types
+
+- [HotChocolate.Types.NodaTime](https://github.com/shoooe/hotchocolate-nodatime) - Adds support for [NodaTime](https://github.com/nodatime/nodatime) types in Hot Chocolate.
+
 ### Validation
 
 - [AppAny.HotChocolate.FluentValidation](https://github.com/appany/AppAny.HotChocolate.FluentValidation) - Input field HotChocolate + FluentValidation integration

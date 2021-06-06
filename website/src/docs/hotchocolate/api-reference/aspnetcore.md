@@ -504,6 +504,16 @@ public string MyResolver([HttpContext] HttpContext context)
 }
 ```
 
+A custom http request interceptor can be registered like the following:
+
+```csharp
+services.AddSocketSessionInterceptor<MyCustomHttpRequestInterceptor>();
+```
+
+## Request Errors
+
+The interceptor can be used to do general request validation. This essentially allows to fail the request before the GraphQL context is created. In order to create a GraphQL error response simply throw a `GraphQLException` in the `OnCreateAsync` method. The middleware will translate these to a proper GraphQL error response for the client. You also can customize the status code behavior by using the HTTP result serializer mentioned above.
+
 # Subscription session handling
 
 The Hot Chocolate GraphQL server allows you to interact with the server's socket session handling by implementing `ISocketSessionInterceptor`. For convenience reasons, we provide a default implementation (`DefaultSocketSessionInterceptor`) that can be extended.
