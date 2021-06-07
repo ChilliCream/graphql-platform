@@ -154,3 +154,5 @@ public class Startup
 
 </ExampleTabs.Schema>
 </ExampleTabs>
+
+⚠ Object types nested inside of an input object type need to also be declared as input types.
