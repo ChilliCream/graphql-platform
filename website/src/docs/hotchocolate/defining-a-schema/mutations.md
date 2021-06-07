@@ -136,8 +136,6 @@ public class Startup
 
 </ExampleTabs.Schema>
 </ExampleTabs>
-  
-**Please note**: If there are any nested object inside `input` types - they also should be declared as `input`. Otherwise this will lead to incorrect introspection schema.
 
 # Transactions
 
