@@ -152,7 +152,7 @@ you need on the `FilterConvention`.
 You can also override the configure method to have a (probably) familiar API experience.
 
 ```csharp
-public class CustomConvention : FilterConventio
+public class CustomConvention : FilterConvention
 {
     protected override void Configure(IFilterConventionDescriptor descriptor)
     {
