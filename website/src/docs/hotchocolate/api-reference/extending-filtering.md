@@ -403,7 +403,7 @@ services.AddGraphQLServer()
 ```
 
 To make this registration easier, Hot Chocolate also supports convention and provider extensions.
-Instead of creating a custom `FilterConvention`, you can also do the follwing:
+Instead of creating a custom `FilterConvention`, you can also do the following:
 
 ```csharp
 services
