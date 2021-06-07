@@ -288,7 +288,7 @@ services.AddHttpResultSerializer(
 
 ## GraphQL multipart request specification
 
-Hot Chocolate implements the GraphQL multipart request specification which allows for file upload streams in your browser.
+Hot Chocolate implements the GraphQL multipart request specification which allows for file upload streams in your browser. The GraphQL multipart request specification can be found [here](https://github.com/jaydenseric/graphql-multipart-request-spec).
 
 In order to use file upload streams in your input types or as an argument register the `Upload` scalar like the following.
 
@@ -302,7 +302,7 @@ service
 In your resolver or input type you can then use the `IFile` interface to use the upload scalar.
 
 ```csharp
-public class Query 
+public class Query
 {
     public async Task<bool> UploadFile(IFile file)
     {
@@ -312,9 +312,19 @@ public class Query
 }
 ```
 
-The GraphQL multipart request specification can be found [here](https://github.com/jaydenseric/graphql-multipart-request-spec).
-
 > Note, that the `Upload` scalar can only be used as an input type and does not work on output types.
+
+If you need to upload large files or set custom upload size limits, you can configure those by registering custom [`FormOptions`](https://docs.microsoft.com/dotnet/api/microsoft.aspnetcore.http.features.formoptions).
+
+```csharp
+services.Configure<FormOptions>(options =>
+{
+    // Set the limit to 256 MB
+    options.MultipartBodyLengthLimit = 268435456;
+});
+```
+
+Based on your WebServer you might need to configure these limits elsewhere as well. [Kestrel](https://docs.microsoft.com/aspnet/core/mvc/models/file-uploads#kestrel-maximum-request-body-size) and [IIS](https://docs.microsoft.com/aspnet/core/mvc/models/file-uploads#iis) are covered in the ASP.NET Core Documentation.
 
 # Subscription Transport
 
@@ -477,6 +487,16 @@ public string MyResolver([HttpContext] HttpContext context)
     // some logic
 }
 ```
+
+A custom http request interceptor can be registered like the following:
+
+```csharp
+services.AddSocketSessionInterceptor<MyCustomHttpRequestInterceptor>();
+```
+
+## Request Errors
+
+The interceptor can be used to do general request validation. This essentially allows to fail the request before the GraphQL context is created. In order to create a GraphQL error response simply throw a `GraphQLException` in the `OnCreateAsync` method. The middleware will translate these to a proper GraphQL error response for the client. You also can customize the status code behavior by using the HTTP result serializer mentioned above.
 
 # Subscription session handling
 

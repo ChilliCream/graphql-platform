@@ -41,7 +41,8 @@ namespace HotChocolate.Types.Descriptors
         {
             HashSet<string> subscribeResolver = null;
 
-            if (Definition.Fields.IsImplicitBinding())
+            if (Definition.Fields.IsImplicitBinding() &&
+                Definition.FieldBindingType is not null)
             {
                 FieldDescriptorUtilities.AddImplicitFields(
                     this,
@@ -51,7 +52,7 @@ namespace HotChocolate.Types.Descriptors
                         var descriptor = ObjectFieldDescriptor.New(
                             Context, p, Definition.RuntimeType, Definition.FieldBindingType);
 
-                        if(Definition.IsExtension && p.IsDefined(typeof(GraphQLIgnoreAttribute)))
+                        if (Definition.IsExtension && Context.TypeInspector.IsMemberIgnored(p))
                         {
                             descriptor.Ignore();
                         }
@@ -62,7 +63,8 @@ namespace HotChocolate.Types.Descriptors
                     fields,
                     handledMembers,
                     include: IncludeField,
-                    includeIgnoredMembers: Definition.IsExtension);
+                    includeIgnoredMembers
+                    : Definition.IsExtension);
             }
 
             base.OnCompleteFields(fields, handledMembers);
@@ -80,7 +82,7 @@ namespace HotChocolate.Types.Descriptors
                 {
                     subscribeResolver = new HashSet<string>();
 
-                    foreach(MemberInfo member in all)
+                    foreach (MemberInfo member in all)
                     {
                         HandlePossibleSubscribeMember(member);
                     }
@@ -91,9 +93,9 @@ namespace HotChocolate.Types.Descriptors
 
             void HandlePossibleSubscribeMember(MemberInfo member)
             {
-                if(member.IsDefined(typeof(SubscribeAttribute)))
+                if (member.IsDefined(typeof(SubscribeAttribute)))
                 {
-                    if(member.GetCustomAttribute<SubscribeAttribute>() is { With: not null } attr)
+                    if (member.GetCustomAttribute<SubscribeAttribute>() is { With: not null } attr)
                     {
                         subscribeResolver.Add(attr.With);
                     }
@@ -127,36 +129,39 @@ namespace HotChocolate.Types.Descriptors
         public IObjectTypeDescriptor<T> BindFieldsImplicitly() =>
             BindFields(BindingBehavior.Implicit);
 
+        [Obsolete("Use Implements.")]
         public new IObjectTypeDescriptor<T> Interface<TInterface>()
             where TInterface : InterfaceType
-        {
-            base.Interface<TInterface>();
-            return this;
-        }
+            => Implements<TInterface>();
 
+        [Obsolete("Use Implements.")]
         public new IObjectTypeDescriptor<T> Interface<TInterface>(TInterface type)
             where TInterface : InterfaceType
-        {
-            base.Interface(type);
-            return this;
-        }
+            => Implements(type);
+
+        [Obsolete("Use Implements.")]
+        public new IObjectTypeDescriptor<T> Interface(NamedTypeNode type)
+            => Implements(type);
 
         public new IObjectTypeDescriptor<T> Implements<TInterface>()
-            where TInterface : InterfaceType =>
-            Interface<TInterface>();
-
-        public new IObjectTypeDescriptor<T> Interface(NamedTypeNode type)
+            where TInterface : InterfaceType
         {
-            base.Interface(type);
+            base.Implements<TInterface>();
             return this;
         }
 
         public new IObjectTypeDescriptor<T> Implements<TInterface>(TInterface type)
-            where TInterface : InterfaceType =>
-            Interface(type);
+            where TInterface : InterfaceType
+        {
+            base.Implements(type);
+            return this;
+        }
 
-        public new IObjectTypeDescriptor<T> Implements(NamedTypeNode type) =>
-            Interface(type);
+        public new IObjectTypeDescriptor<T> Implements(NamedTypeNode type)
+        {
+            base.Implements(type);
+            return this;
+        }
 
         public new IObjectTypeDescriptor<T> Include<TResolver>()
         {

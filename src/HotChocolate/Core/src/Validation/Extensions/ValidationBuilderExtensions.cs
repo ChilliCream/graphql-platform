@@ -87,8 +87,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
         internal static IValidationBuilder UseMultipliers(
             this IValidationBuilder builder, bool useMultipliers) =>
-            builder.ConfigureValidation(m =>
-                m.Modifiers.Add(o => o.UseComplexityMultipliers = useMultipliers));
+            builder.ConfigureValidation(
+                m => m.Modifiers.Add(o => o.UseComplexityMultipliers = useMultipliers));
 
         internal static IValidationBuilder SetAllowedComplexity(
             this IValidationBuilder builder, int allowedComplexity) =>

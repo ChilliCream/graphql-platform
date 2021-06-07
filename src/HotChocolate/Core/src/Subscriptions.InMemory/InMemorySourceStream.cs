@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using static HotChocolate.Subscriptions.Properties.Resources;
 
 namespace HotChocolate.Subscriptions.InMemory
 {
-    public class InMemorySourceStream<TMessage>
-        : ISourceStream<TMessage>
+    public class InMemorySourceStream<TMessage> : ISourceStream<TMessage>
     {
         private readonly Channel<TMessage> _channel;
         private bool _read;
@@ -24,7 +23,8 @@ namespace HotChocolate.Subscriptions.InMemory
         {
             if (_read)
             {
-                throw new InvalidOperationException("This stream can only be read once.");
+                throw new InvalidOperationException(
+                    InMemorySourceStream_ReadEventsAsync_ReadOnlyOnce);
             }
 
             if (_disposed)
@@ -58,10 +58,17 @@ namespace HotChocolate.Subscriptions.InMemory
                 _channel = channel;
             }
 
-            public async IAsyncEnumerator<T> GetAsyncEnumerator(
+            public IAsyncEnumerator<T> GetAsyncEnumerator(
+                CancellationToken cancellationToken = default) =>
+                new WrappedEnumerator<T>(
+                    GetAsyncEnumeratorInternally(cancellationToken),
+                    CompleteChannel);
+
+            private async IAsyncEnumerator<T> GetAsyncEnumeratorInternally(
                 CancellationToken cancellationToken = default)
             {
-                while (await _channel.Reader.WaitToReadAsync(cancellationToken))
+                while (await _channel.Reader.WaitToReadAsync(cancellationToken)
+                    .ConfigureAwait(false))
                 {
                     if (cancellationToken.IsCancellationRequested)
                     {
@@ -71,6 +78,13 @@ namespace HotChocolate.Subscriptions.InMemory
                     yield return await _channel.Reader.ReadAsync(cancellationToken)
                         .ConfigureAwait(false);
                 }
+            }
+
+            private ValueTask CompleteChannel()
+            {
+                // no more readers, outgoing channel should be closed
+                _channel.Writer.TryComplete();
+                return default;
             }
         }
 
@@ -90,6 +104,28 @@ namespace HotChocolate.Subscriptions.InMemory
                 {
                     yield return message!;
                 }
+            }
+        }
+
+        private class WrappedEnumerator<T> : IAsyncEnumerator<T>
+        {
+            private readonly IAsyncEnumerator<T> _enumerator;
+            private readonly Func<ValueTask> _dispose;
+
+            public WrappedEnumerator(IAsyncEnumerator<T> enumerator, Func<ValueTask> dispose)
+            {
+                _enumerator = enumerator;
+                _dispose = dispose;
+            }
+
+            public T Current => _enumerator.Current;
+
+            public ValueTask<bool> MoveNextAsync() => _enumerator.MoveNextAsync();
+
+            public async ValueTask DisposeAsync()
+            {
+                await _enumerator.DisposeAsync();
+                await _dispose();
             }
         }
     }

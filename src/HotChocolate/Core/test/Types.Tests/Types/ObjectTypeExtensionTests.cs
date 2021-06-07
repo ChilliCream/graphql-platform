@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Tests;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;
@@ -558,6 +560,77 @@ namespace HotChocolate.Types
             schema.Print().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Replace_Field_With_The_Same_Name()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType()
+                .AddTypeExtension<Replace_Field_PersonDto_2_Query>()
+                .AddTypeExtension<Replace_Field_PersonResolvers_2>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Replace_Field_With_The_Same_Name_Execute()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType()
+                .AddTypeExtension<Replace_Field_PersonDto_2_Query>()
+                .AddTypeExtension<Replace_Field_PersonResolvers_2>()
+                .ExecuteRequestAsync("{ person { someId(arg: \"efg\") } }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Extended_Field_Overwrites_Extended_Field()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType()
+                .AddTypeExtension<ExtensionA>()
+                .AddTypeExtension<ExtensionB>()
+                .ExecuteRequestAsync("{ foo }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_Member_And_ResolverMember_Are_Correctly_Set_When_Extending()
+        {
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<ObjectField_Test_Query>()
+                    .AddTypeExtension<ObjectField_Test_Query_Extension>()
+                    .BuildSchemaAsync();
+
+            IObjectField field = schema.QueryType.Fields["foo1"];
+            Assert.Equal("GetFoo", field.Member?.Name);
+            Assert.Equal("GetFoo1", field.ResolverMember?.Name);
+        }
+
+        [Fact]
+        public async Task Ensure_Member_And_ResolverMember_Are_The_Same_When_Not_Extending()
+        {
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<ObjectField_Test_Query>()
+                    .BuildSchemaAsync();
+
+            IObjectField field = schema.QueryType.Fields["foo"];
+            Assert.Equal("GetFoo", field.Member?.Name);
+            Assert.Equal("GetFoo", field.ResolverMember?.Name);
+        }
+
         public class FooType
             : ObjectType<Foo>
         {
@@ -788,6 +861,54 @@ namespace HotChocolate.Types
         {
             [BindMember(nameof(Replace_Field_PersonDto.InternalId))]
             public string SomeId { get; } = "abc";
+        }
+
+        public interface IPersonDto
+        {
+            string SomeId();
+        }
+
+        [ExtendObjectType("Query")]
+        public class Replace_Field_PersonDto_2_Query
+        {
+            public Replace_Field_PersonDto_2 GetPerson() => new();
+        }
+
+        public class Replace_Field_PersonDto_2 : IPersonDto
+        {
+            public string SomeId() => "1";
+        }
+
+        [ExtendObjectType(typeof(IPersonDto))]
+        public class Replace_Field_PersonResolvers_2
+        {
+            [BindMember(nameof(Replace_Field_PersonDto_2.SomeId))]
+            public string SomeId([Parent] IPersonDto dto, string arg = "abc") =>
+                dto.SomeId() + arg;
+        }
+
+        [ExtendObjectType(OperationTypeNames.Query)]
+        public class ExtensionA
+        {
+            public string Foo() => "abc";
+        }
+
+        [ExtendObjectType(OperationTypeNames.Query)]
+        public class ExtensionB
+        {
+            public string Foo() => "def";
+        }
+
+        public class ObjectField_Test_Query
+        {
+            public string GetFoo() => null;
+        }
+
+        [ExtendObjectType(typeof(ObjectField_Test_Query))]
+        public class ObjectField_Test_Query_Extension
+        {
+            [BindMember(nameof(ObjectField_Test_Query.GetFoo))]
+            public string GetFoo1() => null;
         }
     }
 }

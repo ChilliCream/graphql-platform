@@ -54,14 +54,17 @@ namespace HotChocolate.Data.MongoDb.Filters
                         });
                 }
 
-                return new MongoDbFilterOperation(
-                    path,
-                    new BsonDocument
-                    {
-                        { "$exists", true },
-                        { "$ne", BsonNull.Value },
-                        { "$eq", new BsonArray() }
-                    });
+                return new OrMongoDbFilterDefinition(
+                    new MongoDbFilterOperation(
+                        path,
+                        new BsonDocument
+                        {
+                            { "$exists", true },
+                            { "$in", new BsonArray { new BsonArray(), BsonNull.Value } }
+                        }),
+                    new MongoDbFilterOperation(
+                        path,
+                        new BsonDocument { { "$exists", false } }));
             }
 
             throw new InvalidOperationException();

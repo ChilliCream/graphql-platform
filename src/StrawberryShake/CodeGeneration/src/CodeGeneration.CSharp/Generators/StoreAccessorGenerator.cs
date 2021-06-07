@@ -11,14 +11,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _requestFactories = "requestFactories";
         private const string _resultDataFactories = "resultDataFactories";
 
-        protected override void Generate(
+        protected override bool CanHandle(StoreAccessorDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings)
+        {
+            return !settings.NoStore;
+        }
+
+        protected override void Generate(StoreAccessorDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
-            StoreAccessorDescriptor descriptor,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             fileName = descriptor.Name;
             path = State;
+            ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
             ClassBuilder factory = ClassBuilder
                 .New(fileName)
@@ -46,11 +54,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .AddBase(_requestFactories)
                 .AddBase(_resultDataFactories);
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
-                .AddType(factory)
-                .Build(writer);
+            factory.Build(writer);
         }
     }
 }

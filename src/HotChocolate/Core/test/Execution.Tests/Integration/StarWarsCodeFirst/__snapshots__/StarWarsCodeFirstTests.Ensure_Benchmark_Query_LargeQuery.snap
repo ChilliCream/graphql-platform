@@ -5721,8 +5721,8 @@
               "deprecationReason": null
             },
             {
-              "name": "specifiedBy",
-              "description": null,
+              "name": "specifiedByURL",
+              "description": "\u0060specifiedByURL\u0060 may return a String (in the form of a URL) for custom scalars, otherwise it will return \u0060null\u0060.",
               "args": [],
               "type": {
                 "kind": "SCALAR",

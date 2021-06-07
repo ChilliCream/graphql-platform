@@ -1172,7 +1172,7 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("__DirectiveArgument_Description", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_UsePagingAttribute_NodeTypeUnknown {
             get {
                 return ResourceManager.GetString("ThrowHelper_UsePagingAttribute_NodeTypeUnknown", resourceCulture);
@@ -1182,6 +1182,54 @@ namespace HotChocolate.Properties {
         internal static string Schema_GetDirectiveType_DoesNotExist {
             get {
                 return ResourceManager.GetString("Schema_GetDirectiveType_DoesNotExist", resourceCulture);
+            }
+        }
+        
+        internal static string ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed {
+            get {
+                return ResourceManager.GetString("ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed", resourceCulture);
+            }
+        }
+        
+        internal static string BindingCompiler_AddBinding_BindingCannotBeHandled {
+            get {
+                return ResourceManager.GetString("BindingCompiler_AddBinding_BindingCannotBeHandled", resourceCulture);
+            }
+        }
+        
+        internal static string Type_SpecifiedByUrl_Description {
+            get {
+                return ResourceManager.GetString("Type_SpecifiedByUrl_Description", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaBuilderExtensions_AddObjectType_TIsSchemaType {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_AddObjectType_TIsSchemaType", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaBuilderExtensions_AddUnionType_TIsSchemaType {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_AddUnionType_TIsSchemaType", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaBuilderExtensions_AddEnumType_TIsSchemaType {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_AddEnumType_TIsSchemaType", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaBuilderExtensions_AddInterfaceType_TIsSchemaType {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_AddInterfaceType_TIsSchemaType", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaBuilderExtensions_AddInputObjectType_TIsSchemaType {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_AddInputObjectType_TIsSchemaType", resourceCulture);
             }
         }
     }

@@ -57,7 +57,7 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
         {
-            throw ThrowHelper.UnsignedIntType_ParseLiteral_IsNotUnsigned(this);
+            throw ThrowHelper.UnsignedLongType_ParseLiteral_IsNotUnsigned(this);
         }
 
         /// <inheritdoc />

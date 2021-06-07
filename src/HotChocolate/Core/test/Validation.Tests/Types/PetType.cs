@@ -8,7 +8,7 @@ namespace HotChocolate.Validation.Types
         protected override void Configure(IInterfaceTypeDescriptor descriptor)
         {
             descriptor.Name("Pet");
-            descriptor.Interface<BeingType>();
+            descriptor.Implements<BeingType>();
             descriptor.Field("name").Type<NonNullType<StringType>>();
         }
     }

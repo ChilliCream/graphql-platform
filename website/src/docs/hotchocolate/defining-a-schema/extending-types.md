@@ -4,11 +4,9 @@ title: "Extending Types"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-> We are still working on the documentation for Hot Chocolate 11.1 so help us by finding typos, missing things or write some additional docs with us.
+GraphQL allows us to extend existing types with new functionality.
 
-In GraphQL we only have one query, mutation, and subscription type. These types can become huge, which makes them hard to maintain. To divide types into separate definitions, GraphQL allows to extend types.
-
-```graphql
+```sdl
 type Query {
   foo: String
 }
@@ -18,21 +16,79 @@ extend type Query {
 }
 ```
 
-> **Note:** Every single code example will be shown in three different approaches, annotation-based (previously known as pure code-first), code-first, and schema-first. However, they will always result in the same outcome on a GraphQL schema perspective and internally in Hot Chocolate. All three approaches have their pros and cons and can be combined when needed with each other. If you would like to learn more about the three approaches in Hot Chocolate, click on [Coding Approaches](/docs/hotchocolate/api-reference/coding-approaches).
+In Hot Chocolate type extensions work a little different. Instead of generating the `extend` syntax in the schema, the original type definition and its type extensions are merged at runtime into a combined type.
+
+Type extensions make most sense, if
+
+- we want to split up types into separate classes.
+
+- we can not modify the original type.
+
+> Note: If we just want to organize the fields of one of our types in different files, we can use [partial classes](https://docs.microsoft.com/dotnet/csharp/programming-guide/classes-and-structs/partial-classes-and-methods) in the Annotation-based approach.
+
+# Object Types
+
+Consider we have the following entity that we want to extend with functionality.
+
+```csharp
+public class Book
+{
+    public int Id { get; set; }
+
+    public string Title { get; set; }
+
+    public int AuthorId { get; set; }
+}
+```
+
+## Adding fields
+
+We can easily add new fields to our existing `Book` type.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
 
 ```csharp
-public class Query
+[ExtendObjectType(typeof(Book))]
+public class BookExtensions
 {
-    public string GetFoo() => ...
+    public IEnumerable<string> GetGenres([Parent] Book book)
+    {
+        // Omitted code for brevity
+    }
 }
 
-[ExtendObjectType(typeof(Query))]
-public class QueryExtensions
+public class Startup
 {
-    public string GetBar() => ...
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddTypeExtension<BookExtensions>();
+    }
+}
+```
+
+One of the most common use-cases for this would be adding new resolvers to one of our root types.
+
+```csharp
+[ExtendObjectType(typeof(Query))]
+public class QueryBookResolvers
+{
+    public IEnumerable<Book> GetBooks()
+    {
+        // Omitted code for brevity
+    }
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddTypeExtension<QueryBookResolvers>();
+    }
 }
 ```
 
@@ -40,145 +96,262 @@ public class QueryExtensions
 <ExampleTabs.Code>
 
 ```csharp
-public class QueryType : ObjectType<Query>
+public class BookTypeExtensions : ObjectTypeExtension<Book>
 {
-}
-
-public class QueryTypeExtension : ObjectTypeExtension<Query>
-{
-    protected override void Configure(IObjectTypeDescriptor descriptor)
+    protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
     {
-        descriptor.Name("Query")
+        // this needs to match the name of the actual object type
+        descriptor.Name("Book");
+
+        descriptor
+            .Field("genres")
+            .Type<ListType<StringType>>()
+            .Resolve(context =>
+            {
+                var parent = context.Parent<Book>();
+
+                // Omitted code for brevity
+            });
     }
 }
 
-public class Query
+public class Startup
 {
-    public string GetFoo() => ...
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddTypeExtension<BookTypeExtensions>();
+    }
+}
+```
+
+One of the most common use-cases for this would be adding new resolvers to one of our root types.
+
+```csharp
+public class QueryTypeBookResolvers : ObjectTypeExtension
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor.Name(OperationTypeNames.Query);
+
+        descriptor
+            .Field("books")
+            .Type<ListType<BookType>>()
+            .Resolve(context =>
+            {
+                // Omitted code for brevity
+            });
+    }
 }
 
-public class QueryExtensions
+public class Startup
 {
-    public string GetBar() => ...
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddTypeExtension<QueryTypeBookResolvers>();
+    }
+}
+```
+
+> Note: We can use `OperationTypeNames.Query` instead of `"Query"`. `OperationTypeNames` contain the names of the three root types.
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+Simply add a new field to the existing type.
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+## Removing fields
+
+We can also ignore fields of the type we are extending.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+[ExtendObjectType(typeof(Book),
+    IgnoreProperties = new[] { nameof(Book.AuthorId) })]
+public class BookExtensions
+{
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddTypeExtension<BookExtensions>();
+    }
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+**This is currently not working ([#3776](https://github.com/ChilliCream/hotchocolate/issues/3776))**
+
+```csharp
+public class BookTypeExtensions : ObjectTypeExtension<Book>
+{
+    protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
+    {
+        // this needs to match the name of the actual object type
+        descriptor.Name("Book");
+
+        descriptor.Ignore(f => f.AuthorId);
+    }
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddTypeExtension<BookTypeExtensions>();
+    }
 }
 ```
 
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-```graphql
-type Query {
-  foo: String
-}
-
-extend type Query {
-  bar: String
-}
-```
+Simply remove the field from the existing type.
 
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-# Extending types with the annotation-based approach
+## Replacing fields
 
-Extending types can be beneficial even with non-root types. Let's say we are building a schema with the annotation-based approach where we use pure C# to describe our types.
+We might have an `Id` field, which we want to replace with a field that resolves the actual type the `Id` is pointing to.
 
-Given is the following entity that we do want to extend in our graph with additional fields.
+In this example we replace the `authorId` field with an `author` field.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
 ```csharp
-public class Session
+[ExtendObjectType(typeof(Book))]
+public class BookExtensions
 {
-    public int Id { get; set; }
+    [BindMember(nameof(Book.AuthorId))]
+    public Author GetAuthor([Parent] Book book)
+    {
+        // Omitted code for brevity
+    }
+}
 
-    [Required]
-    [StringLength(200)]
-    public string? Title { get; set; }
-
-    [StringLength(4000)]
-    public string? Abstract { get; set; }
-
-    public int? TrackId { get; set; }
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddTypeExtension<BookExtensions>();
+    }
 }
 ```
 
-## Replace a field
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
 
-We could start adding our GraphQL concerns to this type directly. But often, we want to keep our entity clean from any graph concerns.
-
-To replace the `TrackId` with a field `Track` that returns the `Tack` object we could do the following.
+**This is currently not working ([#3776](https://github.com/ChilliCream/hotchocolate/issues/3776))**
 
 ```csharp
-[ExtendObjectType(typeof(Session))]
-public class SessionResolvers
+public class BookTypeExtensions : ObjectTypeExtension<Book>
 {
-    [BindProperty(nameof(Session.TrackId))]
-    public async Task<Track> GetTrackAsync([Parent] Session session) => ...
+    protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
+    {
+        // this needs to match the name of the actual object type
+        descriptor.Name("Book");
+
+        descriptor
+            .Field(f => f.AuthorId)
+            .Type<AuthorType>()
+            .Name("author")
+            .Resolve(context =>
+            {
+                var parent = context.Parent<Book>();
+
+                // Omitted code for brevity
+            });
+    }
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddTypeExtension<BookTypeExtensions>();
+    }
 }
 ```
 
-## Remove a field
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
 
-We also easily can remove properties that we do not like on our initial type. For instance, let us omit the `Abstract`.
+Simply replace the field on the existing type.
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+## Extending base types
+
+We can also extend multiple types at once, but still dedicate specific resolvers to specific types.
 
 ```csharp
-[ExtendObjectType(
-    typeof(Session),
-    IgnoreProperties = new[] { nameof(Session.Abstract) })]
-public class SessionResolvers
+// this extends every type that inherits from object (essentially every type)
+[ExtendObjectType(typeof(object))]
+public class ObjectExtensions
 {
+    // this field is added to every object type
+    public string NewField()
+    {
+        // Omitted code for brevity
+    }
+
+    // this field is only added to the Book type
+    public Author GetAuthor([Parent] Book book)
+    {
+        // Omitted code for brevity
+    }
+
+    // this field is only added to the Author type
+    public IEnumerable<Book> GetBooks([Parent] Author author)
+    {
+        // Omitted code for brevity
+    }
 }
 ```
 
-## Add a field
-
-Further, might we want to be able to add new fields to our entity.
+We can also modify all object types that are connected by a base type, like an interface.
 
 ```csharp
-[ExtendObjectType(typeof(Session))]
-public class SessionResolvers
+[InterfaceType]
+public interface IPost
 {
-    public async Task<IEnumerable<Speaker>> GetSpeakersAsync([Parent] Session session) => ...
+    string Title { get; set; }
+}
+
+// this extends every type that implements the IPost interface
+// note: the interface itself is not extended in the schema
+[ExtendObjectType(typeof(IPost))]
+public class PostExtensions
+{
+    public string NewField([Parent] IPost post)
+    {
+        // Omitted code for brevity
+    }
 }
 ```
 
-## Select types to extend
-
-Moreover, we can extend multiple types at once by extending upon base types or interfaces.
-
-```csharp
-[ExtendObjectType(typeof(object))] // <-- we are now extending every type that inherits from object (essentially every type).
-public class SessionResolvers
-{
-    public string SayHello() => "Hello";
-}
-```
-
-We can also extend multiple types at once with a type but dedicate specific resolvers to specific types.
-
-```csharp
-[ExtendObjectType(typeof(object))] // <-- we are now extending every type that inherits from object (essentially every type)
-public class SessionResolvers
-{
-    public string Abc([Parent] Session session) => "abc"; // <-- we are only adding this field to the Session type
-
-    public string Def([Parent] Track track) => "def"; // <-- we are only adding this field to the Track type
-}
-```
-
-Instead of using `typeof(object)` as a selector for extending types you can also use interfaces or other base types.
-
-## Select types to extend with schema types
-
-We also can use schema types as a type selector.
-
-```csharp
-[ExtendObjectType(typeof(ObjectType))] // <-- we are now extending every object type.
-public class SessionResolvers
-{
-    public string Abc([Parent] Session session) => "abc"; // <-- we are only adding this field to the Session type
-
-    public string Def([Parent] Track track) => "def"; // <-- we are only adding this field to the Track type
-}
-```
-
-> Note, that all of the advanced type extension methods are also possible with code-first.
+> Note: The `IPost` is annotated with `[InterfaceType]` to include it in the GraphQL schema, but that isn't necessary for the type extension to work.
+> We can use any base type, like `object` or an `abstract` base class, as an extension point without necessarily exposing the base type in our GraphQL schema.

@@ -71,9 +71,9 @@ namespace HotChocolate.Types.Relay.Descriptors
                 FieldResolver resolver =
                     ResolverCompiler.Resolve.Compile(
                         new ResolverDescriptor(
-                            typeof(TResolver),
                             typeof(object),
-                            new FieldMember("_", "_", m)));
+                            new FieldMember("_", "_", m),
+                            resolverType: typeof(TResolver)));
                 return ResolveNode(resolver.Resolver);
             }
 
@@ -93,9 +93,9 @@ namespace HotChocolate.Types.Relay.Descriptors
             FieldResolver resolver =
                 ResolverCompiler.Resolve.Compile(
                     new ResolverDescriptor(
-                        method.DeclaringType ?? typeof(object),
                         typeof(object),
-                        new FieldMember("_", "_", method)));
+                        new FieldMember("_", "_", method),
+                        resolverType: method.DeclaringType ?? typeof(object)));
             return ResolveNode(resolver.Resolver);
         }
 

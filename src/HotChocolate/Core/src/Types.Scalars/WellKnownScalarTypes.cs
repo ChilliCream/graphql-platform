@@ -9,8 +9,11 @@ namespace HotChocolate.Types
         public const string IPv4 = nameof(IPv4);
         public const string IPv6 = nameof(IPv6);
         public const string Isbn = nameof(Isbn);
+        public const string Latitude = nameof(Latitude);
         public const string LocalDate = nameof(LocalDate);
+        public const string LocalCurency = nameof(LocalCurency);
         public const string LocalTime = nameof(LocalTime);
+        public const string Longitude = nameof(Longitude);
         public const string MacAddress = nameof(MacAddress);
         public const string NegativeFloat = nameof(NegativeFloat);
         public const string NegativeInt = nameof(NegativeInt);
@@ -27,5 +30,6 @@ namespace HotChocolate.Types
         public const string Rgba = nameof(Rgba);
         public const string UnsignedInt = nameof(UnsignedInt);
         public const string UnsignedLong = nameof(UnsignedLong);
+        public const string UtcOffset = nameof(UtcOffset);
     }
 }

@@ -11,7 +11,7 @@ using StrawberryShake.Json;
 
 namespace StrawberryShake.Transport.Http
 {
-    public class HttpConnection : IConnection<JsonDocument>
+    public class HttpConnection : IHttpConnection
     {
         private readonly Func<HttpClient> _createClient;
         private readonly JsonOperationRequestSerializer _serializer = new();

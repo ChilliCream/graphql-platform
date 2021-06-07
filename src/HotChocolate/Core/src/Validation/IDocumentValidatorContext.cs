@@ -6,7 +6,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Validation
 {
     /// <summary>
-    /// This interface represents the document validation context that can 
+    /// This interface represents the document validation context that can
     /// be used by validation visitors to build up state.
     /// </summary>
     public interface IDocumentValidatorContext : ISyntaxVisitorContext
@@ -35,7 +35,7 @@ namespace HotChocolate.Validation
         /// A dictionary to store field infos per selection set.
         /// </summary>
         IDictionary<SelectionSetNode, IList<FieldInfo>> FieldSets { get; }
-        
+
         /// <summary>
         /// A set of field tuples.
         /// </summary>
@@ -122,9 +122,9 @@ namespace HotChocolate.Validation
         int Max { get; set; }
 
         /// <summary>
-        /// Defines that a visitation has found an unexpected error 
+        /// Defines that a visitation has found an unexpected error
         /// that is no concern of the current validation rule.
-        /// If no other error is found by any validation this will 
+        /// If no other error is found by any validation this will
         /// lead to an unexpected validation error.
         /// </summary>
         bool UnexpectedErrorsDetected { get; set; }
@@ -132,8 +132,8 @@ namespace HotChocolate.Validation
         /// <summary>
         /// A map to store arbitrary visitor data.
         /// </summary>
-        IDictionary<string, object> ContextData { get; }
-        
+        IDictionary<string, object?> ContextData { get; }
+
         /// <summary>
         /// Rents a list of field infos.
         /// </summary>

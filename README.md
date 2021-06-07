@@ -11,47 +11,50 @@
 
 # ChilliCream GraphQL Platform
 
-The ChilliCream GraphQL Platform, at its core, is a new way to create powerful Backends. HotChocolate, our GraphQL server, connects any service or data source and creates a cohesive service to offer your consumers a unified API.
+The ChilliCream GraphQL Platform, at its core, is a new way to create powerful Backends. HotChocolate, our .NET GraphQL server, connects any service or data source and creates a cohesive service to offer your consumers a unified API.
 
 ![ChilliCream GraphQL Platform](https://chillicream.com/resources/chillicream-graphql-platform.svg)
 
 ## Product Overview
 
-### Banana Cake Pop
-
-Our GraphQL IDE to explore, request and analyze any GraphQL endpoint.
-
-[Readme](src/BananaCakePop)
-
-### Green Donut
-
-Our DataLoader to solve the N+1 problem.
-
-[Readme](src/GreenDonut)
-
 ### Hot Chocolate
 
 Our GraphQL server to create GraphQL endpoints and merge schemas.
 
-[Readme](src/HotChocolate)
-
-### Marshmellow Pie
-
-Our schema registry for any GraphQL client and server.
-
-[Readme](src/MarshmallowPie)
+[Documentation](https://chillicream.com/docs/hotchocolate/)
 
 ### Strawberry Shake
 
 Our GraphQL client to fetch data from any GraphQL endpoint.
 
-[Readme](src/StrawberryShake)
+[Documentation](https://chillicream.com/docs/strawberryshake/)
+
+### Green Donut
+
+Our DataLoader to solve the N+1 problem.
+
+[Documentation](https://chillicream.com/docs/greendonut/)
+
+### Banana Cake Pop
+
+Our GraphQL IDE to explore, request and analyze any GraphQL endpoint.
+
+[Learn more](https://chillicream.com/docs/bananacakepop/)
+
+### Marshmellow Pie
+
+Our schema registry for any GraphQL client and server.
+
+## Roadmap
+
+If you are interested in upcoming releases, check out our [Roadmap](https://github.com/ChilliCream/hotchocolate/projects/28).
 
 ## Official Examples
 
 Examples of things built on top of the ChilliCream GraphQL Platform that are open source and can be explored by others.
 
 - [GraphQL workshop](https://github.com/ChilliCream/graphql-workshop)
+- [HotChocolate examples](https://github.com/ChilliCream/hotchocolate-examples)
 
 ## From our community
 

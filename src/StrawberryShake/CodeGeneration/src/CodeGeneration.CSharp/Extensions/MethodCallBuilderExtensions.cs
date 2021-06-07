@@ -27,5 +27,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
             builder.AddChainedCode(chainedMethod);
             return builder;
         }
+
+        public static MethodCallBuilder If(
+            this MethodCallBuilder builder,
+            bool condition,
+            Action<MethodCallBuilder> configure)
+        {
+            if (condition)
+            {
+                configure(builder);
+            }
+
+            return builder;
+        }
     }
 }

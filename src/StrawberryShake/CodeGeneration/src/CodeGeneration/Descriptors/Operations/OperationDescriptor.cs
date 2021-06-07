@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.CodeGeneration.Descriptors.Operations
 {
@@ -73,7 +74,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors.Operations
         public IReadOnlyList<PropertyDescriptor> Arguments { get; }
 
         /// <summary>
-        ///
+        /// The request strategy.
         /// </summary>
         public RequestStrategy Strategy { get; }
 

@@ -8,13 +8,17 @@ namespace StrawberryShake
     /// <summary>
     /// The operation executor handles the execution of a specific operation.
     /// </summary>
-    /// <typeparam name="TResultData">
+    /// <typeparam name="TData">
     /// The result data type of this operation executor.
+    /// </typeparam>
+    /// <typeparam name="TResult">
+    /// The runtime result
     /// </typeparam>
     public partial class OperationExecutor<TData, TResult>
         : IOperationExecutor<TResult>
-        where TResult : class
         where TData : class
+        where TResult : class
+
     {
         private readonly IConnection<TData> _connection;
         private readonly Func<IOperationResultBuilder<TData, TResult>> _resultBuilder;

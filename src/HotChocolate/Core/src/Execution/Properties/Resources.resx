@@ -202,7 +202,7 @@
     <value>The ArgumentValue method on the resolver context only allows for runtime values. If you want to retrieve the argument value as GraphQL literal use the ArgumentLiteral method instead.</value>
   </data>
   <data name="ThrowHelper_ResolverContext_CannotConvertArgument_Message" xml:space="preserve">
-    <value>Unable to convert the value if the argument `{0}` to `{1}`. Check if the requested type is correct or register a custom type converter.</value>
+    <value>Unable to convert the value of the argument `{0}` to `{1}`. Check if the requested type is correct or register a custom type converter.</value>
   </data>
   <data name="ThrowHelper_ResolverContext_LiteralNotCompatible_Message" xml:space="preserve">
     <value>The argument literal representation is `{0}` which is not compatible with the request literal type `{1}`.</value>

@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 
 namespace HotChocolate.Data.MongoDb
 {
@@ -40,6 +42,11 @@ namespace HotChocolate.Data.MongoDb
 
             if (_value is MongoDbFilterDefinition mongoDbOperation)
             {
+                if (_path is "")
+                {
+                    return mongoDbOperation.Render(resolvedFieldSerializer, serializerRegistry);
+                }
+
                 return new BsonDocument(
                     resolvedFieldName,
                     mongoDbOperation.Render(resolvedFieldSerializer, serializerRegistry));
@@ -62,7 +69,22 @@ namespace HotChocolate.Data.MongoDb
             }
             else
             {
-                resolvedFieldSerializer.Serialize(context, _value);
+                if (_value is DateTimeOffset dateTimeOffset &&
+                    resolvedFieldSerializer is DateTimeSerializer or NullableSerializer<DateTime>)
+                {
+                    if (dateTimeOffset.Offset == TimeSpan.Zero)
+                    {
+                        resolvedFieldSerializer.Serialize(context, dateTimeOffset.UtcDateTime);
+                    }
+                    else
+                    {
+                        resolvedFieldSerializer.Serialize(context, dateTimeOffset.DateTime);
+                    }
+                }
+                else
+                {
+                    resolvedFieldSerializer.Serialize(context, _value);
+                }
             }
 
             bsonWriter.WriteEndDocument();

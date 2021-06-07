@@ -22,7 +22,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             // arrange
             var connection = new SocketConnectionMock();
             var subscriptions = new SubscriptionManager(connection);
-            var subscription = new SubscriptionMock();
+            var subscription = new SubscriptionSessionMock();
 
             // act
             subscriptions.Register(subscription);
@@ -38,7 +38,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             // arrange
             var connection = new SocketConnectionMock();
             var subscriptions = new SubscriptionManager(connection);
-            var subscription = new SubscriptionMock();
+            var subscription = new SubscriptionSessionMock();
 
             // act
             Action action = () => subscriptions.Register(null);
@@ -53,14 +53,14 @@ namespace HotChocolate.AspNetCore.Subscriptions
             // arrange
             var connection = new SocketConnectionMock();
             var subscriptions = new SubscriptionManager(connection);
-            var subscription = new SubscriptionMock { Id = "abc" };
+            var subscription = new SubscriptionSessionMock { Id = "abc" };
 
             subscriptions.Register(subscription);
             subscriptions.Dispose();
 
             // act
             Action action = () =>
-                subscriptions.Register(new SubscriptionMock { Id = "def" });
+                subscriptions.Register(new SubscriptionSessionMock { Id = "def" });
 
             // assert
             Assert.Throws<ObjectDisposedException>(action);
@@ -72,7 +72,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             // arrange
             var connection = new SocketConnectionMock();
             var subscriptions = new SubscriptionManager(connection);
-            var subscription = new SubscriptionMock();
+            var subscription = new SubscriptionSessionMock();
             subscriptions.Register(subscription);
             Assert.Collection(subscriptions,
                 t => Assert.Equal(subscription, t));
@@ -90,7 +90,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             // arrange
             var connection = new SocketConnectionMock();
             var subscriptions = new SubscriptionManager(connection);
-            var subscription = new SubscriptionMock();
+            var subscription = new SubscriptionSessionMock();
             subscriptions.Register(subscription);
             Assert.Collection(subscriptions,
                 t => Assert.Equal(subscription, t));
@@ -108,7 +108,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             // arrange
             var connection = new SocketConnectionMock();
             var subscriptions = new SubscriptionManager(connection);
-            var subscription = new SubscriptionMock { Id = "abc" };
+            var subscription = new SubscriptionSessionMock { Id = "abc" };
 
             subscriptions.Register(subscription);
             subscriptions.Dispose();
@@ -126,8 +126,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
             // arrange
             var connection = new SocketConnectionMock();
             var subscriptions = new SubscriptionManager(connection);
-            var subscription_a = new SubscriptionMock();
-            var subscription_b = new SubscriptionMock();
+            var subscription_a = new SubscriptionSessionMock();
+            var subscription_b = new SubscriptionSessionMock();
 
             subscriptions.Register(subscription_a);
             subscriptions.Register(subscription_b);
@@ -147,7 +147,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             // arrange
             var connection = new SocketConnectionMock();
             var subscriptions = new SubscriptionManager(connection);
-            var subscription = new SubscriptionMock();
+            var subscription = new SubscriptionSessionMock();
             subscriptions.Register(subscription);
             Assert.Collection(subscriptions,
                 t => Assert.Equal(subscription, t));

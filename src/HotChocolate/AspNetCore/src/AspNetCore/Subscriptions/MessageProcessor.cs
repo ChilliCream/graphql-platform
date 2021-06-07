@@ -31,41 +31,48 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 TaskScheduler.Default);
         }
 
-        private async Task ProcessMessagesAsync(
-            CancellationToken cancellationToken)
+        private async Task ProcessMessagesAsync(CancellationToken cancellationToken)
         {
-            while (true)
+            try
             {
-                SequencePosition? position;
-                ReadResult result = await _reader.ReadAsync(cancellationToken);
-                ReadOnlySequence<byte> buffer = result.Buffer;
-
-                do
+                while (true)
                 {
-                    position = buffer.PositionOf(Subscription.Delimiter);
+                    SequencePosition? position;
+                    ReadResult result = await _reader.ReadAsync(cancellationToken);
+                    ReadOnlySequence<byte> buffer = result.Buffer;
 
-                    if (position is not null)
+                    do
                     {
-                        await _pipeline.ProcessAsync(
-                            _connection,
-                            buffer.Slice(0, position.Value),
-                            cancellationToken);
+                        position = buffer.PositionOf(SubscriptionSession.Delimiter);
 
-                        // Skip the message which was read.
-                        buffer = buffer.Slice(buffer.GetPosition(1, position.Value));
+                        if (position is not null)
+                        {
+                            await _pipeline.ProcessAsync(
+                                _connection,
+                                buffer.Slice(0, position.Value),
+                                cancellationToken);
+
+                            // Skip the message which was read.
+                            buffer = buffer.Slice(buffer.GetPosition(1, position.Value));
+                        }
+                    }
+                    while (position != null);
+
+                    _reader.AdvanceTo(buffer.Start, buffer.End);
+
+                    if (result.IsCompleted)
+                    {
+                        break;
                     }
                 }
-                while (position != null);
-
-                _reader.AdvanceTo(buffer.Start, buffer.End);
-
-                if (result.IsCompleted)
-                {
-                    break;
-                }
             }
-
-            await _reader.CompleteAsync();
+            catch(OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+            finally
+            {
+                // reader should be completed always, so that related pipe writer can
+                // stop write new messages
+                await _reader.CompleteAsync();
+            }
         }
     }
 }

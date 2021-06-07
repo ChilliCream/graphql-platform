@@ -6,27 +6,27 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class TransportProfileEnumGenerator : CodeGenerator<DependencyInjectionDescriptor>
     {
-        protected override bool CanHandle(DependencyInjectionDescriptor descriptor)
+        protected override bool CanHandle(DependencyInjectionDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings)
         {
             return descriptor.TransportProfiles.Count > 1;
         }
 
-        protected override void Generate(
+        protected override void Generate(DependencyInjectionDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
-            DependencyInjectionDescriptor descriptor,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             fileName = NamingConventions.CreateClientProfileKind(descriptor.Name);
             path = null;
+            ns = descriptor.ClientDescriptor.RuntimeType.NamespaceWithoutGlobal;
 
-            CodeFileBuilder
+            EnumBuilder
                 .New()
-                .SetNamespace(descriptor.ClientDescriptor.RuntimeType.NamespaceWithoutGlobal)
-                .AddType(EnumBuilder
-                    .New()
-                    .SetName(fileName)
-                    .AddElements(descriptor.TransportProfiles.Select(x => x.Name)))
+                .SetName(fileName)
+                .AddElements(descriptor.TransportProfiles.Select(x => x.Name))
                 .Build(writer);
         }
     }

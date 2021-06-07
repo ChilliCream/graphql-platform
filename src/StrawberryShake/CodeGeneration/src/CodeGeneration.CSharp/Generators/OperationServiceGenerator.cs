@@ -17,6 +17,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     {
         private const string _variables = "variables";
         private const string _operationExecutor = "_operationExecutor";
+        private const string operationExecutor = "operationExecutor";
         private const string _createRequest = "CreateRequest";
         private const string _strategy = "strategy";
         private const string _serializerResolver = "serializerResolver";
@@ -25,13 +26,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _cancellationToken = "cancellationToken";
 
         protected override void Generate(
-            CodeWriter writer,
             OperationDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings,
+            CodeWriter writer,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             fileName = descriptor.RuntimeType.Name;
             path = null;
+            ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
@@ -50,12 +54,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .AddConstructor()
                 .SetTypeName(fileName);
 
-            var runtimeTypeName =
+            var resultTypeName =
                 descriptor.ResultTypeReference.GetRuntimeType().Name;
 
             AddConstructorAssignedField(
-                TypeNames.IOperationExecutor.WithGeneric(runtimeTypeName),
+                TypeNames.IOperationExecutor.WithGeneric(resultTypeName),
                 _operationExecutor,
+                operationExecutor,
                 classBuilder,
                 constructorBuilder);
 
@@ -63,10 +68,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             if (descriptor is not SubscriptionOperationDescriptor)
             {
-                classBuilder.AddMethod(CreateExecuteMethod(descriptor, runtimeTypeName));
+                classBuilder.AddMethod(CreateExecuteMethod(descriptor, resultTypeName));
             }
 
-            classBuilder.AddMethod(CreateWatchMethod(descriptor, runtimeTypeName));
+            classBuilder.AddMethod(CreateWatchMethod(descriptor, resultTypeName));
             classBuilder.AddMethod(CreateRequestMethod(descriptor));
             classBuilder.AddMethod(CreateRequestVariablesMethod(descriptor));
 
@@ -75,7 +80,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             classBuilder
                 .AddProperty("ResultType")
                 .SetType(TypeNames.Type)
-                .AsLambda($"typeof({runtimeTypeName})")
+                .AsLambda($"typeof({resultTypeName})")
                 .SetInterface(TypeNames.IOperationRequestFactory);
 
             MethodCallBuilder createRequestCall = MethodCallBuilder
@@ -100,11 +105,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                             .MakeNullable()))
                 .AddCode(createRequestCall);
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
-                .AddType(classBuilder)
-                .Build(writer);
+            classBuilder.Build(writer);
         }
 
         private static void AddFormatMethods(
