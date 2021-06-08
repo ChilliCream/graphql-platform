@@ -1,1 +1,0 @@
-~HotChocolate.Types.Descriptors.InterfaceTypeDescriptor.Interface(HotChocolate.Language.NamedTypeNode type) -> HotChocolate.Types.IInterfaceTypeDescriptor
