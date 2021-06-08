@@ -2,6 +2,7 @@
 abstract HotChocolate.Types.Pagination.OffsetPagingHandler.SliceAsync(HotChocolate.Resolvers.IResolverContext! context, object! source, HotChocolate.Types.Pagination.OffsetPagingArguments arguments) -> System.Threading.Tasks.ValueTask<HotChocolate.Types.Pagination.CollectionSegment!>
 abstract HotChocolate.Types.Pagination.OffsetPagingProvider.CanHandle(HotChocolate.Internal.IExtendedType! source) -> bool
 abstract HotChocolate.Types.Pagination.OffsetPagingProvider.CreateHandler(HotChocolate.Internal.IExtendedType! source, HotChocolate.Types.Pagination.PagingOptions options) -> HotChocolate.Types.Pagination.OffsetPagingHandler!
+HotChocolate.Types.EnumerableOffsetPagingExtensions
 HotChocolate.Types.GetOffsetPagingProvider
 HotChocolate.Types.OffsetPagingObjectFieldDescriptorExtensions
 HotChocolate.Types.Pagination.CollectionSegment
@@ -36,6 +37,11 @@ HotChocolate.Types.Pagination.OffsetPagingHandler.IncludeTotalCount.get -> bool
 HotChocolate.Types.Pagination.OffsetPagingHandler.MaxPageSize.get -> int
 HotChocolate.Types.Pagination.OffsetPagingHandler.OffsetPagingHandler(HotChocolate.Types.Pagination.PagingOptions options) -> void
 HotChocolate.Types.Pagination.OffsetPagingHandler.ValidateContext(HotChocolate.Resolvers.IResolverContext! context) -> void
+HotChocolate.Types.Pagination.OffsetPagingHelper
+HotChocolate.Types.Pagination.OffsetPagingHelper.ApplySkip<TSource>
+HotChocolate.Types.Pagination.OffsetPagingHelper.ApplyTake<TSource>
+HotChocolate.Types.Pagination.OffsetPagingHelper.CountAsync<TSource>
+HotChocolate.Types.Pagination.OffsetPagingHelper.Execute<TSource, TEntity>
 HotChocolate.Types.Pagination.OffsetPagingProvider
 HotChocolate.Types.Pagination.OffsetPagingProvider.OffsetPagingProvider() -> void
 HotChocolate.Types.Pagination.QueryableOffsetPagingHandler<TItemType>
@@ -60,6 +66,8 @@ override HotChocolate.Types.Pagination.QueryableOffsetPagingHandler<TItemType>.S
 override HotChocolate.Types.Pagination.QueryableOffsetPagingProvider.CanHandle(HotChocolate.Internal.IExtendedType! source) -> bool
 override HotChocolate.Types.Pagination.QueryableOffsetPagingProvider.CreateHandler(HotChocolate.Internal.IExtendedType! source, HotChocolate.Types.Pagination.PagingOptions options) -> HotChocolate.Types.Pagination.OffsetPagingHandler!
 override HotChocolate.Types.UseOffsetPagingAttribute.TryConfigure(HotChocolate.Types.Descriptors.IDescriptorContext! context, HotChocolate.Types.IDescriptor! descriptor, System.Reflection.ICustomAttributeProvider! element) -> void
+static HotChocolate.Types.EnumerableOffsetPagingExtensions.ApplyOffsetPaginationAsync<TItemType>(this System.Collections.Generic.IEnumerable<TItemType>! source, HotChocolate.Types.Pagination.OffsetPagingArguments arguments, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<HotChocolate.Types.Pagination.CollectionSegment!>
+static HotChocolate.Types.EnumerableOffsetPagingExtensions.ApplyOffsetPaginationAsync<TItemType>(this System.Collections.Generic.IEnumerable<TItemType>! source, int? skip = null, int? take = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<HotChocolate.Types.Pagination.CollectionSegment!>
 static HotChocolate.Types.OffsetPagingObjectFieldDescriptorExtensions.AddOffsetPagingArguments(this HotChocolate.Types.IInterfaceFieldDescriptor! descriptor) -> HotChocolate.Types.IInterfaceFieldDescriptor!
 static HotChocolate.Types.OffsetPagingObjectFieldDescriptorExtensions.AddOffsetPagingArguments(this HotChocolate.Types.IObjectFieldDescriptor! descriptor) -> HotChocolate.Types.IObjectFieldDescriptor!
 static HotChocolate.Types.OffsetPagingObjectFieldDescriptorExtensions.UseOffsetPaging(this HotChocolate.Types.IInterfaceFieldDescriptor! descriptor, System.Type? type = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IInterfaceFieldDescriptor!
@@ -68,4 +76,5 @@ static HotChocolate.Types.OffsetPagingObjectFieldDescriptorExtensions.UseOffsetP
 static HotChocolate.Types.OffsetPagingObjectFieldDescriptorExtensions.UseOffsetPaging<TSchemaType>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type? itemType = null, HotChocolate.Types.GetOffsetPagingProvider? resolvePagingProvider = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
 static HotChocolate.Types.Pagination.CollectionSegmentCountType<T>.ApplyConfig(HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.CollectionSegment!>! descriptor) -> void
 static HotChocolate.Types.Pagination.CollectionSegmentType<T>.ApplyConfig(HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.CollectionSegment!>! descriptor) -> void
+static HotChocolate.Types.Pagination.OffsetPagingHelper.ApplyPagination<TSource, TEntity>(TSource source, HotChocolate.Types.Pagination.OffsetPagingArguments arguments, HotChocolate.Types.Pagination.OffsetPagingHelper.ApplySkip<TSource>! applySkip, HotChocolate.Types.Pagination.OffsetPagingHelper.ApplyTake<TSource>! applyTake, HotChocolate.Types.Pagination.OffsetPagingHelper.Execute<TSource, TEntity>! execute, HotChocolate.Types.Pagination.OffsetPagingHelper.CountAsync<TSource>! countAsync, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<HotChocolate.Types.Pagination.CollectionSegment!>
 virtual HotChocolate.Types.Pagination.QueryableOffsetPagingHandler<TItemType>.ExecuteQueryableAsync(System.Linq.IQueryable<TItemType>! queryable, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.List<TItemType>!>

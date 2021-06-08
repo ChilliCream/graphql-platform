@@ -107,6 +107,7 @@ namespace HotChocolate.Types
 
                 // resolve interface references
                 IReadOnlyList<ITypeReference> interfaces = definition.GetInterfaces();
+
                 if (interfaces.Count > 0)
                 {
                     var implements = new List<InterfaceType>();
@@ -116,7 +117,8 @@ namespace HotChocolate.Types
                         interfaces,
                         RuntimeType,
                         implements,
-                        this, SyntaxNode);
+                        this,
+                        SyntaxNode);
 
                     _implements = implements.ToArray();
                 }
