@@ -1,1 +1,9 @@
-
+HotChocolate.Types.EnumerableOffsetPagingExtensions
+HotChocolate.Types.Pagination.OffsetPagingHelper
+HotChocolate.Types.Pagination.OffsetPagingHelper.ApplySkip<TSource>
+HotChocolate.Types.Pagination.OffsetPagingHelper.ApplyTake<TSource>
+HotChocolate.Types.Pagination.OffsetPagingHelper.CountAsync<TSource>
+HotChocolate.Types.Pagination.OffsetPagingHelper.Execute<TSource, TEntity>
+static HotChocolate.Types.EnumerableOffsetPagingExtensions.ApplyOffsetPaginationAsync<TItemType>(this System.Collections.Generic.IEnumerable<TItemType>! source, HotChocolate.Types.Pagination.OffsetPagingArguments arguments, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<HotChocolate.Types.Pagination.CollectionSegment!>
+static HotChocolate.Types.EnumerableOffsetPagingExtensions.ApplyOffsetPaginationAsync<TItemType>(this System.Collections.Generic.IEnumerable<TItemType>! source, int? skip = null, int? take = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<HotChocolate.Types.Pagination.CollectionSegment!>
+static HotChocolate.Types.Pagination.OffsetPagingHelper.ApplyPagination<TSource, TEntity>(TSource source, HotChocolate.Types.Pagination.OffsetPagingArguments arguments, HotChocolate.Types.Pagination.OffsetPagingHelper.ApplySkip<TSource>! applySkip, HotChocolate.Types.Pagination.OffsetPagingHelper.ApplyTake<TSource>! applyTake, HotChocolate.Types.Pagination.OffsetPagingHelper.Execute<TSource, TEntity>! execute, HotChocolate.Types.Pagination.OffsetPagingHelper.CountAsync<TSource>! countAsync, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<HotChocolate.Types.Pagination.CollectionSegment!>
