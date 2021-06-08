@@ -32,6 +32,7 @@ HotChocolate.Language
 HotChocolate.Language.SyntaxTree
 HotChocolate.Language.Utf8
 HotChocolate.Language.Visitors
+HotChocolate.Language.Visitors.Benchmarks
 HotChocolate.PersistedQueries.FileSystem
 HotChocolate.PersistedQueries.Redis
 HotChocolate.Runtime
@@ -65,8 +66,10 @@ StrawberryShake.Generators
 StrawberryShake.Http
 StrawberryShake.Persistence.LiteDB
 StrawberryShake.Persistence.SQLite
+StrawberryShake.Razor
 StrawberryShake.Resources
 StrawberryShake.Tools
+StrawberryShake.Tools.Configuration
 StrawberryShake.Transport.Abstractions
 StrawberryShake.Transport.Http
 StrawberryShake.Transport.InMemory

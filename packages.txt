@@ -72,3 +72,6 @@ StrawberryShake.Persistence.LiteDB
 StrawberryShake.Persistence.SQLite
 HotChocolate.Data.MongoDb
 StrawberryShake.Tools.Configuration
+HotChocolate.Language
+StrawberryShake.Razor
+HotChocolate.Language.Visitors.Benchmarks

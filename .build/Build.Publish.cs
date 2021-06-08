@@ -22,22 +22,19 @@ partial class Build : NukeBuild
 {
     HashSet<string> ProtectedVersions = new HashSet<string>
     {
-        "11.2.0-preview.17",
-        "11.2.0-preview.18",
-        "11.2.0-preview.19",
-        "11.2.0-preview.20",
-        "11.2.0-preview.21",
-        "11.2.0-preview.22",
+        "11.3.0-rc.0",
+        "11.3.0-rc.1",
+        "11.3.0-rc.2",
+        
+        "12.0.0-preview.14",
+        "12.0.0-preview.15",
+        "12.0.0-preview.16",
+        "12.0.0-preview.17"
+    };
 
-        "12.0.0-preview.1",
-        "12.0.0-preview.2",
-        "12.0.0-preview.3",
-        "12.0.0-preview.4",
-        "12.0.0-preview.5",
-        "12.0.0-preview.6",
-        "12.0.0-preview.7",
-        "12.0.0-preview.8",
-        "12.0.0-preview.9"
+    HashSet<(string, string)> ErrorVersions = new HashSet<(string, string)>
+    {
+        // ("HotChocolate", "11.2.0"),
     };
 
     List<string> Keys = new List<string>
@@ -158,6 +155,15 @@ partial class Build : NukeBuild
                 {
                     if (!completed.Contains(packagedId))
                     {
+                        foreach(var error in ErrorVersions) 
+                        {
+                            if(packagedId.StartsWith(error.Item1))
+                            {
+                                await TryRemoveVersions(httpClient, packagedId, error.Item2,
+                                    requestInfo, completedVersions, key);
+                            }
+                        }
+
                         string[] versions = await TryGetVersions(httpClient, packagedId);
 
                         if (!await TryRemovePreviewVersions(httpClient, packagedId, versions,
@@ -271,6 +277,50 @@ partial class Build : NukeBuild
                 completed = false;
                 break;
             }
+        }
+
+        await File.WriteAllTextAsync(
+            RootDirectory / "completed_versions.txt",
+            string.Join(Environment.NewLine, completedVersions));
+
+        return completed;
+    }
+
+    async Task<bool> TryRemoveVersions(
+        HttpClient httpClient,
+        string packagedId,
+        string version,
+        RequestInfo requestInfo,
+        ISet<string> completedVersions,
+        int key)
+    {
+        var completed = true;
+
+        if (requestInfo.Add())
+        {
+            var apiKey = Keys[key];
+            using var response = new HttpRequestMessage(
+                HttpMethod.Delete,
+                $"https://www.nuget.org/api/v2/package/{packagedId}/{version}");
+            response.Headers.Add("X-NuGet-ApiKey", apiKey);
+
+            using HttpResponseMessage responseMessage = await httpClient.SendAsync(response);
+
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                Logger.Success($"{requestInfo.Count} Unlisted {version}");
+                completedVersions.Add(version);
+            }
+            else
+            {
+                Logger.Warn($"Request Failed: {responseMessage.StatusCode}");
+                completed = false;
+            }
+        }
+        else
+        {
+            Logger.Warn($"Limit used up.");
+            completed = false;
         }
 
         await File.WriteAllTextAsync(
