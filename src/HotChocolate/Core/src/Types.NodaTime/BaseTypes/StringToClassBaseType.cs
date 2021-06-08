@@ -11,6 +11,7 @@ namespace HotChocolate.Types.NodaTime
         }
 
         protected abstract string Serialize(TRuntimeType baseValue);
+        
         protected abstract bool TryDeserialize(string str, [NotNullWhen(true)] out TRuntimeType? output);
 
         protected override TRuntimeType ParseLiteral(StringValueNode literal)
