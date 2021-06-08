@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -522,6 +523,18 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void AnnotationBased_Interface_Issue_3577()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .AddType<Orange>()
+                .AddType<Pineapple>()
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
         public interface IFoo
         {
             bool Bar { get; }
@@ -571,6 +584,29 @@ namespace HotChocolate.Types
             public string Bar() => "foo";
 
             public string Bar2() => "Foo 2: Electric foo-galoo";
+        }
+
+        public class Query
+        {
+            public string Hello => "World!";
+
+            public IEnumerable<Fruit> GetFruits() => new Fruit[] {new Orange(), new Pineapple()};
+        }
+
+        [InterfaceType]
+        public class Fruit
+        {
+            public string Taste { get; } = "Sweet";
+        }
+
+        public class Orange : Fruit
+        {
+            public string Color { get; } = "Orange";
+        }
+
+        public class Pineapple : Fruit
+        {
+            public string Shape { get; } = "Strange";
         }
     }
 }
