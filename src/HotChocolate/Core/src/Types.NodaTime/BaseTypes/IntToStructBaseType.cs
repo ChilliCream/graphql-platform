@@ -4,10 +4,23 @@ using static HotChocolate.Types.NodaTime.Properties.NodaTimeResources;
 
 namespace HotChocolate.Types.NodaTime
 {
+    /// <summary>
+    /// This base class provides serialization functionality for noda time scalars
+    /// that have a <see cref="int"/> result value and a struct runtime value.
+    /// </summary>
+    /// <typeparam name="TRuntimeType">
+    /// The runtime type.
+    /// </typeparam>
     public abstract class IntToStructBaseType<TRuntimeType>
         : ScalarType<TRuntimeType, IntValueNode>
         where TRuntimeType : struct
     {
+        /// <summary>
+        /// Initializes a new instance of <see cref="IntToStructBaseType"/>.
+        /// </summary>
+        /// <param name="name">
+        /// The name of the scalar.
+        /// </param>
         protected IntToStructBaseType(string name)
             : base(name, BindingBehavior.Implicit)
         {
@@ -83,6 +96,19 @@ namespace HotChocolate.Types.NodaTime
             return false;
         }
 
+        /// <summary>
+        /// Tries to serialize the .net runtime representation to the
+        /// serialized result representation.
+        /// </summary>
+        /// <param name="runtimeValue">
+        /// The .net runtime representation.
+        /// </param>
+        /// <param name="resultValue">
+        /// The serialized result value.
+        /// </param>
+        /// <returns>
+        /// Returns the serialized result value.
+        /// </returns>
         protected abstract bool TrySerialize(
             TRuntimeType runtimeValue,
             [NotNullWhen(true)] out int? resultValue);
@@ -108,6 +134,19 @@ namespace HotChocolate.Types.NodaTime
             return false;
         }
 
+        /// <summary>
+        /// Tries to deserializes the value from the output format to the .net
+        /// runtime representation.
+        /// </summary>
+        /// <param name="resultValue">
+        /// The serialized result value.
+        /// </param>
+        /// <param name="runtimeValue">
+        /// The .net runtime representation.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if the serialized value was correctly deserialized; otherwise, <c>false</c>.
+        /// </returns>
         protected abstract bool TryDeserialize(
             int resultValue,
             [NotNullWhen(true)] out TRuntimeType? runtimeValue);
