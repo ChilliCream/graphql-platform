@@ -13,6 +13,7 @@ namespace HotChocolate.Types.NodaTime
         {
         }
 
+        /// <inheritdoc />
         protected override TRuntimeType ParseLiteral(IntValueNode literal)
         {
             if (TryDeserialize(literal.ToInt32(), out TRuntimeType? value))
@@ -25,6 +26,7 @@ namespace HotChocolate.Types.NodaTime
                 this);
         }
 
+        /// <inheritdoc />
         protected override IntValueNode ParseValue(TRuntimeType value)
         {
             if (TrySerialize(value, out var val))
@@ -37,6 +39,7 @@ namespace HotChocolate.Types.NodaTime
                 this);
         }
 
+        /// <inheritdoc />
         public override IValueNode ParseResult(object? resultValue)
         {
             if (resultValue is null)
@@ -59,6 +62,7 @@ namespace HotChocolate.Types.NodaTime
                 this);
         }
 
+        /// <inheritdoc />
         public override bool TrySerialize(
             object? runtimeValue,
             out object? resultValue)
@@ -83,6 +87,7 @@ namespace HotChocolate.Types.NodaTime
             TRuntimeType runtimeValue,
             [NotNullWhen(true)] out int? resultValue);
 
+        /// <inheritdoc />
         public override bool TryDeserialize(
             object? resultValue,
             out object? runtimeValue)
