@@ -75,3 +75,4 @@ StrawberryShake.Tools.Configuration
 HotChocolate.Language
 StrawberryShake.Razor
 HotChocolate.Language.Visitors.Benchmarks
+HotChocolate.Types.NodaTime
