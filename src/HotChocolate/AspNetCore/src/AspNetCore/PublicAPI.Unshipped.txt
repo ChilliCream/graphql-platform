@@ -1,1 +1,1 @@
-
+HotChocolate.AspNetCore.Subscriptions.Messages.DataStartMessageHandler.DataStartMessageHandler(HotChocolate.Execution.IRequestExecutor! requestExecutor, HotChocolate.AspNetCore.ISocketSessionInterceptor! socketSessionInterceptor, HotChocolate.IErrorHandler! errorHandler, HotChocolate.Execution.Instrumentation.IDiagnosticEvents! diagnosticEvents) -> void
