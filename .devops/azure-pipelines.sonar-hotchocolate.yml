@@ -15,7 +15,7 @@ stages:
     jobs:
       - job: Sonar
         displayName: "Sonar"
-        dependsOn: [Cover]
+        dependsOn: [ ]
         steps:
           - task: UseDotNet@2
             displayName: "Install .NET Core 2.1"
