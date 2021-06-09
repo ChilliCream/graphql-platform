@@ -62,5 +62,83 @@ namespace HotChocolate.Types.NodaTime.Properties {
                 return ResourceManager.GetString("StringToStructBaseType_ParseLiteral_UnableToDeserializeString", resourceCulture);
             }
         }
+        
+        internal static string DateTimeZoneType_Description {
+            get {
+                return ResourceManager.GetString("DateTimeZoneType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string DurationType_Description {
+            get {
+                return ResourceManager.GetString("DurationType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string InstantType_Description {
+            get {
+                return ResourceManager.GetString("InstantType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string IsoDayOfWeekType_Description {
+            get {
+                return ResourceManager.GetString("IsoDayOfWeekType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string LocalDateTimeType_Description {
+            get {
+                return ResourceManager.GetString("LocalDateTimeType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string LocalDateType_Description {
+            get {
+                return ResourceManager.GetString("LocalDateType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string LocalTimeType_Description {
+            get {
+                return ResourceManager.GetString("LocalTimeType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string OffsetDateTimeType_Description {
+            get {
+                return ResourceManager.GetString("OffsetDateTimeType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string OffsetDateType_Description {
+            get {
+                return ResourceManager.GetString("OffsetDateType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string OffsetTimeType_Description {
+            get {
+                return ResourceManager.GetString("OffsetTimeType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string OffsetType_Description {
+            get {
+                return ResourceManager.GetString("OffsetType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string PeriodType_Description {
+            get {
+                return ResourceManager.GetString("PeriodType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string ZonedDateTimeType_Description {
+            get {
+                return ResourceManager.GetString("ZonedDateTimeType_Description", resourceCulture);
+            }
+        }
     }
 }

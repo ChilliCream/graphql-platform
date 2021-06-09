@@ -3,7 +3,7 @@ using HotChocolate.Types.NodaTime;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    public static class ISchemaBuilderExtensions
+    public static class NodaTimeRequestExecutorBuilderExtensions
     {
         public static ISchemaBuilder AddNodaTime(this ISchemaBuilder schemaBuilder)
         {
