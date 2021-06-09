@@ -339,17 +339,17 @@ namespace HotChocolate.Language
                 switch (code)
                 {
                     // SourceCharacter
-                    case 0:
-                    case 1:
-                    case 2:
-                    case 3:
-                    case 4:
-                    case 5:
-                    case 6:
-                    case 7:
-                    case 8:
-                    case GraphQLConstants.NewLine:
-                    case 11:
+                    case GraphQLConstants.Null:
+                    case GraphQLConstants.StartOfHeading:
+                    case GraphQLConstants.StartOfText:
+                    case GraphQLConstants.EndOfText:
+                    case GraphQLConstants.EndOfTransmission:
+                    case GraphQLConstants.Enquiry:
+                    case GraphQLConstants.Acknowledgement:
+                    case GraphQLConstants.Bell:
+                    case GraphQLConstants.Backspace:
+                    case GraphQLConstants.LineFeed:
+                    case GraphQLConstants.VerticalTab:
                     case 12:
                     case GraphQLConstants.Return:
                     case 14:
@@ -376,7 +376,7 @@ namespace HotChocolate.Language
 
                     case GraphQLConstants.Hash:
                     case GraphQLConstants.Space:
-                    case GraphQLConstants.Tab:
+                    case GraphQLConstants.HorizontalTab:
                         if (trim)
                         {
                             trimStart = _position;
@@ -598,7 +598,7 @@ namespace HotChocolate.Language
                         NewLine();
                         break;
 
-                    case GraphQLConstants.Tab:
+                    case GraphQLConstants.HorizontalTab:
                     case GraphQLConstants.Space:
                     case GraphQLConstants.Comma:
                         ++_position;

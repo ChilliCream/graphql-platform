@@ -32,6 +32,22 @@ namespace HotChocolate.Language
 
         public const int StackallocThreshold = 256;
 
+        public const byte Null = (byte)'\u0000';                    // \u0000
+        public const byte StartOfHeading = (byte)'\u0001';          // \u0001
+        public const byte StartOfText = (byte)'\u0002';             // \u0002
+        public const byte EndOfText = (byte)'\u0003';               // \u0003
+        public const byte EndOfTransmission = (byte)'\u0004';       // \u0004
+        public const byte Enquiry = (byte)'\u0005';                 // \u0005
+        public const byte Acknowledgement = (byte)'\u0006';         // \u0006
+        public const byte Bell = (byte)'\u0007';                    // \u0007
+        public const byte Backspace = (byte)'\b';                   // \u0008
+        public const byte HorizontalTab = (byte)'\t';               // \u0009
+        public const byte LineFeed = (byte)'\n';                    // \u0010
+        public const byte VerticalTab = (byte)'\v';                 // \u0011
+
+
+        public const byte Return = (byte)'\r';
+
         public const byte A = (byte)'a';
         public const byte Z = (byte)'z';
         public const byte Hyphen = (byte)'-';
@@ -41,7 +57,7 @@ namespace HotChocolate.Language
         public const byte Backslash = (byte)'\\';
         public const byte Forwardslash = (byte)'/';
         public const byte B = (byte)'b';
-        public const byte Backspace = (byte)'\b';
+
         public const byte F = (byte)'f';
         public const byte Formfeed = (byte)'\f';
         public const byte N = (byte)'n';
@@ -64,12 +80,11 @@ namespace HotChocolate.Language
         public const byte Dot = (byte)'.';
         public const byte Space = (byte)' ';
         public const byte Hash = (byte)'#';
-        public const byte Tab = (byte)'\t';
+
         public const byte U = (byte)'u';
         public const byte Zero = (byte)'0';
         public const byte E = (byte)'e';
-        public const byte NewLine = (byte)'\n';
-        public const byte Return = (byte)'\r';
+
         public const byte Quote = (byte)'"';
         public const byte Comma = (byte)',';
 

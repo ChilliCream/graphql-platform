@@ -59,7 +59,7 @@ namespace HotChocolate.Language
             _escapeCharacters[F] = Formfeed;
             _escapeCharacters[N] = NewLine;
             _escapeCharacters[R] = Return;
-            _escapeCharacters[T] = Tab;
+            _escapeCharacters[T] = HorizontalTab;
         }
 
         private static void InitializeIsPunctuatorCache()
@@ -154,7 +154,7 @@ namespace HotChocolate.Language
         {
             _trimComment[GraphQLConstants.Hash] = true;
             _trimComment[GraphQLConstants.Space] = true;
-            _trimComment[GraphQLConstants.Tab] = true;
+            _trimComment[GraphQLConstants.HorizontalTab] = true;
         }
 
         private static void InitializePunctuator()

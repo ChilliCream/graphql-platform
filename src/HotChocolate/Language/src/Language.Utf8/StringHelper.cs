@@ -128,7 +128,7 @@ namespace HotChocolate.Language
             int i = 0;
             while (position < chunk.Length
                 && (chunk[position] == GraphQLConstants.Space
-                    || chunk[position] == GraphQLConstants.Tab))
+                    || chunk[position] == GraphQLConstants.HorizontalTab))
             {
                 i++;
                 position++;
@@ -142,7 +142,7 @@ namespace HotChocolate.Language
             int position = chunk.Length - 1;
             while (position > 0
                 && (chunk[position] == GraphQLConstants.Space
-                    || chunk[position] == GraphQLConstants.Tab))
+                    || chunk[position] == GraphQLConstants.HorizontalTab))
             {
                 position--;
             }
