@@ -58,6 +58,7 @@ namespace HotChocolate.Execution.Serialization
             {
                 await WriteResultAsync(result, outputStream, cancellationToken)
                     .ConfigureAwait(false);
+                result.Dispose();
             }
 
             // After the last part of the multipart response is sent, the terminating

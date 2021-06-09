@@ -20,10 +20,10 @@ partial class Build : NukeBuild
         .Requires(() => GitHubPRNumber != null)
         .Executes(() =>
         {
-            Console.WriteLine($"GitHubRepository: {GitHubRepository}");
-            Console.WriteLine($"GitHubHeadRef: {GitHubHeadRef}");
-            Console.WriteLine($"GitHubBaseRef: {GitHubBaseRef}");
-            Console.WriteLine($"GitHubPRNumber: {GitHubPRNumber}");
+            Logger.Info($"GitHubRepository: {GitHubRepository}");
+            Logger.Info($"GitHubHeadRef: {GitHubHeadRef}");
+            Logger.Info($"GitHubBaseRef: {GitHubBaseRef}");
+            Logger.Info($"GitHubPRNumber: {GitHubPRNumber}");
 
             DotNetBuildSonarSolution(AllSolutionFile);
 
@@ -41,8 +41,6 @@ partial class Build : NukeBuild
         });
 
     Target Sonar => _ => _
-        .DependsOn(Cover)
-        .Consumes(Cover)
         .Executes(() =>
         {
             DotNetBuildSonarSolution(AllSolutionFile);
@@ -52,8 +50,13 @@ partial class Build : NukeBuild
                 .SetProcessWorkingDirectory(RootDirectory));
 
             Logger.Info("Creating Sonar analysis for version: {0} ...", GitVersion.SemVer);
+
             SonarScannerBegin(SonarBeginFullSettings);
             DotNetBuild(SonarBuildAll);
+            DotNetTest(
+                c => CoverNoBuildSettingsOnly50(c, TestProjects),
+                degreeOfParallelism: DegreeOfParallelism,
+                completeOnFailure: true);
             SonarScannerEnd(SonarEndSettings);
         });
 

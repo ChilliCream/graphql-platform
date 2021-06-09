@@ -11,7 +11,6 @@ class Helpers
     public static readonly string[] Directories =
     {
         "GreenDonut",
-        // Path.Combine("HotChocolate", "ApolloFederation"),
         Path.Combine("HotChocolate", "AspNetCore"),
         Path.Combine("HotChocolate", "Core"),
         Path.Combine("HotChocolate", "Language"),
@@ -29,14 +28,16 @@ class Helpers
 
     public static IEnumerable<string> GetAllProjects(
         string sourceDirectory, 
-        IEnumerable<string> directories)
+        IEnumerable<string> directories,
+        Func<string, bool> include = null)
     {
         foreach (var directory in directories)
         {
             var fullDirectory = Path.Combine(sourceDirectory, directory);
             foreach (var file in Directory.EnumerateFiles(fullDirectory, "*.csproj", SearchOption.AllDirectories))
             {
-                if (file.Contains("benchmark", StringComparison.OrdinalIgnoreCase)
+                if (!(include?.Invoke(file) ?? true)
+                    || file.Contains("benchmark", StringComparison.OrdinalIgnoreCase)
                     || file.Contains("demo", StringComparison.OrdinalIgnoreCase)
                     || file.Contains("sample", StringComparison.OrdinalIgnoreCase)
                     || file.Contains("HotChocolate.Core.Tests", StringComparison.OrdinalIgnoreCase)
@@ -52,7 +53,8 @@ class Helpers
 
     public static IReadOnlyCollection<Output> DotNetBuildSonarSolution(
         string solutionFile,
-        IEnumerable<string> directories = null)
+        IEnumerable<string> directories = null,
+        Func<string, bool> include = null)
     {
         if (File.Exists(solutionFile))
         {
@@ -61,7 +63,7 @@ class Helpers
 
         directories ??= Directories;
 
-        IEnumerable<string> projects = GetAllProjects(Path.GetDirectoryName(solutionFile), directories);
+        IEnumerable<string> projects = GetAllProjects(Path.GetDirectoryName(solutionFile), directories, include);
         var workingDirectory = Path.GetDirectoryName(solutionFile);
         var list = new List<Output>();
 
