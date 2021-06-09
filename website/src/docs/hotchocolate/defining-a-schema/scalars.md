@@ -195,14 +195,6 @@ It can be installed like the following.
 dotnet add package HotChocolate.Types.NodaTime
 ```
 
-Its scalars need to be registered like the following.
-
-```csharp
-services
-    .AddGraphQLServer()
-    .ConfigureSchema(builder => builder.AddNodaTime());
-```
-
 **Available Scalars:**
 
 | Type           | Description                                                                               | Example                                       |
