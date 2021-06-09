@@ -1,7 +1,7 @@
-
-
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Types;
+using static HotChocolate.Configuration.Validation.ComplexOutputTypeValidationHelper;
 
 #nullable enable
 
@@ -14,7 +14,13 @@ namespace HotChocolate.Configuration.Validation
             IReadOnlySchemaOptions options,
             ICollection<ISchemaError> errors)
         {
-            throw new System.NotImplementedException();
+            if (options.StrictValidation)
+            {
+                foreach (ObjectType type in typeSystemObjects.OfType<ObjectType>())
+                {
+                    EnsureFieldNamesAreValid(type, errors); // covers #2
+                }
+            }
         }
     }
 }
