@@ -34,6 +34,7 @@ namespace HotChocolate.AspNetCore.Utilities
                         .AddGraphQLServer()
                         .AddStarWarsTypes()
                         .AddTypeExtension<QueryExtension>()
+                        .AddTypeExtension<SubscriptionsExtensions>()
                         .AddExportDirectiveType()
                         .AddStarWarsRepositories()
                         .AddInMemorySubscriptions()
