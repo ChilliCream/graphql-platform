@@ -200,7 +200,7 @@ Its scalars need to be registered like the following.
 ```csharp
 services
     .AddGraphQLServer()
-    .AddNodaTime();
+    .ConfigureSchema(builder => builder.AddNodaTime());
 ```
 
 **Available Scalars:**
