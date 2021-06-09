@@ -15,14 +15,14 @@ namespace HotChocolate.Types.NodaTime
                     "a negative value means that the local time is behind UTC (e.g. for America).";
         }
 
-        protected override string Serialize(Offset baseValue)
+        protected override string Serialize(Offset runtimeValue)
             => OffsetPattern.GeneralInvariantWithZ
                 .WithCulture(CultureInfo.InvariantCulture)
-                .Format(baseValue);
+                .Format(runtimeValue);
 
-        protected override bool TryDeserialize(string str, [NotNullWhen(true)] out Offset? output)
+        protected override bool TryDeserialize(string resultValue, [NotNullWhen(true)] out Offset? runtimeValue)
             => OffsetPattern.GeneralInvariantWithZ
                 .WithCulture(CultureInfo.InvariantCulture)
-                .TryParse(str, out output);
+                .TryParse(resultValue, out runtimeValue);
     }
 }

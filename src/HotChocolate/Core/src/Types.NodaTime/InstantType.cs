@@ -12,14 +12,14 @@ namespace HotChocolate.Types.NodaTime
             Description = "Represents an instant on the global timeline, with nanosecond resolution.";
         }
 
-        protected override string Serialize(Instant val)
+        protected override string Serialize(Instant runtimeValue)
             => InstantPattern.ExtendedIso
                 .WithCulture(CultureInfo.InvariantCulture)
-                .Format(val);
+                .Format(runtimeValue);
 
-        protected override bool TryDeserialize(string str, [NotNullWhen(true)] out Instant? output)
+        protected override bool TryDeserialize(string resultValue, [NotNullWhen(true)] out Instant? runtimeValue)
             => InstantPattern.ExtendedIso
                 .WithCulture(CultureInfo.InvariantCulture)
-                .TryParse(str, out output);
+                .TryParse(resultValue, out runtimeValue);
     }
 }

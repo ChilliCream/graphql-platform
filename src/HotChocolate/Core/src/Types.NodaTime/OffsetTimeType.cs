@@ -15,14 +15,14 @@ namespace HotChocolate.Types.NodaTime
                     "but without any date information.";
         }
 
-        protected override string Serialize(OffsetTime baseValue)
+        protected override string Serialize(OffsetTime runtimeValue)
             => OffsetTimePattern.GeneralIso
                 .WithCulture(CultureInfo.InvariantCulture)
-                .Format(baseValue);
+                .Format(runtimeValue);
 
-        protected override bool TryDeserialize(string str, [NotNullWhen(true)] out OffsetTime? output)
+        protected override bool TryDeserialize(string resultValue, [NotNullWhen(true)] out OffsetTime? runtimeValue)
             => OffsetTimePattern.GeneralIso
                 .WithCulture(CultureInfo.InvariantCulture)
-                .TryParse(str, out output);
+                .TryParse(resultValue, out runtimeValue);
     }
 }

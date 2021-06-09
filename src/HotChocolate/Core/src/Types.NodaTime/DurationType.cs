@@ -12,14 +12,14 @@ namespace HotChocolate.Types.NodaTime
             Description = "Represents a fixed (and calendar-independent) length of time.";
         }
 
-        protected override string Serialize(Duration baseValue)
+        protected override string Serialize(Duration runtimeValue)
             => DurationPattern.Roundtrip
                 .WithCulture(CultureInfo.InvariantCulture)
-                .Format(baseValue);
+                .Format(runtimeValue);
 
-        protected override bool TryDeserialize(string str, [NotNullWhen(true)] out Duration? output)
+        protected override bool TryDeserialize(string resultValue, [NotNullWhen(true)] out Duration? runtimeValue)
             => DurationPattern.Roundtrip
                 .WithCulture(CultureInfo.InvariantCulture)
-                .TryParse(str, out output);
+                .TryParse(resultValue, out runtimeValue);
     }
 }

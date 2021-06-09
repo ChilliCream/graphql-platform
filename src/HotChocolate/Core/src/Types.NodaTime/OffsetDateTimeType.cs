@@ -12,14 +12,14 @@ namespace HotChocolate.Types.NodaTime
             Description = "A local date and time in a particular calendar system, combined with an offset from UTC.";
         }
 
-        protected override string Serialize(OffsetDateTime baseValue)
+        protected override string Serialize(OffsetDateTime runtimeValue)
             => OffsetDateTimePattern.GeneralIso
                 .WithCulture(CultureInfo.InvariantCulture)
-                .Format(baseValue);
+                .Format(runtimeValue);
 
-        protected override bool TryDeserialize(string str, [NotNullWhen(true)] out OffsetDateTime? output)
+        protected override bool TryDeserialize(string resultValue, [NotNullWhen(true)] out OffsetDateTime? runtimeValue)
             => OffsetDateTimePattern.ExtendedIso
                 .WithCulture(CultureInfo.InvariantCulture)
-                .TryParse(str, out output);
+                .TryParse(resultValue, out runtimeValue);
     }
 }

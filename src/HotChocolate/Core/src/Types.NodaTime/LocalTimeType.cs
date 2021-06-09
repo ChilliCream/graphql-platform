@@ -13,14 +13,14 @@ namespace HotChocolate.Types.NodaTime
         }
 
 
-        protected override string Serialize(LocalTime baseValue)
+        protected override string Serialize(LocalTime runtimeValue)
             => LocalTimePattern.ExtendedIso
                 .WithCulture(CultureInfo.InvariantCulture)
-                .Format(baseValue);
+                .Format(runtimeValue);
 
-        protected override bool TryDeserialize(string str, [NotNullWhen(true)] out LocalTime? output)
+        protected override bool TryDeserialize(string resultValue, [NotNullWhen(true)] out LocalTime? runtimeValue)
             => LocalTimePattern.ExtendedIso
                 .WithCulture(CultureInfo.InvariantCulture)
-                .TryParse(str, out output);
+                .TryParse(resultValue, out runtimeValue);
     }
 }

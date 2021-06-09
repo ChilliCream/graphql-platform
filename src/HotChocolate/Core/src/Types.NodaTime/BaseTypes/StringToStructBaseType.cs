@@ -1,18 +1,18 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
+using HotChocolate.Types.NodaTime.Properties;
+using static HotChocolate.Types.NodaTime.Properties.NodaTimeResources;
 
 namespace HotChocolate.Types.NodaTime
 {
-    public abstract class StringToStructBaseType<TRuntimeType> : ScalarType<TRuntimeType, StringValueNode>
+    public abstract class StringToStructBaseType<TRuntimeType>
+        : ScalarType<TRuntimeType, StringValueNode>
         where TRuntimeType : struct
     {
-        public StringToStructBaseType(string name) : base(name, bind: BindingBehavior.Implicit)
+        public StringToStructBaseType(string name)
+            : base(name, BindingBehavior.Implicit)
         {
         }
-
-        protected abstract string Serialize(TRuntimeType baseValue);
-        
-        protected abstract bool TryDeserialize(string str, [NotNullWhen(true)] out TRuntimeType? output);
 
         protected override TRuntimeType ParseLiteral(StringValueNode literal)
         {
@@ -22,7 +22,7 @@ namespace HotChocolate.Types.NodaTime
             }
 
             throw new SerializationException(
-                $"Unable to deserialize string to {this.Name}", 
+                string.Format(StringToStructBaseType_ParseLiteral_UnableToDeserializeString, Name),
                 this);
         }
 
@@ -49,7 +49,7 @@ namespace HotChocolate.Types.NodaTime
             }
 
             throw new SerializationException(
-                $"Unable to deserialize string to {this.Name}",
+                string.Format(StringToStructBaseType_ParseLiteral_UnableToDeserializeString, Name),
                 this);
         }
 
@@ -71,6 +71,8 @@ namespace HotChocolate.Types.NodaTime
             return false;
         }
 
+        protected abstract string Serialize(TRuntimeType runtimeValue);
+
         public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
             if (resultValue is null)
@@ -79,7 +81,7 @@ namespace HotChocolate.Types.NodaTime
                 return true;
             }
 
-            if (resultValue is string str && TryDeserialize(str, out TRuntimeType? val))
+            if (resultValue is string s && TryDeserialize(s, out TRuntimeType? val))
             {
                 runtimeValue = val;
                 return true;
@@ -88,5 +90,9 @@ namespace HotChocolate.Types.NodaTime
             runtimeValue = null;
             return false;
         }
+
+        protected abstract bool TryDeserialize(
+            string resultValue,
+            [NotNullWhen(true)] out TRuntimeType? runtimeValue);
     }
 }

@@ -14,14 +14,14 @@ namespace HotChocolate.Types.NodaTime
                     "at a specific offset from UTC but without any time-of-day information.";
         }
 
-        protected override string Serialize(OffsetDate baseValue)
+        protected override string Serialize(OffsetDate runtimeValue)
             => OffsetDatePattern.GeneralIso
                 .WithCulture(CultureInfo.InvariantCulture)
-                .Format(baseValue);
+                .Format(runtimeValue);
 
-        protected override bool TryDeserialize(string str, [NotNullWhen(true)] out OffsetDate? output)
+        protected override bool TryDeserialize(string resultValue, [NotNullWhen(true)] out OffsetDate? runtimeValue)
             => OffsetDatePattern.GeneralIso
                 .WithCulture(CultureInfo.InvariantCulture)
-                .TryParse(str, out output);
+                .TryParse(resultValue, out runtimeValue);
     }
 }

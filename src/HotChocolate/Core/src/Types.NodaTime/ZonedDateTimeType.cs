@@ -17,14 +17,14 @@ namespace HotChocolate.Types.NodaTime
                 "A ZonedDateTime is global, in that it maps to a single Instant.";
         }
 
-        protected override string Serialize(ZonedDateTime baseValue)
+        protected override string Serialize(ZonedDateTime runtimeValue)
             => ZonedDateTimePattern
                 .CreateWithInvariantCulture(formatString, DateTimeZoneProviders.Tzdb)
-                .Format(baseValue);
+                .Format(runtimeValue);
 
-        protected override bool TryDeserialize(string str, [NotNullWhen(true)] out ZonedDateTime? output)
+        protected override bool TryDeserialize(string resultValue, [NotNullWhen(true)] out ZonedDateTime? runtimeValue)
             => ZonedDateTimePattern
                 .CreateWithInvariantCulture(formatString, DateTimeZoneProviders.Tzdb)
-                .TryParse(str, out output);
+                .TryParse(resultValue, out runtimeValue);
     }
 }

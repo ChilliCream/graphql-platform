@@ -13,20 +13,20 @@ namespace HotChocolate.Types.NodaTime
                     "to the offset from UTC at any particular instant.";
         }
 
-        protected override string Serialize(DateTimeZone val)
-            => val.Id;
+        protected override string Serialize(DateTimeZone runtimeValue)
+            => runtimeValue.Id;
 
-        protected override bool TryDeserialize(string str, [NotNullWhen(true)] out DateTimeZone? output)
+        protected override bool TryDeserialize(string resultValue, [NotNullWhen(true)] out DateTimeZone? runtimeValue)
         {
-            DateTimeZone? result = DateTimeZoneProviders.Tzdb.GetZoneOrNull(str);
+            DateTimeZone? result = DateTimeZoneProviders.Tzdb.GetZoneOrNull(resultValue);
             if (result == null)
             {
-                output = null;
+                runtimeValue = null;
                 return false;
             }
             else
             {
-                output = result;
+                runtimeValue = result;
                 return true;
             }
         }

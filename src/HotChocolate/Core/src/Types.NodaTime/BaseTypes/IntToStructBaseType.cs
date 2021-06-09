@@ -1,19 +1,17 @@
 using HotChocolate.Language;
 using System.Diagnostics.CodeAnalysis;
+using static HotChocolate.Types.NodaTime.Properties.NodaTimeResources;
 
 namespace HotChocolate.Types.NodaTime
 {
-    public abstract class IntToStructBaseType<TRuntimeType> : ScalarType<TRuntimeType, IntValueNode>
+    public abstract class IntToStructBaseType<TRuntimeType>
+        : ScalarType<TRuntimeType, IntValueNode>
         where TRuntimeType : struct
     {
-
-        public IntToStructBaseType(string name) : base(name, bind: BindingBehavior.Implicit)
+        protected IntToStructBaseType(string name)
+            : base(name, BindingBehavior.Implicit)
         {
         }
-
-        protected abstract bool TrySerialize(TRuntimeType baseValue, [NotNullWhen(true)] out int? output);
-        
-        protected abstract bool TryDeserialize(int val, [NotNullWhen(true)] out TRuntimeType? output);
 
         protected override TRuntimeType ParseLiteral(IntValueNode literal)
         {
@@ -23,19 +21,19 @@ namespace HotChocolate.Types.NodaTime
             }
 
             throw new SerializationException(
-                $"Unable to deserialize integer to {this.Name}", 
+                string.Format(IntToStructBaseType_ParseLiteral_UnableToDeserializeInt, Name),
                 this);
         }
 
         protected override IntValueNode ParseValue(TRuntimeType value)
         {
-            if (TrySerialize(value, out int? val))
+            if (TrySerialize(value, out var val))
             {
                 return new IntValueNode(val.Value);
             }
-        
+
             throw new SerializationException(
-                $"Unable to deserialize integer to {this.Name}", 
+                string.Format(IntToStructBaseType_ParseLiteral_UnableToDeserializeInt, Name),
                 this);
         }
 
@@ -57,11 +55,13 @@ namespace HotChocolate.Types.NodaTime
             }
 
             throw new SerializationException(
-                $"Unable to deserialize integer to {this.Name}",
+                string.Format(IntToStructBaseType_ParseLiteral_UnableToDeserializeInt, Name),
                 this);
         }
 
-        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+        public override bool TrySerialize(
+            object? runtimeValue,
+            out object? resultValue)
         {
             if (runtimeValue is null)
             {
@@ -69,7 +69,7 @@ namespace HotChocolate.Types.NodaTime
                 return true;
             }
 
-            if (runtimeValue is TRuntimeType dt && TrySerialize(dt, out int? val))
+            if (runtimeValue is TRuntimeType dt && TrySerialize(dt, out var val))
             {
                 resultValue = val.Value;
                 return true;
@@ -79,7 +79,13 @@ namespace HotChocolate.Types.NodaTime
             return false;
         }
 
-        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
+        protected abstract bool TrySerialize(
+            TRuntimeType runtimeValue,
+            [NotNullWhen(true)] out int? resultValue);
+
+        public override bool TryDeserialize(
+            object? resultValue,
+            out object? runtimeValue)
         {
             if (resultValue is null)
             {
@@ -87,7 +93,7 @@ namespace HotChocolate.Types.NodaTime
                 return true;
             }
 
-            if (resultValue is int str && TryDeserialize(str, out TRuntimeType? val))
+            if (resultValue is int i && TryDeserialize(i, out TRuntimeType? val))
             {
                 runtimeValue = val;
                 return true;
@@ -96,5 +102,9 @@ namespace HotChocolate.Types.NodaTime
             runtimeValue = null;
             return false;
         }
+
+        protected abstract bool TryDeserialize(
+            int resultValue,
+            [NotNullWhen(true)] out TRuntimeType? runtimeValue);
     }
 }

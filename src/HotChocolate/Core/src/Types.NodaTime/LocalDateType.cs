@@ -15,14 +15,14 @@ namespace HotChocolate.Types.NodaTime
                     "time zone or time of day.";
         }
 
-        protected override string Serialize(LocalDate baseValue)
+        protected override string Serialize(LocalDate runtimeValue)
             => LocalDatePattern.Iso
                 .WithCulture(CultureInfo.InvariantCulture)
-                .Format(baseValue);
+                .Format(runtimeValue);
 
-        protected override bool TryDeserialize(string str, [NotNullWhen(true)] out LocalDate? output)
+        protected override bool TryDeserialize(string resultValue, [NotNullWhen(true)] out LocalDate? runtimeValue)
             => LocalDatePattern.Iso
                 .WithCulture(CultureInfo.InvariantCulture)
-                .TryParse(str, out output);
+                .TryParse(resultValue, out runtimeValue);
     }
 }

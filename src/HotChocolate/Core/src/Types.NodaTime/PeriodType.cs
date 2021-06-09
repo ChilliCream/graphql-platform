@@ -13,12 +13,12 @@ namespace HotChocolate.Types.NodaTime
                     "terms: hours, days, weeks, months and so on.";
         }
 
-        protected override string Serialize(Period baseValue)
+        protected override string Serialize(Period runtimeValue)
             => PeriodPattern.Roundtrip
-                .Format(baseValue);
+                .Format(runtimeValue);
 
-        protected override bool TryDeserialize(string str, [NotNullWhen(true)] out Period? output)
+        protected override bool TryDeserialize(string resultValue, [NotNullWhen(true)] out Period? runtimeValue)
             => PeriodPattern.Roundtrip
-                .TryParse(str, out output);
+                .TryParse(resultValue, out runtimeValue);
     }
 }
