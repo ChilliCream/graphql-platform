@@ -3,8 +3,7 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {
-    public sealed class DataStopMessageHandler
-        : MessageHandler<DataStopMessage>
+    public sealed class DataStopMessageHandler : MessageHandler<DataStopMessage>
     {
         protected override Task HandleAsync(
             ISocketConnection connection,

@@ -81,8 +81,6 @@ public class Startup
 }
 ```
 
-**The following does not currently work ([3577](https://github.com/ChilliCream/hotchocolate/issues/3577))**
-
 We can also use classes to define an interface.
 
 ```csharp
@@ -237,7 +235,7 @@ public class Startup
 > Note: We have to explicitly register the interface implementations:
 >
 > ```csharp
-> services.AddType<TextMessageType>()
+> services.AddGraphQLServer().AddType<TextMessageType>()
 > ```
 
 # Interfaces implementing interfaces
@@ -458,7 +456,7 @@ public class Startup
 > Note: We also have to register the `DatedMessage` interface manually, if we do not expose it through a field directly:
 >
 > ```csharp
-> services.AddType<DatedMessageType>()
+> services.AddGraphQLServer().AddType<DatedMessageType>()
 > ```
 
 # Dynamic fields
