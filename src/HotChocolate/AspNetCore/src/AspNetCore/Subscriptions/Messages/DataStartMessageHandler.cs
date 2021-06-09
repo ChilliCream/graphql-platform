@@ -10,22 +10,25 @@ using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {
-    public sealed class DataStartMessageHandler
-        : MessageHandler<DataStartMessage>
+    public sealed class DataStartMessageHandler : MessageHandler<DataStartMessage>
     {
         private readonly IRequestExecutor _requestExecutor;
         private readonly ISocketSessionInterceptor _socketSessionInterceptor;
+        private readonly IErrorHandler _errorHandler;
         private readonly IDiagnosticEvents _diagnosticEvents;
 
         public DataStartMessageHandler(
             IRequestExecutor requestExecutor,
             ISocketSessionInterceptor socketSessionInterceptor,
+            IErrorHandler errorHandler,
             IDiagnosticEvents diagnosticEvents)
         {
             _requestExecutor = requestExecutor ??
                 throw new ArgumentNullException(nameof(requestExecutor));
             _socketSessionInterceptor = socketSessionInterceptor ??
                 throw new ArgumentNullException(nameof(socketSessionInterceptor));
+            _errorHandler = errorHandler ??
+                throw new ArgumentNullException(nameof(errorHandler));
             _diagnosticEvents = diagnosticEvents ??
                 throw new ArgumentNullException(nameof(diagnosticEvents));
         }
@@ -35,62 +38,99 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             DataStartMessage message,
             CancellationToken cancellationToken)
         {
-            IQueryRequestBuilder requestBuilder =
-                QueryRequestBuilder.From(message.Payload)
-                    .SetServices(connection.RequestServices);
+            var session = new CancellationTokenSource();
+            var combined = CancellationTokenSource.CreateLinkedTokenSource(
+                session.Token, cancellationToken);
+            var sessionIsHandled = false;
 
-            await _socketSessionInterceptor.OnRequestAsync(
-                connection, requestBuilder, cancellationToken);
+            IExecutionResult result = await ExecuteAsync(combined.Token);
 
-            IExecutionResult result = await _requestExecutor.ExecuteAsync(
-                requestBuilder.Create(), cancellationToken);
-
-            switch (result)
+            try
             {
-                case ISubscriptionResult subscriptionResult:
-                    // while a subscription result must be disposed we are not handling it here
-                    // and leave this responsibility to the subscription session.
-                    ISubscription subscription = GetSubscription(result);
+                switch (result)
+                {
+                    case SubscriptionResult subscriptionResult:
+                        // first we add the cts to the result so that they are disposed when the
+                        // subscription is disposed.
+                        subscriptionResult.RegisterDisposable(combined);
 
-                    var subscriptionSession = new SubscriptionSession(
-                        connection,
-                        subscriptionResult,
-                        subscription,
-                        _diagnosticEvents,
-                        message.Id);
+                        // while a subscription result must be disposed we are not handling it here
+                        // and leave this responsibility to the subscription session.
+                        ISubscription subscription = GetSubscription(result);
 
-                    connection.Subscriptions.Register(subscriptionSession);
-                    break;
-
-                case IResponseStream streamResult:
-                    // stream results represent deferred execution streams that use execution
-                    // resources. We need to ensure that these are disposed when we are
-                    // finished.
-                    await using (streamResult)
-                    {
-                        await HandleStreamResultAsync(
+                        var subscriptionSession = new SubscriptionSession(
+                            session,
                             connection,
-                            message,
-                            streamResult,
-                            cancellationToken);
-                    }
-                    break;
+                            subscriptionResult,
+                            subscription,
+                            _diagnosticEvents,
+                            message.Id);
 
-                case IQueryResult queryResult:
-                    // query results use pooled memory an need to be disposed after we have
-                    // used them.
-                    using (queryResult)
-                    {
-                        await HandleQueryResultAsync(
-                            connection,
-                            message,
-                            queryResult,
-                            cancellationToken);
-                    }
-                    break;
+                        connection.Subscriptions.Register(subscriptionSession);
+                        sessionIsHandled = true;
+                        break;
 
-                default:
-                    throw DataStartMessageHandler_RequestTypeNotSupported();
+                    case IResponseStream streamResult:
+                        // stream results represent deferred execution streams that use execution
+                        // resources. We need to ensure that these are disposed when we are
+                        // finished.
+                        await using (streamResult)
+                        {
+                            await HandleStreamResultAsync(
+                                connection,
+                                message,
+                                streamResult,
+                                cancellationToken);
+                        }
+
+                        break;
+
+                    case IQueryResult queryResult:
+                        // query results use pooled memory an need to be disposed after we have
+                        // used them.
+                        using (queryResult)
+                        {
+                            await HandleQueryResultAsync(
+                                connection,
+                                message,
+                                queryResult,
+                                cancellationToken);
+                        }
+
+                        break;
+
+                    default:
+                        throw DataStartMessageHandler_RequestTypeNotSupported();
+                }
+            }
+            finally
+            {
+                if (!sessionIsHandled)
+                {
+                    session.Dispose();
+                    combined.Dispose();
+                }
+            }
+
+            async ValueTask<IExecutionResult> ExecuteAsync(CancellationToken cancellationToken)
+            {
+                try
+                {
+                    IQueryRequestBuilder requestBuilder =
+                        QueryRequestBuilder.From(message.Payload)
+                            .SetServices(connection.RequestServices);
+
+                    await _socketSessionInterceptor.OnRequestAsync(
+                        connection, requestBuilder, cancellationToken);
+
+                    return await _requestExecutor.ExecuteAsync(
+                        requestBuilder.Create(), cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    IErrorBuilder error = _errorHandler.CreateUnexpectedError(ex);
+                    return QueryResultBuilder.CreateError(error.Build());
+                }
             }
         }
 

@@ -8,8 +8,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
-    public class WebSocketConnection
-        : ISocketConnection
+    public class WebSocketConnection : ISocketConnection
     {
         private const string _protocol = "graphql-ws";
         private const int _maxMessageSize = 1024 * 4;
