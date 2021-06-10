@@ -1,17 +1,33 @@
 ---
 title: Neo4J Database
 ---
-HotChocolate has a data integration for Neo4J.
-With this integration, you can translate paging, filtering, sorting, and projections, directly into native cypher queries.
 
-You can find a example project in [HotChocolate Examples](https://github.com/ChilliCream/graphql-workshop-neo4j)
+## Requirements
+1. [Neo4J Database](https://neo4j.com/download/) v4.1.0 and above.
+2. [APOC](https://neo4j.com/developer/neo4j-apoc/)
 
-# Get Started
+# What does this integration do?
+
+It is a GraphQL to openCypher execution layer for Neo4J. It makes it easy for developers to user Neo4J and GraphQL together. With this integration, you can translate paging, filtering, sorting, and projections, directly into native cypher queries.
+
+You can find a full example project in Github [here](https://github.com/ChilliCream/graphql-workshop-neo4j) this example covers code first and schema first.
+
+Lets get started with a simple tutorial.
+
+# Step 1: Create a GraphQL server project
+
+Open your preferred terminal and select a directory where you want to add the code of this tutorial.
+
+1. Create an empty ASP.NET Core server project.
+
+```bash
+dotnet new web -n Demo
+```
 
 To use the Neo4J integration, you need to install the package `HotChocolate.Data.Neo4J`.
 
 ```bash
-dotnet add package HotChocolate.Data.Neo4J
+dotnet add ./Demo package HotChocolate.Data.Neo4J
 ```
 
 # Neo4JExecutable
@@ -185,14 +201,37 @@ query GetPersons {
 
 ## Offset Pagination
 
-To use cursor based pagination annoate you resolver with `[UseNeo4JPaging]` or `.UseNeo4JPaging()`
+To use cursor based pagination annotate your resolver with `[UseNeo4JPaging]` or `.UseNeo4JPaging()`
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
 
 ```csharp
 [UseNeo4JDatabase("neo4j")]
 [UseOffsetPaging]
 [UseProjection]
-public IExecutable<Person> GetPersons([ScopedService] IAsyncSession session) => new(session);
+public IExecutable<Person> GetPersons(
+  [ScopedService] IAsyncSession session) => new(session);
 ```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+```graphql
+
+```
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
 
 You can then execute queries like the following one:
 
