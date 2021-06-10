@@ -94,9 +94,7 @@ namespace HotChocolate.Language
                 writer.WriteSpace();
                 writer.Write(Keywords.Implements);
                 writer.WriteSpace();
-                writer.WriteMany(node.Interfaces,
-                    (n, w) => writer.WriteNamedType(n),
-                    " & ");
+                writer.WriteMany(node.Interfaces, (n, _) => writer.WriteNamedType(n), " & ");
             }
 
             WriteDirectives(node.Directives, writer);
@@ -128,9 +126,7 @@ namespace HotChocolate.Language
                 writer.WriteSpace();
                 writer.Write(Keywords.Implements);
                 writer.WriteSpace();
-                writer.WriteMany(node.Interfaces,
-                    (n, w) => writer.WriteNamedType(n),
-                    " & ");
+                writer.WriteMany(node.Interfaces, (n, _) => writer.WriteNamedType(n), " & ");
             }
 
             WriteDirectives(node.Directives, writer);
@@ -163,9 +159,7 @@ namespace HotChocolate.Language
             writer.Write('=');
             writer.WriteSpace();
 
-            writer.WriteMany(node.Types,
-                (n, w) => writer.WriteNamedType(n),
-                " | ");
+            writer.WriteMany(node.Types, (n, _) => writer.WriteNamedType(n), " | ");
         }
 
         protected override void VisitEnumTypeDefinition(
@@ -311,9 +305,7 @@ namespace HotChocolate.Language
             writer.Write(Keywords.On);
             writer.WriteSpace();
 
-            writer.WriteMany(node.Locations,
-                (n, w) => writer.WriteName(n),
-                " | ");
+            writer.WriteMany(node.Locations, (n, _) => writer.WriteName(n), " | ");
         }
 
         protected virtual void VisitArgumentValueDefinition(
@@ -344,7 +336,7 @@ namespace HotChocolate.Language
                 writer.WriteSpace();
                 writer.Write("=");
                 writer.WriteSpace();
-                writer.WriteValue(node.DefaultValue);
+                writer.WriteValue(node.DefaultValue!);
             }
 
             WriteDirectives(node.Directives, writer);
@@ -430,8 +422,8 @@ namespace HotChocolate.Language
             }
         }
 
-        public static string Serialize(DocumentNode node) =>
-            Serialize(node, true);
+        public static string Serialize(DocumentNode node)
+            => Serialize(node, true);
 
         public static string Serialize(DocumentNode node, bool useIndentation)
         {
@@ -440,24 +432,17 @@ namespace HotChocolate.Language
             return text.ToString();
         }
 
-        public static void Serialize(
-            DocumentNode node,
-            TextWriter writer) =>
-            Serialize(node, writer, true);
+        public static void Serialize(DocumentNode node, TextWriter writer)
+            => Serialize(node, writer, true);
 
-        public static void Serialize(
-            DocumentNode node,
-            TextWriter writer,
-            bool useIndentation)
+        public static void Serialize(DocumentNode node, TextWriter writer, bool useIndentation)
         {
             var serializer = new SchemaSyntaxSerializer(useIndentation);
             serializer.Visit(node, new DocumentWriter(writer));
         }
 
-        public static void Serialize(
-            DocumentNode node,
-            Stream stream) =>
-            Serialize(node, stream, true);
+        public static void Serialize(DocumentNode node, Stream stream)
+            => Serialize(node, stream, true);
 
         public static void Serialize(
             DocumentNode node,

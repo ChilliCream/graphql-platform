@@ -2,10 +2,10 @@
 
 namespace HotChocolate.Language
 {
-    internal static class TokenVisualizer
+    internal static class TokenPrinter
     {
-        private static readonly Dictionary<TokenKind, string> _visualization =
-            new Dictionary<TokenKind, string>
+        private static readonly Dictionary<TokenKind, string> _cachedStrings =
+            new()
             {
                 {TokenKind.StartOfFile, "<SOF>"},
                 {TokenKind.EndOfFile, "<EOF>"},
@@ -31,14 +31,10 @@ namespace HotChocolate.Language
                 {TokenKind.Comment, "Comment"}
             };
 
-        public static string Visualize(in Utf8GraphQLReader reader)
-        {
-            return _visualization[reader.Kind];
-        }
+        public static string Print(in Utf8GraphQLReader reader)
+            =>  _cachedStrings[reader.Kind];
 
-        public static string Visualize(TokenKind tokenKind)
-        {
-            return _visualization[tokenKind];
-        }
+        public static string Print(TokenKind tokenKind)
+            => _cachedStrings[tokenKind];
     }
 }

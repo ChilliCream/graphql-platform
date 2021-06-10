@@ -1,10 +1,13 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Globalization;
-using static HotChocolate.Language.Properties.LangResources;
+using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language
 {
+    /// <summary>
+    /// The UTF-8 GraphQL Lexer.
+    /// </summary>
     public ref partial struct Utf8GraphQLReader
     {
         private readonly ReadOnlySpan<byte> _graphQLData;
@@ -41,6 +44,9 @@ namespace HotChocolate.Language
             _floatFormat = null;
         }
 
+        /// <summary>
+        /// Gets the GraphQL Data that is being read.
+        /// </summary>
         public ReadOnlySpan<byte> GraphQLData => _graphQLData;
 
         /// <summary>
@@ -161,7 +167,7 @@ namespace HotChocolate.Language
                 return true;
             }
 
-            throw new SyntaxException(this, $"Unexpected character `{(char)code}` ({code}).");
+            throw new SyntaxException(this, UnexpectedCharacter, (char)code, code);
         }
 
         /// <summary>
@@ -179,9 +185,10 @@ namespace HotChocolate.Language
             var start = _position;
             var position = _position;
 
-            while (++position < _length
-                && _graphQLData[position].IsLetterOrDigitOrUnderscore())
+            ReadNameToken_Next:
+            if (++position < _length && _graphQLData[position].IsLetterOrDigitOrUnderscore())
             {
+                goto ReadNameToken_Next;
             }
 
             _kind = TokenKind.Name;
@@ -252,9 +259,7 @@ namespace HotChocolate.Language
                 code = _graphQLData[++_position];
                 if (code.IsDigit())
                 {
-                    throw new SyntaxException(this,
-                        "Invalid number, unexpected digit after 0: " +
-                        $"`{(char)code}` ({code}).");
+                    throw new SyntaxException(this, UnexpectedDigit, (char)code, code);
                 }
             }
             else
@@ -262,7 +267,7 @@ namespace HotChocolate.Language
                 code = ReadDigits(code);
             }
 
-            if (code == GraphQLConstants.Dot)
+            if (code is GraphQLConstants.Dot)
             {
                 isFloat = true;
                 _floatFormat = Language.FloatFormat.FixedPoint;
@@ -270,7 +275,7 @@ namespace HotChocolate.Language
                 code = ReadDigits(code);
             }
 
-            if ((code | 0x20) == GraphQLConstants.E)
+            if ((code | 0x20) is GraphQLConstants.E)
             {
                 isFloat = true;
                 _floatFormat = Language.FloatFormat.Exponential;
@@ -293,9 +298,7 @@ namespace HotChocolate.Language
         {
             if (!firstCode.IsDigit())
             {
-                throw new SyntaxException(this,
-                    "Invalid number, expected digit but got: " +
-                    $"`{(char)firstCode}` ({firstCode}).");
+                throw new SyntaxException(this, InvalidNumber, (char)firstCode, firstCode);
             }
 
             byte code;
@@ -350,27 +353,27 @@ namespace HotChocolate.Language
                     case GraphQLConstants.Backspace:
                     case GraphQLConstants.LineFeed:
                     case GraphQLConstants.VerticalTab:
-                    case 12:
+                    case GraphQLConstants.FormFeed:
                     case GraphQLConstants.Return:
-                    case 14:
-                    case 15:
-                    case 16:
-                    case 17:
-                    case 18:
-                    case 19:
-                    case 20:
-                    case 21:
-                    case 22:
-                    case 23:
-                    case 24:
-                    case 25:
-                    case 26:
-                    case 27:
-                    case 28:
-                    case 29:
-                    case 30:
-                    case 31:
-                    case 127:
+                    case GraphQLConstants.ShiftOut:
+                    case GraphQLConstants.ShiftIn:
+                    case GraphQLConstants.DataLinkEscape:
+                    case GraphQLConstants.DeviceControl1:
+                    case GraphQLConstants.DeviceControl2:
+                    case GraphQLConstants.DeviceControl3:
+                    case GraphQLConstants.DeviceControl4:
+                    case GraphQLConstants.NegativeAcknowledgement:
+                    case GraphQLConstants.SynchronousIdle:
+                    case GraphQLConstants.EndOfTransmissionBlock:
+                    case GraphQLConstants.Cancel:
+                    case GraphQLConstants.EndOfMedium:
+                    case GraphQLConstants.Substitute:
+                    case GraphQLConstants.Escape:
+                    case GraphQLConstants.FileSeparator:
+                    case GraphQLConstants.GroupSeparator:
+                    case GraphQLConstants.RecordSeparator:
+                    case GraphQLConstants.UnitSeparator:
+                    case GraphQLConstants.Delete:
                         run = false;
                         break;
 
@@ -412,7 +415,7 @@ namespace HotChocolate.Language
 
                 switch (code)
                 {
-                    case GraphQLConstants.NewLine:
+                    case GraphQLConstants.LineFeed:
                     case GraphQLConstants.Return:
                         return;
 
@@ -431,48 +434,46 @@ namespace HotChocolate.Language
                         code = _graphQLData[++_position];
                         if (!code.IsValidEscapeCharacter())
                         {
-                            throw new SyntaxException(this,
-                                $"Invalid character escape sequence: \\{code}.");
+                            throw new SyntaxException(this, InvalidCharacterEscapeSequence, code);
                         }
                         break;
 
                     // SourceCharacter
-                    case 0:
-                    case 1:
-                    case 2:
-                    case 3:
-                    case 4:
-                    case 5:
-                    case 6:
-                    case 7:
-                    case 8:
-                    case 11:
-                    case 12:
-                    case 14:
-                    case 15:
-                    case 16:
-                    case 17:
-                    case 18:
-                    case 19:
-                    case 20:
-                    case 21:
-                    case 22:
-                    case 23:
-                    case 24:
-                    case 25:
-                    case 26:
-                    case 27:
-                    case 28:
-                    case 29:
-                    case 30:
-                    case 31:
-                    case 127:
-                        throw new SyntaxException(this,
-                            $"Invalid character within String: {code}.");
+                    case GraphQLConstants.Null:
+                    case GraphQLConstants.StartOfHeading:
+                    case GraphQLConstants.StartOfText:
+                    case GraphQLConstants.EndOfText:
+                    case GraphQLConstants.EndOfTransmission:
+                    case GraphQLConstants.Enquiry:
+                    case GraphQLConstants.Acknowledgement:
+                    case GraphQLConstants.Bell:
+                    case GraphQLConstants.Backspace:
+                    case GraphQLConstants.VerticalTab:
+                    case GraphQLConstants.FormFeed:
+                    case GraphQLConstants.ShiftOut:
+                    case GraphQLConstants.ShiftIn:
+                    case GraphQLConstants.DataLinkEscape:
+                    case GraphQLConstants.DeviceControl1:
+                    case GraphQLConstants.DeviceControl2:
+                    case GraphQLConstants.DeviceControl3:
+                    case GraphQLConstants.DeviceControl4:
+                    case GraphQLConstants.NegativeAcknowledgement:
+                    case GraphQLConstants.SynchronousIdle:
+                    case GraphQLConstants.EndOfTransmissionBlock:
+                    case GraphQLConstants.Cancel:
+                    case GraphQLConstants.EndOfMedium:
+                    case GraphQLConstants.Substitute:
+                    case GraphQLConstants.Escape:
+                    case GraphQLConstants.FileSeparator:
+                    case GraphQLConstants.GroupSeparator:
+                    case GraphQLConstants.RecordSeparator:
+                    case GraphQLConstants.UnitSeparator:
+                    case GraphQLConstants.Delete:
+                        throw new SyntaxException(this, InvalidCharacterWithinString, code);
                 }
             }
 
-            throw new SyntaxException(this, "Unterminated string.");
+            throw new SyntaxException(this, UnterminatedString);
         }
 
         /// <summary>
@@ -492,13 +493,13 @@ namespace HotChocolate.Language
 
                 switch (code)
                 {
-                    case GraphQLConstants.NewLine:
+                    case GraphQLConstants.LineFeed:
                         _nextNewLines++;
                         break;
 
                     case GraphQLConstants.Return:
                         var next = _position + 1;
-                        if (next < _length && _graphQLData[next] is GraphQLConstants.NewLine)
+                        if (next < _length && _graphQLData[next] is GraphQLConstants.LineFeed)
                         {
                             _position = next;
                         }
@@ -531,42 +532,42 @@ namespace HotChocolate.Language
                         break;
 
                     // SourceCharacter
-                    case 0:
-                    case 1:
-                    case 2:
-                    case 3:
-                    case 4:
-                    case 5:
-                    case 6:
-                    case 7:
-                    case 8:
-                    case 11:
-                    case 12:
-                    case 14:
-                    case 15:
-                    case 16:
-                    case 17:
-                    case 18:
-                    case 19:
-                    case 20:
-                    case 21:
-                    case 22:
-                    case 23:
-                    case 24:
-                    case 25:
-                    case 26:
-                    case 27:
-                    case 28:
-                    case 29:
-                    case 30:
-                    case 31:
-                    case 127:
+                    case GraphQLConstants.Null:
+                    case GraphQLConstants.StartOfHeading:
+                    case GraphQLConstants.StartOfText:
+                    case GraphQLConstants.EndOfText:
+                    case GraphQLConstants.EndOfTransmission:
+                    case GraphQLConstants.Enquiry:
+                    case GraphQLConstants.Acknowledgement:
+                    case GraphQLConstants.Bell:
+                    case GraphQLConstants.Backspace:
+                    case GraphQLConstants.VerticalTab:
+                    case GraphQLConstants.FormFeed:
+                    case GraphQLConstants.ShiftOut:
+                    case GraphQLConstants.ShiftIn:
+                    case GraphQLConstants.DataLinkEscape:
+                    case GraphQLConstants.DeviceControl1:
+                    case GraphQLConstants.DeviceControl2:
+                    case GraphQLConstants.DeviceControl3:
+                    case GraphQLConstants.DeviceControl4:
+                    case GraphQLConstants.NegativeAcknowledgement:
+                    case GraphQLConstants.SynchronousIdle:
+                    case GraphQLConstants.EndOfTransmissionBlock:
+                    case GraphQLConstants.Cancel:
+                    case GraphQLConstants.EndOfMedium:
+                    case GraphQLConstants.Substitute:
+                    case GraphQLConstants.Escape:
+                    case GraphQLConstants.FileSeparator:
+                    case GraphQLConstants.GroupSeparator:
+                    case GraphQLConstants.RecordSeparator:
+                    case GraphQLConstants.UnitSeparator:
+                    case GraphQLConstants.Delete:
                         throw new SyntaxException(this,
-                            $"Invalid character within String: {code}.");
+                            string.Format(InvalidCharacterWithinString, code));
                 }
             }
 
-            throw new SyntaxException(this, "Unterminated string.");
+            throw new SyntaxException(this, UnterminatedString);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -584,14 +585,14 @@ namespace HotChocolate.Language
 
                 switch (code)
                 {
-                    case GraphQLConstants.NewLine:
+                    case GraphQLConstants.LineFeed:
                         ++_position;
                         NewLine();
                         break;
 
                     case GraphQLConstants.Return:
                         if (++_position < _length
-                           && _graphQLData[_position] is GraphQLConstants.NewLine)
+                           && _graphQLData[_position] is GraphQLConstants.LineFeed)
                         {
                             ++_position;
                         }
@@ -655,8 +656,10 @@ namespace HotChocolate.Language
         {
             if (lines < 1)
             {
-                throw new ArgumentOutOfRangeException(nameof(lines),
-                    "Must be greater or equal to 1.");
+                throw new ArgumentOutOfRangeException(
+                    nameof(lines),
+                    lines,
+                    NewLineMustBeGreaterOrEqualToOne);
             }
 
             _line += lines;
@@ -668,25 +671,16 @@ namespace HotChocolate.Language
         /// Updates the column index.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void UpdateColumn()
-        {
-            _column = 1 + _position - _lineStart;
-        }
+        public void UpdateColumn() => _column = 1 + _position - _lineStart;
 
         /// <summary>
         /// Checks if the lexer source pointer has reached
         /// the end of the GraphQL source text.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsEndOfStream()
-        {
-            return _position >= _length;
-        }
+        public bool IsEndOfStream() => _position >= _length;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool IsEndOfStream(int position)
-        {
-            return position >= _length;
-        }
+        private bool IsEndOfStream(int position) => position >= _length;
     }
 }

@@ -300,7 +300,7 @@ namespace HotChocolate.Types.Relay
             return (b.IsLetterOrUnderscore() && b != GraphQLConstants.Underscore)
                 || b.IsDigit()
                 || c == GraphQLConstants.Dollar
-                || c == GraphQLConstants.Forwardslash;
+                || c == GraphQLConstants.ForwardSlash;
         }
 
         private static int GetAllocationSize<T>(in T value)

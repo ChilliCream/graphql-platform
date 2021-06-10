@@ -1,7 +1,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
-using HotChocolate.Language.Properties;
+using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language
 {
@@ -18,9 +18,7 @@ namespace HotChocolate.Language
         {
             if (graphQLData.Length == 0)
             {
-                throw new ArgumentException(
-                    LangResources.GraphQLData_Empty,
-                    nameof(graphQLData));
+                throw new ArgumentException(GraphQLData_Empty, nameof(graphQLData));
             }
 
             options ??= ParserOptions.Default;
@@ -36,9 +34,7 @@ namespace HotChocolate.Language
         {
             if (reader.Kind == TokenKind.EndOfFile)
             {
-                throw new ArgumentException(
-                    LangResources.GraphQLData_Empty,
-                    nameof(reader));
+                throw new ArgumentException(GraphQLData_Empty, nameof(reader));
             }
 
             options ??= ParserOptions.Default;
@@ -159,9 +155,7 @@ namespace HotChocolate.Language
         {
             if (string.IsNullOrEmpty(sourceText))
             {
-                throw new ArgumentException(
-                    LangResources.SourceText_Empty,
-                    nameof(sourceText));
+                throw new ArgumentException(SourceText_Empty, nameof(sourceText));
             }
 
             if (options == null)
