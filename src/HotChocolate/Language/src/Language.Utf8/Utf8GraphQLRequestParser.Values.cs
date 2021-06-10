@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using HotChocolate.Language.Properties;
 using System.Runtime.CompilerServices;
+using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language
 {
@@ -76,18 +76,17 @@ namespace HotChocolate.Language
         {
             if (_reader.Kind != TokenKind.String)
             {
-                throw new SyntaxException(_reader,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        LangResources.ParseMany_InvalidOpenToken,
-                        TokenKind.String,
-                        TokenVisualizer.Visualize(in _reader)));
+                throw new SyntaxException(
+                    _reader,
+                    ParseMany_InvalidOpenToken,
+                    TokenKind.String,
+                    TokenPrinter.Print(in _reader));
             }
 
             string name = _reader.GetString();
             _reader.MoveNext();
             _reader.Expect(TokenKind.Colon);
-            object? value = ParseValue();
+            var value = ParseValue();
             obj.Add(name, value);
         }
 
@@ -96,12 +95,11 @@ namespace HotChocolate.Language
         {
             if (_reader.Kind != TokenKind.String)
             {
-                throw new SyntaxException(_reader,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        LangResources.ParseMany_InvalidOpenToken,
-                        TokenKind.String,
-                        TokenVisualizer.Visualize(in _reader)));
+                throw new SyntaxException(
+                    _reader,
+                    ParseMany_InvalidOpenToken,
+                    TokenKind.String,
+                    TokenPrinter.Print(in _reader));
             }
 
             _reader.MoveNext();
@@ -114,12 +112,11 @@ namespace HotChocolate.Language
         {
             if (_reader.Kind != TokenKind.LeftBracket)
             {
-                throw new SyntaxException(_reader,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        LangResources.ParseMany_InvalidOpenToken,
-                        TokenKind.LeftBracket,
-                        TokenVisualizer.Visualize(in _reader)));
+                throw new SyntaxException(
+                    _reader,
+                    ParseMany_InvalidOpenToken,
+                    TokenKind.LeftBracket,
+                    TokenPrinter.Print(in _reader));
             }
 
             var list = new List<object?>();

@@ -1,7 +1,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
-using HotChocolate.Language.Properties;
+using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language
 {
@@ -298,9 +298,7 @@ namespace HotChocolate.Language
         {
             if (string.IsNullOrEmpty(sourceText))
             {
-                throw new ArgumentException(
-                    LangResources.SourceText_Empty,
-                    nameof(sourceText));
+                throw new ArgumentException(SourceText_Empty, nameof(sourceText));
             }
 
             var length = checked(sourceText.Length * 4);
@@ -326,8 +324,7 @@ namespace HotChocolate.Language
             }
         }
 
-        public static GraphQLSocketMessage ParseMessage(
-            ReadOnlySpan<byte> messageData) =>
-            new Utf8GraphQLRequestParser(messageData).ParseMessage();
+        public static GraphQLSocketMessage ParseMessage(ReadOnlySpan<byte> messageData)
+            => new Utf8GraphQLRequestParser(messageData).ParseMessage();
     }
 }

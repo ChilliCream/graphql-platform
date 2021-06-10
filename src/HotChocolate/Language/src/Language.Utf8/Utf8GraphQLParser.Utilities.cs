@@ -1,7 +1,8 @@
 using System;
-using System.Globalization;
 using System.Runtime.CompilerServices;
-using HotChocolate.Language.Properties;
+using static HotChocolate.Language.Utf8GraphQLReader;
+using static HotChocolate.Language.TokenPrinter;
+using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language
 {
@@ -56,24 +57,16 @@ namespace HotChocolate.Language
                 return name;
             }
 
-            throw new SyntaxException(_reader,
-                string.Format(CultureInfo.InvariantCulture,
-                    LangResources.Parser_InvalidToken,
-                    TokenKind.Name,
-                    _reader.Kind));
+            throw new SyntaxException(_reader, Parser_InvalidToken, TokenKind.Name, _reader.Kind);
         }
 
-        internal void ExpectColon() =>
-            Expect(TokenKind.Colon);
+        internal void ExpectColon() => Expect(TokenKind.Colon);
 
-        internal void ExpectDollar() =>
-            Expect(TokenKind.Dollar);
+        internal void ExpectDollar() => Expect(TokenKind.Dollar);
 
-        private void ExpectAt() =>
-            Expect(TokenKind.At);
+        private void ExpectAt() => Expect(TokenKind.At);
 
-        private void ExpectRightBracket() =>
-            Expect(TokenKind.RightBracket);
+        private void ExpectRightBracket() => Expect(TokenKind.RightBracket);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private string ExpectString()
@@ -85,11 +78,7 @@ namespace HotChocolate.Language
                 return value;
             }
 
-            throw new SyntaxException(_reader,
-                string.Format(CultureInfo.InvariantCulture,
-                    LangResources.Parser_InvalidToken,
-                    TokenKind.String,
-                    _reader.Kind));
+            throw new SyntaxException(_reader, Parser_InvalidToken, TokenKind.String, _reader.Kind);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -102,42 +91,29 @@ namespace HotChocolate.Language
                 return value;
             }
 
-            throw new SyntaxException(_reader,
-                string.Format(CultureInfo.InvariantCulture,
-                    LangResources.Parser_InvalidScalarToken,
-                    _reader.Kind));
+            throw new SyntaxException(_reader, Parser_InvalidScalarToken, _reader.Kind);
         }
 
-        private void ExpectSpread() =>
-            Expect(TokenKind.Spread);
+        private void ExpectSpread() => Expect(TokenKind.Spread);
 
-        internal void ExpectRightParenthesis() =>
-            Expect(TokenKind.RightParenthesis);
+        internal void ExpectRightParenthesis() => Expect(TokenKind.RightParenthesis);
 
-        private void ExpectRightBrace() =>
-            Expect(TokenKind.RightBrace);
+        private void ExpectRightBrace() => Expect(TokenKind.RightBrace);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Expect(TokenKind kind)
         {
             if (!_reader.Skip(kind))
             {
-                throw new SyntaxException(_reader,
-                    string.Format(CultureInfo.InvariantCulture,
-                        LangResources.Parser_InvalidToken,
-                        kind,
-                        _reader.Kind));
+                throw new SyntaxException(_reader, Parser_InvalidToken, kind, _reader.Kind);
             }
         }
 
-        private void ExpectDirectiveKeyword() =>
-            ExpectKeyword(GraphQLKeywords.Directive);
+        private void ExpectDirectiveKeyword() => ExpectKeyword(GraphQLKeywords.Directive);
 
-        private void ExpectOnKeyword() =>
-            ExpectKeyword(GraphQLKeywords.On);
+        private void ExpectOnKeyword() => ExpectKeyword(GraphQLKeywords.On);
 
-        private void ExpectFragmentKeyword() =>
-            ExpectKeyword(GraphQLKeywords.Fragment);
+        private void ExpectFragmentKeyword() => ExpectKeyword(GraphQLKeywords.Fragment);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ExpectKeyword(ReadOnlySpan<byte> keyword)
@@ -148,11 +124,7 @@ namespace HotChocolate.Language
                     ? _reader.GetName()
                     : _reader.Kind.ToString();
 
-                throw new SyntaxException(_reader,
-                    string.Format(CultureInfo.InvariantCulture,
-                        LangResources.Parser_InvalidToken,
-                        Utf8GraphQLReader.GetString(keyword),
-                        found));
+                throw new SyntaxException(_reader, Parser_InvalidToken, GetString(keyword), found);
             }
         }
 
@@ -190,10 +162,7 @@ namespace HotChocolate.Language
             return description;
         }
 
-        private SyntaxException Unexpected(TokenKind kind)
-        {
-            return new SyntaxException(_reader,
-                $"Unexpected token: {TokenVisualizer.Visualize(kind)}.");
-        }
+        private SyntaxException Unexpected(TokenKind kind) =>
+            new(_reader, UnexpectedToken, Print(kind));
     }
 }
