@@ -4,15 +4,34 @@ title: Neo4J Database
 
 ## Requirements
 1. [Neo4J Database](https://neo4j.com/download/) v4.1.0 and above.
-2. [APOC](https://neo4j.com/developer/neo4j-apoc/)
+2. [APOC](https://github.com/neo4j-contrib/neo4j-apoc-procedures) Awesome Procedures On Cypher v4.1.0 and above.
 
 # What does this integration do?
 
-It is a GraphQL to openCypher execution layer for Neo4J. It makes it easy for developers to user Neo4J and GraphQL together. With this integration, you can translate paging, filtering, sorting, and projections, directly into native cypher queries.
+It is a GraphQL to openCypher execution layer for HotChocolate. It makes it easy for developers to user Neo4J and GraphQL together. With this integration, you can translate paging, filtering, sorting, and projections, directly into native cypher queries.
 
 You can find a full example project in Github [here](https://github.com/ChilliCream/graphql-workshop-neo4j) this example covers code first and schema first.
 
 Lets get started with a simple tutorial.
+
+# Step 1: Launch Neo4J Database
+
+Run Neo4J in Docker
+
+```bash
+docker run \
+    -p 7474:7474 -p 7687:7687 \
+    -v $PWD/data:/data -v $PWD/plugins:/plugins \
+    --name neo4j-apoc \
+    -e NEO4J_apoc_export_file_enabled=true \
+    -e NEO4J_apoc_import_file_enabled=true \
+    -e NEO4J_apoc_import_file_use__neo4j__config=true \
+    -e NEO4JLABS_PLUGINS=\[\"apoc\"\] \
+    neo4j
+```
+or download and install Neo4J Desktop.
+
+
 
 # Step 1: Create a GraphQL server project
 
