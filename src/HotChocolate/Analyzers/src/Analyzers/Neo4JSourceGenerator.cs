@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using HotChocolate.Analyzers.Configuration;
 using HotChocolate.Analyzers.Diagnostics;
@@ -8,6 +9,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using static System.IO.Path;
 using static HotChocolate.Analyzers.TypeNames;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using SyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
@@ -19,7 +21,6 @@ namespace HotChocolate.Analyzers
     {
         public void Initialize(GeneratorInitializationContext context)
         {
-
         }
 
         public void Execute(GeneratorExecutionContext context)
@@ -34,12 +35,15 @@ namespace HotChocolate.Analyzers
             {
                 foreach (GraphQLConfig config in context.GetConfigurations())
                 {
-
                     if (config.Extensions.Neo4J is not null &&
-                        context.GetSchemaDocuments(config) is { Count: > 0 } schemaDocuments)
+                        context.GetSchemaDocuments(config) is {Count: > 0} schemaDocuments)
                     {
                         ISchema schema = SchemaHelper.CreateSchema(schemaDocuments);
-                        DataGeneratorContext dataContext = DataGeneratorContext.FromSchema(schema);
+                        string generated = Combine(GetDirectoryName(config.Location)!, "Generated");
+                        var dataContext = DataGeneratorContext.FromSchema(schema);
+                        Neo4JSettings settings = config.Extensions.Neo4J;
+                        settings.Generated ??= generated;
+
                         GenerateTypes(context, dataContext, config.Extensions.Neo4J, schema);
                     }
                 }
@@ -56,6 +60,22 @@ namespace HotChocolate.Analyzers
             Neo4JSettings settings,
             ISchema schema)
         {
+            if (settings.EmitCode && !Directory.Exists(settings.Generated))
+            {
+                Directory.CreateDirectory(settings.Generated);
+            }
+
+            if (Directory.Exists(settings.Generated))
+            {
+                foreach (string fileName in Directory.GetDirectories(
+                    settings.Generated,
+                    "*.*",
+                    SearchOption.AllDirectories))
+                {
+                    File.Delete(fileName);
+                }
+            }
+
             GenerateQueryType(
                 context,
                 dataContext,
@@ -65,10 +85,7 @@ namespace HotChocolate.Analyzers
                     .Where(type => !IntrospectionTypes.IsIntrospectionType(type))
                     .ToList());
 
-            GenerateDependencyInjectionCode(
-                context,
-                dataContext,
-                settings);
+            GenerateDependencyInjectionCode(context, settings);
         }
 
         private static void GenerateQueryType(
@@ -90,7 +107,7 @@ namespace HotChocolate.Analyzers
                 queryDeclaration = queryDeclaration.AddMembers(
                     CreateQueryResolver(dataContext, settings, objectType));
 
-                GenerateObjectType(context, settings.Namespace!, objectType);
+                GenerateObjectType(context, settings, settings.Namespace!, objectType);
             }
 
             NamespaceDeclarationSyntax namespaceDeclaration =
@@ -103,11 +120,12 @@ namespace HotChocolate.Analyzers
 
             compilationUnit = compilationUnit.NormalizeWhitespace(elasticTrivia: true);
 
-            context.AddSource(settings.Namespace! + ".Query.cs", compilationUnit.ToFullString());
+            AddSource(context, compilationUnit, settings, settings.Namespace!, "Query.hc.g.cs");
         }
 
         private static void GenerateObjectType(
             GeneratorExecutionContext context,
+            Neo4JSettings settings,
             string @namespace,
             IObjectType objectType)
         {
@@ -156,7 +174,7 @@ namespace HotChocolate.Analyzers
 
             compilationUnit = compilationUnit.NormalizeWhitespace(elasticTrivia: true);
 
-            context.AddSource(@namespace + $".{typeName}.cs", compilationUnit.ToFullString());
+            AddSource(context, compilationUnit, settings, @namespace, $"{typeName}.hc.g.cs");
         }
 
         private static MethodDeclarationSyntax CreateQueryResolver(
@@ -175,30 +193,30 @@ namespace HotChocolate.Analyzers
 
             MethodDeclarationSyntax resolverSyntax =
                 MethodDeclaration(
-                    GenericName(Identifier(Global(Neo4JExecutable)))
-                        .WithTypeArgumentList(
-                            TypeArgumentList(
-                                SingletonSeparatedList<TypeSyntax>(
-                                    IdentifierName(typeName)))),
-                    Identifier("Get" + pluralTypeName))
-                .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
-                .WithParameterList(
-                    ParameterList(
-                        SingletonSeparatedList(
-                            Parameter(Identifier(session))
-                                .AddScopedServiceAttribute()
-                                .WithType(IdentifierName(Global(IAsyncSession))))))
-                .WithExpressionBody(
-                    ArrowExpressionClause(
-                        ImplicitObjectCreationExpression()
-                            .WithArgumentList(
-                                ArgumentList(SingletonSeparatedList(
-                                    Argument(IdentifierName("session")))))))
-                .WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
-                .AddGraphQLNameAttribute(GraphQLFieldName(pluralTypeName))
-                .AddNeo4JDatabaseAttribute(settings.DatabaseName)
-                .AddPagingAttribute(dataContext.Paging)
-                .AddProjectionAttribute();
+                        GenericName(Identifier(Global(Neo4JExecutable)))
+                            .WithTypeArgumentList(
+                                TypeArgumentList(
+                                    SingletonSeparatedList<TypeSyntax>(
+                                        IdentifierName(typeName)))),
+                        Identifier("Get" + pluralTypeName))
+                    .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
+                    .WithParameterList(
+                        ParameterList(
+                            SingletonSeparatedList(
+                                Parameter(Identifier(session))
+                                    .AddScopedServiceAttribute()
+                                    .WithType(IdentifierName(Global(IAsyncSession))))))
+                    .WithExpressionBody(
+                        ArrowExpressionClause(
+                            ImplicitObjectCreationExpression()
+                                .WithArgumentList(
+                                    ArgumentList(SingletonSeparatedList(
+                                        Argument(IdentifierName("session")))))))
+                    .WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
+                    .AddGraphQLNameAttribute(GraphQLFieldName(pluralTypeName))
+                    .AddNeo4JDatabaseAttribute(settings.DatabaseName)
+                    .AddPagingAttribute(dataContext.Paging)
+                    .AddProjectionAttribute();
 
             if (dataContext.Filtering)
             {
@@ -215,7 +233,6 @@ namespace HotChocolate.Analyzers
 
         private static void GenerateDependencyInjectionCode(
             GeneratorExecutionContext context,
-            DataGeneratorContext dataContext,
             Neo4JSettings settings)
         {
             string typeName = settings.Name + "RequestExecutorBuilderExtensions";
@@ -228,28 +245,30 @@ namespace HotChocolate.Analyzers
                         Token(SyntaxKind.PartialKeyword))
                     .AddGeneratedAttribute();
 
-            var statements = new List<StatementSyntax>();
-            statements.Add(AddTypeExtension(Global(settings.Namespace + ".Query")));
-            statements.Add(AddNeo4JFiltering());
-            statements.Add(AddNeo4JSorting());
-            statements.Add(AddNeo4JProjections());
-            statements.Add(ReturnStatement(IdentifierName("builder")));
+            var statements = new List<StatementSyntax>
+            {
+                AddTypeExtension(Global(settings.Namespace + ".Query")),
+                AddNeo4JFiltering(),
+                AddNeo4JSorting(),
+                AddNeo4JProjections(),
+                ReturnStatement(IdentifierName("builder"))
+            };
 
             MethodDeclarationSyntax addTypes =
                 MethodDeclaration(
-                    IdentifierName(Global(IRequestExecutorBuilder)),
-                    Identifier("Add" + settings.Name + "Types"))
-                .WithModifiers(
-                    TokenList(
-                        Token(SyntaxKind.PublicKeyword),
-                        Token(SyntaxKind.StaticKeyword)))
-                .WithParameterList(
-                    ParameterList(
-                        SingletonSeparatedList(
-                            Parameter(Identifier("builder"))
-                                .WithModifiers(TokenList(Token(SyntaxKind.ThisKeyword)))
-                                .WithType(IdentifierName(Global(IRequestExecutorBuilder))))))
-                .WithBody(Block(statements));
+                        IdentifierName(Global(IRequestExecutorBuilder)),
+                        Identifier("Add" + settings.Name + "Types"))
+                    .WithModifiers(
+                        TokenList(
+                            Token(SyntaxKind.PublicKeyword),
+                            Token(SyntaxKind.StaticKeyword)))
+                    .WithParameterList(
+                        ParameterList(
+                            SingletonSeparatedList(
+                                Parameter(Identifier("builder"))
+                                    .WithModifiers(TokenList(Token(SyntaxKind.ThisKeyword)))
+                                    .WithType(IdentifierName(Global(IRequestExecutorBuilder))))))
+                    .WithBody(Block(statements));
 
             dependencyInjectionCode =
                 dependencyInjectionCode.AddMembers(addTypes);
@@ -264,67 +283,72 @@ namespace HotChocolate.Analyzers
 
             compilationUnit = compilationUnit.NormalizeWhitespace(elasticTrivia: true);
 
-            context.AddSource(DependencyInjection + $".{typeName}.cs", compilationUnit.ToFullString());
+            AddSource(
+                context,
+                compilationUnit,
+                settings,
+                DependencyInjection,
+                $"{typeName}.hc.g.cs");
         }
 
         private static ExpressionStatementSyntax AddTypeExtension(string typeExtensions)
         {
             return ExpressionStatement(
                 InvocationExpression(
-                    MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        IdentifierName(Global(SchemaRequestExecutorBuilderExtensions)),
-                        GenericName(Identifier("AddTypeExtension"))
-                        .WithTypeArgumentList(
-                            TypeArgumentList(
-                                SingletonSeparatedList<TypeSyntax>(
-                                    IdentifierName(typeExtensions))))))
-                .WithArgumentList(
-                    ArgumentList(
-                        SingletonSeparatedList<ArgumentSyntax>(
-                            Argument(IdentifierName("builder"))))));
+                        MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            IdentifierName(Global(SchemaRequestExecutorBuilderExtensions)),
+                            GenericName(Identifier("AddTypeExtension"))
+                                .WithTypeArgumentList(
+                                    TypeArgumentList(
+                                        SingletonSeparatedList<TypeSyntax>(
+                                            IdentifierName(typeExtensions))))))
+                    .WithArgumentList(
+                        ArgumentList(
+                            SingletonSeparatedList(
+                                Argument(IdentifierName("builder"))))));
         }
 
         private static ExpressionStatementSyntax AddNeo4JFiltering()
         {
             return ExpressionStatement(
                 InvocationExpression(
-                    MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        IdentifierName(Global(Neo4JDataRequestBuilderExtensions)),
-                        IdentifierName("AddNeo4JFiltering")))
-                .WithArgumentList(
-                    ArgumentList(
-                        SingletonSeparatedList<ArgumentSyntax>(
-                            Argument(IdentifierName("builder"))))));
+                        MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            IdentifierName(Global(Neo4JDataRequestBuilderExtensions)),
+                            IdentifierName("AddNeo4JFiltering")))
+                    .WithArgumentList(
+                        ArgumentList(
+                            SingletonSeparatedList(
+                                Argument(IdentifierName("builder"))))));
         }
 
         private static ExpressionStatementSyntax AddNeo4JSorting()
         {
             return ExpressionStatement(
                 InvocationExpression(
-                    MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        IdentifierName(Global(Neo4JDataRequestBuilderExtensions)),
-                        IdentifierName("AddNeo4JSorting")))
-                .WithArgumentList(
-                    ArgumentList(
-                        SingletonSeparatedList<ArgumentSyntax>(
-                            Argument(IdentifierName("builder"))))));
+                        MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            IdentifierName(Global(Neo4JDataRequestBuilderExtensions)),
+                            IdentifierName("AddNeo4JSorting")))
+                    .WithArgumentList(
+                        ArgumentList(
+                            SingletonSeparatedList(
+                                Argument(IdentifierName("builder"))))));
         }
 
         private static ExpressionStatementSyntax AddNeo4JProjections()
         {
             return ExpressionStatement(
                 InvocationExpression(
-                    MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        IdentifierName(Global(Neo4JDataRequestBuilderExtensions)),
-                        IdentifierName("AddNeo4JProjections")))
-                .WithArgumentList(
-                    ArgumentList(
-                        SingletonSeparatedList<ArgumentSyntax>(
-                            Argument(IdentifierName("builder"))))));
+                        MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            IdentifierName(Global(Neo4JDataRequestBuilderExtensions)),
+                            IdentifierName("AddNeo4JProjections")))
+                    .WithArgumentList(
+                        ArgumentList(
+                            SingletonSeparatedList(
+                                Argument(IdentifierName("builder"))))));
         }
 
         private static string GraphQLFieldName(string s)
@@ -346,6 +370,23 @@ namespace HotChocolate.Analyzers
             }
 
             return new string(buffer);
+        }
+
+        private static void AddSource(
+            GeneratorExecutionContext context,
+            CompilationUnitSyntax compilationUnit,
+            Neo4JSettings settings,
+            string @namespace,
+            string fileName)
+        {
+            fileName = @namespace + "." + fileName;
+            string sourceText = compilationUnit.ToFullString();
+            context.AddSource(fileName, sourceText);
+
+            if (settings.EmitCode)
+            {
+                File.WriteAllText(Combine(settings.Generated, fileName), sourceText);
+            }
         }
     }
 }

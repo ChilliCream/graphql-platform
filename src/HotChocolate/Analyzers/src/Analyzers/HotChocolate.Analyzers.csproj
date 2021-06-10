@@ -29,6 +29,8 @@
 
   <ItemGroup>
     <None Include="$(OutputPath)\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\Build.props" Pack="true" PackagePath="build/HotChocolate.Analyzers.props" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\Build.targets" Pack="true" PackagePath="build/HotChocolate.Analyzers.targets" Visible="false" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,24 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <HotChocolate_DesignTimeBuild Condition="'$(HotChocolate_DesignTimeBuild)' == '' AND '$(DesignTimeBuild)' == 'true'">true</HotChocolate_DesignTimeBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="**\*.graphql" />
+    <AdditionalFiles Include="**\.graphqlrc.json" />
+    <Watch Include="**\*.graphql" />
+    <Watch Include="**\.graphqlrc.json" />
+  </ItemGroup>
+
+  <Target 
+    Name="HotChocolate_DesignTime_Files" 
+    BeforeTargets="BeforeCompile">
+    <ItemGroup>
+      <Compile
+        Remove="**\*.hc.g.cs"
+        Condition="'$(HotChocolate_DesignTimeBuild)' == 'false'" />
+    </ItemGroup>
+  </Target>
+
+</Project>

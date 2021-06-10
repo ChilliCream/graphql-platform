@@ -20,5 +20,15 @@ namespace HotChocolate.Analyzers.Configuration
         /// Gets or sets the namespace.
         /// </summary>
         public string? Namespace { get; set; }
+
+        /// <summary>
+        /// Defines if the generated code shall be emitted.
+        /// </summary>
+        public bool EmitCode { get; set; }
+
+        /// <summary>
+        /// Gets the location of the generated directory.
+        /// </summary>
+        public string Generated { get; set; } = default!;
     }
 }
