@@ -10,7 +10,7 @@ We changed some defaults around scalars. These new defaults can break your exist
 
 ## UUID
 
-We changed the name of the UUID scalar from `Uuid` to `UUID`. In order to keep the old name do register the type manually like the following:
+We changed the name of the UUID scalar from `Uuid` to `UUID`. To maintain the old name, register the type manually like the following:
 
 ```csharp
 services
