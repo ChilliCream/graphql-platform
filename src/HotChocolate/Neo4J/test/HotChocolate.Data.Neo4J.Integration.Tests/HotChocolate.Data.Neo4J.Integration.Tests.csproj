@@ -1,5 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\Analyzers\src\MSBuild\Build.props" />
+  <PropertyGroup>
+    <IsSonarBuild Condition="'$(IsSonarBuild)' == ''">false</IsSonarBuild>
+  </PropertyGroup>
+
+  <Import Project="..\..\..\Analyzers\src\MSBuild\Build.props" Condition="'$(IsSonarBuild)' == 'false'" />
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.Neo4J.Integration.Tests</AssemblyName>
@@ -11,8 +15,6 @@
 
     <!-- The directory where all the analyzer bin files are for development time. -->
     <HotChocolate_BinDir>$(MSBuildThisFileDirectory)\..\..\..\Analyzers\src\Analyzers\bin\Debug\netstandard2.0</HotChocolate_BinDir>
-    
-    <IsSonarBuild Condition="'$(IsSonarBuild)' == ''">false</IsSonarBuild>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,5 +32,5 @@
     <CompilerVisibleProperty Include="HotChocolate_BinDir" />
   </ItemGroup>
 
-  <Import Project="..\..\..\Analyzers\src\MSBuild\Build.targets" />
+  <Import Project="..\..\..\Analyzers\src\MSBuild\Build.targets" Condition="'$(IsSonarBuild)' == 'false'" />
 </Project>
