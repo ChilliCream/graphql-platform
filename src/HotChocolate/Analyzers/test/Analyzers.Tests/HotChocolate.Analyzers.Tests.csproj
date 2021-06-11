@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\Neo4J\src\MSBuild\Build.props" />
+  <Import Project="..\..\..\Analyzers\src\MSBuild\Build.props" />
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -13,6 +13,8 @@
 
     <!-- The directory where all the analyzer bin files are for development time. -->
     <HotChocolate_BinDir>$(MSBuildThisFileDirectory)\..\..\src\Analyzers\bin\Debug\netstandard2.0</HotChocolate_BinDir>
+    
+    <IsSonarBuild Condition="'$(IsSonarBuild)' == ''">false</IsSonarBuild>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Analyzers\HotChocolate.Analyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\..\src\Analyzers\HotChocolate.Analyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" Condition="'$(IsSonarBuild)' == 'false'" />
     <ProjectReference Include="..\..\..\Neo4J\src\Data\HotChocolate.Data.Neo4J.csproj" />
   </ItemGroup>
 
@@ -38,5 +40,5 @@
     </PackageReference>
   </ItemGroup>
 
-  <Import Project="..\..\..\Neo4J\src\MSBuild\Build.targets" />
+  <Import Project="..\..\..\Analyzers\src\MSBuild\Build.targets" />
 </Project>

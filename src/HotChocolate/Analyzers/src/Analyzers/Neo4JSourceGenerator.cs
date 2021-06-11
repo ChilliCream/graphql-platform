@@ -19,6 +19,8 @@ namespace HotChocolate.Analyzers
     [Generator]
     public partial class Neo4JSourceGenerator : ISourceGenerator
     {
+        private const string _allFiles = "*.*";
+
         public void Initialize(GeneratorInitializationContext context)
         {
         }
@@ -67,9 +69,9 @@ namespace HotChocolate.Analyzers
 
             if (Directory.Exists(settings.Generated))
             {
-                foreach (string fileName in Directory.GetDirectories(
+                foreach (string fileName in Directory.GetFiles(
                     settings.Generated,
-                    "*.*",
+                    _allFiles,
                     SearchOption.AllDirectories))
                 {
                     File.Delete(fileName);

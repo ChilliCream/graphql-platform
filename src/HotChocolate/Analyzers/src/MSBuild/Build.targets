@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <HotChocolate_DesignTimeBuild Condition="'$(HotChocolate_DesignTimeBuild)' == '' AND '$(DesignTimeBuild)' == 'true'">true</HotChocolate_DesignTimeBuild>
+    <HotChocolate_DesignTimeBuild Condition="'$(HotChocolate_DesignTimeBuild)' == ''">false</HotChocolate_DesignTimeBuild>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,6 +10,12 @@
     <AdditionalFiles Include="**\.graphqlrc.json" />
     <Watch Include="**\*.graphql" />
     <Watch Include="**\.graphqlrc.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile
+      Remove="**\*.hc.g.cs"
+      Condition="'$(HotChocolate_DesignTimeBuild)' == 'false'" />
   </ItemGroup>
 
   <Target 

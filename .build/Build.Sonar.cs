@@ -106,5 +106,6 @@ partial class Build : NukeBuild
             .SetProjectFile(AllSolutionFile)
             .SetNoRestore(true)
             .SetConfiguration(Debug)
-            .SetProcessWorkingDirectory(RootDirectory);
+            .SetProcessWorkingDirectory(RootDirectory)
+            .SetProperty("IsSonarBuild", "true");
 }
