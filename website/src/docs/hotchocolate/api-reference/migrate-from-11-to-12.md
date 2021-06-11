@@ -28,7 +28,7 @@ services
     .AddType(() => new UuidType(defaultFormat: 'N'));
 ```
 
-In order to fully preserve 11 behavior do:
+In order to fully preserve version 11 behavior do:
 
 ```csharp
 services
