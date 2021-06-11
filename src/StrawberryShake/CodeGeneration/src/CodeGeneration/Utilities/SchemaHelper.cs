@@ -226,8 +226,8 @@ namespace StrawberryShake.CodeGeneration.Utilities
             TryAddLeafType(leafTypes, ScalarNames.Long, TypeNames.Int64, TypeNames.Int64);
             TryAddLeafType(leafTypes, ScalarNames.Float, TypeNames.Double, TypeNames.Double);
             TryAddLeafType(leafTypes, ScalarNames.Decimal, TypeNames.Decimal, TypeNames.Decimal);
-            TryAddLeafType(leafTypes, ScalarNames.Url, TypeNames.Uri);
-            TryAddLeafType(leafTypes, ScalarNames.Uuid, TypeNames.Guid, TypeNames.Guid);
+            TryAddLeafType(leafTypes, ScalarNames.URL, TypeNames.Uri);
+            TryAddLeafType(leafTypes, ScalarNames.UUID, TypeNames.Guid, TypeNames.Guid);
             TryAddLeafType(leafTypes, "Guid", TypeNames.Guid, TypeNames.Guid);
             TryAddLeafType(leafTypes, ScalarNames.DateTime, TypeNames.DateTimeOffset);
             TryAddLeafType(leafTypes, ScalarNames.Date, TypeNames.DateTime);
