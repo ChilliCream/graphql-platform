@@ -38,7 +38,7 @@ services
 
 ## URL
 
-We changed the name of the URL scalar from `Url` to `URL`. In order to keep the old name do register the type manually like the following:
+We changed the name of the URL scalar from `Url` to `URL`. To maintain the old name, register the type manually like the following:
 
 ```csharp
 services
