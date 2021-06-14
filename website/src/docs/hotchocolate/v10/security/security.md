@@ -130,4 +130,4 @@ public readonly struct ComplexityContext
 }
 ```
 
-All of the execution options are listed [here](/docs/hotchocolate/v10/execution-engine/execution-options/).
+All of the execution options are listed [here](/docs/hotchocolate/v10/execution-engine/execution-options).

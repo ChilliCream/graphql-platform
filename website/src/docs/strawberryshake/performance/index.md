@@ -19,7 +19,7 @@ There are two flavors of persisted queries that Strawberry Shake supports and th
 The first approach is to store queries ahead of time (ahead of deployment).
 This is done by extracting the queries from your client application at build time. It will reduce the size of the requests and the bundle size of your application since queries can be completely removed from the client code at build time and are replaced with query hashes. Apart from performance, persisted queries can also be used for security by configuring Hot Chocolate to only accept persisted queries on production environments.
 
-Read more on how to set up Strawberry Shake for persisted queries [here](persisted-queries).
+Read more on how to set up Strawberry Shake for persisted queries [here](/docs/strawberryshake/performance/persisted-queries).
 
 ## Automatic persisted queries
 
@@ -29,8 +29,8 @@ Automatic persisted queries allow us to store queries dynamically on the server 
 
 # Persisted State
 
-Apart from focusing on reducing network request size we also can optimize using the network less by using the stores more efficiently. If you are not yet familiar with the store concepts first head of [here](../caching).
+Apart from focusing on reducing network request size we also can optimize using the network less by using the stores more efficiently. If you are not yet familiar with the store concepts first head of [here](/docs/strawberryshake/caching).
 
 One thing particular here is to persist the state that is aggregated in the stores to either the browsers IndexDB or to some small database like SQLite or LiteDB. When the user leaves the app and later returns to (closes the browser and reopens it) we can fill the state from our storage and have immediately data for the user while our store at the same time will start refreshing that data over the network if that is available.
 
-Read more on how to set up Strawberry Shake for persisted state [here](persisted-state).
+Read more on how to set up Strawberry Shake for persisted state [here](/docs/strawberryshake/performance/persisted-state).
