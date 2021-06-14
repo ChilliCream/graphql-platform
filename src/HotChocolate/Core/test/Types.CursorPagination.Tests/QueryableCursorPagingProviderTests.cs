@@ -427,7 +427,11 @@ namespace HotChocolate.Types.Pagination
                 _arguments = arguments;
             }
 
-            public IServiceProvider Services => throw new NotImplementedException();
+            public IServiceProvider Services
+            {
+                get => throw new NotImplementedException();
+                set => throw new NotImplementedException();
+            }
 
             public ISchema Schema => throw new NotImplementedException();
 

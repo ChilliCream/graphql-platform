@@ -57,7 +57,7 @@ namespace HotChocolate.Execution.Pipeline.Complexity
             FieldNode node,
             IDocumentValidatorContext context)
         {
-            if (context.Types.TryPeek(out IType type) &&
+            if (context.Types.TryPeek(out IType? type) &&
                 type.NamedType() is IComplexOutputType ot &&
                 ot.Fields.TryGetField(node.Name.Value, out IOutputField? of))
             {

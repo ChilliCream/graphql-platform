@@ -31,7 +31,11 @@ namespace HotChocolate.Execution.Processing
         public bool IsResultModified =>
             _middlewareContext.IsResultModified;
 
-        public IServiceProvider Services => _middlewareContext.Services;
+        public IServiceProvider Services
+        {
+            get => _middlewareContext.Services;
+            set => _middlewareContext.Services = value;
+        }
 
         public ISchema Schema =>
             _middlewareContext.Schema;
