@@ -13,7 +13,7 @@ namespace HotChocolate.Types
 {
     public class PaginationTests
     {
-        [Fact]
+        [Fact(Skip = "Test is flaky")]
         public async Task Execute_NestedOffsetPaging_NoCyclicDependencies()
         {
             await TryTest(async ct =>

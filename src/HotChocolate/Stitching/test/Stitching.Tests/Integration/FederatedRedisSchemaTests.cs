@@ -272,7 +272,7 @@ namespace HotChocolate.Stitching.Integration
             result.ToJson().MatchSnapshot();
         }
 
-        [Fact]
+        [Fact(Skip = "Test is flaky")]
         public async Task AutoMerge_AddLocal_Field_Execute()
         {
             await TryTest(async ct =>
