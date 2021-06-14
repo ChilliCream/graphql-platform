@@ -1,1 +1,3 @@
-
+#nullable enable
+**Removed**HotChocolate.AspNetCore.Subscriptions.Messages.DataStartMessageHandler.DataStartMessageHandler(HotChocolate.Execution.IRequestExecutor! requestExecutor, HotChocolate.AspNetCore.ISocketSessionInterceptor! socketSessionInterceptor, HotChocolate.Execution.Instrumentation.IDiagnosticEvents! diagnosticEvents) -> void
+HotChocolate.AspNetCore.Subscriptions.Messages.DataStartMessageHandler.DataStartMessageHandler(HotChocolate.Execution.IRequestExecutor! requestExecutor, HotChocolate.AspNetCore.ISocketSessionInterceptor! socketSessionInterceptor, HotChocolate.IErrorHandler! errorHandler, HotChocolate.Execution.Instrumentation.IDiagnosticEvents! diagnosticEvents) -> void

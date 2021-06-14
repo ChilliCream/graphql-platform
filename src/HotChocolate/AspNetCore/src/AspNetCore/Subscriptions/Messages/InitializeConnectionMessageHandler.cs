@@ -30,7 +30,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             }
             else
             {
-                var rejectMessage = connectionStatus.Extensions == null
+                RejectConnectionMessage rejectMessage = connectionStatus.Extensions == null
                     ? new RejectConnectionMessage(connectionStatus.Message)
                     : new RejectConnectionMessage(
                         connectionStatus.Message,

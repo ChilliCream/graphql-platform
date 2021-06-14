@@ -8,8 +8,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 {
     public class SubscriptionManager : ISubscriptionManager
     {
-        private readonly ConcurrentDictionary<string, ISubscriptionSession> _subs =
-            new ConcurrentDictionary<string, ISubscriptionSession>();
+        private readonly ConcurrentDictionary<string, ISubscriptionSession> _subs = new();
         private readonly ISocketConnection _connection;
         private bool _disposed;
 
@@ -32,7 +31,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
             if (_subs.TryAdd(subscriptionSession.Id, subscriptionSession))
             {
-                subscriptionSession.Completed += (sender, eventArgs) =>
+                subscriptionSession.Completed += (_, _) =>
                 {
                     Unregister(subscriptionSession.Id);
                 };
@@ -72,7 +71,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     ISubscriptionSession?[] subs = _subs.Values.ToArray();
                     _subs.Clear();
 
-                    for (int i = 0; i < subs.Length; i++)
+                    for (var i = 0; i < subs.Length; i++)
                     {
                         subs[i]?.Dispose();
                         subs[i] = null;
