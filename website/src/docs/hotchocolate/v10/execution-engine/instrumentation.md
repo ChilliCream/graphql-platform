@@ -342,4 +342,4 @@ We also have an implementation that we use in production that builds upon Micros
 
 # Blogs
 
-[Tracing with Hot Chocolate](https://chillicream.com/blog/2019/03/19/logging-with-hotchocolate)
+[Tracing with Hot Chocolate](/blog/2019/03/19/logging-with-hotchocolate)

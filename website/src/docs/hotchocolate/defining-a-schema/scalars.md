@@ -183,7 +183,7 @@ Most of these scalars are built on top of native .NET types. An Email Address fo
 public string GetEmail() => "test@example.com";
 ```
 
-[Learn more about explicitly specifying GraphQL types](/docs/hotchocolate/defining-a-schema/object-types/#explicit-types)
+[Learn more about explicitly specifying GraphQL types](/docs/hotchocolate/defining-a-schema/object-types#explicit-types)
 
 ## NodaTime
 

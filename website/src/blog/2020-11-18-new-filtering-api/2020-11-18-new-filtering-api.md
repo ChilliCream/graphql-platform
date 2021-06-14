@@ -199,7 +199,7 @@ The simplest example might be the following one:
 
 > You have an API with two endpoints. One endpoint is for all users of the website (/graphql). The other endpoint is only accessible by administrators (/admin/graphql). The structure of the APIs is the same, the administrators just have access to more fields and mutations.
 
-In previous versions, you would have to create two separate type hierarchies with different types. One for normal users and one for administrators. This would bloat the codebase a lot. With type interceptors and [the new schema creation api](https://chillicream.github.io/hotchocolate/blog/2020/07/16/version-11#configuration-api) this is a lot cleaner.
+In previous versions, you would have to create two separate type hierarchies with different types. One for normal users and one for administrators. This would bloat the codebase a lot. With type interceptors and [the new schema creation api](/blog/2020/07/16/version-11#configuration-api) this is a lot cleaner.
 
 ```csharp
 public void ConfigureServices(IServiceCollection services)
