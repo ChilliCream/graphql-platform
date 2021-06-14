@@ -118,8 +118,8 @@
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10/code-first</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10/schema-first</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
-<url> <loc>https://chillicream.com/docs/hotchocolate/v10/tooling</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10/stitching</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
+<url> <loc>https://chillicream.com/docs/hotchocolate/v10/tooling</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/strawberryshake/caching/entities</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/strawberryshake/caching</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/strawberryshake/caching/invalidation</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
