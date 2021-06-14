@@ -8,13 +8,13 @@ When we think about API security, we, in many cases, only think about authorizat
 
 TODO
 
-[Learn more about Authentication](/docs/hotchocolate/security/authentication)
+[Learn more about authentication](/docs/hotchocolate/security/authentication)
 
 # Authorization
 
 Authorization is one of the most basic security concepts. With authorization, you can limit what data people can fetch. Hot Chocolate integrates with the ASP.NET Core authorization policies, which can be applied to fields.
 
-[Learn more about Authorization](/docs/hotchocolate/security/authorization)
+[Learn more about authorization](/docs/hotchocolate/security/authorization)
 
 # Persisted Queries
 

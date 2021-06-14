@@ -2,6 +2,10 @@
 title: Authorization
 ---
 
+<!-- endpoints.MapGraphQL().RequireAuthorization(); -->
+
+<!-- todo: reference to authentication as prerequisite -->
+
 Authorization on the other hand is something Hot Chocolate can provide some value to by introducing a way to authorize access to fields with the `@authorize`-directive.
 
 But let's start at the beginning with this. In order to add authorization capabilities to our schema add the following package to our project:
