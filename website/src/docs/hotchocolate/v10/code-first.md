@@ -153,8 +153,6 @@ This was just a quick introduction - There is a lot more that we can do with _pu
 
 - If you are interested about resolvers in more detail [this](/docs/hotchocolate/v10/schema/resolvers) might be the right place for you.
 
-- If you want to know how to split up types then [this](/docs/hotchocolate/v10/schema/splitting-types) might be what you are looking for.
-
 You are all fired up and want to get started with a little tutorial walking you through an end-to-end example with `MongoDB` as your database? [Follow me](/docs/hotchocolate/v10/tutorials)!
 
 OK, OK, you already have an idea on what to do and you are just looking for a way to setup this whole thing with ASP.NET Core? [This](/docs/hotchocolate/v10/server) is where you find more on that.

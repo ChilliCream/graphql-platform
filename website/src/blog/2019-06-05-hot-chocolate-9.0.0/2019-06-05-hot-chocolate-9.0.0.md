@@ -27,7 +27,7 @@ SchemaBuilder.New()
 
 With the new API you have a lot more capabilities, but do not worry, we did not throw out the old API. You still can use `Schema.Create` to build your schema. The classic API now uses the schema builder underneath so that you should have a seamless upgrade from version 8 to version 9.
 
-> Read more about the new schema builder [here](2019-04-12-type-system.md).
+> Read more about the new schema builder [here](/blog/2019/04/12/type-system).
 
 ## Extensibility
 
@@ -64,7 +64,7 @@ You can access the context data on a type object like the following:
 schema.GetType<ObjectType>("Query").ContextData.ContainsKey("Foo");
 ```
 
-> Read more about extending the type system [here](2019-04-12-type-system.md).
+> Read more about extending the type system [here](/blog/2019/04/12/type-system).
 
 ## Relay
 

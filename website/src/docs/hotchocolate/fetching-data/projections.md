@@ -195,8 +195,6 @@ LEFT JOIN "Address" AS "a" ON "t"."Id" = "a"."UserId"
 ORDER BY "t"."Name" DESC, "t"."Email" DESC, "t"."Id", "a"."Id"
 ```
 
-<!-- todo: the below two sections could be merged and simplified -->
-
 # Always Project Fields
 
 Resolvers on types often access data of the parent, e.g. uses the `Email` member of the parent to fetch some
