@@ -176,14 +176,14 @@ dotnet add package HotChocolate.Types.Scalars
 [3]: https://tools.ietf.org/html/rfc7042#page-19
 [4]: https://tools.ietf.org/html/rfc7043
 
-> Note: Most of these scalars are based on a `string`. When returning a `string` from our resolver, we need to specify the scalar type manually.
->
-> ```csharp
-> [GraphQLType(typeof(EmailAddressType))]
-> public string GetEmail() => "test@example.com";
-> ```
->
-> [Learn more about this](/docs/hotchocolate/defining-a-schema/object-types/#explicit-types).
+Most of these scalars are built on top of native .NET types. An Email Address for example is represented as a `string`, but just returning a `string` from our resolver would result in Hot Chocolate interpreting it as a `StringType`. We need to explicitly specify that the returned type (`string`) should be treated as an `EmailAddressType`.
+
+```csharp
+[GraphQLType(typeof(EmailAddressType))]
+public string GetEmail() => "test@example.com";
+```
+
+[Learn more about explicitly specifying GraphQL types](/docs/hotchocolate/defining-a-schema/object-types/#explicit-types)
 
 ## NodaTime
 
@@ -212,6 +212,26 @@ dotnet add package HotChocolate.Types.NodaTime
 | Offset         | A [NodeTime Offset](https://nodatime.org/3.0.x/userguide/offset-patterns)                 | `"+02:35"`                                    |
 | Period         | A [NodeTime Period](https://nodatime.org/3.0.x/userguide/period-patterns)                 | `"P-3W3DT139t"`                               |
 | ZonedDateTime  | A [NodaTime ZonedDateTime](https://nodatime.org/3.0.x/userguide/zoneddatetime-patterns)   | `"2020-12-31T19:40:13 Asia/Kathmandu +05:45"` |
+
+When returning a NodaTime type from one of our resolvers, for example a `NodaTime.Duration`, we also need to explicitly register the corresponding scalar type. In the case of a `NodaTime.Duration` this would be the `DurationType` scalar.
+
+```csharp
+public class Query
+{
+    public Duration GetDuration() => Duration.FromMinutes(3);
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
+            .AddType<DurationType>();
+    }
+}
+```
 
 This package was originally developed by [@shoooe](https://github.com/shoooe).
 

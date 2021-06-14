@@ -39,10 +39,7 @@ class Helpers
                 if (!(include?.Invoke(file) ?? true)
                     || file.Contains("benchmark", StringComparison.OrdinalIgnoreCase)
                     || file.Contains("demo", StringComparison.OrdinalIgnoreCase)
-                    || file.Contains("sample", StringComparison.OrdinalIgnoreCase)
-                    || file.Contains("HotChocolate.Core.Tests", StringComparison.OrdinalIgnoreCase)
-                    || file.Contains("HotChocolate.Utilities.Introspection.Tests", StringComparison.OrdinalIgnoreCase)
-                    || file.Contains("HotChocolate.Types.Selection", StringComparison.OrdinalIgnoreCase))
+                    || file.Contains("sample", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
