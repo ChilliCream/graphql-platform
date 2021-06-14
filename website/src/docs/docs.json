@@ -191,6 +191,24 @@
             ]
           },
           {
+            "path": "security",
+            "title": "Security",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "authentication",
+                "title": "Authentication"
+              },
+              {
+                "path": "authorization",
+                "title": "Authorization"
+              }
+            ]
+          },
+          {
             "path": "api-reference",
             "title": "API Reference",
             "items": [
