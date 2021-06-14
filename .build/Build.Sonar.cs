@@ -7,6 +7,7 @@ using Nuke.Common.Tools.SonarScanner;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.SonarScanner.SonarScannerTasks;
 using static Helpers;
+using static System.IO.Path;
 
 partial class Build : NukeBuild
 {
@@ -25,16 +26,18 @@ partial class Build : NukeBuild
             Logger.Info($"GitHubBaseRef: {GitHubBaseRef}");
             Logger.Info($"GitHubPRNumber: {GitHubPRNumber}");
 
+            TryDelete(SonarSolutionFile);
             DotNetBuildSonarSolution(AllSolutionFile);
+            DotNetBuildSonarSolution(SonarSolutionFile, include: IsRelevantForSonar);
 
             DotNetRestore(c => c
-                .SetProjectFile(AllSolutionFile)
+                .SetProjectFile(SonarSolutionFile)
                 .SetProcessWorkingDirectory(RootDirectory));
 
             SonarScannerBegin(SonarBeginPrSettings);
             DotNetBuild(SonarBuildAll);
             DotNetTest(
-                c => CoverNoBuildSettingsOnly50(c, TestProjects),
+                c => CoverNoBuildSettingsOnly50(c, CoverProjects),
                 degreeOfParallelism: DegreeOfParallelism,
                 completeOnFailure: true);
             SonarScannerEnd(SonarEndSettings);
@@ -43,10 +46,12 @@ partial class Build : NukeBuild
     Target Sonar => _ => _
         .Executes(() =>
         {
+            TryDelete(SonarSolutionFile);
             DotNetBuildSonarSolution(AllSolutionFile);
+            DotNetBuildSonarSolution(SonarSolutionFile, include: IsRelevantForSonar);
 
             DotNetRestore(c => c
-                .SetProjectFile(AllSolutionFile)
+                .SetProjectFile(SonarSolutionFile)
                 .SetProcessWorkingDirectory(RootDirectory));
 
             Logger.Info("Creating Sonar analysis for version: {0} ...", GitVersion.SemVer);
@@ -54,7 +59,7 @@ partial class Build : NukeBuild
             SonarScannerBegin(SonarBeginFullSettings);
             DotNetBuild(SonarBuildAll);
             DotNetTest(
-                c => CoverNoBuildSettingsOnly50(c, TestProjects),
+                c => CoverNoBuildSettingsOnly50(c, CoverProjects),
                 degreeOfParallelism: DegreeOfParallelism,
                 completeOnFailure: true);
             SonarScannerEnd(SonarEndSettings);
@@ -103,8 +108,13 @@ partial class Build : NukeBuild
 
     DotNetBuildSettings SonarBuildAll(DotNetBuildSettings settings) =>
         settings
-            .SetProjectFile(AllSolutionFile)
+            .SetProjectFile(SonarSolutionFile)
             .SetNoRestore(true)
             .SetConfiguration(Debug)
             .SetProcessWorkingDirectory(RootDirectory);
+
+    private bool IsRelevantForSonar(string fileName)
+    {
+        return !ExcludedCover.Contains(GetFileNameWithoutExtension(fileName));
+    }
 }
