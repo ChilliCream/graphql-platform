@@ -1,4 +1,4 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable RedundantNameQualifier
 // ReSharper disable ArrangeObjectCreationWhenTypeEvident
 // ReSharper disable UnusedType.Global
@@ -1101,7 +1101,7 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
-            return _uuidParser.Parse(obj.Value.GetGuid()!);
+            return _uuidParser.Parse(global::System.Guid.Parse(obj.Value.GetString()!)!);
         }
 
         private global::System.String? DeserializeString(global::System.Text.Json.JsonElement? obj)
@@ -1201,7 +1201,7 @@ namespace Foo.Bar.State
 
         private global::StrawberryShake.EntityId ParseVehicleMakeEntityId(global::System.Text.Json.JsonElement obj, global::System.String type)
         {
-            return new global::StrawberryShake.EntityId(type, obj.GetProperty("id").GetGuid()!);
+            return new global::StrawberryShake.EntityId(type, global::System.Guid.Parse(obj.GetProperty("id").GetString()!)!);
         }
 
         private global::System.String FormatVehicleMakeEntityId(global::StrawberryShake.EntityId entityId)
@@ -1218,7 +1218,7 @@ namespace Foo.Bar.State
 
         private global::StrawberryShake.EntityId ParseVehicleModelEntityId(global::System.Text.Json.JsonElement obj, global::System.String type)
         {
-            return new global::StrawberryShake.EntityId(type, obj.GetProperty("id").GetGuid()!);
+            return new global::StrawberryShake.EntityId(type, global::System.Guid.Parse(obj.GetProperty("id").GetString()!)!);
         }
 
         private global::System.String FormatVehicleModelEntityId(global::StrawberryShake.EntityId entityId)

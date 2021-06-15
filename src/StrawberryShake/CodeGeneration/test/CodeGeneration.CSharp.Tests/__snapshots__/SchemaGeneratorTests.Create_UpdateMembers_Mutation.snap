@@ -1,4 +1,4 @@
-﻿// ReSharper disable BuiltInTypeReferenceStyle
+// ReSharper disable BuiltInTypeReferenceStyle
 // ReSharper disable RedundantNameQualifier
 // ReSharper disable ArrangeObjectCreationWhenTypeEvident
 // ReSharper disable UnusedType.Global
@@ -1024,7 +1024,7 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
-            return _guidParser.Parse(obj.Value.GetGuid()!);
+            return _guidParser.Parse(global::System.Guid.Parse(obj.Value.GetString()!)!);
         }
     }
 
