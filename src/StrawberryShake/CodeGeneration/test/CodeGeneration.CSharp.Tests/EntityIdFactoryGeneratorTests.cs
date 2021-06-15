@@ -30,11 +30,11 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "extend schema @key(fields: \"id email\")");
 
         [Fact]
-        public void Simple_Uuid_Entity() =>
+        public void Simple_UUID_Entity() =>
             AssertResult(
                 "query GetPerson { person { id email } }",
                 "type Query { person: Person }",
-                "type Person { id: Uuid! email: String }",
+                "type Person { id: UUID! email: String }",
                 "extend schema @key(fields: \"id\")");
 
         [Fact]

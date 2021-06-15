@@ -5,9 +5,9 @@ namespace StrawberryShake.Serialization
     /// <summary>
     /// This serializer handles UUID scalars.
     /// </summary>
-    public class UuidSerializer : ScalarSerializer<Guid>
+    public class UUIDSerializer : ScalarSerializer<Guid>
     {
-        public UuidSerializer(string typeName = BuiltInScalarNames.Uuid)
+        public UUIDSerializer(string typeName = BuiltInScalarNames.UUID)
             : base(typeName)
         {
         }

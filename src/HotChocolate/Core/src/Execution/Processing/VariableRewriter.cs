@@ -55,36 +55,37 @@ namespace HotChocolate.Execution.Processing
 
             if (node.Fields.Count == 1)
             {
-                if (TryRewriteField(node.Fields[0], variableValues, out ObjectFieldNode? rewritten))
-                {
-                    return node.WithFields(new[] { rewritten });
-                }
-                return node;
+                return TryRewriteField(
+                    node.Fields[0],
+                    variableValues,
+                    out ObjectFieldNode? rewritten)
+                    ? node.WithFields(new[] { rewritten })
+                    : node;
             }
 
             ObjectFieldNode[]? rewrittenItems = null;
 
-            for (int i = 0; i < node.Fields.Count; i++)
+            for (var i = 0; i < node.Fields.Count; i++)
             {
                 if (TryRewriteField(node.Fields[i], variableValues, out ObjectFieldNode? rewritten))
                 {
                     if (rewrittenItems is null)
                     {
                         rewrittenItems = new ObjectFieldNode[node.Fields.Count];
-                        for (int j = 0; j < node.Fields.Count; j++)
+                        for (var j = 0; j < node.Fields.Count; j++)
                         {
                             rewrittenItems[j] = node.Fields[j];
                         }
                     }
                     rewrittenItems[i] = rewritten;
                 }
-                else if (rewrittenItems is { })
+                else if (rewrittenItems is not null)
                 {
                     rewrittenItems[i] = node.Fields[i];
                 }
             }
 
-            if (rewrittenItems is { })
+            if (rewrittenItems is not null)
             {
                 return node.WithFields(rewrittenItems);
             }
@@ -118,16 +119,17 @@ namespace HotChocolate.Execution.Processing
 
             if (node.Items.Count == 1)
             {
-                if (TryRewriteValue(node.Items[0], variableValues, out IValueNode? rewritten))
-                {
-                    return node.WithItems(new[] { rewritten });
-                }
-                return node;
+                return TryRewriteValue(
+                    node.Items[0],
+                    variableValues,
+                    out IValueNode? rewritten)
+                    ? node.WithItems(new[] { rewritten })
+                    : node;
             }
 
             IValueNode[]? rewrittenItems = null;
 
-            for (int i = 0; i < node.Items.Count; i++)
+            for (var i = 0; i < node.Items.Count; i++)
             {
                 IValueNode original = node.Items[i];
                 if (TryRewriteValue(original, variableValues, out IValueNode? rewritten))
@@ -135,20 +137,20 @@ namespace HotChocolate.Execution.Processing
                     if (rewrittenItems is null)
                     {
                         rewrittenItems = new IValueNode[node.Items.Count];
-                        for (int j = 0; j < i; j++)
+                        for (var j = 0; j < i; j++)
                         {
                             rewrittenItems[j] = node.Items[j];
                         }
                     }
                     rewrittenItems[i] = rewritten;
                 }
-                else if (rewrittenItems is { })
+                else if (rewrittenItems is not null)
                 {
                     rewrittenItems[i] = node.Items[i];
                 }
             }
 
-            if (rewrittenItems is { })
+            if (rewrittenItems is not null)
             {
                 return node.WithItems(rewrittenItems);
             }
@@ -193,14 +195,9 @@ namespace HotChocolate.Execution.Processing
 
         private static IValueNode Rewrite(
             VariableNode node,
-            IVariableValueCollection variableValues)
-        {
-            if (variableValues.TryGetVariable(node.Name.Value, out IValueNode value))
-            {
-                return value;
-            }
-
-            throw ThrowHelper.VariableNotFound(node);
-        }
+            IVariableValueCollection variableValues) =>
+            variableValues.TryGetVariable(node.Name.Value, out IValueNode value)
+                ? value
+                : throw ThrowHelper.VariableNotFound(node);
     }
 }
