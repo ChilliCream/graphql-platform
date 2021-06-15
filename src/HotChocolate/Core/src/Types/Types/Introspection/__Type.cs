@@ -1,26 +1,46 @@
 #pragma warning disable IDE1006 // Naming Styles
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
 namespace HotChocolate.Types.Introspection
 {
     [Introspection]
-    internal sealed class __Type : ObjectType<IType>
+    internal sealed class __Type : ObjectType
     {
+        protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+        {
+            ExtendedTypeReference stringType = context.TypeInspector.GetTypeRef(typeof(string));
+
+            var typeDefinition = new ObjectTypeDefinition
+            {
+                Name = Names.__Type,
+                Description = TypeResources.Type_Description,
+                RuntimeType = typeof(IType)
+            };
+
+            typeDefinition.Fields.Add(new()
+            {
+                Name = Names.Kind,
+                Type = stringType,
+                Resolver =  Resolver.Create<__Type>(t => t.Kind)
+            });
+
+            ObjectType type = ObjectType.CreateUnsafe(typeDefinition);
+        }
+
+
+
         protected override void Configure(IObjectTypeDescriptor<IType> descriptor)
         {
-            descriptor
-                .Name(Names.__Type)
-                .Description(TypeResources.Type_Description)
-                // Introspection types must always be bound explicitly so that we
-                // do not get any interference with conventions.
-                .BindFields(BindingBehavior.Explicit);
-
             descriptor
                 .Field(t => t.Kind)
                 .Name(Names.Kind)

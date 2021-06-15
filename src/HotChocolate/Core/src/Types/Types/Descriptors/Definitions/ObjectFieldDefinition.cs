@@ -202,4 +202,12 @@ namespace HotChocolate.Types.Descriptors.Definitions
             }
         }
     }
+
+    public static class Resolver
+    {
+        public static FieldResolverDelegate Create<T>(Func<T, object> func)
+        {
+            
+        }
+    }
 }

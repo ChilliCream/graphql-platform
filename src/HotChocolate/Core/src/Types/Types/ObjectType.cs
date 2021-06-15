@@ -23,6 +23,9 @@ namespace HotChocolate.Types
         private Action<IObjectTypeDescriptor>? _configure;
         private IsOfType? _isOfType;
 
+        public static ObjectType CreateUnsafe(ObjectTypeDefinition typeDefinition) =>
+            throw new Exception();
+
         protected ObjectType()
         {
             _configure = Configure;
