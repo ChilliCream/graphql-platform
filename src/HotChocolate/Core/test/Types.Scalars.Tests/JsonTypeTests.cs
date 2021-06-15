@@ -7,8 +7,6 @@ using Xunit;
 
 namespace HotChocolate.Types
 {
-
-
     public class JsonTypeTests : ScalarTypeTestBase
     {
         [Fact]
