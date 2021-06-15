@@ -13,7 +13,7 @@ namespace StrawberryShake.CodeGeneration
         public const string Float = nameof(Float);
         public const string Decimal = nameof(Decimal);
         public const string Url = nameof(Url);
-        public const string Uuid = nameof(Uuid);
+        public const string UUID = nameof(UUID);
         public const string Byte = nameof(Byte);
         public const string ByteArray = nameof(ByteArray);
         public const string Any = nameof(Any);
@@ -35,7 +35,7 @@ namespace StrawberryShake.CodeGeneration
             Float,
             Decimal,
             Url,
-            Uuid,
+            UUID,
             DateTime,
             Date,
             MultiplierPath,

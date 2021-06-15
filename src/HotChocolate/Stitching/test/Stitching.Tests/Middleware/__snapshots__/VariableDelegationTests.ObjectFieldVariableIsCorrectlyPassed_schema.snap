@@ -25,7 +25,7 @@ type Customer @source(name: "Customer", schema: "customer") {
   kind: CustomerKind!
   name: String!
   say(input: SayInput!): String
-  someGuid: Uuid!
+  someGuid: UUID!
   someInt: Int!
   street: String!
 }
@@ -92,7 +92,7 @@ type Query {
   customerOrConsultant(id: ID!): CustomerOrConsultant @delegate(schema: "customer")
   customers(ids: [ID!]!): [Customer] @delegate(schema: "customer")
   extendedScalar(d: DateTime): DateTime @delegate(schema: "contract")
-  guid(guid: Uuid!): Uuid! @delegate(schema: "contract")
+  guid(guid: UUID!): UUID! @delegate(schema: "contract")
   int(i: Int!): Int! @delegate(schema: "contract")
 }
 
@@ -122,7 +122,7 @@ input CustomerInput @source(name: "CustomerInput", schema: "customer") {
   id: String
   kind: CustomerKind!
   name: String
-  someGuid: Uuid!
+  someGuid: UUID!
   someInt: Int!
   street: String
 }
@@ -176,4 +176,4 @@ scalar PaginationAmount
 "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
 scalar String
 
-scalar Uuid
+scalar UUID

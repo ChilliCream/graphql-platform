@@ -60,8 +60,8 @@ interface Character {
 union SearchResult = Starship | Human | Droid
 
 type Review {
-  stars: Int!
   commentary: String
+  stars: Int!
 }
 
 input ReviewInput {
