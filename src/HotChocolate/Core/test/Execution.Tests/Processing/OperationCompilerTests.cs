@@ -22,7 +22,7 @@ namespace HotChocolate.Execution.Processing
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("foo"))
+                    .Resolve("foo"))
                 .Create();
 
             DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
@@ -82,7 +82,7 @@ namespace HotChocolate.Execution.Processing
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("foo"))
+                    .Resolve("foo"))
                 .Create();
 
             DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
@@ -109,7 +109,7 @@ namespace HotChocolate.Execution.Processing
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("foo"))
+                    .Resolve("foo"))
                 .Create();
 
             DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
@@ -139,7 +139,7 @@ namespace HotChocolate.Execution.Processing
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("foo"))
+                    .Resolve("foo"))
                 .Create();
 
             DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
@@ -169,7 +169,7 @@ namespace HotChocolate.Execution.Processing
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("foo"))
+                    .Resolve("foo"))
                 .Create();
 
             DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
@@ -207,7 +207,7 @@ namespace HotChocolate.Execution.Processing
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("foo"))
+                    .Resolve("foo"))
                 .Create();
 
             DocumentNode document = Utf8GraphQLParser.Parse("{ foo foo }");
@@ -245,7 +245,7 @@ namespace HotChocolate.Execution.Processing
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("foo"))
+                    .Resolve("foo"))
                 .Create();
 
             DocumentNode document = Utf8GraphQLParser.Parse("{ }");
@@ -369,7 +369,7 @@ namespace HotChocolate.Execution.Processing
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("foo"))
+                    .Resolve("foo"))
                 .Create();
 
             DocumentNode document = Utf8GraphQLParser.Parse("{ foo @skip(if: true) foo @skip(if: false) }");
@@ -407,7 +407,7 @@ namespace HotChocolate.Execution.Processing
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("foo"))
+                    .Resolve("foo"))
                 .Create();
 
             DocumentNode document = Utf8GraphQLParser.Parse("{ foo bar }");
