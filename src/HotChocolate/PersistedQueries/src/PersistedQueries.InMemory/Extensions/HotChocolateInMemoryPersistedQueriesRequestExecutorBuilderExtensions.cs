@@ -16,9 +16,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder">
         /// The service collection to which the services are added.
         /// </param>
-        /// <param name="cacheDirectory">
-        /// The directory path that shall be used to store queries.
-        /// </param>
         public static IRequestExecutorBuilder AddInMemoryQueryStorage(
             this IRequestExecutorBuilder builder)
         {
@@ -37,9 +34,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <param name="builder">
         /// The service collection to which the services are added.
-        /// </param>
-        /// <param name="cacheDirectory">
-        /// The directory path that shall be used to read queries from.
         /// </param>
         public static IRequestExecutorBuilder AddReadOnlyInMemoryQueryStorage(
             this IRequestExecutorBuilder builder)
