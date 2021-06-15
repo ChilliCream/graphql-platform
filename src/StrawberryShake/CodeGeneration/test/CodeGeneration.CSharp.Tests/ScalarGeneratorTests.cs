@@ -97,7 +97,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "extend schema @key(fields: \"id\")");
 
         [Fact]
-        public void Complete_Schema_With_Uuid_And_DateTime()
+        public void Complete_Schema_With_UUID_And_DateTime()
         {
             AssertResult(
                 FileResource.Open("AllExpenses.graphql"),

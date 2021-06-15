@@ -1188,9 +1188,9 @@ namespace HotChocolate.Properties {
         internal static string ErrorHelper_ObjectField_HasNoResolver {
             get {
                 return ResourceManager.GetString("ErrorHelper_ObjectField_HasNoResolver", resourceCulture);
-                      }
+            }
         }
-
+        
         internal static string ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed {
             get {
                 return ResourceManager.GetString("ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed", resourceCulture);

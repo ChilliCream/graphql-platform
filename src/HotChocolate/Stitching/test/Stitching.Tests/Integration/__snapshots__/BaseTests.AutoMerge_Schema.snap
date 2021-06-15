@@ -31,7 +31,7 @@ type Customer implements Node @source(name: "Customer", schema: "customer") {
   say(input: SayInput!): String
   complexArg(arg: ComplexInputType): String
   someInt: Int!
-  someGuid: Uuid!
+  someGuid: UUID!
   kind: CustomerKind!
 }
 
@@ -93,7 +93,7 @@ type Query {
   contracts(customerId: ID!): [Contract!] @delegate(schema: "contract")
   extendedScalar(d: DateTime): DateTime @delegate(schema: "contract")
   int(i: Int!): Int! @delegate(schema: "contract")
-  guid(guid: Uuid!): Uuid! @delegate(schema: "contract")
+  guid(guid: UUID!): UUID! @delegate(schema: "contract")
   customer_node(id: ID!): Node @delegate(schema: "customer", path: "node(id: $arguments:id)")
   customer(id: ID!): Customer @delegate(schema: "customer")
   customers(ids: [ID!]!): [Customer] @delegate(schema: "customer")
@@ -130,7 +130,7 @@ input CustomerInput @source(name: "CustomerInput", schema: "customer") {
   street: String
   consultantId: String
   someInt: Int!
-  someGuid: Uuid!
+  someGuid: UUID!
   kind: CustomerKind!
 }
 
@@ -180,4 +180,4 @@ scalar Long
 "The name scalar represents a valid GraphQL name as specified in the spec and can be used to refer to fields or types."
 scalar Name
 
-scalar Uuid
+scalar UUID @specifiedBy(url: "https:\/\/tools.ietf.org\/html\/rfc4122")
