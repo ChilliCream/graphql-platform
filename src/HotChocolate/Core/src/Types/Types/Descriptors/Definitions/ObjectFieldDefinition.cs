@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Resolvers;
+using HotChocolate.Resolvers.Expressions;
 
 #nullable enable
 
@@ -123,7 +124,6 @@ namespace HotChocolate.Types.Descriptors.Definitions
             return _customSettings;
         }
 
-
         internal void CopyTo(ObjectFieldDefinition target)
         {
             base.CopyTo(target);
@@ -200,14 +200,6 @@ namespace HotChocolate.Types.Descriptors.Definitions
             {
                 target.SubscribeResolver = SubscribeResolver;
             }
-        }
-    }
-
-    public static class Resolver
-    {
-        public static FieldResolverDelegate Create<T>(Func<T, object> func)
-        {
-            
         }
     }
 }

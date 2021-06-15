@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         public IValueNode? DefaultValue { get; set; }
 
-        public object? NativeDefaultValue { get; set; }
+        public object? RuntimeDefaultValue { get; set; }
 
         public ParameterInfo? Parameter { get; set; }
 
@@ -36,7 +36,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
             target._formatters = _formatters;
             target.DefaultValue = DefaultValue;
-            target.NativeDefaultValue = NativeDefaultValue;
+            target.RuntimeDefaultValue = RuntimeDefaultValue;
             target.Parameter = Parameter;
         }
 
@@ -55,9 +55,9 @@ namespace HotChocolate.Types.Descriptors.Definitions
                 target.DefaultValue = DefaultValue;
             }
 
-            if (NativeDefaultValue is not null)
+            if (RuntimeDefaultValue is not null)
             {
-                target.NativeDefaultValue = NativeDefaultValue;
+                target.RuntimeDefaultValue = RuntimeDefaultValue;
             }
 
             if (Parameter is not null)

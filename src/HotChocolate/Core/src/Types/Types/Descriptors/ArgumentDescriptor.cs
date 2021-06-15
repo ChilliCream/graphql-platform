@@ -44,7 +44,7 @@ namespace HotChocolate.Types.Descriptors
 
             if (context.TypeInspector.TryGetDefaultValue(parameter, out object defaultValue))
             {
-                Definition.NativeDefaultValue = defaultValue;
+                Definition.RuntimeDefaultValue = defaultValue;
             }
         }
 

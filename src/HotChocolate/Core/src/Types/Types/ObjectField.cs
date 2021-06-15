@@ -175,12 +175,20 @@ namespace HotChocolate.Types
                 options.FieldMiddleware != FieldMiddlewareApplication.AllFields &&
                 isIntrospectionField;
 
-            Resolver = definition.Resolver!;
+            Resolver = definition.Resolver;
 
-            if (definition.PureResolver is not null && IsPureContext())
+            if (definition.PureResolver is not null)
             {
-                PureFieldResolverDelegate pure = definition.PureResolver;
-                PureResolver = c => c.Result = pure(c);
+                if (IsPureContext())
+                {
+                    PureFieldResolverDelegate pure = definition.PureResolver;
+                    PureResolver = c => c.Result = pure(c);
+                }
+
+                if (Resolver is null)
+                {
+                    definition.Resolver = ctx => new(definition.PureResolver(ctx));
+                }
             }
 
             if (definition.InlineResolver is not null && IsPureContext())
