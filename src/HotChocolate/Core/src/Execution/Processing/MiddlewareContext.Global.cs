@@ -13,10 +13,22 @@ namespace HotChocolate.Execution.Processing
     internal partial class MiddlewareContext
     {
         private IOperationContext _operationContext = default!;
+        private IServiceProvider _services = default!;
         private object? _resolverResult;
         private bool _hasResolverResult;
 
-        public IServiceProvider Services => _operationContext.Services;
+        public IServiceProvider Services
+        {
+            get => _services;
+            set
+            {
+                if (value is null!)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                _services = value;
+            }
+        }
 
         public ISchema Schema => _operationContext.Schema;
 
