@@ -9,12 +9,15 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types
 {
     /// <summary>
-    /// Represents a GraphQL input object type
+    /// A GraphQL Input Object defines a set of input fields;
+    /// the input fields are either scalars, enums, or other input objects.
+    /// This allows arguments to accept arbitrarily complex structs.
     /// </summary>
     public partial class InputObjectType
         : NamedTypeBase<InputObjectTypeDefinition>
         , IInputObjectType
     {
+        /// <inheritdoc />
         public override TypeKind Kind => TypeKind.InputObject;
 
         /// <summary>
@@ -38,8 +41,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(literal));
             }
 
-            return literal is ObjectValueNode
-                || literal is NullValueNode;
+            return literal is ObjectValueNode or NullValueNode;
         }
 
         /// <inheritdoc />
@@ -87,6 +89,7 @@ namespace HotChocolate.Types
             return _objectToValueConverter.Convert(this, runtimeValue);
         }
 
+        /// <inheritdoc />
         public IValueNode ParseResult(object? resultValue)
         {
             if (resultValue is null)
@@ -103,7 +106,7 @@ namespace HotChocolate.Types
                     if(dict.TryGetValue(field.Name.Value, out object? value))
                     {
                         list.Add(new ObjectFieldNode(
-                            field.Name.Value, 
+                            field.Name.Value,
                             field.Type.ParseResult(value)));
                     }
                 }
@@ -121,9 +124,10 @@ namespace HotChocolate.Types
                 this);
         }
 
+        /// <inheritdoc />
         public object? Serialize(object? runtimeValue)
         {
-            if (TrySerialize(runtimeValue, out object? serialized))
+            if (TrySerialize(runtimeValue, out var serialized))
             {
                 return serialized;
             }
@@ -160,9 +164,10 @@ namespace HotChocolate.Types
             }
         }
 
+        /// <inheritdoc />
         public object? Deserialize(object? resultValue)
         {
-            if (TryDeserialize(resultValue, out object? deserialized))
+            if (TryDeserialize(resultValue, out var deserialized))
             {
                 return deserialized;
             }

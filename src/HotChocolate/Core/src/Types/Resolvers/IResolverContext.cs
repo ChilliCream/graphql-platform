@@ -20,7 +20,7 @@ namespace HotChocolate.Resolvers
         /// <summary>
         /// Gets the scoped request service provider.
         /// </summary>
-        IServiceProvider Services { get; }
+        IServiceProvider Services { get; set; }
 
         /// <summary>
         /// Gets the GraphQL schema on which the query is executed.

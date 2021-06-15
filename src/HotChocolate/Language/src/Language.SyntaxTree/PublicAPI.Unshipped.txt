@@ -1,1 +1,1 @@
-
+HotChocolate.Language.ArgumentNode.ArgumentNode(string! name, int value) -> void

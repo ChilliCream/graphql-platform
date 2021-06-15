@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
+using Snapshooter;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -22,13 +24,15 @@ namespace HotChocolate.Execution
                     .AddType<ExtendQuery1>()
                     .BuildRequestExecutorAsync();
 
-            await executor
-                .ExecuteAsync("{ hello }")
-                .MatchSnapshotAsync("1");
-
-            await executor
-                .ExecuteAsync("{ hello }")
-                .MatchSnapshotAsync("2");
+            new
+            {
+                result1 = await executor
+                    .ExecuteAsync("{ hello }")
+                    .ToJsonAsync(),
+                result2 = await executor
+                    .ExecuteAsync("{ hello }")
+                    .ToJsonAsync()
+            }.MatchSnapshot();
         }
 
         [Fact]
@@ -46,29 +50,33 @@ namespace HotChocolate.Execution
 
             IRequestExecutor executor = await services.GetRequestExecutorAsync();
 
+            var result = new string[2];
+
             using (IServiceScope scope = services.CreateScope())
             {
-                await executor
+                result[0] = await executor
                     .ExecuteAsync(
                         QueryRequestBuilder
                             .New()
                             .SetQuery("{ hello }")
                             .SetServices(scope.ServiceProvider)
                             .Create())
-                    .MatchSnapshotAsync();
+                    .ToJsonAsync();
             }
 
             using (IServiceScope scope = services.CreateScope())
             {
-                await executor
+                result[1] = await executor
                     .ExecuteAsync(
                         QueryRequestBuilder
                             .New()
                             .SetQuery("{ hello }")
                             .SetServices(scope.ServiceProvider)
                             .Create())
-                    .MatchSnapshotAsync();
+                    .ToJsonAsync();
             }
+
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -83,13 +91,15 @@ namespace HotChocolate.Execution
                     .AddQueryType<Query2>()
                     .BuildRequestExecutorAsync();
 
-            await executor
-                .ExecuteAsync("{ hello }")
-                .MatchSnapshotAsync("1");
-
-            await executor
-                .ExecuteAsync("{ hello }")
-                .MatchSnapshotAsync("2");
+            new
+            {
+                result1 = await executor
+                    .ExecuteAsync("{ hello }")
+                    .ToJsonAsync(),
+                result2 = await executor
+                    .ExecuteAsync("{ hello }")
+                    .ToJsonAsync()
+            }.MatchSnapshot();
         }
 
         [Fact]
@@ -106,29 +116,33 @@ namespace HotChocolate.Execution
 
             IRequestExecutor executor = await services.GetRequestExecutorAsync();
 
+            var result = new string[2];
+
             using (IServiceScope scope = services.CreateScope())
             {
-                await executor
+                result[0] = await executor
                     .ExecuteAsync(
                         QueryRequestBuilder
                             .New()
                             .SetQuery("{ hello }")
                             .SetServices(scope.ServiceProvider)
                             .Create())
-                    .MatchSnapshotAsync();
+                    .ToJsonAsync();
             }
 
             using (IServiceScope scope = services.CreateScope())
             {
-                await executor
+                result[1] = await executor
                     .ExecuteAsync(
                         QueryRequestBuilder
                             .New()
                             .SetQuery("{ hello }")
                             .SetServices(scope.ServiceProvider)
                             .Create())
-                    .MatchSnapshotAsync();
+                    .ToJsonAsync();
             }
+
+            result.MatchSnapshot();
         }
 
         public class SomeService

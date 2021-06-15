@@ -1,31 +1,31 @@
 ﻿query Hero($episode: Episode, $withFriends: Boolean!) {
   ... on Query {
-    hero(episode: $episode) {
+    hero(episode: $episode) @__execute(id: 0, kind: DEFAULT, type: COMPOSITE) {
       ... on Human {
-        name
-        friends @include(if: $withFriends) {
+        name @__execute(id: 1, kind: INLINE, type: LEAF)
+        friends @include(if: $withFriends) @__execute(id: 2, kind: DEFAULT, type: COMPOSITE) {
           ... on CharacterConnection {
-            nodes @include(if: $withFriends) {
+            nodes @include(if: $withFriends) @__execute(id: 3, kind: PURE, type: COMPOSITE_LIST) {
               ... on Human {
-                id @include(if: $withFriends)
+                id @include(if: $withFriends) @__execute(id: 4, kind: INLINE, type: LEAF)
               }
               ... on Droid {
-                id @include(if: $withFriends)
+                id @include(if: $withFriends) @__execute(id: 5, kind: INLINE, type: LEAF)
               }
             }
           }
         }
       }
       ... on Droid {
-        name
-        friends @include(if: $withFriends) {
+        name @__execute(id: 6, kind: INLINE, type: LEAF)
+        friends @include(if: $withFriends) @__execute(id: 7, kind: DEFAULT, type: COMPOSITE) {
           ... on CharacterConnection {
-            nodes @include(if: $withFriends) {
+            nodes @include(if: $withFriends) @__execute(id: 8, kind: PURE, type: COMPOSITE_LIST) {
               ... on Human {
-                id @include(if: $withFriends)
+                id @include(if: $withFriends) @__execute(id: 9, kind: INLINE, type: LEAF)
               }
               ... on Droid {
-                id @include(if: $withFriends)
+                id @include(if: $withFriends) @__execute(id: 10, kind: INLINE, type: LEAF)
               }
             }
           }

@@ -26,16 +26,12 @@ namespace HotChocolate.Language
                 throw new ArgumentNullException(nameof(value));
             }
 
-            string? stringValue = value.ToString()?.ToUpperInvariant();
+            var stringValue = value.ToString()?.ToUpperInvariant();
 
-            if (stringValue is null)
-            {
+            _value = stringValue ??
                 throw new ArgumentException(
                     "The value string representation mustn't be null.",
                     nameof(value));
-            }
-
-            _value = stringValue;
         }
 
         public EnumValueNode(string value)
@@ -62,7 +58,7 @@ namespace HotChocolate.Language
             _memory = value;
         }
 
-        public SyntaxKind Kind { get; } = SyntaxKind.EnumValue;
+        public SyntaxKind Kind => SyntaxKind.EnumValue;
 
         public Location? Location { get; }
 

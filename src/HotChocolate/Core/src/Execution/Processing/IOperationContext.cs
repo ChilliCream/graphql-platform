@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -37,6 +38,11 @@ namespace HotChocolate.Execution.Processing
         /// Gets the operation that is being executed.
         /// </summary>
         IPreparedOperation Operation { get; }
+
+        /// <summary>
+        /// Gets the query execution plan.
+        /// </summary>
+        QueryPlan QueryPlan { get; set; }
 
         /// <summary>
         /// Gets the value representing the instance of the

@@ -1,0 +1,18 @@
+HotChocolate.Types.LatitudeType
+HotChocolate.Types.LatitudeType.LatitudeType() -> void
+HotChocolate.Types.LatitudeType.LatitudeType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.LongitudeType
+HotChocolate.Types.LongitudeType.LongitudeType() -> void
+HotChocolate.Types.LongitudeType.LongitudeType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+override HotChocolate.Types.LatitudeType.IsInstanceOfType(double runtimeValue) -> bool
+override HotChocolate.Types.LatitudeType.ParseLiteral(HotChocolate.Language.StringValueNode! valueSyntax) -> double
+override HotChocolate.Types.LatitudeType.ParseResult(object? resultValue) -> HotChocolate.Language.IValueNode!
+override HotChocolate.Types.LatitudeType.ParseValue(double runtimeValue) -> HotChocolate.Language.StringValueNode!
+override HotChocolate.Types.LatitudeType.TryDeserialize(object? resultValue, out object? runtimeValue) -> bool
+override HotChocolate.Types.LatitudeType.TrySerialize(object? runtimeValue, out object? resultValue) -> bool
+override HotChocolate.Types.LongitudeType.IsInstanceOfType(double runtimeValue) -> bool
+override HotChocolate.Types.LongitudeType.ParseLiteral(HotChocolate.Language.StringValueNode! valueSyntax) -> double
+override HotChocolate.Types.LongitudeType.ParseResult(object? resultValue) -> HotChocolate.Language.IValueNode!
+override HotChocolate.Types.LongitudeType.ParseValue(double runtimeValue) -> HotChocolate.Language.StringValueNode!
+override HotChocolate.Types.LongitudeType.TryDeserialize(object? resultValue, out object? runtimeValue) -> bool
+override HotChocolate.Types.LongitudeType.TrySerialize(object? runtimeValue, out object? resultValue) -> bool

@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -79,7 +81,7 @@ namespace HotChocolate.Execution
                     type Bar {
                         baz: String
                     }")
-                .Use(next => context =>
+                .Use(_ => context =>
                 {
                     if (context.Field.Type.NamedType() is ObjectType type)
                     {
@@ -88,7 +90,7 @@ namespace HotChocolate.Execution
                             CollectSelections(context, selection, list);
                         }
                     }
-                    return default(ValueTask);
+                    return default;
                 })
                 .Create();
 
@@ -104,6 +106,33 @@ namespace HotChocolate.Execution
 
             // assert
             list.Select(t => t.SyntaxNode.Name.Value).ToList().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task CustomServiceProvider()
+        {
+            // arrange
+            var services = new DictionaryServiceProvider(typeof(string), "hello");
+
+            // assert
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d =>
+                {
+                    d.Name(OperationTypeNames.Query);
+
+                    d.Field("foo")
+                        .Resolve(ctx => ctx.Service<string>())
+                        .Use(next => async context =>
+                        {
+                            context.Services = services;
+                            await next(context);
+                        });
+                })
+                .ExecuteRequestAsync("{ foo }")
+
+            // assert
+                .MatchSnapshotAsync();
         }
 
         private static void CollectSelections(

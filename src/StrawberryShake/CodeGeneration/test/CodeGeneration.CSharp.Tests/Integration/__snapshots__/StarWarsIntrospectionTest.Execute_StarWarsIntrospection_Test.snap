@@ -1727,6 +1727,18 @@
           "Description": null,
           "Fields": [
             {
+              "Name": "commentary",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "Kind": "Scalar",
+                "Name": "String",
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
               "Name": "stars",
               "Description": null,
               "Args": [],
@@ -1738,18 +1750,6 @@
                   "Name": "Int",
                   "OfType": null
                 }
-              },
-              "IsDeprecated": false,
-              "DeprecationReason": null
-            },
-            {
-              "Name": "commentary",
-              "Description": null,
-              "Args": [],
-              "Type": {
-                "Kind": "Scalar",
-                "Name": "String",
-                "OfType": null
               },
               "IsDeprecated": false,
               "DeprecationReason": null
@@ -5277,6 +5277,26 @@
           "Fields": [
             {
               "__typename": "__Field",
+              "Name": "commentary",
+              "Description": null,
+              "Args": [],
+              "Type": {
+                "__typename": "__Type",
+                "Name": "String",
+                "Kind": "Scalar",
+                "Description": null,
+                "Fields": null,
+                "InputFields": null,
+                "Interfaces": null,
+                "EnumValues": null,
+                "PossibleTypes": null,
+                "OfType": null
+              },
+              "IsDeprecated": false,
+              "DeprecationReason": null
+            },
+            {
+              "__typename": "__Field",
               "Name": "stars",
               "Description": null,
               "Args": [],
@@ -5302,26 +5322,6 @@
                   "PossibleTypes": null,
                   "OfType": null
                 }
-              },
-              "IsDeprecated": false,
-              "DeprecationReason": null
-            },
-            {
-              "__typename": "__Field",
-              "Name": "commentary",
-              "Description": null,
-              "Args": [],
-              "Type": {
-                "__typename": "__Type",
-                "Name": "String",
-                "Kind": "Scalar",
-                "Description": null,
-                "Fields": null,
-                "InputFields": null,
-                "Interfaces": null,
-                "EnumValues": null,
-                "PossibleTypes": null,
-                "OfType": null
               },
               "IsDeprecated": false,
               "DeprecationReason": null

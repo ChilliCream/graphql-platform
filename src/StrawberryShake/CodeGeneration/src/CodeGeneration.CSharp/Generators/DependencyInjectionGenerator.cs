@@ -25,7 +25,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _sp = "sp";
         private const string _ct = "ct";
 
-        private static readonly string[] _serializers =
+        private static readonly string[] _builtInSerializers =
         {
             TypeNames.StringSerializer,
             TypeNames.BooleanSerializer,
@@ -36,12 +36,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             TypeNames.FloatSerializer,
             TypeNames.DecimalSerializer,
             TypeNames.UrlSerializer,
-            TypeNames.UuidSerializer,
+            TypeNames.UUIDSerializer,
             TypeNames.IdSerializer,
             TypeNames.DateTimeSerializer,
             TypeNames.DateSerializer,
             TypeNames.ByteArraySerializer,
-            TypeNames.TimeSpanSerializer
+            TypeNames.TimeSpanSerializer,
+            TypeNames.JsonSerializer
         };
 
         protected override void Generate(
@@ -446,7 +447,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .AddArgument(_services);
             }
 
-            foreach (var serializer in _serializers)
+            foreach (var serializer in _builtInSerializers)
             {
                 body.AddMethodCall()
                     .SetMethodName(TypeNames.AddSingleton)
@@ -455,7 +456,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .AddArgument(_services);
             }
 
-            RuntimeTypeInfo stringTypeInfo = new RuntimeTypeInfo(TypeNames.String);
+            var stringTypeInfo = new RuntimeTypeInfo(TypeNames.String);
             foreach (var scalar in descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
             {
                 if (scalar.RuntimeType.Equals(stringTypeInfo) &&
@@ -512,7 +513,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     TransportType.Http => TypeNames.IHttpConnection,
                     TransportType.WebSocket => TypeNames.IWebSocketConnection,
                     TransportType.InMemory => TypeNames.IInMemoryConnection,
-                    { } v => throw ThrowHelper.DependencyInjection_InvalidTransportType(v)
+                    var v => throw ThrowHelper.DependencyInjection_InvalidTransportType(v)
                 };
 
                 string operationName = operation.Name;

@@ -6,6 +6,8 @@ namespace HotChocolate.Execution.Processing
 {
     public interface IFragment : IOptionalSelection
     {
+        public int Id { get; }
+
         IObjectType TypeCondition { get; }
 
         ISyntaxNode SyntaxNode { get; }

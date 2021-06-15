@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
@@ -266,7 +266,7 @@ namespace HotChocolate.Validation.Rules
                 context.FieldSets.TryGetValue(a, out IList<FieldInfo>? al) &&
                 context.FieldSets.TryGetValue(b, out IList<FieldInfo>? bl))
             {
-                var mergedSet = context.RentFieldInfoList();
+                IList<FieldInfo> mergedSet = context.RentFieldInfoList();
                 CopyFieldInfos(al, mergedSet);
                 CopyFieldInfos(bl, mergedSet);
                 TryMergeFieldsInSet(context, mergedSet);

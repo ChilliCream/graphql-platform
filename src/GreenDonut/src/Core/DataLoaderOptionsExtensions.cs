@@ -18,6 +18,7 @@ namespace GreenDonut
                 {
                     throw new ArgumentOutOfRangeException(
                         nameof(options.MaxBatchSize),
+                        options.MaxBatchSize,
                         "The max batch size must be greater or equal 0.");
                 }
 

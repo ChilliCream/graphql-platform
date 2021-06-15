@@ -42,7 +42,9 @@ namespace HotChocolate.Data.Sorting
             Definition.OperationHandlers.Add((typeof(TOperationHandler), operationHandler));
             return this;
         }
+#pragma warning disable CA1000 // Do not declare static members on generic types
         public static SortProviderDescriptor<TContext> New() =>
             new SortProviderDescriptor<TContext>();
+#pragma warning restore CA1000 // Do not declare static members on generic types
     }
 }

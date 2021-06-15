@@ -314,3 +314,4 @@ src/Build.Pack.sln
 
 # asp .net core
 appsettings.user.json
+conferences.db

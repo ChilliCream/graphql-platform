@@ -27,15 +27,15 @@ namespace GreenDonut
         , IDisposable
         where TKey : notnull
     {
-        private readonly CancellationTokenSource _disposeTokenSource = new CancellationTokenSource();
-        private readonly object _sync = new object();
+        private readonly object _sync = new();
+        private readonly CancellationTokenSource _disposeTokenSource = new();
         private readonly IBatchScheduler _batchScheduler;
         private readonly CacheKeyResolverDelegate<TKey> _cacheKeyResolver;
         private readonly int _maxBatchSize;
-        private ITaskCache _cache;
+        private readonly ITaskCache _cache;
+        private readonly DataLoaderOptions<TKey> _options;
         private Batch<TKey, TValue>? _currentBatch;
         private bool _disposed;
-        private DataLoaderOptions<TKey> _options;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataLoader{TKey, TValue}"/> class.
@@ -190,7 +190,7 @@ namespace GreenDonut
             {
                 object cacheKey = _cacheKeyResolver(key);
 
-                if (_options.Caching && _cache.TryGetValue(cacheKey, out object? cachedValue))
+                if (_options.Caching && _cache.TryGetValue(cacheKey, out var cachedValue))
                 {
                     var cachedTask = (Task<TValue>)cachedValue;
 
@@ -199,7 +199,7 @@ namespace GreenDonut
                     return cachedTask;
                 }
 
-                TaskCompletionSource<TValue> promise = GetOrCreatePromise(key);
+                TaskCompletionSource<TValue> promise = GetOrCreatePromiseUnsafe(key);
 
                 if (_options.Caching)
                 {
@@ -335,12 +335,11 @@ namespace GreenDonut
             });
         }
 
-        private TaskCompletionSource<TValue> GetOrCreatePromise(TKey key)
+        private TaskCompletionSource<TValue> GetOrCreatePromiseUnsafe(TKey key)
         {
-            if (_currentBatch is {} &&
+            if (_currentBatch is not null &&
                 _currentBatch.Size < _maxBatchSize &&
-                _currentBatch.TryGetOrCreate(key, out TaskCompletionSource<TValue>? promise) &&
-                promise is {})
+                _currentBatch.TryGetOrCreate(key, out TaskCompletionSource<TValue>? promise))
             {
                 return promise;
             }
@@ -348,8 +347,7 @@ namespace GreenDonut
             var newBatch = new Batch<TKey, TValue>();
 
             newBatch.TryGetOrCreate(key, out TaskCompletionSource<TValue>? newPromise);
-            _batchScheduler.Schedule(() =>
-                DispatchBatchAsync(newBatch, _disposeTokenSource.Token));
+            _batchScheduler.Schedule(() => DispatchBatchAsync(newBatch, _disposeTokenSource.Token));
             _currentBatch = newBatch;
 
             return newPromise!;
@@ -394,14 +392,21 @@ namespace GreenDonut
             }
         }
 
-        /// <inheritdoc/>
+
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing,
+        /// or resetting unmanaged resources.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing,
+        /// or resetting unmanaged resources.
+        /// </summary>
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposed)

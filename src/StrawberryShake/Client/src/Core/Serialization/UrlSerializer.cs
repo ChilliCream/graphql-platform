@@ -2,8 +2,10 @@ using System;
 
 namespace StrawberryShake.Serialization
 {
-    public class UrlSerializer
-        : ScalarSerializer<string, Uri>
+    /// <summary>
+    /// This serializer handles url scalars.
+    /// </summary>
+    public class UrlSerializer : ScalarSerializer<string, Uri>
     {
         public UrlSerializer(string typeName = BuiltInScalarNames.Url)
             : base(typeName)

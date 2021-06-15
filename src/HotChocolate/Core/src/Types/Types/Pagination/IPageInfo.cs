@@ -7,8 +7,14 @@ namespace HotChocolate.Types.Pagination
     /// </summary>
     public interface IPageInfo
     {
+        /// <summary>
+        /// Specifies if the current page has a next page.
+        /// </summary>
         bool HasNextPage { get; }
 
+        /// <summary>
+        /// Specifies if the current page has a previous page.
+        /// </summary>
         bool HasPreviousPage { get; }
     }
 }

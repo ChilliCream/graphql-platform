@@ -41,4 +41,8 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <PropertyGroup>
+    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
+  </PropertyGroup>
+
 </Project>

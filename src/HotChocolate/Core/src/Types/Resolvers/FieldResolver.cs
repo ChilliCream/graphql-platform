@@ -1,4 +1,6 @@
-﻿using System;
+using System;
+
+#nullable enable
 
 namespace HotChocolate.Resolvers
 {
@@ -6,16 +8,17 @@ namespace HotChocolate.Resolvers
         : FieldReferenceBase
         , IEquatable<FieldResolver>
     {
-        private FieldReference _fieldReference;
+        private FieldReference? _fieldReference;
 
         public FieldResolver(
             NameString typeName,
             NameString fieldName,
-            FieldResolverDelegate resolver)
+            FieldResolverDelegate resolver,
+            PureFieldResolverDelegate? pureResolver = null)
             : base(typeName, fieldName)
         {
-            Resolver = resolver
-                ?? throw new ArgumentNullException(nameof(resolver));
+            Resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
+            PureResolver = pureResolver;
         }
 
         public FieldResolver(
@@ -24,48 +27,31 @@ namespace HotChocolate.Resolvers
             : base(fieldReference)
         {
             _fieldReference = fieldReference;
-            Resolver = resolver
-                ?? throw new ArgumentNullException(nameof(resolver));
+            Resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
         }
 
         public FieldResolverDelegate Resolver { get; }
 
-        public FieldResolver WithTypeName(NameString typeName)
-        {
-            if (string.Equals(TypeName, typeName, StringComparison.Ordinal))
-            {
-                return this;
-            }
+        public PureFieldResolverDelegate? PureResolver { get; }
 
-            return new FieldResolver(typeName, FieldName, Resolver);
-        }
+        public FieldResolver WithTypeName(NameString typeName) =>
+            string.Equals(TypeName, typeName, StringComparison.Ordinal)
+                ? this
+                : new FieldResolver(typeName, FieldName, Resolver);
 
-        public FieldResolver WithFieldName(NameString fieldName)
-        {
-            if (string.Equals(FieldName, fieldName, StringComparison.Ordinal))
-            {
-                return this;
-            }
+        public FieldResolver WithFieldName(NameString fieldName) =>
+            string.Equals(FieldName, fieldName, StringComparison.Ordinal)
+                ? this
+                : new FieldResolver(TypeName, fieldName, Resolver);
 
-            return new FieldResolver(TypeName, fieldName, Resolver);
-        }
+        public FieldResolver WithResolver(FieldResolverDelegate resolver) =>
+            Equals(Resolver, resolver)
+                ? this
+                : new FieldResolver(TypeName, FieldName, resolver);
 
-        public FieldResolver WithResolver(FieldResolverDelegate resolver)
-        {
-            if (Equals(Resolver, resolver))
-            {
-                return this;
-            }
+        public bool Equals(FieldResolver? other) => IsEqualTo(other);
 
-            return new FieldResolver(TypeName, FieldName, resolver);
-        }
-
-        public bool Equals(FieldResolver other)
-        {
-            return IsEqualTo(other);
-        }
-
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {
@@ -76,11 +62,9 @@ namespace HotChocolate.Resolvers
                 || IsEqualTo(obj as FieldResolver);
         }
 
-        private bool IsEqualTo(FieldResolver other)
-        {
-            return base.IsEqualTo(other)
-                && other.Resolver.Equals(Resolver);
-        }
+        private bool IsEqualTo(FieldResolver? other) =>
+            base.IsEqualTo(other) &&
+                (other?.Resolver.Equals(Resolver) ?? false);
 
         public override int GetHashCode()
         {
@@ -91,19 +75,10 @@ namespace HotChocolate.Resolvers
             }
         }
 
-        public override string ToString()
-        {
-            return $"{TypeName}.{FieldName}";
-        }
+        public override string ToString() =>
+            $"{TypeName}.{FieldName}";
 
-        public FieldReference ToFieldReference()
-        {
-            if (_fieldReference is null)
-            {
-                _fieldReference = new FieldReference(TypeName, FieldName);
-            }
-
-            return _fieldReference;
-        }
+        public FieldReference ToFieldReference() =>
+            _fieldReference ??= new FieldReference(TypeName, FieldName);
     }
 }

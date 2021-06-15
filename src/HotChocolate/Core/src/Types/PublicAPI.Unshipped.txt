@@ -1,0 +1,100 @@
+HotChocolate.Configuration.IReadOnlySchemaOptions.AllowInlining.get -> bool
+HotChocolate.Configuration.IReadOnlySchemaOptions.DefaultResolverStrategy.get -> HotChocolate.Execution.ExecutionStrategy
+HotChocolate.Configuration.ISchemaOptions.AllowInlining.get -> bool
+HotChocolate.Configuration.ISchemaOptions.AllowInlining.set -> void
+HotChocolate.Configuration.ISchemaOptions.DefaultResolverStrategy.get -> HotChocolate.Execution.ExecutionStrategy
+HotChocolate.Configuration.ISchemaOptions.DefaultResolverStrategy.set -> void
+HotChocolate.Configuration.ITypeCompletionContext.GetResolver(HotChocolate.NameString fieldName) -> HotChocolate.Resolvers.FieldResolver?
+HotChocolate.Configuration.ITypeCompletionContext.GetSchemaResolver() -> System.Func<HotChocolate.ISchema!>!
+HotChocolate.Configuration.ITypeCompletionContext.GetType<T>(HotChocolate.Types.Descriptors.ITypeReference! typeRef) -> T
+HotChocolate.Configuration.ReadOnlySchemaOptions.AllowInlining.get -> bool
+HotChocolate.Configuration.ReadOnlySchemaOptions.DefaultResolverStrategy.get -> HotChocolate.Execution.ExecutionStrategy
+HotChocolate.Configuration.SchemaOptions.AllowInlining.get -> bool
+HotChocolate.Configuration.SchemaOptions.AllowInlining.set -> void
+HotChocolate.Configuration.SchemaOptions.DefaultResolverStrategy.get -> HotChocolate.Execution.ExecutionStrategy
+HotChocolate.Configuration.SchemaOptions.DefaultResolverStrategy.set -> void
+HotChocolate.Resolvers.FieldResolver.FieldResolver(HotChocolate.NameString typeName, HotChocolate.NameString fieldName, HotChocolate.Resolvers.FieldResolverDelegate! resolver, HotChocolate.Resolvers.PureFieldResolverDelegate? pureResolver = null) -> void
+HotChocolate.Resolvers.FieldResolver.PureResolver.get -> HotChocolate.Resolvers.PureFieldResolverDelegate?
+HotChocolate.Resolvers.InlineFieldDelegate
+HotChocolate.Resolvers.PureFieldDelegate
+HotChocolate.Resolvers.PureFieldResolverDelegate
+HotChocolate.Schema.TryGetRuntimeType(HotChocolate.NameString typeName, out System.Type? runtimeType) -> bool
+HotChocolate.Schema.Types.get -> System.Collections.Generic.IReadOnlyCollection<HotChocolate.Types.INamedType!>!
+HotChocolate.SchemaBuilder
+HotChocolate.Types.CostDirective.DefaultMultiplier.get -> int?
+HotChocolate.Types.Descriptors.Definitions.ObjectFieldDefinition.CustomSettings.get -> System.Collections.Generic.IList<object!>!
+HotChocolate.Types.Descriptors.Definitions.ObjectFieldDefinition.InlineResolver.get -> HotChocolate.Resolvers.InlineFieldDelegate?
+HotChocolate.Types.Descriptors.Definitions.ObjectFieldDefinition.InlineResolver.set -> void
+HotChocolate.Types.Descriptors.Definitions.ObjectFieldDefinition.IsParallelExecutable.get -> bool
+HotChocolate.Types.Descriptors.Definitions.ObjectFieldDefinition.IsParallelExecutable.set -> void
+HotChocolate.Types.Descriptors.Definitions.ObjectFieldDefinition.PureResolver.get -> HotChocolate.Resolvers.PureFieldResolverDelegate?
+HotChocolate.Types.Descriptors.Definitions.ObjectFieldDefinition.PureResolver.set -> void
+HotChocolate.Types.ICostSettings
+HotChocolate.Types.ICostSettings.ApplyDefaults.get -> bool
+HotChocolate.Types.ICostSettings.DefaultComplexity.get -> int
+HotChocolate.Types.ICostSettings.DefaultResolverComplexity.get -> int
+HotChocolate.Types.ICostSettings.Enable.get -> bool
+HotChocolate.Types.IDescriptorExtension<T>.Definition.get -> T!
+HotChocolate.Types.IObjectField.InlineResolver.get -> HotChocolate.Resolvers.InlineFieldDelegate?
+HotChocolate.Types.IObjectField.IsParallelExecutable.get -> bool
+HotChocolate.Types.IObjectField.PureResolver.get -> HotChocolate.Resolvers.PureFieldDelegate?
+HotChocolate.Types.IObjectField.Resolver.get -> HotChocolate.Resolvers.FieldResolverDelegate?
+HotChocolate.Types.IObjectFieldDescriptor.Argument(HotChocolate.NameString argumentName, System.Action<HotChocolate.Types.IArgumentDescriptor!>! argumentDescriptor) -> HotChocolate.Types.IObjectFieldDescriptor!
+HotChocolate.Types.IObjectTypeDescriptor.Field<TResolver>(System.Linq.Expressions.Expression<System.Func<TResolver, object?>!>! propertyOrMethod) -> HotChocolate.Types.IObjectFieldDescriptor!
+HotChocolate.Types.IObjectTypeDescriptor.Interface(HotChocolate.Language.NamedTypeNode! type) -> HotChocolate.Types.IObjectTypeDescriptor!
+HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>
+HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.BindFields(HotChocolate.Types.BindingBehavior behavior) -> HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>!
+HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.BindFieldsExplicitly() -> HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>!
+HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.BindFieldsImplicitly() -> HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>!
+HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.Description(string? value) -> HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>!
+HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.Directive(HotChocolate.NameString name, params HotChocolate.Language.ArgumentNode![]! arguments) -> HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>!
+HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.Directive<TDirective>() -> HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>!
+HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.Directive<TDirective>(TDirective! directiveInstance) -> HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>!
+HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.ExtendsType(System.Type! extendsType) -> HotChocolate.Types.IObjectTypeDescriptor!
+HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.ExtendsType<TExtendsType>() -> HotChocolate.Types.IObjectTypeDescriptor!
+HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.Field(HotChocolate.NameString name) -> HotChocolate.Types.IObjectFieldDescriptor!
+HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.Field(System.Linq.Expressions.Expression<System.Func<TRuntimeType, object?>!>! propertyOrMethod) -> HotChocolate.Types.IObjectFieldDescriptor!
+HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.Field(System.Reflection.MemberInfo! propertyOrMethod) -> HotChocolate.Types.IObjectFieldDescriptor!
+HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.Field<TResolver>(System.Linq.Expressions.Expression<System.Func<TResolver, object?>!>! propertyOrMethod) -> HotChocolate.Types.IObjectFieldDescriptor!
+HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.Field<TValue>(System.Linq.Expressions.Expression<System.Func<TRuntimeType, TValue?>!>! propertyOrMethod) -> HotChocolate.Types.IObjectFieldDescriptor!
+HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.Implements(HotChocolate.Language.NamedTypeNode! type) -> HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>!
+HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.Implements<TInterface>() -> HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>!
+HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.Implements<TInterface>(TInterface! type) -> HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>!
+HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.Include<TResolver>() -> HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>!
+HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.Interface(HotChocolate.Language.NamedTypeNode! type) -> HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>!
+HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.Interface<TInterface>() -> HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>!
+HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.Interface<TInterface>(TInterface! type) -> HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>!
+HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.IsOfType(HotChocolate.Types.IsOfType! isOfType) -> HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>!
+HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>.Name(HotChocolate.NameString value) -> HotChocolate.Types.IObjectTypeDescriptor<TRuntimeType>!
+HotChocolate.Types.IObjectTypeNameDependencyDescriptor
+HotChocolate.Types.IOutputField
+HotChocolate.Types.IOutputField.DeclaringType.get -> HotChocolate.Types.IComplexOutputType!
+HotChocolate.Types.IOutputField.IsDeprecated.get -> bool
+HotChocolate.Types.IOutputField.Type.get -> HotChocolate.Types.IOutputType!
+HotChocolate.Types.IsOfType
+HotChocolate.Types.ITypeSystemObject
+HotChocolate.Types.IUnionType.ContainsType(HotChocolate.NameString typeName) -> bool
+HotChocolate.Types.IUnionType.ResolveConcreteType(HotChocolate.Resolvers.IResolverContext! context, object! resolverResult) -> HotChocolate.Types.IObjectType?
+HotChocolate.Types.IUnionType.Types.get -> System.Collections.Generic.IReadOnlyCollection<HotChocolate.Types.IObjectType!>!
+HotChocolate.Types.IUnionTypeNameDependencyDescriptor
+HotChocolate.Types.ListType.ElementType.get -> HotChocolate.Types.IType!
+HotChocolate.Types.LongType
+HotChocolate.Types.LongType.LongType(HotChocolate.NameString name, string? description = null, long min = -9223372036854775808, long max = 9223372036854775807, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.MemberKind
+HotChocolate.Types.ObjectField.InlineResolver.get -> HotChocolate.Resolvers.InlineFieldDelegate?
+HotChocolate.Types.ObjectField.IsParallelExecutable.get -> bool
+HotChocolate.Types.ObjectField.PureResolver.get -> HotChocolate.Resolvers.PureFieldDelegate?
+HotChocolate.Types.ObjectField.Resolver.get -> HotChocolate.Resolvers.FieldResolverDelegate?
+HotChocolate.Types.ObjectFieldDescriptorExtensions
+HotChocolate.Types.ObjectTypeExtension<T>.ObjectTypeExtension() -> void
+HotChocolate.Types.ParallelAttribute
+HotChocolate.Types.ParallelAttribute.ParallelAttribute() -> void
+HotChocolate.Types.SerialAttribute
+HotChocolate.Types.SerialAttribute.SerialAttribute() -> void
+override HotChocolate.Types.ParallelAttribute.OnConfigure(HotChocolate.Types.Descriptors.IDescriptorContext! context, HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Reflection.MemberInfo! member) -> void
+override HotChocolate.Types.SerialAttribute.OnConfigure(HotChocolate.Types.Descriptors.IDescriptorContext! context, HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Reflection.MemberInfo! member) -> void
+~HotChocolate.Types.CostDirective.CostDirective(int complexity, int defaultMultiplier, params HotChocolate.Types.MultiplierPathString[] multipliers) -> void
+~HotChocolate.Types.Descriptors.InterfaceTypeDescriptor.Interface(HotChocolate.Language.NamedTypeNode namedType) -> HotChocolate.Types.IInterfaceTypeDescriptor
+~HotChocolate.Types.Descriptors.InterfaceTypeDescriptor.Interface<TInterface>() -> HotChocolate.Types.IInterfaceTypeDescriptor
+~static HotChocolate.Types.ObjectFieldDescriptorExtensions.Parallel(this HotChocolate.Types.IObjectFieldDescriptor descriptor) -> HotChocolate.Types.IObjectFieldDescriptor
+~static HotChocolate.Types.ObjectFieldDescriptorExtensions.Serial(this HotChocolate.Types.IObjectFieldDescriptor descriptor) -> HotChocolate.Types.IObjectFieldDescriptor

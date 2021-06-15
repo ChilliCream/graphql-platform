@@ -38,8 +38,7 @@ namespace HotChocolate.Data.Projections.Handlers
                 context.Selection.Count > 0 &&
                 context.Selection.Peek()
                     .Arguments.TryCoerceArguments(
-                        context.Context.Variables,
-                        context.Context.ReportError,
+                        context.Context,
                         out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs) &&
                 coercedArgs.TryGetValue(argumentName, out var argumentValue) &&
                 argumentValue.Argument.Type is IFilterInputType filterInputType &&

@@ -77,8 +77,8 @@ type Query {
 }
 
 type Review {
-  stars: Int!
   commentary: String
+  stars: Int!
 }
 
 type Starship {

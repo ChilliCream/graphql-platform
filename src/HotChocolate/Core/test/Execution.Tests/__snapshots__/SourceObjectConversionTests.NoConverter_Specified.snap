@@ -28,16 +28,16 @@
       "Extensions": null,
       "Exception": {
         "ClassName": "System.InvalidCastException",
-        "Message": "The parent cannot be cast to HotChocolate.Execution.SourceObjectConversionTests+Baz.",
+        "Message": "Unable to cast object of type 'Foo' to type 'Baz'.",
         "Data": null,
         "InnerException": null,
         "HelpURL": null,
-        "StackTraceString": "   at HotChocolate.Execution.Processing.MiddlewareContext.Source[T]() in /Users/michaelstaib/local/hc-1/src/HotChocolate/Core/src/Execution/Processing/MiddlewareContext.State.cs:line 54\n   at HotChocolate.Execution.Processing.MiddlewareContext.Parent[T]() in /Users/michaelstaib/local/hc-1/src/HotChocolate/Core/src/Execution/Processing/MiddlewareContext.State.cs:line 58\n   at lambda_method4076(Closure , IResolverContext )\n   at HotChocolate.Types.FieldMiddlewareCompiler.<>c__DisplayClass3_0.<<CreateResolverMiddleware>b__0>d.MoveNext() in /Users/michaelstaib/local/hc-1/src/HotChocolate/Core/src/Types/Types/Helpers/FieldMiddlewareCompiler.cs:line 73\n--- End of stack trace from previous location ---\n   at HotChocolate.Execution.Processing.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in /Users/michaelstaib/local/hc-1/src/HotChocolate/Core/src/Execution/Processing/ResolverTask.cs:line 91\n   at HotChocolate.Execution.Processing.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in /Users/michaelstaib/local/hc-1/src/HotChocolate/Core/src/Execution/Processing/ResolverTask.cs:line 73",
+        "StackTraceString": "   at lambda_method6653(Closure , Object )\n   at HotChocolate.Execution.Processing.SelectionSetExtensions.TryResolveAndCompleteInline(IOperationContext operationContext, IMiddlewareContext middlewareContext, ResultMap resultMap, Object parent, ISelection selection, Int32 responseIndex, Path path) in /Users/michael/local/hc-1/src/HotChocolate/Core/src/Execution/Processing/SelectionSetExtensions.cs:line 198",
         "RemoteStackTraceString": null,
         "RemoteStackIndex": 0,
         "ExceptionMethod": null,
         "HResult": -2147467262,
-        "Source": "HotChocolate.Execution",
+        "Source": "System.Private.CoreLib",
         "WatsonBuckets": null
       },
       "SyntaxNode": {

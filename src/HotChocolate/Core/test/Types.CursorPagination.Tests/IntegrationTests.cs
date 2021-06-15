@@ -670,27 +670,28 @@ namespace HotChocolate.Types.Pagination
                 "l"
             };
 
-            public List<List<Foo>> Foos() => new List<List<Foo>>
+            public List<List<Foo>> Foos() => new()
             {
-                new List<Foo> { new Foo { Bar = "a" } },
-                new List<Foo> { new Foo { Bar = "b" }, new Foo { Bar = "c" } },
-                new List<Foo> { new Foo { Bar = "d" } },
-                new List<Foo> { new Foo { Bar = "e" } },
-                new List<Foo> { new Foo { Bar = "f" } }
+                new List<Foo> { new() { Bar = "a" } },
+                new List<Foo> { new() { Bar = "b" }, new() { Bar = "c" } },
+                new List<Foo> { new() { Bar = "d" } },
+                new List<Foo> { new() { Bar = "e" } },
+                new List<Foo> { new() { Bar = "f" } }
             };
         }
 
         public class ExecutableQuery
         {
-            public IExecutable<Foo> FoosExecutable() => new MockExecutable<Foo>(new List<Foo>
-            {
-                  new Foo { Bar = "a" },
-                  new Foo { Bar = "b" },
-                  new Foo { Bar = "c" } ,
-                  new Foo { Bar = "d" },
-                  new Foo { Bar = "e" },
-                  new Foo { Bar = "f" }
-            }.AsQueryable());
+            public IExecutable<Foo> FoosExecutable() => new MockExecutable<Foo>(
+                new List<Foo>
+                {
+                    new() { Bar = "a" },
+                    new() { Bar = "b" },
+                    new() { Bar = "c" } ,
+                    new() { Bar = "d" },
+                    new() { Bar = "e" },
+                    new() { Bar = "f" }
+                }.AsQueryable());
         }
 
         public class Foo
@@ -724,13 +725,13 @@ namespace HotChocolate.Types.Pagination
             [UsePaging(
                 MaxPageSize = 2,
                 IncludeTotalCount = true)]
-            public List<List<Foo>> Foos() => new List<List<Foo>>
+            public List<List<Foo>> Foos() => new()
             {
-                new List<Foo> { new Foo { Bar = "a" } },
-                new List<Foo> { new Foo { Bar = "b" }, new Foo { Bar = "c" } },
-                new List<Foo> { new Foo { Bar = "d" } },
-                new List<Foo> { new Foo { Bar = "e" } },
-                new List<Foo> { new Foo { Bar = "f" } }
+                new List<Foo> { new() { Bar = "a" } },
+                new List<Foo> { new() { Bar = "b" }, new() { Bar = "c" } },
+                new List<Foo> { new() { Bar = "d" } },
+                new List<Foo> { new() { Bar = "e" } },
+                new List<Foo> { new() { Bar = "f" } }
             };
         }
 
@@ -759,22 +760,22 @@ namespace HotChocolate.Types.Pagination
 
         public ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
         {
-            return new ValueTask<IList>(_source.ToList());
+            return new(_source.ToList());
         }
 
         public ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken)
         {
-            return new ValueTask<object?>(_source.FirstOrDefault());
+            return new(_source.FirstOrDefault());
         }
 
         public ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken)
         {
-            return new ValueTask<object?>(_source.SingleOrDefault());
+            return new(_source.SingleOrDefault());
         }
 
         public string Print()
         {
-            return _source.ToString();
+            return _source.ToString()!;
         }
     }
 }

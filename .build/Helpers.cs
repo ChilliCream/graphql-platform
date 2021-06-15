@@ -11,6 +11,7 @@ class Helpers
     public static readonly string[] Directories =
     {
         "GreenDonut",
+        Path.Combine("HotChocolate", "Analyzers"),
         Path.Combine("HotChocolate", "AspNetCore"),
         Path.Combine("HotChocolate", "Core"),
         Path.Combine("HotChocolate", "Language"),
@@ -19,6 +20,7 @@ class Helpers
         Path.Combine("HotChocolate", "Data"),
         Path.Combine("HotChocolate", "Filters"),
         Path.Combine("HotChocolate", "MongoDb"),
+        Path.Combine("HotChocolate", "Neo4J"),
         Path.Combine("HotChocolate", "Stitching"),
         Path.Combine("HotChocolate", "Spatial"),
         Path.Combine("StrawberryShake", "Client"),

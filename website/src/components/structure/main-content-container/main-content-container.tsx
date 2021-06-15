@@ -30,7 +30,6 @@ export const MainContentContainer: FunctionComponent = ({ children }) => {
     };
 
     ref.current?.addEventListener("scroll", handleScroll);
-
     return () => {
       ref.current?.removeEventListener("scroll", handleScroll);
     };

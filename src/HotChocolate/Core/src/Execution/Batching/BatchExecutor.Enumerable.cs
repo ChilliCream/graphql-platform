@@ -21,11 +21,9 @@ namespace HotChocolate.Execution.Batching
             private readonly IRequestExecutor _requestExecutor;
             private readonly IErrorHandler _errorHandler;
             private readonly ITypeConverter _typeConverter;
-            private readonly ConcurrentBag<ExportedVariable> _exportedVariables =
-                new ConcurrentBag<ExportedVariable>();
+            private readonly ConcurrentBag<ExportedVariable> _exportedVariables = new();
             private readonly CollectVariablesVisitor _visitor;
-            private readonly CollectVariablesVisitationMap _visitationMap =
-                new CollectVariablesVisitationMap();
+            private readonly CollectVariablesVisitationMap _visitationMap = new();
             private DocumentNode? _previous;
             private Dictionary<string, FragmentDefinitionNode>? _fragments;
 
@@ -85,7 +83,7 @@ namespace HotChocolate.Execution.Batching
                     operation.Accept(
                         _visitor,
                         _visitationMap,
-                        n => VisitorAction.Continue);
+                        _ => VisitorAction.Continue);
 
                     _previous = document;
                     document = RewriteDocument(operation);
@@ -145,18 +143,17 @@ namespace HotChocolate.Execution.Batching
                 }
 
                 ILookup<string, ExportedVariable> exported =
-                        _exportedVariables.ToLookup(t => t.Name);
+                    _exportedVariables.ToLookup(t => t.Name);
                 var merged = new Dictionary<string, object?>();
 
-                foreach (VariableDefinitionNode variableDefinition in
-                    operation.VariableDefinitions)
+                foreach (VariableDefinitionNode variableDefinition in operation.VariableDefinitions)
                 {
                     string variableName = variableDefinition.Variable.Name.Value;
 
                     if (!exported[variableName].Any())
                     {
                         if (variables != null
-                            && variables.TryGetValue(variableName, out object? value))
+                            && variables.TryGetValue(variableName, out var value))
                         {
                             merged[variableName] = value;
                         }
@@ -166,7 +163,7 @@ namespace HotChocolate.Execution.Batching
                         var list = new List<object?>();
 
                         if (variables != null
-                            && variables.TryGetValue(variableName, out object? value))
+                            && variables.TryGetValue(variableName, out var value))
                         {
                             if (value is IReadOnlyCollection<object?> l)
                             {
@@ -209,16 +206,15 @@ namespace HotChocolate.Execution.Batching
                 return merged;
             }
 
-            private object Serialize(ExportedVariable exported, ITypeNode type)
+            private object? Serialize(ExportedVariable exported, ITypeNode type)
             {
-                if (_requestExecutor.Schema.TryGetType(
+                if (_requestExecutor.Schema.TryGetType<INamedInputType>(
                     type.NamedType().Name.Value,
-                    out INamedInputType inputType)
+                    out var inputType)
                     && _typeConverter.TryConvert(
-                        typeof(object),
-                        inputType.RuntimeType,
+                        inputType!.RuntimeType,
                         exported.Value,
-                        out object? converted))
+                        out var converted))
                 {
                     return inputType.Serialize(converted);
                 }
@@ -231,9 +227,9 @@ namespace HotChocolate.Execution.Batching
                 ITypeNode type,
                 ICollection<object?> list)
             {
-                if (_requestExecutor.Schema.TryGetType(
+                if (_requestExecutor.Schema.TryGetType<INamedInputType>(
                     type.NamedType().Name.Value,
-                    out INamedInputType inputType))
+                    out var inputType))
                 {
                     SerializeListValue(exported, inputType, list);
                 }
@@ -248,16 +244,14 @@ namespace HotChocolate.Execution.Batching
                 INamedInputType inputType,
                 ICollection<object?> list)
             {
+                Type runtimeType = inputType.RuntimeType;
+
                 if (exported.Type.IsListType()
                     && exported.Value is IEnumerable l)
                 {
                     foreach (var o in l)
                     {
-                        if (_typeConverter.TryConvert(
-                            typeof(object),
-                            inputType.RuntimeType,
-                            o,
-                            out object? converted))
+                        if (_typeConverter.TryConvert(runtimeType, o, out var converted))
                         {
                             list.Add(inputType.Serialize(converted));
                         }
@@ -269,11 +263,7 @@ namespace HotChocolate.Execution.Batching
                 }
                 else
                 {
-                    if (_typeConverter.TryConvert(
-                        typeof(object),
-                        inputType.RuntimeType,
-                        exported.Value,
-                        out var converted))
+                    if (_typeConverter.TryConvert(runtimeType, exported.Value, out var converted))
                     {
                         list.Add(inputType.Serialize(converted));
                     }

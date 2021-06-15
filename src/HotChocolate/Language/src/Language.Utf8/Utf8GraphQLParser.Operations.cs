@@ -2,17 +2,15 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
-using HotChocolate.Language.Properties;
+using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language
 {
     // Implements the parsing rules in the Operations section.
     public ref partial struct Utf8GraphQLParser
     {
-        private static readonly List<VariableDefinitionNode> _emptyVariableDefinitions =
-            new List<VariableDefinitionNode>();
-        private static readonly List<ArgumentNode> _emptyArguments =
-            new List<ArgumentNode>();
+        private static readonly List<VariableDefinitionNode> _emptyVariableDefinitions = new();
+        private static readonly List<ArgumentNode> _emptyArguments = new();
 
         /// <summary>
         /// Parses an operation definition.
@@ -25,13 +23,9 @@ namespace HotChocolate.Language
             TokenInfo start = Start();
 
             OperationType operation = ParseOperationType();
-            NameNode? name = _reader.Kind == TokenKind.Name
-                ? ParseName()
-                : null;
-            List<VariableDefinitionNode> variableDefinitions =
-                ParseVariableDefinitions();
-            List<DirectiveNode> directives =
-                ParseDirectives(false);
+            NameNode? name = _reader.Kind == TokenKind.Name ? ParseName() : null;
+            List<VariableDefinitionNode> variableDefinitions = ParseVariableDefinitions();
+            List<DirectiveNode> directives = ParseDirectives(false);
             SelectionSetNode selectionSet = ParseSelectionSet();
             Location? location = CreateLocation(in start);
 
@@ -194,9 +188,9 @@ namespace HotChocolate.Language
                 throw new SyntaxException(_reader,
                     string.Format(
                         CultureInfo.InvariantCulture,
-                        LangResources.ParseMany_InvalidOpenToken,
+                        ParseMany_InvalidOpenToken,
                         TokenKind.LeftBrace,
-                        TokenVisualizer.Visualize(in _reader)));
+                        TokenPrinter.Print(in _reader)));
             }
 
             var selections = new List<ISelectionNode>();

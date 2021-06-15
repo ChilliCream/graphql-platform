@@ -14,6 +14,7 @@ namespace HotChocolate.Execution.Processing
             IImmutableDictionary<string, object?> scopedContextData)
         {
             _operationContext = operationContext;
+            _services = operationContext.Services;
             _selection = selection;
             ResultMap = resultMap;
             ResponseIndex = responseIndex;
@@ -27,6 +28,7 @@ namespace HotChocolate.Execution.Processing
         public void Clean()
         {
             _operationContext = default!;
+            _services = default!;
             _selection = default!;
             _parent = default;
             _resolverResult = default;
