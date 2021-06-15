@@ -21,12 +21,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             {
                 var deserializeMethod = JsonUtils.GetParseMethod(namedType.SerializationType);
 
-                methodCall.SetMethodName(TypeNames.Guid, nameof(Guid.Parse))
+                methodCall.AddArgument(MethodCallBuilder
+                    .Inline()
+                    .SetMethodName(TypeNames.Guid, nameof(Guid.Parse))
                     .AddArgument(MethodCallBuilder
                         .Inline()
                         .SetMethodName(_obj, nameof(Nullable<JsonElement>.Value), deserializeMethod)
                         .SetNullForgiving())
-                    .SetNullForgiving();
+                    .SetNullForgiving());
             }
             else
             {
