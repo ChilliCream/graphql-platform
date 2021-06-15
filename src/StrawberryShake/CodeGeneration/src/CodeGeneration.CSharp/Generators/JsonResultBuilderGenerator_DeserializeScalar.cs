@@ -12,17 +12,32 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             MethodBuilder methodBuilder,
             ILeafTypeDescriptor namedType)
         {
-            string deserializeMethod = JsonUtils.GetParseMethod(namedType.SerializationType);
+            MethodCallBuilder methodCall = MethodCallBuilder
+                .New()
+                .SetReturn()
+                .SetMethodName(GetFieldName(namedType.Name) + "Parser", "Parse");
 
-            methodBuilder.AddCode(
-                MethodCallBuilder
-                    .New()
-                    .SetReturn()
-                    .SetMethodName(GetFieldName(namedType.Name) + "Parser", "Parse")
+            if (namedType.SerializationType.ToString() == TypeNames.Guid)
+            {
+                var deserializeMethod = JsonUtils.GetParseMethod(namedType.SerializationType);
+
+                methodCall.SetMethodName(TypeNames.Guid, nameof(Guid.Parse))
                     .AddArgument(MethodCallBuilder
                         .Inline()
                         .SetMethodName(_obj, nameof(Nullable<JsonElement>.Value), deserializeMethod)
-                        .SetNullForgiving()));
+                        .SetNullForgiving())
+                    .SetNullForgiving();
+            }
+            else
+            {
+                var deserializeMethod = JsonUtils.GetParseMethod(namedType.SerializationType);
+                methodCall.AddArgument(MethodCallBuilder
+                    .Inline()
+                    .SetMethodName(_obj, nameof(Nullable<JsonElement>.Value), deserializeMethod)
+                    .SetNullForgiving());
+            }
+
+            methodBuilder.AddCode(methodCall);
         }
     }
 }

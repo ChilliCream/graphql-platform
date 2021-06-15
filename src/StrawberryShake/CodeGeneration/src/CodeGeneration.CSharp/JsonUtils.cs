@@ -26,7 +26,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 TypeNames.DateTime => nameof(JsonElement.GetString),
                 TypeNames.TimeSpan => nameof(JsonElement.GetString),
                 TypeNames.Boolean => nameof(JsonElement.GetBoolean),
-                TypeNames.Guid => nameof(JsonElement.GetGuid),
+                TypeNames.Guid => nameof(JsonElement.GetString),
                 _ => throw new NotSupportedException("Serialization format not supported.")
             };
         }

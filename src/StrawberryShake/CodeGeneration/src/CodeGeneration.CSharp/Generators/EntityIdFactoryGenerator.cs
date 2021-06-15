@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -148,12 +149,31 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .AddArgument(value);
         }
 
-        private static ICode ParseEntityIdProperty(ScalarEntityIdDescriptor field) =>
-            MethodCallBuilder
-                .Inline()
-                .SetMethodName(_obj, nameof(JsonElement.GetProperty))
-                .AddArgument(field.Name.AsStringToken())
-                .Chain(x => x.SetMethodName(GetSerializerMethod(field)).SetNullForgiving());
+        private static ICode ParseEntityIdProperty(ScalarEntityIdDescriptor field)
+        {
+            MethodCallBuilder methodBuilder = MethodCallBuilder.Inline();
+
+            if (field.SerializationType.ToString() == TypeNames.Guid)
+            {
+                MethodCallBuilder serializationCall = MethodCallBuilder.Inline();
+                AddIdDeserialization(serializationCall, field);
+
+                methodBuilder
+                    .SetMethodName(TypeNames.Guid, nameof(Guid.Parse))
+                    .AddArgument(serializationCall)
+                    .SetNullForgiving();
+            }
+            else
+            {
+                AddIdDeserialization(methodBuilder, field);
+            }
+            return methodBuilder;
+        }
+
+        private static void AddIdDeserialization(MethodCallBuilder methodCallBuilder, ScalarEntityIdDescriptor field)
+            => methodCallBuilder.SetMethodName(_obj, nameof(JsonElement.GetProperty))
+            .AddArgument(field.Name.AsStringToken())
+            .Chain(x => x.SetMethodName(GetSerializerMethod(field)).SetNullForgiving());
 
         private static string GetSerializerMethod(ScalarEntityIdDescriptor field)
         {
