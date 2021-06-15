@@ -49,7 +49,7 @@ namespace Microsoft.Extensions.DependencyInjection
             where T : class, IHttpRequestInterceptor =>
             builder.ConfigureSchemaServices(s => s
                 .RemoveAll<IHttpRequestInterceptor>()
-                .AddSingleton<IHttpRequestInterceptor, T>(factory));
+                .AddSingleton<IHttpRequestInterceptor, T>(sp => factory(sp.GetCombinedServices())));
 
         /// <summary>
         /// Adds an interceptor for GraphQL requests to the GraphQL configuration.

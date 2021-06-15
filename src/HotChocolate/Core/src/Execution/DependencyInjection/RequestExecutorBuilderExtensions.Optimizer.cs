@@ -30,7 +30,8 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             builder.ConfigureSchemaServices(
-                sc => sc.AddSingleton<ISelectionOptimizer>(factory));
+                sc => sc.AddSingleton<ISelectionOptimizer>(
+                    sp => factory(sp.GetCombinedServices())));
             return builder;
         }
     }

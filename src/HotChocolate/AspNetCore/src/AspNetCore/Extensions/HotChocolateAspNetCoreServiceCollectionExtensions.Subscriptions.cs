@@ -49,7 +49,8 @@ namespace Microsoft.Extensions.DependencyInjection
             where T : class, ISocketSessionInterceptor=>
             builder.ConfigureSchemaServices(s => s
                 .RemoveAll<ISocketSessionInterceptor>()
-                .AddSingleton<ISocketSessionInterceptor, T>(factory));
+                .AddSingleton<ISocketSessionInterceptor, T>(
+                    sp => factory(sp.GetCombinedServices())));
 
         private static IRequestExecutorBuilder AddSubscriptionServices(
             this IRequestExecutorBuilder builder)

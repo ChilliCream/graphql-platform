@@ -78,13 +78,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 services =>
                 {
                     services.RemoveAll(typeof(ITransactionScopeHandler));
-                    services.AddSingleton(sp =>
-                    {
-                        var combined = new CombinedServiceProvider(
-                            sp.GetApplicationServices(),
-                            sp);
-                        return create(combined);
-                    });
+                    services.AddSingleton(sp => create(sp.GetCombinedServices()));
                 });
         }
 
