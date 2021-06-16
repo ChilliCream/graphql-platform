@@ -1,5 +1,5 @@
 import { graphql, useStaticQuery } from "gatsby";
-import Img from "gatsby-image";
+import { GatsbyImage } from "gatsby-plugin-image";
 import React, { FunctionComponent } from "react";
 import { GetBananaCakePopImageQuery } from "../../../graphql-types";
 
@@ -11,13 +11,20 @@ export const BananaCakePop: FunctionComponent = () => {
         sourceInstanceName: { eq: "images" }
       ) {
         childImageSharp {
-          fluid(maxWidth: 1200, pngQuality: 90) {
-            ...GatsbyImageSharpFluid
-          }
+          gatsbyImageData(
+            layout: CONSTRAINED
+            width: 1200
+            pngOptions: { quality: 90 }
+          )
         }
       }
     }
   `);
 
-  return <Img fluid={data.file?.childImageSharp?.fluid as any} />;
+  return (
+    <GatsbyImage
+      image={data.file?.childImageSharp?.gatsbyImageData}
+      alt="Banana Cake Pop"
+    />
+  );
 };
