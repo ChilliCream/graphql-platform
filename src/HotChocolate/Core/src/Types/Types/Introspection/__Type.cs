@@ -67,9 +67,10 @@ namespace HotChocolate.Types.Introspection
                     new(Names.PossibleTypes,
                         type: typeListType,
                         pureResolver: Resolvers.PurePossibleTypes),
-                    new(Names.EnumValues, type: enumValueListType)
+                    new(Names.EnumValues,
+                        type: enumValueListType,
+                        pureResolver:  Resolvers.PureEnumValues)
                     {
-                        PureResolver = Resolvers.PureEnumValues,
                         Arguments =
                         {
                             new()
@@ -84,31 +85,21 @@ namespace HotChocolate.Types.Introspection
                     new(Names.InputFields,
                         type: inputValueListType,
                         pureResolver: Resolvers.PureInputFields),
-                    new()
-                    {
-                        Name = Names.OfType,
-                        Type = typeType,
-                        PureResolver = Resolvers.PureOfType
-                    },
-                    new()
-                    {
-                        Name = Names.SpecifiedByUrl,
-                        Description = TypeResources.Type_SpecifiedByUrl_Description,
-                        Type = stringType,
-                        PureResolver = Resolvers.SpecifiedBy
-                    },
-
+                    new(Names.OfType,
+                        type: typeType,
+                        pureResolver: Resolvers.PureOfType),
+                    new(Names.SpecifiedByUrl,
+                        TypeResources.Type_SpecifiedByUrl_Description,
+                        stringType,
+                        pureResolver: Resolvers.SpecifiedBy)
                 }
             };
 
             if (context.DescriptorContext.Options.EnableDirectiveIntrospection)
             {
-                def.Fields.Add(new()
-                {
-                    Name = Names.AppliedDirectives,
-                    Type = directiveListType,
-                    PureResolver = Resolvers.AppliedDirectives
-                });
+                def.Fields.Add(new(Names.AppliedDirectives,
+                    type: directiveListType,
+                    pureResolver: Resolvers.AppliedDirectives));
             }
 
             return def;
