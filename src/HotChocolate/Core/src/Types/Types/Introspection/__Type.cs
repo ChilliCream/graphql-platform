@@ -1,14 +1,10 @@
 #pragma warning disable IDE1006 // Naming Styles
-using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
-using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Types.Descriptors.TypeReference;
@@ -24,12 +20,13 @@ namespace HotChocolate.Types.Introspection
         {
             SyntaxTypeReference stringType = Create(ScalarNames.String);
             SyntaxTypeReference booleanType = Create(ScalarNames.Boolean);
-            SyntaxTypeReference kindType = Create(nameof(__TypeKind));
+            SyntaxTypeReference kindType = Parse($"{nameof(__TypeKind)}!");
             SyntaxTypeReference typeType = Create(nameof(__Type));
             SyntaxTypeReference fieldListType = Parse($"[{nameof(__Field)}!]");
             SyntaxTypeReference typeListType = Parse($"[{nameof(__Type)}!]");
             SyntaxTypeReference enumValueListType = Parse($"[{nameof(__EnumValue)}!]");
             SyntaxTypeReference inputValueListType = Parse($"[{nameof(__InputValue)}!]");
+            SyntaxTypeReference directiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
 
             var typeDefinition = new ObjectTypeDefinition
@@ -99,7 +96,6 @@ namespace HotChocolate.Types.Introspection
             {
                 Name = Names.EnumValues,
                 Type = enumValueListType,
-                Resolver =  Resolvers.EnumValues,
                 PureResolver = Resolvers.PureEnumValues,
                 Arguments =
                 {
@@ -113,38 +109,39 @@ namespace HotChocolate.Types.Introspection
                 }
             });
 
-            return typeDefinition;
-        }
-
-
-
-
-
-        protected override void Configure(IObjectTypeDescriptor<IType> descriptor)
-        {
-            descriptor
-                .Field(Names.InputFields)
-                .Type<ListType<NonNullType<__InputValue>>>()
-                .ResolveWith<Resolvers>(t => t.GetInputFields(default!));
-
-            descriptor
-                .Field(Names.OfType)
-                .Type<__Type>()
-                .ResolveWith<Resolvers>(t => t.GetOfType(default!));
-
-            descriptor
-                .Field(Names.SpecifiedByUrl)
-                .Description(TypeResources.Type_SpecifiedByUrl_Description)
-                .Type<StringType>()
-                .ResolveWith<Resolvers>(t => t.GetSpecifiedBy(default!));
-
-            if (descriptor.Extend().Context.Options.EnableDirectiveIntrospection)
+            typeDefinition.Fields.Add(new()
             {
-                descriptor
-                    .Field(Names.AppliedDirectives)
-                    .Type<NonNullType<ListType<NonNullType<__AppliedDirective>>>>()
-                    .ResolveWith<Resolvers>(t => t.GetAppliedDirectives(default!));
+                Name = Names.InputFields,
+                Type = inputValueListType,
+                PureResolver = Resolvers.PureInputFields
+            });
+
+            typeDefinition.Fields.Add(new()
+            {
+                Name = Names.OfType,
+                Type = typeType,
+                PureResolver = Resolvers.PureOfType
+            });
+
+            typeDefinition.Fields.Add(new()
+            {
+                Name = Names.SpecifiedByUrl,
+                Description = TypeResources.Type_SpecifiedByUrl_Description,
+                Type = stringType,
+                PureResolver = Resolvers.SpecifiedBy
+            });
+
+            if (context.DescriptorContext.Options.EnableDirectiveIntrospection)
+            {
+                typeDefinition.Fields.Add(new()
+                {
+                    Name = Names.AppliedDirectives,
+                    Type = directiveListType,
+                    PureResolver = Resolvers.AppliedDirectives
+                });
             }
+
+            return typeDefinition;
         }
 
         private static class Resolvers
@@ -206,11 +203,6 @@ namespace HotChocolate.Types.Introspection
             private static IEnumerable<IType>? GetPossibleTypes(ISchema schema, INamedType type)
                 => type.IsAbstractType() ? schema.GetPossibleTypes(type) : null;
 
-            public static ValueTask<object?> EnumValues(IResolverContext context)
-                => new(GetEnumValues(
-                    context.Parent<IType>(),
-                    context.ArgumentValue<bool>(Names.IncludeDeprecated)));
-
             public static object? PureEnumValues(IResolverContext context)
                 => GetEnumValues(
                     context.Parent<IType>(),
@@ -225,23 +217,35 @@ namespace HotChocolate.Types.Introspection
                     : null;
             }
 
-            public IEnumerable<InputField>? GetInputFields([Parent] IType type) =>
-                type is InputObjectType iot ? iot.Fields : null;
+            public static object? PureInputFields(IResolverContext context)
+                => GetInputFields(context.Parent<IType>());
 
-            public IType? GetOfType([Parent] IType type) =>
-                type switch
+            private static IEnumerable<InputField>? GetInputFields(IType type)
+                => type is InputObjectType iot ? iot.Fields : null;
+
+            public static object? PureOfType(IResolverContext context)
+                => GetOfType(context.Parent<IType>());
+
+            private static IType? GetOfType(IType type)
+                => type switch
                 {
                     ListType lt => lt.ElementType,
                     NonNullType nnt => nnt.Type,
                     _ => null
                 };
 
-            public string? GetSpecifiedBy([Parent] IType type) =>
-                type is ScalarType scalar
+            public static object? SpecifiedBy(IResolverContext context)
+                => GetSpecifiedBy(context.Parent<IType>());
+
+            private static string? GetSpecifiedBy(IType type)
+                => type is ScalarType scalar
                     ? scalar.SpecifiedBy?.ToString()
                     : null;
 
-            public IEnumerable<DirectiveNode> GetAppliedDirectives([Parent] IType type) =>
+            public static object AppliedDirectives(IResolverContext context)
+                => GetAppliedDirectives(context.Parent<IType>());
+
+            private static IEnumerable<DirectiveNode> GetAppliedDirectives(IType type) =>
                 type is IHasDirectives hasDirectives
                     ? hasDirectives.Directives.Where(t => t.Type.IsPublic).Select(d => d.ToNode())
                     : Enumerable.Empty<DirectiveNode>();

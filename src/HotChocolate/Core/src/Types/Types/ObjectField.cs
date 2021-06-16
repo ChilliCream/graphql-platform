@@ -179,15 +179,16 @@ namespace HotChocolate.Types
 
             if (definition.PureResolver is not null)
             {
+                PureFieldResolverDelegate pure = definition.PureResolver;
+
                 if (IsPureContext())
                 {
-                    PureFieldResolverDelegate pure = definition.PureResolver;
                     PureResolver = c => c.Result = pure(c);
                 }
 
                 if (Resolver is null)
                 {
-                    definition.Resolver = ctx => new(definition.PureResolver(ctx));
+                    Resolver = ctx => new(pure(ctx));
                 }
             }
 

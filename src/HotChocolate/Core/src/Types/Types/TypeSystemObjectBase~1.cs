@@ -27,11 +27,15 @@ namespace HotChocolate.Types
             }
         }
 
-        internal TDefinition? Definition
+        protected internal TDefinition? Definition
         {
             get
             {
                 return _definition;
+            }
+            protected set
+            {
+                _definition = value;
             }
         }
 

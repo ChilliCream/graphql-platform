@@ -23,9 +23,6 @@ namespace HotChocolate.Types
         private Action<IObjectTypeDescriptor>? _configure;
         private IsOfType? _isOfType;
 
-        public static ObjectType CreateUnsafe(ObjectTypeDefinition typeDefinition) =>
-            throw new Exception();
-
         protected ObjectType()
         {
             _configure = Configure;
@@ -38,6 +35,19 @@ namespace HotChocolate.Types
             Fields = FieldCollection<ObjectField>.Empty;
         }
 
+        /// <summary>
+        /// Create an object type from a type definition.
+        /// </summary>
+        /// <param name="definition">
+        /// The object type definition that specifies the properties of this type.
+        /// </param>
+        /// <returns>
+        /// Returns the newly created object type.
+        /// </returns>
+        public static ObjectType CreateUnsafe(ObjectTypeDefinition definition)
+            => new() { Definition = definition };
+
+        /// <inheritdoc />
         public override TypeKind Kind => TypeKind.Object;
 
         public ObjectTypeDefinitionNode? SyntaxNode { get; private set; }
@@ -69,12 +79,24 @@ namespace HotChocolate.Types
         protected override ObjectTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
         {
-            var descriptor = ObjectTypeDescriptor.FromSchemaType(
-                context.DescriptorContext,
-                GetType());
-            _configure!.Invoke(descriptor);
-            _configure = null;
-            return descriptor.CreateDefinition();
+            try
+            {
+                if (Definition is null)
+                {
+                    var descriptor = ObjectTypeDescriptor.FromSchemaType(
+                        context.DescriptorContext,
+                        GetType());
+                    _configure!.Invoke(descriptor);
+                    _configure = null;
+                    return descriptor.CreateDefinition();
+                }
+
+                return Definition;
+            }
+            finally
+            {
+                _configure = null;
+            }
         }
 
         protected virtual void Configure(IObjectTypeDescriptor descriptor) { }
