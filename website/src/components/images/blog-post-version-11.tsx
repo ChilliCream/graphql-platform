@@ -1,5 +1,5 @@
 import { graphql, useStaticQuery } from "gatsby";
-import Img from "gatsby-image";
+import { GatsbyImage } from "gatsby-plugin-image";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
 import { GetBlogPostVersion11ImageQuery } from "../../../graphql-types";
@@ -14,9 +14,11 @@ export const BlogPostVersion11: FunctionComponent = () => {
         sourceInstanceName: { eq: "blog" }
       ) {
         childImageSharp {
-          fluid(maxWidth: 1200, pngQuality: 90) {
-            ...GatsbyImageSharpFluid
-          }
+          gatsbyImageData(
+            layout: CONSTRAINED
+            width: 1200
+            pngOptions: { quality: 90 }
+          )
         }
       }
     }
@@ -24,7 +26,10 @@ export const BlogPostVersion11: FunctionComponent = () => {
 
   return (
     <Container>
-      <Img fluid={data.file?.childImageSharp?.fluid as any} />
+      <GatsbyImage
+        image={data.file?.childImageSharp?.gatsbyImageData}
+        alt="Welcome Hot Chocolate 11"
+      />
     </Container>
   );
 };
