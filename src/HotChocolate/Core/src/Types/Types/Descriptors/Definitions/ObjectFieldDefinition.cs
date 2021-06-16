@@ -148,6 +148,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
             target.Resolver = Resolver;
             target.SubscribeResolver = SubscribeResolver;
             target.IsIntrospectionField = IsIntrospectionField;
+            target.IsParallelExecutable = IsParallelExecutable;
         }
 
         internal void MergeInto(ObjectFieldDefinition target)
@@ -164,6 +165,11 @@ namespace HotChocolate.Types.Descriptors.Definitions
             {
                 target._customSettings ??= new List<object>();
                 target._customSettings.AddRange(_customSettings);
+            }
+
+            if (!IsParallelExecutable)
+            {
+                target.IsParallelExecutable = false;
             }
 
             if (ResolverType is not null)
