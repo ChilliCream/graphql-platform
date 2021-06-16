@@ -178,36 +178,24 @@ namespace HotChocolate.Types.Introspection
                     : null;
             }
 
-            public static object? PureInputFields(IResolverContext context)
-                => GetInputFields(context.Parent<IType>());
+            public static object? InputFields(object? parent)
+                => parent is IInputObjectType iot ? iot.Fields : null;
 
-            private static IEnumerable<InputField>? GetInputFields(IType type)
-                => type is InputObjectType iot ? iot.Fields : null;
-
-            public static object? PureOfType(IResolverContext context)
-                => GetOfType(context.Parent<IType>());
-
-            private static IType? GetOfType(IType type)
-                => type switch
+            public static object? OfType(object? parent)
+                => parent switch
                 {
                     ListType lt => lt.ElementType,
                     NonNullType nnt => nnt.Type,
                     _ => null
                 };
 
-            public static object? SpecifiedBy(IResolverContext context)
-                => GetSpecifiedBy(context.Parent<IType>());
-
-            private static string? GetSpecifiedBy(IType type)
-                => type is ScalarType scalar
+            public static object? SpecifiedBy(object? parent)
+                => parent is ScalarType scalar
                     ? scalar.SpecifiedBy?.ToString()
                     : null;
 
-            public static object AppliedDirectives(IResolverContext context)
-                => GetAppliedDirectives(context.Parent<IType>());
-
-            private static IEnumerable<DirectiveNode> GetAppliedDirectives(IType type) =>
-                type is IHasDirectives hasDirectives
+            public static object AppliedDirectives(object? parent) =>
+                parent is IHasDirectives hasDirectives
                     ? hasDirectives.Directives.Where(t => t.Type.IsPublic).Select(d => d.ToNode())
                     : Enumerable.Empty<DirectiveNode>();
         }

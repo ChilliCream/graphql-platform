@@ -1,62 +1,78 @@
 #pragma warning disable IDE1006 // Naming Styles
 using System.Linq;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Properties;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Properties.TypeResources;
+using static HotChocolate.Types.Descriptors.TypeReference;
 
 #nullable enable
 
 namespace HotChocolate.Types.Introspection
 {
     [Introspection]
-    internal sealed class __InputValue : ObjectType<IInputField>
+    internal sealed class __InputValue : ObjectType
     {
-        protected override void Configure(IObjectTypeDescriptor<IInputField> descriptor)
+        protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
-            descriptor
-                .Name(Names.__InputValue)
-                .Description(TypeResources.InputValue_Description)
-                // Introspection types must always be bound explicitly so that we
-                // do not get any interference with conventions.
-                .BindFields(BindingBehavior.Explicit);
+            SyntaxTypeReference stringType = Create(ScalarNames.String);
+            SyntaxTypeReference nonNullStringType = Parse($"{ScalarNames.String}!");
+            SyntaxTypeReference nonNullTypeType = Parse($"{nameof(__Type)}!");
+            SyntaxTypeReference appDirectiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
-            descriptor
-                .Field(t => t.Name)
-                .Name(Names.Name)
-                .Type<NonNullType<StringType>>();
-
-            descriptor
-                .Field(t => t.Description)
-                .Name(Names.Description);
-
-            descriptor
-                .Field(t => t.Type)
-                .Name(Names.Type)
-                .Type<NonNullType<__Type>>();
-
-            descriptor
-                .Field(t => t.DefaultValue)
-                .Name(Names.DefaultValue)
-                .Description(TypeResources.InputValue_DefaultValue)
-                .Type<StringType>()
-                .Resolver(c =>
-                {
-                    IInputField field = c.Parent<IInputField>();
-                    if (field.DefaultValue.IsNull())
-                    {
-                        return null;
-                    }
-
-                    return field.DefaultValue?.Print();
-                });
-
-            if (descriptor.Extend().Context.Options.EnableDirectiveIntrospection)
+            var def = new ObjectTypeDefinition(
+                Names.__InputValue,
+                InputValue_Description,
+                typeof(IInputField))
             {
-                descriptor
-                    .Field(t => t.Directives.Where(d => d.Type.IsPublic).Select(d => d.ToNode()))
-                    .Type<NonNullType<ListType<NonNullType<__AppliedDirective>>>>()
-                    .Name(Names.AppliedDirectives);
+                Fields =
+                {
+                    new(Names.Name, type: nonNullStringType, inlineResolver: Resolvers.Name),
+                    new(Names.Description, type: stringType, inlineResolver: Resolvers.Description),
+                    new(Names.Type, type: nonNullTypeType, inlineResolver: Resolvers.Type),
+                    new(Names.DefaultValue,
+                        InputValue_DefaultValue,
+                        stringType,
+                        inlineResolver: Resolvers.DefaultValue),
+                }
+            };
+
+            if (context.DescriptorContext.Options.EnableDirectiveIntrospection)
+            {
+                def.Fields.Add(new(Names.AppliedDirectives,
+                    type: appDirectiveListType,
+                    inlineResolver: Resolvers.AppliedDirectives));
             }
+
+            return def;
+        }
+
+        private static class Resolvers
+        {
+            public static object Name(object? parent)
+                => ((IInputField)parent!).Name.Value;
+
+            public static object? Description(object? parent)
+                => ((IInputField)parent!).Description;
+
+            public static object Type(object? parent)
+                => ((IInputField)parent!).Type;
+
+            public static object? DefaultValue(object? parent)
+            {
+                var field = (IInputField)parent!;
+                return field.DefaultValue.IsNull()
+                    ? null
+                    : field.DefaultValue!.Print();
+            }
+
+            public static object AppliedDirectives(object? parent)
+                => parent is IHasDirectives hasDirectives
+                    ? hasDirectives.Directives.Where(t => t.Type.IsPublic).Select(d => d.ToNode())
+                    : Enumerable.Empty<DirectiveNode>();
         }
 
         public static class Names

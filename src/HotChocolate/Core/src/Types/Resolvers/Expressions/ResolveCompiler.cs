@@ -310,7 +310,7 @@ namespace HotChocolate.Resolvers.Expressions
     {
         internal ResolverCompilerResult(
             FieldResolverDelegate resolver,
-            PureFieldResolverDelegate? pureResolver)
+            PureFieldResolverDelegate? pureResolver = null)
         {
             Resolver = resolver;
             PureResolver = pureResolver;

@@ -177,6 +177,11 @@ namespace HotChocolate.Types
 
             Resolver = definition.Resolver;
 
+            if (definition.InlineResolver is not null && IsPureContext())
+            {
+                InlineResolver = definition.InlineResolver;
+            }
+
             if (definition.PureResolver is not null)
             {
                 PureFieldResolverDelegate pure = definition.PureResolver;
@@ -190,11 +195,6 @@ namespace HotChocolate.Types
                 {
                     Resolver = ctx => new(pure(ctx));
                 }
-            }
-
-            if (definition.InlineResolver is not null && IsPureContext())
-            {
-                InlineResolver = definition.InlineResolver;
             }
 
             if (!isIntrospectionField || Resolver is null!)
