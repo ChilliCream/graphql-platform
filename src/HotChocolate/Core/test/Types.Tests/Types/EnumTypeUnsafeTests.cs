@@ -24,14 +24,19 @@ namespace HotChocolate.Types
                     }
                 });
 
+            var queryType = ObjectType.CreateUnsafe(
+                new("Query")
+                {
+                    Fields =
+                    {
+                        new("foo", type: TypeReference.Create(enumType), pureResolver: _ => "One")
+                    }
+                });
+
             // assert
             await new ServiceCollection()
                 .AddGraphQL()
-                .AddQueryType(d =>
-                {
-                    d.Name("Query");
-                    d.Field("foo").Type(enumType).Resolve("One");
-                })
+                .AddQueryType(queryType)
                 .BuildSchemaAsync()
                 .MatchSnapshotAsync();
         }

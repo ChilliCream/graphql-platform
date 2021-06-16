@@ -8,6 +8,9 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {
+    /// <summary>
+    /// Defines the properties of a GraphQL enum type.
+    /// </summary>
     public class ObjectTypeDefinition
         : TypeDefinitionBase<ObjectTypeDefinitionNode>
         , IComplexOutputTypeDefinition
@@ -15,6 +18,25 @@ namespace HotChocolate.Types.Descriptors.Definitions
         private List<Type>? _knownClrTypes;
         private List<ITypeReference>? _interfaces;
         private List<ObjectFieldBinding>? _fieldIgnores;
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
+        /// </summary>
+        public ObjectTypeDefinition() { }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
+        /// </summary>
+        public ObjectTypeDefinition(
+            NameString name,
+            string? description = null,
+            Type? runtimeType = null)
+            : base(runtimeType ?? typeof(object))
+        {
+            Name = name;
+            Description = description;
+            FieldBindingType = runtimeType;
+        }
 
         public override Type RuntimeType
         {

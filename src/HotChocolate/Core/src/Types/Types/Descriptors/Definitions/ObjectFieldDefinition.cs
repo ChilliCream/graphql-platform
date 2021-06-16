@@ -19,6 +19,28 @@ namespace HotChocolate.Types.Descriptors.Definitions
         private List<object>? _customSettings;
 
         /// <summary>
+        /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
+        /// </summary>
+        public ObjectFieldDefinition() { }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
+        /// </summary>
+        public ObjectFieldDefinition(
+            NameString name,
+            string? description = null,
+            ITypeReference? type = null,
+            FieldResolverDelegate? resolver = null,
+            PureFieldResolverDelegate? pureResolver = null)
+        {
+            Name = name;
+            Description = description;
+            Type = type;
+            Resolver = resolver;
+            PureResolver = pureResolver;
+        }
+
+        /// <summary>
         /// The object runtime type.
         /// </summary>
         public Type? SourceType { get; set; }
