@@ -1,23 +1,21 @@
 using System;
-using System.Linq;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Utilities;
-using Snapshooter.Xunit;
 using Squadron;
 using StackExchange.Redis;
 using Xunit;
 
 namespace HotChocolate.PersistedQueries.Redis
 {
-    public class RequestExecutorBuilderTests
-        : IClassFixture<RedisResource>
+    public class RequestExecutorBuilderTests : IClassFixture<RedisResource>
     {
-        private IDatabase _database;
+        private readonly IConnectionMultiplexer _multiplexer;
+        private readonly IDatabase _database;
 
         public RequestExecutorBuilderTests(RedisResource redisResource)
         {
-            _database = redisResource.GetConnection().GetDatabase();
+            _multiplexer = redisResource.GetConnection();
+            _database = _multiplexer.GetDatabase();
         }
 
         [Fact]
@@ -27,7 +25,33 @@ namespace HotChocolate.PersistedQueries.Redis
             // act
             void Action() =>
                 HotChocolateRedisPersistedQueriesRequestExecutorBuilderExtensions
-                    .AddRedisQueryStorage(null!, sp => _database);
+                    .AddRedisQueryStorage(null!, _ => _database);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(Action);
+        }
+
+        [Fact]
+        public void AddRedisQueryStorage_MultiplexerServices_Is_Null()
+        {
+            // arrange
+            // act
+            void Action() =>
+                HotChocolateRedisPersistedQueriesRequestExecutorBuilderExtensions
+                    .AddRedisQueryStorage(null!, _ => _multiplexer);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(Action);
+        }
+
+        [Fact]
+        public void AddRedisQueryStorage_DefaultServices_Is_Null()
+        {
+            // arrange
+            // act
+            void Action() =>
+                HotChocolateRedisPersistedQueriesRequestExecutorBuilderExtensions
+                    .AddRedisQueryStorage(null!);
 
             // assert
             Assert.Throws<ArgumentNullException>(Action);
@@ -42,7 +66,24 @@ namespace HotChocolate.PersistedQueries.Redis
             // act
             void Action() =>
                 HotChocolateRedisPersistedQueriesRequestExecutorBuilderExtensions
-                    .AddRedisQueryStorage(builder, null!);
+                    .AddRedisQueryStorage(builder, default(Func<IServiceProvider, IDatabase>)!);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(Action);
+        }
+
+        [Fact]
+        public void AddRedisQueryStorage_MultiplexerFactory_Is_Null()
+        {
+            // arrange
+            IRequestExecutorBuilder builder = new ServiceCollection().AddGraphQL();
+
+            // act
+            void Action() =>
+                HotChocolateRedisPersistedQueriesRequestExecutorBuilderExtensions
+                    .AddRedisQueryStorage(
+                        builder,
+                        default(Func<IServiceProvider, IConnectionMultiplexer>)!);
 
             // assert
             Assert.Throws<ArgumentNullException>(Action);
@@ -55,7 +96,33 @@ namespace HotChocolate.PersistedQueries.Redis
             // act
             void Action() =>
                 HotChocolateRedisPersistedQueriesRequestExecutorBuilderExtensions
-                    .AddReadOnlyRedisQueryStorage(null!, sp => _database);
+                    .AddReadOnlyRedisQueryStorage(null!, _ => _database);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(Action);
+        }
+
+        [Fact]
+        public void AddReadOnlyRedisQueryStorage_MultiplexerServices_Is_Null()
+        {
+            // arrange
+            // act
+            void Action() =>
+                HotChocolateRedisPersistedQueriesRequestExecutorBuilderExtensions
+                    .AddReadOnlyRedisQueryStorage(null!, _ => _multiplexer);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(Action);
+        }
+
+        [Fact]
+        public void AddReadOnlyRedisQueryStorage_DefaultServices_Is_Null()
+        {
+            // arrange
+            // act
+            void Action() =>
+                HotChocolateRedisPersistedQueriesRequestExecutorBuilderExtensions
+                    .AddReadOnlyRedisQueryStorage(null!);
 
             // assert
             Assert.Throws<ArgumentNullException>(Action);
@@ -70,7 +137,26 @@ namespace HotChocolate.PersistedQueries.Redis
             // act
             void Action() =>
                 HotChocolateRedisPersistedQueriesRequestExecutorBuilderExtensions
-                    .AddReadOnlyRedisQueryStorage(builder, null!);
+                    .AddReadOnlyRedisQueryStorage(
+                        builder,
+                        default(Func<IServiceProvider, IDatabase>)!);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(Action);
+        }
+
+        [Fact]
+        public void AddReadOnlyRedisQueryStorage_MultiplexerFactory_Is_Null()
+        {
+            // arrange
+            IRequestExecutorBuilder builder = new ServiceCollection().AddGraphQL();
+
+            // act
+            void Action() =>
+                HotChocolateRedisPersistedQueriesRequestExecutorBuilderExtensions
+                    .AddReadOnlyRedisQueryStorage(
+                        builder,
+                        default(Func<IServiceProvider, IConnectionMultiplexer>)!);
 
             // assert
             Assert.Throws<ArgumentNullException>(Action);

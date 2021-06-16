@@ -155,7 +155,7 @@ input ICharacterSortInput {
 
 "A review of a particular movie."
 type Review {
-  id: Uuid!
+  id: UUID!
   "The number of stars given for this review."
   stars: Int!
   "An explanation for the rating."
@@ -257,18 +257,18 @@ enum SortEnumType {
 }
 
 input ComparableGuidOperationFilterInput {
-  eq: Uuid
-  neq: Uuid
-  in: [Uuid!]
-  nin: [Uuid!]
-  gt: Uuid
-  ngt: Uuid
-  gte: Uuid
-  ngte: Uuid
-  lt: Uuid
-  nlt: Uuid
-  lte: Uuid
-  nlte: Uuid
+  eq: UUID
+  neq: UUID
+  in: [UUID!]
+  nin: [UUID!]
+  gt: UUID
+  ngt: UUID
+  gte: UUID
+  ngte: UUID
+  lt: UUID
+  nlt: UUID
+  lte: UUID
+  nlte: UUID
 }
 
 "An edge in a connection."
@@ -286,7 +286,7 @@ input EpisodeOperationFilterInput {
   nin: [Episode!]
 }
 
-scalar Uuid
+scalar UUID
 
 input CreateReviewInput {
   episode: Episode!

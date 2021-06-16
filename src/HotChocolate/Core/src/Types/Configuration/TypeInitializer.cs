@@ -224,17 +224,22 @@ namespace HotChocolate.Configuration
         private void RegisterImplicitInterfaceDependencies()
         {
             var withRuntimeType = _typeRegistry.Types
-                .Where(t => t.RuntimeType != typeof(object))
+                .Where(t => !t.IsIntrospectionType && t.RuntimeType != typeof(object))
                 .Distinct()
                 .ToList();
 
             var interfaceTypes = withRuntimeType
-                .Where(t => t.Type is InterfaceType)
+                .Where(t => t.Kind is TypeKind.Interface)
                 .Distinct()
                 .ToList();
 
+            if (interfaceTypes.Count == 0)
+            {
+                return;
+            }
+
             var objectTypes = withRuntimeType
-                .Where(t => t.Type is ObjectType)
+                .Where(t => t.Kind is TypeKind.Object)
                 .Distinct()
                 .ToList();
 
@@ -246,12 +251,10 @@ namespace HotChocolate.Configuration
                 {
                     if (interfaceType.RuntimeType.IsAssignableFrom(objectType.RuntimeType))
                     {
-                        dependencies.Add(
-                            new TypeDependency(
-                                _typeInspector.GetTypeRef(
-                                    interfaceType.RuntimeType,
-                                    TypeContext.Output),
-                                TypeDependencyKind.Completed));
+                        ITypeReference typeReference =
+                            _typeInspector.GetOutputTypeRef(interfaceType.RuntimeType);
+                        ((ObjectType)objectType.Type).Definition!.Interfaces.Add(typeReference);
+                        dependencies.Add(new(typeReference, TypeDependencyKind.Completed));
                     }
                 }
 
@@ -529,7 +532,7 @@ namespace HotChocolate.Configuration
                         registered.SourceType,
                         member,
                         resolverType: registered.IsSourceResolver
-                            ? null 
+                            ? null
                             : registered.ResolverType);
                     _resolvers[item.Key] = registered.WithField(
                         ResolverCompiler.Resolve.Compile(descriptor));

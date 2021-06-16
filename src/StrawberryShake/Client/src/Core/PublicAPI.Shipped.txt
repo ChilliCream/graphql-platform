@@ -18,7 +18,7 @@ const StrawberryShake.Serialization.BuiltInScalarNames.Short = "Short" -> string
 const StrawberryShake.Serialization.BuiltInScalarNames.String = "String" -> string!
 const StrawberryShake.Serialization.BuiltInScalarNames.TimeSpan = "TimeSpan" -> string!
 const StrawberryShake.Serialization.BuiltInScalarNames.Url = "Url" -> string!
-const StrawberryShake.Serialization.BuiltInScalarNames.Uuid = "Uuid" -> string!
+const StrawberryShake.Serialization.BuiltInScalarNames.UUID = "UUID" -> string!
 override sealed StrawberryShake.GraphQLClientException.Message.get -> string!
 override StrawberryShake.EntityId.Equals(object? obj) -> bool
 override StrawberryShake.EntityId.GetHashCode() -> int
@@ -354,8 +354,8 @@ StrawberryShake.Serialization.TimeSpanSerializer
 StrawberryShake.Serialization.TimeSpanSerializer.TimeSpanSerializer(string! typeName = "TimeSpan", StrawberryShake.Serialization.TimeSpanFormat format = StrawberryShake.Serialization.TimeSpanFormat.Iso8601) -> void
 StrawberryShake.Serialization.UrlSerializer
 StrawberryShake.Serialization.UrlSerializer.UrlSerializer(string! typeName = "Url") -> void
-StrawberryShake.Serialization.UuidSerializer
-StrawberryShake.Serialization.UuidSerializer.UuidSerializer(string! typeName = "Uuid") -> void
+StrawberryShake.Serialization.UUIDSerializer
+StrawberryShake.Serialization.UUIDSerializer.UUIDSerializer(string! typeName = "UUID") -> void
 StrawberryShake.StoreAccessor
 StrawberryShake.StoreAccessor.EntityIdSerializer.get -> StrawberryShake.IEntityIdSerializer!
 StrawberryShake.StoreAccessor.EntityStore.get -> StrawberryShake.IEntityStore!

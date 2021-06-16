@@ -27,7 +27,7 @@ namespace HotChocolate.Language
                 ?? throw new ArgumentNullException(nameof(selectionSet));
         }
 
-        public SyntaxKind Kind { get; } = SyntaxKind.OperationDefinition;
+        public SyntaxKind Kind => SyntaxKind.OperationDefinition;
 
         public Location? Location { get; }
 
@@ -84,7 +84,7 @@ namespace HotChocolate.Language
 
         public OperationDefinitionNode WithLocation(Location? location)
         {
-            return new OperationDefinitionNode(
+            return new(
                 location, Name, Operation,
                 VariableDefinitions,
                 Directives, SelectionSet);
@@ -92,7 +92,7 @@ namespace HotChocolate.Language
 
         public OperationDefinitionNode WithName(NameNode? name)
         {
-            return new OperationDefinitionNode(
+            return new(
                 Location, name, Operation,
                 VariableDefinitions,
                 Directives, SelectionSet);
@@ -100,7 +100,7 @@ namespace HotChocolate.Language
 
         public OperationDefinitionNode WithOperation(OperationType operation)
         {
-            return new OperationDefinitionNode(
+            return new(
                 Location, Name, operation,
                 VariableDefinitions,
                 Directives, SelectionSet);
@@ -109,7 +109,7 @@ namespace HotChocolate.Language
         public OperationDefinitionNode WithVariableDefinitions(
             IReadOnlyList<VariableDefinitionNode> variableDefinitions)
         {
-            return new OperationDefinitionNode(
+            return new(
                 Location, Name, Operation,
                 variableDefinitions,
                 Directives, SelectionSet);
@@ -118,7 +118,7 @@ namespace HotChocolate.Language
         public OperationDefinitionNode WithDirectives(
             IReadOnlyList<DirectiveNode> directives)
         {
-            return new OperationDefinitionNode(
+            return new(
                 Location, Name, Operation,
                 VariableDefinitions,
                 directives, SelectionSet);
@@ -127,7 +127,7 @@ namespace HotChocolate.Language
         public OperationDefinitionNode WithSelectionSet(
             SelectionSetNode selectionSet)
         {
-            return new OperationDefinitionNode(
+            return new(
                 Location, Name, Operation,
                 VariableDefinitions,
                 Directives, selectionSet);

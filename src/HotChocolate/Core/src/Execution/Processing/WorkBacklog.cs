@@ -197,7 +197,7 @@ namespace HotChocolate.Execution.Processing
                 // if there is now more work and the state machine is not completed yet we will
                 // close open steps and reevaluate. This can happen if optional resolver tasks
                 // are not enqueued.
-                if (!_stateMachine.IsCompleted &&
+                while (!_stateMachine.IsCompleted &&
                     _work.IsEmpty &&
                     _serial.IsEmpty &&
                     !_work.IsRunning &&

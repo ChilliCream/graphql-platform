@@ -388,8 +388,15 @@ namespace HotChocolate.Language
             current = Rewrite(current, current.Name, context,
                 RewriteName, current.WithName);
 
-            current = Rewrite(current, current.Description, context,
-                RewriteStringValue, current.WithDescription);
+            if (current.Description is not null)
+            {
+                current = Rewrite(
+                    current,
+                    current.Description,
+                    context,
+                    RewriteStringValue,
+                    current.WithDescription);
+            }
 
             current = RewriteMany(current, current.Fields, context,
                 RewriteFieldDefinition, current.WithFields);
@@ -512,8 +519,15 @@ namespace HotChocolate.Language
             current = Rewrite(current, current.Name, context,
                 RewriteName, current.WithName);
 
-            current = Rewrite(current, current.Description, context,
-                RewriteStringValue, current.WithDescription);
+            if (current.Description is not null)
+            {
+                current = Rewrite(
+                    current,
+                    current.Description,
+                    context,
+                    RewriteStringValue,
+                    current.WithDescription);
+            }
 
             return current;
         }

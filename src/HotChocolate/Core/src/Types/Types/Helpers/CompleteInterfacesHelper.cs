@@ -16,7 +16,7 @@ namespace HotChocolate.Types
         public static void CompleteInterfaces(
             ITypeCompletionContext context,
             IReadOnlyList<ITypeReference> interfaceReferences,
-            Type clrType,
+            Type runtimeType,
             ICollection<InterfaceType> interfaces,
             ITypeSystemObject interfaceOrObject,
             ISyntaxNode? node)

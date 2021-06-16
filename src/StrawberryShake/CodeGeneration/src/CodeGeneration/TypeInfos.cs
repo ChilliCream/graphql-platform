@@ -95,7 +95,7 @@ namespace StrawberryShake.CodeGeneration
             { FloatSerializer, new RuntimeTypeInfo(FloatSerializer) },
             { DecimalSerializer, new RuntimeTypeInfo(DecimalSerializer) },
             { UrlSerializer, new RuntimeTypeInfo(UrlSerializer) },
-            { UuidSerializer, new RuntimeTypeInfo(UuidSerializer) },
+            { UUIDSerializer, new RuntimeTypeInfo(UUIDSerializer) },
             { IdSerializer, new RuntimeTypeInfo(IdSerializer) },
             { DateTimeSerializer, new RuntimeTypeInfo(DateTimeSerializer) },
             { DateSerializer, new RuntimeTypeInfo(DateSerializer) },

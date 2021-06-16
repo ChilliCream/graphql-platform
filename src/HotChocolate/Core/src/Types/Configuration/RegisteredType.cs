@@ -30,11 +30,23 @@ namespace HotChocolate.Configuration
             DiscoveryContext = discoveryContext;
             IsInferred = isInferred;
             IsExtension = Type is INamedTypeExtensionMerger;
-            IsNamedType = Type is INamedType;
-            IsDirectiveType = Type is DirectiveType;
+
+            if (type is INamedType nt)
+            {
+                IsNamedType = true;
+                IsIntrospectionType = nt.IsIntrospectionType();
+                Kind = nt.Kind;
+            }
+            else if (type is DirectiveType)
+            {
+                IsDirectiveType = true;
+                Kind = TypeKind.Directive;
+            }
         }
 
         public TypeSystemObjectBase Type { get; }
+
+        public TypeKind? Kind { get; }
 
         public Type RuntimeType
         {
@@ -73,6 +85,8 @@ namespace HotChocolate.Configuration
         public bool IsNamedType { get; }
 
         public bool IsDirectiveType { get; }
+
+        public bool IsIntrospectionType { get; }
 
         public void AddReferences(IEnumerable<ITypeReference> references)
         {

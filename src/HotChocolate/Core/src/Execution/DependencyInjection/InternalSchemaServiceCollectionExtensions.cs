@@ -6,6 +6,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Utilities;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -53,5 +54,16 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public static IServiceProvider GetApplicationServices(this IServiceProvider services) =>
             services.GetRequiredService<IApplicationServiceProvider>();
+
+        /// <summary>
+        /// Gets a service provided that represents the combined services from the schema services
+        /// and application services.
+        /// </summary>
+        public static IServiceProvider GetCombinedServices(this IServiceProvider services) =>
+            services is CombinedServiceProvider combined
+                ? combined
+                : new CombinedServiceProvider(
+                    services.GetApplicationServices(),
+                    services);
     }
 }

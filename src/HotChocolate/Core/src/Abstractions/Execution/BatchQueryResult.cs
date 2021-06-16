@@ -9,7 +9,7 @@ namespace HotChocolate.Execution
     public class BatchQueryResult : IBatchQueryResult
     {
         private readonly Func<IAsyncEnumerable<IQueryResult>>? _resultStreamFactory;
-        private readonly IAsyncDisposable? _session;
+        private IAsyncDisposable? _session;
         private bool _isRead;
         private bool _disposed;
 
@@ -61,6 +61,17 @@ namespace HotChocolate.Execution
 
             _isRead = true;
             return _resultStreamFactory();
+        }
+
+        /// <inheritdoc />
+        public void RegisterDisposable(IDisposable disposable)
+        {
+            if (disposable is null)
+            {
+                throw new ArgumentNullException(nameof(disposable));
+            }
+
+            _session = _session.Combine(disposable);
         }
 
         public async ValueTask DisposeAsync()

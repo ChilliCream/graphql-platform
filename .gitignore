@@ -307,6 +307,9 @@ __mismatch__
 coverage.opencover.xml
 output
 src/All.sln
+src/Build.Sonar.sln
+src/Build.Test.sln
+src/Build.Pack.sln
 *.DotSettings
 
 # asp .net core

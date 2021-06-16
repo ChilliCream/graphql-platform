@@ -59,3 +59,5 @@ static HotChocolate.Execution.Options.ComplexityAnalyzerSettings.DefaultCalculat
 static HotChocolate.Execution.Processing.ArgumentCoercionHelper.TryCoerceArguments(this HotChocolate.Execution.Processing.IArgumentMap! arguments, HotChocolate.Resolvers.IResolverContext! resolverContext, out System.Collections.Generic.IReadOnlyDictionary<HotChocolate.NameString, HotChocolate.Execution.Processing.ArgumentValue!>? coercedArgs) -> bool
 static Microsoft.Extensions.DependencyInjection.RequestExecutorBuilderExtensions.UseOperationComplexityAnalyzer(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
 virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.ScaleTaskProcessors(HotChocolate.Execution.IRequestContext! context, int backlogSize, int processors) -> void
+*REMOVED*HotChocolate.Execution.IRequestMiddleware
+*REMOVED*HotChocolate.Execution.IRequestMiddleware.InvokeAsync(HotChocolate.Execution.IRequestContext! context, HotChocolate.Execution.RequestDelegate! next) -> System.Threading.Tasks.Task!

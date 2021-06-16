@@ -1,6 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
-using HotChocolate.Language.Properties;
+using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language
 {
@@ -15,15 +15,15 @@ namespace HotChocolate.Language
             ref Span<byte> unescapedString,
             bool isBlockString)
         {
-            int readPosition = -1;
-            int writePosition = 0;
-            int eofPosition = escapedString.Length - 1;
+            var readPosition = -1;
+            var writePosition = 0;
+            var eofPosition = escapedString.Length - 1;
 
             if (escapedString.Length > 0)
             {
                 do
                 {
-                    byte code = escapedString[++readPosition];
+                    var code = escapedString[++readPosition];
 
                     if (code == GraphQLConstants.Backslash)
                     {
@@ -41,11 +41,10 @@ namespace HotChocolate.Language
                             }
                             else
                             {
-                                throw new Utf8EncodingException(
-                                    LangResources.Utf8Helper_InvalidQuoteEscapeCount);
+                                throw new Utf8EncodingException(Utf8Helper_InvalidQuoteEscapeCount);
                             }
                         }
-                        else if (GraphQLConstants.IsValidEscapeCharacter(code))
+                        else if (code.IsValidEscapeCharacter())
                         {
                             if (code == GraphQLConstants.U)
                             {
@@ -59,15 +58,14 @@ namespace HotChocolate.Language
                             }
                             else
                             {
-                                unescapedString[writePosition++] =
-                                    GraphQLConstants.EscapeCharacter(code);
+                                unescapedString[writePosition++] = code.EscapeCharacter();
                             }
                         }
                         else
                         {
                             throw new Utf8EncodingException(
                                 string.Format(
-                                    LangResources.Utf8Helper_InvalidEscapeChar,
+                                    Utf8Helper_InvalidEscapeChar,
                                     (char)code));
                         }
                     }
@@ -90,18 +88,18 @@ namespace HotChocolate.Language
             ref int writePosition,
             ref Span<byte> unescapedString)
         {
-            int unicodeDecimal = (HexToDecimal(a) << 12)
-                | (HexToDecimal(b) << 8)
-                | (HexToDecimal(c) << 4)
-                | HexToDecimal(d);
+            var unicodeDecimal = (HexToDecimal(a) << 12)
+                                 | (HexToDecimal(b) << 8)
+                                 | (HexToDecimal(c) << 4)
+                                 | HexToDecimal(d);
 
-            if (unicodeDecimal >= 0 && unicodeDecimal <= 127)
+            if (unicodeDecimal is >= 0 and <= 127)
             {
                 unescapedString[writePosition++] = (byte)unicodeDecimal;
             }
-            else if (unicodeDecimal >= 128 && unicodeDecimal <= 2047)
+            else if (unicodeDecimal is >= 128 and <= 2047)
             {
-                int bytesToShift = unicodeDecimal & _shiftBytesMask;
+                var bytesToShift = unicodeDecimal & _shiftBytesMask;
                 unicodeDecimal -= bytesToShift;
                 bytesToShift <<= 2;
                 unicodeDecimal += _utf8TwoByteMask + bytesToShift;
@@ -109,13 +107,13 @@ namespace HotChocolate.Language
                 unescapedString[writePosition++] = (byte)(unicodeDecimal >> 8);
                 unescapedString[writePosition++] = (byte)unicodeDecimal;
             }
-            else if (unicodeDecimal >= 2048 && unicodeDecimal <= 65535)
+            else if (unicodeDecimal is >= 2048 and <= 65535)
             {
-                int bytesToShift = unicodeDecimal & _shiftBytesMask;
+                var bytesToShift = unicodeDecimal & _shiftBytesMask;
                 unicodeDecimal -= bytesToShift;
 
-                int third = (bytesToShift >> 12) << 12;
-                int second = bytesToShift - third;
+                var third = (bytesToShift >> 12) << 12;
+                var second = bytesToShift - third;
 
                 second <<= 2;
                 third <<= 4;
@@ -136,13 +134,13 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int HexToDecimal(int a)
         {
-            return a >= 48 && a <= 57
-              ? a - 48 // 0-9
-              : a >= 65 && a <= 70
-                ? a - 55 // A-F
-                : a >= 97 && a <= 102
-                  ? a - 87 // a-f
-                  : -1;
+            return a switch
+            {
+                >= 48 and <= 57 => a - 48,
+                >= 65 and <= 70 => a - 55,
+                >= 97 and <= 102 => a - 87,
+                _ => -1
+            };
         }
     }
 

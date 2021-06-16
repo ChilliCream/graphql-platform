@@ -19,17 +19,16 @@ namespace HotChocolate.Execution
                 .AddQueryType(t => t
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
 
             // act
-            Func<Task> action = () => executor.ExecuteAsync(null, default);
+            Task Action() => executor.ExecuteAsync(null!, default);
 
             // assert
-            ArgumentException exception =
-                await Assert.ThrowsAsync<ArgumentNullException>(action);
+            ArgumentException exception = await Assert.ThrowsAsync<ArgumentNullException>(Action);
             Assert.Equal("request", exception.ParamName);
         }
 
@@ -40,7 +39,7 @@ namespace HotChocolate.Execution
                 .AddQueryType(t => t
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .Create();
 
             // act
@@ -54,21 +53,21 @@ namespace HotChocolate.Execution
         public async Task CancellationToken_Is_Passed_Correctly()
         {
             // arrange
-            bool tokenWasCorrectlyPassedToResolver = false;
+            var tokenWasCorrectlyPassedToResolver = false;
 
             var cts = new CancellationTokenSource();
-            Action cancel = () => cts.Cancel();
+            void Cancel() => cts.Cancel();
 
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType(t => t
                     .Name("Query")
                     .Field("foo")
-                    .Resolver(ctx =>
+                    .Resolve(ctx =>
                     {
                         // we cancel the cts in the resolver so we are sure
                         // that we reach this point and the passed in ct was correctly
                         // passed.
-                        cancel();
+                        Cancel();
 
                         try
                         {
@@ -99,6 +98,51 @@ namespace HotChocolate.Execution
 
             // the cancellation token was correctly passed to the resolver.
             Assert.True(tokenWasCorrectlyPassedToResolver);
+        }
+
+        [Fact]
+        public async Task Ensure_Errors_Do_Not_Result_In_Timeouts()
+        {
+            using var cts = new CancellationTokenSource(1000);
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Name("abc").Field("a").Resolve("a"))
+                .AddMutationType<Mutation>()
+                .ExecuteRequestAsync(@"
+                    mutation
+                    {
+                        test
+                        {
+                            test
+                            {
+                                bar
+                                __typename
+                            }
+                            __typename
+                        }  
+                    }",
+                    cancellationToken: cts.Token)
+                .MatchSnapshotAsync();
+        }
+
+        public class Mutation
+        {
+            public TestMutationPayload Test()
+            {
+                throw new Exception("Error");
+            }
+        }
+
+        public class TestMutationPayload
+        {
+            public Test Test { get; set; }
+        }
+
+        public class Test
+        {
+            public string Foo { get; set; } = "Foo";
+            public string Bar { get; set; } = "Bar";
         }
     }
 }

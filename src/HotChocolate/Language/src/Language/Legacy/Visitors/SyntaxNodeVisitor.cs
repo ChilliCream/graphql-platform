@@ -46,7 +46,7 @@ namespace HotChocolate.Language
         , ISyntaxNodeVisitor<InputObjectTypeExtensionNode>
         , ISyntaxNodeVisitor<NameNode>
     {
-        private readonly IReadOnlyDictionary<SyntaxKind, VisitorAction> _actions;
+        private readonly IReadOnlyDictionary<SyntaxKind, VisitorAction>? _actions;
         private readonly VisitorAction _defaultAction;
 
         protected SyntaxNodeVisitor()
