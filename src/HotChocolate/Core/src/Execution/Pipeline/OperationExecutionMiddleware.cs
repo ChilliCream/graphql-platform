@@ -16,7 +16,6 @@ namespace HotChocolate.Execution.Pipeline
         private readonly RequestDelegate _next;
         private readonly ObjectPool<OperationContext> _operationContextPool;
         private readonly QueryExecutor _queryExecutor;
-        private readonly MutationExecutor _mutationExecutor;
         private readonly SubscriptionExecutor _subscriptionExecutor;
         private readonly IQueryPlanCache _queryPlanCache;
         private readonly ITransactionScopeHandler _transactionScopeHandler;
@@ -27,7 +26,6 @@ namespace HotChocolate.Execution.Pipeline
             RequestDelegate next,
             ObjectPool<OperationContext> operationContextPool,
             QueryExecutor queryExecutor,
-            MutationExecutor mutationExecutor,
             SubscriptionExecutor subscriptionExecutor,
             IQueryPlanCache queryPlanCache,
             [SchemaService] ITransactionScopeHandler transactionScopeHandler)
@@ -38,8 +36,6 @@ namespace HotChocolate.Execution.Pipeline
                 throw new ArgumentNullException(nameof(operationContextPool));
             _queryExecutor = queryExecutor ??
                 throw new ArgumentNullException(nameof(queryExecutor));
-            _mutationExecutor = mutationExecutor ??
-                throw new ArgumentNullException(nameof(mutationExecutor));
             _subscriptionExecutor = subscriptionExecutor ??
                 throw new ArgumentNullException(nameof(subscriptionExecutor));
             _queryPlanCache = queryPlanCache ??
@@ -192,7 +188,7 @@ namespace HotChocolate.Execution.Pipeline
                     mutation,
                     () => GetQueryRootValue(context));
 
-                context.Result = await _mutationExecutor
+                context.Result = await _queryExecutor
                     .ExecuteAsync(operationContext)
                     .ConfigureAwait(false);
 

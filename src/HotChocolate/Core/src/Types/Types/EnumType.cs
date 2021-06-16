@@ -13,16 +13,41 @@ namespace HotChocolate.Types
         : NamedTypeBase<EnumTypeDefinition>
         , IEnumType
     {
+        /// <inheritdoc />
         public override TypeKind Kind => TypeKind.Enum;
 
+        /// <summary>
+        /// Gets the associated syntax node from the GraphQL SDL.
+        /// </summary>
         public EnumTypeDefinitionNode? SyntaxNode { get; private set; }
 
+        /// <summary>
+        /// Gets the enum values of this type.
+        /// </summary>
         public IReadOnlyCollection<IEnumValue> Values => _enumValues.Values;
 
+        /// <summary>
+        /// Gets a dictionary that allows to lookup the enum value by its name.
+        /// </summary>
         protected IReadOnlyDictionary<NameString, IEnumValue> NameLookup => _enumValues;
 
+        /// <summary>
+        /// Gets a dictionary that allows to lookup the enum value by its runtime value.
+        /// </summary>
         protected IReadOnlyDictionary<object, IEnumValue> ValueLookup => _valueLookup;
 
+        /// <summary>
+        /// Tries to resolve the runtime value of this enum type by its name.
+        /// </summary>
+        /// <param name="name">
+        /// The GraphQL name for the enum value.
+        /// </param>
+        /// <param name="runtimeValue">
+        /// The runtime enum runtime value.
+        /// </param>
+        /// <returns>
+        /// <c>true</c>, if there is a runtime value associated with the provided enum value name.
+        /// </returns>
         public bool TryGetRuntimeValue(
             NameString name,
             [NotNullWhen(true)] out object? runtimeValue)
@@ -177,6 +202,7 @@ namespace HotChocolate.Types
                 this);
         }
 
+        /// <inheritdoc />
         public object? Deserialize(object? resultValue)
         {
             if (TryDeserialize(resultValue, out object? runtimeValue))
@@ -189,6 +215,7 @@ namespace HotChocolate.Types
                 this);
         }
 
+        /// <inheritdoc />
         public bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
             if (resultValue is null)

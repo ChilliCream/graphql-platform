@@ -255,10 +255,6 @@ namespace HotChocolate.Types
                 !IsInitialized,
                 "The type must be uninitialized.");
 
-            Debug.Assert(
-                _definition is null,
-                "The definition should not exist when the type has not been initialized.");
-
             if (IsInitialized)
             {
                 throw new InvalidOperationException();

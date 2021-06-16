@@ -27,7 +27,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(enumValueDefinition));
             }
 
-            if (enumValueDefinition.Value is null)
+            if (enumValueDefinition.RuntimeValue is null)
             {
                 throw new ArgumentException(
                     TypeResources.EnumValue_ValueIsNull,
@@ -37,11 +37,11 @@ namespace HotChocolate.Types
             SyntaxNode = enumValueDefinition.SyntaxNode;
             Name = enumValueDefinition.Name.HasValue
                 ? enumValueDefinition.Name
-                : (NameString)enumValueDefinition.Value.ToString();
+                : (NameString)enumValueDefinition.RuntimeValue.ToString();
             Description = enumValueDefinition.Description;
             DeprecationReason = enumValueDefinition.DeprecationReason;
             IsDeprecated = !string.IsNullOrEmpty(enumValueDefinition.DeprecationReason);
-            Value = enumValueDefinition.Value;
+            Value = enumValueDefinition.RuntimeValue;
             ContextData = enumValueDefinition.GetContextData();
 
             _directives = DirectiveCollection

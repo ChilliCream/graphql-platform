@@ -39,7 +39,8 @@ namespace HotChocolate.Types
         /// Create an object type from a type definition.
         /// </summary>
         /// <param name="definition">
-        /// The object type definition that specifies the properties of this type.
+        /// The object type definition that specifies the properties of the
+        /// newly created object type.
         /// </param>
         /// <returns>
         /// Returns the newly created object type.
@@ -87,7 +88,6 @@ namespace HotChocolate.Types
                         context.DescriptorContext,
                         GetType());
                     _configure!.Invoke(descriptor);
-                    _configure = null;
                     return descriptor.CreateDefinition();
                 }
 

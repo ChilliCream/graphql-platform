@@ -95,13 +95,13 @@ namespace HotChocolate.Types
             EnumTypeDefinition type)
         {
             foreach (EnumValueDefinition enumValue in
-                extension.Values.Where(t => t.Value != null))
+                extension.Values.Where(t => t.RuntimeValue != null))
             {
-                if (type.RuntimeType.IsInstanceOfType(enumValue.Value))
+                if (type.RuntimeType.IsInstanceOfType(enumValue.RuntimeValue))
                 {
                     EnumValueDefinition? existingValue =
                         type.Values.FirstOrDefault(t =>
-                            enumValue.Value.Equals(t.Value));
+                            enumValue.RuntimeValue.Equals(t.RuntimeValue));
 
                     if (existingValue is null)
                     {
@@ -124,7 +124,7 @@ namespace HotChocolate.Types
                             .SetMessage(string.Format(
                                 CultureInfo.InvariantCulture,
                                 TypeResources.EnumTypeExtension_ValueTypeInvalid,
-                                enumValue.Value))
+                                enumValue.RuntimeValue))
                             .SetTypeSystemObject(this)
                             .Build());
                 }

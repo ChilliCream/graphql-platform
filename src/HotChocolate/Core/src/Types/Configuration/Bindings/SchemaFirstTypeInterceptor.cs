@@ -23,13 +23,13 @@ namespace HotChocolate.Configuration.Bindings
             {
                 enumTypeDef.RuntimeType = binding.RuntimeType ?? typeof(object);
                 IDictionary<NameString, object?> values =
-                    binding.Values.ToDictionary(v => v.Name, v => v.Value);
+                    binding.Values.ToDictionary(v => v.Name, v => v.RuntimeValue);
 
                 foreach (EnumValueDefinition value in enumTypeDef.Values)
                 {
                     if (values.TryGetValue(value.Name, out object? runtimeValue))
                     {
-                        value.Value = runtimeValue;
+                        value.RuntimeValue = runtimeValue;
                     }
                 }
             }

@@ -8,6 +8,12 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
+    /// <summary>
+    /// A base class for named GraphQL types.
+    /// </summary>
+    /// <typeparam name="TDefinition">
+    /// The type definition of the named GraphQL type.
+    /// </typeparam>
     public abstract class NamedTypeBase<TDefinition>
         : TypeSystemObjectBase<TDefinition>
         , INamedType
@@ -20,10 +26,15 @@ namespace HotChocolate.Types
         private Type? _clrType;
         private ISyntaxNode? _syntaxNode;
 
+        /// <summary>
+        /// The associated syntax node from the GraphQL SDL.
+        /// </summary>
         ISyntaxNode? IHasSyntaxNode.SyntaxNode => _syntaxNode;
 
+        /// <inheritdoc />
         public abstract TypeKind Kind { get; }
 
+        /// <inheritdoc />
         public IDirectiveCollection Directives
         {
             get
@@ -36,6 +47,7 @@ namespace HotChocolate.Types
             }
         }
 
+        /// <inheritdoc />
         public Type RuntimeType
         {
             get
@@ -48,11 +60,16 @@ namespace HotChocolate.Types
             }
         }
 
+        /// <summary>
+        /// A type representing the identity of the specified type.
+        /// </summary>
         public Type? TypeIdentity { get; private set; }
 
+        /// <inheritdoc />
         public virtual bool IsAssignableFrom(INamedType type) =>
             ReferenceEquals(type, this);
 
+        /// <inheritdoc />
         protected override void OnRegisterDependencies(
             ITypeDiscoveryContext context,
             TDefinition definition)
@@ -67,6 +84,7 @@ namespace HotChocolate.Types
                 definition.GetDirectives().Select(t => t.Reference));
         }
 
+        /// <inheritdoc />
         protected override void OnCompleteType(
             ITypeCompletionContext context,
             TDefinition definition)
@@ -79,6 +97,15 @@ namespace HotChocolate.Types
                 DirectiveCollection.CreateAndComplete(context,this, definition.GetDirectives());
         }
 
+        /// <summary>
+        /// This method allows the concrete type implementation to set its type identity.
+        /// </summary>
+        /// <param name="typeDefinitionOrIdentity">
+        /// The type definition or type identity.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="typeDefinitionOrIdentity"/> is <c>null</c>.
+        /// </exception>
         protected void SetTypeIdentity(Type typeDefinitionOrIdentity)
         {
             if (typeDefinitionOrIdentity is null)

@@ -30,7 +30,7 @@ namespace HotChocolate.Configuration.Bindings
                 _definition.Values.Add(new EnumValueDefinition
                 {
                     Name = context.Naming.GetEnumValueName(value),
-                    Value = value,
+                    RuntimeValue = value,
                     Member = context.TypeInspector.GetEnumValueMember(value)
                 });
             }
@@ -52,14 +52,14 @@ namespace HotChocolate.Configuration.Bindings
             }
 
             EnumValueDefinition? definition =
-                _definition.Values.FirstOrDefault(v => v.Value?.Equals(value) ?? false);
+                _definition.Values.FirstOrDefault(v => v.RuntimeValue?.Equals(value) ?? false);
 
             if (definition is null)
             {
                 definition = new EnumValueDefinition
                 {
                     Name = _context.Naming.GetEnumValueName(value),
-                    Value = value,
+                    RuntimeValue = value,
                     Member = _context.TypeInspector.GetEnumValueMember(value)
                 };
             }

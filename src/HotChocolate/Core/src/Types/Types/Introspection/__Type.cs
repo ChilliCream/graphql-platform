@@ -27,7 +27,7 @@ namespace HotChocolate.Types.Introspection
             SyntaxTypeReference enumValueListType = Parse($"[{nameof(__EnumValue)}!]");
             SyntaxTypeReference inputValueListType = Parse($"[{nameof(__InputValue)}!]");
             SyntaxTypeReference directiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
-            
+
             var typeDefinition = new ObjectTypeDefinition
             {
                 Name = Names.__Type,

@@ -11,7 +11,7 @@ namespace HotChocolate.Execution.Processing
             IOperationContext operationContext) =>
             ExecuteAsync(operationContext, ImmutableDictionary<string, object?>.Empty);
 
-        public async Task<IQueryResult> ExecuteAsync(
+        public Task<IQueryResult> ExecuteAsync(
             IOperationContext operationContext,
             IImmutableDictionary<string, object?> scopedContext)
         {
@@ -25,6 +25,13 @@ namespace HotChocolate.Execution.Processing
                 throw new ArgumentNullException(nameof(scopedContext));
             }
 
+            return ExecuteInternalAsync(operationContext, scopedContext);
+        }
+
+        private static async Task<IQueryResult> ExecuteInternalAsync(
+            IOperationContext operationContext,
+            IImmutableDictionary<string, object?> scopedContext)
+        {
             ISelectionSet rootSelections =
                 operationContext.Operation.GetRootSelectionSet();
 

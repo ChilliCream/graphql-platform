@@ -11,20 +11,20 @@ namespace HotChocolate.Types.Descriptors
         private bool _deprecatedDependencySet;
         private DirectiveDefinition _deprecatedDirective;
 
-        protected EnumValueDescriptor(IDescriptorContext context, object value)
+        protected EnumValueDescriptor(IDescriptorContext context, object runtimeValue)
             : base(context)
         {
-            if (value is null)
+            if (runtimeValue is null)
             {
-                throw new ArgumentNullException(nameof(value));
+                throw new ArgumentNullException(nameof(runtimeValue));
             }
 
-            Definition.Name = context.Naming.GetEnumValueName(value);
-            Definition.Value = value;
-            Definition.Description = context.Naming.GetEnumValueDescription(value);
-            Definition.Member = context.TypeInspector.GetEnumValueMember(value);
+            Definition.Name = context.Naming.GetEnumValueName(runtimeValue);
+            Definition.RuntimeValue = runtimeValue;
+            Definition.Description = context.Naming.GetEnumValueDescription(runtimeValue);
+            Definition.Member = context.TypeInspector.GetEnumValueMember(runtimeValue);
 
-            if (context.Naming.IsDeprecated(value, out var reason))
+            if (context.Naming.IsDeprecated(runtimeValue, out var reason))
             {
                 Deprecated(reason);
             }
