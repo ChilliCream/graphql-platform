@@ -1,23 +1,35 @@
 #pragma warning disable IDE1006 // Naming Styles
 using System.Linq;
+using HotChocolate.Configuration;
 using HotChocolate.Properties;
+using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Types.Descriptors.TypeReference;
 
 #nullable enable
 
 namespace HotChocolate.Types.Introspection
 {
     [Introspection]
-    internal sealed class __Schema : ObjectType<ISchema>
+    internal sealed class __Schema : ObjectType
     {
+        protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+        {
+            SyntaxTypeReference stringType = Create(ScalarNames.String);
+
+            return new(Names.__Schema, TypeResources.Schema_Description)
+            {
+                Name = Names.__Type,
+                Description = TypeResources.Type_Description,
+                RuntimeType = typeof(ISchema)
+            };
+
+
+        }
+
         protected override void Configure(IObjectTypeDescriptor<ISchema> descriptor)
         {
-            descriptor
-                .Name(Names.__Schema)
-                .Description(TypeResources.Schema_Description)
-                // Introspection types must always be bound explicitly so that we
-                // do not get any interference with conventions.
-                .BindFields(BindingBehavior.Explicit);
-
             descriptor
                 .Field(Names.Description)
                 .Type<StringType>()
@@ -60,6 +72,15 @@ namespace HotChocolate.Types.Introspection
                     .Type<NonNullType<ListType<NonNullType<__AppliedDirective>>>>()
                     .Name(Names.AppliedDirectives);
             }
+        }
+
+        private static class Resolvers
+        {
+            public static object Description(IResolverContext context)
+                => context.Parent<ISchema>().Description;
+
+            public static object InlineDescription(object parent)
+                => ((ISchema)parent).Description;
         }
 
         public static class Names

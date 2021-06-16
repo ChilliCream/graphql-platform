@@ -31,13 +31,15 @@ namespace HotChocolate.Types.Descriptors.Definitions
             string? description = null,
             ITypeReference? type = null,
             FieldResolverDelegate? resolver = null,
-            PureFieldResolverDelegate? pureResolver = null)
+            PureFieldResolverDelegate? pureResolver = null,
+            InlineFieldDelegate? inlineResolver = null)
         {
             Name = name;
             Description = description;
             Type = type;
             Resolver = resolver;
             PureResolver = pureResolver;
+            InlineResolver = inlineResolver;
         }
 
         /// <summary>

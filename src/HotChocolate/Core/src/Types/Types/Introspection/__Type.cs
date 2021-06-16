@@ -28,111 +28,82 @@ namespace HotChocolate.Types.Introspection
             SyntaxTypeReference inputValueListType = Parse($"[{nameof(__InputValue)}!]");
             SyntaxTypeReference directiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
-            var typeDefinition = new ObjectTypeDefinition
+            var def = new ObjectTypeDefinition(Names.__Type, TypeResources.Type_Description)
             {
                 Name = Names.__Type,
                 Description = TypeResources.Type_Description,
-                RuntimeType = typeof(IType)
+                RuntimeType = typeof(IType),
+                Fields =
+                {
+                    new(Names.Kind,
+                        type: kindType,
+                        pureResolver: Resolvers.PureKind,
+                        inlineResolver: Resolvers.InlineKind),
+                    new(Names.Name,
+                        type: stringType,
+                        pureResolver: Resolvers.PureName,
+                        inlineResolver: Resolvers.InlineName),
+                    new(Names.Description,
+                        type: stringType,
+                        pureResolver: Resolvers.PureDescription,
+                        inlineResolver: Resolvers.InlineDescription),
+                    new(Names.Fields,
+                        type: fieldListType,
+                        pureResolver: Resolvers.PureFields)
+                    {
+                        Arguments =
+                        {
+                            new(Names.IncludeDeprecated, type: booleanType)
+                            {
+                                DefaultValue = BooleanValueNode.False,
+                                RuntimeDefaultValue = false,
+                            }
+                        }
+                    },
+                    new(Names.Interfaces,
+                        type: typeListType,
+                        pureResolver:Resolvers.PureInterfaces,
+                        inlineResolver:Resolvers.InlineInterfaces),
+                    new(Names.PossibleTypes,
+                        type: typeListType,
+                        pureResolver: Resolvers.PurePossibleTypes),
+                    new(Names.EnumValues, type: enumValueListType)
+                    {
+                        PureResolver = Resolvers.PureEnumValues,
+                        Arguments =
+                        {
+                            new()
+                            {
+                                Name = Names.IncludeDeprecated,
+                                Type = booleanType,
+                                DefaultValue = BooleanValueNode.False,
+                                RuntimeDefaultValue = false,
+                            }
+                        }
+                    },
+                    new(Names.InputFields,
+                        type: inputValueListType,
+                        pureResolver: Resolvers.PureInputFields),
+                    new()
+                    {
+                        Name = Names.OfType,
+                        Type = typeType,
+                        PureResolver = Resolvers.PureOfType
+                    },
+                    new()
+                    {
+                        Name = Names.SpecifiedByUrl,
+                        Description = TypeResources.Type_SpecifiedByUrl_Description,
+                        Type = stringType,
+                        PureResolver = Resolvers.SpecifiedBy
+                    },
+
+                }
             };
-
-            typeDefinition.Fields.Add(new()
-            {
-                Name = Names.Kind,
-                Type = kindType,
-                PureResolver = Resolvers.PureKind,
-                InlineResolver = Resolvers.InlineKind
-            });
-
-            typeDefinition.Fields.Add(new()
-            {
-                Name = Names.Name,
-                Type = stringType,
-                PureResolver = Resolvers.PureName,
-                InlineResolver = Resolvers.InlineName
-            });
-
-            typeDefinition.Fields.Add(new()
-            {
-                Name = Names.Description,
-                Type = stringType,
-                PureResolver = Resolvers.PureDescription,
-                InlineResolver = Resolvers.InlineDescription
-            });
-
-            typeDefinition.Fields.Add(new()
-            {
-                Name = Names.Fields,
-                Type = fieldListType,
-                PureResolver = Resolvers.PureFields,
-                Arguments =
-                {
-                    new()
-                    {
-                        Name = Names.IncludeDeprecated,
-                        Type = booleanType,
-                        DefaultValue = BooleanValueNode.False,
-                        RuntimeDefaultValue = false,
-                    }
-                }
-            });
-
-            typeDefinition.Fields.Add(new()
-            {
-                Name = Names.Interfaces,
-                Type = typeListType,
-                PureResolver = Resolvers.PureInterfaces,
-                InlineResolver = Resolvers.InlineInterfaces
-            });
-
-            typeDefinition.Fields.Add(new()
-            {
-                Name = Names.PossibleTypes,
-                Type = typeListType,
-                PureResolver = Resolvers.PurePossibleTypes
-            });
-
-            typeDefinition.Fields.Add(new()
-            {
-                Name = Names.EnumValues,
-                Type = enumValueListType,
-                PureResolver = Resolvers.PureEnumValues,
-                Arguments =
-                {
-                    new()
-                    {
-                        Name = Names.IncludeDeprecated,
-                        Type = booleanType,
-                        DefaultValue = BooleanValueNode.False,
-                        RuntimeDefaultValue = false,
-                    }
-                }
-            });
-
-            typeDefinition.Fields.Add(new()
-            {
-                Name = Names.InputFields,
-                Type = inputValueListType,
-                PureResolver = Resolvers.PureInputFields
-            });
-
-            typeDefinition.Fields.Add(new()
-            {
-                Name = Names.OfType,
-                Type = typeType,
-                PureResolver = Resolvers.PureOfType
-            });
-
-            typeDefinition.Fields.Add(new()
-            {
-                Name = Names.SpecifiedByUrl,
-                Description = TypeResources.Type_SpecifiedByUrl_Description,
-                Type = stringType,
-                PureResolver = Resolvers.SpecifiedBy
-            });
 
             if (context.DescriptorContext.Options.EnableDirectiveIntrospection)
             {
-                typeDefinition.Fields.Add(new()
+                def.Fields.Add(new()
                 {
                     Name = Names.AppliedDirectives,
                     Type = directiveListType,
@@ -140,7 +111,7 @@ namespace HotChocolate.Types.Introspection
                 });
             }
 
-            return typeDefinition;
+            return def;
         }
 
         private static class Resolvers
