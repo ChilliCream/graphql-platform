@@ -93,6 +93,20 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public InlineFieldDelegate? InlineResolver { get; set; }
 
         /// <summary>
+        /// Gets or sets all resolvers at once.
+        /// </summary>
+        public FieldResolverDelegates Resolvers
+        {
+            get => GetResolvers();
+            set
+            {
+                Resolver = value.Resolver;
+                PureResolver = value.PureResolver;
+                InlineResolver = value.InlineResolver;
+            }
+        }
+
+        /// <summary>
         /// The delegate that represents the pub-/sub-system subscribe delegate to open an
         /// event stream in case this field represents a subscription.
         /// </summary>
@@ -147,6 +161,9 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
             return _customSettings;
         }
+
+        internal FieldResolverDelegates GetResolvers() =>
+            new(Resolver, PureResolver, InlineResolver);
 
         internal void CopyTo(ObjectFieldDefinition target)
         {

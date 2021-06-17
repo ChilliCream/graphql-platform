@@ -14,25 +14,33 @@ namespace HotChocolate.Resolvers
             NameString typeName,
             NameString fieldName,
             FieldResolverDelegate resolver,
-            PureFieldResolverDelegate? pureResolver = null)
+            PureFieldResolverDelegate? pureResolver = null,
+            InlineFieldDelegate? inlineResolver = null)
             : base(typeName, fieldName)
         {
             Resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
             PureResolver = pureResolver;
+            InlineResolver = inlineResolver;
         }
 
         public FieldResolver(
             FieldReference fieldReference,
-            FieldResolverDelegate resolver)
+            FieldResolverDelegate resolver,
+            PureFieldResolverDelegate? pureResolver = null,
+            InlineFieldDelegate? inlineResolver = null)
             : base(fieldReference)
         {
             _fieldReference = fieldReference;
             Resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
+            PureResolver = pureResolver;
+            InlineResolver = inlineResolver;
         }
 
         public FieldResolverDelegate Resolver { get; }
 
         public PureFieldResolverDelegate? PureResolver { get; }
+
+        public InlineFieldDelegate? InlineResolver { get; }
 
         public FieldResolver WithTypeName(NameString typeName) =>
             string.Equals(TypeName, typeName, StringComparison.Ordinal)

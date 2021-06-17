@@ -11,7 +11,7 @@ using HotChocolate.Resolvers.Expressions.Parameters;
 
 namespace HotChocolate.Resolvers.Expressions
 {
-    internal abstract class ResolverCompiler
+    public abstract class ResolverCompiler
     {
         private readonly IResolverParameterCompiler[] _compilers;
 
@@ -20,7 +20,7 @@ namespace HotChocolate.Resolvers.Expressions
         {
         }
 
-        protected ResolverCompiler(
+        private ResolverCompiler(
             IEnumerable<IResolverParameterCompiler> compilers)
         {
             if (compilers is null)

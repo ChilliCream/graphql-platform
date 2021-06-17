@@ -7,15 +7,13 @@ using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers.CodeGeneration;
-using HotChocolate.Resolvers.Expressions.Parameters;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 
 #nullable enable
 
 namespace HotChocolate.Resolvers.Expressions
 {
-    internal sealed class ResolveCompiler : ResolverCompiler
+    public sealed class ResolveCompiler : ResolverCompiler
     {
         private static readonly MethodInfo _awaitTaskHelper =
             typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.AwaitTaskHelper))!;
@@ -24,12 +22,13 @@ namespace HotChocolate.Resolvers.Expressions
         private static readonly MethodInfo _wrapResultHelper =
             typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.WrapResultHelper))!;
 
-        public FieldResolver Compile(ResolverDescriptor descriptor)
+        internal FieldResolver Compile(ResolverDescriptor descriptor)
         {
             if (descriptor.Field.Member is not null)
             {
                 FieldResolverDelegate resolver;
                 PureFieldResolverDelegate? pureResolver = null;
+                InlineFieldDelegate? inlineResolver = null;
 
                 if (descriptor.Field.Member is MethodInfo { IsStatic: true })
                 {
@@ -55,11 +54,20 @@ namespace HotChocolate.Resolvers.Expressions
                         descriptor.ResolverType ?? descriptor.SourceType);
                 }
 
+                if (descriptor.Field.Member is PropertyInfo property &&
+                    (descriptor.SourceType == descriptor.ResolverType ||
+                        descriptor.ResolverType is null) &&
+                    IsPureResult(property.PropertyType))
+                {
+                    inlineResolver = CreateInlineResolver(descriptor.SourceType, property);
+                }
+
                 return new FieldResolver(
                     descriptor.Field.TypeName,
                     descriptor.Field.FieldName,
                     resolver,
-                    pureResolver);
+                    pureResolver,
+                    inlineResolver);
             }
 
             if (descriptor.Field.Expression is LambdaExpression lambda)
@@ -81,13 +89,14 @@ namespace HotChocolate.Resolvers.Expressions
             throw new NotSupportedException();
         }
 
-        public ResolverCompilerResult Compile(
+        public FieldResolverDelegates Compile(
             Type sourceType,
             MemberInfo member,
             Type? resolverType = null)
         {
             FieldResolverDelegate resolver;
             PureFieldResolverDelegate? pureResolver = null;
+            InlineFieldDelegate? inlineResolver = null;
 
             if (member is MethodInfo { IsStatic: true })
             {
@@ -106,10 +115,17 @@ namespace HotChocolate.Resolvers.Expressions
                     resolverType ?? sourceType);
             }
 
-            return new ResolverCompilerResult(resolver, pureResolver);
+            if (member is PropertyInfo property &&
+                (sourceType == resolverType || resolverType is null) &&
+                IsPureResult(property.PropertyType))
+            {
+                inlineResolver = CreateInlineResolver(sourceType, property);
+            }
+
+            return new(resolver, pureResolver, inlineResolver);
         }
 
-        public ResolverCompilerResult Compile<TResolver>(
+        public FieldResolverDelegates Compile<TResolver>(
             Expression<Func<TResolver, object?>> propertyOrMethod,
             Type? sourceType = null)
         {
@@ -131,8 +147,6 @@ namespace HotChocolate.Resolvers.Expressions
                 TypeResources.ObjectTypeDescriptor_MustBePropertyOrMethod,
                 nameof(member));
         }
-
-
 
         private Expression CreateResolverInstance(Type sourceType, Type? resolverType = null)
         {
@@ -211,6 +225,18 @@ namespace HotChocolate.Resolvers.Expressions
             }
 
             return null;
+        }
+
+        private static InlineFieldDelegate CreateInlineResolver(
+            Type sourceType,
+            PropertyInfo property)
+        {
+            const string parent = nameof(parent);
+            ParameterExpression parentParam = Expression.Parameter(typeof(object), parent);
+            Expression castParent = Expression.Convert(parentParam, sourceType);
+            MemberExpression propertyAccessor = Expression.Property(castParent, property);
+            Expression result = Expression.Convert(propertyAccessor, typeof(object));
+            return Expression.Lambda<InlineFieldDelegate>(result, parentParam).Compile();
         }
 
         private static Expression HandleResult(
@@ -304,20 +330,5 @@ namespace HotChocolate.Resolvers.Expressions
             MethodInfo wrapResultHelper = _wrapResultHelper.MakeGenericMethod(valueType);
             return Expression.Call(wrapResultHelper, taskExpression);
         }
-    }
-
-    public readonly ref struct ResolverCompilerResult
-    {
-        internal ResolverCompilerResult(
-            FieldResolverDelegate resolver,
-            PureFieldResolverDelegate? pureResolver = null)
-        {
-            Resolver = resolver;
-            PureResolver = pureResolver;
-        }
-
-        public FieldResolverDelegate Resolver { get; }
-
-        public PureFieldResolverDelegate? PureResolver { get; }
     }
 }
