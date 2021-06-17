@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using GreenDonut;
 using HotChocolate.Execution;
@@ -7,6 +8,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using HotChocolate;
+using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -26,6 +28,15 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             services.AddOptions();
+
+            services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
+
+            services.TryAddSingleton<ObjectPool<StringBuilder>>(sp =>
+            {
+                ObjectPoolProvider provider = sp.GetRequiredService<ObjectPoolProvider>();
+                var policy = new StringBuilderPooledObjectPolicy();
+                return provider.Create(policy);
+            });
 
             // core services
             services

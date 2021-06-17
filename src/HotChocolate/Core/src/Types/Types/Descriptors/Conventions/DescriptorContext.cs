@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using HotChocolate.Configuration;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.ObjectPool;
 
 #nullable enable
 
@@ -37,7 +40,7 @@ namespace HotChocolate.Types.Descriptors
 
             schema.Completed += OnSchemaOnCompleted;
 
-            void OnSchemaOnCompleted(object sender, EventArgs args)
+            void OnSchemaOnCompleted(object? sender, EventArgs args)
             {
                 SchemaCompleted?.Invoke(this, new SchemaCompletedEventArgs(schema.Schema));
             }
@@ -54,7 +57,14 @@ namespace HotChocolate.Types.Descriptors
                 if (_naming is null)
                 {
                     _naming = GetConventionOrDefault<INamingConventions>(
-                        () => new DefaultNamingConventions(Options.UseXmlDocumentation));
+                        () => Options.UseXmlDocumentation
+                            ? new DefaultNamingConventions(
+                                new XmlDocumentationProvider(
+                                    new XmlDocumentationFileResolver(),
+                                    Services.GetService<ObjectPool<StringBuilder>>() ??
+                                    new NoOpStringBuilderPool()))
+                            : new DefaultNamingConventions(
+                                new NoopDocumentationProvider()));
                 }
 
                 return _naming;
@@ -194,6 +204,16 @@ namespace HotChocolate.Types.Descriptors
                 schema ?? new SchemaBuilder.LazySchema(),
                 schemaInterceptor ?? new AggregateSchemaInterceptor(),
                 typeInterceptor ?? new AggregateTypeInterceptor());
+        }
+
+        private class NoOpStringBuilderPool : ObjectPool<StringBuilder>
+        {
+            public override StringBuilder Get() => new();
+
+            public override void Return(StringBuilder obj)
+            {
+                obj.Clear();
+            }
         }
     }
 }

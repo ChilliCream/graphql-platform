@@ -26,7 +26,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
                     .AddDocumentFromString("type Query { fetchItem: String }")
                     .AddResolver(
                         "Query", "fetchItem",
-                        async ctx => await ctx.FetchOnceAsync(ct => Task.FromResult("fooBar")))
+                        async ctx => await ctx.FetchOnceAsync(_ => Task.FromResult("fooBar")))
             )
             .MatchSnapshotAsync();
         }
@@ -43,7 +43,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
                     .AddResolver(
                         "Query", "fetchItem",
                         async ctx => await ctx.CacheDataLoader<string, string>(
-                            (key, ct) => Task.FromResult(key))
+                            (key, _) => Task.FromResult(key))
                             .LoadAsync("fooBar"))
             )
             .MatchSnapshotAsync();
@@ -61,7 +61,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
                     .AddResolver(
                         "Query", "fetchItem",
                         async ctx => await ctx.BatchDataLoader<string, string>(
-                            (keys, ct) => Task.FromResult<IReadOnlyDictionary<string, string>>(
+                            (keys, _) => Task.FromResult<IReadOnlyDictionary<string, string>>(
                                 keys.ToDictionary(t => t)))
                             .LoadAsync("fooBar"))
             )
@@ -255,7 +255,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
                         (TestDataLoader)context.Services.GetRequiredService<ITestDataLoader>();
 
                     context.Result = QueryResultBuilder
-                        .FromResult((IQueryResult)context.Result)
+                        .FromResult(((IQueryResult)context.Result)!)
                         .AddExtension("loads", dataLoader.Loads)
                         .Create();
                 })

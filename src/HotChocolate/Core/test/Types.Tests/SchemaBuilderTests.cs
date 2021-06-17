@@ -1491,7 +1491,7 @@ namespace HotChocolate
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .Create();
 
             // assert
@@ -1513,7 +1513,7 @@ namespace HotChocolate
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .Create();
 
             // assert

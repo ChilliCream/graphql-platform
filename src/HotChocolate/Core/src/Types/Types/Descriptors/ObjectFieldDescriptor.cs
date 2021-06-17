@@ -27,23 +27,15 @@ namespace HotChocolate.Types.Descriptors
         {
             Definition.Name = fieldName.EnsureNotEmpty(nameof(fieldName));
             Definition.ResultType = typeof(object);
-            Definition.IsParallelExecutable = 
+            Definition.IsParallelExecutable =
                 context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
         }
 
         protected ObjectFieldDescriptor(
             IDescriptorContext context,
             MemberInfo member,
-            Type sourceType)
-            : this(context, member, sourceType, null)
-        {
-        }
-
-        protected ObjectFieldDescriptor(
-            IDescriptorContext context,
-            MemberInfo member,
             Type sourceType,
-            Type? resolverType)
+            Type? resolverType = null)
             : base(context)
         {
             Definition.Member = member ??
@@ -57,7 +49,7 @@ namespace HotChocolate.Types.Descriptors
             Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
             Definition.SourceType = sourceType;
             Definition.ResolverType = resolverType == sourceType ? null : resolverType;
-            Definition.IsParallelExecutable = 
+            Definition.IsParallelExecutable =
                 context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
 
             if (context.Naming.IsDeprecated(member, out var reason))
@@ -80,17 +72,17 @@ namespace HotChocolate.Types.Descriptors
             IDescriptorContext context,
             LambdaExpression expression,
             Type sourceType,
-            Type? resolverType)
+            Type? resolverType = null)
             : base(context)
         {
             Definition.Expression = expression
                 ?? throw new ArgumentNullException(nameof(expression));
             Definition.SourceType = sourceType;
             Definition.ResolverType = resolverType;
-            Definition.IsParallelExecutable = 
+            Definition.IsParallelExecutable =
                 context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
 
-            MemberInfo member = ReflectionUtils.TryExtractCallMember(expression);
+            MemberInfo member = expression.TryExtractCallMember();
 
             if (member is { })
             {
@@ -102,7 +94,7 @@ namespace HotChocolate.Types.Descriptors
                     MemberKind.ObjectField);
                 Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
 
-                if (context.Naming.IsDeprecated(member, out string? reason))
+                if (context.Naming.IsDeprecated(member, out var reason))
                 {
                     Deprecated(reason);
                 }
@@ -132,7 +124,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         protected internal override ObjectFieldDefinition Definition { get; protected set; } =
-            new ObjectFieldDefinition();
+            new();
 
         protected override void OnCreateDefinition(
             ObjectFieldDefinition definition)
@@ -279,7 +271,7 @@ namespace HotChocolate.Types.Descriptors
         /// <inheritdoc />
         public IObjectFieldDescriptor Resolve(
             FieldResolverDelegate fieldResolver,
-            Type resultType)
+            Type? resultType)
         {
             if (fieldResolver is null)
             {
@@ -419,32 +411,25 @@ namespace HotChocolate.Types.Descriptors
         public static ObjectFieldDescriptor New(
             IDescriptorContext context,
             NameString fieldName) =>
-            new ObjectFieldDescriptor(context, fieldName);
-
-        /// <inheritdoc />
-        public static ObjectFieldDescriptor New(
-            IDescriptorContext context,
-            MemberInfo member,
-            Type sourceType) =>
-            new ObjectFieldDescriptor(context, member, sourceType);
+            new(context, fieldName);
 
         public static ObjectFieldDescriptor New(
             IDescriptorContext context,
             MemberInfo member,
             Type sourceType,
-            Type resolverType) =>
-            new ObjectFieldDescriptor(context, member, sourceType, resolverType);
+            Type? resolverType = null) =>
+            new(context, member, sourceType, resolverType);
 
         public static ObjectFieldDescriptor New(
             IDescriptorContext context,
             LambdaExpression expression,
             Type sourceType,
-            Type resolverType) =>
-            new ObjectFieldDescriptor(context, expression, sourceType, resolverType);
+            Type? resolverType = null) =>
+            new(context, expression, sourceType, resolverType);
 
         public static ObjectFieldDescriptor From(
             IDescriptorContext context,
             ObjectFieldDefinition definition) =>
-            new ObjectFieldDescriptor(context, definition);
+            new(context, definition);
     }
 }
