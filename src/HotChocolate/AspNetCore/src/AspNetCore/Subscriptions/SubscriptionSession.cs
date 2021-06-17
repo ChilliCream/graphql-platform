@@ -12,7 +12,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
     internal sealed class SubscriptionSession : ISubscriptionSession
     {
         internal const byte Delimiter = 0x07;
-        private readonly CancellationTokenSource _cts;
+        private readonly CancellationTokenSource _session;
+        private readonly CancellationToken _sessionToken;
         private readonly ISocketConnection _connection;
         private readonly IResponseStream _responseStream;
         private readonly IDiagnosticEvents _diagnosticEvents;
@@ -22,12 +23,15 @@ namespace HotChocolate.AspNetCore.Subscriptions
         public event EventHandler? Completed;
 
         public SubscriptionSession(
+            CancellationTokenSource session,
             ISocketConnection connection,
             IResponseStream responseStream,
             ISubscription subscription,
             IDiagnosticEvents diagnosticEvents,
             string clientSubscriptionId)
         {
+            _session = session ??
+                throw new ArgumentNullException(nameof(session));
             _connection = connection ??
                 throw new ArgumentNullException(nameof(connection));
             _responseStream = responseStream ??
@@ -39,11 +43,11 @@ namespace HotChocolate.AspNetCore.Subscriptions
             Id = clientSubscriptionId ??
                 throw new ArgumentNullException(nameof(clientSubscriptionId));
 
-            _cts = CancellationTokenSource.CreateLinkedTokenSource(_connection.RequestAborted);
+            _sessionToken = _session.Token;
 
             Task.Factory.StartNew(
                 SendResultsAsync,
-                _cts.Token,
+                _sessionToken,
                 TaskCreationOptions.LongRunning,
                 TaskScheduler.Default);
         }
@@ -56,12 +60,13 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         private async Task SendResultsAsync()
         {
-            CancellationToken cancellationToken = _cts.Token;
+            await using IResponseStream responseStream = _responseStream;
+            CancellationToken cancellationToken = _sessionToken;
 
             try
             {
                 await foreach (IQueryResult result in
-                    _responseStream.ReadResultsAsync().WithCancellation(cancellationToken))
+                    responseStream.ReadResultsAsync().WithCancellation(cancellationToken))
                 {
                     using (result)
                     {
@@ -121,12 +126,12 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             if (!_disposed)
             {
-                if (!_cts.IsCancellationRequested)
+                if (!_session.IsCancellationRequested)
                 {
-                    _cts.Cancel();
+                    _session.Cancel();
                 }
 
-                _cts.Dispose();
+                _session.Dispose();
                 _disposed = true;
             }
         }

@@ -126,7 +126,7 @@ HotChocolate.AspNetCore.Subscriptions.Messages.DataResultMessage.DataResultMessa
 HotChocolate.AspNetCore.Subscriptions.Messages.DataStartMessage
 HotChocolate.AspNetCore.Subscriptions.Messages.DataStartMessage.DataStartMessage(string! id, HotChocolate.Language.GraphQLRequest! request) -> void
 HotChocolate.AspNetCore.Subscriptions.Messages.DataStartMessageHandler
-HotChocolate.AspNetCore.Subscriptions.Messages.DataStartMessageHandler.DataStartMessageHandler(HotChocolate.Execution.IRequestExecutor! requestExecutor, HotChocolate.AspNetCore.ISocketSessionInterceptor! socketSessionInterceptor, HotChocolate.Execution.Instrumentation.IDiagnosticEvents! diagnosticEvents) -> void
+HotChocolate.AspNetCore.Subscriptions.Messages.DataStartMessageHandler.DataStartMessageHandler(HotChocolate.Execution.IRequestExecutor! requestExecutor, HotChocolate.AspNetCore.ISocketSessionInterceptor! socketSessionInterceptor, HotChocolate.IErrorHandler! errorHandler, HotChocolate.Execution.Instrumentation.IDiagnosticEvents! diagnosticEvents) -> void
 HotChocolate.AspNetCore.Subscriptions.Messages.DataStopMessage
 HotChocolate.AspNetCore.Subscriptions.Messages.DataStopMessage.DataStopMessage(string! id) -> void
 HotChocolate.AspNetCore.Subscriptions.Messages.DataStopMessageHandler
