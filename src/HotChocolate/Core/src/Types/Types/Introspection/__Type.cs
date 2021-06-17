@@ -1,5 +1,4 @@
 #pragma warning disable IDE1006 // Naming Styles
-using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -37,19 +36,16 @@ namespace HotChocolate.Types.Introspection
                 {
                     new(Names.Kind,
                         type: kindType,
-                        pureResolver: Resolvers.PureKind,
-                        inlineResolver: Resolvers.InlineKind),
+                        inlineResolver: Resolvers.Kind),
                     new(Names.Name,
                         type: stringType,
-                        pureResolver: Resolvers.PureName,
-                        inlineResolver: Resolvers.InlineName),
+                        inlineResolver: Resolvers.Name),
                     new(Names.Description,
                         type: stringType,
-                        pureResolver: Resolvers.PureDescription,
-                        inlineResolver: Resolvers.InlineDescription),
+                        inlineResolver: Resolvers.Description),
                     new(Names.Fields,
                         type: fieldListType,
-                        pureResolver: Resolvers.PureFields)
+                        pureResolver: Resolvers.Fields)
                     {
                         Arguments =
                         {
@@ -62,14 +58,13 @@ namespace HotChocolate.Types.Introspection
                     },
                     new(Names.Interfaces,
                         type: typeListType,
-                        pureResolver:Resolvers.PureInterfaces,
-                        inlineResolver:Resolvers.InlineInterfaces),
+                        inlineResolver:Resolvers.Interfaces),
                     new(Names.PossibleTypes,
                         type: typeListType,
-                        pureResolver: Resolvers.PurePossibleTypes),
+                        pureResolver: Resolvers.PossibleTypes),
                     new(Names.EnumValues,
                         type: enumValueListType,
-                        pureResolver:  Resolvers.PureEnumValues)
+                        pureResolver:  Resolvers.EnumValues)
                     {
                         Arguments =
                         {
@@ -84,14 +79,14 @@ namespace HotChocolate.Types.Introspection
                     },
                     new(Names.InputFields,
                         type: inputValueListType,
-                        pureResolver: Resolvers.PureInputFields),
+                        inlineResolver: Resolvers.InputFields),
                     new(Names.OfType,
                         type: typeType,
-                        pureResolver: Resolvers.PureOfType),
+                        inlineResolver: Resolvers.OfType),
                     new(Names.SpecifiedByUrl,
                         TypeResources.Type_SpecifiedByUrl_Description,
                         stringType,
-                        pureResolver: Resolvers.SpecifiedBy)
+                        inlineResolver: Resolvers.SpecifiedBy)
                 }
             };
 
@@ -107,38 +102,20 @@ namespace HotChocolate.Types.Introspection
 
         private static class Resolvers
         {
-            public static object PureKind(IResolverContext context)
-                => context.Parent<IType>().Kind;
+            public static object? Kind(object? parent)
+                => ((IType)parent!).Kind;
 
-            public static object? InlineKind(object? parent) => ((IType)parent!).Kind;
+            public static object? Name(object? parent)
+                => parent is INamedType n ? n.Name.Value : null;
 
-            public static object? PureName(IResolverContext context)
-                => GetName(context.Parent<IType>());
+            public static object? Description(object? parent)
+                => parent is INamedType n ? n.Description : null;
 
-            public static object? InlineName(object? parent)
-                => GetName((IType)parent!);
-
-            private static string? GetName(IType type)
-                => type is INamedType n ? n.Name.Value : null;
-
-            public static object? PureDescription(IResolverContext context)
-                => GetDescription(context.Parent<IType>());
-
-            public static object? InlineDescription(object? parent)
-                => GetDescription((IType)parent!);
-
-            private static string? GetDescription(IType type)
-                => type is INamedType n ? n.Description : null;
-
-            public static object? PureFields(IResolverContext context)
-                => GetFields(
-                    context.Parent<IType>(),
-                    context.ArgumentValue<bool>(Names.IncludeDeprecated));
-
-            private static IEnumerable<IOutputField>? GetFields(
-                IType type,
-                bool includeDeprecated)
+            public static object? Fields(IResolverContext context)
             {
+                IType type = context.Parent<IType>();
+                var includeDeprecated = context.ArgumentValue<bool>(Names.IncludeDeprecated);
+
                 if (type is IComplexOutputType ct)
                 {
                     return !includeDeprecated
@@ -149,34 +126,22 @@ namespace HotChocolate.Types.Introspection
                 return null;
             }
 
-            public static object? PureInterfaces(IResolverContext context)
-                => GetInterfaces(context.Parent<IType>());
+            public static object? Interfaces(object? parent)
+                => parent is IComplexOutputType complexType ? complexType.Implements : null;
 
-            public static object? InlineInterfaces(object? parent)
-                => GetInterfaces((IType)parent!);
-
-            private static IEnumerable<IInterfaceType>? GetInterfaces(IType type)
-                => type is IComplexOutputType complexType ? complexType.Implements : null;
-
-            public static object? PurePossibleTypes(IResolverContext context)
-                => GetPossibleTypes(context.Schema, context.Parent<INamedType>());
-
-            private static IEnumerable<IType>? GetPossibleTypes(ISchema schema, INamedType type)
-                => type.IsAbstractType() ? schema.GetPossibleTypes(type) : null;
-
-            public static object? PureEnumValues(IResolverContext context)
-                => GetEnumValues(
-                    context.Parent<IType>(),
-                    context.ArgumentValue<bool>(Names.IncludeDeprecated));
-
-            private static IEnumerable<IEnumValue>? GetEnumValues(
-                IType type,
-                bool includeDeprecated)
+            public static object? PossibleTypes(IResolverContext context)
             {
-                return type is EnumType et
-                    ? includeDeprecated ? et.Values : et.Values.Where(t => !t.IsDeprecated)
-                    : null;
+                ISchema schema = context.Schema;
+                INamedType type = context.Parent<INamedType>();
+                return type.IsAbstractType() ? schema.GetPossibleTypes(type) : null;
             }
+
+            public static object? EnumValues(IResolverContext context)
+                => context.Parent<IType>() is EnumType et
+                    ? context.ArgumentValue<bool>(Names.IncludeDeprecated)
+                        ? et.Values
+                        : et.Values.Where(t => !t.IsDeprecated)
+                    : null;
 
             public static object? InputFields(object? parent)
                 => parent is IInputObjectType iot ? iot.Fields : null;

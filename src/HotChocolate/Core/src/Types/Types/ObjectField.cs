@@ -175,66 +175,14 @@ namespace HotChocolate.Types
                 options.FieldMiddleware != FieldMiddlewareApplication.AllFields &&
                 isIntrospectionField;
 
-            Resolver = definition.Resolver;
-
-            if (definition.InlineResolver is not null && IsPureContext())
-            {
-                InlineResolver = definition.InlineResolver;
-            }
-
-            if (definition.PureResolver is not null)
-            {
-                PureFieldResolverDelegate pure = definition.PureResolver;
-
-                if (IsPureContext())
-                {
-                    PureResolver = c => c.Result = pure(c);
-                }
-
-                if (Resolver is null)
-                {
-                    Resolver = ctx => new(pure(ctx));
-                }
-            }
-
-            if (!isIntrospectionField || Resolver is null!)
-            {
-                // gets resolvers that were provided via type extensions,
-                // explicit resolver results or are provided through the
-                // resolver compiler.
-                FieldResolver? resolver = context.GetResolver(definition.Name);
-                Resolver = GetMostSpecificResolver(typeName, Resolver, resolver, out var external)!;
-
-                // if a pure resolver variant is available and there are no global or field
-                // middleware components than we will make the pure resolver variant
-                // available on this field.
-                PureFieldResolverDelegate? pureResolver =
-                    definition.PureResolver is null &&
-                    external &&
-                    IsPureContext()
-                        ? resolver?.PureResolver
-                        : null;
-
-                if (pureResolver is not null)
-                {
-                    PureResolver = c => c.Result = pureResolver(c);
-
-                    if (context.DescriptorContext.Options.AllowInlining &&
-                        InlineResolver is null &&
-                        (definition.ResolverMember is null ||
-                         ReferenceEquals(definition.Member, definition.ResolverMember)) &&
-                        definition.Member is PropertyInfo property)
-                    {
-                        InlineResolver = CompileInlineResolver(property);
-                    }
-                }
-            }
+            Initialize();
+            SetMostSpecificResolver();
 
             // if we have an inline resolver we can always create from that
             // a pure resolver that can be used by the execution engine.
             if (InlineResolver is not null && PureResolver is null)
             {
-                PureResolver = ctx => ctx.Result = InlineResolver(ctx.Parent<object>());
+                PureResolver = ctx => ctx.Result = InlineResolver(ctx.Parent<object?>());
             }
 
             // by definition fields with pure resolvers are parallel executable.
@@ -263,6 +211,77 @@ namespace HotChocolate.Types
                             Name,
                             context.Type,
                             SyntaxNode));
+                }
+            }
+
+            void Initialize()
+            {
+                if (definition.InlineResolver is not null)
+                {
+                    InlineFieldDelegate inline = definition.InlineResolver;
+
+                    if (IsPureContext())
+                    {
+                        InlineResolver = inline;
+                    }
+
+                    if (definition.PureResolver is null)
+                    {
+                        definition.PureResolver = ctx => inline(ctx.Parent<object?>());
+                    }
+                }
+
+                if (definition.PureResolver is not null)
+                {
+                    PureFieldResolverDelegate pure = definition.PureResolver;
+
+                    if (IsPureContext())
+                    {
+                        PureResolver = c => c.Result = pure(c);
+                    }
+
+                    if (definition.Resolver is null)
+                    {
+                        definition.Resolver = ctx => new(pure(ctx));
+                    }
+                }
+
+                Resolver = definition.Resolver;
+            }
+
+            void SetMostSpecificResolver()
+            {
+                if (!isIntrospectionField || Resolver is null!)
+                {
+                    // gets resolvers that were provided via type extensions,
+                    // explicit resolver results or are provided through the
+                    // resolver compiler.
+                    FieldResolver? resolver = context.GetResolver(definition.Name);
+                    Resolver = GetMostSpecificResolver(typeName, Resolver, resolver, out var external)!;
+
+                    // if a pure resolver variant is available and there are no global or field
+                    // middleware components than we will make the pure resolver variant
+                    // available on this field.
+                    PureFieldResolverDelegate? pureResolver =
+                        definition.PureResolver is null &&
+                        external &&
+                        IsPureContext()
+                            ? resolver?.PureResolver
+                            : null;
+
+                    if (pureResolver is not null)
+                    {
+                        PureResolver = c => c.Result = pureResolver(c);
+
+                        if (context.DescriptorContext.Options.AllowInlining &&
+                            InlineResolver is null &&
+                            (definition.ResolverMember is null ||
+                             ReferenceEquals(definition.Member, definition.ResolverMember)) &&
+                            definition.Member is PropertyInfo property)
+                        {
+                            InlineResolver = CompileInlineResolver(property);
+                        }
+                    }
                 }
             }
 

@@ -4,7 +4,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using Moq;
-using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -114,7 +113,7 @@ namespace HotChocolate.Types
                     .Location(DirectiveLocation.Enum)));
 
                 c.RegisterType(new EnumType<Foo>(d => d
-                    .Directive<DirectiveNode>(new DirectiveNode("bar"))));
+                    .Directive(new DirectiveNode("bar"))));
 
                 c.Options.StrictValidation = false;
             });
@@ -160,7 +159,7 @@ namespace HotChocolate.Types
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");
             Assert.NotNull(type);
-            Assert.True(type.TryGetRuntimeValue("BAR1", out object value));
+            Assert.True(type.TryGetRuntimeValue("BAR1", out var value));
             Assert.Equal(Foo.Bar1, value);
             Assert.True(type.TryGetRuntimeValue("BAR2", out value));
             Assert.Equal(Foo.Bar2, value);
@@ -183,7 +182,7 @@ namespace HotChocolate.Types
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");
             Assert.NotNull(type);
-            Assert.True(type.TryGetRuntimeValue("BAR1", out object value));
+            Assert.True(type.TryGetRuntimeValue("BAR1", out var value));
             Assert.Equal(Foo.Bar1, value);
             Assert.False(type.TryGetRuntimeValue("BAR2", out value));
             Assert.Null(value);
@@ -229,7 +228,8 @@ namespace HotChocolate.Types
             EnumType type = schema.GetType<EnumType>("Foo");
             Assert.NotNull(type);
 
-            Assert.Collection(type.Values,
+            Assert.Collection(
+                type.Values,
                 t =>
                 {
                     Assert.Equal(Foo.Bar1, t.Value);
@@ -246,13 +246,10 @@ namespace HotChocolate.Types
         public void EnumType_WithNoValues()
         {
             // act
-            Action a = () => Schema.Create(c =>
-            {
-                c.RegisterType<EnumType>();
-            });
+            void Action() => Schema.Create(c => { c.RegisterType<EnumType>(); });
 
             // assert
-            Assert.Throws<SchemaException>(a);
+            Assert.Throws<SchemaException>(Action);
         }
 
         [Fact]
@@ -275,20 +272,19 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () => SchemaBuilder.New()
+            void Action() => SchemaBuilder.New()
                 .AddQueryType<Bar>()
-                .AddType(new EnumType(d => d
-                    .Name("Foo")
-                    .Item<string>(null)))
-                    .Create();
+                .AddType(new EnumType(d => d.Name("Foo")
+                    .Value<string>(null)))
+                .Create();
 
             // assert
 #if NETCOREAPP2_1
-            Assert.Throws<SchemaException>(action)
+            Assert.Throws<SchemaException>(Action)
                 .Errors.Single().Message.MatchSnapshot(
                     new SnapshotNameExtension("NETCOREAPP2_1"));
 #else
-            Assert.Throws<SchemaException>(action)
+            Assert.Throws<SchemaException>(Action)
                 .Errors.Single().Message.MatchSnapshot();
 #endif
         }
@@ -312,7 +308,7 @@ namespace HotChocolate.Types
                     .Errors.Single().Exception;
 
             Assert.Equal(
-                "value",
+                "runtimeValue",
                 Assert.IsType<ArgumentNullException>(ex).ParamName);
         }
 
@@ -329,7 +325,7 @@ namespace HotChocolate.Types
                 c.RegisterType(new EnumType(d => d
                     .Name("Foo")
                     .Value("baz")
-                    .Directive<DirectiveNode>(new DirectiveNode("bar"))));
+                    .Directive(new DirectiveNode("bar"))));
 
                 c.Options.StrictValidation = false;
             });
@@ -379,7 +375,7 @@ namespace HotChocolate.Types
                 c.RegisterType(new EnumType(d => d
                     .Name("Foo")
                     .Value("baz")
-                    .Directive<DirectiveNode>(new DirectiveNode("bar"))));
+                    .Directive(new DirectiveNode("bar"))));
 
                 c.Options.StrictValidation = false;
             });
@@ -426,7 +422,7 @@ namespace HotChocolate.Types
                 c.RegisterType(new EnumType(d => d
                     .Name("Foo")
                     .Value("baz")
-                    .Directive<Bar>(new Bar())));
+                    .Directive(new Bar())));
 
                 c.Options.StrictValidation = false;
             });
@@ -471,10 +467,10 @@ namespace HotChocolate.Types
             var completionContext = new Mock<ITypeCompletionContext>();
 
             // act
-            Action action = () => new EnumValue(completionContext.Object, null!);
+            void Action() => new EnumValue(completionContext.Object, null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -482,10 +478,10 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () => new EnumValue(null!, new EnumValueDefinition());
+            void Action() => new EnumValue(null!, new EnumValueDefinition());
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -505,12 +501,12 @@ namespace HotChocolate.Types
         public void Deprecate_Obsolete_Values()
         {
             // act
-            var schema = SchemaBuilder.New()
+            ISchema schema = SchemaBuilder.New()
                 .AddQueryType(c => c
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddType<FooObsolete>()
                 .Create();
 
@@ -522,12 +518,12 @@ namespace HotChocolate.Types
         public void Deprecate_Fields_With_Deprecated_Attribute()
         {
             // act
-            var schema = SchemaBuilder.New()
+            ISchema schema = SchemaBuilder.New()
                 .AddQueryType(c => c
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddType<FooDeprecated>()
                 .Create();
 
@@ -592,8 +588,8 @@ namespace HotChocolate.Types
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
                 descriptor.Name("Query");
-                descriptor.Field("a").Type<SomeEnumType>().Resolver("DEF");
-                descriptor.Field("b").Type<StringType>().Resolver("StringResolver");
+                descriptor.Field("a").Type<SomeEnumType>().Resolve("DEF");
+                descriptor.Field("b").Type<StringType>().Resolve("StringResolver");
             }
         }
 
@@ -610,7 +606,8 @@ namespace HotChocolate.Types
         [GraphQLDescription("TestDescription")]
         public enum DescriptionTestEnum
         {
-            Foo, Bar
+            Foo,
+            Bar
         }
     }
 }
