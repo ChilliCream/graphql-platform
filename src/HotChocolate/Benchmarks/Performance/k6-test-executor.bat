@@ -1,0 +1,1 @@
+k6 run -e TEST_2_RUN=stress -e ENV_2_RUN=test k6-author-books-test.js
