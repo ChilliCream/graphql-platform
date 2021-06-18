@@ -75,5 +75,9 @@ namespace HotChocolate
             string? scope = null);
 
         ISchema Create();
+
+        ISchema Create(IDescriptorContext context);
+
+        IDescriptorContext CreateContext();
     }
 }

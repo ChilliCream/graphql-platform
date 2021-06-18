@@ -41,8 +41,7 @@ namespace HotChocolate.Types
         /// </param>
         public EnumType(Action<IEnumTypeDescriptor> configure)
         {
-            _configure = configure
-                ?? throw new ArgumentNullException(nameof(configure));
+            _configure = configure ?? throw new ArgumentNullException(nameof(configure));
         }
 
         /// <summary>
@@ -55,7 +54,7 @@ namespace HotChocolate.Types
         /// Returns the newly created object type.
         /// </returns>
         public static EnumType CreateUnsafe(EnumTypeDefinition definition)
-            => new() { Definition = definition };
+            => new() { Definition = definition};
 
         /// <summary>
         /// Override this in order to specify the type configuration explicitly.
