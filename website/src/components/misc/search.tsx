@@ -4,26 +4,27 @@ import React, {
   FocusEvent,
   FunctionComponent,
   RefObject,
-  useCallback,
   useEffect,
   useState,
 } from "react";
-import { SearchBoxProvided } from "react-instantsearch-core";
+import { BasicDoc, SearchBoxProvided } from "react-instantsearch-core";
 import {
   connectSearchBox,
   connectStateResults,
   Hits,
+  HitsProps,
   Index,
   InstantSearch,
   Snippet,
 } from "react-instantsearch-dom";
-import { useDispatch, useStore, useSelector } from "react-redux";
 import styled from "styled-components";
-import { State } from "../../state";
-import { changeSearchQuery } from "../../state/common";
+import AlgoliaLogoSvg from "../../images/algolia-logo.svg";
 import { Link } from "./link";
 
-import AlgoliaLogoSvg from "../../images/algolia-logo.svg";
+const searchClient = algoliasearch(
+  process.env.GATSBY_ALGOLIA_APP_ID!,
+  process.env.GATSBY_ALGOLIA_SEARCH_KEY!
+);
 
 interface SearchProperties {
   siteUrl: string;
@@ -31,46 +32,39 @@ interface SearchProperties {
 
 export const Search: FunctionComponent<SearchProperties> = ({ siteUrl }) => {
   const ref = createRef<HTMLDivElement>();
-  const initialQuery = useStore<State>().getState().common.searchQuery;
-  const query = useSelector<State, string>((state) => state.common.searchQuery);
-  const dispatch = useDispatch();
   const [focus, setFocus] = useState(false);
-  const searchClient = algoliasearch(
-    "BH4D9OD16A",
-    "3ed63973f167d1fc290b9a1aaa85a793"
-  );
-
-  const handleChangeQuery = useCallback((query: string) => {
-    dispatch(changeSearchQuery({ query }));
-  }, []);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useClickOutside(ref, () => setFocus(false));
 
   return (
     <Container ref={ref}>
       <InstantSearch
-        searchState={{ query: initialQuery }}
+        searchState={{ query: searchQuery }}
         searchClient={searchClient}
-        indexName="chillicream"
-        onSearchStateChange={({ query }) => handleChangeQuery(query)}
+        indexName={process.env.GATSBY_ALGOLIA_INDEX!}
+        onSearchStateChange={({ query }) => setSearchQuery(query)}
       >
         <SearchBox onFocus={() => setFocus(true)} />
-        <HitsWrapper show={query.length > 0 && focus}>
-          <Index indexName="chillicream">
-            <ResultHeader>
-              <Stats />
-            </ResultHeader>
-            <Results>
-              <Hits hitComponent={DocHit(siteUrl, () => setFocus(false))} />
-            </Results>
-          </Index>
-          <PoweredBy>
-            Powered by
-            <Link to="https://algolia.com" onClick={() => setFocus(false)}>
-              <AlgoliaLogoSvg />
-            </Link>
-          </PoweredBy>
-        </HitsWrapper>
+
+        {searchQuery && focus ? (
+          <HitsWrapper>
+            <Index indexName={process.env.GATSBY_ALGOLIA_INDEX!}>
+              <ResultHeader>
+                <Stats />
+              </ResultHeader>
+              <Results>
+                <Hits hitComponent={DocHit(() => setFocus(false))} />
+              </Results>
+            </Index>
+            <PoweredBy>
+              Powered by
+              <Link to="https://algolia.com" onClick={() => setFocus(false)}>
+                <AlgoliaLogoSvg />
+              </Link>
+            </PoweredBy>
+          </HitsWrapper>
+        ) : null}
       </InstantSearch>
     </Container>
   );
@@ -118,32 +112,41 @@ const SearchBox = connectSearchBox<SearchBoxProperties>(
   )
 );
 
-const Results = connectStateResults((comp) =>
-  comp.searchResults && comp.searchResults.nbHits > 0
-    ? (comp.children as any)
-    : (`No results for '${comp.searchState.query}'` as any)
-);
+const Results = connectStateResults((state) => {
+  const numberOfResults = state.searchResults?.nbHits;
 
-const Stats = connectStateResults(
-  (comp) =>
-    comp.searchResults &&
-    comp.searchResults.nbHits > 0 &&
-    (`${comp.searchResults.nbHits} result${
-      comp.searchResults.nbHits > 1 ? `s` : ``
-    }` as any)
-);
+  if (numberOfResults > 0) {
+    return <>{state.children}</>;
+  }
 
-const DocHit = (siteUrl: string, clickHandler: () => void) => ({
-  hit,
-}: HitComponentProperties) => {
-  const slug = (hit.url as string).replace(siteUrl, "");
+  return <>No results for '{state.searchState.query}'</>;
+});
+
+const Stats = connectStateResults((state) => {
+  const numberOfResults = state.searchResults?.nbHits;
+
+  if (!numberOfResults || numberOfResults < 1) {
+    return null;
+  }
 
   return (
-    <Link to={slug} onClick={clickHandler}>
-      <Snippet attribute="content" hit={hit} tagName="mark" />
-    </Link>
+    <>
+      {numberOfResults} result{numberOfResults > 1 ? "s" : null}
+    </>
   );
-};
+});
+
+type DocHitComponent = HitsProps<BasicDoc>["hitComponent"];
+
+const DocHit =
+  (onClick: () => void): DocHitComponent =>
+  ({ hit }) => {
+    return (
+      <Link to={hit.slug} onClick={onClick}>
+        <Snippet attribute="excerpt" hit={hit} tagName="mark" />
+      </Link>
+    );
+  };
 
 const Container = styled.div`
   display: flex;
@@ -168,17 +171,13 @@ const SearchField = styled.input`
   background-color: #fff;
 `;
 
-interface HitComponentProperties {
-  hit: any;
-}
-
-const HitsWrapper = styled.div<{ show: boolean }>`
+const HitsWrapper = styled.div`
   position: fixed;
   top: 60px;
   right: 0;
   left: 0;
   z-index: 1;
-  display: ${(props) => (props.show ? `grid` : `none`)};
+  display: grid;
   padding: 15px 20px;
   max-height: 80vh;
   overflow-y: initial;

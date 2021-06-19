@@ -1,6 +1,5 @@
 export interface CommonState {
   readonly expandedPaths: string[];
-  readonly searchQuery: string;
   readonly showAside: boolean;
   readonly showCookieConsent: boolean;
   readonly showTOC: boolean;
@@ -11,7 +10,6 @@ export interface CommonState {
 
 export const initialState: CommonState = {
   expandedPaths: [],
-  searchQuery: "",
   showAside: false,
   showCookieConsent: false,
   showTOC: false,
