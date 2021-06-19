@@ -1059,7 +1059,7 @@ namespace Foo.Bar.State
 
         private global::StrawberryShake.EntityId ParseFeatEntityId(global::System.Text.Json.JsonElement obj, global::System.String type)
         {
-            return new global::StrawberryShake.EntityId(type, obj.GetProperty("id").GetGuid()!);
+            return new global::StrawberryShake.EntityId(type, obj.GetProperty("id").GetString()!);
         }
 
         private global::System.String FormatFeatEntityId(global::StrawberryShake.EntityId entityId)
@@ -1068,7 +1068,7 @@ namespace Foo.Bar.State
             using var jsonWriter = new global::System.Text.Json.Utf8JsonWriter(writer, _options);
             jsonWriter.WriteStartObject();
             jsonWriter.WriteString("__typename", entityId.Name);
-            jsonWriter.WriteString("id", (global::System.Guid)entityId.Value);
+            jsonWriter.WriteString("id", (global::System.String)entityId.Value);
             jsonWriter.WriteEndObject();
             jsonWriter.Flush();
             return global::System.Text.Encoding.UTF8.GetString(writer.GetInternalBuffer(), 0, writer.Length);
@@ -1076,7 +1076,7 @@ namespace Foo.Bar.State
 
         private global::StrawberryShake.EntityId ParseActionTypeEntityId(global::System.Text.Json.JsonElement obj, global::System.String type)
         {
-            return new global::StrawberryShake.EntityId(type, obj.GetProperty("id").GetGuid()!);
+            return new global::StrawberryShake.EntityId(type, obj.GetProperty("id").GetString()!);
         }
 
         private global::System.String FormatActionTypeEntityId(global::StrawberryShake.EntityId entityId)
@@ -1085,7 +1085,7 @@ namespace Foo.Bar.State
             using var jsonWriter = new global::System.Text.Json.Utf8JsonWriter(writer, _options);
             jsonWriter.WriteStartObject();
             jsonWriter.WriteString("__typename", entityId.Name);
-            jsonWriter.WriteString("id", (global::System.Guid)entityId.Value);
+            jsonWriter.WriteString("id", (global::System.String)entityId.Value);
             jsonWriter.WriteEndObject();
             jsonWriter.Flush();
             return global::System.Text.Encoding.UTF8.GetString(writer.GetInternalBuffer(), 0, writer.Length);
