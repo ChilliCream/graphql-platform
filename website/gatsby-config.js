@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 module.exports = {
   siteMetadata: {
     title: `ChilliCream GraphQL Platform`,
@@ -173,13 +175,8 @@ module.exports = {
         }`,
         setup: (options) => {
           const { pathPrefix } = options.query.site;
-          const {
-            author,
-            company,
-            description,
-            siteUrl,
-            title,
-          } = options.query.site.siteMetadata;
+          const { author, company, description, siteUrl, title } =
+            options.query.site.siteMetadata;
           const baseUrl = siteUrl + pathPrefix;
           const currentYear = new Date().getUTCFullYear();
 
@@ -279,6 +276,14 @@ module.exports = {
             output: "/rss.xml",
           },
         ],
+      },
+    },
+    process.env.ALGOLIA_ADMIN_KEY && {
+      resolve: `gatsby-plugin-algolia`,
+      options: {
+        appId: process.env.GATSBY_ALGOLIA_APP_ID,
+        apiKey: process.env.ALGOLIA_ADMIN_KEY,
+        queries: require("./src/utils/algolia-queries"),
       },
     },
     // this (optional) plugin enables Progressive Web App + Offline functionality
