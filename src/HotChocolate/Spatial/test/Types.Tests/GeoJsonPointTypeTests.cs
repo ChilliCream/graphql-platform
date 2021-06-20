@@ -40,7 +40,6 @@ namespace HotChocolate.Types.Spatial
             // arrange
             ISchema schema = SchemaBuilder.New()
                 .AddConvention<INamingConventions, MockNamingConvention>()
-                .BindClrType<Coordinate, GeoJsonPositionType>()
                 .AddType<GeoJsonPointType>()
                 .AddQueryType(d => d
                     .Name("Query")
@@ -87,7 +86,6 @@ namespace HotChocolate.Types.Spatial
             // arrange
             ISchema schema = SchemaBuilder.New()
                 .AddConvention<INamingConventions, MockNamingConvention>()
-                .BindClrType<Coordinate, GeoJsonPositionType>()
                 .AddType<GeoJsonPointType>()
                 .AddQueryType(d => d
                     .Name("Query")

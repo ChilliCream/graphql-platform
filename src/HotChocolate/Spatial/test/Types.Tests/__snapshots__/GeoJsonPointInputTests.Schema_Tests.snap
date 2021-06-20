@@ -14,7 +14,7 @@ input GeoJSONPointInput {
   "The geometry type of the GeoJson object"
   type: GeoJSONGeometryType
   "The \"coordinates\" field is a single position."
-  coordinates: Position
+  coordinates: [Float!]!
   "The coordinate reference system integer identifier"
   crs: Int
 }
@@ -36,6 +36,3 @@ directive @defer("If this argument label has a value other than null, it will be
 directive @stream("If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to." label: String "The initial elements that shall be send down to the consumer." initialCount: Int! "Streamed when true." if: Boolean!) on FIELD
 
 scalar Geometry
-
-"A position is an array of numbers. There MUST be two or more elements. The first two elements are longitude and latitude, or easting and northing, precisely in that order and using decimal numbers. Altitude or elevation MAY be included as an optional third element."
-scalar Position

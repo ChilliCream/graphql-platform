@@ -67,7 +67,6 @@ namespace HotChocolate.Types.Spatial
         public void LineString_Execution_Tests() =>
             SchemaBuilder.New()
                 .AddConvention<INamingConventions, MockNamingConvention>()
-                .BindClrType<Coordinate, GeoJsonPositionType>()
                 .AddType<GeoJsonLineStringType>()
                 .AddQueryType(d => d
                     .Name("Query")

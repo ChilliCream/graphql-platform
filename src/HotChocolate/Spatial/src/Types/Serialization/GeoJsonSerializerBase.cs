@@ -29,7 +29,7 @@ namespace HotChocolate.Types.Spatial.Serialization
                 return serialized;
             }
 
-            throw Serializer_CouldNotDeserialize();
+            throw Serializer_CouldNotSerialize();
         }
 
         public virtual object? Deserialize(object? resultValue)
@@ -39,7 +39,7 @@ namespace HotChocolate.Types.Spatial.Serialization
                 return deserialized;
             }
 
-            throw Serializer_CouldNotSerialize();
+            throw Serializer_CouldNotDeserialize();
         }
 
         public virtual bool IsInstanceOfType(object? runtimeValue)

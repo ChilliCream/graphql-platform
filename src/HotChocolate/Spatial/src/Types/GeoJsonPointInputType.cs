@@ -22,7 +22,7 @@ namespace HotChocolate.Types.Spatial
                 .Description(GeoJson_Field_Type_Description);
 
             descriptor.Field(CoordinatesFieldName)
-                .Type<GeoJsonPositionType>()
+                .Type<NonNullType<ListType<NonNullType<FloatType>>>>()
                 .Description(GeoJson_Field_Coordinates_Description_Point);
 
             descriptor.Field(CrsFieldName)
