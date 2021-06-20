@@ -533,7 +533,7 @@ const ArticleMetadata = styled.div`
   align-items: center;
   margin: 15px 20px 7px;
   font-size: 0.778em;
-  color: #667;
+  color: var(--text-color);
 `;
 
 const ArticleTitle = styled.h1`
@@ -555,7 +555,7 @@ const Logo = styled.div<{ width?: number }>`
   width: ${({ width }) => width || 160}px;
 
   > a > svg {
-    fill: #667;
+    fill: var(--text-color);
     transition: fill 0.2s ease-in-out;
 
     &:hover {

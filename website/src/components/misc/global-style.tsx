@@ -28,6 +28,8 @@ export const GlobalStyle = createGlobalStyle`
   :root {
     --brand-color: #f40010;
     --brand-color-hover: #b7020a;
+    --text-color: #667;
+    --heading-text-color: #334;
     --text-color-contrast: #fff;
     --border-radius: 4px;
     --font-size: .833rem;
@@ -42,7 +44,7 @@ export const GlobalStyle = createGlobalStyle`
   body {
     font-size: 18px;
     line-height: 30px;
-    color: #667;
+    color: var(--text-color);
     scroll-behavior: smooth;
 
     -webkit-font-smoothing: antialiased;
@@ -88,18 +90,12 @@ export const GlobalStyle = createGlobalStyle`
     font-weight: bold;
     line-height: 1.250em;
     text-rendering: optimizeLegibility;
-    color: #334;
+    color: var(--heading-text-color);
   }
 
   p {
     margin-bottom: 20px;
     line-height: 1.667em;
-
-    code {
-      padding: 2px 5px;
-      font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
-      font-size: var(--font-size);
-    }
   }
 
   h1 {

@@ -135,7 +135,7 @@ const SwiterContainer = styled.div`
 const Title = styled.h1`
   flex: 0 0 auto;
   font-size: 1.75em;
-  color: #667;
+  color: var(--text-color);
   text-align: center;
 
   ${IsPhablet(`

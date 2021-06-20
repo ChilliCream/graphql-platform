@@ -17,13 +17,12 @@ import {
   InstantSearch,
   Snippet,
 } from "react-instantsearch-dom";
-import { useDispatch, useStore, useSelector } from "react-redux";
+import { useDispatch, useSelector, useStore } from "react-redux";
 import styled from "styled-components";
+import AlgoliaLogoSvg from "../../images/algolia-logo.svg";
 import { State } from "../../state";
 import { changeSearchQuery } from "../../state/common";
 import { Link } from "./link";
-
-import AlgoliaLogoSvg from "../../images/algolia-logo.svg";
 
 interface SearchProperties {
   siteUrl: string;
@@ -133,17 +132,17 @@ const Stats = connectStateResults(
     }` as any)
 );
 
-const DocHit = (siteUrl: string, clickHandler: () => void) => ({
-  hit,
-}: HitComponentProperties) => {
-  const slug = (hit.url as string).replace(siteUrl, "");
+const DocHit =
+  (siteUrl: string, clickHandler: () => void) =>
+  ({ hit }: HitComponentProperties) => {
+    const slug = (hit.url as string).replace(siteUrl, "");
 
-  return (
-    <Link to={slug} onClick={clickHandler}>
-      <Snippet attribute="content" hit={hit} tagName="mark" />
-    </Link>
-  );
-};
+    return (
+      <Link to={slug} onClick={clickHandler}>
+        <Snippet attribute="content" hit={hit} tagName="mark" />
+      </Link>
+    );
+  };
 
 const Container = styled.div`
   display: flex;
@@ -199,7 +198,7 @@ const HitsWrapper = styled.div<{ show: boolean }>`
       color: var(--brand-color);
 
       &:hover {
-        color: #667;
+        color: var(--text-color);
       }
     }
   }
