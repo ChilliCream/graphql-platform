@@ -17,26 +17,6 @@ stages:
         displayName: "Sonar"
         dependsOn: [ ]
         steps:
-          - task: UseDotNet@2
-            displayName: "Install .NET Core 2.1"
-            inputs:
-              packageType: 'sdk'
-              version: '2.1.816'
-          - task: UseDotNet@2
-            displayName: "Install .NET Core 3.1"
-            inputs:
-              packageType: 'sdk'
-              version: '3.1.409'
-          - task: UseDotNet@2
-            displayName: "Install .NET 5.0"
-            inputs:
-              packageType: 'sdk'
-              version: '5.0.300'
-          - task: UseDotNet@2
-            displayName: "Install .NET Core"
-            inputs:
-              packageType: 'sdk'
-              useGlobalJson: true
           - task: JavaToolInstaller@0
             displayName: "Install Java"
             inputs:
