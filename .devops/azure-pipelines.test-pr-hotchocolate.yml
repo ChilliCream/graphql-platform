@@ -20,11 +20,6 @@ stages:
         strategy:
           parallel: 5
         steps:
-          - task: UseDotNet@2
-            displayName: "Install .NET Core"
-            inputs:
-              packageType: 'sdk'
-              useGlobalJson: true
           - task: CmdLine@2
             displayName: "Run Tests"
             inputs:

@@ -14,11 +14,6 @@ stages:
         strategy:
           parallel: 5
         steps:
-          - task: UseDotNet@2
-            displayName: "Install .NET Core"
-            inputs:
-              packageType: 'sdk'
-              useGlobalJson: true
           - task: CmdLine@2
             displayName: "Run Tests"
             inputs:
@@ -32,11 +27,6 @@ stages:
         displayName: "Pack"
         dependsOn: []
         steps:
-          - task: UseDotNet@2
-            displayName: "Install .NET Core"
-            inputs:
-              packageType: 'sdk'
-              useGlobalJson: true
           - task: CmdLine@2
             displayName: "Create Packages"
             inputs:
@@ -50,11 +40,6 @@ stages:
         displayName: "Publish"
         dependsOn: [Test, Pack]
         steps:
-          - task: UseDotNet@2
-            displayName: "Install .NET Core"
-            inputs:
-              packageType: 'sdk'
-              useGlobalJson: true
           - task: DownloadBuildArtifacts@0
             displayName: "Download Packages"
             inputs:
