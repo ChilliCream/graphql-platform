@@ -68,12 +68,12 @@ In the Annotation-based approach we can use the `[Authorize]` attribute to add t
 
 ```csharp
 [Authorize]
-public class Person
+public class User
 {
-    public string Name { get; }
+    public string Name { get; set; }
 
     [Authorize]
-    public Address Address { get; }
+    public Address Address { get; set; }
 }
 ```
 
@@ -83,13 +83,13 @@ public class Person
 <ExampleTabs.Code>
 
 ```csharp
-public class PersonType : ObjectType<Person>
+public class UserType : ObjectType<User>
 {
-    protected override Configure(IObjectTypeDescriptor<Person> descriptor)
+    protected override void Configure(IObjectTypeDescriptor<User> descriptor)
     {
         descriptor.Authorize();
 
-        descriptor.Field(t => t.Address).Authorize();
+        descriptor.Field(f => f.Address).Authorize();
     }
 }
 ```
@@ -98,7 +98,7 @@ public class PersonType : ObjectType<Person>
 <ExampleTabs.Schema>
 
 ```sdl
-type Person @authorize {
+type User @authorize {
   name: String!
   address: Address! @authorize
 }
@@ -113,9 +113,7 @@ A GraphQL error will be raised and the field result set to `null`, if the reques
 
 ## Roles
 
-TODO: Test
-
-Roles provide a very intuitive way of dividing our users into groups.
+Roles provide a very intuitive way of dividing our users into groups with different access rights.
 
 When building our `ClaimsPrincipal`, we just have to add one or more role claims.
 
@@ -129,13 +127,13 @@ We can then really easily check, whether an authenticated user has these role cl
 <ExampleTabs.Annotation>
 
 ```csharp
-[Authorize(Roles = new [] { "Administrator" })]
-public class Person
+[Authorize(Roles = new [] { "Guest", "Administrator" })]
+public class User
 {
-    public string Name { get; }
+    public string Name { get; set; }
 
-    [Authorize(Roles = new[] { "foo", "bar" })]
-    public Address Address { get; }
+    [Authorize(Roles = new[] { "Administrator" })]
+    public Address Address { get; set; }
 }
 ```
 
@@ -143,13 +141,13 @@ public class Person
 <ExampleTabs.Code>
 
 ```csharp
-public class PersonType : ObjectType<Person>
+public class UserType : ObjectType<User>
 {
-    protected override Configure(IObjectTypeDescriptor<Person> descriptor)
+    protected override Configure(IObjectTypeDescriptor<User> descriptor)
     {
-        descriptor.Authorize(new[] { "Administrator" });
+        descriptor.Authorize(new[] { "Guest", "Administrator" });
 
-        descriptor.Field(t => t.Address).Authorize(new[] { "foo", "bar" });
+        descriptor.Field(t => t.Address).Authorize(new[] { "Administrator" });
     }
 }
 ```
@@ -157,19 +155,17 @@ public class PersonType : ObjectType<Person>
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-TODO: Check if this is correct for a singular role
-
 ```sdl
-type Person @authorize(roles: "Administrator") {
+type User @authorize(roles: [ "Guest", "Administrator" ]) {
   name: String!
-  address: Address! @authorize(roles: ["foo", "bar"])
+  address: Address! @authorize(roles: "Administrator")
 }
 ```
 
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-If multiple roles are specified, all of them have to be included in the `ClaimsPrincipal` in order to execute a resolver.
+> ⚠️ Note: If multiple roles are specified, a user only has to match one of the specified roles, in order to be able to execute the resolver.
 
 [Learn more about role-based authorization in ASP.NET Core](https://docs.microsoft.com/aspnet/core/security/authorization/roles)
 
@@ -184,7 +180,7 @@ Policies allow us to create richer validation logic and decouple the authorizati
 
 ```csharp
 [Authorize(Policy = "AllEmployees")]
-public class Person
+public class User
 {
     public string Name { get; }
 
@@ -197,9 +193,9 @@ public class Person
 <ExampleTabs.Code>
 
 ```csharp
-public class PersonType : ObjectType<Person>
+public class UserType : ObjectType<User>
 {
-    protected override Configure(IObjectTypeDescriptor<Person> descriptor)
+    protected override Configure(IObjectTypeDescriptor<User> descriptor)
     {
         descriptor.Authorize("AllEmployees");
 
@@ -212,7 +208,7 @@ public class PersonType : ObjectType<Person>
 <ExampleTabs.Schema>
 
 ```sdl
-type Person @authorize(policy: "AllEmployees") {
+type User @authorize(policy: "AllEmployees") {
   name: String!
   address: Address! @authorize(policy: "SalesDepartment")
 }
