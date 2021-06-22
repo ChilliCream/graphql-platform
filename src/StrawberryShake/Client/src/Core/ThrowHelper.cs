@@ -61,6 +61,6 @@ namespace StrawberryShake
 
         internal static GraphQLClientException UuidSerializer_CouldNotParse(string guid) =>
             new(new ClientError(
-                $"The Guid serializer could not parse value{guid}. Invalid format."));
+                $"The Guid serializer could not parse value {guid}. Invalid format."));
     }
 }
