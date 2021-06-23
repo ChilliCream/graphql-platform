@@ -63,7 +63,7 @@ type ProductCategory @source(name: "Category", schema: "products") {
 
 In schema stitching type renames can be defined on the gateway:
 
-```csharp{5}
+```csharp
 services
     .AddGraphQLServer()
     .AddRemoteSchema(Products)
@@ -71,10 +71,10 @@ services
     .RenameType("Category","ProductCategory", Products);
 ```
 
-##Schema Federations
+### Schema Federations
 In a federated approach, type renames can be done on the domain service:
 
-```csharp{9}
+```csharp
 services
     .AddSingleton(ConnectionMultiplexer.Connect("stitching-redis.services.local"))
     .AddGraphQLServer()
@@ -131,7 +131,7 @@ type Query {
 
 In schema stitching field renames can be defined on the gateway:
 
-```csharp{5}
+```csharp
 services
     .AddGraphQLServer()
     .AddRemoteSchema(Products)
@@ -143,7 +143,7 @@ services
 
 In a federated approach, type renames can be done on the domain service:
 
-```csharp{9}
+```csharp
 services
     .AddSingleton(ConnectionMultiplexer.Connect("stitching-redis.services.local"))
     .AddGraphQLServer()
@@ -165,7 +165,7 @@ By default, all types of remote schemas are added to the gateway schema.
 This can produce types that are not reachable.
 You can remove all not reachable types on the gateway:
 
-```csharp{5}
+```csharp
 services
     .AddGraphQLServer()
     .AddQueryType(d => d.Name("Query"))
@@ -177,7 +177,7 @@ If you want to remove a specific type from the schema you can also use `IgnoreTy
 
 ### Schema Stitching
 
-```csharp{5}
+```csharp
 services
     .AddGraphQLServer()
     .AddRemoteSchema(Products)
@@ -187,7 +187,7 @@ services
 
 ### Schema Federations
 
-```csharp{9}
+```csharp
 services
     .AddSingleton(ConnectionMultiplexer.Connect("stitching-redis.services.local"))
     .AddGraphQLServer()
@@ -210,7 +210,7 @@ This can be useful when you want to merge root fields of domain services, but ig
 
 ### Schema Stitching
 
-```csharp{5-6}
+```csharp
 services
     .AddGraphQLServer()
     .AddRemoteSchema(Products)
@@ -306,7 +306,7 @@ The `path` argument can contain references to context data or fields.
 
 With the `$fields` variable, you can access fields of the type you extend.
 
-```sdl{2,7}
+```sdl
 type Product {
   upc: Int!
   name: String!
@@ -325,7 +325,7 @@ extend type Product {
 
 With the `$fields` variable you can access fields of the type you extend.
 
-```sdl{2,7}
+```sdl
 extend type Query {
   isProductInStock(sku:String!): Boolean @delegate(schema:"inventory", path: "inventoryInfo(upc: $arguments:upc)")
 }
@@ -356,7 +356,7 @@ services
 
 **RequestInterceptor**
 
-```csharp{10}
+```csharp
 public class RequestInterceptor : DefaultHttpRequestInterceptor
 {
     public ValueTask OnCreateAsync(
