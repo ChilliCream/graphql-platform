@@ -10,8 +10,7 @@ stages:
   - stage: ubuntu
     displayName: "Ubuntu 20.04"
     dependsOn: []
-    pool:
-      vmImage: "ubuntu-20.04"
+    pool: local-pool
     jobs:
       - job: Sonar
         displayName: "Sonar"
