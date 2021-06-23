@@ -7,9 +7,12 @@ namespace StrawberryShake.Serialization
     /// </summary>
     public class UUIDSerializer : ScalarSerializer<string, Guid>
     {
-        public UUIDSerializer(string typeName = BuiltInScalarNames.UUID)
+        private readonly string _format;
+
+        public UUIDSerializer(string typeName = BuiltInScalarNames.UUID, string format = "D")
             : base(typeName)
         {
+            _format = format;
         }
 
         public override Guid Parse(string serializedValue)
@@ -23,7 +26,7 @@ namespace StrawberryShake.Serialization
 
         protected override string Format(Guid runtimeValue)
         {
-            return runtimeValue.ToString();
+            return runtimeValue.ToString(_format);
         }
     }
 }

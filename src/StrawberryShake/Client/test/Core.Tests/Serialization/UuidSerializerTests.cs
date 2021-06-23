@@ -36,18 +36,23 @@ namespace Core.Tests.Serialization
             Assert.Throws<GraphQLClientException>(() => serializer.Parse(string.Empty));
         }
 
-        [Fact]
-        public void Format()
+        [Theory]
+        [InlineData("D")]
+        [InlineData("N")]
+        [InlineData("B")]
+        [InlineData("P")]
+        [InlineData("X")]
+        public void Format(string format)
         {
             // arrange
-            var serializer = new UUIDSerializer();
+            var serializer = new UUIDSerializer(format: format);
             var guid = Guid.NewGuid();
 
             // act
             var result = serializer.Format(guid);
 
             // assert
-            Assert.Equal(guid.ToString(), result);
+            Assert.Equal(guid.ToString(format), result);
         }
     }
 }
