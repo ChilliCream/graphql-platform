@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Security.Claims;
 using HotChocolate.Resolvers;
 using static HotChocolate.Utilities.ThrowHelper;
 
@@ -306,5 +307,17 @@ namespace HotChocolate
 
             throw EventMessage_NotFound();
         }
+
+        /// <summary>
+        /// Gets the user for this request.
+        /// </summary>
+        /// <param name="context">
+        /// The resolver context.
+        /// </param>
+        /// <returns>
+        /// Returns the user for this request.
+        /// </returns>
+        public static ClaimsPrincipal? GetUser(this IResolverContext context)
+            => context.GetGlobalValue<ClaimsPrincipal?>(nameof(ClaimsPrincipal));
     }
 }
