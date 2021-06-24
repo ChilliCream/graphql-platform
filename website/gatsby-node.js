@@ -153,8 +153,10 @@ exports.onCreateNode = async ({ node, actions, getNode, reporter }) => {
   // for development purposes we fallback to dummy values
   if (process.env.NODE_ENV === "production") {
     try {
+      reporter.info(`Getting info for \"${node.fileAbsolutePath}\"`);
+
       const result = await getGitLog(node.fileAbsolutePath);
-      const data = result.latest;
+      const data = result.latest || {};
 
       if (data.authorName) {
         authorName = data.authorName;
