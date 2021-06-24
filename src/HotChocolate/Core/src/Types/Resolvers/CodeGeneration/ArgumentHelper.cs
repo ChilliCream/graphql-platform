@@ -115,6 +115,12 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 return true;
             }
 
+            if (parameter.ParameterType == typeof(Path))
+            {
+                argumentKind = ArgumentKind.Path;
+                return true;
+            }
+
             argumentKind = default(ArgumentKind);
             return false;
         }
