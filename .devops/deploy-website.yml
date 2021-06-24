@@ -1,7 +1,8 @@
 trigger:
 - develop
 
-pool: local-pool
+pool:
+  vmImage: "ubuntu-20.04"
 
 steps:
 - task: NodeTool@0
