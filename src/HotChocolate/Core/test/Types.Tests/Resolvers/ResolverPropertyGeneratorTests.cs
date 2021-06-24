@@ -3,17 +3,19 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-namespace HotChocolate.Resolvers.Expressions
+namespace HotChocolate.Resolvers
 {
     public class ResolverCompilerTests
     {
@@ -511,7 +513,6 @@ namespace HotChocolate.Resolvers.Expressions
             Assert.True(result);
         }
 
-        [Obsolete]
         [Fact]
         public async Task Compile_Arguments_FieldSelection()
         {
@@ -527,10 +528,8 @@ namespace HotChocolate.Resolvers.Expressions
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
-            var context = new Mock<IResolverContext>();
-            context.Setup(t => t.Parent<Resolvers>())
-                .Returns(new Resolvers());
-            context.SetupGet(t => t.FieldSelection)
+            var fieldSelection = new Mock<IFieldSelection>();
+            fieldSelection.SetupGet(t => t.SyntaxNode)
                 .Returns(new FieldNode(
                     null,
                     new NameNode("foo"),
@@ -538,6 +537,38 @@ namespace HotChocolate.Resolvers.Expressions
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
                     null));
+
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>())
+                .Returns(new Resolvers());
+            context.SetupGet(t => t.Selection)
+                .Returns(fieldSelection.Object);
+
+            var result = (bool)(await resolver.Resolver(context.Object))!;
+            Assert.True(result);
+        }
+
+        [Fact]
+        public async Task Compile_Arguments_Path()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember = type.GetMethod(nameof(Resolvers.ResolverWithPath));
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember!));
+
+            // act
+            var compiler = new ResolveCompiler();
+            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>())
+                .Returns(new Resolvers());
+            context.SetupGet(t => t.Path)
+                .Returns(Path.New("FOO"));
+
             var result = (bool)(await resolver.Resolver(context.Object))!;
             Assert.True(result);
         }
@@ -888,6 +919,32 @@ namespace HotChocolate.Resolvers.Expressions
             context.Setup(t => t.ScopedContextData).Returns(contextData);
             void Action() => resolver.Resolver(context.Object);
             Assert.Throws<ArgumentException>(Action);
+        }
+
+        [Fact]
+        public async Task Compile_GetClaimsPrincipal()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetMethod(nameof(Resolvers.GetClaimsPrincipal));
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember!));
+            var contextData = new Dictionary<string, object>
+            {
+                { nameof(ClaimsPrincipal), new ClaimsPrincipal() }
+            };
+
+            // act
+            FieldResolver resolver = ResolverCompiler.Resolve.Compile(resolverDescriptor);
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.Setup(t => t.ContextData).Returns(contextData);
+            var value = await resolver.Resolver(context.Object);
+            Assert.True(Assert.IsType<bool>(value));
         }
 
         [Fact]
@@ -1517,6 +1574,10 @@ namespace HotChocolate.Resolvers.Expressions
                 FieldNode fieldSelection) =>
                 fieldSelection != null;
 
+            public bool ResolverWithPath(
+                Path fieldSelection) =>
+                fieldSelection != null;
+
             public bool ResolverWithObjectType(
                 ObjectType objectType) =>
                 objectType != null;
@@ -1542,7 +1603,7 @@ namespace HotChocolate.Resolvers.Expressions
                 schema != null;
 
             public bool ResolverWithService(
-                [Service]MyService service) =>
+                [Service] MyService service) =>
                 service != null;
 
 #pragma warning disable CS0618
@@ -1559,6 +1620,8 @@ namespace HotChocolate.Resolvers.Expressions
                 [State("foo", IsScoped = true, DefaultIfNotExists = true)]
                 string s) => s;
 #pragma warning restore CS0618
+
+            public bool GetClaimsPrincipal(ClaimsPrincipal principal) => principal is not null;
 
             public string GetGlobalStateWithKey(
                 [GlobalState("foo")]

@@ -9,6 +9,10 @@ import React, {
 import { useDispatch, useSelector } from "react-redux";
 import styled, { css } from "styled-components";
 import { DocPageNavigationFragment } from "../../../graphql-types";
+import ArrowDownIconSvg from "../../images/arrow-down.svg";
+import ArrowUpIconSvg from "../../images/arrow-up.svg";
+import ProductSwitcherIconSvg from "../../images/th-large.svg";
+import { BoxShadow, IsTablet } from "../../shared-style";
 import { State } from "../../state";
 import {
   closeTOC,
@@ -16,18 +20,13 @@ import {
   toggleNavigationGroup,
   toggleTOC,
 } from "../../state/common";
+import { IconContainer } from "../misc/icon-container";
+import { Link } from "../misc/link";
 import {
   DocPageStickySideBarStyle,
   MostProminentSection,
 } from "./doc-page-elements";
 import { DocPagePaneHeader } from "./doc-page-pane-header";
-import { IconContainer } from "../misc/icon-container";
-import { Link } from "../misc/link";
-
-import ArrowDownIconSvg from "../../images/arrow-down.svg";
-import ArrowUpIconSvg from "../../images/arrow-up.svg";
-import ProductSwitcherIconSvg from "../../images/th-large.svg";
-import { BoxShadow, IsTablet } from "../../shared-style";
 
 interface DocPageNavigationProperties {
   data: DocPageNavigationFragment;
@@ -213,8 +212,8 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
                 key={product!.path!}
                 to={
                   product!.versions![0]!.path! === ""
-                    ? `/docs/${product!.path!}/`
-                    : `/docs/${product!.path!}/${product!.versions![0]!.path!}/`
+                    ? `/docs/${product!.path!}`
+                    : `/docs/${product!.path!}/${product!.versions![0]!.path!}`
                 }
               >
                 <ProductTitle>{product!.title!}</ProductTitle>
@@ -236,8 +235,8 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
               <ProductVersionLink
                 to={
                   version!.path! === ""
-                    ? `/docs/${activeProduct!.path!}/`
-                    : `/docs/${activeProduct!.path!}/${version!.path!}/`
+                    ? `/docs/${activeProduct!.path!}`
+                    : `/docs/${activeProduct!.path!}/${version!.path!}`
                 }
               >
                 {version!.title}
@@ -280,7 +279,7 @@ function containsActiveItem(selectedPath: string, itemPath: string) {
 }
 
 function isActive(selectedPath: string, itemPath: string) {
-  return itemPath === selectedPath.substring(0, selectedPath.lastIndexOf("/"));
+  return itemPath === selectedPath;
 }
 
 export const DocPageNavigationGraphQLFragment = graphql`

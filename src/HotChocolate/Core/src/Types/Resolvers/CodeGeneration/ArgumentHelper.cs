@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Security.Claims;
 using System.Threading;
 using GreenDonut;
 using HotChocolate.Language;
@@ -129,6 +130,12 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 return true;
             }
 
+            if (parameter.ParameterType == typeof(Path))
+            {
+                argumentKind = ArgumentKind.Path;
+                return true;
+            }
+
             argumentKind = default;
             return false;
         }
@@ -137,6 +144,12 @@ namespace HotChocolate.Resolvers.CodeGeneration
             this ParameterInfo parameter,
             out ArgumentKind argumentKind)
         {
+            if (parameter.ParameterType == typeof(ClaimsPrincipal))
+            {
+                argumentKind = ArgumentKind.Claims;
+                return true;
+            }
+
             if (IsDataLoader(parameter))
             {
                 argumentKind = ArgumentKind.DataLoader;
@@ -154,8 +167,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             }
 #pragma warning restore CS0612
 
-            if (IsService(parameter)
-                || IsScopedService(parameter))
+            if (IsService(parameter) || IsScopedService(parameter))
             {
                 argumentKind = ArgumentKind.Service;
                 return true;

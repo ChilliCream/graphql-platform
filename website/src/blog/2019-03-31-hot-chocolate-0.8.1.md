@@ -20,7 +20,7 @@ This means that we can provide an event that gives full access to our context ob
 
 This enables you to add your own logger to your GraphQL server and grab exactly the information from the Hot Chocolate diagnostic events that you need to make your tracing solution work.
 
-In order to read more on this subject checkout our blog: [Tracing with Hot Chocolate](2019-03-19-logging-with-hotchocolate.md) or head over to our [documentation](https://hotchocolate.io/docs/instrumentation).
+In order to read more on this subject checkout our blog: [Tracing with Hot Chocolate](/blog/2019/03/19/logging-with-hotchocolate) or head over to our [documentation](https://hotchocolate.io/docs/instrumentation).
 
 ## Stitching Refinements
 
