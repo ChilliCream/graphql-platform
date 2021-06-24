@@ -3,6 +3,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Security.Claims;
 using HotChocolate.Utilities;
+using static System.Linq.Expressions.Expression;
+using static HotChocolate.Utilities.NullableHelper;
 
 #nullable enable
 
@@ -24,16 +26,11 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             ParameterInfo parameter,
             Type sourceType)
         {
-            ConstantExpression key = Expression.Constant(nameof(ClaimsPrincipal), typeof(string));
-            MemberExpression contextData = Expression.Property(context, ContextData);
-
-            return Expression.Call(
-                _getGlobalState,
-                contextData,
-                key,
-                Expression.Constant(
-                    NullableHelper.IsParameterNullable(parameter),
-                    typeof(bool)));
+            ConstantExpression key = Constant(nameof(ClaimsPrincipal), typeof(string));
+            MemberExpression contextData = Property(context, ContextData);
+            MethodInfo globalState = _getGlobalState.MakeGenericMethod(parameter.ParameterType);
+            Expression isNullable = Constant(IsParameterNullable(parameter), typeof(bool));
+            return Call(globalState, contextData, key, isNullable);
         }
     }
 }

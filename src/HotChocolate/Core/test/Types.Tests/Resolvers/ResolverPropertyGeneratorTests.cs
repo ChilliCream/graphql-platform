@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -921,6 +922,32 @@ namespace HotChocolate.Resolvers
         }
 
         [Fact]
+        public async Task Compile_GetClaimsPrincipal()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetMethod(nameof(Resolvers.GetClaimsPrincipal));
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember!));
+            var contextData = new Dictionary<string, object>
+            {
+                { nameof(ClaimsPrincipal), new ClaimsPrincipal() }
+            };
+
+            // act
+            FieldResolver resolver = ResolverCompiler.Resolve.Compile(resolverDescriptor);
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.Setup(t => t.ContextData).Returns(contextData);
+            var value = await resolver.Resolver(context.Object);
+            Assert.True(Assert.IsType<bool>(value));
+        }
+
+        [Fact]
         public async Task Compile_GetGlobalState_With_Key()
         {
             // arrange
@@ -1593,6 +1620,8 @@ namespace HotChocolate.Resolvers
                 [State("foo", IsScoped = true, DefaultIfNotExists = true)]
                 string s) => s;
 #pragma warning restore CS0618
+
+            public bool GetClaimsPrincipal(ClaimsPrincipal principal) => principal is not null;
 
             public string GetGlobalStateWithKey(
                 [GlobalState("foo")]
