@@ -20,6 +20,7 @@ type Resolvers {
   resolverWithObjectType: Boolean!
   resolverWithOperationDefinition: Boolean!
   resolverWithOutputField: Boolean!
+  resolverWithPath: Boolean!
   resolverWithResolverContext: Boolean!
   resolverWithSchema: Boolean!
   resolverWithService: Boolean!

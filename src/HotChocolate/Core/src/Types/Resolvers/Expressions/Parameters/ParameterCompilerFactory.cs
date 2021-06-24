@@ -28,6 +28,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             yield return new GetDataLoaderCompiler<T>();
             yield return new GetEventMessageCompiler<T>();
             yield return new GetFieldSelectionCompiler<T>();
+            yield return new GetPathCompiler<T>();
             yield return new GetObjectTypeCompiler<T>();
             yield return new GetOperationCompiler<T>();
             yield return new GetOutputFieldCompiler<T>();
