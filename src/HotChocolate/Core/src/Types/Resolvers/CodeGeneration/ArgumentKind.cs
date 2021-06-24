@@ -17,6 +17,7 @@
         DataLoader,
         DirectiveObject,
         EventMessage,
-        Path
+        Path,
+        Claims
     }
 }
