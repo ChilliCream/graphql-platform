@@ -4,15 +4,14 @@ stages:
   - stage: ubuntu
     displayName: "Ubuntu 20.04"
     dependsOn: []
-    pool:
-      vmImage: "ubuntu-20.04"
+    pool: local-pool
     jobs:
       - job: Test
         displayName: "Test"
         dependsOn: []
         continueOnError: true
         strategy:
-          parallel: 5
+          parallel: 2
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
