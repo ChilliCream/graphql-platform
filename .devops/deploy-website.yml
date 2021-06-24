@@ -7,7 +7,7 @@ steps:
 - task: NodeTool@0
   displayName: 'Install Node.js'
   inputs:
-    versionSpec: '12.x'
+    versionSpec: '14.x'
     checkLatest: true
 
 - task: YarnInstaller@3
@@ -21,12 +21,6 @@ steps:
   inputs:
     projectDirectory: 'website'
     arguments: '--frozen-lockfile'
-
-- task: Yarn@3
-  displayName: 'Run yarn global add gatsby-cli'
-  inputs:
-    projectDirectory: 'website'
-    arguments: 'global add gatsby-cli'
 
 - task: Yarn@3
   displayName: 'Run yarn build'

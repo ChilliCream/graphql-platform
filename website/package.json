@@ -13,7 +13,7 @@
     "url": "https://github.com/ChilliCream/hotchocolate/issues"
   },
   "scripts": {
-    "build": "gatsby build --verbose",
+    "build": "gatsby build",
     "develop": "gatsby develop",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "start": "yarn develop",
