@@ -35,7 +35,7 @@ module.exports = {
     },
   },
   plugins: [
-    `gatsby-plugin-ts`,
+    `gatsby-plugin-graphql-codegen`,
     `gatsby-plugin-styled-components`,
     `gatsby-plugin-react-helmet`,
     `gatsby-remark-reading-time`,
@@ -124,8 +124,9 @@ module.exports = {
       },
     },
     `gatsby-transformer-json`,
-    `gatsby-transformer-sharp`,
+    `gatsby-plugin-image`,
     `gatsby-plugin-sharp`,
+    `gatsby-transformer-sharp`,
     {
       resolve: "gatsby-plugin-web-font-loader",
       options: {
@@ -155,7 +156,7 @@ module.exports = {
     },
     `gatsby-plugin-sitemap`,
     {
-      resolve: `@darth-knoppix/gatsby-plugin-feed`,
+      resolve: `gatsby-plugin-feed`,
       options: {
         baseUrl: `https://chillicream.com`,
         query: `{
@@ -215,7 +216,7 @@ module.exports = {
                 edges {
                   node {
                     excerpt
-                    html
+                    body
                     frontmatter {
                       title
                       author
@@ -224,9 +225,7 @@ module.exports = {
                       path
                       featuredImage {
                         childImageSharp {
-                          fluid(maxWidth: 800, pngQuality: 90) {
-                            src
-                          }
+                          gatsbyImageData(layout: CONSTRAINED, width: 800, pngOptions: { quality: 90 })
                         }
                       }
                     }
@@ -252,7 +251,8 @@ module.exports = {
                 const link = siteUrl + pathPrefix + node.frontmatter.path;
                 let image = node.frontmatter.featuredImage
                   ? siteUrl +
-                    node.frontmatter.featuredImage.childImageSharp.fluid.src
+                    node.frontmatter.featuredImage.childImageSharp
+                      .gatsbyImageData.src
                   : null;
 
                 return {
@@ -262,7 +262,7 @@ module.exports = {
                   date,
                   published: date,
                   description: node.excerpt,
-                  content: node.html.replace(
+                  content: node.body.replace(
                     imgSrcPattern,
                     `${siteUrl}/static/`
                   ),
@@ -276,6 +276,7 @@ module.exports = {
                 };
               }),
             title: "ChilliCream Blog",
+            output: "/rss.xml",
           },
         ],
       },
