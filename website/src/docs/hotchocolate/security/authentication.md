@@ -95,7 +95,7 @@ All of this does not yet lock out unauthenticated users. It only exposes the ide
 
 # Accessing the ClaimsPrincipal
 
-The [ClaimsPrincipal](https://docs.microsoft.com/dotnet/api/system.security.claims.claimsprincipal) of an authenticated user can be accessed in our resolvers through the global state.
+The [ClaimsPrincipal](https://docs.microsoft.com/dotnet/api/system.security.claims.claimsprincipal) of an authenticated user can be accessed in our resolvers like the following.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
@@ -103,7 +103,13 @@ The [ClaimsPrincipal](https://docs.microsoft.com/dotnet/api/system.security.clai
 ```csharp
 public class Query
 {
-    public User GetMe(
+    public User GetMe(ClaimsPrincipal claimsPrincipal)
+    {
+        // Omitted code for brevity
+    }
+
+    // before v11.3.1
+    public User GetMeLegacy(
         [GlobalState(nameof(ClaimsPrincipal))] ClaimsPrincipal claimsPrincipal)
     {
         // Omitted code for brevity
@@ -123,6 +129,8 @@ public class QueryType : ObjectType
             .Field("me")
             .Resolve(context =>
             {
+                var claimsPrincipal = context.GetUser();
+                // before v11.3.1
                 var claimsPrincipal = context.GetGlobalValue<ClaimsPrincipal>(
                                         nameof(ClaimsPrincipal));
 
@@ -141,15 +149,18 @@ services
     .AddDocumentFromString(@"
         type Query {
           me: User
+          meLegacy: User
         }
     ")
     .AddResolver("Query", "me", (context) =>
     {
+        var claimsPrincipal = context.GetUser();
+        // before v11.3.1
         var claimsPrincipal = context.GetGlobalValue<ClaimsPrincipal>(
                                         nameof(ClaimsPrincipal));
 
         // Omitted code for brevity
-    });
+    })
 ```
 
 </ExampleTabs.Schema>
