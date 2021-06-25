@@ -144,7 +144,7 @@ namespace HotChocolate.Types
                 }
                 else
                 {
-                    _isOfType = IsOfTypeWithClrType;
+                    _isOfType = IsOfTypeWithRuntimeType;
                 }
             }
         }
@@ -164,17 +164,10 @@ namespace HotChocolate.Types
             return !hasErrors;
         }
 
-        private bool IsOfTypeWithClrType(
+        private bool IsOfTypeWithRuntimeType(
             IResolverContext context,
-            object? result)
-        {
-            if (result is null)
-            {
-                return true;
-            }
-
-            return RuntimeType.IsInstanceOfType(result);
-        }
+            object? result) =>
+            result is null || RuntimeType == result.GetType();
 
         private bool IsOfTypeWithName(
             IResolverContext context,
