@@ -371,12 +371,28 @@ TODO: How is this done in Code-first?
 
 ## IHttpContextAccessor
 
-Like any other service we can also inject the `IHttpContextAccessor` into our resolver. This is useful, if we for example need to set a header or cookie.
+The [IHttpContextAccessor](https://docs.microsoft.com/dotnet/api/microsoft.aspnetcore.http.ihttpcontextaccessor) allows us to access the [HttpContext](https://docs.microsoft.com/dotnet/api/microsoft.aspnetcore.http.httpcontext) of the current request from within our resolvers. This is useful, if we for example need to set a header or cookie.
+
+First we need to add the `IHttpContextAccessor` as a service.
+
+```csharp
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services.AddHttpContextAccessor();
+
+        // Omitted code for brevity
+    }
+}
+```
+
+After this we can inject it into our resolvers and make use of the the `HttpContext` property.
 
 ```csharp
 public string Foo(string id, [Service] IHttpContextAccessor httpContextAccessor)
 {
-    if (httpContextAccessor.HttpContext != null)
+    if (httpContextAccessor.HttpContext is not null)
     {
         // Omitted code for brevity
     }
