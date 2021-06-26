@@ -462,6 +462,19 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public async Task ObjectTypeExtension_InheritableAttribute()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType()
+                .AddTypeExtension<InheritedObjectTypeExtension>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
         public void BindByType()
         {
             // arrange
@@ -909,6 +922,16 @@ namespace HotChocolate.Types
         {
             [BindMember(nameof(ObjectField_Test_Query.GetFoo))]
             public string GetFoo1() => null;
+        }
+
+        [ExtendObjectType(OperationTypeNames.Query)]
+        public class ObjectTypeExtensionBase
+        {
+        }
+
+        public class InheritedObjectTypeExtension : ObjectTypeExtensionBase
+        {
+            public string Foo => "Inherited";
         }
     }
 }
