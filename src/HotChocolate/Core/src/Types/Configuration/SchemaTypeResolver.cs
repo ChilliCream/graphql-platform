@@ -131,16 +131,16 @@ namespace HotChocolate.Configuration
         private static bool IsObjectType(ExtendedTypeReference unresolvedType)
         {
             return (IsComplexType(unresolvedType)
-                || unresolvedType.Type.Type.IsDefined(typeof(ObjectTypeAttribute), false))
+                || unresolvedType.Type.Type.IsDefined(typeof(ObjectTypeAttribute), true))
                 && unresolvedType.Context is TypeContext.Output or TypeContext.None;
         }
 
         private static bool IsObjectTypeExtension(ExtendedTypeReference unresolvedType) =>
-            unresolvedType.Type.Type.IsDefined(typeof(ExtendObjectTypeAttribute), false);
+            unresolvedType.Type.Type.IsDefined(typeof(ExtendObjectTypeAttribute), true);
 
         private static bool IsUnionType(ExtendedTypeReference unresolvedType)
         {
-            return unresolvedType.Type.Type.IsDefined(typeof(UnionTypeAttribute), false)
+            return unresolvedType.Type.Type.IsDefined(typeof(UnionTypeAttribute), true)
                 && unresolvedType.Context is TypeContext.Output or TypeContext.None;
         }
 
@@ -154,7 +154,7 @@ namespace HotChocolate.Configuration
         private static bool IsInputObjectType(ExtendedTypeReference unresolvedType)
         {
             return (IsComplexType(unresolvedType)
-                || unresolvedType.Type.Type.IsDefined(typeof(InputObjectTypeAttribute), false))
+                || unresolvedType.Type.Type.IsDefined(typeof(InputObjectTypeAttribute), true))
                 && !unresolvedType.Type.Type.IsAbstract
                 && unresolvedType.Context == TypeContext.Input;
         }
@@ -162,7 +162,7 @@ namespace HotChocolate.Configuration
         private static bool IsEnumType(ExtendedTypeReference unresolvedType)
         {
             return (unresolvedType.Type.Type.IsEnum
-                || unresolvedType.Type.Type.IsDefined(typeof(EnumTypeAttribute), false))
+                || unresolvedType.Type.Type.IsDefined(typeof(EnumTypeAttribute), true))
                 && IsPublic(unresolvedType);
         }
 
