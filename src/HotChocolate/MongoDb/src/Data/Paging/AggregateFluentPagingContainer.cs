@@ -9,16 +9,18 @@ namespace HotChocolate.Data.MongoDb.Paging
     internal class AggregateFluentPagingContainer<TEntity> : IMongoPagingContainer<TEntity>
     {
         public readonly IAggregateFluent<TEntity> _source;
+        private readonly IAggregateFluent<AggregateCountResult> _countSource;
 
         public AggregateFluentPagingContainer(IAggregateFluent<TEntity> source)
         {
+            // This is the only way to somewhat clone the IAggregateFluent
+            _countSource = source.Count();
             _source = source;
         }
 
         public async Task<int> CountAsync(CancellationToken cancellationToken)
         {
-            AggregateCountResult result = await _source
-                .Count()
+            AggregateCountResult result = await _countSource
                 .FirstOrDefaultAsync(cancellationToken)
                 .ConfigureAwait(false);
 

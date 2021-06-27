@@ -181,6 +181,25 @@ namespace HotChocolate.Data.MongoDb.Paging
             result.MatchDocumentSnapshot();
         }
 
+        [Fact]
+        public async Task TotalCount_AndFirst()
+        {
+            Snapshot.FullName();
+
+            IRequestExecutor executor = await CreateSchemaAsync();
+
+
+            IExecutionResult result = await executor
+                .ExecuteAsync(
+                    @"
+                {
+                    foos(first:1) {
+                        totalCount
+                    }
+                }");
+            result.MatchDocumentSnapshot();
+        }
+
         public class Foo
         {
             [BsonId]
