@@ -33,7 +33,7 @@ public class Startup
 }
 ```
 
-> ⚠️ Note: We need to call `AddAuthorization()` on the `IRequestExecutorBuilder` and the `IServiceCollection`.
+> ⚠️ Note: We need to call `AddAuthorization()` on the `IServiceCollection`, to register the services needed by ASP.NET Core, and on the `IRequestExecutorBuilder` to register the `@authorize` directive and middleware.
 
 2. Register the `UseAuthorization` middleware with the request pipeline
 
@@ -121,7 +121,7 @@ When building our `ClaimsPrincipal`, we just have to add one or more role claims
 claims.Add(new Claim(ClaimTypes.Role, "Administrator"));
 ```
 
-We can then really easily check, whether an authenticated user has these role claims.
+We can then check, whether an authenticated user has these role claims.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
@@ -171,9 +171,40 @@ type User @authorize(roles: [ "Guest", "Administrator" ]) {
 
 ## Policies
 
-TODO: Test
-
 Policies allow us to create richer validation logic and decouple the authorization rules from our GraphQL resolvers.
+
+A policy consists of an [IAuthorizationRequirement](https://docs.microsoft.com/aspnet/core/security/authorization/policies#requirements) and an [AuthorizationHandler&#x3C;T&#x3E;](https://docs.microsoft.com/aspnet/core/security/authorization/policies#authorization-handlers).
+
+Once defined, we can register our policies like the following.
+
+```csharp
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy("AtLeast21", policy =>
+                policy.Requirements.Add(new MinimumAgeRequirement(21)));
+
+            options.AddPolicy("HasCountry", policy =>
+                policy.RequireAssertion(context =>
+                    context.User.HasClaim(c => c.Type == ClaimTypes.Country)));
+        });
+
+        services.AddSingleton<IAuthorizationHandler, MinimumAgeHandler>();
+
+        // Omitted code for brevity
+
+        services
+            .AddGraphQLServer()
+            .AddAuthorization()
+            .AddQueryType<Query>();
+    }
+}
+```
+
+When can then use these policies to restrict access to our fields.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
@@ -217,57 +248,68 @@ type User @authorize(policy: "AllEmployees") {
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-<!-- Policy-based authorization in ASP.NET Core does not any longer prescribe us in which way we describe our requirements. Now, with policy-based authorization we could just say that a certain field can only be accessed if the user is 21 or older or that a user did provide his passport as evidence of his/her identity.
+This essentially uses the provided policy and runs it against the `ClaimsPrinciple` that is associated with the current request.
 
-So, in order to define those requirements we can define policies that essentially describe and validate our requirements and the rules that enforce them.
+The `@authorize` directive is also repeatable, which means that we are able to chain the directive and a user is only allowed to access the field, if he meets all of the specified conditions.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
 ```csharp
-services.AddAuthorization(options =>
+[Authorize(Policy = "AtLeast21")]
+[Authorize(Policy = "HasCountry")]
+public class User
 {
-    options.AddPolicy("HasCountry", policy =>
-        policy.RequireAssertion(context =>
-            context.User.HasClaim(c => (c.Type == ClaimTypes.Country))));
-});
+    public string Name { get; set; }
+}
 ```
 
-One important aspect with policies is also that we are passing the resolver context as resource into the policy so that we have access to all the data of our resolver.
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
 
 ```csharp
-public class SalesDepartmentAuthorizationHandler
-    :  AuthorizationHandler<SalesDepartmentRequirement, IResolverContext>
+public class UserType : ObjectType<User>
+{
+    protected override Configure(IObjectTypeDescriptor<User> descriptor)
+    {
+        descriptor
+            .Authorize("AtLeast21")
+            .Authorize("HasCountry");
+    }
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+```sdl
+type User
+	@authorize(policy: "AtLeast21")
+	@authorize(policy: "HasCountry") {
+	name: String!
+}
+```
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+### IResolverContext within an AuthorizationHandler
+
+If we need to, we can also access the `IResolverContext` in our `AuthorizationHandler`.
+
+```csharp
+public class MinimumAgeHandler
+    : AuthorizationHandler<MinimumAgeRequirement, IResolverContext>
 {
     protected override Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
-        SalesDepartmentRequirement requirement,
-        IResolverContext resource)
+        MinimumAgeRequirement requirement,
+        IResolverContext resolverContext)
     {
-        if (context.User.HasClaim(...))
-        {
-            context.Succeed(requirement);
-        }
-
-        return Task.CompletedTask;
+        // Omitted code for brevity
     }
 }
-
-public class SalesDepartmentRequirement : IAuthorizationRequirement { }
-
-services.AddAuthorization(options =>
-{
-    options.AddPolicy("SalesDepartment",
-        policy => policy.Requirements.Add(new SalesDepartmentRequirement()));
-});
-
-services.AddSingleton<IAuthorizationHandler, SalesDepartmentAuthorizationHandler>();
 ```
-
-The `@authorize`-directive essentially uses the provided policy and runs it against the `ClaimsPrinciple` that is associated with the current request. -->
-
-TODO: Examples for the below
-
-The `@authorize`-directive is repeatable, that means that we are able to chain the directives and only if all annotated conditions are true will we gain access to the data of the annotated field.
-
-[Learn more about policy-based authorization in ASP.NET Core](https://docs.microsoft.com/aspnet/core/security/authorization/policies)
 
 ## Global authorization
 
@@ -295,7 +337,7 @@ public class Startup
 
 This method also accepts [roles](#roles) and [policies](#policies) as arguments, similiar to the `Authorize` attribute / methods.
 
-## Adding claims dynamically
+<!-- ## Adding claims dynamically
 
 TODO: Rework and test
 
@@ -313,8 +355,4 @@ services.AddQueryRequestInterceptor((ctx, builder, ct) =>
 });
 ```
 
-The `OnCreateRequestAsync`-delegate can be used for many other things and is not really for authorization but can be useful in dev-scenarios where we want to simulate a certain user etc..
-
-# Decoupling authorization
-
-TODO
+The `OnCreateRequestAsync`-delegate can be used for many other things and is not really for authorization but can be useful in dev-scenarios where we want to simulate a certain user etc.. -->

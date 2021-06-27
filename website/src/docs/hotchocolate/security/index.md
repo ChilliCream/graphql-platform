@@ -6,13 +6,13 @@ When we think about API security, we, in many cases, only think about authorizat
 
 # Authentication
 
-TODO
+Authentication in Hot Chocolate is built around the official authentication mechanisms in ASP.NET Core, allowing us to fully embrace their customizability and variety of authentication providers.
 
 [Learn more about authentication](/docs/hotchocolate/security/authentication)
 
 # Authorization
 
-Authorization is one of the most basic security concepts. With authorization, you can limit what data people can fetch. Hot Chocolate integrates with the ASP.NET Core authorization policies, which can be applied to fields.
+Authorization is one of the most basic security concepts. It builds on top of authentication and allows us to restrict access to types and fields, based on whether a user is authenticated, assigned specific roles or satisfies one or more policies. Hot Chocolate closely matches and nicely integrates with the official ASP.NET Core authorization APIs.
 
 [Learn more about authorization](/docs/hotchocolate/security/authorization)
 
