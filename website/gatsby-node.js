@@ -124,7 +124,7 @@ exports.onCreateNode = async ({ node, actions, getNode, reporter }) => {
   }
 
   // if the path is defined on the frontmatter (like for posts) use that as slug
-  let path = node.frontmatter?.path;
+  let path = node.frontmatter && node.frontmatter.path;
 
   if (!path) {
     path = createFilePath({ node, getNode });
@@ -132,7 +132,7 @@ exports.onCreateNode = async ({ node, actions, getNode, reporter }) => {
     const parent = getNode(node.parent);
 
     // if the current file is emitted from the docs directory
-    if (parent?.sourceInstanceName === "docs") {
+    if (parent && parent.sourceInstanceName === "docs") {
       path = "/docs" + path;
     }
 
@@ -154,7 +154,7 @@ exports.onCreateNode = async ({ node, actions, getNode, reporter }) => {
   if (process.env.NODE_ENV === "production") {
     try {
       const result = await getGitLog(node.fileAbsolutePath);
-      const data = result.latest;
+      const data = result.latest || {};
 
       if (data.authorName) {
         authorName = data.authorName;

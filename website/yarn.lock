@@ -9402,13 +9402,6 @@ gatsby-remark-autolink-headers@^4.3.0:
     mdast-util-to-string "^2.0.0"
     unist-util-visit "^2.0.3"
 
-gatsby-remark-check-links@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/gatsby-remark-check-links/-/gatsby-remark-check-links-2.1.0.tgz#8e8a2b1b82ac6c516fcc2074e8f806e2c0d53571"
-  integrity sha512-TbhT8oVlAgJfxe0WUQWDOb0kLkMUYo1N4AfFstejClPWO4OjRlznt3IMW3weQkwuweiovF5cxVpQcFrkCGVFBw==
-  dependencies:
-    unist-util-visit "^1.4.1"
-
 gatsby-remark-images@^5.3.0:
   version "5.3.0"
   resolved "https://registry.yarnpkg.com/gatsby-remark-images/-/gatsby-remark-images-5.3.0.tgz#06736580accb8b53bcca89d631840b568fac9737"
