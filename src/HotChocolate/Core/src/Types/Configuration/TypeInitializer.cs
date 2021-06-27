@@ -224,22 +224,17 @@ namespace HotChocolate.Configuration
         private void RegisterImplicitInterfaceDependencies()
         {
             var withRuntimeType = _typeRegistry.Types
-                .Where(t => !t.IsIntrospectionType && t.RuntimeType != typeof(object))
+                .Where(t => t.RuntimeType != typeof(object))
                 .Distinct()
                 .ToList();
 
             var interfaceTypes = withRuntimeType
-                .Where(t => t.Kind is TypeKind.Interface)
+                .Where(t => t.Type is InterfaceType)
                 .Distinct()
                 .ToList();
 
-            if (interfaceTypes.Count == 0)
-            {
-                return;
-            }
-
             var objectTypes = withRuntimeType
-                .Where(t => t.Kind is TypeKind.Object)
+                .Where(t => t.Type is ObjectType)
                 .Distinct()
                 .ToList();
 
@@ -251,10 +246,12 @@ namespace HotChocolate.Configuration
                 {
                     if (interfaceType.RuntimeType.IsAssignableFrom(objectType.RuntimeType))
                     {
-                        ITypeReference typeReference =
-                            _typeInspector.GetOutputTypeRef(interfaceType.RuntimeType);
-                        ((ObjectType)objectType.Type).Definition!.Interfaces.Add(typeReference);
-                        dependencies.Add(new(typeReference, TypeDependencyKind.Completed));
+                        dependencies.Add(
+                            new TypeDependency(
+                                _typeInspector.GetTypeRef(
+                                    interfaceType.RuntimeType,
+                                    TypeContext.Output),
+                                TypeDependencyKind.Completed));
                     }
                 }
 
@@ -347,8 +344,10 @@ namespace HotChocolate.Configuration
 
                 foreach (var extension in extensions.Except(processed))
                 {
-                    if (extension.Type is INamedTypeExtension {
-                        ExtendsType: { } extendsType } namedTypeExtension)
+                    if (extension.Type is INamedTypeExtension
+                        {
+                            ExtendsType: { } extendsType
+                        } namedTypeExtension)
                     {
                         var isSchemaType = typeof(INamedType).IsAssignableFrom(extendsType);
                         extensionArray[0] = extension;

@@ -147,7 +147,7 @@ namespace HotChocolate.Configuration
         private static bool IsInterfaceType(ExtendedTypeReference unresolvedType)
         {
             return (unresolvedType.Type.IsInterface
-                || unresolvedType.Type.Type.IsDefined(typeof(InterfaceTypeAttribute), false))
+                || unresolvedType.Type.Type.IsDefined(typeof(InterfaceTypeAttribute), true))
                 && unresolvedType.Context is TypeContext.Output or TypeContext.None;
         }
 

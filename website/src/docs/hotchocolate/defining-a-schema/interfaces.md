@@ -81,7 +81,7 @@ public class Startup
 }
 ```
 
-We can also use classes to define an interface.
+<!-- We can also use classes to define an interface.
 
 ```csharp
 [InterfaceType]
@@ -107,7 +107,7 @@ public class Startup
             .AddType<TextMessage>();
     }
 }
-```
+``` -->
 
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
