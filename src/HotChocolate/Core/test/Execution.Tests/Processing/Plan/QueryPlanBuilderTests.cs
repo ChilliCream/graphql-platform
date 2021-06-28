@@ -2,6 +2,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
@@ -134,7 +135,7 @@ namespace HotChocolate.Execution.Processing.Plan
                     document,
                     operationDefinition,
                     schema,
-                    schema.MutationType);
+                    schema.MutationType!);
 
             // act
             QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
@@ -176,7 +177,7 @@ namespace HotChocolate.Execution.Processing.Plan
                     document,
                     operationDefinition,
                     schema,
-                    schema.MutationType);
+                    schema.MutationType!);
 
             // act
             QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
@@ -223,7 +224,7 @@ namespace HotChocolate.Execution.Processing.Plan
                     document,
                     operationDefinition,
                     schema,
-                    schema.MutationType);
+                    schema.MutationType!);
 
             // act
             QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
@@ -302,8 +303,76 @@ namespace HotChocolate.Execution.Processing.Plan
             Snapshot(root, defaultStrategy);
         }
 
+        [InlineData(ExecutionStrategy.Parallel)]
+        [InlineData(ExecutionStrategy.Serial)]
+        [Theory]
+        public void ExtendedTypeByTypeWillHonorSerialAttribute(ExecutionStrategy defaultStrategy)
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .AddType<BarQueries1>()
+                .AddType<FooExtensions>()
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                @"{
+                    bars { foo }
+                }");
+
+            OperationDefinitionNode operationDefinition =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+            IPreparedOperation operation =
+                OperationCompiler.Compile(
+                    "a",
+                    document,
+                    operationDefinition,
+                    schema,
+                    schema.QueryType);
+
+            // act
+            QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
+
+            // assert
+            Snapshot(root, defaultStrategy);
+        }
+
+        [InlineData(ExecutionStrategy.Parallel)]
+        [InlineData(ExecutionStrategy.Serial)]
+        [Theory]
+        public void ParallelAttributeWillBeHonored(ExecutionStrategy defaultStrategy)
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<ParallelQuery>()
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                @"{
+                    foo
+                }");
+
+            OperationDefinitionNode operationDefinition =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+            IPreparedOperation operation =
+                OperationCompiler.Compile(
+                    "a",
+                    document,
+                    operationDefinition,
+                    schema,
+                    schema.QueryType);
+
+            // act
+            QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
+
+            // assert
+            Snapshot(root, defaultStrategy);
+        }
+
         private static void Snapshot(
-            QueryPlanNode node, 
+            QueryPlanNode node,
             ExecutionStrategy strategy = ExecutionStrategy.Parallel)
         {
             var options = new JsonWriterOptions { Indented = true };
@@ -319,16 +388,42 @@ namespace HotChocolate.Execution.Processing.Plan
         }
 
         [ExtendObjectType(OperationTypeNames.Query)]
-        public class FooQueries 
+        public class FooQueries
         {
             [Serial]
             public IQueryable<string> GetFoos() => new [] { "a", "b" }.AsQueryable();
         }
 
         [ExtendObjectType(OperationTypeNames.Query)]
-        public class BarQueries 
+        public class BarQueries
         {
             public IQueryable<string> GetBars() => new [] { "a", "b" }.AsQueryable();
+        }
+
+        public class Query { }
+
+        [ExtendObjectType(typeof(Query))]
+        public class BarQueries1
+        {
+            public IQueryable<Foo> GetBars() => new [] { new Foo(), new Foo() }.AsQueryable();
+        }
+
+        public class Foo
+        {
+
+        }
+
+        [ExtendObjectType(typeof(Foo))]
+        public class FooExtensions
+        {
+            [Serial]
+            public Task<string> GetFooAsync() => Task.FromResult("baz");
+        }
+
+        public class ParallelQuery
+        {
+            [Parallel]
+            public Task<string> GetFooAsync() => Task.FromResult("Foo");
         }
     }
 }
