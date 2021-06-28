@@ -19,7 +19,8 @@ namespace HotChocolate.Execution.Pipeline
             validator.Setup(t => t.Validate(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
-                It.IsAny<IDictionary<string, object>>()))
+                It.IsAny<IDictionary<string, object>>(),
+                It.IsAny<bool>()))
                 .Returns(DocumentValidatorResult.Ok);
 
             var middleware = new DocumentValidationMiddleware(
@@ -56,7 +57,8 @@ namespace HotChocolate.Execution.Pipeline
             validator.Setup(t => t.Validate(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
-                It.IsAny<IDictionary<string, object>>()))
+                It.IsAny<IDictionary<string, object>>(),
+                It.IsAny<bool>()))
                 .Returns(DocumentValidatorResult.Ok);
 
             var middleware = new DocumentValidationMiddleware(
@@ -96,7 +98,8 @@ namespace HotChocolate.Execution.Pipeline
             validator.Setup(t => t.Validate(
                     It.IsAny<ISchema>(),
                     It.IsAny<DocumentNode>(),
-                    It.IsAny<IDictionary<string, object>>()))
+                    It.IsAny<IDictionary<string, object>>(),
+                    It.IsAny<bool>()))
                 .Returns(validationResult);
 
             var middleware = new DocumentValidationMiddleware(
@@ -135,7 +138,8 @@ namespace HotChocolate.Execution.Pipeline
             validator.Setup(t => t.Validate(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
-                It.IsAny<IDictionary<string, object>>()))
+                It.IsAny<IDictionary<string, object>>(),
+                It.IsAny<bool>()))
                 .Returns(DocumentValidatorResult.Ok);
 
             var middleware = new DocumentValidationMiddleware(
