@@ -4,7 +4,9 @@ using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
 namespace HotChocolate.Types.Spatial
 {
-    public sealed class GeoJsonMultiPointType : ObjectType<MultiPoint>
+    public sealed class GeoJsonMultiPointType
+        : ObjectType<MultiPoint>
+        , IGeoJsonObjectType
     {
         protected override void Configure(IObjectTypeDescriptor<MultiPoint> descriptor)
         {

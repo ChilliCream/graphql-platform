@@ -35,7 +35,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_ShortEqual_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -64,7 +64,7 @@ namespace HotChocolate.Data.Filters
         [Fact]
         public async Task Create_ShortNotEqual_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -93,7 +93,7 @@ namespace HotChocolate.Data.Filters
         [Fact]
         public async Task Create_ShortGreaterThan_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -129,7 +129,7 @@ namespace HotChocolate.Data.Filters
         [Fact]
         public async Task Create_ShortNotGreaterThan_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -166,7 +166,7 @@ namespace HotChocolate.Data.Filters
         [Fact]
         public async Task Create_ShortGreaterThanOrEquals_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -202,7 +202,7 @@ namespace HotChocolate.Data.Filters
         [Fact]
         public async Task Create_ShortNotGreaterThanOrEquals_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -238,7 +238,7 @@ namespace HotChocolate.Data.Filters
         [Fact]
         public async Task Create_ShortLowerThan_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -274,7 +274,7 @@ namespace HotChocolate.Data.Filters
         [Fact]
         public async Task Create_ShortNotLowerThan_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -311,7 +311,7 @@ namespace HotChocolate.Data.Filters
         [Fact]
         public async Task Create_ShortLowerThanOrEquals_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -347,7 +347,7 @@ namespace HotChocolate.Data.Filters
         [Fact]
         public async Task Create_ShortNotLowerThanOrEquals_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -383,7 +383,7 @@ namespace HotChocolate.Data.Filters
         [Fact]
         public async Task Create_ShortIn_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             IExecutionResult? res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -410,7 +410,7 @@ namespace HotChocolate.Data.Filters
         [Fact]
         public async Task Create_ShortNotIn_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             IExecutionResult? res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -439,7 +439,7 @@ namespace HotChocolate.Data.Filters
         {
             // arrange
             IRequestExecutor? tester =
-                _cache.CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+                _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
             // act
             // assert
@@ -469,7 +469,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_ShortNullableNotEqual_Expression()
         {
             IRequestExecutor? tester =
-                _cache.CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+                _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
             // act
             // assert
@@ -500,7 +500,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_ShortNullableGreaterThan_Expression()
         {
             IRequestExecutor? tester =
-                _cache.CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+                _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
             // act
             // assert
@@ -537,7 +537,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_ShortNullableNotGreaterThan_Expression()
         {
             IRequestExecutor? tester =
-                _cache.CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+                _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
             // act
             // assert
@@ -575,7 +575,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_ShortNullableGreaterThanOrEquals_Expression()
         {
             IRequestExecutor? tester =
-                _cache.CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+                _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
             // act
             // assert
@@ -612,7 +612,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_ShortNullableNotGreaterThanOrEquals_Expression()
         {
             IRequestExecutor? tester =
-                _cache.CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+                _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
             // act
             // assert
@@ -649,7 +649,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_ShortNullableLowerThan_Expression()
         {
             IRequestExecutor? tester =
-                _cache.CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+                _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
             // act
             // assert
@@ -686,7 +686,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_ShortNullableNotLowerThan_Expression()
         {
             IRequestExecutor? tester =
-                _cache.CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+                _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
             // act
             // assert
@@ -724,7 +724,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_ShortNullableLowerThanOrEquals_Expression()
         {
             IRequestExecutor? tester =
-                _cache.CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+                _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
             // act
             // assert
@@ -761,7 +761,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_ShortNullableNotLowerThanOrEquals_Expression()
         {
             IRequestExecutor? tester =
-                _cache.CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+                _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
             // act
             // assert
@@ -798,7 +798,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_ShortNullableIn_Expression()
         {
             IRequestExecutor? tester =
-                _cache.CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+                _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
             IExecutionResult? res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -826,7 +826,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_ShortNullableNotIn_Expression()
         {
             IRequestExecutor? tester =
-                _cache.CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
+                _cache.CreateSchema<FooNullable, FooNullableFilterInput>(_fooNullableEntities);
 
             IExecutionResult? res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -873,12 +873,12 @@ namespace HotChocolate.Data.Filters
             public short? BarShort { get; set; }
         }
 
-        public class FooFilterType
+        public class FooFilterInput
             : FilterInputType<Foo>
         {
         }
 
-        public class FooNullableFilterType
+        public class FooNullableFilterInput
             : FilterInputType<FooNullable>
         {
         }

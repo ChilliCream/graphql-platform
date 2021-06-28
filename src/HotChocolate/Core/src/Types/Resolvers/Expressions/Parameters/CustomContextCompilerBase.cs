@@ -14,7 +14,7 @@ using System;
                      nameof(IResolverContext.ContextData));
              ScopedContextData = ContextTypeInfo.GetDeclaredProperty(
                  nameof(IResolverContext.ScopedContextData));
-            LocalContextData = ContextTypeInfo.GetDeclaredProperty(
+             LocalContextData = ContextTypeInfo.GetDeclaredProperty(
                  nameof(IResolverContext.LocalContextData));
          }
 

@@ -7,8 +7,8 @@ using HotChocolate.Properties;
 namespace HotChocolate.Types
 {
     public abstract class FloatTypeBase<TRuntimeType>
-       : ScalarType<TRuntimeType>
-       where TRuntimeType : IComparable
+        : ScalarType<TRuntimeType>
+        where TRuntimeType : IComparable
     {
         protected FloatTypeBase(
             NameString name,
@@ -53,6 +53,22 @@ namespace HotChocolate.Types
             return false;
         }
 
+        /// <inheritdoc />
+        public sealed override bool IsInstanceOfType(object? runtimeValue)
+        {
+            if (runtimeValue is null)
+            {
+                return true;
+            }
+
+            if (runtimeValue is TRuntimeType t)
+            {
+                return IsInstanceOfType(t);
+            }
+
+            return false;
+        }
+
         protected virtual bool IsInstanceOfType(IFloatValueLiteral valueSyntax)
         {
             return IsInstanceOfType(ParseLiteral(valueSyntax));
@@ -80,7 +96,7 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            if (valueSyntax is FloatValueNode floatLiteral)
+            if (valueSyntax is FloatValueNode floatLiteral && IsInstanceOfType(floatLiteral))
             {
                 return ParseLiteral(floatLiteral);
             }
@@ -89,14 +105,12 @@ namespace HotChocolate.Types
             // from IntValueNode and FloatValueNode:
             // http://facebook.github.io/graphql/June2018/#sec-Float
 
-            if (valueSyntax is IntValueNode intLiteral)
+            if (valueSyntax is IntValueNode intLiteral && IsInstanceOfType(intLiteral))
             {
                 return ParseLiteral(intLiteral);
             }
 
-            throw new SerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
-                this);
+            throw CreateParseLiteralError(valueSyntax);
         }
 
         protected abstract TRuntimeType ParseLiteral(IFloatValueLiteral valueSyntax);
@@ -113,9 +127,7 @@ namespace HotChocolate.Types
                 return ParseValue(casted);
             }
 
-            throw new SerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseValue(Name, runtimeValue.GetType()),
-                this);
+            throw CreateParseValueError(runtimeValue);
         }
 
         protected abstract FloatValueNode ParseValue(TRuntimeType runtimeValue);
@@ -138,9 +150,7 @@ namespace HotChocolate.Types
                 return ParseValue(c);
             }
 
-            throw new SerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
-                this);
+            throw CreateParseResultError(resultValue);
         }
 
         public override bool TrySerialize(object? runtimeValue, out object? resultValue)
@@ -185,6 +195,57 @@ namespace HotChocolate.Types
 
             runtimeValue = null;
             return false;
+        }
+
+        /// <summary>
+        /// Creates the exception that will be thrown when <see cref="ParseLiteral"/> encountered an
+        /// invalid <see cref="IValueNode "/>
+        /// </summary>
+        /// <param name="valueSyntax">
+        /// The value syntax that should be parsed
+        /// </param>
+        /// <returns>
+        /// The created exception that should be thrown
+        /// </returns>
+        protected virtual SerializationException CreateParseValueError(object runtimeValue)
+        {
+            return new(
+                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, runtimeValue.GetType()),
+                this);
+        }
+
+        /// <summary>
+        /// Creates the exception that will be thrown when <see cref="ParseLiteral"/> encountered an
+        /// invalid <see cref="IValueNode "/>
+        /// </summary>
+        /// <param name="valueSyntax">
+        /// The value syntax that should be parsed
+        /// </param>
+        /// <returns>
+        /// The created exception that should be thrown
+        /// </returns>
+        protected virtual SerializationException CreateParseLiteralError(IValueNode valueSyntax)
+        {
+            return new(
+                TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
+                this);
+        }
+
+        /// <summary>
+        /// Creates the exception that will be thrown when <see cref="ParseResult"/> encountered an
+        /// invalid value
+        /// </summary>
+        /// <param name="runtimeValue">
+        /// The runtimeValue that should be parsed
+        /// </param>
+        /// <returns>
+        /// The created exception that should be thrown
+        /// </returns>
+        protected virtual SerializationException CreateParseResultError(object runtimeValue)
+        {
+            return new(
+                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, runtimeValue.GetType()),
+                this);
         }
     }
 }

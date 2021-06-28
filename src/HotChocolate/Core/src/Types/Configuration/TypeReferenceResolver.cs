@@ -13,7 +13,7 @@ namespace HotChocolate.Configuration
 {
     internal sealed class TypeReferenceResolver
     {
-        private readonly Dictionary<TypeId, IType> _typeCache = new Dictionary<TypeId, IType>();
+        private readonly Dictionary<TypeId, IType> _typeCache = new();
         private readonly ITypeInspector _typeInspector;
         private readonly TypeRegistry _typeRegistry;
         private readonly TypeLookup _typeLookup;
@@ -42,6 +42,12 @@ namespace HotChocolate.Configuration
             if (typeRef is null)
             {
                 throw new ArgumentNullException(nameof(typeRef));
+            }
+
+            if (typeRef is SchemaTypeReference { Type: IType schemaType })
+            {
+                type = schemaType;
+                return true;
             }
 
             if (!_typeLookup.TryNormalizeReference(typeRef, out ITypeReference? namedTypeRef))
@@ -76,10 +82,6 @@ namespace HotChocolate.Configuration
                 case SyntaxTypeReference r:
                     type = CreateType(namedType, r.Type);
                     return true;
-
-                case SchemaTypeReference r:
-                    type = ReferenceEquals(r.Type, namedType) ? namedType : null;
-                    return type is not null;
 
                 default:
                     throw new NotSupportedException();

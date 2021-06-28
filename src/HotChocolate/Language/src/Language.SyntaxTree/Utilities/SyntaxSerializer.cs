@@ -2,7 +2,7 @@ namespace HotChocolate.Language.Utilities
 {
     public sealed partial class SyntaxSerializer
     {
-        private bool _indented;
+        private readonly bool _indented;
 
         public SyntaxSerializer(SyntaxSerializerOptions options = default)
         {

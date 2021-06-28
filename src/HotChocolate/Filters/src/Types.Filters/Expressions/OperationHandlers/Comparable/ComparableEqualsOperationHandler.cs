@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public sealed class ComparableEqualsOperationHandler
         : ComparableOperationHandlerBase
     {

@@ -37,13 +37,13 @@ namespace HotChocolate.AspNetCore.Authorization
 
         private AuthorizeDirective CreateDirective()
         {
-            if (Policy is { })
+            if (Policy is not null)
             {
                 return new AuthorizeDirective(
                     Policy,
                     apply: Apply);
             }
-            else if (Roles is { })
+            else if (Roles is not null)
             {
                 return new AuthorizeDirective(
                     Roles,

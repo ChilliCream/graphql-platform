@@ -17,8 +17,7 @@ using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class ObjectTypeTests
-        : TypeTestBase
+    public class ObjectTypeTests : TypeTestBase
     {
         [Fact]
         public void ObjectType_DynamicName()
@@ -99,7 +98,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void IntializeExplicitFieldWithImplicitResolver()
+        public void InitializeExplicitFieldWithImplicitResolver()
         {
             // arrange
             // act
@@ -157,7 +156,7 @@ namespace HotChocolate.Types
 
         [Obsolete]
         [Fact]
-        public void DeprecationReasion_Obsolete()
+        public void DeprecationReason_Obsolete()
         {
             // arrange
             var resolverContext = new Mock<IMiddlewareContext>();
@@ -252,7 +251,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void IntializeImpicitFieldWithImplicitResolver()
+        public void InitializesImplicitFieldWithImplicitResolver()
         {
             // arrange
             // act
@@ -263,7 +262,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void EnsureObjectTypeKindIsCorret()
+        public void EnsureObjectTypeKindIsCorrect()
         {
             // arrange
             // act
@@ -277,15 +276,15 @@ namespace HotChocolate.Types
         /// For the type detection the order of the resolver or type descriptor function should not matter.
         ///
         /// descriptor.Field("test")
-        ///   .Resolver<List<string>>(() => new List<string>())
-        ///   .Type<ListType<StringType>>();
+        ///   .Resolver{List{string}}(() => new List{string}())
+        ///   .Type{ListType{StringType}}();
         ///
         /// descriptor.Field("test")
-        ///   .Type<ListType<StringType>>();
-        ///   .Resolver<List<string>>(() => new List<string>())
+        ///   .Type{ListType{StringType}}();
+        ///   .Resolver{List{string}}(() => new List{string}())
         /// </summary>
         [Fact]
-        public void ObjectTypeWithDynamicField_TypeDeclaOrderShouldNotMatter()
+        public void ObjectTypeWithDynamicField_TypeDeclareOrderShouldNotMatter()
         {
             // act
             FooType fooType = CreateType(new FooType());
@@ -339,7 +338,7 @@ namespace HotChocolate.Types
         public void TwoInterfacesProvideFieldAWithDifferentOutputType()
         {
             // arrange
-            string source = @"
+            var source = @"
                 interface A {
                     a: String
                 }
@@ -373,7 +372,7 @@ namespace HotChocolate.Types
         public void TwoInterfacesProvideFieldAWithDifferentArguments1()
         {
             // arrange
-            string source = @"
+            var source = @"
                 interface A {
                     a(a: String): String
                 }
@@ -441,7 +440,7 @@ namespace HotChocolate.Types
         public void TwoInterfacesProvideFieldAWithDifferentArguments3()
         {
             // arrange
-            string source = @"
+            var source = @"
                 interface A {
                     a(a: String): String
                 }
@@ -475,7 +474,7 @@ namespace HotChocolate.Types
         public void SpecifyQueryTypeNameInSchemaFirst()
         {
             // arrange
-            string source = @"
+            var source = @"
                 type A { field: String }
                 type B { field: String }
                 type C { field: String }
@@ -488,19 +487,18 @@ namespace HotChocolate.Types
             ";
 
             // act
-            var schema = Schema.Create(source,
-                c => c.Use(next => context => default(ValueTask)));
+            var schema = Schema.Create(source, c => c.Use(_ => _ => default));
 
             Assert.Equal("A", schema.QueryType.Name.Value);
-            Assert.Equal("B", schema.MutationType.Name.Value);
-            Assert.Equal("C", schema.SubscriptionType.Name.Value);
+            Assert.Equal("B", schema.MutationType?.Name.Value);
+            Assert.Equal("C", schema.SubscriptionType?.Name.Value);
         }
 
         [Fact]
         public void SpecifyQueryTypeNameInSchemaFirstWithOptions()
         {
             // arrange
-            string source = @"
+            var source = @"
                 type A { field: String }
                 type B { field: String }
                 type C { field: String }
@@ -510,37 +508,36 @@ namespace HotChocolate.Types
             var schema = Schema.Create(source,
                 c =>
                 {
-                    c.Use(next => context => default(ValueTask));
+                    c.Use(_ => _ => default);
                     c.Options.QueryTypeName = "A";
                     c.Options.MutationTypeName = "B";
                     c.Options.SubscriptionTypeName = "C";
                 });
 
             Assert.Equal("A", schema.QueryType.Name.Value);
-            Assert.Equal("B", schema.MutationType.Name.Value);
-            Assert.Equal("C", schema.SubscriptionType.Name.Value);
+            Assert.Equal("B", schema.MutationType?.Name.Value);
+            Assert.Equal("C", schema.SubscriptionType?.Name.Value);
         }
 
         [Fact]
         public void NoQueryType()
         {
             // arrange
-            string source = @"
+            var source = @"
                 type A { field: String }
             ";
 
             // act
-            Action action = () => Schema.Create(source,
-                c => c.Use(next => context => default(ValueTask)));
+            void Action() => Schema.Create(source, c => c.Use(_ => _ => default));
 
-            Assert.Throws<SchemaException>(action).Errors.MatchSnapshot();
+            Assert.Throws<SchemaException>(Action).Errors.MatchSnapshot();
         }
 
         [Fact]
         public void ObjectFieldDoesNotMatchInterfaceDefinitionArgTypeInvalid()
         {
             // arrange
-            string source = @"
+            var source = @"
                 interface A {
                     a(a: String): String
                 }
@@ -574,7 +571,7 @@ namespace HotChocolate.Types
         public void ObjectFieldDoesNotMatchInterfaceDefinitionReturnTypeInvalid()
         {
             // arrange
-            string source = @"
+            var source = @"
                 interface A {
                     a(a: String): String
                 }
@@ -608,7 +605,7 @@ namespace HotChocolate.Types
         public void ObjectTypeImplementsAllFields()
         {
             // arrange
-            string source = @"
+            var source = @"
                 interface A {
                     a(a: String): String
                 }
@@ -634,7 +631,7 @@ namespace HotChocolate.Types
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("C");
-            Assert.Equal(2, type.Interfaces.Count);
+            Assert.Equal(2, type.Implements.Count);
         }
 
         [Fact]
@@ -667,7 +664,7 @@ namespace HotChocolate.Types
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("C");
-            Assert.Equal(2, type.Interfaces.Count);
+            Assert.Equal(2, type.Implements.Count);
         }
 
         [Fact]
@@ -879,7 +876,7 @@ namespace HotChocolate.Types
                 .Name("Bar")
                 .Field("_123")
                 .Type<StringType>()
-                .Resolver((ctx, ct) => ctx.Field.Name.Value));
+                .Resolver((ctx, _) => ctx.Field.Name.Value));
 
             // act
             IRequestExecutor executor =
@@ -899,7 +896,7 @@ namespace HotChocolate.Types
             var objectType = new ObjectType(t => t
                 .Name("Bar")
                 .Field("_123")
-                .Resolver((ctx, ct) => ctx.Field.Name.Value));
+                .Resolver((ctx, _) => ctx.Field.Name.Value));
 
             // act
             IRequestExecutor executor =
@@ -983,7 +980,7 @@ namespace HotChocolate.Types
                 .Name("Bar")
                 .Field("_123")
                 .Type<StringType>()
-                .Resolver((ctx, ct) => (object)ctx.Field.Name.Value));
+                .Resolver((ctx, _) => (object)ctx.Field.Name.Value));
 
             // act
             IRequestExecutor executor =
@@ -1063,7 +1060,7 @@ namespace HotChocolate.Types
             var objectType = new ObjectType<Foo>(t => t
                 .Field(f => f.Description)
                 .Type<StringType>()
-                .Resolver((ctx, ct) => ctx.Field.Name.Value));
+                .Resolver((ctx, _) => ctx.Field.Name.Value));
 
             // act
             IRequestExecutor executor =
@@ -1190,7 +1187,7 @@ namespace HotChocolate.Types
 
             // assert
             Assert.IsType<InterfaceType<IFoo>>(
-                fooType.Interfaces[0]);
+                fooType.Implements[0]);
         }
 
         [Fact]
@@ -1672,9 +1669,16 @@ namespace HotChocolate.Types
         public void Inferred_Interfaces_From_Type_Extensions_Are_Merged()
         {
             SchemaBuilder.New()
-                .AddDocumentFromString("type Query { some: Some } type Some { foo: String }")
+                .AddDocumentFromString(
+                    @"type Query {
+                        some: Some
+                    }
+
+                    type Some {
+                        foo: String
+                    }")
                 .AddType<SomeTypeExtensionWithInterface>()
-                .Use(next => context => default(ValueTask))
+                .Use(_ => _ => default)
                 .EnableRelaySupport()
                 .Create()
                 .ToString()
@@ -1736,6 +1740,28 @@ namespace HotChocolate.Types
                 .MakeExecutable()
                 .Execute("{ foo baz }")
                 .ToJson()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public void ResolveWith_NonGeneric()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<ResolveWithNonGenericObjectType>()
+                .Create()
+                .MakeExecutable()
+                .Execute("{ foo }")
+                .ToJson()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public void IgnoreIndexers()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<QueryWithIndexer>()
+                .Create()
+                .Print()
                 .MatchSnapshot();
         }
 
@@ -1902,9 +1928,8 @@ namespace HotChocolate.Types
                 [DefaultValue("abc")] string b) => null;
         }
 
-        [ExtendObjectType(Name = "Some")]
-        public class SomeTypeExtensionWithInterface
-            : INode
+        [ExtendObjectType("Some")]
+        public class SomeTypeExtensionWithInterface : INode
         {
             [GraphQLType(typeof(NonNullType<IdType>))]
             public string Id { get; }
@@ -1913,13 +1938,7 @@ namespace HotChocolate.Types
         public class QueryWithNestedList
         {
             public List<List<FooIgnore>> FooMatrix =>
-                new List<List<FooIgnore>>
-                {
-                    new List<FooIgnore>
-                    {
-                        new FooIgnore()
-                    }
-                };
+                new() { new() { new() } };
         }
 
         public class ResolveWithQuery
@@ -1941,10 +1960,34 @@ namespace HotChocolate.Types
             }
         }
 
+       public class ResolveWithNonGenericObjectType : ObjectType
+       {
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                Type type = typeof(ResolveWithQuery);
+
+                descriptor.Name("ResolveWithQuery");
+
+                descriptor.Field("foo")
+                    .Type<IntType>()
+                    .ResolveWith(type.GetProperty("Foo"));
+            }
+       }
+
         public class AnnotatedNestedList
         {
             [GraphQLNonNullType(true, false, false)]
             public List<List<string>> NestedList { get; set; }
+        }
+
+        public class QueryWithIndexer
+        {
+            public string this[int i]
+            {
+                get => throw new NotImplementedException();
+            }
+
+            public string GetFoo() => throw new NotImplementedException();
         }
     }
 }

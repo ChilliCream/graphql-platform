@@ -5,6 +5,7 @@ using System.Reflection;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class SortQueryableClosure
     {
         public SortQueryableClosure(Type type, string parameterName)

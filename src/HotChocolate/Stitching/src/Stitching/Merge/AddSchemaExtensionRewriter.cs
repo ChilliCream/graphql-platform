@@ -347,8 +347,7 @@ namespace HotChocolate.Stitching.Merge
                         extension,
                         string.Format(
                             CultureInfo.InvariantCulture,
-                            StitchingResources
-                                .AddSchemaExtensionRewriter_TypeMismatch,
+                            StitchingResources.AddSchemaExtensionRewriter_TypeMismatch,
                             node.Name.Value,
                             node.Kind,
                             extension.Kind));
@@ -407,8 +406,7 @@ namespace HotChocolate.Stitching.Merge
                         extension,
                         string.Format(
                             CultureInfo.InvariantCulture,
-                            StitchingResources
-                                .AddSchemaExtensionRewriter_TypeMismatch,
+                            StitchingResources.AddSchemaExtensionRewriter_TypeMismatch,
                             node.Name.Value,
                             node.Kind,
                             extension.Kind));
@@ -452,7 +450,7 @@ namespace HotChocolate.Stitching.Merge
 
             if (context.Extensions.TryGetValue(
                 current.Name.Value,
-                out ITypeExtensionNode extension))
+                out ITypeExtensionNode? extension))
             {
                 if (extension is ScalarTypeExtensionNode ste)
                 {
@@ -466,8 +464,7 @@ namespace HotChocolate.Stitching.Merge
                         extension,
                         string.Format(
                             CultureInfo.InvariantCulture,
-                            StitchingResources
-                                .AddSchemaExtensionRewriter_TypeMismatch,
+                            StitchingResources.AddSchemaExtensionRewriter_TypeMismatch,
                             node.Name.Value,
                             node.Kind,
                             extension.Kind));

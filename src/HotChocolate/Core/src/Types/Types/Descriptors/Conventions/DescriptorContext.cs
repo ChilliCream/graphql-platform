@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Utilities;
 
@@ -10,11 +9,8 @@ namespace HotChocolate.Types.Descriptors
 {
     public sealed class DescriptorContext : IDescriptorContext
     {
-        private readonly Dictionary<(Type, string?), IConvention> _conventions =
-            new Dictionary<(Type, string?), IConvention>();
-
-        private readonly IReadOnlyDictionary<(Type, string?), List<CreateConvention>>
-            _convFactories;
+        private readonly Dictionary<(Type, string?), IConvention> _conventions = new();
+        private readonly IReadOnlyDictionary<(Type, string?), List<CreateConvention>> _cFactories;
 
         private readonly IServiceProvider _services;
 
@@ -25,15 +21,15 @@ namespace HotChocolate.Types.Descriptors
 
         private DescriptorContext(
             IReadOnlySchemaOptions options,
-            IReadOnlyDictionary<(Type, string?), List<CreateConvention>> convFactories,
+            IReadOnlyDictionary<(Type, string?), List<CreateConvention>> conventionFactories,
             IServiceProvider services,
             IDictionary<string, object?> contextData,
             SchemaBuilder.LazySchema schema,
-            ISchemaInterceptor schemaInterceptor,
-            ITypeInterceptor typeInterceptor)
+            SchemaInterceptor schemaInterceptor,
+            TypeInterceptor typeInterceptor)
         {
             Options = options;
-            _convFactories = convFactories;
+            _cFactories = conventionFactories;
             _services = services;
             ContextData = contextData;
             SchemaInterceptor = schemaInterceptor;
@@ -79,9 +75,9 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        public ISchemaInterceptor SchemaInterceptor { get; }
+        public SchemaInterceptor SchemaInterceptor { get; }
 
-        public ITypeInterceptor TypeInterceptor { get; }
+        public TypeInterceptor TypeInterceptor { get; }
 
         public IDictionary<string, object?> ContextData { get; }
 
@@ -117,7 +113,7 @@ namespace HotChocolate.Types.Descriptors
 
                 init.Initialize(conventionContext);
                 MergeExtensions(conventionContext, init, extensions);
-                init.OnComplete(conventionContext);
+                init.Complete(conventionContext);
             }
 
             if (createdConvention is T createdConventionOfT)
@@ -137,7 +133,7 @@ namespace HotChocolate.Types.Descriptors
             createdConvention = null;
             extensions = new List<IConventionExtension>();
 
-            if (_convFactories.TryGetValue(
+            if (_cFactories.TryGetValue(
                 (typeof(T), scope),
                 out List<CreateConvention>? factories))
             {
@@ -170,13 +166,13 @@ namespace HotChocolate.Types.Descriptors
             Convention convention,
             IList<IConventionExtension> extensions)
         {
-            for (var m = 0; m < extensions.Count; m++)
+            foreach (var extension in extensions)
             {
-                if (extensions[m] is Convention extensionConvention)
+                if (extension is Convention extensionConvention)
                 {
                     extensionConvention.Initialize(context);
-                    extensions[m].Merge(context, convention);
-                    extensionConvention.OnComplete(context);
+                    extension.Merge(context, convention);
+                    extensionConvention.Complete(context);
                 }
             }
         }
@@ -187,10 +183,10 @@ namespace HotChocolate.Types.Descriptors
             IReadOnlyDictionary<(Type, string?), List<CreateConvention>>? conventions = null,
             IDictionary<string, object?>? contextData = null,
             SchemaBuilder.LazySchema? schema = null,
-            ISchemaInterceptor? schemaInterceptor = null,
-            ITypeInterceptor? typeInterceptor = null)
+            SchemaInterceptor? schemaInterceptor = null,
+            TypeInterceptor? typeInterceptor = null)
         {
-            return new DescriptorContext(
+            return new(
                 options ?? new SchemaOptions(),
                 conventions ?? new Dictionary<(Type, string?), List<CreateConvention>>(),
                 services ?? new EmptyServiceProvider(),

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using HotChocolate.Language.Properties;
 
@@ -130,6 +131,26 @@ namespace HotChocolate.Language
         {
             return _reader.Kind == TokenKind.Name
                 && _reader.Value.SequenceEqual(GraphQLKeywords.Null);
+        }
+
+        public static bool TryExtractHash(
+            IReadOnlyDictionary<string, object?>? extensions,
+            IDocumentHashProvider? hashProvider,
+            [NotNullWhen(true)] out string? hash)
+        {
+            if (extensions is not null
+                && hashProvider is not null
+                && extensions.TryGetValue(_persistedQuery, out object? obj)
+                && obj is IReadOnlyDictionary<string, object> persistedQuery
+                && persistedQuery.TryGetValue(hashProvider.Name, out obj)
+                && obj is string h)
+            {
+                hash = h;
+                return true;
+            }
+
+            hash = null;
+            return false;
         }
     }
 }

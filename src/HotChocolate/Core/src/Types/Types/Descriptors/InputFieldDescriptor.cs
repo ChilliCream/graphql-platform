@@ -46,12 +46,13 @@ namespace HotChocolate.Types.Descriptors
 
         protected override void OnCreateDefinition(InputFieldDefinition definition)
         {
-            if (Definition.Property is { })
+            if (!Definition.AttributesAreApplied && Definition.Property is not null)
             {
                 Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.Property);
+                Definition.AttributesAreApplied = true;
             }
 
             base.OnCreateDefinition(definition);

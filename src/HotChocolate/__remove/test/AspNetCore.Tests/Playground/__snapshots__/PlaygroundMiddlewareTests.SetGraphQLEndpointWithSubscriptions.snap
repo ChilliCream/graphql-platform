@@ -1,6 +1,0 @@
-﻿
-                window.Settings = {
-                    url: "https://microsoft.com/graphql",
-                    subscriptionUrl: "wss://microsoft.com/graphql",
-                }
-            

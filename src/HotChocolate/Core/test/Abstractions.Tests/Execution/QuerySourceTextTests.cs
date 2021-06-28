@@ -2,10 +2,11 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Execution.Tests
+namespace HotChocolate.Execution
 {
     public class QuerySourceTextTests
     {
@@ -14,10 +15,10 @@ namespace HotChocolate.Execution.Tests
         {
             // arrange
             // act
-            Action action = () => new QuerySourceText(null);
+            void Action() => new QuerySourceText(null);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -50,16 +51,16 @@ namespace HotChocolate.Execution.Tests
             var query = new QuerySourceText("{ a }");
 
             // assert
-            QuerySyntaxSerializer.Serialize(
-                Utf8GraphQLParser.Parse(query.AsSpan()))
-                .ToString().MatchSnapshot();
+            Utf8GraphQLParser
+                .Parse(query.AsSpan())
+                .Print(true)
+                .MatchSnapshot();
         }
 
         [Fact]
         public async Task QuerySourceText_WriteToAsync()
         {
             // arrange
-            DocumentNode document = Utf8GraphQLParser.Parse("{ a }");
             var query = new QuerySourceText("{ a }");
             byte[] buffer;
 
@@ -71,16 +72,16 @@ namespace HotChocolate.Execution.Tests
             }
 
             // assert
-            QuerySyntaxSerializer.Serialize(
-                Utf8GraphQLParser.Parse(buffer))
-                .ToString().MatchSnapshot();
+            Utf8GraphQLParser
+                .Parse(buffer)
+                .Print(true)
+                .MatchSnapshot();
         }
 
         [Fact]
         public void QuerySourceText_WriteTo()
         {
             // arrange
-            DocumentNode document = Utf8GraphQLParser.Parse("{ a }");
             var query = new QuerySourceText("{ a }");
             byte[] buffer;
 
@@ -92,9 +93,10 @@ namespace HotChocolate.Execution.Tests
             }
 
             // assert
-            QuerySyntaxSerializer.Serialize(
-                Utf8GraphQLParser.Parse(buffer))
-                .ToString().MatchSnapshot();
+            Utf8GraphQLParser
+                .Parse(buffer)
+                .Print(true)
+                .MatchSnapshot();
         }
     }
 }

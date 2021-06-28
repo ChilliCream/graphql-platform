@@ -252,7 +252,7 @@ namespace HotChocolate
                 builder,
                 typeName,
                 fieldName,
-                async ctx => await resolver(ctx, ctx.RequestAborted));
+                async ctx => await resolver(ctx, ctx.RequestAborted).ConfigureAwait(false));
         }
 
         // Constant

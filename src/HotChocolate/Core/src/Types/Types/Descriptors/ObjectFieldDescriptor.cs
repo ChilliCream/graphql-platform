@@ -62,9 +62,7 @@ namespace HotChocolate.Types.Descriptors
 
             if (member is MethodInfo m)
             {
-                Parameters = m
-                    .GetParameters()
-                    .ToDictionary(t => new NameString(t.Name));
+                Parameters = m.GetParameters().ToDictionary(t => new NameString(t.Name));
                 Definition.ResultType = m.ReturnType;
             }
             else if (member is PropertyInfo p)
@@ -132,12 +130,13 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             ObjectFieldDefinition definition)
         {
-            if (Definition.Member is { })
+            if (!Definition.AttributesAreApplied && Definition.Member is not null)
             {
                 Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.Member);
+                Definition.AttributesAreApplied = true;
             }
 
             base.OnCreateDefinition(definition);
@@ -147,7 +146,7 @@ namespace HotChocolate.Types.Descriptors
 
         private void CompleteArguments(ObjectFieldDefinition definition)
         {
-            if (!_argumentsInitialized)
+            if (!_argumentsInitialized && Parameters.Any())
             {
                 FieldDescriptorUtilities.DiscoverArguments(
                     Context,
@@ -291,7 +290,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public IObjectFieldDescriptor ResolveWith<TResolver>(
-            Expression<Func<TResolver, object>> propertyOrMethod)
+            Expression<Func<TResolver, object?>> propertyOrMethod)
         {
             if (propertyOrMethod is null)
             {
@@ -333,6 +332,7 @@ namespace HotChocolate.Types.Descriptors
                 Definition.ResolverMember = propertyOrMethod;
                 Definition.Resolver = null;
                 Definition.ResultType = propertyOrMethod.GetReturnType();
+                return this;
             }
 
             throw new ArgumentException(

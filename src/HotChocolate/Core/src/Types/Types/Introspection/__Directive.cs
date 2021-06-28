@@ -1,53 +1,63 @@
+#pragma warning disable IDE1006 // Naming Styles
 using System.Collections.Generic;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 
+#nullable enable
+
 namespace HotChocolate.Types.Introspection
 {
     [Introspection]
-    internal sealed class __Directive
-        : ObjectType
+    internal sealed class __Directive : ObjectType
     {
         protected override void Configure(
             IObjectTypeDescriptor descriptor)
         {
-            descriptor.Name("__Directive");
+            descriptor
+                .Name(Names.__Directive)
+                .Description(TypeResources.Directive_Description);
 
-            descriptor.Description(TypeResources.Directive_Description);
-
-            descriptor.Field("name")
+            descriptor
+                .Field(Names.Name)
                 .Type<NonNullType<StringType>>()
-                .Resolver(c => c.Parent<DirectiveType>().Name);
+                .Resolve(c => c.Parent<DirectiveType>().Name);
 
-            descriptor.Field("description")
+            descriptor
+                .Field(Names.Description)
                 .Type<StringType>()
-                .Resolver(c => c.Parent<DirectiveType>().Description);
+                .Resolve(c => c.Parent<DirectiveType>().Description);
 
-            descriptor.Field("isRepeatable")
+            descriptor
+                .Field(Names.IsRepeatable)
                 .Type<BooleanType>()
-                .Resolver(c => c.Parent<DirectiveType>().IsRepeatable);
+                .Resolve(c => c.Parent<DirectiveType>().IsRepeatable);
 
-            descriptor.Field("locations")
+            descriptor
+                .Field(Names.Locations)
                 .Type<NonNullType<ListType<NonNullType<__DirectiveLocation>>>>()
-                .Resolver(c => c.Parent<DirectiveType>().Locations);
+                .Resolve(c => c.Parent<DirectiveType>().Locations);
 
-            descriptor.Field("args")
+            descriptor
+                .Field(Names.Args)
                 .Type<NonNullType<ListType<NonNullType<__InputValue>>>>()
-                .Resolver(c => c.Parent<DirectiveType>().Arguments);
+                .Resolve(c => c.Parent<DirectiveType>().Arguments);
 
-            descriptor.Field("onOperation")
+            descriptor
+                .Field(Names.OnOperation)
                 .Type<NonNullType<BooleanType>>()
-                .Resolver(c => GetOnOperation(c))
+                .Resolve(GetOnOperation)
                 .Deprecated(TypeResources.Directive_UseLocation);
 
-            descriptor.Field("onFragment")
+            descriptor
+                .Field(Names.OnFragment)
                 .Type<NonNullType<BooleanType>>()
-                .Resolver(c => GetOnFragment(c))
+                .Resolve(GetOnFragment)
                 .Deprecated(TypeResources.Directive_UseLocation);
 
-            descriptor.Field("onField")
+            descriptor
+                .Field(Names.OnField)
                 .Type<NonNullType<BooleanType>>()
-                .Resolver(c => GetOnField(c))
+                .Resolve(GetOnField)
                 .Deprecated(TypeResources.Directive_UseLocation);
         }
 
@@ -78,5 +88,19 @@ namespace HotChocolate.Types.Introspection
 
             return locations.Contains(DirectiveLocation.Field);
         }
+
+        public static class Names
+        {
+            public const string __Directive = "__Directive";
+            public const string Name = "name";
+            public const string Description = "description";
+            public const string IsRepeatable = "isRepeatable";
+            public const string Locations = "locations";
+            public const string Args = "args";
+            public const string OnOperation = "onOperation";
+            public const string OnFragment = "onFragment";
+            public const string OnField = "onField";
+        }
     }
 }
+#pragma warning restore IDE1006 // Naming Styles

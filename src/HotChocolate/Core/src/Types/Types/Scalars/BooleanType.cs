@@ -11,32 +11,27 @@ namespace HotChocolate.Types
     /// http://facebook.github.io/graphql/June2018/#sec-Boolean
     /// </summary>
     [SpecScalar]
-    public sealed class BooleanType
-        : ScalarType<bool, BooleanValueNode>
+    public class BooleanType : ScalarType<bool, BooleanValueNode>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="BooleanType"/> class.
         /// </summary>
         public BooleanType()
-            : base(ScalarNames.Boolean, BindingBehavior.Implicit)
+            : this(
+                ScalarNames.Boolean,
+                TypeResources.BooleanType_Description,
+                BindingBehavior.Implicit)
         {
-            Description = TypeResources.BooleanType_Description;
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BooleanType"/> class.
         /// </summary>
-        public BooleanType(NameString name)
-            : base(name, BindingBehavior.Implicit)
-        {
-            Description = TypeResources.BooleanType_Description;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BooleanType"/> class.
-        /// </summary>
-        public BooleanType(NameString name, string description)
-            : base(name, BindingBehavior.Implicit)
+        public BooleanType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name, bind)
         {
             Description = description;
         }

@@ -12,6 +12,10 @@ namespace HotChocolate.Data
 
         public DbSet<Author> Authors { get; set; } = default!;
 
+        public DbSet<SingleOrDefaultAuthor> SingleOrDefaultAuthors { get; set; } = default!;
+
+        public DbSet<ZeroAuthor> ZeroAuthors { get; set; } = default!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Author>()

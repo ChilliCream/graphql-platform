@@ -38,7 +38,7 @@ namespace HotChocolate.Stitching.Delegation
 
             // act
             var resolver = new FieldScopedVariableResolver();
-            VariableValue value = resolver.Resolve(
+            ScopedVariableValue value = resolver.Resolve(
                 context.Object,
                 scopedVariable,
                 schema.GetType<StringType>("String"));
@@ -69,7 +69,7 @@ namespace HotChocolate.Stitching.Delegation
                 schema.GetType<ObjectType>("Query").Fields["foo"]);
             context.Setup(t => t.Parent<IReadOnlyDictionary<string, object>>())
                 .Returns(new Dictionary<string, object> { { "a", "baz" } });
-            context.Setup(t => t.FieldSelection)
+            context.Setup(t => t.Selection.SyntaxNode)
                 .Returns(new FieldNode(
                     null,
                     new NameNode("foo"),

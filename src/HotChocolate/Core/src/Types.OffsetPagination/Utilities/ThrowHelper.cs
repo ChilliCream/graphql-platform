@@ -1,3 +1,5 @@
+using static HotChocolate.Types.Pagination.Properties.OffsetResources;
+
 namespace HotChocolate.Utilities
 {
     internal static class ThrowHelper
@@ -12,8 +14,8 @@ namespace HotChocolate.Utilities
         public static SchemaException OffsetPagingObjectFieldDescriptorExtensions_InvalidType() =>
             new SchemaException(
                 SchemaErrorBuilder.New()
-                    .SetMessage("PagingObjectFieldDescriptorExtensions_SchemaTypeNotValid")
-                    .SetCode("PAGINATION_SCHEMA_TYPE_INVALID")
+                    .SetMessage(PagingObjectFieldDescriptorExtensions_SchemaTypeNotValid)
+                    .SetCode(ErrorCodes.Types.SchemaTypeInvalid)
                     .Build());
     }
 }

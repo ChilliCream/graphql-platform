@@ -32,7 +32,7 @@ namespace HotChocolate.Execution.Pipeline
         public async ValueTask InvokeAsync(IRequestContext context)
         {
             IQueryRequest request = context.Request;
-            bool addToCache = true;
+            var addToCache = true;
 
             if (context.Document is null)
             {

@@ -14,12 +14,12 @@ interface BlogTagTemplateProperties {
 
 const BlogTagTemplate: FunctionComponent<BlogTagTemplateProperties> = ({
   pageContext: { tag },
-  data: { allMarkdownRemark },
+  data: { allMdx },
 }) => {
   return (
     <Layout>
       <SEO title={`Blog Articles By Tag: ${tag}`} />
-      <BlogArticles data={allMarkdownRemark!} />
+      <BlogArticles data={allMdx!} />
     </Layout>
   );
 };
@@ -28,7 +28,7 @@ export default BlogTagTemplate;
 
 export const pageQuery = graphql`
   query getBlogArticlesByTag($tag: String) {
-    allMarkdownRemark(
+    allMdx(
       limit: 100
       filter: { frontmatter: { tags: { in: [$tag] } } }
       sort: { fields: [frontmatter___date], order: DESC }

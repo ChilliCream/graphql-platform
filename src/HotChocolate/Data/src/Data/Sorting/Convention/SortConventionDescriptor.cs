@@ -81,7 +81,7 @@ namespace HotChocolate.Data.Sorting
                     nameof(sortType));
             }
 
-            Definition.Bindings.Add(runtimeType, sortType);
+            Definition.Bindings[runtimeType] = sortType;
             return this;
         }
 

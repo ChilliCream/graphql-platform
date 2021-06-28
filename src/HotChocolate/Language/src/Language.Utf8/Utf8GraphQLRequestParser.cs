@@ -103,14 +103,9 @@ namespace HotChocolate.Language
                 ParseRequestProperty(ref request);
             }
 
-            if (!request.HasQuery && request.QueryId == null)
+            if (!request.HasQuery && request.QueryId is null)
             {
-                if (_useCache
-                    && request.Extensions != null
-                    && request.Extensions.TryGetValue(_persistedQuery, out object? obj)
-                    && obj is IReadOnlyDictionary<string, object> persistedQuery
-                    && persistedQuery.TryGetValue(_hashProvider!.Name, out obj)
-                    && obj is string hash)
+                if (_useCache && TryExtractHash(request.Extensions, _hashProvider, out var hash))
                 {
                     request.QueryId = hash;
                 }
@@ -290,15 +285,16 @@ namespace HotChocolate.Language
 
         public static IReadOnlyList<GraphQLRequest> Parse(
             ReadOnlySpan<byte> requestData,
-            ParserOptions? options = null)
-        {
-            options ??= ParserOptions.Default;
-            return new Utf8GraphQLRequestParser(requestData, options).Parse();
-        }
+            ParserOptions? options = null,
+            IDocumentCache? cache = null,
+            IDocumentHashProvider? hashProvider = null) =>
+            new Utf8GraphQLRequestParser(requestData, options, cache, hashProvider).Parse();
 
         public static unsafe IReadOnlyList<GraphQLRequest> Parse(
             string sourceText,
-            ParserOptions? options = null)
+            ParserOptions? options = null,
+            IDocumentCache? cache = null,
+            IDocumentHashProvider? hashProvider = null)
         {
             if (string.IsNullOrEmpty(sourceText))
             {
@@ -306,8 +302,6 @@ namespace HotChocolate.Language
                     LangResources.SourceText_Empty,
                     nameof(sourceText));
             }
-
-            options ??= ParserOptions.Default;
 
             var length = checked(sourceText.Length * 4);
             byte[]? source = null;
@@ -319,7 +313,7 @@ namespace HotChocolate.Language
             try
             {
                 Utf8GraphQLParser.ConvertToBytes(sourceText, ref sourceSpan);
-                var parser = new Utf8GraphQLRequestParser(sourceSpan, options);
+                var parser = new Utf8GraphQLRequestParser(sourceSpan, options, cache, hashProvider);
                 return parser.Parse();
             }
             finally

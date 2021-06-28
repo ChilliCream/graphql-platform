@@ -2,84 +2,252 @@
 title: "Fetching from REST"
 ---
 
-Use this section as an introduction to explain what a reader can expect of this document.
+import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-# Headlines
+In this section, we will cover how you can easily integrate a REST API into your GraphQL API.
 
-Use headlines to separate a document into several sections. First level headlines will appear in the left hand navigation. This will help the reader to quickly skip sections or jump to a particular section.
+GraphQL has a strongly-typed type system and therefore also has to know the dotnet runtime types of the data it returns in advance.
+The easiest way to integrate a REST API is, to define an OpenAPI specification for it.
+OpenAPI describes what data a REST endpoint returns.
+You can automatically generate a dotnet client for this API and integrate it into your schema.
 
-# Use Diagrams
+# OpenAPI in .NET
 
-Use [mermaid diagrams](https://mermaid-js.github.io/mermaid) to help a reader understand complex problems. Jump over to the [mermaid playground](https://mermaid-js.github.io/mermaid-live-editor) to test your diagrams.
+If you do not have an OpenAPI specification for your REST endpoint yet, you can easily add it to your API.
+There are two major OpenAPI implementations in dotnet: [NSwag](http://nswag.org) and [Swashbuckle](https://github.com/domaindrivendev/Swashbuckle.AspNetCore).
+Head over to the [official ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/tutorials/web-api-help-pages-using-swagger?view=aspnetcore-5.0) documentation to see how it is done.
 
-```mermaid
-graph TD
-  A[Christmas] -->|Get money| B(Go shopping)
-  B --> C{Let me think}
-  C -->|One| D[Laptop]
-  C -->|Two| E[iPhone]
-  C -->|Three| F[fa:fa-car Car]
+In this example, we will use [the official example of Swashbuckle](https://github.com/dotnet/AspNetCore.Docs/tree/main/aspnetcore/tutorials/web-api-help-pages-using-swagger/samples/3.0/TodoApi.Swashbuckle).
+When you start this project, you can navigate to the [Swagger UI](http://localhost:5000/swagger).
+
+This REST API covers a simple Todo app.
+We will expose `todos` and `todoById` in our GraphQL API.
+
+# Generating a client
+
+Every REST endpoint that supports OpenAPI, can easily be wrapped with a fully typed client.
+Again, you have several options on how you generate your client.
+You can generate your client from the OpenAPI specification of your endpoint, during build or even with external tools with GUI.
+Have a look here and see what fits your use case the best:
+
+- [NSwag Code Generation](https://docs.microsoft.com/en-us/aspnet/core/tutorials/getting-started-with-nswag?view=aspnetcore-5.0&tabs=visual-studio#code-generation)
+
+In this example, we will use the NSwag dotnet tool.
+First, we need to create a tool manifest.
+Switch to your GraphQL project and execute
+
+```bash
+dotnet new tool-manifest
 ```
 
-# Use Code Examples
+Then we install the NSwag tool
 
-A code example is another tool to help readers following the document and understanding the problem. Here is an list of code blocks that are used often with the ChilliCream GraphQL platform.
+```bash
+dotnet tool install NSwag.ConsoleCore --version 13.10.9
+```
 
-Use `sdl` to describe GraphQL schemas.
+You then have to get the `swagger.json` from your REST endpoint
 
-```sdl
-type Author {
-  name: String!
+```bash
+curl -o swagger.json http://localhost:5000/swagger/v1/swagger.json
+```
+
+Now you can generate the client from the `swagger.json`.
+
+```bash
+dotnet nswag swagger2csclient /input:swagger.json /classname:TodoService /namespace:TodoReader /output:TodoService.cs
+```
+
+The code generator generated a new file called `TodoService.cs`.
+In this file, you will find the client for your REST API.
+
+The generated needs `Newtonsoft.Json`.
+Make sure to also add this package by executing:
+
+```bash
+dotnet add package Newtonsoft.Json
+```
+
+# Exposing the API
+
+You will have to register the client in the dependency injection of your GraphQL service.
+To expose the API you can inject the generated client into your resolvers.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+// Query.cs
+public class Query
+{
+    public Task<ICollection<TodoItem>> GetTodosAsync(
+        [Service]TodoService service,
+        CancellationToken cancellationToken)
+    {
+        return service.GetAllAsync(cancellationToken);
+    }
+
+    public Task<TodoItem> GetTodoByIdAsync(
+        [Service]TodoService service,
+        long id,
+        CancellationToken cancellationToken)
+    {
+        return service.GetByIdAsync(id, cancellationToken);
+    }
+}
+
+// Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services.AddHttpClient<TodoService>();
+        services
+            .AddGraphQLServer()
+            .AddQueryType<Query>();
+    }
+
+    // Omitted code for brevity
 }
 ```
 
-Use `graphql` to describe GraphQL operations.
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+// Query.cs
+public class Query
+{
+    public Task<ICollection<TodoItem>> GetTodosAsync(
+        [Service]TodoService service,
+        CancellationToken cancellationToken)
+    {
+        return service.GetAllAsync(cancellationToken);
+    }
+
+    public Task<TodoItem> GetTodoByIdAsync(
+        [Service]TodoService service,
+        long id,
+        CancellationToken cancellationToken)
+    {
+        return service.GetByIdAsync(id, cancellationToken);
+    }
+}
+
+// QueryType.cs
+public class QueryType : ObjectType<Query>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    {
+        descriptor
+            .Field(f => f.GetTodoByIdAsync(default!, default!, default!))
+            .Type<TodoType>();
+
+        descriptor
+            .Field(f => f.GetTodosAsync(default!, default!))
+            .Type<ListType<TodoType>>();
+    }
+}
+
+// TodoType.cs
+public class TodoType : ObjectType<Todo>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    {
+        descriptor
+            .Field(f => f.Id)
+            .Type<LongType>();
+
+        descriptor
+            .Field(f => f.Name)
+            .Type<StringType>();
+
+        descriptor
+            .Field(f => f.IsComplete)
+            .Type<BooleanType>();
+    }
+}
+
+
+// Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddQueryType<QueryType>();
+    }
+
+    // Omitted code for brevity
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+```csharp
+// Query.cs
+public class Query
+{
+    public Task<ICollection<TodoItem>> GetTodosAsync(
+        [Service]TodoService service,
+        CancellationToken cancellationToken)
+    {
+        return service.GetAllAsync(cancellationToken);
+    }
+
+    public Task<TodoItem> GetTodoByIdAsync(
+        [Service]TodoService service,
+        long id,
+        CancellationToken cancellationToken)
+    {
+        return service.GetByIdAsync(id, cancellationToken);
+    }
+}
+
+// Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddDocumentFromString(@"
+                type Query {
+                  todos: [TodoItem!]!
+                  todoById(id: Uuid): TodoItem
+                }
+
+                type TodoItem {
+                  id: Long
+                  name: String
+                  isCompleted: Boolean
+                }
+            ")
+            .BindComplexType<Query>();
+    }
+
+    // Omitted code for brevity
+}
+```
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+You can now head over to your Banana Cake Pop on your GraphQL Server (/graphql) and query todos:
 
 ```graphql
-query {
-  author(id: 1) {
+{
+  todoById(id: 1) {
+    id
+    isComplete
+    name
+  }
+  todos {
+    id
+    isComplete
     name
   }
 }
 ```
-
-Use `json` for everything JSON related for example a GraphQL result.
-
-```json
-{
-  "data": {
-    "author": {
-      "name": "ChilliCream"
-    }
-  }
-}
-```
-
-Use `sql` for SQL queries.
-
-```sql
-SELECT id FROM Authors WHERE id = 1
-```
-
-Use `csharp` for C# code.
-
-```csharp
-public interface Author
-{
-    int Id { get; }
-
-    string Name { get; }
-}
-```
-
-# Use Images
-
-When using images make sure it's a PNG file which is at least 800 pixels wide.
-
-# Use Tables
-
-When using tables make sure you always use titles.
-
-| Name        | Description        |
-| ----------- | ------------------ |
-| ChilliCream | A GraphQL platform |

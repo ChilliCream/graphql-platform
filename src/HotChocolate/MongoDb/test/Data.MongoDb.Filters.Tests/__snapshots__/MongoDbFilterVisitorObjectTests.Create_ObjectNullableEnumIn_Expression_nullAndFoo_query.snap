@@ -1,0 +1,1 @@
+﻿find({ "Foo.BarEnum" : { "$in" : [null, 0] } })

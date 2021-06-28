@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ bar: { eq: true }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -33,7 +33,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ bar: { eq: false }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -52,7 +52,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ bar: { eq: true }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
 
             // act
             Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
@@ -74,7 +74,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ bar: { eq: false }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
 
             // act
             Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
@@ -100,12 +100,12 @@ namespace HotChocolate.Data.Filters.Expressions
             public bool? Bar { get; set; }
         }
 
-        public class FooFilterType
+        public class FooFilterInput
             : FilterInputType<Foo>
         {
         }
 
-        public class FooNullableFilterType
+        public class FooNullableFilterInput
             : FilterInputType<FooNullable>
         {
         }

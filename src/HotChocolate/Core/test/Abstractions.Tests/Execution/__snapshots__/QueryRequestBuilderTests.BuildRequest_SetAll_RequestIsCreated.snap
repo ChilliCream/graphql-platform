@@ -15,5 +15,6 @@
   "Services": {},
   "InitialValue": {
     "a": "456"
-  }
+  },
+  "AllowedOperations": null
 }

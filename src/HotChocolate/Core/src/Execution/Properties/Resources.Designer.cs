@@ -296,5 +296,29 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("RequestExecutorBuilder_Convention_NotSuppported", resourceCulture);
             }
         }
+        
+        internal static string RootValueResolver_Resolve_CannotCreateInstance {
+            get {
+                return ResourceManager.GetString("RootValueResolver_Resolve_CannotCreateInstance", resourceCulture);
+            }
+        }
+        
+        internal static string OperationContext_GetQueryRoot_InvalidCast {
+            get {
+                return ResourceManager.GetString("OperationContext_GetQueryRoot_InvalidCast", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_RequestTimeout {
+            get {
+                return ResourceManager.GetString("ErrorHelper_RequestTimeout", resourceCulture);
+            }
+        }
+        
+        internal static string ResultHelper_BuildResult_InvalidResult {
+            get {
+                return ResourceManager.GetString("ResultHelper_BuildResult_InvalidResult", resourceCulture);
+            }
+        }
     }
 }

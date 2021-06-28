@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using static HotChocolate.Execution.Properties.Resources;
 
 namespace HotChocolate.Execution
@@ -10,7 +11,7 @@ namespace HotChocolate.Execution
         public static GraphQLException VariableIsNotAnInputType(
             VariableDefinitionNode variableDefinition)
         {
-            return new GraphQLException(
+            return new(
                 ErrorBuilder.New()
                     .SetMessage(
                         ThrowHelper_VariableIsNotAnInputType_Message,
@@ -25,7 +26,7 @@ namespace HotChocolate.Execution
         public static GraphQLException NonNullVariableIsNull(
             VariableDefinitionNode variableDefinition)
         {
-            return new GraphQLException(
+            return new(
                 ErrorBuilder.New()
                     .SetMessage(
                         ThrowHelper_NonNullVariableIsNull_Message,
@@ -40,6 +41,10 @@ namespace HotChocolate.Execution
             VariableDefinitionNode variableDefinition,
             Exception? exception = null)
         {
+            var underlyingError = exception is SerializationException serializationException
+                ? serializationException.Message
+                : null;
+
             IErrorBuilder errorBuilder = ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_VariableValueInvalidType_Message,
@@ -53,13 +58,18 @@ namespace HotChocolate.Execution
                 errorBuilder.SetException(exception);
             }
 
+            if (underlyingError is not null)
+            {
+                errorBuilder.SetExtension(nameof(underlyingError), underlyingError);
+            }
+
             return new GraphQLException(errorBuilder.Build());
         }
 
         public static GraphQLException MissingIfArgument(
             DirectiveNode directive)
         {
-            return new GraphQLException(
+            return new(
                 ErrorBuilder.New()
                     .SetMessage(
                         ThrowHelper_MissingDirectiveIfArgument,
@@ -71,21 +81,22 @@ namespace HotChocolate.Execution
         public static GraphQLException FieldDoesNotExistOnType(
             FieldNode selection, string typeName)
         {
-            return new GraphQLException(ErrorBuilder.New()
-                .SetMessage(
-                    ThrowHelper_FieldDoesNotExistOnType,
-                    selection.Name.Value,
-                    typeName)
-                .AddLocation(selection)
-                .Build());
+            return new(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        ThrowHelper_FieldDoesNotExistOnType,
+                        selection.Name.Value,
+                        typeName)
+                    .AddLocation(selection)
+                    .Build());
         }
 
         public static NotSupportedException QueryTypeNotSupported() =>
-            new NotSupportedException(ThrowHelper_QueryTypeNotSupported_Message);
+            new(ThrowHelper_QueryTypeNotSupported_Message);
 
         public static GraphQLException VariableNotFound(
             NameString variableName) =>
-            new GraphQLException(ErrorBuilder.New()
+            new(ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_VariableNotFound_Message,
                     variableName)
@@ -93,7 +104,7 @@ namespace HotChocolate.Execution
 
         public static GraphQLException VariableNotFound(
             VariableNode variable) =>
-            new GraphQLException(ErrorBuilder.New()
+            new(ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_VariableNotFound_Message,
                     variable.Name.Value)
@@ -103,7 +114,7 @@ namespace HotChocolate.Execution
         public static GraphQLException VariableNotOfType(
             NameString variableName,
             Type type) =>
-            new GraphQLException(ErrorBuilder.New()
+            new(ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_VariableNotOfType_Message,
                     variableName,
@@ -112,28 +123,28 @@ namespace HotChocolate.Execution
 
         public static GraphQLException RootTypeNotSupported(
             OperationType operationType) =>
-            new GraphQLException(ErrorBuilder.New()
+            new(ErrorBuilder.New()
                 .SetMessage(ThrowHelper_RootTypeNotSupported_Message, operationType)
                 .Build());
 
         public static GraphQLException SubscriptionExecutor_ContextInvalidState() =>
-            new GraphQLException(ErrorBuilder.New()
+            new(ErrorBuilder.New()
                 .SetMessage(ThrowHelper_SubscriptionExecutor_ContextInvalidState_Message)
                 .Build());
 
         public static GraphQLException SubscriptionExecutor_SubscriptionsMustHaveOneField() =>
-            new GraphQLException(ErrorBuilder.New()
+            new(ErrorBuilder.New()
                 .SetMessage(ThrowHelper_SubscriptionExecutor_SubscriptionsMustHaveOneField_Message)
                 .Build());
 
         public static GraphQLException SubscriptionExecutor_NoSubscribeResolver() =>
-            new GraphQLException(ErrorBuilder.New()
+            new(ErrorBuilder.New()
                 .SetMessage(ThrowHelper_SubscriptionExecutor_NoSubscribeResolver_Message)
                 .Build());
 
         public static GraphQLException ResolverContext_LiteralsNotSupported(
             FieldNode field, Path path, NameString argumentName, Type requestedType) =>
-            new GraphQLException(ErrorBuilder.New()
+            new(ErrorBuilder.New()
                 .SetMessage(ThrowHelper_ResolverContext_LiteralsNotSupported_Message)
                 .SetPath(path)
                 .AddLocation(field)
@@ -144,7 +155,7 @@ namespace HotChocolate.Execution
 
         public static GraphQLException ResolverContext_CannotConvertArgument(
             FieldNode field, Path path, NameString argumentName, Type requestedType) =>
-            new GraphQLException(ErrorBuilder.New()
+            new(ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_ResolverContext_CannotConvertArgument_Message,
                     argumentName,
@@ -159,7 +170,7 @@ namespace HotChocolate.Execution
         public static GraphQLException ResolverContext_LiteralNotCompatible(
             FieldNode field, Path path, NameString argumentName,
             Type requestedType, Type actualType) =>
-            new GraphQLException(ErrorBuilder.New()
+            new(ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_ResolverContext_LiteralNotCompatible_Message,
                     actualType.FullName ?? actualType.Name,
@@ -174,7 +185,7 @@ namespace HotChocolate.Execution
 
         public static GraphQLException ResolverContext_ArgumentDoesNotExist(
             FieldNode field, Path path, NameString argumentName) =>
-            new GraphQLException(ErrorBuilder.New()
+            new(ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_ResolverContext_ArgumentDoesNotExist_Message,
                     argumentName,
@@ -187,12 +198,11 @@ namespace HotChocolate.Execution
 
         public static InvalidOperationException RequestExecutorResolver_SchemaNameDoesNotMatch(
             NameString configurationSchemaName, NameString schemaName) =>
-            new InvalidOperationException(
-                "The schema name must allign with the schema name expected by the configuration.");
+            new("The schema name must align with the schema name expected by the configuration.");
 
         public static GraphQLException OperationResolverHelper_NoOperationFound(
             DocumentNode documentNode) =>
-            new GraphQLException(ErrorBuilder.New()
+            new(ErrorBuilder.New()
                 .SetMessage(ThrowHelper_OperationResolverHelper_NoOperationFound_Message)
                 .AddLocation(documentNode)
                 .Build());
@@ -200,7 +210,7 @@ namespace HotChocolate.Execution
         public static GraphQLException OperationResolverHelper_MultipleOperation(
             OperationDefinitionNode firstOperation,
             OperationDefinitionNode secondOperation) =>
-            new GraphQLException(ErrorBuilder.New()
+            new(ErrorBuilder.New()
                 .SetMessage(ThrowHelper_OperationResolverHelper_MultipleOperation_Message)
                 .AddLocation(firstOperation)
                 .AddLocation(secondOperation)
@@ -208,7 +218,7 @@ namespace HotChocolate.Execution
 
         public static GraphQLException OperationResolverHelper_InvalidOperationName(
             DocumentNode documentNode, string operationName) =>
-            new GraphQLException(ErrorBuilder.New()
+            new(ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_OperationResolverHelper_InvalidOperationName_Message,
                     operationName)
@@ -218,7 +228,7 @@ namespace HotChocolate.Execution
 
         public static GraphQLException BatchExecutor_CannotSerializeVariable(
             string variableName) =>
-            new GraphQLException(ErrorBuilder.New()
+            new(ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_BatchExecutor_CannotSerializeVariable_Message,
                     variableName)
@@ -228,7 +238,7 @@ namespace HotChocolate.Execution
         public static GraphQLException CollectVariablesVisitor_NoCompatibleType(
             ISyntaxNode node,
             IReadOnlyList<object> path) =>
-            new GraphQLException(ErrorBuilder.New()
+            new(ErrorBuilder.New()
                 .SetMessage(ThrowHelper_CollectVariablesVisitor_NoCompatibleType_Message)
                 .SetCode(ErrorCodes.Execution.AutoMapVarError)
                 .SetPath(path)
@@ -236,34 +246,31 @@ namespace HotChocolate.Execution
                 .Build());
 
         public static GraphQLException FieldVisibility_ValueNotSupported(IValueNode value) =>
-            new GraphQLException(
-                ErrorBuilder.New()
-                    .SetMessage(ThrowHelper_FieldVisibility_ValueNotSupported_Message)
-                    .AddLocation(value)
-                    .Build());
+            new(ErrorBuilder.New()
+                .SetMessage(ThrowHelper_FieldVisibility_ValueNotSupported_Message)
+                .AddLocation(value)
+                .Build());
 
         public static GraphQLException QueryCompiler_CompositeTypeSelectionSet(
             FieldNode selection) =>
-            new GraphQLException(
-                ErrorBuilder.New()
-                    .SetMessage(ThrowHelper_QueryCompiler_CompositeTypeSelectionSet_Message)
-                    .AddLocation(selection)
-                    .Build());
+            new(ErrorBuilder.New()
+                .SetMessage(ThrowHelper_QueryCompiler_CompositeTypeSelectionSet_Message)
+                .AddLocation(selection)
+                .Build());
 
         public static GraphQLException OperationExecutionMiddleware_NoBatchDispatcher() =>
-            new GraphQLException(
-                ThrowHelper_OperationExecutionMiddleware_NoBatchDispatcher_Message);
+            new(ThrowHelper_OperationExecutionMiddleware_NoBatchDispatcher_Message);
 
         public static GraphQLException OperationCompiler_FragmentNoSelections(
             ISyntaxNode syntaxNode) =>
-            new GraphQLException(ErrorBuilder.New()
+            new(ErrorBuilder.New()
                 .SetMessage("Fragment selection set is empty.")
                 .AddLocation(syntaxNode)
                 .Build());
 
         public static GraphQLException OperationCompiler_NoCompositeSelections(
             FieldNode syntaxNode) =>
-            new GraphQLException(ErrorBuilder.New()
+            new(ErrorBuilder.New()
                 .SetMessage(
                     "The composite field `{0}` has no selections.",
                     syntaxNode.Alias?.Value ?? syntaxNode.Name.Value)
@@ -272,18 +279,27 @@ namespace HotChocolate.Execution
 
         public static GraphQLException OperationCompiler_NoOperationSelections(
             OperationDefinitionNode syntaxNode) =>
-            new GraphQLException(ErrorBuilder.New()
+            new(ErrorBuilder.New()
                 .SetMessage("The operation has no selections.")
                 .AddLocation(syntaxNode)
                 .Build());
 
         public static SchemaException Convention_UnableToCreateConvention(
             Type convention) =>
-            new SchemaException(
-                SchemaErrorBuilder.New()
-                    .SetMessage(
-                        "Unable to create a convention instance from {0}.",
-                        convention.FullName ?? convention.Name)
-                    .Build());
+            new(SchemaErrorBuilder.New()
+                .SetMessage(
+                    "Unable to create a convention instance from {0}.",
+                    convention.FullName ?? convention.Name)
+                .Build());
+
+        public static ObjectDisposedException Object_Not_Initialized() =>
+            new("The specified object was not initialized and is no longer usable.");
+
+        public static GraphQLException ReadPersistedQueryMiddleware_PersistedQueryNotFound() =>
+            new(ErrorBuilder.New()
+                // this string is defined in the APQ spec!
+                .SetMessage("PersistedQueryNotFound")
+                .SetCode(ErrorCodes.Execution.PersistedQueryNotFound)
+                .Build());
     }
 }

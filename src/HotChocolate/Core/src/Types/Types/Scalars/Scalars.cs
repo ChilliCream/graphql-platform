@@ -12,80 +12,80 @@ namespace HotChocolate.Types
     /// </summary>
     public static class Scalars
     {
-        private static readonly Dictionary<Type, Type> _lookup =
-            new Dictionary<Type, Type>
-            {
-                { typeof(string), typeof(StringType) },
-                { typeof(bool), typeof(BooleanType) },
-                { typeof(byte), typeof(ByteType) },
-                { typeof(short), typeof(ShortType) },
-                { typeof(int), typeof(IntType) },
-                { typeof(long), typeof(LongType) },
+        private static readonly Dictionary<Type, Type> _lookup = new()
+        {
+            { typeof(string), typeof(StringType) },
+            { typeof(bool), typeof(BooleanType) },
+            { typeof(byte), typeof(ByteType) },
+            { typeof(short), typeof(ShortType) },
+            { typeof(int), typeof(IntType) },
+            { typeof(long), typeof(LongType) },
 
-                { typeof(float), typeof(FloatType) },
-                { typeof(double), typeof(FloatType) },
-                { typeof(decimal), typeof(DecimalType) },
+            { typeof(float), typeof(FloatType) },
+            { typeof(double), typeof(FloatType) },
+            { typeof(decimal), typeof(DecimalType) },
 
-                { typeof(Uri), typeof(UrlType) },
-                { typeof(Guid), typeof(UuidType) },
-                { typeof(DateTime), typeof(DateTimeType) },
-                { typeof(DateTimeOffset), typeof(DateTimeType) },
-                { typeof(MultiplierPathString), typeof(MultiplierPathType) },
-                { typeof(byte[]), typeof(ByteArrayType) },
-                { typeof(NameString), typeof(NameType) },
-                { typeof(TimeSpan), typeof(TimeSpanType) },
-            };
+            { typeof(Uri), typeof(UrlType) },
+            { typeof(Guid), typeof(UuidType) },
+            { typeof(DateTime), typeof(DateTimeType) },
+            { typeof(DateTimeOffset), typeof(DateTimeType) },
+            { typeof(MultiplierPathString), typeof(MultiplierPathType) },
+            { typeof(byte[]), typeof(ByteArrayType) },
+            { typeof(NameString), typeof(NameType) },
+            { typeof(TimeSpan), typeof(TimeSpanType) },
+        };
 
-        private static readonly Dictionary<NameString, Type> _nameLookup =
-           new Dictionary<NameString, Type>
-           {
-                { ScalarNames.String, typeof(StringType) },
-                { ScalarNames.ID, typeof(IdType) },
-                { ScalarNames.Boolean, typeof(BooleanType) },
-                { ScalarNames.Byte, typeof(ByteType) },
-                { ScalarNames.Short, typeof(ShortType) },
-                { ScalarNames.Int, typeof(IntType) },
-                { ScalarNames.Long, typeof(LongType) },
+        private static readonly Dictionary<NameString, Type> _nameLookup = new()
+        {
+            { ScalarNames.String, typeof(StringType) },
+            { ScalarNames.ID, typeof(IdType) },
+            { ScalarNames.Boolean, typeof(BooleanType) },
+            { ScalarNames.Byte, typeof(ByteType) },
+            { ScalarNames.Short, typeof(ShortType) },
+            { ScalarNames.Int, typeof(IntType) },
+            { ScalarNames.Long, typeof(LongType) },
 
-                { ScalarNames.Float, typeof(FloatType) },
-                { ScalarNames.Decimal, typeof(DecimalType) },
+            { ScalarNames.Float, typeof(FloatType) },
+            { ScalarNames.Decimal, typeof(DecimalType) },
 
-                { ScalarNames.Url, typeof(UrlType) },
-                { ScalarNames.Uuid, typeof(UuidType) },
-                { ScalarNames.DateTime, typeof(DateTimeType) },
-                { ScalarNames.Date, typeof(DateType) },
-                { ScalarNames.MultiplierPath, typeof(MultiplierPathType) },
-                { ScalarNames.Name, typeof(NameType) },
-                { ScalarNames.ByteArray, typeof(ByteArrayType) },
-           };
+            { ScalarNames.Url, typeof(UrlType) },
+            { ScalarNames.Uuid, typeof(UuidType) },
+            { ScalarNames.DateTime, typeof(DateTimeType) },
+            { ScalarNames.Date, typeof(DateType) },
+            { ScalarNames.TimeSpan, typeof(TimeSpanType) },
+            { ScalarNames.Any, typeof(AnyType) },
 
-        private static readonly Dictionary<Type, ValueKind> _scalarKinds =
-            new Dictionary<Type, ValueKind>
-            {
-                { typeof(string), ValueKind.String },
-                { typeof(long), ValueKind.Integer },
-                { typeof(int), ValueKind.Integer },
-                { typeof(short), ValueKind.Integer },
-                { typeof(long?), ValueKind.Integer },
-                { typeof(int?), ValueKind.Integer },
-                { typeof(short?), ValueKind.Integer },
-                { typeof(ulong), ValueKind.Integer },
-                { typeof(uint), ValueKind.Integer },
-                { typeof(ushort), ValueKind.Integer },
-                { typeof(ulong?), ValueKind.Integer },
-                { typeof(uint?), ValueKind.Integer },
-                { typeof(ushort?), ValueKind.Integer },
-                { typeof(byte), ValueKind.Integer },
-                { typeof(byte?), ValueKind.Integer },
-                { typeof(float), ValueKind.Float },
-                { typeof(double), ValueKind.Float },
-                { typeof(decimal), ValueKind.Float },
-                { typeof(float?), ValueKind.Float },
-                { typeof(double?), ValueKind.Float },
-                { typeof(decimal?), ValueKind.Float },
-                { typeof(bool), ValueKind.Float },
-                { typeof(bool?), ValueKind.Float }
-            };
+            { ScalarNames.MultiplierPath, typeof(MultiplierPathType) },
+            { ScalarNames.Name, typeof(NameType) },
+            { ScalarNames.ByteArray, typeof(ByteArrayType) },
+        };
+
+        private static readonly Dictionary<Type, ValueKind> _scalarKinds = new()
+        {
+            { typeof(string), ValueKind.String },
+            { typeof(long), ValueKind.Integer },
+            { typeof(int), ValueKind.Integer },
+            { typeof(short), ValueKind.Integer },
+            { typeof(long?), ValueKind.Integer },
+            { typeof(int?), ValueKind.Integer },
+            { typeof(short?), ValueKind.Integer },
+            { typeof(ulong), ValueKind.Integer },
+            { typeof(uint), ValueKind.Integer },
+            { typeof(ushort), ValueKind.Integer },
+            { typeof(ulong?), ValueKind.Integer },
+            { typeof(uint?), ValueKind.Integer },
+            { typeof(ushort?), ValueKind.Integer },
+            { typeof(byte), ValueKind.Integer },
+            { typeof(byte?), ValueKind.Integer },
+            { typeof(float), ValueKind.Float },
+            { typeof(double), ValueKind.Float },
+            { typeof(decimal), ValueKind.Float },
+            { typeof(float?), ValueKind.Float },
+            { typeof(double?), ValueKind.Float },
+            { typeof(decimal?), ValueKind.Float },
+            { typeof(bool), ValueKind.Float },
+            { typeof(bool?), ValueKind.Float }
+        };
 
         internal static bool TryGetScalar(
             Type clrType,

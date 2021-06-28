@@ -11,5 +11,6 @@
     "one": "foo"
   },
   "Services": null,
-  "InitialValue": null
+  "InitialValue": null,
+  "AllowedOperations": null
 }

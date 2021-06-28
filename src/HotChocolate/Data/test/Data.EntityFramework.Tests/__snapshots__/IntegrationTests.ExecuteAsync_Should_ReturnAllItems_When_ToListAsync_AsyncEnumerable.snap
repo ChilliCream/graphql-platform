@@ -1,0 +1,15 @@
+﻿{
+  "data": {
+    "executable": [
+      {
+        "name": "Foo"
+      },
+      {
+        "name": "Bar"
+      },
+      {
+        "name": "Baz"
+      }
+    ]
+  }
+}

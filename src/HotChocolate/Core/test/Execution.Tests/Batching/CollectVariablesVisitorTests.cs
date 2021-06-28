@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using HotChocolate.StarWars;
 using Snapshooter.Xunit;
 using Xunit;
@@ -36,19 +37,18 @@ namespace HotChocolate.Execution.Batching
             operation.Accept(
                 visitor,
                 visitationMap,
-                node => VisitorAction.Continue);
+                _ => VisitorAction.Continue);
 
             // assert
             var variables = operation.VariableDefinitions.ToList();
             variables.AddRange(visitor.VariableDeclarations);
             operation = operation.WithVariableDefinitions(variables);
 
-            QuerySyntaxSerializer.Serialize(
-                new DocumentNode(
-                    new IDefinitionNode[]
-                    {
-                        operation
-                    })).MatchSnapshot();
+            new DocumentNode(
+                new IDefinitionNode[]
+                {
+                    operation
+                }).Print().MatchSnapshot();
         }
 
         [Fact]
@@ -87,12 +87,11 @@ namespace HotChocolate.Execution.Batching
             variables.AddRange(visitor.VariableDeclarations);
             operation = operation.WithVariableDefinitions(variables);
 
-            QuerySyntaxSerializer.Serialize(
-                new DocumentNode(
-                    new IDefinitionNode[]
-                    {
-                        operation
-                    })).MatchSnapshot();
+            new DocumentNode(
+                new IDefinitionNode[]
+                {
+                    operation
+                }).Print().MatchSnapshot();
         }
 
         [Fact]
@@ -130,7 +129,7 @@ namespace HotChocolate.Execution.Batching
             operation.Accept(
                 visitor,
                 visitationMap,
-                node => VisitorAction.Continue);
+                _ => VisitorAction.Continue);
 
             // assert
             var variables = operation.VariableDefinitions.ToList();
@@ -142,9 +141,7 @@ namespace HotChocolate.Execution.Batching
             definitions.AddRange(
                 document.Definitions.OfType<FragmentDefinitionNode>());
 
-            QuerySyntaxSerializer.Serialize(
-                new DocumentNode(
-                    definitions)).MatchSnapshot();
+            new DocumentNode(definitions).Print().MatchSnapshot();
         }
     }
 }

@@ -19,6 +19,62 @@
       "responseName": "unknown_field",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 89,
+          "End": 175,
+          "Line": 3,
+          "Column": 35
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 115,
+              "End": 157,
+              "Line": 4,
+              "Column": 25
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 115,
+                "End": 157,
+                "Line": 4,
+                "Column": 25
+              },
+              "Value": "deeper_unknown_field"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 75,
+        "End": 175,
+        "Line": 3,
+        "Column": 21
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 75,
+          "End": 90,
+          "Line": 3,
+          "Column": 21
+        },
+        "Value": "unknown_field"
+      },
+      "Directives": []
+    }
   }
 ]

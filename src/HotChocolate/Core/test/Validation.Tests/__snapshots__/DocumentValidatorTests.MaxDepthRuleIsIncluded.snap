@@ -1,6 +1,6 @@
 ﻿[
   {
-    "Message": "The GraphQL document has an operation complexity of 2 which exceeds the max allowed operation complexity of 1.",
+    "Message": "The GraphQL document has an execution depth of 2 which exceeds the max allowed execution depth of 1.",
     "Code": null,
     "Path": null,
     "Locations": [
@@ -10,9 +10,129 @@
       }
     ],
     "Extensions": {
-      "allowedComplexity": 1,
-      "detectedComplexity": 2
+      "allowedExecutionDepth": 1,
+      "detectedExecutionDepth": 2
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 21,
+        "End": 260,
+        "Line": 2,
+        "Column": 21
+      },
+      "Name": null,
+      "Operation": "Query",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 27,
+          "End": 260,
+          "Line": 2,
+          "Column": 27
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": {
+                "Start": 86,
+                "End": 243,
+                "Line": 4,
+                "Column": 25
+              },
+              "Selections": [
+                {
+                  "Kind": "InlineFragment",
+                  "Location": {
+                    "Start": 116,
+                    "End": 221,
+                    "Line": 5,
+                    "Column": 29
+                  },
+                  "TypeCondition": {
+                    "Kind": "NamedType",
+                    "Location": {
+                      "Start": 123,
+                      "End": 128,
+                      "Line": 5,
+                      "Column": 36
+                    },
+                    "Name": {
+                      "Kind": "Name",
+                      "Location": {
+                        "Start": 123,
+                        "End": 128,
+                        "Line": 5,
+                        "Column": 36
+                      },
+                      "Value": "Cat"
+                    }
+                  },
+                  "Directives": [],
+                  "SelectionSet": {
+                    "Kind": "SelectionSet",
+                    "Location": {
+                      "Start": 127,
+                      "End": 221,
+                      "Line": 5,
+                      "Column": 40
+                    },
+                    "Selections": [
+                      {
+                        "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "SelectionSet": null,
+                        "Location": {
+                          "Start": 161,
+                          "End": 195,
+                          "Line": 6,
+                          "Column": 33
+                        },
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": {
+                            "Start": 161,
+                            "End": 195,
+                            "Line": 6,
+                            "Column": 33
+                          },
+                          "Value": "name"
+                        },
+                        "Directives": []
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "Location": {
+              "Start": 53,
+              "End": 243,
+              "Line": 3,
+              "Column": 25
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 53,
+                "End": 87,
+                "Line": 3,
+                "Column": 25
+              },
+              "Value": "catOrDog"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
   }
 ]

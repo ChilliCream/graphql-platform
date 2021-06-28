@@ -23,6 +23,26 @@
       "locationType": "[String]!",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Variable",
+      "Location": {
+        "Start": 177,
+        "End": 192,
+        "Line": 5,
+        "Column": 73
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 178,
+          "End": 192,
+          "Line": 5,
+          "Column": 74
+        },
+        "Value": "stringListVar"
+      },
+      "Value": "stringListVar"
+    }
   }
 ]

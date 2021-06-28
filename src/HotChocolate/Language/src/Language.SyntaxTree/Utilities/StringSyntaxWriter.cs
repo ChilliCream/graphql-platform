@@ -2,11 +2,10 @@ using System.Text;
 
 namespace HotChocolate.Language.Utilities
 {
-    public class StringSyntaxWriter
-        : ISyntaxWriter
+    public class StringSyntaxWriter : ISyntaxWriter
     {
-        private static StringSyntaxWriterPool _pool = new StringSyntaxWriterPool();
-        private readonly StringBuilder _stringBuilder = new StringBuilder();
+        private static readonly StringSyntaxWriterPool _pool = new();
+        private readonly StringBuilder _stringBuilder = new();
         private int _indent;
 
         public static StringSyntaxWriter Rent()
@@ -18,6 +17,8 @@ namespace HotChocolate.Language.Utilities
         {
             _pool.Return(writer);
         }
+
+        internal StringBuilder StringBuilder => _stringBuilder;
 
         public void Indent()
         {

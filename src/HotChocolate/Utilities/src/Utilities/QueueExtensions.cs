@@ -1,4 +1,8 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+
+#nullable enable
 
 namespace HotChocolate.Utilities
 {
@@ -6,15 +10,20 @@ namespace HotChocolate.Utilities
     {
         public static bool TryPeekElement<T>(
             this Queue<T> queue,
-            out T value)
+            [NotNullWhen(true)] out T value)
         {
+            if (queue == null)
+            {
+                throw new ArgumentNullException(nameof(queue));
+            }
+
             if (queue.Count > 0)
             {
-                value = queue.Peek();
+                value = queue.Peek()!;
                 return true;
             }
 
-            value = default;
+            value = default!;
             return false;
         }
     }

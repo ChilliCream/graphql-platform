@@ -101,6 +101,34 @@ namespace HotChocolate.Data.Projections.Expressions
             }
         };
 
+        private static readonly BarNullable[] _barWithoutRelation =
+        {
+            new BarNullable
+            {
+                Foo = new FooNullable
+                {
+                    BarEnum = BarEnum.BAR,
+                    BarShort = 15,
+                    NestedObject = new BarNullableDeep
+                    {
+                        Foo = new FooDeep
+                        {
+                            BarString = "Foo"
+                        }
+                    }
+                }
+            },
+            new BarNullable
+            {
+                Foo = new FooNullable
+                {
+                    BarEnum = BarEnum.FOO,
+                    BarShort = 14
+                }
+            },
+            new BarNullable()
+        };
+
         private readonly SchemaCache _cache = new SchemaCache();
 
         [Fact]
@@ -249,6 +277,87 @@ namespace HotChocolate.Data.Projections.Expressions
             res1.MatchSqlSnapshot();
         }
 
+        [Fact]
+        public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull()
+        {
+            // arrange
+            IRequestExecutor tester = _cache.CreateSchema(_barWithoutRelation, OnModelCreating);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"
+                        {
+                            root {
+                                foo {
+                                    id
+                                }
+                            }
+                        }")
+                    .Create());
+
+            res1.MatchSqlSnapshot();
+        }
+
+        [Fact]
+        public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull_TwoFields()
+        {
+            // arrange
+            IRequestExecutor tester = _cache.CreateSchema(_barWithoutRelation, OnModelCreating);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"
+                        {
+                            root {
+                                id
+                                foo {
+                                    id
+                                    barEnum
+                                }
+                            }
+                        }")
+                    .Create());
+
+            res1.MatchSqlSnapshot();
+        }
+
+        [Fact]
+        public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull_Deep()
+        {
+            // arrange
+            IRequestExecutor tester = _cache.CreateSchema(_barWithoutRelation, OnModelCreating);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"
+                        {
+                            root {
+                                id
+                                foo {
+                                    id
+                                    barEnum
+                                    nestedObject {
+                                        foo {
+                                            barString
+                                        }
+                                    }
+                                }
+                            }
+                        }")
+                    .Create());
+
+            res1.MatchSqlSnapshot();
+        }
+
         public static void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Foo>().HasMany(x => x.ObjectArray);
@@ -296,6 +405,7 @@ namespace HotChocolate.Data.Projections.Expressions
             public bool? BarBool { get; set; }
 
             [UseFiltering]
+            [UseSorting]
             public List<BarNullableDeep?>? ObjectArray { get; set; }
 
             public BarNullableDeep? NestedObject { get; set; }

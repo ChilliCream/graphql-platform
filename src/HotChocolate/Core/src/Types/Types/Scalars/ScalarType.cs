@@ -18,6 +18,8 @@ namespace HotChocolate.Types
         , ILeafType
         , IHasDirectives
     {
+        private Uri? _specifiedBy;
+
         /// <summary>
         /// Gets the type kind.
         /// </summary>
@@ -33,6 +35,23 @@ namespace HotChocolate.Types
         /// The .net type representation of this scalar.
         /// </summary>
         public abstract Type RuntimeType { get; }
+
+        /// <summary>
+        /// Gets the optional description of this scalar type.
+        /// </summary>
+        public Uri? SpecifiedBy
+        {
+            get => _specifiedBy;
+            protected set
+            {
+                if (IsCompleted)
+                {
+                    throw new InvalidOperationException(
+                        TypeResources.TypeSystemObject_DescriptionImmutable);
+                }
+                _specifiedBy = value;
+            }
+        }
 
         public override IReadOnlyDictionary<string, object?> ContextData => _contextData;
 
@@ -197,7 +216,6 @@ namespace HotChocolate.Types
                 TypeResourceHelper.Scalar_Cannot_Deserialize(Name),
                 this);
         }
-
 
         /// <summary>
         /// Tries to deserializes the value from the output format to the .net value representation.

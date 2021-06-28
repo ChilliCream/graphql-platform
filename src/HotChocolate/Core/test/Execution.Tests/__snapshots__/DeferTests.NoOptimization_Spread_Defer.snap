@@ -1,0 +1,32 @@
+﻿{
+  "data": {
+    "hero": {
+      "id": "2001"
+    }
+  },
+  "hasNext": true
+}
+
+{
+  "label": "friends",
+  "path": [
+    "hero"
+  ],
+  "data": {
+    "friends": {
+      "nodes": [
+        {
+          "id": "1000"
+        },
+        {
+          "id": "1002"
+        },
+        {
+          "id": "1003"
+        }
+      ]
+    }
+  },
+  "hasNext": false
+}
+

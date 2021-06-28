@@ -77,12 +77,20 @@ namespace HotChocolate.Stitching.Delegation
             {
                 case IReadOnlyList<object> list:
                 {
-                    var elementType = (IInputType)inputType.ElementType();
-                    var deserializedList = (IList)Activator.CreateInstance(inputType.RuntimeType)!;
+                    IInputType elementType = inputType;
+                    Type runtimeType = typeof(List<object>);
+                    if (inputType.IsListType())
+                    {
+                        elementType = (IInputType)inputType.ElementType();
+                        runtimeType = inputType.RuntimeType;
+                    }
+
+                    var deserializedList =
+                        (IList)Activator.CreateInstance(runtimeType)!;
 
                     foreach (object? item in list)
                     {
-                        deserializedList.Add(DeserializeEnumResult(elementType, item));
+                        deserializedList.Add(DeserializeScalarResult(elementType, item));
                     }
 
                     return deserializedList;
@@ -95,7 +103,7 @@ namespace HotChocolate.Stitching.Delegation
 
                     foreach (IValueNode item in listLiteral.Items)
                     {
-                        list.Add(DeserializeEnumResult(elementType, item));
+                        list.Add(DeserializeScalarResult(elementType, item));
                     }
 
                     return list;

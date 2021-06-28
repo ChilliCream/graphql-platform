@@ -7,53 +7,105 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
-    public sealed class UuidType
-        : ScalarType<Guid, StringValueNode>
+    public class UuidType : ScalarType<Guid, StringValueNode>
     {
         private readonly string _format;
+        private readonly bool _enforceFormat;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UuidType"/> class.
         /// </summary>
-        public UuidType()
-            : this('\0')
+        public UuidType() : this('\0')
         {
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UuidType"/> class.
         /// </summary>
-        public UuidType(char format = '\0')
-            : this(ScalarNames.Uuid, format)
+        /// <param name="defaultFormat">
+        /// The expected format of GUID strings by this scalar.
+        /// <c>'N'</c> (default): nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
+        /// <c>'D'</c>: nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn
+        /// <c>'B'</c>: {nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn}
+        /// <c>'P'</c>: (nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn)
+        /// </param>
+        /// <param name="enforceFormat">
+        /// Specifies if the <paramref name="defaultFormat"/> is enforced and violations will cause
+        /// a <see cref="SerializationException"/>. If set to <c>false</c> and the string
+        /// does not match the <paramref name="defaultFormat"/> the scalar will try to deserialize
+        /// the string using the other formats.
+        /// </param>
+        public UuidType(char defaultFormat = '\0', bool enforceFormat = false)
+            : this(
+                ScalarNames.Uuid,
+                defaultFormat: defaultFormat,
+                enforceFormat: enforceFormat,
+                bind: BindingBehavior.Implicit)
         {
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UuidType"/> class.
         /// </summary>
-        public UuidType(NameString name, char format = '\0')
-            : this(name, null, format)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="UuidType"/> class.
-        /// </summary>
-        public UuidType(NameString name, string? description, char format = '\0')
-            : base(name, BindingBehavior.Implicit)
+        /// <param name="name">
+        /// The name that this scalar shall have.
+        /// </param>
+        /// <param name="description">
+        /// The description of this scalar.
+        /// </param>
+        /// <param name="defaultFormat">
+        /// The expected format of GUID strings by this scalar.
+        /// <c>'N'</c> (default): nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
+        /// <c>'D'</c>: nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn
+        /// <c>'B'</c>: {nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn}
+        /// <c>'P'</c>: (nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn)
+        /// </param>
+        /// <param name="enforceFormat">
+        /// Specifies if the <paramref name="defaultFormat"/> is enforced and violations will cause
+        /// a <see cref="SerializationException"/>. If set to <c>false</c> and the string
+        /// does not match the <paramref name="defaultFormat"/> the scalar will try to deserialize
+        /// the string using the other formats.
+        /// </param>
+        /// <param name="bind">
+        /// Defines if this scalar binds implicitly to <see cref="System.Guid"/>,
+        /// or must be explicitly bound.
+        /// </param>
+        public UuidType(
+            NameString name,
+            string? description = null,
+            char defaultFormat = '\0',
+            bool enforceFormat = false,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name, bind)
         {
             Description = description;
-            _format = CreateFormatString(format);
+            _format = CreateFormatString(defaultFormat);
+            _enforceFormat = enforceFormat;
         }
 
         protected override bool IsInstanceOfType(StringValueNode valueSyntax)
         {
-            return Utf8Parser.TryParse(valueSyntax.AsSpan(), out Guid _, out int _, _format[0]);
+            if (Utf8Parser.TryParse(valueSyntax.AsSpan(), out Guid _, out _, _format[0]))
+            {
+                return true;
+            }
+
+            if (!_enforceFormat && Guid.TryParse(valueSyntax.Value, out _))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         protected override Guid ParseLiteral(StringValueNode valueSyntax)
         {
-            if (Utf8Parser.TryParse(valueSyntax.AsSpan(), out Guid g, out int _, _format[0]))
+            if (Utf8Parser.TryParse(valueSyntax.AsSpan(), out Guid g, out _, _format[0]))
+            {
+                return g;
+            }
+
+            if (!_enforceFormat && Guid.TryParse(valueSyntax.Value, out g))
             {
                 return g;
             }
@@ -65,7 +117,7 @@ namespace HotChocolate.Types
 
         protected override StringValueNode ParseValue(Guid runtimeValue)
         {
-            return new StringValueNode(runtimeValue.ToString(_format));
+            return new(runtimeValue.ToString(_format));
         }
 
         public override IValueNode ParseResult(object? resultValue)
@@ -98,9 +150,9 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (runtimeValue is Guid uri)
+            if (runtimeValue is Guid guid)
             {
-                resultValue = uri.ToString(_format);
+                resultValue = guid.ToString(_format);
                 return true;
             }
 
@@ -140,15 +192,7 @@ namespace HotChocolate.Types
                 && format != 'B'
                 && format != 'P')
             {
-                throw new ArgumentException(
-                    "Unknown format. Guid supports the following format chars: " +
-                    $"{{ `N`, `D`, `B`, `P` }}.{Environment.NewLine}" +
-                    "https://docs.microsoft.com/en-us/dotnet/api/" +
-                    "system.buffers.text.utf8parser.tryparse?" +
-                    "view=netcore-3.1#System_Buffers_Text_Utf8Parser_" +
-                    "TryParse_System_ReadOnlySpan_System_Byte__System_Guid__" +
-                    "System_Int32__System_Char_",
-                    nameof(format));
+                throw new ArgumentException(TypeResources.UuidType_FormatUnknown, nameof(format));
             }
 
             return format == '\0' ? "N" : format.ToString();

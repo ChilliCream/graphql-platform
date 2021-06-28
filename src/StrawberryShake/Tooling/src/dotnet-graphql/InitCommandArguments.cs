@@ -8,18 +8,18 @@ namespace StrawberryShake.Tools
         public InitCommandArguments(
             CommandArgument uri,
             CommandOption path,
-            CommandOption schema,
+            CommandOption name,
             AuthArguments authArguments)
         {
             Uri = uri;
             Path = path;
-            Schema = schema;
+            Name = name;
             AuthArguments = authArguments;
         }
 
         public CommandArgument Uri { get; }
         public CommandOption Path { get; }
-        public CommandOption Schema { get; }
+        public CommandOption Name { get; }
         public AuthArguments AuthArguments { get; }
     }
 }

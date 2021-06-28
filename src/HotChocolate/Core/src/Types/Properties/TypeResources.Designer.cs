@@ -1088,5 +1088,167 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("NodeDescriptor_IdField_MustBePropertyOrMethod", resourceCulture);
             }
         }
+        
+        internal static string DeprecatedDirectiveType_TypeDescription {
+            get {
+                return ResourceManager.GetString("DeprecatedDirectiveType_TypeDescription", resourceCulture);
+            }
+        }
+        
+        internal static string DeprecatedDirectiveType_ReasonDescription {
+            get {
+                return ResourceManager.GetString("DeprecatedDirectiveType_ReasonDescription", resourceCulture);
+            }
+        }
+        
+        internal static string IncludeDirectiveType_TypeDescription {
+            get {
+                return ResourceManager.GetString("IncludeDirectiveType_TypeDescription", resourceCulture);
+            }
+        }
+        
+        internal static string IncludeDirectiveType_IfDescription {
+            get {
+                return ResourceManager.GetString("IncludeDirectiveType_IfDescription", resourceCulture);
+            }
+        }
+        
+        internal static string SkipDirectiveType_TypeDescription {
+            get {
+                return ResourceManager.GetString("SkipDirectiveType_TypeDescription", resourceCulture);
+            }
+        }
+        
+        internal static string SkipDirectiveType_IfDescription {
+            get {
+                return ResourceManager.GetString("SkipDirectiveType_IfDescription", resourceCulture);
+            }
+        }
+        
+        internal static string SpecifiedByDirectiveType_TypeDescription {
+            get {
+                return ResourceManager.GetString("SpecifiedByDirectiveType_TypeDescription", resourceCulture);
+            }
+        }
+        
+        internal static string SpecifiedByDirectiveType_UrlDescription {
+            get {
+                return ResourceManager.GetString("SpecifiedByDirectiveType_UrlDescription", resourceCulture);
+            }
+        }
+        
+        internal static string NodeType_TypeDescription {
+            get {
+                return ResourceManager.GetString("NodeType_TypeDescription", resourceCulture);
+            }
+        }
+        
+        internal static string AnyType_CycleInObjectGraph {
+            get {
+                return ResourceManager.GetString("AnyType_CycleInObjectGraph", resourceCulture);
+            }
+        }
+        
+        internal static string UuidType_FormatUnknown {
+            get {
+                return ResourceManager.GetString("UuidType_FormatUnknown", resourceCulture);
+            }
+        }
+        
+        internal static string Directive_GetArgument_ArgumentNameIsInvalid {
+            get {
+                return ResourceManager.GetString("Directive_GetArgument_ArgumentNameIsInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string ___AppliedDirective_Description {
+            get {
+                return ResourceManager.GetString("__AppliedDirective_Description", resourceCulture);
+            }
+        }
+        
+        internal static string ___DirectiveArgument_Description {
+            get {
+                return ResourceManager.GetString("__DirectiveArgument_Description", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_UsePagingAttribute_NodeTypeUnknown {
+            get {
+                return ResourceManager.GetString("ThrowHelper_UsePagingAttribute_NodeTypeUnknown", resourceCulture);
+            }
+        }
+        
+        internal static string Schema_GetDirectiveType_DoesNotExist {
+            get {
+                return ResourceManager.GetString("Schema_GetDirectiveType_DoesNotExist", resourceCulture);
+            }
+        }
+        
+        internal static string ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed {
+            get {
+                return ResourceManager.GetString("ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed", resourceCulture);
+            }
+        }
+        
+        internal static string BindingCompiler_AddBinding_BindingCannotBeHandled {
+            get {
+                return ResourceManager.GetString("BindingCompiler_AddBinding_BindingCannotBeHandled", resourceCulture);
+            }
+        }
+        
+        internal static string Type_SpecifiedByUrl_Description {
+            get {
+                return ResourceManager.GetString("Type_SpecifiedByUrl_Description", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaBuilderExtensions_AddObjectType_TIsSchemaType {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_AddObjectType_TIsSchemaType", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaBuilderExtensions_AddUnionType_TIsSchemaType {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_AddUnionType_TIsSchemaType", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaBuilderExtensions_AddEnumType_TIsSchemaType {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_AddEnumType_TIsSchemaType", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaBuilderExtensions_AddInterfaceType_TIsSchemaType {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_AddInterfaceType_TIsSchemaType", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaBuilderExtensions_AddInputObjectType_TIsSchemaType {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_AddInputObjectType_TIsSchemaType", resourceCulture);
+            }
+        }
+        
+        internal static string ExpressionHelper_GetGlobalStateWithDefault_NoDefaults {
+            get {
+                return ResourceManager.GetString("ExpressionHelper_GetGlobalStateWithDefault_NoDefaults", resourceCulture);
+            }
+        }
+        
+        internal static string ExpressionHelper_ResolveScopedContextData_KeyDoesNotExist {
+            get {
+                return ResourceManager.GetString("ExpressionHelper_ResolveScopedContextData_KeyDoesNotExist", resourceCulture);
+            }
+        }
+        
+        internal static string ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue {
+            get {
+                return ResourceManager.GetString("ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue", resourceCulture);
+            }
+        }
     }
 }

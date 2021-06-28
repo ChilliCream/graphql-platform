@@ -15,7 +15,7 @@ namespace StrawberryShake.Tools
 
         void EnsureDirectoryExists(string path);
 
-        string GetDirectoryName(string path);
+        string? GetDirectoryName(string path);
 
         string GetFileNameWithoutExtension(string path);
 
@@ -28,6 +28,8 @@ namespace StrawberryShake.Tools
         IEnumerable<string> GetGraphQLFiles(string path);
 
         Task WriteToAsync(string fileName, Func<Stream, Task> write);
+
+        Task WriteTextAsync(string fileName, string text);
 
         Task<byte[]> ReadAllBytesAsync(string fileName);
     }

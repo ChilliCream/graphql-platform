@@ -1,11 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
+using HotChocolate.Tests;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -262,6 +264,27 @@ namespace HotChocolate.Execution
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task CannotCreateRootValue()
+        {
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryPrivateConstructor>()
+                .ExecuteRequestAsync("{ hello }")
+                .MatchSnapshotAsync();
+        }
+
+        // https://github.com/ChilliCream/hotchocolate/issues/2617
+        [Fact]
+        public async Task EnsureThatFieldsWithDifferentCasingAreNotMerged()
+        {
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryFieldCasing>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
         private static Schema CreateSchema()
         {
             return Schema.Create(c =>
@@ -285,7 +308,7 @@ namespace HotChocolate.Execution
 
             public IExecutable<string> GetQuery()
             {
-                return MockQuery<string>.From("foo", "bar");
+                return new MockExecutable<string>(new[] { "foo", "bar" }.AsQueryable());
             }
 
             public string TestProp => "Hello World!";
@@ -377,7 +400,7 @@ namespace HotChocolate.Execution
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
                 descriptor.Name("Tea");
-                descriptor.Interface<DrinkType>();
+                descriptor.Implements<DrinkType>();
                 descriptor.Field("kind")
                     .Type<NonNullType<DrinkKindType>>()
                     .Resolver(() => DrinkKind.BlackTea);
@@ -461,31 +484,53 @@ namespace HotChocolate.Execution
             }
         }
 
-        public class MockQuery<T> : IExecutable<T>
+        public class MockExecutable<T> : IExecutable<T>
         {
-            private readonly IReadOnlyList<T> _list;
+            private readonly IQueryable<T> _source;
 
-            private MockQuery(IEnumerable<T> list)
+            public MockExecutable(IQueryable<T> source)
             {
-                _list = list.ToArray();
+                _source = source;
             }
 
-            async ValueTask<object> IExecutable.ExecuteAsync(CancellationToken cancellationToken)
+            public object Source => _source;
+
+            public ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
             {
-                return await ExecuteAsync(cancellationToken);
+                return new ValueTask<IList>(_source.ToList());
             }
 
-            public ValueTask<IReadOnlyList<T>> ExecuteAsync(CancellationToken cancellationToken)
+            public ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken)
             {
-                return new ValueTask<IReadOnlyList<T>>(_list);
+                return new ValueTask<object?>(_source.FirstOrDefault());
+            }
+
+            public ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken)
+            {
+                return new ValueTask<object?>(_source.SingleOrDefault());
             }
 
             public string Print()
             {
-                return _list.ToString();
+                return _source.ToString();
+            }
+        }
+
+        public class QueryPrivateConstructor
+        {
+            private QueryPrivateConstructor()
+            {
             }
 
-            public static MockQuery<T> From(params T[] items) => new MockQuery<T>(items);
+            public string Hello() => "Hello";
+        }
+
+        public class QueryFieldCasing
+        {
+            public string YourFieldName { get; set; }
+
+            [GraphQLDeprecated("This is deprecated")]
+            public string YourFieldname { get; set; }
         }
     }
 }

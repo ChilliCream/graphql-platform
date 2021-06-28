@@ -11,5 +11,6 @@
   },
   "ContextData": null,
   "Services": null,
-  "InitialValue": null
+  "InitialValue": null,
+  "AllowedOperations": null
 }

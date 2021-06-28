@@ -18,6 +18,80 @@
       "fragment": "fragOnScalar",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragments-On-Composite-Types"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentDefinition",
+      "VariableDefinitions": [],
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 167,
+          "End": 172,
+          "Line": 8,
+          "Column": 42
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 167,
+            "End": 172,
+            "Line": 8,
+            "Column": 42
+          },
+          "Value": "Int"
+        }
+      },
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 171,
+          "End": 233,
+          "Line": 8,
+          "Column": 46
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 193,
+              "End": 220,
+              "Line": 9,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 193,
+                "End": 220,
+                "Line": 9,
+                "Column": 21
+              },
+              "Value": "something"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 142,
+        "End": 233,
+        "Line": 8,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 151,
+          "End": 166,
+          "Line": 8,
+          "Column": 26
+        },
+        "Value": "fragOnScalar"
+      },
+      "Directives": []
+    }
   }
 ]

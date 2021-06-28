@@ -19,17 +19,16 @@ namespace HotChocolate.Configuration
 {
     internal class TypeInitializer
     {
-        private readonly Dictionary<FieldReference, RegisteredResolver> _resolvers =
-            new Dictionary<FieldReference, RegisteredResolver>();
-        private readonly List<FieldMiddleware> _globalComps = new List<FieldMiddleware>();
-        private readonly List<ISchemaError> _errors = new List<ISchemaError>();
+        private readonly Dictionary<FieldReference, RegisteredResolver> _resolvers = new();
+        private readonly List<FieldMiddleware> _globalComps = new();
+        private readonly List<ISchemaError> _errors = new();
         private readonly IDescriptorContext _context;
         private readonly ITypeInspector _typeInspector;
         private readonly IReadOnlyList<ITypeReference> _initialTypes;
         private readonly IReadOnlyList<Type> _externalResolverTypes;
-        private readonly ITypeInterceptor _interceptor;
+        private readonly TypeInterceptor _interceptor;
         private readonly IsOfTypeFallback? _isOfType;
-        private readonly Func<TypeSystemObjectBase, bool> _isQueryType;
+        private readonly Func<TypeSystemObjectBase, RootTypeKind> _getTypeKind;
         private readonly TypeRegistry _typeRegistry;
         private readonly TypeLookup _typeLookup;
         private readonly TypeReferenceResolver _typeReferenceResolver;
@@ -40,7 +39,7 @@ namespace HotChocolate.Configuration
             IReadOnlyList<ITypeReference> initialTypes,
             IReadOnlyList<Type> externalResolverTypes,
             IsOfTypeFallback? isOfType,
-            Func<TypeSystemObjectBase, bool> isQueryType)
+            Func<TypeSystemObjectBase, RootTypeKind> getTypeKind)
         {
             _context = descriptorContext ??
                 throw new ArgumentNullException(nameof(descriptorContext));
@@ -51,9 +50,8 @@ namespace HotChocolate.Configuration
             _externalResolverTypes = externalResolverTypes ??
                 throw new ArgumentNullException(nameof(externalResolverTypes));
             _isOfType = isOfType;
-            _isQueryType = isQueryType ??
-                throw new ArgumentNullException(nameof(isQueryType));
-
+            _getTypeKind = getTypeKind ??
+                throw new ArgumentNullException(nameof(_getTypeKind));
             _interceptor = descriptorContext.TypeInterceptor;
             _typeInspector = descriptorContext.TypeInspector;
             _typeLookup = new TypeLookup(_typeInspector, _typeRegistry);
@@ -80,27 +78,7 @@ namespace HotChocolate.Configuration
             }
 
             // first we are going to find and initialize all types that belong to our schema.
-            var typeRegistrar = new TypeDiscoverer(
-                _context,
-                _typeRegistry,
-                _typeLookup,
-                _initialTypes,
-                _interceptor);
-
-            if (typeRegistrar.DiscoverTypes() is { Count: > 0 } errors)
-            {
-                throw new SchemaException(errors);
-            }
-
-            // next lets tell the type interceptors what types we have initialized.
-            if (_interceptor.TriggerAggregations)
-            {
-                _interceptor.OnTypesInitialized(
-                    _typeRegistry.Types.Select(t => t.DiscoveryContext).ToList());
-            }
-
-            // before we can start completing type names we need to register the field resolvers.
-            RegisterResolvers();
+            DiscoverTypes();
 
             // now that we have the resolvers sorted and know what types our schema will roughly
             // consist of we are going to have a look if we can infer interface usage
@@ -114,6 +92,9 @@ namespace HotChocolate.Configuration
             // their type extensions.
             MergeTypeExtensions();
 
+            // Now that we merged the types it is time to register the resolvers.
+            RegisterResolvers();
+
             // external resolvers are resolvers that are defined on the schema and are associated
             // with the types after they have received a name and the extensions are removed.
             RegisterExternalResolvers();
@@ -124,6 +105,10 @@ namespace HotChocolate.Configuration
             // last we complete the types. Completing types means that we will assign all
             // the fields resolving all missing parts and then making the types immutable.
             CompleteTypes();
+
+            // at this point everything is completely initialized and we just trigger a type
+            // finalize to allow the type to cleanup any initialization data structures.
+            FinalizeTypes();
 
             // if we do not have any errors we will validate the types for spec violations.
             if (_errors.Count == 0)
@@ -139,35 +124,122 @@ namespace HotChocolate.Configuration
             }
         }
 
+        private void DiscoverTypes()
+        {
+            _interceptor.OnBeforeDiscoverTypes();
+
+            var typeRegistrar = new TypeDiscoverer(
+                _context,
+                _typeRegistry,
+                _typeLookup,
+                _initialTypes,
+                _interceptor);
+
+            if (typeRegistrar.DiscoverTypes() is { Count: > 0 } errors)
+            {
+                throw new SchemaException(errors);
+            }
+
+            // lets tell the type interceptors what types we have initialized.
+            if (_interceptor.TriggerAggregations)
+            {
+                _interceptor.OnTypesInitialized(
+                    _typeRegistry.Types.Select(t => t.DiscoveryContext).ToList());
+            }
+
+            _interceptor.OnAfterDiscoverTypes();
+        }
+
         private void RegisterResolvers()
         {
             foreach (TypeDiscoveryContext context in
                 _typeRegistry.Types.Select(t => t.DiscoveryContext))
             {
-                foreach (FieldReference reference in context.Resolvers.Keys)
+                if (context.Type is ObjectType { Definition: { } typeDef })
                 {
-                    if (!_resolvers.ContainsKey(reference))
+                    typeDef.Name = context.Type.Name;
+
+                    foreach (var fieldDef in typeDef.Fields)
                     {
-                        _resolvers[reference] = context.Resolvers[reference];
+                        if (TryRegisterResolver(
+                            fieldDef,
+                            typeDef,
+                            out FieldReference? fieldRef,
+                            out RegisteredResolver? registeredResolver) &&
+                            !_resolvers.ContainsKey(fieldRef))
+                        {
+                            _resolvers.Add(fieldRef, registeredResolver);
+                        }
                     }
                 }
             }
         }
 
+        private bool TryRegisterResolver(
+            ObjectFieldDefinition fieldDef,
+            ObjectTypeDefinition typeDef,
+            [NotNullWhen(true)] out FieldReference? fieldRef,
+            [NotNullWhen(true)] out RegisteredResolver? registeredResolver)
+        {
+            if (fieldDef.Resolver is null)
+            {
+                fieldRef = new FieldReference(typeDef.Name, fieldDef.Name);
+
+                if (fieldDef.Expression is not null)
+                {
+                    registeredResolver = new RegisteredResolver(
+                        fieldDef.ResolverType,
+                        typeDef.RuntimeType,
+                        fieldRef.WithExpression(fieldDef.Expression));
+
+                    return true;
+                }
+
+                if (fieldDef.ResolverMember is not null)
+                {
+                    registeredResolver = new RegisteredResolver(
+                        fieldDef.ResolverType,
+                        typeDef.RuntimeType,
+                        fieldRef.WithMember(fieldDef.ResolverMember));
+
+                    return true;
+                }
+
+                if (fieldDef.Member is not null)
+                {
+                    registeredResolver = new RegisteredResolver(
+                        fieldDef.ResolverType,
+                        typeDef.RuntimeType,
+                        fieldRef.WithMember(fieldDef.Member));
+
+                    return true;
+                }
+            }
+
+            fieldRef = null;
+            registeredResolver = null;
+            return false;
+        }
+
         private void RegisterImplicitInterfaceDependencies()
         {
             var withRuntimeType = _typeRegistry.Types
-                .Where(t => t.RuntimeType != typeof(object))
+                .Where(t => !t.IsIntrospectionType && t.RuntimeType != typeof(object))
                 .Distinct()
                 .ToList();
 
             var interfaceTypes = withRuntimeType
-                .Where(t => t.Type is InterfaceType)
+                .Where(t => t.Kind is TypeKind.Interface)
                 .Distinct()
                 .ToList();
 
+            if (interfaceTypes.Count == 0)
+            {
+                return;
+            }
+
             var objectTypes = withRuntimeType
-                .Where(t => t.Type is ObjectType)
+                .Where(t => t.Kind is TypeKind.Object)
                 .Distinct()
                 .ToList();
 
@@ -179,12 +251,10 @@ namespace HotChocolate.Configuration
                 {
                     if (interfaceType.RuntimeType.IsAssignableFrom(objectType.RuntimeType))
                     {
-                        dependencies.Add(
-                            new TypeDependency(
-                                _typeInspector.GetTypeRef(
-                                    interfaceType.RuntimeType,
-                                    TypeContext.Output),
-                                TypeDependencyKind.Completed));
+                        ITypeReference typeReference =
+                            _typeInspector.GetOutputTypeRef(interfaceType.RuntimeType);
+                        ((ObjectType)objectType.Type).Definition!.Interfaces.Add(typeReference);
+                        dependencies.Add(new(typeReference, TypeDependencyKind.Completed));
                     }
                 }
 
@@ -217,8 +287,15 @@ namespace HotChocolate.Configuration
                     _typeRegistry.Register(registeredType.Type.Name, registeredType);
                 }
 
+                TypeCompletionContext context = registeredType.CompletionContext;
+                RootTypeKind kind = _getTypeKind(registeredType.Type);
+                context.IsQueryType = kind == RootTypeKind.Query;
+                context.IsMutationType = kind == RootTypeKind.Mutation;
+                context.IsSubscriptionType = kind == RootTypeKind.Subscription;
                 return true;
             }
+
+            _interceptor.OnBeforeCompleteTypeNames();
 
             if (ProcessTypes(TypeDependencyKind.Named, CompleteName) &&
                 _interceptor.TriggerAggregations)
@@ -228,41 +305,97 @@ namespace HotChocolate.Configuration
             }
 
             EnsureNoErrors();
+
+            _interceptor.OnAfterCompleteTypeNames();
         }
 
         private void MergeTypeExtensions()
         {
+            _interceptor.OnBeforeMergeTypeExtensions();
+
             var extensions = _typeRegistry.Types
                 .Where(t => t.IsExtension)
                 .ToList();
 
             if (extensions.Count > 0)
             {
+                var processed = new HashSet<RegisteredType>();
+
                 var types = _typeRegistry.Types
                     .Where(t => t.IsNamedType)
                     .ToList();
 
-                foreach (NameString typeName in extensions.Select(t => t.Type.Name).Distinct())
+                foreach (NameString typeName in extensions
+                    .Select(t => t.Type)
+                    .OfType<INamedTypeExtension>()
+                    .Where(t => t.ExtendsType is null)
+                    .Select(t => t.Name)
+                    .Distinct())
                 {
                     RegisteredType? type = types.FirstOrDefault(t => t.Type.Name.Equals(typeName));
-                    if(type is not null && type.Type is INamedType namedType)
+                    if (type?.Type is INamedType namedType)
                     {
                         MergeTypeExtension(
                             extensions.Where(t => t.Type.Name.Equals(typeName)),
                             type,
-                            namedType);
+                            namedType,
+                            processed);
+                    }
+                }
+
+                var extensionArray = new RegisteredType[1];
+
+                foreach (var extension in extensions.Except(processed))
+                {
+                    if (extension.Type is INamedTypeExtension {
+                        ExtendsType: { } extendsType } namedTypeExtension)
+                    {
+                        var isSchemaType = typeof(INamedType).IsAssignableFrom(extendsType);
+                        extensionArray[0] = extension;
+
+                        foreach (var possibleMatchingType in types
+                            .Where(t =>
+                                t.Type is INamedType n &&
+                                n.Kind == namedTypeExtension.Kind))
+
+                        {
+                            if (isSchemaType &&
+                                extendsType.IsInstanceOfType(possibleMatchingType))
+                            {
+                                MergeTypeExtension(
+                                    extensionArray,
+                                    possibleMatchingType,
+                                    (INamedType)possibleMatchingType.Type,
+                                    processed);
+                            }
+                            else if (!isSchemaType &&
+                                possibleMatchingType.RuntimeType != typeof(object) &&
+                                extendsType.IsAssignableFrom(possibleMatchingType.RuntimeType))
+                            {
+                                MergeTypeExtension(
+                                    extensionArray,
+                                    possibleMatchingType,
+                                    (INamedType)possibleMatchingType.Type,
+                                    processed);
+                            }
+                        }
                     }
                 }
             }
+
+            _interceptor.OnAfterMergeTypeExtensions();
         }
 
         private void MergeTypeExtension(
             IEnumerable<RegisteredType> extensions,
             RegisteredType registeredType,
-            INamedType namedType)
+            INamedType namedType,
+            HashSet<RegisteredType> processed)
         {
             foreach (RegisteredType extension in extensions)
             {
+                processed.Add(extension);
+
                 if (extension.Type is INamedTypeExtensionMerger m)
                 {
                     if (m.Kind != namedType.Kind)
@@ -274,13 +407,6 @@ namespace HotChocolate.Configuration
                                 namedType.Name))
                             .SetTypeSystemObject((ITypeSystemObject)namedType)
                             .Build());
-                    }
-
-                    TypeDiscoveryContext initContext = extension.DiscoveryContext;
-                    foreach (FieldReference reference in initContext.Resolvers.Keys)
-                    {
-                        _resolvers[reference]
-                            = initContext.Resolvers[reference].WithSourceType(registeredType.RuntimeType);
                     }
 
                     // merge
@@ -402,15 +528,12 @@ namespace HotChocolate.Configuration
                 RegisteredResolver registered = item.Value;
                 if (registered.Field is FieldMember member)
                 {
-                    ResolverDescriptor descriptor =
-                        registered.IsSourceResolver
-                            ? new ResolverDescriptor(
-                                registered.SourceType,
-                                member)
-                            : new ResolverDescriptor(
-                                registered.ResolverType,
-                                registered.SourceType,
-                                member);
+                    ResolverDescriptor descriptor = new(
+                        registered.SourceType,
+                        member,
+                        resolverType: registered.IsSourceResolver
+                            ? null
+                            : registered.ResolverType);
                     _resolvers[item.Key] = registered.WithField(
                         ResolverCompiler.Resolve.Compile(descriptor));
                 }
@@ -425,11 +548,16 @@ namespace HotChocolate.Configuration
                 {
                     TypeCompletionContext context = registeredType.CompletionContext;
                     context.Status = TypeStatus.Named;
-                    context.IsQueryType = _isQueryType.Invoke(registeredType.Type);
+                    RootTypeKind kind = _getTypeKind(registeredType.Type);
+                    context.IsQueryType = kind == RootTypeKind.Query;
+                    context.IsMutationType = kind == RootTypeKind.Mutation;
+                    context.IsSubscriptionType = kind == RootTypeKind.Subscription;
                     registeredType.Type.CompleteType(context);
                 }
                 return true;
             }
+
+            _interceptor.OnBeforeCompleteTypes();
 
             ProcessTypes(TypeDependencyKind.Completed, CompleteType);
             EnsureNoErrors();
@@ -438,6 +566,19 @@ namespace HotChocolate.Configuration
             {
                 _interceptor.OnTypesCompleted(
                     _typeRegistry.Types.Select(t => t.CompletionContext).ToList());
+            }
+
+            _interceptor.OnAfterCompleteTypes();
+        }
+
+        private void FinalizeTypes()
+        {
+            foreach (var registeredType in _typeRegistry.Types)
+            {
+                if (!registeredType.IsExtension)
+                {
+                    registeredType.Type.FinalizeType(registeredType.CompletionContext);
+                }
             }
         }
 
@@ -577,5 +718,13 @@ namespace HotChocolate.Configuration
                 throw new SchemaException(errors);
             }
         }
+    }
+
+    internal enum RootTypeKind
+    {
+        Query,
+        Mutation,
+        Subscription,
+        None
     }
 }

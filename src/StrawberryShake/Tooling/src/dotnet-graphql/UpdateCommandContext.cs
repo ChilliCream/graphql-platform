@@ -6,7 +6,7 @@ namespace StrawberryShake.Tools
     {
         public UpdateCommandContext(
             Uri? uri,
-            string path,
+            string? path,
             string? token,
             string? scheme)
         {
@@ -17,7 +17,7 @@ namespace StrawberryShake.Tools
         }
 
         public Uri? Uri { get; }
-        public string Path { get; }
+        public string? Path { get; }
         public string? Token { get; }
         public string? Scheme { get; }
     }

@@ -20,7 +20,7 @@ Apart from that UI teams tend to **NOT** want to know about all those domain ser
 
 Furthermore, we believe the schemas should be consistent and provide a way that is easily to consume.
 
-With the preview version 0.7.0-preview.35 we are now introducing schema stitching capabilities to [_Hot Chocolate_](https://hotchocolate.io/).
+With the preview version 0.7.0-preview.35 we are now introducing schema stitching capabilities to [Hot Chocolate](https://hotchocolate.io/).
 
 In this post I will walk you through how you can use schema stitching, what will be available with version 0.7.0 and what features come with the next releases.
 
@@ -125,8 +125,8 @@ type Customer {
   name: String!
   consultant: Consultant
   contracts: [Contract!]
-  @schema(name: "contract")
-  @delegate(path: "contracts(customerId:$fields:id)")
+    @schema(name: "contract")
+    @delegate(path: "contracts(customerId:$fields:id)")
 }
 
 type Consultant {
@@ -171,7 +171,7 @@ foo(id:123) {
 
 Since, we did not want to cram a query like this into one string we allow this to be done with a flat path.
 
-```
+```text
 foo(id:$arguments:arg1).bar.baz(top:1)
 ```
 
@@ -214,7 +214,7 @@ Note that this is also the place where you would add authentication and header p
 
 The clients must be named clients and have to use the schema name that we used in our schema directive earlier.
 
-Next let's setup our remote schemas. Remote schemas are actually local schemas representing the remote schemas and allowing us to treat the remote schema as if it were a usual schema written with _Hot Chocolate_.
+Next let's setup our remote schemas. Remote schemas are actually local schemas representing the remote schemas and allowing us to treat the remote schema as if it were a usual schema written with Hot Chocolate.
 
 This also allows us to create middleware components and other things on such a schema althogh the schema does not actually live in our process.
 
@@ -228,7 +228,7 @@ serviceCollection.AddRemoteQueryExecutor(b => b
 
 Again we use our schema name that we used earlier and we are loading a schema file describing the remote schema into the remote executor. We are basically building with that a schema the way you would with the schema-first approach.
 
-Next, let's setup our contracts schema. The contracts schema uses a `DateTime` scalar, this one is not specified in the spec so we have to tell our schema to use this one. Since _Hot Chocolate_ specified a bunch of extended scalars we can import one of those. If we do not have a scalar matching the one of the remote schema we would need to implement this one by extending the class `ScalarType`.
+Next, let's setup our contracts schema. The contracts schema uses a `DateTime` scalar, this one is not specified in the spec so we have to tell our schema to use this one. Since Hot Chocolate specified a bunch of extended scalars we can import one of those. If we do not have a scalar matching the one of the remote schema we would need to implement this one by extending the class `ScalarType`.
 
 ```csharp
 serviceCollection.AddRemoteQueryExecutor(b => b
@@ -251,7 +251,7 @@ Now, we are basically done and can fire up our server.
 
 ## Further Thoughts
 
-Since, remote schemas have a local schema representation in our process and the stitching layer is working on those local schemas we can also use native _Hot Chocolate_ schemas to further extend a stitched schema.
+Since, remote schemas have a local schema representation in our process and the stitching layer is working on those local schemas we can also use native Hot Chocolate schemas to further extend a stitched schema.
 
 So, all what I have described so far is included in the current preview release. We are still not done and are heavy at work getting our schema stitching even better.
 
@@ -307,7 +307,7 @@ HTTP directives let you decorate a schema SDL and thus let you map REST services
 
 Moreover, we will introduce a cast feature to our delegation path. This will basically allow you to use fragments without having to write the code.
 
-```
+```text
 foo.bar<baz>(a:1).qux(b:1)
 ```
 
@@ -352,7 +352,7 @@ The following query might be a good starting point since it will expose the ids 
 }
 ```
 
-If you have further questions or need help you join our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q).
+If you have further questions or need help you join our slack channel.
 
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

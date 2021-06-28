@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Stitching
 {
@@ -55,7 +56,7 @@ namespace HotChocolate.Stitching
             {
                 return $"${variable.Scope.Value}:{variable.Name.Value}";
             }
-            return QuerySyntaxSerializer.Serialize(value);
+            return value.Print();
         }
     }
 }

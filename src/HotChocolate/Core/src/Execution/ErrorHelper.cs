@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using static HotChocolate.Execution.Properties.Resources;
@@ -147,9 +148,13 @@ namespace HotChocolate.Execution
 
         public static IError ValueCompletion_CouldNotResolveAbstractType(
             FieldNode field,
-            Path path) =>
+            Path path,
+            object result) =>
             ErrorBuilder.New()
-                .SetMessage(ErrorHelper_ValueCompletion_CouldNotResolveAbstractType_Message)
+                .SetMessage(
+                    ErrorHelper_ValueCompletion_CouldNotResolveAbstractType_Message,
+                    result.GetType().FullName ?? result.GetType().Name,
+                    field.Name)
                 .SetPath(path)
                 .AddLocation(field)
                 .Build();
@@ -160,5 +165,21 @@ namespace HotChocolate.Execution
                     .SetMessage(ErrorHelper_StateInvalidForDocumentValidation_Message)
                     .SetCode(ErrorCodes.Execution.QueryNotFound)
                     .Build());
+
+        public static IQueryResult OperationKindNotAllowed() =>
+            QueryResultBuilder.CreateError(
+                ErrorBuilder.New()
+                    .SetMessage("The specified operation kind is not allowed.")
+                    .Build(),
+                new Dictionary<string, object?>
+                {
+                    { WellKnownContextData.OperationNotAllowed, null }
+                });
+
+        public static IQueryResult RequestTimeout(TimeSpan timeout) =>
+            QueryResultBuilder.CreateError(
+                new Error(
+                    string.Format(ErrorHelper_RequestTimeout, timeout),
+                    ErrorCodes.Execution.Timeout));
     }
 }

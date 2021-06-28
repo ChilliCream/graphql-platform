@@ -2,6 +2,10 @@ using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Data.Projections
 {
+    /// <summary>
+    /// A handler that can intersect a <see cref="ISelection"/> and optimize the selection set for
+    /// projections.
+    /// </summary>
     public interface IProjectionFieldHandler
     {
         /// <summary>

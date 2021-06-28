@@ -4,10 +4,11 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
+
+#nullable enable
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -15,6 +16,8 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<ObjectTypeDefinition>
         , IObjectTypeDescriptor
     {
+        private ICollection<Type>? _resolverTypes;
+
         protected ObjectTypeDescriptor(IDescriptorContext context, Type clrType)
             : base(context)
         {
@@ -40,26 +43,30 @@ namespace HotChocolate.Types.Descriptors
             : base(context)
         {
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+
+            foreach (var field in definition.Fields)
+            {
+                Fields.Add(ObjectFieldDescriptor.From(Context, field));
+            }
         }
 
-        protected internal override ObjectTypeDefinition Definition { get; protected set; } =
-            new ObjectTypeDefinition();
+        protected internal override ObjectTypeDefinition Definition { get; protected set; } = new();
 
         protected ICollection<ObjectFieldDescriptor> Fields { get; } =
             new List<ObjectFieldDescriptor>();
 
-        protected ICollection<Type> ResolverTypes { get; } =
-            new HashSet<Type>();
+        protected ICollection<Type> ResolverTypes => _resolverTypes ??= new HashSet<Type>();
 
         protected override void OnCreateDefinition(
             ObjectTypeDefinition definition)
         {
-            if (Definition.FieldBindingType is not null)
+            if (!Definition.AttributesAreApplied && Definition.FieldBindingType is not null)
             {
                 Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.FieldBindingType);
+                Definition.AttributesAreApplied = true;
             }
 
             var fields = new Dictionary<NameString, ObjectFieldDefinition>();
@@ -73,6 +80,7 @@ namespace HotChocolate.Types.Descriptors
 
             OnCompleteFields(fields, handledMembers);
 
+            Definition.Fields.Clear();
             Definition.Fields.AddRange(fields.Values);
 
             base.OnCreateDefinition(definition);
@@ -142,8 +150,8 @@ namespace HotChocolate.Types.Descriptors
                     return true;
 
                 case MethodInfo m:
-                    ParameterInfo parent = m.GetParameters()
-                        .FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute)));
+                    ParameterInfo? parent = m.GetParameters().FirstOrDefault(
+                        t => t.IsDefined(typeof(ParentAttribute)));
                     return parent is null || parent.ParameterType.IsAssignableFrom(sourceType);
 
                 default:
@@ -152,7 +160,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public IObjectTypeDescriptor SyntaxNode(
-            ObjectTypeDefinitionNode objectTypeDefinition)
+            ObjectTypeDefinitionNode? objectTypeDefinition)
         {
             Definition.SyntaxNode = objectTypeDefinition;
             return this;
@@ -164,29 +172,44 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IObjectTypeDescriptor Description(string value)
+        public IObjectTypeDescriptor Description(string? value)
         {
             Definition.Description = value;
             return this;
         }
 
+        [Obsolete("Use Implements.")]
         public IObjectTypeDescriptor Interface<TInterface>()
             where TInterface : InterfaceType
-        {
-            if (typeof(TInterface) == typeof(InterfaceType))
-            {
-                throw new ArgumentException(
-                    TypeResources.ObjectTypeDescriptor_InterfaceBaseClass);
-            }
+            => Implements<TInterface>();
 
-            Definition.Interfaces.Add(
-                Context.TypeInspector.GetTypeRef(typeof(TInterface)));
-            return this;
-        }
-
+        [Obsolete("Use Implements.")]
         public IObjectTypeDescriptor Interface<TInterface>(
             TInterface type)
             where TInterface : InterfaceType
+            => Implements(type);
+
+        [Obsolete("Use Implements.")]
+        public IObjectTypeDescriptor Interface(
+            NamedTypeNode namedType)
+            => Implements(namedType);
+
+        public IObjectTypeDescriptor Implements<T>()
+            where T : InterfaceType
+        {
+            if (typeof(T) == typeof(InterfaceType))
+            {
+                throw new ArgumentException(
+                    ObjectTypeDescriptor_InterfaceBaseClass);
+            }
+
+            Definition.Interfaces.Add(
+                Context.TypeInspector.GetTypeRef(typeof(T)));
+            return this;
+        }
+
+        public IObjectTypeDescriptor Implements<T>(T type)
+            where T : InterfaceType
         {
             if (type is null)
             {
@@ -198,28 +221,16 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IObjectTypeDescriptor Interface(
-            NamedTypeNode namedType)
+        public IObjectTypeDescriptor Implements(NamedTypeNode type)
         {
-            if (namedType is null)
+            if (type is null)
             {
-                throw new ArgumentNullException(nameof(namedType));
+                throw new ArgumentNullException(nameof(type));
             }
 
-            Definition.Interfaces.Add(TypeReference.Create(namedType, TypeContext.Output));
+            Definition.Interfaces.Add(TypeReference.Create(type, TypeContext.Output));
             return this;
         }
-
-        public IObjectTypeDescriptor Implements<T>()
-            where T : InterfaceType =>
-            Interface<T>();
-
-        public IObjectTypeDescriptor Implements<T>(T type)
-            where T : InterfaceType =>
-            Interface(type);
-
-        public IObjectTypeDescriptor Implements(NamedTypeNode type) =>
-            Interface(type);
 
         public IObjectTypeDescriptor Include<TResolver>()
         {
@@ -232,7 +243,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IObjectTypeDescriptor IsOfType(IsOfType isOfType)
+        public IObjectTypeDescriptor IsOfType(IsOfType? isOfType)
         {
             Definition.IsOfType = isOfType
                 ?? throw new ArgumentNullException(nameof(isOfType));
@@ -241,8 +252,8 @@ namespace HotChocolate.Types.Descriptors
 
         public IObjectFieldDescriptor Field(NameString name)
         {
-            ObjectFieldDescriptor fieldDescriptor =
-                Fields.FirstOrDefault(t => t.Definition.Name.Equals(name));
+            ObjectFieldDescriptor? fieldDescriptor = Fields.FirstOrDefault(
+                t => t.Definition.Name.Equals(name));
             if (fieldDescriptor is { })
             {
                 return fieldDescriptor;
@@ -267,9 +278,10 @@ namespace HotChocolate.Types.Descriptors
 
             if (propertyOrMethod is PropertyInfo || propertyOrMethod is MethodInfo)
             {
-                ObjectFieldDescriptor fieldDescriptor =
-                    Fields.FirstOrDefault(t => t.Definition.Member == propertyOrMethod);
-                if (fieldDescriptor is { })
+                ObjectFieldDescriptor? fieldDescriptor = Fields.FirstOrDefault(
+                    t => t.Definition.Member == propertyOrMethod);
+
+                if (fieldDescriptor is not null)
                 {
                     return fieldDescriptor;
                 }
@@ -300,9 +312,10 @@ namespace HotChocolate.Types.Descriptors
 
             if (member is PropertyInfo || member is MethodInfo)
             {
-                ObjectFieldDescriptor fieldDescriptor =
-                    Fields.FirstOrDefault(t => t.Definition.Member == member);
-                if (fieldDescriptor is { })
+                ObjectFieldDescriptor? fieldDescriptor = Fields.FirstOrDefault(
+                    t => t.Definition.Member == member);
+
+                if (fieldDescriptor is not null)
                 {
                     return fieldDescriptor;
                 }
@@ -348,40 +361,51 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        public IObjectTypeDescriptor ExtendsType(Type extendsType)
+        {
+            Definition.ExtendsType = extendsType;
+            return this;
+        }
+
+        public IObjectTypeDescriptor ExtendsType<T>()
+        {
+            Definition.ExtendsType = typeof(T);
+            return this;
+        }
+
         public static ObjectTypeDescriptor New(
             IDescriptorContext context) =>
-            new ObjectTypeDescriptor(context);
+            new(context);
 
         public static ObjectTypeDescriptor New(
             IDescriptorContext context,
             Type clrType) =>
-            new ObjectTypeDescriptor(context, clrType);
+            new(context, clrType);
 
         public static ObjectTypeDescriptor<T> New<T>(
             IDescriptorContext context) =>
-            new ObjectTypeDescriptor<T>(context);
+            new(context);
 
         public static ObjectTypeExtensionDescriptor<T> NewExtension<T>(
             IDescriptorContext context) =>
-            new ObjectTypeExtensionDescriptor<T>(context);
+            new(context);
 
         public static ObjectTypeDescriptor FromSchemaType(
             IDescriptorContext context,
-            Type schemaType)
-        {
-            var descriptor = new ObjectTypeDescriptor(context, schemaType);
-            descriptor.Definition.RuntimeType = typeof(object);
-            return descriptor;
-        }
+            Type schemaType) =>
+            new(context, schemaType)
+            {
+                Definition = { RuntimeType = typeof(object) }
+            };
 
         public static ObjectTypeDescriptor From(
             IDescriptorContext context,
             ObjectTypeDefinition definition) =>
-            new ObjectTypeDescriptor(context, definition);
+            new(context, definition);
 
         public static ObjectTypeDescriptor<T> From<T>(
             IDescriptorContext context,
             ObjectTypeDefinition definition) =>
-            new ObjectTypeDescriptor<T>(context, definition);
+            new(context, definition);
     }
 }

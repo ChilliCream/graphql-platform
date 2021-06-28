@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Data;
 using HotChocolate.Data.Projections;
 
 namespace HotChocolate

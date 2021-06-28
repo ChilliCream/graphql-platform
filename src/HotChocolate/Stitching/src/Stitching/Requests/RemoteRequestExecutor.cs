@@ -27,13 +27,13 @@ namespace HotChocolate.Stitching.Requests
                 throw new ArgumentNullException(nameof(executor));
         }
 
-        /// <iniheritdoc />
+        /// <inheritdoc />
         public ISchema Schema => _executor.Schema;
 
-        /// <iniheritdoc />
+        /// <inheritdoc />
         public IServiceProvider Services => _executor.Services;
 
-        /// <iniheritdoc />
+        /// <inheritdoc />
         public Task<IExecutionResult> ExecuteAsync(
             IQueryRequest request,
             CancellationToken cancellationToken = default)

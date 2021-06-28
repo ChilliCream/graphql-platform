@@ -39,7 +39,7 @@ namespace HotChocolate.Execution.Pipeline
             {
                 await _next(context).ConfigureAwait(false);
             }
-            else if (context.Document is not null && 
+            else if (context.Document is not null &&
                 context.ValidationResult is { HasErrors: false })
             {
                 OperationDefinitionNode operation =
@@ -52,8 +52,6 @@ namespace HotChocolate.Execution.Pipeline
                     context.Result = ErrorHelper.RootTypeNotFound(operation.Operation);
                     return;
                 }
-
-                var fragments = new FragmentCollection(context.Schema, context.Document);
 
                 context.Operation = Compile(
                     context.OperationId ?? Guid.NewGuid().ToString("N"),

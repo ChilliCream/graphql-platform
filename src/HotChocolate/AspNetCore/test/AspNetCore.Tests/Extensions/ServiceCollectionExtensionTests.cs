@@ -1,4 +1,5 @@
 using System.Linq;
+using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -16,7 +17,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // act
             HotChocolateAspNetCoreServiceCollectionExtensions
-                .AddHttpRequestSerializer<DefaultHttpResultSerializer>(serviceCollection);
+                .AddHttpResultSerializer<DefaultHttpResultSerializer>(serviceCollection);
 
             // assert
             Assert.Collection(

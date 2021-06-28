@@ -1,6 +1,6 @@
 using System;
 using HotChocolate.Language;
-using HotChocolate.Stitching.Delegation;
+using HotChocolate.Language.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -47,7 +47,7 @@ namespace HotChocolate.Stitching.Merge
                         new[] { fieldNode }
                     )
                 });
-            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+            schema.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -90,7 +90,7 @@ namespace HotChocolate.Stitching.Merge
                         new[] { fieldNode }
                     )
                 });
-            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+            schema.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -117,10 +117,10 @@ namespace HotChocolate.Stitching.Merge
                             new NameNode("quux")))
                 });
 
-            Action action = () => fieldNode.AddDelegationPath(default, path);
+            void Action() => fieldNode.AddDelegationPath(default, path);
 
             // assert
-            Assert.Throws<ArgumentException>(action);
+            Assert.Throws<ArgumentException>(Action);
         }
 
         [Fact]
@@ -136,11 +136,10 @@ namespace HotChocolate.Stitching.Merge
                 Array.Empty<DirectiveNode>());
 
             // act
-            Action action = () => fieldNode.AddDelegationPath(
-                "Schema", (SelectionPathComponent)null);
+            void Action() => fieldNode.AddDelegationPath("Schema", ((SelectionPathComponent)null)!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -194,7 +193,7 @@ namespace HotChocolate.Stitching.Merge
                         new[] { fieldNode }
                     )
                 });
-            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+            schema.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -237,7 +236,7 @@ namespace HotChocolate.Stitching.Merge
                         new[] { fieldNode }
                     )
                 });
-            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+            schema.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -253,17 +252,6 @@ namespace HotChocolate.Stitching.Merge
                 Array.Empty<DirectiveNode>());
 
             // act
-            var path = new SelectionPathComponent(
-                new NameNode("bar"),
-                new[]
-                {
-                    new ArgumentNode("baz",
-                        new ScopedVariableNode(
-                            null,
-                            new NameNode("qux"),
-                            new NameNode("quux")))
-                });
-
             fieldNode = fieldNode.AddDelegationPath(
                 "schemName", Array.Empty<SelectionPathComponent>());
 
@@ -280,7 +268,7 @@ namespace HotChocolate.Stitching.Merge
                         new[] { fieldNode }
                     )
                 });
-            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+            schema.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -307,11 +295,10 @@ namespace HotChocolate.Stitching.Merge
                             new NameNode("quux")))
                 });
 
-            Action action = () => fieldNode.AddDelegationPath(
-                default, new[] { path });
+            void Action() => fieldNode.AddDelegationPath(default, new[] {path});
 
             // assert
-            Assert.Throws<ArgumentException>(action);
+            Assert.Throws<ArgumentException>(Action);
         }
 
         [Fact]
@@ -327,11 +314,11 @@ namespace HotChocolate.Stitching.Merge
                 Array.Empty<DirectiveNode>());
 
             // act
-            Action action = () => fieldNode.AddDelegationPath(
-                "Schema", (SelectionPathComponent[])null);
+            void Action() =>
+                fieldNode.AddDelegationPath("Schema", ((SelectionPathComponent[])null)!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -380,7 +367,7 @@ namespace HotChocolate.Stitching.Merge
                         new[] { fieldNode }
                     )
                 });
-            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+            schema.Print().MatchSnapshot();
         }
     }
 }

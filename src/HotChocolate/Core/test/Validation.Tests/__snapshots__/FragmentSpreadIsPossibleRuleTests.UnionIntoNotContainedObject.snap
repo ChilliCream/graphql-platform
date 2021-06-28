@@ -19,6 +19,80 @@
       "fragment": "catOrDogFragment",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-is-possible"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentDefinition",
+      "VariableDefinitions": [],
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 268,
+          "End": 278,
+          "Line": 9,
+          "Column": 46
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 268,
+            "End": 278,
+            "Line": 9,
+            "Column": 46
+          },
+          "Value": "CatOrDog"
+        }
+      },
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 277,
+          "End": 304,
+          "Line": 9,
+          "Column": 55
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 279,
+              "End": 291,
+              "Line": 9,
+              "Column": 57
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 279,
+                "End": 291,
+                "Line": 9,
+                "Column": 57
+              },
+              "Value": "__typename"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 239,
+        "End": 304,
+        "Line": 9,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 248,
+          "End": 267,
+          "Line": 9,
+          "Column": 26
+        },
+        "Value": "catOrDogFragment"
+      },
+      "Directives": []
+    }
   }
 ]

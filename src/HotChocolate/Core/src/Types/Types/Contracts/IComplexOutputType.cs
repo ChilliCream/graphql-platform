@@ -13,7 +13,7 @@ namespace HotChocolate.Types
         /// <summary>
         /// Gets the interfaces that are implemented by this type.
         /// </summary>
-        IReadOnlyList<IInterfaceType> Interfaces { get; }
+        IReadOnlyList<IInterfaceType> Implements { get; }
 
         /// <summary>
         /// Gets the field that this type exposes.

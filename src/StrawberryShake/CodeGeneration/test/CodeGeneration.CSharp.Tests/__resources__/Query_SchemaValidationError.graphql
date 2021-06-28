@@ -1,0 +1,6 @@
+query GetHero {
+  hero(episode: NEW_HOPE) {
+    someNotExistingField
+    appearsIn
+  }
+}

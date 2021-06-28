@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Execution.Processing;
@@ -21,7 +22,8 @@ namespace HotChocolate.Data.Projections.Handlers
         }
 
         public bool CanHandle(ISelection selection) =>
-            selection.Field.Member is {} &&
+            selection.Field.Member is PropertyInfo propertyInfo &&
+            propertyInfo.CanWrite &&
             selection.Field.ContextData.ContainsKey(_contextDataKey);
 
         public void BeforeProjection(

@@ -1,5 +1,0 @@
-﻿SELECT "f0"."BarString", "f0"."BarShort"
-FROM "Data" AS "d"
-LEFT JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
-LEFT JOIN "BarDeep" AS "b" ON "f"."NestedObjectId" = "b"."Id"
-LEFT JOIN "FooDeep" AS "f0" ON "b"."FooId1" = "f0"."Id"

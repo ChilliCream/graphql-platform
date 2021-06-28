@@ -1,11 +1,12 @@
-using System.IO;
 using System;
+using System.IO;
+using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
-using System.Threading.Tasks;
 
-namespace HotChocolate.Execution.Tests
+namespace HotChocolate.Execution
 {
     public class QueryDocumentTests
     {
@@ -14,10 +15,10 @@ namespace HotChocolate.Execution.Tests
         {
             // arrange
             // act
-            Action action = () => new QueryDocument(null);
+            void Action() => new QueryDocument(null);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -43,7 +44,7 @@ namespace HotChocolate.Execution.Tests
             var query = new QueryDocument(document);
 
             // assert
-            query.ToString().MatchSnapshot();
+            query.Document.ToString(false).MatchSnapshot();
         }
 
         [Fact]
@@ -56,9 +57,10 @@ namespace HotChocolate.Execution.Tests
             var query = new QueryDocument(document);
 
             // assert
-            QuerySyntaxSerializer.Serialize(
-                Utf8GraphQLParser.Parse(query.AsSpan()))
-                .ToString().MatchSnapshot();
+            Utf8GraphQLParser
+                .Parse(query.AsSpan())
+                .Print(true)
+                .MatchSnapshot();
         }
 
         [Fact]
@@ -77,9 +79,10 @@ namespace HotChocolate.Execution.Tests
             }
 
             // assert
-            QuerySyntaxSerializer.Serialize(
-                Utf8GraphQLParser.Parse(buffer))
-                .ToString().MatchSnapshot();
+            Utf8GraphQLParser
+                .Parse(buffer)
+                .Print(true)
+                .MatchSnapshot();
         }
 
         [Fact]
@@ -98,9 +101,10 @@ namespace HotChocolate.Execution.Tests
             }
 
             // assert
-            QuerySyntaxSerializer.Serialize(
-                Utf8GraphQLParser.Parse(buffer))
-                .ToString().MatchSnapshot();
+            Utf8GraphQLParser
+                .Parse(buffer)
+                .Print(true)
+                .MatchSnapshot();
         }
     }
 }

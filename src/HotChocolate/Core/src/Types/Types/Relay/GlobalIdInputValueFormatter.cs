@@ -10,8 +10,7 @@ using HotChocolate.Internal;
 
 namespace HotChocolate.Types.Relay
 {
-    internal class GlobalIdInputValueFormatter
-        : IInputValueFormatter
+    internal class GlobalIdInputValueFormatter : IInputValueFormatter
     {
         private readonly NameString _typeName;
         private readonly IIdSerializer _idSerializer;
@@ -37,11 +36,17 @@ namespace HotChocolate.Types.Relay
                 return null;
             }
 
+            if (runtimeValue is IdValue id &&
+                (!_validateType || _typeName.Equals(id.TypeName)))
+            {
+                return id.Value;
+            }
+
             if (runtimeValue is string s)
             {
                 try
                 {
-                    IdValue id = _idSerializer.Deserialize(s);
+                    id = _idSerializer.Deserialize(s);
 
                     if (!_validateType || _typeName.Equals(id.TypeName))
                     {
@@ -62,15 +67,57 @@ namespace HotChocolate.Types.Relay
                         .Build());
             }
 
-            if (runtimeValue is IEnumerable<string> stringEnumerable)
+            if (runtimeValue is IEnumerable<IdValue?> nullableIdEnumerable)
+            {
+                IList list = _createList();
+
+                foreach (IdValue? idv in nullableIdEnumerable)
+                {
+                    if (!idv.HasValue)
+                    {
+                        list.Add(null);
+                        continue;
+                    }
+                    
+                    if (!_validateType || _typeName.Equals(idv.Value.TypeName))
+                    {
+                        list.Add(idv.Value.Value);
+                    }
+                }
+
+                return list;
+            }
+
+            if (runtimeValue is IEnumerable<IdValue> idEnumerable)
+            {
+                IList list = _createList();
+
+                foreach (IdValue idv in idEnumerable)
+                {
+                    if (!_validateType || _typeName.Equals(idv.TypeName))
+                    {
+                        list.Add(idv.Value);
+                    }
+                }
+
+                return list;
+            }
+
+            if (runtimeValue is IEnumerable<string?> stringEnumerable)
             {
                 try
                 {
                     IList list = _createList();
 
-                    foreach (string sv in stringEnumerable)
+                    foreach (string? sv in stringEnumerable)
                     {
-                        IdValue id = _idSerializer.Deserialize(sv);
+                        if (sv is null)
+                        {
+                            list.Add(null);
+                            continue;
+                        }
+
+                        id = _idSerializer.Deserialize(sv);
 
                         if (!_validateType || _typeName.Equals(id.TypeName))
                         {

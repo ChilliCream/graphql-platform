@@ -11,13 +11,13 @@ namespace HotChocolate.Execution.Configuration
         : IRequestExecutorOptionsMonitor
         , IDisposable
     {
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _semaphore = new(1, 1);
         private readonly IOptionsMonitor<RequestExecutorSetup> _optionsMonitor;
         private readonly IRequestExecutorOptionsProvider[] _optionsProviders;
         private readonly Dictionary<NameString, List<IConfigureRequestExecutorSetup>> _configs =
-            new Dictionary<NameString, List<IConfigureRequestExecutorSetup>>();
-        private readonly List<IDisposable> _disposables = new List<IDisposable>();
-        private readonly List<Action<NameString>> _listeners = new List<Action<NameString>>();
+            new();
+        private readonly List<IDisposable> _disposables = new();
+        private readonly List<Action<NameString>> _listeners = new();
         private bool _initialized;
         private bool _disposed;
 

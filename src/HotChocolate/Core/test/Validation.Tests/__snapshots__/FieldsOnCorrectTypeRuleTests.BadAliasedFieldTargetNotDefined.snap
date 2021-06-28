@@ -19,6 +19,38 @@
       "responseName": "volume",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 84,
+          "End": 92,
+          "Line": 3,
+          "Column": 21
+        },
+        "Value": "volume"
+      },
+      "Arguments": [],
+      "SelectionSet": null,
+      "Location": {
+        "Start": 84,
+        "End": 120,
+        "Line": 3,
+        "Column": 21
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 93,
+          "End": 120,
+          "Line": 3,
+          "Column": 30
+        },
+        "Value": "mooVolume"
+      },
+      "Directives": []
+    }
   }
 ]

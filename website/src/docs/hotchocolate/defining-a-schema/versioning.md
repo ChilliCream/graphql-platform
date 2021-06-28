@@ -2,84 +2,74 @@
 title: "Versioning"
 ---
 
-Use this section as an introduction to explain what a reader can expect of this document.
+import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-# Headlines
+Whilst we could version our GraphQL API similar to REST, i.e. `/graphql/v1`, it is not a best practice and often unnecessary.
 
-Use headlines to separate a document into several sections. First level headlines will appear in the left hand navigation. This will help the reader to quickly skip sections or jump to a particular section.
+Many changes to a GraphQL schema are non-breaking. We can freely add new types and extend existing types with new fields. This does not break existing queries.
+However removing a field or changing its nullability does.
 
-# Use Diagrams
-
-Use [mermaid diagrams](https://mermaid-js.github.io/mermaid) to help a reader understand complex problems. Jump over to the [mermaid playground](https://mermaid-js.github.io/mermaid-live-editor) to test your diagrams.
-
-```mermaid
-graph TD
-  A[Christmas] -->|Get money| B(Go shopping)
-  B --> C{Let me think}
-  C -->|One| D[Laptop]
-  C -->|Two| E[iPhone]
-  C -->|Three| F[fa:fa-car Car]
-```
-
-# Use Code Examples
-
-A code example is another tool to help readers following the document and understanding the problem. Here is an list of code blocks that are used often with the ChilliCream GraphQL platform.
-
-Use `sdl` to describe GraphQL schemas.
+Instead of removing a field immediately and possibly breaking existing consumers of our API, fields can be marked as deprecated in our schema. This signals to consumers that the field will be removed in the future and they need to adapt before then.
 
 ```sdl
-type Author {
-  name: String!
+type Query {
+  users: [User] @deprecated("Use the `authors` field instead")
+  authors: [User]
 }
+
 ```
 
-Use `graphql` to describe GraphQL operations.
+# Deprecating fields
 
-```graphql
-query {
-  author(id: 1) {
-    name
-  }
-}
-```
+Fields can be deprecated like the following.
 
-Use `json` for everything JSON related for example a GraphQL result.
-
-```json
-{
-  "data": {
-    "author": {
-      "name": "ChilliCream"
-    }
-  }
-}
-```
-
-Use `sql` for SQL queries.
-
-```sql
-SELECT id FROM Authors WHERE id = 1
-```
-
-Use `csharp` for C# code.
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
 ```csharp
-public interface Author
+public class Query
 {
-    int Id { get; }
-
-    string Name { get; }
+    [GraphQLDeprecated("Use the `authors` field instead")]
+    public User[] GetUsers()
+    {
+        // Omitted code for brevity
+    }
 }
 ```
 
-# Use Images
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
 
-When using images make sure it's a PNG file which is at least 800 pixels wide.
+```csharp
+public class QueryType : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor
+            .Field("users")
+            .Deprecated("Use the `authors` field instead")
+            .Resolve(context =>
+            {
+                // Omitted code for brevity
+            });
+    }
+}
+```
 
-# Use Tables
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
 
-When using tables make sure you always use titles.
+```csharp
+services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Query {
+          users: [User] @deprecated(""Use the `authors` field instead"")
+        }
+    ");
+```
 
-| Name        | Description        |
-| ----------- | ------------------ |
-| ChilliCream | A GraphQL platform |
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+> Note: It is currently not possible to deprecate input values, such as arguments.

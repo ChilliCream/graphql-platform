@@ -11,7 +11,7 @@ namespace HotChocolate.Data.Filters.Expressions
             CanBeNull = false;
         }
 
-        protected override int Operation => DefaultOperations.NotEndsWith;
+        protected override int Operation => DefaultFilterOperations.NotEndsWith;
 
         public override Expression HandleOperation(
             QueryableFilterContext context,

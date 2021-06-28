@@ -6,12 +6,72 @@
     "Locations": [
       {
         "Line": 3,
-        "Column": 21
+        "Column": 43
       }
     ],
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-Unique-Per-Location"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Directive",
+      "Location": {
+        "Start": 113,
+        "End": 146,
+        "Line": 3,
+        "Column": 43
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 114,
+          "End": 119,
+          "Line": 3,
+          "Column": 44
+        },
+        "Value": "skip"
+      },
+      "Arguments": [
+        {
+          "Kind": "Argument",
+          "Location": {
+            "Start": 119,
+            "End": 128,
+            "Line": 3,
+            "Column": 49
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 119,
+              "End": 122,
+              "Line": 3,
+              "Column": 49
+            },
+            "Value": "if"
+          },
+          "Value": {
+            "Kind": "Variable",
+            "Location": {
+              "Start": 123,
+              "End": 128,
+              "Line": 3,
+              "Column": 53
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 124,
+                "End": 128,
+                "Line": 3,
+                "Column": 54
+              },
+              "Value": "bar"
+            },
+            "Value": "bar"
+          }
+        }
+      ]
+    }
   }
 ]

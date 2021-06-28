@@ -93,6 +93,18 @@ namespace HotChocolate.Stitching.Properties {
             }
         }
         
+        internal static string DelegateDirectiveType_Schema_FieldDescription {
+            get {
+                return ResourceManager.GetString("DelegateDirectiveType_Schema_FieldDescription", resourceCulture);
+            }
+        }
+        
+        internal static string DelegateDirectiveType_Path_FieldDescription {
+            get {
+                return ResourceManager.GetString("DelegateDirectiveType_Path_FieldDescription", resourceCulture);
+            }
+        }
+        
         internal static string DelegationMiddleware_ArgumentNotFound {
             get {
                 return ResourceManager.GetString("DelegationMiddleware_ArgumentNotFound", resourceCulture);

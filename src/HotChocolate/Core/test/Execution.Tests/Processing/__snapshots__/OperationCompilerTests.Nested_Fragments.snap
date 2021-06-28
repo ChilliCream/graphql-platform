@@ -1,0 +1,69 @@
+﻿query($if: Boolean!) {
+  ... on Query {
+    human(id: "1000") {
+      ... on Human {
+        friends @include(if: $if) @skip(if: $if) {
+          ... on CharacterConnection {
+            edges @include(if: $if) @skip(if: $if) {
+              ... on CharacterEdge {
+                node @include(if: $if) @skip(if: $if) {
+                  ... on Human {
+                    __typename @include(if: $if) @skip(if: $if)
+                    friends @include(if: $if) {
+                      ... on CharacterConnection {
+                        nodes @include(if: $if) {
+                          ... on Human {
+                            __typename @include(if: $if)
+                            name @include(if: $if)
+                            otherHuman @include(if: $if) {
+                              ... on Human {
+                                __typename @include(if: $if)
+                                name @include(if: $if)
+                              }
+                            }
+                          }
+                          ... on Droid {
+                            __typename @include(if: $if)
+                          }
+                        }
+                      }
+                    }
+                    name @skip(if: $if)
+                    otherHuman @skip(if: $if) {
+                      ... on Human {
+                        __typename @skip(if: $if)
+                        name @skip(if: $if)
+                      }
+                    }
+                  }
+                  ... on Droid {
+                    __typename @include(if: $if) @skip(if: $if)
+                    friends @include(if: $if) {
+                      ... on CharacterConnection {
+                        nodes @include(if: $if) {
+                          ... on Human {
+                            __typename @include(if: $if)
+                            name @include(if: $if)
+                            otherHuman @include(if: $if) {
+                              ... on Human {
+                                __typename @include(if: $if)
+                                name @include(if: $if)
+                              }
+                            }
+                          }
+                          ... on Droid {
+                            __typename @include(if: $if)
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

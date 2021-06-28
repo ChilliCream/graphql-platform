@@ -23,7 +23,18 @@
       "locationType": "Int!",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "StringValue",
+      "Location": {
+        "Start": 91,
+        "End": 99,
+        "Line": 4,
+        "Column": 41
+      },
+      "Value": "two",
+      "Block": false
+    }
   },
   {
     "Message": "The specified argument value does not match the argument type.",
@@ -49,6 +60,17 @@
       "locationType": "Int!",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "StringValue",
+      "Location": {
+        "Start": 101,
+        "End": 107,
+        "Line": 4,
+        "Column": 51
+      },
+      "Value": "one",
+      "Block": false
+    }
   }
 ]

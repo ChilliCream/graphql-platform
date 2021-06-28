@@ -63,8 +63,14 @@ namespace HotChocolate.Data.Filters
             protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Name("Test");
-                descriptor.Operation(155).Name("TestSimpleMethod").Type<BooleanOperationFilterInput>();
-                descriptor.Operation(156).Name("TestComplexMethod").Type<FilterInputType<Bar>>();
+                descriptor
+                    .Operation(155)
+                    .Name("TestSimpleMethod")
+                    .Type<BooleanOperationFilterInputType>();
+                descriptor
+                    .Operation(156)
+                    .Name("TestComplexMethod")
+                    .Type<FilterInputType<Bar>>();
             }
         }
 

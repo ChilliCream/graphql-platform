@@ -5,8 +5,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.AspNetCore.Authorization
 {
-    public sealed class AuthorizeDirective
-        : ISerializable
+    public sealed class AuthorizeDirective : ISerializable
     {
         public AuthorizeDirective(
             IReadOnlyList<string> roles,
@@ -46,12 +45,12 @@ namespace HotChocolate.AspNetCore.Authorization
                 ArgumentNode? resolverArgument = node.Arguments
                     .FirstOrDefault(t => t.Name.Value == "apply");
 
-                Policy = (policyArgument is { }
+                Policy = (policyArgument is not null
                     && policyArgument.Value is StringValueNode sv)
                     ? sv.Value
                     : null;
 
-                if (rolesArgument is { })
+                if (rolesArgument is not null)
                 {
                     if (rolesArgument.Value is ListValueNode lv)
                     {
@@ -67,7 +66,7 @@ namespace HotChocolate.AspNetCore.Authorization
                 }
 
                 Apply = ApplyPolicy.BeforeResolver;
-                if (resolverArgument is { }
+                if (resolverArgument is not null
                     && resolverArgument.Value.Value is string s
                     && s == "AFTER_RESOLVER")
                 {

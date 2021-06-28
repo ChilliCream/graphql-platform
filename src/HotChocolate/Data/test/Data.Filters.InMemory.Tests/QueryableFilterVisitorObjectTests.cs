@@ -131,7 +131,7 @@ namespace HotChocolate.Data.Filters.Expressions
         public async Task Create_ObjectShortEqual_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Bar, BarFilterType>(_barEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
 
             // act
             // assert
@@ -166,7 +166,7 @@ namespace HotChocolate.Data.Filters.Expressions
         [Fact]
         public async Task Create_ObjectShortIn_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<Bar, BarFilterType>(_barEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
 
             IExecutionResult? res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -201,7 +201,7 @@ namespace HotChocolate.Data.Filters.Expressions
         {
             // arrange
             IRequestExecutor? tester =
-                _cache.CreateSchema<BarNullable, BarNullableFilterType>(_barNullableEntities);
+                _cache.CreateSchema<BarNullable, BarNullableFilterInput>(_barNullableEntities);
 
             // act
             // assert
@@ -237,7 +237,7 @@ namespace HotChocolate.Data.Filters.Expressions
         public async Task Create_ObjectNullableShortIn_Expression()
         {
             IRequestExecutor? tester =
-                _cache.CreateSchema<BarNullable, BarNullableFilterType>(_barNullableEntities);
+                _cache.CreateSchema<BarNullable, BarNullableFilterInput>(_barNullableEntities);
 
             IExecutionResult? res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -271,7 +271,7 @@ namespace HotChocolate.Data.Filters.Expressions
         public async Task Create_ObjectBooleanEqual_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Bar, BarFilterType>(_barEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
 
             // act
             // assert
@@ -298,7 +298,7 @@ namespace HotChocolate.Data.Filters.Expressions
         public async Task Create_ObjectNullableBooleanEqual_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<BarNullable, BarNullableFilterType>(
+            IRequestExecutor? tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(
                 _barNullableEntities);
 
             // act
@@ -334,7 +334,7 @@ namespace HotChocolate.Data.Filters.Expressions
         [Fact]
         public async Task Create_ObjectEnumEqual_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<Bar, BarFilterType>(_barEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
 
             // act
             // assert
@@ -369,7 +369,7 @@ namespace HotChocolate.Data.Filters.Expressions
         [Fact]
         public async Task Create_ObjectEnumIn_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<Bar, BarFilterType>(_barEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
 
             // act
             // assert
@@ -404,7 +404,7 @@ namespace HotChocolate.Data.Filters.Expressions
         [Fact]
         public async Task Create_ObjectNullableEnumEqual_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<BarNullable, BarNullableFilterType>(
+            IRequestExecutor? tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(
                 _barNullableEntities);
 
             // act
@@ -440,7 +440,7 @@ namespace HotChocolate.Data.Filters.Expressions
         [Fact]
         public async Task Create_ObjectNullableEnumIn_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<BarNullable, BarNullableFilterType>(
+            IRequestExecutor? tester = _cache.CreateSchema<BarNullable, BarNullableFilterInput>(
                 _barNullableEntities);
 
             // act
@@ -477,7 +477,7 @@ namespace HotChocolate.Data.Filters.Expressions
         public async Task Create_ObjectStringEqual_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Bar, BarFilterType>(_barEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
 
             // act
             // assert
@@ -512,7 +512,7 @@ namespace HotChocolate.Data.Filters.Expressions
         public async Task Create_ObjectStringIn_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Bar, BarFilterType>(_barEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
 
             // act
             // assert
@@ -548,7 +548,7 @@ namespace HotChocolate.Data.Filters.Expressions
         public async Task Create_ArrayObjectNestedArraySomeStringEqual_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Bar, BarFilterType>(_barEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
 
             // act
             // assert
@@ -587,7 +587,7 @@ namespace HotChocolate.Data.Filters.Expressions
         public async Task Create_ArrayObjectNestedArrayAnyStringEqual_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Bar, BarFilterType>(_barEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Bar, BarFilterInput>(_barEntities);
 
             // act
             // assert
@@ -671,12 +671,12 @@ namespace HotChocolate.Data.Filters.Expressions
 
         }
 
-        public class BarFilterType
+        public class BarFilterInput
             : FilterInputType<Bar>
         {
         }
 
-        public class BarNullableFilterType
+        public class BarNullableFilterInput
             : FilterInputType<BarNullable>
         {
         }

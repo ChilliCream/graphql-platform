@@ -4,8 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Schemas.Contracts
 {
-    public class SomeOtherContractType
-        : ObjectType<SomeOtherContract>
+    public class SomeOtherContractType : ObjectType<SomeOtherContract>
     {
         protected override void Configure(
             IObjectTypeDescriptor<SomeOtherContract> descriptor)
@@ -22,7 +21,7 @@ namespace HotChocolate.Stitching.Schemas.Contracts
                             .FirstOrDefault(t => t.Id.Equals(id)));
                 });
 
-            descriptor.Interface<ContractType>();
+            descriptor.Implements<ContractType>();
 
             descriptor.Field(t => t.Id)
                 .Type<NonNullType<IdType>>();

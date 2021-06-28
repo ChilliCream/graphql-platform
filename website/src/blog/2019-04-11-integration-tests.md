@@ -8,14 +8,14 @@ authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
-Today I was asked in our slack channel how one could write an integration test against _Hot Chocolate_ without setting up an ASP.Net Core _TestServer_.
-Though the ASP.Net Core _TestServer_ API is quite nice, it is much more cumbersome to test a schema this way.
+Today I was asked in our slack channel how one could write an integration test against Hot Chocolate without setting up an ASP.NET Core _TestServer_.
+Though the ASP.NET Core _TestServer_ API is quite nice, it is much more cumbersome to test a schema this way.
 
-For full integration tests through all the layers we could in fact setup a test GraphQL endpoint with the complete ASP.net core pipeline by using the ASP.Net core _TestServer_ API.
+For full integration tests through all the layers we could in fact setup a test GraphQL endpoint with the complete ASP.net core pipeline by using the ASP.NET core _TestServer_ API.
 
 With this approach we could ensure that the GraphQL endpoint is correctly configured and works well within our service. In many cases this seems too much since we only want to test parts of the schema.
 
-> If you want to read more about the ASP.Net Core _TestServer_ API there is a nice article on the [Visual Studio Magazine](https://visualstudiomagazine.com/articles/2017/07/01/testserver.aspx).
+> If you want to read more about the ASP.NET Core _TestServer_ API there is a nice article on the [Visual Studio Magazine](https://visualstudiomagazine.com/articles/2017/07/01/testserver.aspx).
 
 ## Setup
 
@@ -69,7 +69,7 @@ The second thing we have to ensure is that we did not use `HttpContext` in our r
 
 **Wait a minute, but how are we able to access properties from `HttpContext` when we are not allowed to access it?**
 
-Agreed, in some cases we really need to have access to properties on the `HttpContext` like the current `HttpContext.User` or some header value. In these cases, we need to access some parts of the `HttpContext` and copy those parts we need to our context data. The context data dictionary is thread-safe and can be accessed in query-, field-middleware and the field-resolver. This makes it easy to abstract the user context from ASP.Net Core dependencies like `HttpContext`. By doing this we will make our schema more testable and less dependant on the service layer.
+Agreed, in some cases we really need to have access to properties on the `HttpContext` like the current `HttpContext.User` or some header value. In these cases, we need to access some parts of the `HttpContext` and copy those parts we need to our context data. The context data dictionary is thread-safe and can be accessed in query-, field-middleware and the field-resolver. This makes it easy to abstract the user context from ASP.NET Core dependencies like `HttpContext`. By doing this we will make our schema more testable and less dependant on the service layer.
 
 We can do this by writing a query middleware that copies these properties to our context or by using our `OnCreateRequestAsync` hook. I will show how this can be done at the end of this post.
 
@@ -112,7 +112,7 @@ The query executor will return an execution result, depending on the type of ope
 
 An `IReadOnlyQueryResult` contains basically the result graph of the query, but asserting this could be very tiresome.
 
-My good friend [Normen](https://github.com/nscheibe) who works at Swiss Life created a snapshot testing library that basically works like [jestjs](https://jestjs.io). We use _Snapshooter_ internally to test the _Hot Chocolate_ core.
+My good friend [Normen](https://github.com/nscheibe) who works at Swiss Life created a snapshot testing library that basically works like [jestjs](https://jestjs.io). We use _Snapshooter_ internally to test the Hot Chocolate core.
 
 [Snapshooter](https://github.com/SwissLife-OSS/snapshooter) will create a snapshot at the first execution of the test. The snapshots are saved in a folder `__snapshot__` that is co-located with our test class. Every consecutive test run will be validated against that first snapshot. If the snapshots do not match the test will fail and tell us what part did not match.
 
@@ -176,7 +176,7 @@ https://github.com/SwissLife-OSS/snapshooter
 
 Ok, lets have a look at our second category. This I think is the simplest test we will write and probably we will just have one or two of those tests.
 
-_Hot Chocolate_ lets us print our schema as GraphQL SDL, this means that we can create a simple SDL representation like the following:
+Hot Chocolate lets us print our schema as GraphQL SDL, this means that we can create a simple SDL representation like the following:
 
 ```graphql
 type Query {
@@ -302,7 +302,7 @@ services.AddGraphQL(Schema.Create(c =>
     .MakeExecutable(b => b.Use<CopyUserMiddleware>().UseDefaultPipeline()));
 ```
 
-I hope this little post will help when you start writing tests for your schema. If you run into any issues or if you have further questions/suggestions head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and we will be happy to help you.
+I hope this little post will help when you start writing tests for your schema. If you run into any issues or if you have further questions/suggestions head over to our slack channel and we will be happy to help you.
 
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

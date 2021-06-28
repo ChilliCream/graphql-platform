@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
-using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Pagination
 {
@@ -47,8 +47,8 @@ namespace HotChocolate.Types.Pagination
             var arguments = new CursorPagingArguments(
                 first,
                 last,
-                context.ArgumentValue<string>(CursorPagingArgumentNames.After),
-                context.ArgumentValue<string>(CursorPagingArgumentNames.Before));
+                context.ArgumentValue<string?>(CursorPagingArgumentNames.After),
+                context.ArgumentValue<string?>(CursorPagingArgumentNames.Before));
 
             return await SliceAsync(context, source, arguments).ConfigureAwait(false);
         }

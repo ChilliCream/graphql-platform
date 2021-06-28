@@ -7,16 +7,16 @@ namespace HotChocolate.Stitching.Delegation
     public class ExtractedField
     {
         public ExtractedField(
-            FieldNode field,
+            IReadOnlyList<FieldNode> syntaxNodes,
             IReadOnlyList<VariableDefinitionNode> variables,
             IReadOnlyList<FragmentDefinitionNode> fragments)
         {
-            Field = field ?? throw new ArgumentNullException(nameof(field));
+            SyntaxNodes = syntaxNodes ?? throw new ArgumentNullException(nameof(syntaxNodes));
             Variables = variables ?? throw new ArgumentNullException(nameof(variables));
             Fragments = fragments ?? throw new ArgumentNullException(nameof(fragments));
         }
 
-        public FieldNode Field { get; }
+        public IReadOnlyList<FieldNode> SyntaxNodes { get; }
 
         public IReadOnlyList<VariableDefinitionNode> Variables { get; }
 

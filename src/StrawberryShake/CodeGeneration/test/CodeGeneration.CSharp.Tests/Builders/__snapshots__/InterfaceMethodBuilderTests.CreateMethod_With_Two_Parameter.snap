@@ -1,3 +1,0 @@
-﻿void GetAbc(
-    String abc,
-    String def = default);

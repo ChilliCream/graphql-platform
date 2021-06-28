@@ -5,7 +5,7 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
 {
     internal interface IScopedVariableResolver
     {
-        VariableValue Resolve(
+        ScopedVariableValue Resolve(
             IResolverContext context,
             ScopedVariableNode variable,
             IInputType targetType);

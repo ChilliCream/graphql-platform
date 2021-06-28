@@ -3,8 +3,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Schemas.Contracts
 {
-    public class CustomDirectiveType
-        : DirectiveType
+    public class CustomDirectiveType : DirectiveType
     {
         protected override void Configure(IDirectiveTypeDescriptor descriptor)
         {

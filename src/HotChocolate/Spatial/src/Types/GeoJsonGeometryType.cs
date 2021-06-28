@@ -8,6 +8,6 @@ namespace HotChocolate.Types.Spatial
         MultiLineString,
         Polygon,
         MultiPolygon,
-        GeometryCollection,
+        GeometryCollection
     }
 }

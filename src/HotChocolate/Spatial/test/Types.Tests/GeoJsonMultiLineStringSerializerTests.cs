@@ -38,28 +38,31 @@ namespace HotChocolate.Types.Spatial
         private readonly Geometry _geometry = new MultiLineString(
             new[]
             {
-                new LineString(
-                    new[]
-                    {
-                        new Coordinate(10, 10),
-                        new Coordinate(20, 20),
-                        new Coordinate(10, 40)
-                    }),
-                new LineString(
-                    new[]
-                    {
-                        new Coordinate(40, 40),
-                        new Coordinate(30, 30),
-                        new Coordinate(40, 20),
-                        new Coordinate(30, 10)
-                    })
+                new LineString(new[]
+                {
+                    new Coordinate(10, 10),
+                    new Coordinate(20, 20),
+                    new Coordinate(10, 40)
+                }),
+                new LineString(new[]
+                {
+                    new Coordinate(40, 40),
+                    new Coordinate(30, 30),
+                    new Coordinate(40, 20),
+                    new Coordinate(30, 10)
+                })
             });
 
         private readonly string _geometryType = "MultiLineString";
 
         private readonly object _geometryParsed = new[]
         {
-            new[] { new[] { 10.0, 10.0 }, new[] { 20.0, 20.0 }, new[] { 10.0, 40.0 } },
+            new[] 
+            { 
+                new[] { 10.0, 10.0 }, 
+                new[] { 20.0, 20.0 }, 
+                new[] { 10.0, 40.0 } 
+            },
             new[]
             {
                 new[] { 40.0, 40.0 },
@@ -594,7 +597,6 @@ namespace HotChocolate.Types.Spatial
             Assert.Equal(2, Assert.IsType<MultiLineString>(obj).NumGeometries);
             Assert.Equal(3, Assert.IsType<MultiLineString>(obj).Geometries[0].NumPoints);
             Assert.Equal(4, Assert.IsType<MultiLineString>(obj).Geometries[1].NumPoints);
-
             Assert.Equal(10, Assert.IsType<MultiLineString>(obj).Coordinates[0].X);
             Assert.Equal(10, Assert.IsType<MultiLineString>(obj).Coordinates[0].Y);
             Assert.Equal(20, Assert.IsType<MultiLineString>(obj).Coordinates[1].X);

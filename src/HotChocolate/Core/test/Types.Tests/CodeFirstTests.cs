@@ -3,7 +3,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
+using HotChocolate.Tests;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -37,13 +40,13 @@ namespace HotChocolate
         public void Type_Is_Correctly_Upgraded()
         {
             SchemaBuilder.New()
-               .AddQueryType<Query>()
-               .AddType<Dog>()
-               .AddType<ObjectType<Dog>>()
-               .AddType<DogType>()
-               .Create()
-               .ToString()
-               .MatchSnapshot();
+                .AddQueryType<Query>()
+                .AddType<Dog>()
+                .AddType<ObjectType<Dog>>()
+                .AddType<DogType>()
+                .Create()
+                .ToString()
+                .MatchSnapshot();
         }
 
         [Fact]
@@ -74,6 +77,67 @@ namespace HotChocolate
             Assert.False(exists);
         }
 
+        [Fact]
+        public void Infer_Interface_Usage()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<QueryInterfaces>()
+                .AddType<Foo>()
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public void Infer_Interface_Usage_With_Interfaces_Implementing_Interfaces()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<QueryInterfaces>()
+                .AddType<Foo>()
+                .AddType<IBar>()
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Default_Type_Resolution_Shall_Be_Exact()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("shouldBeCat").Type<InterfaceType<IPet>>().Resolve(new Cat());
+                    d.Field("shouldBeDog").Type<InterfaceType<IPet>>().Resolve(new Dog());
+                })
+                .AddType<Dog>()
+                .AddType<Cat>()
+                .ExecuteRequestAsync("{ shouldBeCat { __typename } shouldBeDog { __typename } }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Default_Type_Resolution_Shall_Be_Exact_Schema()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("shouldBeCat").Type<InterfaceType<IPet>>().Resolve(new Cat());
+                    d.Field("shouldBeDog").Type<InterfaceType<IPet>>().Resolve(new Dog());
+                })
+                .AddType<Dog>()
+                .AddType<Cat>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
         public class Query
         {
             public string SayHello(string name) =>
@@ -94,15 +158,19 @@ namespace HotChocolate
             public Task<IPet?> GetPet(int id, CancellationToken cancellationToken) =>
                 throw new NotImplementedException();
 
-            // The arguments are needed to make the compiler apply attributes as expected 
-            // for this use case. It's not entirely clear what combination of arguments 
+            // The arguments are needed to make the compiler apply attributes as expected
+            // for this use case. It's not entirely clear what combination of arguments
             // for this and other fields on the class makes it behave this way
             // We want the compiler to apply these attributes to the GetPets method
             // [NullableContext(2)]
             // [return: Nullable(1)]
             public Task<GenericWrapper<IPet>> GetPets(
-                int? arg1, bool? arg2, bool? arg3, string? arg4,
-                GenericWrapper<string>? arg5, Greetings? arg6, 
+                int? arg1,
+                bool? arg2,
+                bool? arg3,
+                string? arg4,
+                GenericWrapper<string>? arg5,
+                Greetings? arg6,
                 CancellationToken cancellationToken) =>
                 throw new NotImplementedException();
         }
@@ -136,6 +204,10 @@ namespace HotChocolate
                 throw new NotImplementedException();
         }
 
+        public class Cat : Dog
+        {
+        }
+
         public class QueryWithDateTimeType : ObjectType<QueryWithDateTime>
         {
             protected override void Configure(IObjectTypeDescriptor<QueryWithDateTime> descriptor)
@@ -162,6 +234,28 @@ namespace HotChocolate
             public DateTime Foo { get; set; }
 
             public DateTime Bar { get; set; }
+        }
+
+        public class QueryInterfaces
+        {
+            public IFoo GetFoo() => new Foo();
+        }
+
+        public class Foo : IFoo
+        {
+            public string GetBar() => "Bar";
+
+            public string GetFoo() => "Foo";
+        }
+
+        public interface IFoo : IBar
+        {
+            string GetFoo();
+        }
+
+        public interface IBar
+        {
+            string GetBar();
         }
     }
 }

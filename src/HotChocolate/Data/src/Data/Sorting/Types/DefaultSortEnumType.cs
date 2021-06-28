@@ -4,6 +4,7 @@ namespace HotChocolate.Data.Sorting
     {
         protected override void Configure(ISortEnumTypeDescriptor descriptor)
         {
+            descriptor.Name("SortEnumType");
             descriptor.Operation(DefaultSortOperations.Ascending);
             descriptor.Operation(DefaultSortOperations.Descending);
         }

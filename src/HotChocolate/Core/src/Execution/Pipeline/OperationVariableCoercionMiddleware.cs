@@ -8,7 +8,7 @@ namespace HotChocolate.Execution.Pipeline
 {
     internal sealed class OperationVariableCoercionMiddleware
     {
-        private static readonly IReadOnlyDictionary<string, object?> _empty = 
+        private static readonly IReadOnlyDictionary<string, object?> _empty =
             new Dictionary<string, object?>();
         private readonly RequestDelegate _next;
         private readonly IDiagnosticEvents _diagnosticEvents;
@@ -29,7 +29,7 @@ namespace HotChocolate.Execution.Pipeline
 
         public async ValueTask InvokeAsync(IRequestContext context)
         {
-            if (context.Operation is { } )
+            if (context.Operation is not null)
             {
                 if (context.Operation.Definition.VariableDefinitions.Count == 0)
                 {
@@ -37,7 +37,7 @@ namespace HotChocolate.Execution.Pipeline
                 }
                 else
                 {
-                    var coercedValues = new Dictionary<string, VariableValue>();
+                    var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
 
                     _coercionHelper.CoerceVariableValues(
                         context.Schema,

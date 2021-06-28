@@ -15,7 +15,7 @@ namespace HotChocolate.StarWars.Types
                 .Type<NonNullType<IdType>>();
 
             descriptor.Field(f => f.Name)
-                .Type<StringType>();
+                .Type<NonNullType<StringType>>();
 
             descriptor.Field(f => f.Friends)
                 .UsePaging<CharacterType>();

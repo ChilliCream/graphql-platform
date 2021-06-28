@@ -5,7 +5,7 @@ using HotChocolate.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Execution.Tests
+namespace HotChocolate.Execution
 {
     public class QueryRequestBuilderTests
     {
@@ -60,14 +60,14 @@ namespace HotChocolate.Execution.Tests
         {
             // arrange
             // act
-            Action action = () =>
+            void Action() =>
                 QueryRequestBuilder.New()
                     .SetQuery(query)
                     .Create();
 
             // assert
-            Assert.Equal("querySource",
-                Assert.Throws<ArgumentException>(action).ParamName);
+            Assert.Equal("sourceText",
+                Assert.Throws<ArgumentException>(Action).ParamName);
         }
 
         [Fact]

@@ -6,8 +6,7 @@ namespace HotChocolate.Language
     public class MD5DocumentHashProvider
         : DocumentHashProviderBase
     {
-        private readonly ThreadLocal<MD5> _md5 =
-            new ThreadLocal<MD5>(() => MD5.Create());
+        private readonly ThreadLocal<MD5> _md5 = new(MD5.Create);
 
         public MD5DocumentHashProvider()
             : this(HashFormat.Base64)

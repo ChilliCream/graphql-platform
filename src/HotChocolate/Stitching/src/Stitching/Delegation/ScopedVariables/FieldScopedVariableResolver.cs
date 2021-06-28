@@ -10,7 +10,7 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
     internal class FieldScopedVariableResolver
         : IScopedVariableResolver
     {
-        public VariableValue Resolve(
+        public ScopedVariableValue Resolve(
             IResolverContext context,
             ScopedVariableNode variable,
             IInputType targetType)
@@ -51,7 +51,7 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
                     }
                 }
 
-                return new VariableValue
+                return new ScopedVariableValue
                 (
                     variable.ToVariableName(),
                     targetType.ToTypeNode(),
@@ -62,7 +62,7 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
 
             throw ThrowHelper.FieldScopedVariableResolver_InvalidFieldName(
                 variable.Name.Value,
-                context.FieldSelection,
+                context.Selection.SyntaxNode,
                 context.Path);
         }
     }

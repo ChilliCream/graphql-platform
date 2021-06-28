@@ -10,7 +10,7 @@ using HotChocolate.Utilities.Properties;
 namespace HotChocolate.Utilities
 {
     /// <summary>
-    /// The activator helper compiles a factory delegate for types to resolver their 
+    /// The activator helper compiles a factory delegate for types to resolver their
     /// dependencies against a <see cref="IServiceProvider" />.
     /// </summary>
     internal static class ActivatorHelper
@@ -18,8 +18,7 @@ namespace HotChocolate.Utilities
         private static readonly MethodInfo _getService =
             typeof(IServiceProvider).GetMethod(nameof(IServiceProvider.GetService))!;
 
-        private static readonly ConcurrentDictionary<Type, CreateServiceDelegate> _factories =
-            new ConcurrentDictionary<Type, CreateServiceDelegate>();
+        private static readonly ConcurrentDictionary<Type, CreateServiceDelegate> _cache = new();
 
         public static CreateServiceDelegate<TService> CompileFactory<TService>() =>
             CompileFactory<TService>(typeof(TService));
@@ -41,7 +40,7 @@ namespace HotChocolate.Utilities
                 throw new ArgumentNullException(nameof(type));
             }
 
-            return _factories.GetOrAdd(type, _ =>
+            return _cache.GetOrAdd(type, _ =>
             {
                 ParameterExpression services = Expression.Parameter(typeof(IServiceProvider));
                 NewExpression newInstance = CreateNewInstance(type, services);
@@ -65,9 +64,9 @@ namespace HotChocolate.Utilities
             {
                 throw new InvalidOperationException(
                     string.Format(
+                        CultureInfo.InvariantCulture,
                         UtilityResources.ActivatorHelper_AbstractTypeError,
-                        type.FullName,
-                        CultureInfo.InvariantCulture));
+                        type.FullName));
             }
 
             ConstructorInfo[] constructors = type

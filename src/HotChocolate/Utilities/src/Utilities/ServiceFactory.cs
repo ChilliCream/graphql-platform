@@ -25,9 +25,9 @@ namespace HotChocolate.Utilities
             {
                 throw new ServiceException(
                     string.Format(
+                        CultureInfo.InvariantCulture,
                         UtilityResources.ServiceFactory_CreateInstanceFailed,
-                        type.FullName,
-                        CultureInfo.InvariantCulture),
+                        type.FullName),
                     ex);
             }
         }

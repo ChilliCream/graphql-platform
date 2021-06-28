@@ -14,6 +14,29 @@
       "type": "Subscription",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 17,
+        "End": 46,
+        "Line": 2,
+        "Column": 17
+      },
+      "Name": null,
+      "Operation": "Subscription",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 30,
+          "End": 46,
+          "Line": 2,
+          "Column": 30
+        },
+        "Selections": []
+      }
+    }
   }
 ]

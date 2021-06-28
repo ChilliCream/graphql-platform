@@ -1,7 +1,6 @@
 namespace HotChocolate.Stitching.Schemas.Contracts
 {
-    public class LifeInsuranceContract
-        : IContract
+    public class LifeInsuranceContract : IContract
     {
         public string Id { get; set; }
 

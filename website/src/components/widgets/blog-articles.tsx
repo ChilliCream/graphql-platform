@@ -1,11 +1,11 @@
 import { graphql } from "gatsby";
-import Img, { FluidObject } from "gatsby-image";
+import { GatsbyImage } from "gatsby-plugin-image";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
 import { BlogArticlesFragment } from "../../../graphql-types";
-import { ArticleTitle } from "../misc/article-elements";
-import { BlogArticleMetadata } from "../misc/blog-article-metadata";
-import { BlogArticleTags } from "../misc/blog-article-tags";
+import { ArticleTitle } from "../articles/article-elements";
+import { BlogArticleMetadata } from "../blog-article/blog-article-metadata";
+import { BlogArticleTags } from "../blog-article/blog-article-tags";
 import { Link } from "../misc/link";
 import { Pagination } from "../misc/pagination";
 
@@ -30,12 +30,17 @@ export const BlogArticles: FunctionComponent<BlogArticlesProperties> = ({
               ) as string[])
             : [];
           const featuredImage = node?.frontmatter!.featuredImage
-            ?.childImageSharp?.fluid as FluidObject;
+            ?.childImageSharp?.gatsbyImageData;
 
           return (
             <Article key={`article-${node.id}`}>
               <Link to={node.frontmatter!.path!}>
-                {featuredImage && <Img fluid={featuredImage} />}
+                {featuredImage && (
+                  <GatsbyImage
+                    image={featuredImage}
+                    alt={node.frontmatter!.title}
+                  />
+                )}
                 <ArticleTitle>{node.frontmatter!.title}</ArticleTitle>
               </Link>
               <BlogArticleMetadata data={node!} />
@@ -56,16 +61,18 @@ export const BlogArticles: FunctionComponent<BlogArticlesProperties> = ({
 };
 
 export const BlogArticlesGraphQLFragment = graphql`
-  fragment BlogArticles on MarkdownRemarkConnection {
+  fragment BlogArticles on MdxConnection {
     edges {
       node {
         id
         frontmatter {
           featuredImage {
             childImageSharp {
-              fluid(maxWidth: 800) {
-                ...GatsbyImageSharpFluid
-              }
+              gatsbyImageData(
+                layout: CONSTRAINED
+                width: 800
+                pngOptions: { quality: 90 }
+              )
             }
           }
           path

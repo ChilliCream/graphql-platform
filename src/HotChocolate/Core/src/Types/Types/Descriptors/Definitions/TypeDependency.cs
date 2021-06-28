@@ -25,7 +25,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
             ITypeReference? typeReference = null,
             TypeDependencyKind? kind = null)
         {
-            return new TypeDependency(
+            return new(
                 typeReference ?? TypeReference,
                 kind ?? Kind);
         }

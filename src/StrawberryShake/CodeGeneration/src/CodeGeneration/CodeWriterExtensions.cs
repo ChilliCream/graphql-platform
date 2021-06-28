@@ -1,17 +1,34 @@
-using System.Threading.Tasks;
+using System;
 
 namespace StrawberryShake.CodeGeneration
 {
     public static class CodeWriterExtensions
     {
-        private static readonly string _version =
-            typeof(CodeWriter).Assembly.GetName().Version!.ToString();
-
-        public static Task WriteGeneratedAttributeAsync(
-            this CodeWriter writer)
+        public static void WriteGeneratedAttribute(this CodeWriter writer)
         {
-            return writer.WriteIndentedLineAsync(
-                $"[global::System.CodeDom.Compiler.GeneratedCode(\"StrawberryShake\", \"11.0.0\")]");
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            string version = typeof(CodeWriter).Assembly.GetName().Version!.ToString();
+
+#if DEBUG
+            writer.WriteIndentedLine(
+                "[global::System.CodeDom.Compiler.GeneratedCode(" + 
+                "\"StrawberryShake\", \"11.0.0\")]");
+#else
+            writer.WriteIndentedLine(
+                "[global::System.CodeDom.Compiler.GeneratedCode(" +
+                $"\"StrawberryShake\", \"{version}\")]");
+#endif
+        }
+
+        public static CodeWriter WriteComment(this CodeWriter writer, string comment)
+        {
+            writer.Write("// ");
+            writer.WriteLine(comment);
+            return writer;
         }
     }
 }

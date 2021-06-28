@@ -4,6 +4,8 @@ using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public class UuidTypeTests
@@ -14,10 +16,9 @@ namespace HotChocolate.Types
             // arrange
             var uuidType = new UuidType();
             var guid = Guid.NewGuid();
-            var literal = new StringValueNode(guid.ToString("N"));
 
             // act
-            bool isOfType = uuidType.IsInstanceOfType(guid);
+            var isOfType = uuidType.IsInstanceOfType(guid);
 
             // assert
             Assert.True(isOfType);
@@ -28,11 +29,10 @@ namespace HotChocolate.Types
         {
             // arrange
             var uuidType = new UuidType();
-            var guid = Guid.NewGuid();
             var literal = new NullValueNode(null);
 
             // act
-            bool isOfType = uuidType.IsInstanceOfType(literal);
+            var isOfType = uuidType.IsInstanceOfType(literal);
 
             // assert
             Assert.True(isOfType);
@@ -43,11 +43,10 @@ namespace HotChocolate.Types
         {
             // arrange
             var uuidType = new UuidType();
-
             var literal = new IntValueNode(123);
 
             // act
-            bool isOfType = uuidType.IsInstanceOfType(literal);
+            var isOfType = uuidType.IsInstanceOfType(literal);
 
             // assert
             Assert.False(isOfType);
@@ -58,13 +57,12 @@ namespace HotChocolate.Types
         {
             // arrange
             var uuidType = new UuidType();
-            var guid = Guid.NewGuid();
 
             // act
-            Action action = () => uuidType.IsInstanceOfType(null);
+            void Action() => uuidType.IsInstanceOfType(null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -73,10 +71,9 @@ namespace HotChocolate.Types
             // arrange
             var uuidType = new UuidType();
             var guid = Guid.NewGuid();
-            var expectedValue = guid.ToString("N");
 
             // act
-            var serializedValue = uuidType.Serialize(guid);
+            object? serializedValue = uuidType.Serialize(guid);
 
             // assert
             Assert.Equal(guid.ToString("N"), Assert.IsType<string>(serializedValue));
@@ -89,7 +86,7 @@ namespace HotChocolate.Types
             var uuidType = new UuidType();
 
             // act
-            var serializedValue = uuidType.Serialize(null);
+            object? serializedValue = uuidType.Serialize(null);
 
             // assert
             Assert.Null(serializedValue);
@@ -103,10 +100,10 @@ namespace HotChocolate.Types
             var value = 123;
 
             // act
-            Action action = () => uuidType.Serialize(value);
+            void Action() => uuidType.Serialize(value);
 
             // assert
-            Assert.Throws<SerializationException>(action);
+            Assert.Throws<SerializationException>(Action);
         }
 
         [Fact]
@@ -116,7 +113,7 @@ namespace HotChocolate.Types
             var uuidType = new UuidType();
 
             // act
-            var success = uuidType.TryDeserialize(null, out object o);
+            var success = uuidType.TryDeserialize(null, out object? o);
 
             // assert
             Assert.True(success);
@@ -131,8 +128,7 @@ namespace HotChocolate.Types
             var guid = Guid.NewGuid();
 
             // act
-            var success = uuidType.TryDeserialize(
-                guid.ToString("N"), out object o);
+            var success = uuidType.TryDeserialize(guid.ToString("N"), out object? o);
 
             // assert
             Assert.True(success);
@@ -147,7 +143,7 @@ namespace HotChocolate.Types
             var guid = Guid.NewGuid();
 
             // act
-            var success = uuidType.TryDeserialize(guid, out object o);
+            var success = uuidType.TryDeserialize(guid, out object? o);
 
             // assert
             Assert.True(success);
@@ -174,14 +170,31 @@ namespace HotChocolate.Types
             // arrange
             var uuidType = new UuidType();
             var expected = Guid.NewGuid();
+            var literalA = new StringValueNode(expected.ToString("N"));
+            var literalB = new StringValueNode(expected.ToString("P"));
+
+            // act
+            var runtimeValueA = (Guid)uuidType.ParseLiteral(literalA)!;
+            var runtimeValueB = (Guid)uuidType.ParseLiteral(literalB)!;
+
+            // assert
+            Assert.Equal(expected, runtimeValueA);
+            Assert.Equal(expected, runtimeValueB);
+        }
+
+        [Fact]
+        public void ParseLiteral_StringValueNode_Enforce_Format()
+        {
+            // arrange
+            var uuidType = new UuidType(defaultFormat: 'P', enforceFormat: true);
+            var expected = Guid.NewGuid();
             var literal = new StringValueNode(expected.ToString("N"));
 
             // act
-            var actual = (Guid)uuidType
-                .ParseLiteral(literal);
+            void Action() => uuidType.ParseLiteral(literal);
 
             // assert
-            Assert.Equal(expected, actual);
+            Assert.Throws<SerializationException>(Action);
         }
 
         [Fact]
@@ -192,10 +205,10 @@ namespace HotChocolate.Types
             var literal = new IntValueNode(123);
 
             // act
-            Action action = () => uuidType.ParseLiteral(literal);
+            void Action() => uuidType.ParseLiteral(literal);
 
             // assert
-            Assert.Throws<SerializationException>(action);
+            Assert.Throws<SerializationException>(Action);
         }
 
         [Fact]
@@ -206,7 +219,7 @@ namespace HotChocolate.Types
             NullValueNode literal = NullValueNode.Default;
 
             // act
-            var value = uuidType.ParseLiteral(literal);
+            object? value = uuidType.ParseLiteral(literal);
 
             // assert
             Assert.Null(value);
@@ -219,10 +232,10 @@ namespace HotChocolate.Types
             var uuidType = new UuidType();
 
             // act
-            Action action = () => uuidType.ParseLiteral(null);
+            void Action() => uuidType.ParseLiteral(null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -234,8 +247,7 @@ namespace HotChocolate.Types
             var expectedLiteralValue = expected.ToString("N");
 
             // act
-            var stringLiteral =
-                (StringValueNode)uuidType.ParseValue(expected);
+            var stringLiteral = (StringValueNode)uuidType.ParseValue(expected);
 
             // assert
             Assert.Equal(expectedLiteralValue, stringLiteral.Value);
@@ -249,8 +261,7 @@ namespace HotChocolate.Types
             Guid? guid = null;
 
             // act
-            IValueNode stringLiteral =
-                uuidType.ParseValue(guid);
+            IValueNode stringLiteral = uuidType.ParseValue(guid);
 
             // assert
             Assert.True(stringLiteral is NullValueNode);
@@ -262,13 +273,13 @@ namespace HotChocolate.Types
         {
             // arrange
             var uuidType = new UuidType();
-            int value = 123;
+            var value = 123;
 
             // act
-            Action action = () => uuidType.ParseValue(value);
+            void Action() => uuidType.ParseValue(value);
 
             // assert
-            Assert.Throws<SerializationException>(action);
+            Assert.Throws<SerializationException>(Action);
         }
 
         [Fact]
@@ -289,11 +300,11 @@ namespace HotChocolate.Types
         public void Serialize_With_Format(char format)
         {
             // arrange
-            var uuidType = new UuidType(format: format);
+            var uuidType = new UuidType(defaultFormat: format);
             Guid guid = Guid.Empty;
 
             // act
-            string s = (string)uuidType.Serialize(guid);
+            string s = (string)uuidType.Serialize(guid)!;
 
             // assert
             Assert.Equal(guid.ToString(format.ToString()), s);
@@ -307,12 +318,12 @@ namespace HotChocolate.Types
         public void Deserialize_With_Format(char format)
         {
             // arrange
-            var uuidType = new UuidType(format: format);
+            var uuidType = new UuidType(defaultFormat: format);
             Guid guid = Guid.Empty;
             string serialized = guid.ToString(format.ToString());
 
             // act
-            Guid deserialized = (Guid)uuidType.Deserialize(serialized);
+            var deserialized = (Guid)uuidType.Deserialize(serialized)!;
 
             // assert
             Assert.Equal(guid, deserialized);
@@ -326,7 +337,7 @@ namespace HotChocolate.Types
         public void ParseValue_With_Format(char format)
         {
             // arrange
-            var uuidType = new UuidType(format: format);
+            var uuidType = new UuidType(defaultFormat: format);
             Guid guid = Guid.Empty;
 
             // act
@@ -344,12 +355,12 @@ namespace HotChocolate.Types
         public void ParseLiteral_With_Format(char format)
         {
             // arrange
-            var uuidType = new UuidType(format: format);
+            var uuidType = new UuidType(defaultFormat: format);
             Guid guid = Guid.Empty;
             var literal = new StringValueNode(guid.ToString(format.ToString()));
 
             // act
-            Guid deserialized = (Guid)uuidType.ParseLiteral(literal);
+            var deserialized = (Guid)uuidType.ParseLiteral(literal)!;
 
             // assert
             Assert.Equal(guid, deserialized);
@@ -360,14 +371,14 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () => new UuidType(format: 'z');
+            void Action() => new UuidType(defaultFormat: 'z');
 
             // assert
             #if NETCOREAPP2_1
-            Assert.Throws<ArgumentException>(action).Message
+            Assert.Throws<ArgumentException>(Action).Message
                 .MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
             #else
-            Assert.Throws<ArgumentException>(action).Message.MatchSnapshot();
+            Assert.Throws<ArgumentException>(Action).Message.MatchSnapshot();
             #endif
         }
     }

@@ -12,7 +12,7 @@ namespace HotChocolate.Execution.Processing
             ISchema schema,
             IReadOnlyList<VariableDefinitionNode> variableDefinitions,
             IReadOnlyDictionary<string, object?> values,
-            IDictionary<string, VariableValue> coercedValues)
+            IDictionary<string, VariableValueOrLiteral> coercedValues)
         {
             if (schema is null)
             {
@@ -40,7 +40,7 @@ namespace HotChocolate.Execution.Processing
                 var variableName = variableDefinition.Variable.Name.Value;
                 IInputType variableType = AssertInputType(schema, variableDefinition);
 
-                if (!values.TryGetValue(variableName, out object? value) &&
+                if (!values.TryGetValue(variableName, out var value) &&
                     variableDefinition.DefaultValue is { } defaultValue)
                 {
                     value = defaultValue.Kind == SyntaxKind.NullValue ? null : defaultValue;
@@ -52,18 +52,18 @@ namespace HotChocolate.Execution.Processing
                     {
                         throw ThrowHelper.NonNullVariableIsNull(variableDefinition);
                     }
-                    coercedValues[variableName] = new VariableValue(
-                        variableType, null, NullValueNode.Default);
+                    coercedValues[variableName] =
+                        new VariableValueOrLiteral(variableType, null, NullValueNode.Default);
                 }
                 else
                 {
-                    coercedValues[variableName] = CoerceVariableValue(
-                        variableDefinition, variableType, value);
+                    coercedValues[variableName] =
+                        CoerceVariableValue(variableDefinition, variableType, value);
                 }
             }
         }
 
-        private static VariableValue CoerceVariableValue(
+        private static VariableValueOrLiteral CoerceVariableValue(
             VariableDefinitionNode variableDefinition,
             IInputType variableType,
             object value)
@@ -75,7 +75,7 @@ namespace HotChocolate.Execution.Processing
                     // we are ensuring here that enum values are correctly specified.
                     valueLiteral = Rewrite(variableType, valueLiteral);
 
-                    return new VariableValue(
+                    return new VariableValueOrLiteral(
                         variableType,
                         variableType.ParseLiteral(valueLiteral),
                         valueLiteral);
@@ -86,9 +86,9 @@ namespace HotChocolate.Execution.Processing
                 }
             }
 
-            if (variableType.TryDeserialize(value, out object? deserialized))
+            if (variableType.TryDeserialize(value, out var deserialized))
             {
-                return new VariableValue(
+                return new VariableValueOrLiteral(
                     variableType,
                     deserialized,
                     variableType.ParseResult(value));

@@ -27,7 +27,7 @@ namespace HotChocolate.Data.Filters
             MemberInfo member)
             : base(context)
         {
-            IFilterConvention? convention = context.GetFilterConvention(scope);
+            IFilterConvention convention = context.GetFilterConvention(scope);
 
             Definition.Member = member ??
                 throw new ArgumentNullException(nameof(member));
@@ -35,6 +35,14 @@ namespace HotChocolate.Data.Filters
             Definition.Name = convention.GetFieldName(member);
             Definition.Description = convention.GetFieldDescription(member);
             Definition.Type = convention.GetFieldType(member);
+            Definition.Scope = scope;
+        }
+
+        protected internal FilterFieldDescriptor(
+            IDescriptorContext context,
+            string? scope)
+            : base(context)
+        {
             Definition.Scope = scope;
         }
 
@@ -49,9 +57,10 @@ namespace HotChocolate.Data.Filters
         protected override void OnCreateDefinition(
             FilterFieldDefinition definition)
         {
-            if (Definition.Member is { })
+            if (!Definition.AttributesAreApplied && Definition.Member is not null)
             {
                 Context.TypeInspector.ApplyAttributes(Context, this, Definition.Member);
+                Definition.AttributesAreApplied = true;
             }
 
             base.OnCreateDefinition(definition);

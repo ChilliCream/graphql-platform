@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using HotChocolate.Language;
 
 #nullable enable
 
@@ -24,5 +25,7 @@ namespace HotChocolate.Execution
         IReadOnlyDictionary<string, object?>? Extensions { get; }
 
         IServiceProvider? Services { get; }
+
+        OperationType[]? AllowedOperations { get; }
     }
 }

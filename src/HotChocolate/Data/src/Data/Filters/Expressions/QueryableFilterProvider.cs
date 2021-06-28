@@ -55,44 +55,41 @@ namespace HotChocolate.Data.Filters.Expressions
                         : context.ArgumentLiteral<IValueNode>(argumentName);
 
                 // if no filter is defined we can stop here and yield back control.
-                if (filter.IsNull() ||
-                    (context.LocalContextData.TryGetValue(
-                            SkipFilteringKey,
-                            out object? skipObject) &&
-                        skipObject is bool skip &&
-                        skip))
+                var skipFiltering =
+                    context.LocalContextData.TryGetValue(SkipFilteringKey, out object? skip) &&
+                    skip is true;
+
+                if (filter.IsNull() || skipFiltering)
                 {
                     return;
                 }
 
-                IQueryable<TEntityType>? source = null;
-
-                if (context.Result is IQueryable<TEntityType> q)
-                {
-                    source = q;
-                }
-                else if (context.Result is IEnumerable<TEntityType> e)
-                {
-                    source = e.AsQueryable();
-                }
-
-                if (source != null &&
-                    argument.Type is IFilterInputType filterInput &&
+                if (argument.Type is IFilterInputType filterInput &&
                     context.Field.ContextData.TryGetValue(
                         ContextVisitFilterArgumentKey,
                         out object? executorObj) &&
                     executorObj is VisitFilterArgument executor)
                 {
-                    QueryableFilterContext visitorContext = executor(
-                        filter,
-                        filterInput,
-                        source is EnumerableQuery);
+                    var inMemory =
+                        context.Result is QueryableExecutable<TEntityType> { InMemory: true } ||
+                        context.Result is not IQueryable ||
+                        context.Result is EnumerableQuery;
+
+                    QueryableFilterContext visitorContext =
+                        executor(filter, filterInput, inMemory);
 
                     // compile expression tree
                     if (visitorContext.TryCreateLambda(
                         out Expression<Func<TEntityType, bool>>? where))
                     {
-                        context.Result = source.Where(where);
+                        context.Result = context.Result switch
+                        {
+                            IQueryable<TEntityType> q => q.Where(where),
+                            IEnumerable<TEntityType> e => e.AsQueryable().Where(where),
+                            QueryableExecutable<TEntityType> ex =>
+                                ex.WithSource(ex.Source.Where(where)),
+                            _ => context.Result
+                        };
                     }
                     else
                     {

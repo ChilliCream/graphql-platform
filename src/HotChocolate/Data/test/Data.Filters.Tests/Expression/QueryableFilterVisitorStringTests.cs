@@ -12,7 +12,7 @@ namespace HotChocolate.Data.Filters.Expressions
         {
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -30,7 +30,7 @@ namespace HotChocolate.Data.Filters.Expressions
         {
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { neq:\"a\" }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -49,7 +49,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ bar: { in:[\"a\", \"c\"]}}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -67,7 +67,7 @@ namespace HotChocolate.Data.Filters.Expressions
         {
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { in:[\"a\"]}}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -86,7 +86,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ bar: { nin:[\"a\", \"c\"]}}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -105,7 +105,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ bar: { contains:\"a\" }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -123,7 +123,7 @@ namespace HotChocolate.Data.Filters.Expressions
         {
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ bar: { ncontains:\"a\" }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -142,7 +142,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ bar: { startsWith:\"a\" }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -161,7 +161,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ bar: { nstartsWith:\"a\" }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -180,7 +180,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ bar: { endsWith:\"a\" }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -199,7 +199,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ bar: { nendsWith:\"a\" }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -217,7 +217,7 @@ namespace HotChocolate.Data.Filters.Expressions
             public string Bar { get; set; }
         }
 
-        public class FooFilterType
+        public class FooFilterInput
             : FilterInputType<Foo>
         {
             protected override void Configure(

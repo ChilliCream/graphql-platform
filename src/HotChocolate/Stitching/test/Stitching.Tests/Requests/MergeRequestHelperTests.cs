@@ -148,5 +148,58 @@ namespace HotChocolate.Stitching.Requests
                         .Select(t => Utf8GraphQLParser.Parse(t.Query!.AsSpan()).ToString(true)))
                 .MatchSnapshot();
         }
+
+        [Fact]
+        public async Task Merge_Requests_With_Variables_On_Directives()
+        {
+            // arrange
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddCustomerSchema()
+                    .BuildSchemaAsync();
+
+            var queryA = 
+                @"query abc($id: ID $if: Boolean) {
+                    customer(id: $id) {
+                        name @include(id: $if)
+                    }
+                }";
+
+            var queryB = 
+                @"query abc($id: ID  $if: Boolean) {
+                    customer(id: $id) {
+                        id @include(id: $if)
+                    }
+                }";
+
+            IQueryRequest requestA =
+                QueryRequestBuilder.New()
+                    .SetQuery(queryA)
+                    .SetVariableValue("id", "1")
+                    .SetVariableValue("if", true)
+                    .Create();
+
+            IQueryRequest requestB =
+                QueryRequestBuilder.New()
+                    .SetQuery(queryB)
+                    .SetVariableValue("id", "1")
+                    .SetVariableValue("if", true)
+                    .Create();
+
+            var bufferedRequestA = BufferedRequest.Create(requestA, schema);
+            var bufferedRequestB = BufferedRequest.Create(requestB, schema);
+
+            // act
+            IEnumerable<(IQueryRequest, IEnumerable<BufferedRequest>)> mergeResult =
+                MergeRequestHelper.MergeRequests(new[] { bufferedRequestA, bufferedRequestB });
+
+            // assert
+            string.Join(Environment.NewLine + "-------" + Environment.NewLine,
+                mergeResult
+                    .Select(t => t.Item1)
+                    .Select(t => Utf8GraphQLParser.Parse(t.Query!.AsSpan()).ToString(true)))
+                .MatchSnapshot();
+        }
     }
 }

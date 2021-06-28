@@ -2,7 +2,7 @@
   "Label": null,
   "Path": null,
   "Data": {
-    "foo": "bar"
+    "foo": "QueryResolverOnType"
   },
   "Errors": null,
   "Extensions": null,

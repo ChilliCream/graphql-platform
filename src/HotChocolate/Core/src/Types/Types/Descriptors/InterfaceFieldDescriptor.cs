@@ -37,9 +37,11 @@ namespace HotChocolate.Types.Descriptors
                 ?? throw new ArgumentNullException(nameof(member));
 
             Definition.Name = context.Naming.GetMemberName(
-                member, MemberKind.InputObjectField);
+                member,
+                MemberKind.InputObjectField);
             Definition.Description = context.Naming.GetMemberDescription(
-                member, MemberKind.InputObjectField);
+                member,
+                MemberKind.InputObjectField);
             Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
 
             if (context.Naming.IsDeprecated(member, out string reason))
@@ -49,23 +51,22 @@ namespace HotChocolate.Types.Descriptors
 
             if (member is MethodInfo m)
             {
-                Parameters = m.GetParameters().ToDictionary(
-                    t => new NameString(t.Name));
+                Parameters = m.GetParameters().ToDictionary(t => new NameString(t.Name));
             }
         }
 
-        internal protected override InterfaceFieldDefinition Definition { get; protected set; } =
+        protected internal override InterfaceFieldDefinition Definition { get; protected set; } =
             new InterfaceFieldDefinition();
 
-        protected override void OnCreateDefinition(
-            InterfaceFieldDefinition definition)
+        protected override void OnCreateDefinition(InterfaceFieldDefinition definition)
         {
-            if (Definition.Member is { })
+            if (!Definition.AttributesAreApplied && Definition.Member is not null)
             {
                 Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.Member);
+                Definition.AttributesAreApplied = true;
             }
 
             base.OnCreateDefinition(definition);
@@ -75,7 +76,7 @@ namespace HotChocolate.Types.Descriptors
 
         private void CompleteArguments(InterfaceFieldDefinition definition)
         {
-            if (!_argumentsInitialized)
+            if (!_argumentsInitialized && Parameters.Any())
             {
                 FieldDescriptorUtilities.DiscoverArguments(
                     Context,
@@ -85,22 +86,19 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        public new IInterfaceFieldDescriptor SyntaxNode(
-            FieldDefinitionNode fieldDefinitionNode)
+        public new IInterfaceFieldDescriptor SyntaxNode(FieldDefinitionNode fieldDefinitionNode)
         {
             base.SyntaxNode(fieldDefinitionNode);
             return this;
         }
 
-        public new IInterfaceFieldDescriptor Name(
-            NameString name)
+        public new IInterfaceFieldDescriptor Name(NameString name)
         {
             base.Name(name);
             return this;
         }
 
-        public new IInterfaceFieldDescriptor Description(
-            string description)
+        public new IInterfaceFieldDescriptor Description(string description)
         {
             base.Description(description);
             return this;
@@ -129,8 +127,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public new IInterfaceFieldDescriptor Type<TOutputType>(
-            TOutputType outputType)
+        public new IInterfaceFieldDescriptor Type<TOutputType>(TOutputType outputType)
             where TOutputType : class, IOutputType
         {
             base.Type(outputType);

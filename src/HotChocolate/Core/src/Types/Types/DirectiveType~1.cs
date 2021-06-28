@@ -3,13 +3,15 @@ using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public class DirectiveType<TDirective>
         : DirectiveType
         where TDirective : class
     {
-        private readonly Action<IDirectiveTypeDescriptor<TDirective>> _conf;
+        private Action<IDirectiveTypeDescriptor<TDirective>>? _conf;
 
         protected DirectiveType()
         {
@@ -26,9 +28,12 @@ namespace HotChocolate.Types
         protected override DirectiveTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
         {
-            var descriptor = DirectiveTypeDescriptor.New<TDirective>(
-                context.DescriptorContext);
-            _conf(descriptor);
+            var descriptor =
+                DirectiveTypeDescriptor.New<TDirective>(context.DescriptorContext);
+
+            _conf!(descriptor);
+            _conf = null;
+
             return descriptor.CreateDefinition();
         }
 

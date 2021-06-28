@@ -60,7 +60,7 @@ namespace HotChocolate.Stitching
         /// is equal to the current <see cref="ScopedVariableNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(ScopedVariableNode other)
+        public bool Equals(ScopedVariableNode? other)
         {
             if (other is null)
             {
@@ -88,7 +88,7 @@ namespace HotChocolate.Stitching
         /// to the current <see cref="ScopedVariableNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(IValueNode other)
+        public bool Equals(IValueNode? other)
         {
             if (other is null)
             {
@@ -120,7 +120,7 @@ namespace HotChocolate.Stitching
         /// <c>true</c> if the specified <see cref="object"/> is equal to the
         /// current <see cref="ScopedVariableNode"/>; otherwise, <c>false</c>.
         /// </returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {

@@ -36,7 +36,7 @@ namespace HotChocolate.Stitching.Delegation
 
             // act
             var resolver = new ContextDataScopedVariableResolver();
-            VariableValue value = resolver.Resolve(
+            ScopedVariableValue value = resolver.Resolve(
                 context.Object,
                 scopedVariable,
                 schema.GetType<StringType>("String"));
@@ -72,7 +72,7 @@ namespace HotChocolate.Stitching.Delegation
 
             // act
             var resolver = new ContextDataScopedVariableResolver();
-            VariableValue value = resolver.Resolve(
+            ScopedVariableValue value = resolver.Resolve(
                 context.Object,
                 scopedVariable,
                 schema.GetType<StringType>("String"));

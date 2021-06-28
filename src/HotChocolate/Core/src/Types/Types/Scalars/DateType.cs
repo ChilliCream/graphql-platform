@@ -8,24 +8,25 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
-    public sealed class DateType
-        : ScalarType<DateTime, StringValueNode>
+    public class DateType : ScalarType<DateTime, StringValueNode>
     {
         private const string _dateFormat = "yyyy-MM-dd";
 
-        public DateType()
-            : base(ScalarNames.Date, BindingBehavior.Explicit)
-        {
-            Description = TypeResources.DateType_Description;
-        }
-
-        public DateType(NameString name)
-            : base(name, BindingBehavior.Explicit)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DateTimeType"/> class.
+        /// </summary>
+        public DateType() : this(ScalarNames.Date, TypeResources.DateType_Description)
         {
         }
 
-        public DateType(NameString name, string description)
-            : base(name, BindingBehavior.Explicit)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DateTimeType"/> class.
+        /// </summary>
+        public DateType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name, bind)
         {
             Description = description;
         }
@@ -42,10 +43,8 @@ namespace HotChocolate.Types
                 this);
         }
 
-        protected override StringValueNode ParseValue(DateTime runtimeValue)
-        {
-            return new StringValueNode(Serialize(runtimeValue));
-        }
+        protected override StringValueNode ParseValue(DateTime runtimeValue) =>
+            new(Serialize(runtimeValue));
 
         public override IValueNode ParseResult(object? resultValue)
         {
@@ -122,12 +121,8 @@ namespace HotChocolate.Types
             return false;
         }
 
-        private static string Serialize(DateTime value)
-        {
-            return value.Date.ToString(
-                _dateFormat,
-                CultureInfo.InvariantCulture);
-        }
+        private static string Serialize(DateTime value) =>
+            value.Date.ToString(_dateFormat, CultureInfo.InvariantCulture);
 
         private static bool TryDeserializeFromString(
             string? serialized,

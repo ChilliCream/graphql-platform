@@ -1,0 +1,82 @@
+﻿[
+  {
+    "Message": "Encountered fields for the same object that cannot be merged.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 9,
+        "Column": 21
+      },
+      {
+        "Line": 10,
+        "Column": 21
+      }
+    ],
+    "Extensions": {
+      "declaringTypeA": "Dog",
+      "declaringTypeB": "Dog",
+      "fieldA": "doesKnowCommand",
+      "fieldB": "doesKnowCommand",
+      "typeA": "Boolean!",
+      "typeB": "Boolean!",
+      "responseNameA": "doesKnowCommand",
+      "responseNameB": "doesKnowCommand",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [
+        {
+          "Kind": "Argument",
+          "Location": {
+            "Start": 257,
+            "End": 274,
+            "Line": 10,
+            "Column": 37
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 257,
+              "End": 268,
+              "Line": 10,
+              "Column": 37
+            },
+            "Value": "dogCommand"
+          },
+          "Value": {
+            "Kind": "EnumValue",
+            "Location": {
+              "Start": 269,
+              "End": 274,
+              "Line": 10,
+              "Column": 49
+            },
+            "Value": "HEEL"
+          }
+        }
+      ],
+      "SelectionSet": null,
+      "Location": {
+        "Start": 241,
+        "End": 292,
+        "Line": 10,
+        "Column": 21
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 241,
+          "End": 257,
+          "Line": 10,
+          "Column": 21
+        },
+        "Value": "doesKnowCommand"
+      },
+      "Directives": []
+    }
+  }
+]

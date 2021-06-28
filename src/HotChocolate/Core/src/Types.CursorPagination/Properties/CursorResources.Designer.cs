@@ -28,7 +28,7 @@ namespace HotChocolate.Types.Properties {
         internal static System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.Equals(null, resourceMan)) {
-                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Types.Properties.CursorResources", typeof(CursorResources).Assembly);
+                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HHotChocolate.Types.Pagination.Properties.CursorResources", typeof(CursorResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

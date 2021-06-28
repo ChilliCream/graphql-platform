@@ -1,5 +1,10 @@
+#nullable enable
+
 namespace HotChocolate.Types.Relay
 {
+    /// <summary>
+    /// The ID serializer is used to parse and format node ids.
+    /// </summary>
     public interface IIdSerializer
     {
         /// <summary>

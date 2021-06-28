@@ -7,18 +7,67 @@ namespace HotChocolate.Execution.Processing
 {
     internal sealed partial class OperationContext
     {
-        public ISchema Schema => _requestContext.Schema;
+        public ISchema Schema
+        {
+            get
+            {
+                AssertInitialized();
+                return _requestContext.Schema;
+            }
+        }
 
-        public IErrorHandler ErrorHandler => _requestContext.ErrorHandler;
+        public IErrorHandler ErrorHandler
+        {
+            get
+            {
+                AssertInitialized();
+                return _requestContext.ErrorHandler;
+            }
+        }
 
-        public ITypeConverter Converter => _requestContext.Converter;
+        public ITypeConverter Converter
+        {
+            get
+            {
+                AssertInitialized();
+                return _requestContext.Converter;
+            }
+        }
 
-        public IActivator Activator => _requestContext.Activator;
+        public IActivator Activator
+        {
+            get
+            {
+                AssertInitialized();
+                return _requestContext.Activator;
+            }
+        }
 
-        public IDiagnosticEvents DiagnosticEvents => _requestContext.DiagnosticEvents;
+        public IDiagnosticEvents DiagnosticEvents
+        {
+            get
+            {
+                AssertInitialized();
+                return _requestContext.DiagnosticEvents;
+            }
+        }
 
-        public IDictionary<string, object?> ContextData => _requestContext.ContextData;
+        public IDictionary<string, object?> ContextData
+        {
+            get
+            {
+                AssertInitialized();
+                return _requestContext.ContextData;
+            }
+        }
 
-        public CancellationToken RequestAborted => _requestContext.RequestAborted;
+        public CancellationToken RequestAborted
+        {
+            get
+            {
+                AssertInitialized();
+                return _requestContext.RequestAborted;
+            }
+        }
     }
 }

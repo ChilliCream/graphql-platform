@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
+using HotChocolate.Types.Relay;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -73,7 +74,7 @@ namespace HotChocolate.Types.Pagination
         public async Task UsePagingAttribute_On_Extension_Execute_Query()
         {
             Snapshot.FullName();
-            
+
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
@@ -82,6 +83,55 @@ namespace HotChocolate.Types.Pagination
                 .BuildServiceProvider()
                 .ExecuteRequestAsync("{ foos(first: 1) { nodes { bar } } }")
                 .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_Attributes_Are_Applied_Once()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query1>()
+                .AddType<Query1Extensions>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_Attributes_Are_Applied_Once_Execute_Query()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query1>()
+                .AddType<Query1Extensions>()
+                .ExecuteRequestAsync("{ foos(first: 1) { nodes { bar } } }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task UnknownNodeType()
+        {
+            Snapshot.FullName();
+
+            try
+            {
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryType>()
+                    .AddType<NoNodeType>()
+                    .BuildSchemaAsync();
+            }
+            catch (SchemaException ex)
+            {
+                new
+                {
+                    ex.Errors[0].Message,
+                    ex.Errors[0].Code
+                }.MatchSnapshot();
+            }
         }
 
         public class QueryType : ObjectType
@@ -95,14 +145,51 @@ namespace HotChocolate.Types.Pagination
         public class Query
         {
             [UsePaging]
-            public IQueryable<Foo> Foos { get; set; } = new List<Foo>
+            public IQueryable<Foo> Foos ()
             {
-                new Foo { Bar = "first" },
-                new Foo { Bar = "second" },
-            }.AsQueryable();
+                return new List<Foo>
+                {
+                    new Foo { Bar = "first" },
+                    new Foo { Bar = "second" },
+                }.AsQueryable();
+            }
         }
 
-        [ExtendObjectType(Name = "Query")]
+        public class Query1
+        {
+            public IQueryable<Foo> Foos ()
+            {
+                return new List<Foo>
+                {
+                    new Foo { Bar = "first" },
+                    new Foo { Bar = "second" },
+                }.AsQueryable();
+            }
+        }
+
+        [Node]
+        [ExtendObjectType(typeof(Query1))]
+        public class Query1Extensions
+        {
+            [UsePaging]
+            [BindMember(nameof(Query1.Foos))]
+            public IQueryable<Foo> Foos ()
+            {
+                return new List<Foo>
+                {
+                    new Foo { Bar = "first" },
+                    new Foo { Bar = "second" },
+                }.AsQueryable();
+            }
+
+            [NodeResolver]
+            public Query1 GetQuery()
+            {
+                return new Query1();
+            }
+        }
+
+        [ExtendObjectType("Query")]
         public class QueryExtension : Query
         {
         }
@@ -116,6 +203,13 @@ namespace HotChocolate.Types.Pagination
         {
             [UsePaging]
             IQueryable<Foo> Foos { get; }
+        }
+
+        [ExtendObjectType("Query")]
+        public class NoNodeType
+        {
+            [UsePaging]
+            public int GetSomething() => 1;
         }
     }
 }

@@ -1,16 +1,20 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
 using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore
 {
     internal static class HttpResponseExtensions
     {
-        private static readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions
+        private static readonly JsonSerializerOptions _serializerOptions = new()
         {
+#if NETCOREAPP3_1
             IgnoreNullValues = true,
+#else
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+#endif
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 

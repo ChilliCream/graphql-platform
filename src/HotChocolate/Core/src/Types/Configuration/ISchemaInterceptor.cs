@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration
@@ -7,5 +8,7 @@ namespace HotChocolate.Configuration
         void OnBeforeCreate(IDescriptorContext context, ISchemaBuilder schemaBuilder);
 
         void OnAfterCreate(IDescriptorContext context, ISchema schema);
+
+        void OnError(IDescriptorContext context, Exception exception);
     }
 }

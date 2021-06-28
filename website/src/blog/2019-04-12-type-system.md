@@ -313,7 +313,7 @@ schema.GetType<ObjectType>("Query").ContextData.ContainsKey("Foo");
 
 ## Improved Relay Support
 
-With version 9 we are making creating relay compliant schemas a breeze. Lets have a look at the relay server spec parts and see how those translate to _Hot Chocolate_:
+With version 9 we are making creating relay compliant schemas a breeze. Lets have a look at the relay server spec parts and see how those translate to Hot Chocolate:
 
 In order to activate relayjs support you can do now the following:
 
@@ -408,9 +408,9 @@ Also, we will have a look at subscription stitching and our reworked subscriptio
 
 Last but not least, we hope we are be able to squeeze in our new `FilterType` feature with version 9.
 
-As you can see version 9 will bring quite a few improvements, so stay tuned for our next post on V9 and try out our previews. Also, join our slack channel and give us your take on GraphQL, tell us what you would like to see next in _Hot Chocolate_.
+As you can see version 9 will bring quite a few improvements, so stay tuned for our next post on V9 and try out our previews. Also, join our slack channel and give us your take on GraphQL, tell us what you would like to see next in Hot Chocolate.
 
-With _Hot Chocolate_ we are building a GraphQL server for the community, so join and help us along.
+With Hot Chocolate we are building a GraphQL server for the community, so join and help us along.
 
 We value any kind of contribution, whether you give us a star, a feedback, find a bug, a typo, or whether you contribute code. Every bit matters and makes our project better.
 

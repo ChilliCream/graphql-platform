@@ -9,42 +9,29 @@ namespace Microsoft.Extensions.DependencyInjection
     public static partial class SchemaRequestExecutorBuilderExtensions
     {
         public static IRequestExecutorBuilder BindResolver<TResolver>(
-            this IRequestExecutorBuilder builder)
-            where TResolver : class =>
-            builder.ConfigureSchema(
-                b => b.BindResolver<TResolver>(BindingBehavior.Implicit, null));
-
-        public static IRequestExecutorBuilder BindResolver<TResolver>(
             this IRequestExecutorBuilder builder,
-            Action<IBindResolver<TResolver>> configure)
-            where TResolver : class =>
-            builder.ConfigureSchema(
-                b => b.BindResolver<TResolver>(BindingBehavior.Implicit, configure));
-
-        public static IRequestExecutorBuilder BindResolver<TResolver>(
-            this IRequestExecutorBuilder builder,
-            BindingBehavior bindingBehavior,
-            Action<IBindResolver<TResolver>> configure)
+            Action<IBindResolver<TResolver>>? configure = default,
+            BindingBehavior bindingBehavior = BindingBehavior.Implicit)
             where TResolver : class =>
             builder.ConfigureSchema(
                 b => b.BindResolver<TResolver>(bindingBehavior, configure));
 
         public static IRequestExecutorBuilder BindComplexType<T>(
-            this IRequestExecutorBuilder builder)
-            where T : class =>
-            builder.ConfigureSchema(b => b.BindComplexType<T>());
-
-        public static IRequestExecutorBuilder BindComplexType<T>(
             this IRequestExecutorBuilder builder,
-            Action<IBindType<T>> configure)
-            where T : class =>
-            builder.ConfigureSchema(b => b.BindComplexType(configure));
-
-        public static IRequestExecutorBuilder BindComplexType<T>(
-            this IRequestExecutorBuilder builder,
-            BindingBehavior bindingBehavior,
-            Action<IBindType<T>> configure)
+            Action<IBindType<T>>? configure = default,
+            BindingBehavior bindingBehavior = BindingBehavior.Implicit)
             where T : class =>
             builder.ConfigureSchema(b => b.BindComplexType(bindingBehavior, configure));
+
+        public static IRequestExecutorBuilder BindEnumType<T>(
+            this IRequestExecutorBuilder builder,
+            Action<IEnumTypeBindingDescriptor>? configure = default) =>
+            builder.ConfigureSchema(b => b.BindEnumType<T>(configure));
+
+        public static IRequestExecutorBuilder BindEnumType(
+            this IRequestExecutorBuilder builder,
+            Type runtimeType,
+            Action<IEnumTypeBindingDescriptor>? configure = default) =>
+            builder.ConfigureSchema(b => b.BindEnumType(runtimeType, configure));
     }
 }

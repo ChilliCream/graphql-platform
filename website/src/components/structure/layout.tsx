@@ -1,52 +1,25 @@
-import React, { FunctionComponent, useEffect } from "react";
-import styled from "styled-components";
-import { GlobalStyle } from "../misc/global-style";
-import { Footer } from "./footer";
-import { Header } from "./header";
+import { MDXProvider } from "@mdx-js/react";
+import React, { FunctionComponent } from "react";
+import { CodeBlock } from "../mdx/code-block";
 import { CookieConsent } from "../misc/cookie-consent";
-import { PageTop } from "../misc/page-top";
+import { GlobalLayoutStyle, GlobalStyle } from "../misc/global-style";
+import { Header } from "./header";
+import { MainContentContainer } from "./main-content-container/main-content-container";
 
 export const Layout: FunctionComponent = ({ children }) => {
-  useEffect(() => {
-    const { hash } = window.location;
-
-    if (hash) {
-      const headlineElement = document.getElementById(hash.substring(1));
-
-      if (headlineElement) {
-        window.setTimeout(
-          () => window.scrollTo(0, headlineElement.offsetTop - 80),
-          100
-        );
-      }
-    }
-  });
+  const components = {
+    pre: CodeBlock,
+  };
 
   return (
     <>
       <GlobalStyle />
+      <GlobalLayoutStyle />
       <Header />
-      <MainContentWrapper>
-        <Content>{children}</Content>
-        <Footer />
-      </MainContentWrapper>
-      <PageTop />
+      <MDXProvider components={components}>
+        <MainContentContainer>{children}</MainContentContainer>
+      </MDXProvider>
       <CookieConsent />
     </>
   );
 };
-
-const MainContentWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100vw;
-  background-color: #fff;
-`;
-
-const Content = styled.main`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 60px;
-  width: 100%;
-`;

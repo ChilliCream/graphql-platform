@@ -49,6 +49,22 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
+        public void GoodBooleanArgDefault2()
+        {
+            ExpectValid(@"
+                query {
+                    arguments {
+                        ... goodBooleanArgDefault
+                    }
+                }
+
+                fragment goodBooleanArgDefault on Arguments {
+                    optionalNonNullBooleanArgField2
+                }
+            ");
+        }
+
+        [Fact]
         public void MissingRequiredArg()
         {
             // arrange

@@ -12,6 +12,9 @@ namespace HotChocolate.StarWars.Types
             descriptor.Field(t => t.Id)
                 .Type<NonNullType<IdType>>();
 
+            descriptor.Field(f => f.Name)
+                .Type<NonNullType<StringType>>();
+
             descriptor.Field<SharedResolvers>(t => t.GetLength(default, default));
         }
     }

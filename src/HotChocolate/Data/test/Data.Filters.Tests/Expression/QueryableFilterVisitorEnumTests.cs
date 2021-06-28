@@ -6,7 +6,6 @@ using Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
-
     public class QueryableFilterVisitorEnumTests
         : FilterVisitorTestBase
     {
@@ -16,7 +15,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barEnum: { eq: BAR }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -35,7 +34,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barEnum: { neq: BAR }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -55,7 +54,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barEnum: { in: [BAZ, QUX] }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -74,7 +73,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barEnum: { nin: [BAZ, QUX] }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -93,7 +92,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barEnum: { eq: BAR }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
 
             // act
             Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
@@ -116,7 +115,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barEnum: { neq: BAR }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
 
             // act
             Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
@@ -138,7 +137,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barEnum: { in: [BAZ, QUX] }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
 
             // act
             Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
@@ -160,7 +159,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barEnum: { nin: [BAZ, QUX] }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
 
             // act
             Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
@@ -174,6 +173,50 @@ namespace HotChocolate.Data.Filters.Expressions
 
             var c = new FooNullable { BarEnum = null };
             Assert.True(func(c));
+        }
+
+        [Fact]
+        public void Create_NonNullOnNullableTypes_Attributes()
+        {
+            // arrange
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+                "{ nonNullOnNullableTypes: { eq: THIRD }}");
+            ExecutorBuilder? tester = CreateProviderTester(new FilterInputType<AttributeTest>());
+
+            // act
+            Func<AttributeTest, bool>? func = tester.Build<AttributeTest>(value);
+
+            // assert
+            var a = new AttributeTest { NonNullOnNullableTypes = TestEnum.Third };
+            Assert.True(func(a));
+
+            var b = new AttributeTest { NonNullOnNullableTypes = TestEnum.First};
+            Assert.False(func(b));
+
+            var c = new AttributeTest { NonNullOnNullableTypes = null };
+            Assert.False(func(c));
+        }
+
+        [Fact]
+        public void Create_NonNullOnNullable_Attributes()
+        {
+            // arrange
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+                "{ nonNullOnNullable: { eq: THIRD }}");
+            ExecutorBuilder? tester = CreateProviderTester(new FilterInputType<AttributeTest>());
+
+            // act
+            Func<AttributeTest, bool>? func = tester.Build<AttributeTest>(value);
+
+            // assert
+            var a = new AttributeTest { NonNullOnNullable = TestEnum.Third };
+            Assert.True(func(a));
+
+            var b = new AttributeTest { NonNullOnNullable = TestEnum.First};
+            Assert.False(func(b));
+
+            var c = new AttributeTest { NonNullOnNullable = null };
+            Assert.False(func(c));
         }
 
         [Fact]
@@ -205,12 +248,12 @@ namespace HotChocolate.Data.Filters.Expressions
             QUX
         }
 
-        public class FooFilterType
+        public class FooFilterInput
             : FilterInputType<Foo>
         {
         }
 
-        public class FooNullableFilterType
+        public class FooNullableFilterInput
             : FilterInputType<FooNullable>
         {
         }
@@ -226,5 +269,27 @@ namespace HotChocolate.Data.Filters.Expressions
             public short? BarEnum { get; set; }
         }
 
+        public enum TestEnum
+        {
+            None,
+            First,
+            Second,
+            Third
+        }
+
+        public class AttributeTest
+        {
+            [GraphQLType(typeof(NonNullType<EnumType<TestEnum>>))]
+            public TestEnum? NonNullOnNullableTypes { get; set; }
+
+            [GraphQLNonNullType]
+            public TestEnum? NonNullOnNullable { get; set; }
+
+            [GraphQLType(typeof(EnumType<TestEnum>))]
+            public TestEnum NullableOnNullableType { get; set; }
+
+            [GraphQLNonNullType]
+            public TestEnum NullableOnNNonullableType { get; set; }
+        }
     }
 }

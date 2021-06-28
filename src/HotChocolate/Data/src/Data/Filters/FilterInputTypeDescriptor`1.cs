@@ -53,7 +53,8 @@ namespace HotChocolate.Data.Filters
                         .CreateDefinition(),
                     fields,
                     handledProperties,
-                    include: (members, member) => member is PropertyInfo);
+                    include: (members, member) =>
+                        member is PropertyInfo && !handledProperties.Contains(member));
             }
 
             base.OnCompleteFields(fields, handledProperties);
@@ -140,11 +141,11 @@ namespace HotChocolate.Data.Filters
 
                 if (fieldDescriptor is null)
                 {
-                    fieldDescriptor = FilterFieldDescriptor.New(Context, Definition.Scope, p);
+                    fieldDescriptor =
+                        IgnoreFilterFieldDescriptor.New(Context, Definition.Scope, p);
                     Fields.Add(fieldDescriptor);
                 }
 
-                fieldDescriptor.Ignore();
                 return this;
             }
 

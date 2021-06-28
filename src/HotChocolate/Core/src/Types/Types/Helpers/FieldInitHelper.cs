@@ -12,22 +12,25 @@ namespace HotChocolate.Types
     {
         public static IValueNode CreateDefaultValue(
             ITypeCompletionContext context,
-            ArgumentDefinition definition,
-            IInputType fieldType)
+            ArgumentDefinition argumentDefinition,
+            IInputType argumentType,
+            FieldCoordinate argumentCoordinate)
         {
             try
             {
-                return definition.NativeDefaultValue != null
-                    ? fieldType.ParseValue(definition.NativeDefaultValue)
-                    : definition.DefaultValue;
+                return argumentDefinition.NativeDefaultValue != null
+                    ? argumentType.ParseValue(argumentDefinition.NativeDefaultValue)
+                    : argumentDefinition.DefaultValue;
             }
             catch (Exception ex)
             {
                 context.ReportError(SchemaErrorBuilder.New()
-                    .SetMessage(TypeResources.FieldInitHelper_InvalidDefaultValue)
+                    .SetMessage(
+                        TypeResources.FieldInitHelper_InvalidDefaultValue,
+                        argumentCoordinate)
                     .SetCode(ErrorCodes.Schema.MissingType)
                     .SetTypeSystemObject(context.Type)
-                    .AddSyntaxNode(definition.SyntaxNode)
+                    .AddSyntaxNode(argumentDefinition.SyntaxNode)
                     .SetException(ex)
                     .Build());
                 return NullValueNode.Default;
@@ -41,19 +44,14 @@ namespace HotChocolate.Types
             where TTypeDef : DefinitionBase, IHasSyntaxNode
             where TFieldType : IType
             where TFieldDef : FieldDefinitionBase, IHasSyntaxNode
-
         {
             if (context.Type is IType type && fields.Count == 0)
             {
-                string kind = context.Type is IType t
-                    ? t.Kind.ToString()
-                    : TypeKind.Directive.ToString();
-
                 context.ReportError(SchemaErrorBuilder.New()
                     .SetMessage(string.Format(
                         CultureInfo.InvariantCulture,
                         TypeResources.FieldInitHelper_NoFields,
-                        kind,
+                        type.Kind.ToString(),
                         context.Type.Name))
                     .SetCode(ErrorCodes.Schema.MissingType)
                     .SetTypeSystemObject(context.Type)

@@ -62,7 +62,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_ArraySomeObjectStringEqualWithNull_Expression()
         {
             // arrange
-            IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -109,7 +109,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_ArrayNoneObjectStringEqual_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -142,7 +142,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_ArrayAllObjectStringEqual_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -175,7 +175,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_ArrayAnyObjectStringEqual_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
 
             // act
             // assert
@@ -223,7 +223,7 @@ namespace HotChocolate.Data.Filters
             public string? Bar { get; set; }
         }
 
-        public class FooFilterType
+        public class FooFilterInput
             : FilterInputType<Foo>
         {
             protected override void Configure(
@@ -233,7 +233,7 @@ namespace HotChocolate.Data.Filters
             }
         }
 
-        public class FooSimpleFilterType
+        public class FooSimpleFilterInput
             : FilterInputType<FooSimple>
         {
             protected override void Configure(

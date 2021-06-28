@@ -1,0 +1,27 @@
+﻿{
+  "message": "The field `def` must be implement by object type `Foo`.",
+  "type": "Foo",
+  "extensions": {
+    "implementedField": "def",
+    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
+  }
+}
+
+{
+  "message": "The field `def` must be implement by object type `Foo`.",
+  "type": "Foo",
+  "extensions": {
+    "implementedField": "def",
+    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
+  }
+}
+
+{
+  "message": "The field `def` must be implement by object type `Foo`.",
+  "type": "Foo",
+  "extensions": {
+    "implementedField": "def",
+    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
+  }
+}
+

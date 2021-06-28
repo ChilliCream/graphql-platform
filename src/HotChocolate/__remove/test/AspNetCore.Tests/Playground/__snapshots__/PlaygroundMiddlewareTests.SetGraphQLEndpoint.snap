@@ -1,6 +1,0 @@
-﻿
-                window.Settings = {
-                    url: "https://hotchocolate.io/graphql",
-                    subscriptionUrl: null,
-                }
-            

@@ -1,5 +1,5 @@
 import { graphql, useStaticQuery } from "gatsby";
-import Img from "gatsby-image";
+import { GatsbyImage } from "gatsby-plugin-image";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
 import { GetBlogPostEfMeetsGraphQlImageQuery } from "../../../graphql-types";
@@ -7,16 +7,18 @@ import { GetBlogPostEfMeetsGraphQlImageQuery } from "../../../graphql-types";
 export const BlogPostEFMeetsGraphQL: FunctionComponent = () => {
   const data = useStaticQuery<GetBlogPostEfMeetsGraphQlImageQuery>(graphql`
     query getBlogPostEFMeetsGraphQLImage {
-      placeholderImage: file(
+      file(
         relativePath: {
           eq: "2020-03-18-entity-framework/banner-entityframework.png"
         }
         sourceInstanceName: { eq: "blog" }
       ) {
         childImageSharp {
-          fluid(maxWidth: 1200) {
-            ...GatsbyImageSharpFluid
-          }
+          gatsbyImageData(
+            layout: CONSTRAINED
+            width: 1200
+            pngOptions: { quality: 90 }
+          )
         }
       }
     }
@@ -24,7 +26,10 @@ export const BlogPostEFMeetsGraphQL: FunctionComponent = () => {
 
   return (
     <Container>
-      <Img fluid={data.placeholderImage?.childImageSharp?.fluid as any} />
+      <GatsbyImage
+        image={data.file?.childImageSharp?.gatsbyImageData}
+        alt="Get started with Hot Chocolate and Entity Framework"
+      />
     </Container>
   );
 };

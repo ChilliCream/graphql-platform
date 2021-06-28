@@ -20,6 +20,62 @@
       "responseName": "barks",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Leaf-Field-Selections"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 75,
+          "End": 162,
+          "Line": 4,
+          "Column": 31
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 105,
+              "End": 140,
+              "Line": 5,
+              "Column": 29
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 105,
+                "End": 140,
+                "Line": 5,
+                "Column": 29
+              },
+              "Value": "sinceWhen"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 69,
+        "End": 162,
+        "Line": 4,
+        "Column": 25
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 69,
+          "End": 76,
+          "Line": 4,
+          "Column": 25
+        },
+        "Value": "barks"
+      },
+      "Directives": []
+    }
   }
 ]

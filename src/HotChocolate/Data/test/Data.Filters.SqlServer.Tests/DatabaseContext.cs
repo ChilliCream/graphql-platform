@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -9,10 +10,14 @@ namespace HotChocolate.Data.Filters
     {
         private readonly string _fileName;
         private bool _disposed;
+        private Action<ModelBuilder>? _onModelCreating;
 
-        public DatabaseContext(string fileName)
+        public DatabaseContext(
+            string fileName,
+            Action<ModelBuilder>? onModelCreating = null)
         {
             _fileName = fileName;
+            _onModelCreating = onModelCreating;
         }
 
         public DbSet<T> Data { get; set; } = default!;
@@ -20,6 +25,11 @@ namespace HotChocolate.Data.Filters
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlite($"Data Source={_fileName}");
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            _onModelCreating?.Invoke(modelBuilder);
         }
 
         public override async ValueTask DisposeAsync()

@@ -19,7 +19,7 @@ namespace HotChocolate.Types.Relay
                 .AddObjectType<Bar>(d => d
                     .AsNode()
                     .IdField(t => t.Id)
-                    .NodeResolver((ctx, id) => Task.FromResult(new Bar { Id = id })))
+                    .NodeResolver((_, id) => Task.FromResult(new Bar { Id = id })))
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
@@ -44,7 +44,7 @@ namespace HotChocolate.Types.Relay
                 .AddObjectType<Bar>(d => d
                     .AsNode()
                     .IdField(t => t.Id)
-                    .NodeResolver((ctx, id) => Task.FromResult(new Bar { Id = id })))
+                    .NodeResolver((_, id) => Task.FromResult(new Bar { Id = id })))
                 .Use(next => async ctx =>
                 {
                     await next(ctx);
@@ -105,7 +105,7 @@ namespace HotChocolate.Types.Relay
                 .AddObjectType<Child>(d => d
                     .ImplementsNode()
                     .IdField(t => t.Id)
-                    .ResolveNode((ctx, id) => Task.FromResult(new Child { Id = id })))
+                    .ResolveNode((_, id) => Task.FromResult(new Child { Id = id })))
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
@@ -156,6 +156,26 @@ namespace HotChocolate.Types.Relay
 
             // assert
             result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Node_Resolve_Implicit_Resolver()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .EnableRelaySupport()
+                .AddQueryType<Bar5>()
+                .Create();
+
+            IRequestExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+
+            // assert
+            var json = result.ToJson();
+            json.MatchSnapshot();
         }
 
         [Fact]
@@ -227,7 +247,7 @@ namespace HotChocolate.Types.Relay
 
         public class BarResolver
         {
-            public Bar GetBarAsync(string id) => new Bar { Id = id };
+            public Task<Bar> GetBarAsync(string id) => Task.FromResult(new Bar { Id = id });
         }
 
         public class Foo1
@@ -289,6 +309,15 @@ namespace HotChocolate.Types.Relay
             public string Id1 { get; set; }
 
             public static Bar2 GetFoo(string id) => new Bar2 { Id = id };
+        }
+
+        [ObjectType("Bar")]
+        [Node]
+        public class Bar5
+        {
+            public string Id { get; set; }
+
+            public static Bar5 Get(string id) => new Bar5 { Id = id };
         }
 
         public class Parent

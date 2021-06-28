@@ -12,14 +12,14 @@ interface BlogArticlesTemplateProperties {
 
 const BlogArticlesTemplate: FunctionComponent<BlogArticlesTemplateProperties> = ({
   pageContext: { currentPage, numPages },
-  data: { allMarkdownRemark },
+  data: { allMdx },
 }) => {
   return (
     <Layout>
       <SEO title="Blog Articles" />
       <BlogArticles
         currentPage={currentPage}
-        data={allMarkdownRemark!}
+        data={allMdx!}
         totalPages={numPages}
       />
     </Layout>
@@ -30,7 +30,7 @@ export default BlogArticlesTemplate;
 
 export const pageQuery = graphql`
   query getBlogArticles($skip: Int!, $limit: Int!) {
-    allMarkdownRemark(
+    allMdx(
       limit: $limit
       skip: $skip
       filter: { frontmatter: { path: { glob: "/blog/**/*" } } }

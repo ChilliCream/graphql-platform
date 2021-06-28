@@ -39,6 +39,53 @@ namespace HotChocolate.Execution.Integration.Spec
             ).MatchSnapshotAsync();
         }
 
+        [Fact]
+        public async Task EnsureInputObjectsCanBeVariablesAndLiteralsTest()
+        {
+            Snapshot.FullName();
+
+            await ExpectValid(
+                @"
+                    query ($a: String) {
+                        anything(foo: {
+                            a: $a
+                            b: ""b""
+                        }) {
+                            a
+                            b
+                        }
+                    }
+                ",
+                r => r.AddQueryType<Query>(),
+                r => r.SetVariableValue(
+                        "a",
+                        "a"
+                    )
+            ).MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task EnsureInputObjectsCanBeLiteralsTest()
+        {
+            Snapshot.FullName();
+
+            await ExpectValid(
+                @"
+                    {
+                        anything(foo: {
+                            a: ""a""
+                            b: ""b""
+                        }) {
+                            a
+                            b
+                        }
+                    }
+                ",
+                r => r.AddQueryType<Query>(),
+                r => { }
+            ).MatchSnapshotAsync();
+        }
+
         public class Query
         {
             public Foo Anything(Foo foo)

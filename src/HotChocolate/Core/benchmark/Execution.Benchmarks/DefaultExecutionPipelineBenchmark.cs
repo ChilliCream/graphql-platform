@@ -126,6 +126,12 @@ namespace HotChocolate.Execution.Benchmarks
             IReadOnlyQueryRequest request)
         {
             IExecutionResult result = await executer.ExecuteAsync(request);
+
+            if(result.Errors != null && result.Errors.Count > 0) 
+            {
+                throw new InvalidOperationException(result.Errors[0].Message);
+            }
+
             // var jsonWriter = new HotChocolate.Execution.Serialization.JsonQueryResultSerializer(true);
             // Console.WriteLine(jsonWriter.Serialize((IReadOnlyQueryResult)result));
             ((IDisposable)result).Dispose();

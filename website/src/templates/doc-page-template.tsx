@@ -1,9 +1,9 @@
 import { graphql } from "gatsby";
 import React, { FunctionComponent } from "react";
 import { DocPageFragment } from "../../graphql-types";
+import { DocPage } from "../components/doc-page/doc-page";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
-import { DocPage } from "../components/widgets/doc-page";
 
 interface DocPageTemplateProperties {
   data: DocPageFragment;
@@ -16,7 +16,7 @@ const DocPageTemplate: FunctionComponent<DocPageTemplateProperties> = ({
 }) => {
   return (
     <Layout>
-      <SEO title={data.file!.childMarkdownRemark!.frontmatter!.title!} />
+      <SEO title={data.file!.childMdx!.frontmatter!.title!} />
       <DocPage data={data} originPath={pageContext.originPath} />
     </Layout>
   );

@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
 using IOPath = System.IO.Path;
@@ -35,10 +36,8 @@ namespace HotChocolate.PersistedQueries.FileSystem
 
                 // assert
                 Assert.True(File.Exists(IOPath.Combine(path, "1234.graphql")));
-                QuerySyntaxSerializer.Serialize(
-                    Utf8GraphQLParser.Parse(
-                        await File.ReadAllBytesAsync(IOPath.Combine(path, "1234.graphql"))))
-                    .MatchSnapshot();
+                var content = await File.ReadAllBytesAsync(IOPath.Combine(path, "1234.graphql"));
+                Utf8GraphQLParser.Parse(content).Print().MatchSnapshot();
             }
             finally
             {

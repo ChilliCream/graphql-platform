@@ -18,29 +18,23 @@ namespace HotChocolate
     {
         private delegate ITypeReference CreateRef(ITypeInspector typeInspector);
 
-        private readonly Dictionary<string, object> _contextData =
-            new Dictionary<string, object>();
-        private readonly List<FieldMiddleware> _globalComponents =
-            new List<FieldMiddleware>();
-        private readonly List<LoadSchemaDocument> _documents =
-            new List<LoadSchemaDocument>();
-        private readonly List<CreateRef> _types = new List<CreateRef>();
-        private readonly List<Type> _resolverTypes = new List<Type>();
-        private readonly Dictionary<OperationType, CreateRef> _operations =
-            new Dictionary<OperationType, CreateRef>();
-        private readonly Dictionary<FieldReference, FieldResolver> _resolvers =
-            new Dictionary<FieldReference, FieldResolver>();
-        private readonly Dictionary<(Type, string), List<CreateConvention>> _conventions =
-            new Dictionary<(Type, string), List<CreateConvention>>();
-        private readonly Dictionary<Type, (CreateRef, CreateRef)> _clrTypes =
-            new Dictionary<Type, (CreateRef, CreateRef)>();
-        private readonly List<object> _schemaInterceptors = new List<object>();
-        private readonly List<object> _typeInterceptors = new List<object>
+        private readonly Dictionary<string, object> _contextData = new();
+        private readonly List<FieldMiddleware> _globalComponents = new();
+        private readonly List<LoadSchemaDocument> _documents = new();
+        private readonly List<CreateRef> _types = new();
+        private readonly List<Type> _resolverTypes = new();
+        private readonly Dictionary<OperationType, CreateRef> _operations = new();
+        private readonly Dictionary<FieldReference, FieldResolver> _resolvers = new();
+        private readonly Dictionary<(Type, string), List<CreateConvention>> _conventions = new();
+        private readonly Dictionary<Type, (CreateRef, CreateRef)> _clrTypes = new();
+        private readonly List<object> _schemaInterceptors = new();
+        private readonly List<object> _typeInterceptors = new()
         {
-            typeof(IntrospectionTypeInterceptor)
+            typeof(IntrospectionTypeInterceptor),
+            typeof(InterfaceCompletionTypeInterceptor)
         };
         private readonly IBindingCompiler _bindingCompiler = new BindingCompiler();
-        private SchemaOptions _options = new SchemaOptions();
+        private SchemaOptions _options = new();
         private IsOfTypeFallback _isOfType;
         private IServiceProvider _services;
         private CreateRef _schema;
@@ -74,7 +68,7 @@ namespace HotChocolate
 
             if (schema is TypeSystemObjectBase)
             {
-                _schema = ti => new SchemaTypeReference(schema);
+                _schema = _ => new SchemaTypeReference(schema);
             }
             else
             {
@@ -92,7 +86,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            _schema = ti => new SchemaTypeReference(new Schema(configure));
+            _schema = _ => new SchemaTypeReference(new Schema(configure));
             return this;
         }
 
@@ -255,7 +249,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(type));
             }
 
-            _types.Add(ti => TypeReference.Create(type));
+            _types.Add(_ => TypeReference.Create(type));
             return this;
         }
 
@@ -266,7 +260,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(type));
             }
 
-            _types.Add(ti => TypeReference.Create(type));
+            _types.Add(_ => TypeReference.Create(type));
             return this;
         }
 
@@ -277,7 +271,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(type));
             }
 
-            _types.Add(ti => TypeReference.Create(type));
+            _types.Add(_ => TypeReference.Create(type));
             return this;
         }
 
@@ -345,8 +339,8 @@ namespace HotChocolate
             }
 
             SchemaTypeReference reference = TypeReference.Create(type);
-            _operations.Add(operation, ti => reference);
-            _types.Add(ti => reference);
+            _operations.Add(operation, _ => reference);
+            _types.Add(_ => reference);
             return this;
         }
 
@@ -491,6 +485,6 @@ namespace HotChocolate
             return this;
         }
 
-        public static SchemaBuilder New() => new SchemaBuilder();
+        public static SchemaBuilder New() => new();
     }
 }

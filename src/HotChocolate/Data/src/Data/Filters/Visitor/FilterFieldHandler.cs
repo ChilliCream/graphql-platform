@@ -5,6 +5,10 @@ using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Data.Filters
 {
+    /// <summary>
+    /// The base of a handler that can be bound to a <see cref="FilterField"/>. The handler is
+    /// executed during the visitation of a input object.
+    /// </summary>
     public abstract class FilterFieldHandler<TContext, T>
         : IFilterFieldHandler<TContext, T>
         where TContext : FilterVisitorContext<T>
@@ -33,7 +37,7 @@ namespace HotChocolate.Data.Filters
 
         /// <inheritdoc />
         public abstract bool CanHandle(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             IFilterInputTypeDefinition typeDefinition,
             IFilterFieldDefinition fieldDefinition);
     }

@@ -54,7 +54,7 @@ namespace HotChocolate.Data.Tests
 
             // act
             IExtendedType extendedType =
-                inspector.GetType(typeof(ListFilterInput<FilterInputType<Foo>>));
+                inspector.GetType(typeof(ListFilterInputType<FilterInputType<Foo>>));
 
             // assert
             Assert.True(extendedType.IsSchemaType);
@@ -67,7 +67,7 @@ namespace HotChocolate.Data.Tests
         {
             protected override void Configure(IFilterInputTypeDescriptor descriptor)
             {
-                descriptor.Field("test").Type<StringOperationFilterInput>();
+                descriptor.Field("test").Type<StringOperationFilterInputType>();
             }
         }
 

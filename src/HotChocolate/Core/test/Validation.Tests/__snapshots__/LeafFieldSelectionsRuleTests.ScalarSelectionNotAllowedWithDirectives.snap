@@ -20,6 +20,113 @@
       "responseName": "name",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Leaf-Field-Selections"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 94,
+          "End": 135,
+          "Line": 4,
+          "Column": 49
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 96,
+              "End": 113,
+              "Line": 4,
+              "Column": 51
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 96,
+                "End": 113,
+                "Line": 4,
+                "Column": 51
+              },
+              "Value": "isAlsoHumanName"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 70,
+        "End": 135,
+        "Line": 4,
+        "Column": 25
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 70,
+          "End": 76,
+          "Line": 4,
+          "Column": 25
+        },
+        "Value": "name"
+      },
+      "Directives": [
+        {
+          "Kind": "Directive",
+          "Location": {
+            "Start": 75,
+            "End": 95,
+            "Line": 4,
+            "Column": 30
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 76,
+              "End": 84,
+              "Line": 4,
+              "Column": 31
+            },
+            "Value": "include"
+          },
+          "Arguments": [
+            {
+              "Kind": "Argument",
+              "Location": {
+                "Start": 84,
+                "End": 93,
+                "Line": 4,
+                "Column": 39
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 84,
+                  "End": 87,
+                  "Line": 4,
+                  "Column": 39
+                },
+                "Value": "if"
+              },
+              "Value": {
+                "Kind": "BooleanValue",
+                "Location": {
+                  "Start": 88,
+                  "End": 93,
+                  "Line": 4,
+                  "Column": 43
+                },
+                "Value": true
+              }
+            }
+          ]
+        }
+      ]
+    }
   }
 ]

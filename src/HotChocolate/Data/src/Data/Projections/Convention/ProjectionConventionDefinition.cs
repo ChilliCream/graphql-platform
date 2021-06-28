@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Projections
@@ -10,5 +11,10 @@ namespace HotChocolate.Data.Projections
         public Type? Provider { get; set; }
 
         public IProjectionProvider? ProviderInstance { get; set; }
+
+        public List<IProjectionProviderExtension> ProviderExtensions { get; } =
+            new List<IProjectionProviderExtension>();
+
+        public List<Type> ProviderExtensionsTypes { get; } = new List<Type>();
     }
 }

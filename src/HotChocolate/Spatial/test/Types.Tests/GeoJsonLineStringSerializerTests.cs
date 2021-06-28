@@ -21,13 +21,12 @@ namespace HotChocolate.Types.Spatial
                 new IntValueNode(40),
                 new IntValueNode(40)));
 
-        private readonly Geometry _geometry = new LineString(
-            new[]
-            {
-                new Coordinate(30, 10),
-                new Coordinate(10, 30),
-                new Coordinate(40, 40)
-            });
+        private readonly Geometry _geometry = new LineString(new[]
+        {
+            new Coordinate(30, 10),
+            new Coordinate(10, 30),
+            new Coordinate(40, 40)
+        });
 
         private readonly string _geometryType = "LineString";
 
@@ -535,12 +534,11 @@ namespace HotChocolate.Types.Spatial
 
         private ISchema CreateSchema() => SchemaBuilder.New()
             .AddSpatialTypes()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("test")
-                    .Argument("arg", a => a.Type<StringType>())
-                    .Resolver("ghi"))
+            .AddQueryType(d => d
+                .Name("Query")
+                .Field("test")
+                .Argument("arg", a => a.Type<StringType>())
+                .Resolver("ghi"))
             .Create();
 
         private static void AssertGeometry(object? obj, int? crs = null)
@@ -562,7 +560,6 @@ namespace HotChocolate.Types.Spatial
         private INamedInputType CreateInputType(string typeName)
         {
             ISchema schema = CreateSchema();
-
             return schema.GetType<INamedInputType>(typeName);
         }
     }

@@ -1,0 +1,11 @@
+query searchSomething {
+  prints {
+    isbn
+    ...on Book {
+      title
+    }
+    ...on Magazine {
+      coverImageUrl
+    }
+  }
+}

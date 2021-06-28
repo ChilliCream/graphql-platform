@@ -52,8 +52,8 @@ namespace HotChocolate.Execution.Benchmarks
             {
                 {"abc", new Dictionary<string, object> { {"stars", 5} }}
             };
-        private readonly Dictionary<string, VariableValue> _result =
-            new Dictionary<string, VariableValue>();
+        private readonly Dictionary<string, VariableValueOrLiteral> _result =
+            new Dictionary<string, VariableValueOrLiteral>();
 
         public VariableCoercionBenchmarks()
         {

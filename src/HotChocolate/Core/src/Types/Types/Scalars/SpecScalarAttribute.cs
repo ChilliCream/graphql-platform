@@ -6,12 +6,8 @@ namespace HotChocolate.Types
     /// Defines that the annotated scalar type is defined
     /// in the GraphQL specification.
     /// </summary>
-    [AttributeUsage(
-        AttributeTargets.Class,
-        Inherited = false,
-        AllowMultiple = false)]
-    internal sealed class SpecScalarAttribute
-        : Attribute
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+    internal sealed class SpecScalarAttribute : Attribute
     {
     }
 }

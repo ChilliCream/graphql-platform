@@ -42,7 +42,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return builder.ConfigureSchema(b => b.ModifyOptions(configure));
         }
-        
+
         public static IRequestExecutorBuilder SetContextData(
             this IRequestExecutorBuilder builder,
             string key,
@@ -60,5 +60,23 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return builder.ConfigureSchema(b => b.SetContextData(key, value));
         }
+
+        /// <summary>
+        /// Configures the schema to remove types that cannot be reached by the execution engine.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="trim">
+        /// A boolean defining if type trimming shall be applied.
+        /// </param>
+        /// <returns>
+        /// Returns <see cref="IRequestExecutorBuilder"/> so that configurations can be chained.
+        /// </returns>
+        public static IRequestExecutorBuilder TrimTypes(
+            this IRequestExecutorBuilder builder,
+            bool trim = true) =>
+            builder.ModifyOptions(o => o.RemoveUnreachableTypes = trim);
+
     }
 }

@@ -1,0 +1,25 @@
+﻿[
+  {
+    "ContentType": "application/json; charset=utf-8",
+    "StatusCode": "OK",
+    "Data": {
+      "__typename": "Query"
+    },
+    "Errors": null,
+    "Extensions": {
+      "persistedQuery": {
+        "md5Hash": "71yeex4k3iYWQgg9TilDIg==",
+        "persisted": true
+      }
+    }
+  },
+  {
+    "ContentType": "application/json; charset=utf-8",
+    "StatusCode": "OK",
+    "Data": {
+      "__typename": "Query"
+    },
+    "Errors": null,
+    "Extensions": null
+  }
+]

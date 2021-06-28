@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
@@ -12,6 +12,8 @@ namespace HotChocolate.AspNetCore
 {
     public class HttpGetMiddleware : MiddlewareBase
     {
+        private static readonly OperationType[] _onlyQueries = { OperationType.Query };
+
         private readonly IHttpRequestParser _requestParser;
 
         public HttpGetMiddleware(
@@ -28,7 +30,8 @@ namespace HotChocolate.AspNetCore
 
         public async Task InvokeAsync(HttpContext context)
         {
-            if (HttpMethods.IsGet(context.Request.Method))
+            if (HttpMethods.IsGet(context.Request.Method) &&
+                (context.GetGraphQLServerOptions()?.EnableGetRequests ?? true))
             {
                 await HandleRequestAsync(context);
             }
@@ -54,8 +57,15 @@ namespace HotChocolate.AspNetCore
             {
                 // next we parse the GraphQL request.
                 GraphQLRequest request = _requestParser.ReadParamsRequest(context.Request.Query);
+                GraphQLServerOptions? options = context.GetGraphQLServerOptions();
                 result = await ExecuteSingleAsync(
-                    context, requestExecutor, requestInterceptor, request);
+                    context,
+                    requestExecutor,
+                    requestInterceptor,
+                    request,
+                    options is null or { AllowedGetOperations: AllowedGetOperations.Query }
+                        ? _onlyQueries
+                        : null);
             }
             catch (GraphQLRequestException ex)
             {
@@ -65,6 +75,12 @@ namespace HotChocolate.AspNetCore
                 statusCode = HttpStatusCode.BadRequest;
                 result = QueryResultBuilder.CreateError(errorHandler.Handle(ex.Errors));
             }
+            catch (GraphQLException ex)
+            {
+                // This allows extensions to throw GraphQL exceptions in the GraphQL interceptor.
+                statusCode = null; // we let the serializer determine the status code.
+                result = QueryResultBuilder.CreateError(ex.Errors);
+            }
             catch (Exception ex)
             {
                 statusCode = HttpStatusCode.InternalServerError;
@@ -72,10 +88,28 @@ namespace HotChocolate.AspNetCore
                 result = QueryResultBuilder.CreateError(error);
             }
 
-            // in any case we will have a valid GraphQL result at this point that can be written
-            // to the HTTP response stream.
-            Debug.Assert(result is not null, "No GraphQL result was created.");
-            await WriteResultAsync(context.Response, result, statusCode, context.RequestAborted);
+            try
+            {
+                // in any case we will have a valid GraphQL result at this point that can be written
+                // to the HTTP response stream.
+                Debug.Assert(result is not null!, "No GraphQL result was created.");
+                await WriteResultAsync(context.Response, result, statusCode,
+                    context.RequestAborted);
+            }
+            finally
+            {
+                // query results use pooled memory an need to be disposed after we have
+                // used them.
+                if (result is IAsyncDisposable asyncDisposable)
+                {
+                    await asyncDisposable.DisposeAsync();
+                }
+
+                if (result is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+            }
         }
     }
 }

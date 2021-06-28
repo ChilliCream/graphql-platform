@@ -12,6 +12,92 @@
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 17,
+        "End": 210,
+        "Line": 2,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 23,
+          "End": 65,
+          "Line": 2,
+          "Column": 23
+        },
+        "Value": "variableIsNotDefinedUsedInNestedFragment"
+      },
+      "Operation": "Query",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 64,
+          "End": 210,
+          "Line": 2,
+          "Column": 64
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": {
+                "Start": 90,
+                "End": 184,
+                "Line": 3,
+                "Column": 25
+              },
+              "Selections": [
+                {
+                  "Kind": "FragmentSpread",
+                  "Location": {
+                    "Start": 116,
+                    "End": 166,
+                    "Line": 4,
+                    "Column": 25
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 119,
+                      "End": 166,
+                      "Line": 4,
+                      "Column": 28
+                    },
+                    "Value": "outerHousetrainedFragment"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": {
+              "Start": 86,
+              "End": 184,
+              "Line": 3,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 86,
+                "End": 91,
+                "Line": 3,
+                "Column": 21
+              },
+              "Value": "dog"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
   }
 ]

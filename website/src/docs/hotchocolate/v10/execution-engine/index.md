@@ -221,7 +221,7 @@ This makes writing middlewares simpler since you do not have to write a middlewa
 
 Moreover, the middleware is only injected into the field resolver pipeline if needed so you do not have extra code running each time a field is resolved when it is not annotated with your directive.
 
-More about directives in particular can be read [here](/docs/hotchocolate/v10/schema/directive)
+More about directives in particular can be read [here](/docs/hotchocolate/v10/schema/directives)
 
 # Query Middleware
 

@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using Xunit;
 
 namespace HotChocolate
@@ -128,6 +131,34 @@ namespace HotChocolate
             Assert.Null(schemaError.TypeSystemObject);
             Assert.Null(schemaError.Path);
             Assert.Null(schemaError.Code);
+        }
+
+        [Fact]
+        public void Intercept_Schema_Error()
+        {
+            // arrange
+            var errorInterceptor = new ErrorInterceptor();
+
+            // act
+            void Action() => SchemaBuilder.New()
+                .TryAddSchemaInterceptor(errorInterceptor)
+                .Create();
+
+            // assert
+            Assert.Throws<SchemaException>(Action);
+            Assert.Collection(
+                errorInterceptor.Exceptions,
+                ex => Assert.IsType<SchemaException>(ex));
+        }
+
+        private class ErrorInterceptor : SchemaInterceptor
+        {
+            public List<Exception> Exceptions { get; } = new List<Exception>();
+
+            public override void OnError(IDescriptorContext context, Exception exception)
+            {
+                Exceptions.Add(exception);
+            }
         }
     }
 }

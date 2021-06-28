@@ -7,7 +7,7 @@ namespace HotChocolate.Language
     public sealed class DirectiveLocation
         : IEquatable<DirectiveLocation?>
     {
-        private readonly static Dictionary<string, DirectiveLocation> _cache;
+        private static readonly Dictionary<string, DirectiveLocation> _cache;
 
         static DirectiveLocation()
         {
@@ -27,6 +27,8 @@ namespace HotChocolate.Language
 
             _value = value;
         }
+
+        public string Value => _value;
 
         public bool Equals(DirectiveLocation? other)
         {

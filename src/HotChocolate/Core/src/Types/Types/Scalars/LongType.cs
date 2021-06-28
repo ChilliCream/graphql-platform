@@ -1,46 +1,52 @@
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
-    public sealed class LongType
+    public class LongType
         : IntegerTypeBase<long>
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LongType"/> class.
+        /// </summary>
         public LongType()
             : this(long.MinValue, long.MaxValue)
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LongType"/> class.
+        /// </summary>
         public LongType(long min, long max)
-            : this(ScalarNames.Long, min, max)
-        {
-            Description = TypeResources.LongType_Description;
-        }
-
-        public LongType(NameString name)
-            : this(name, long.MinValue, long.MaxValue)
-        {
-        }
-
-        public LongType(NameString name, long min, long max)
-            : base(name, min, max, BindingBehavior.Implicit)
+            : this(
+                ScalarNames.Long,
+                TypeResources.LongType_Description,
+                min,
+                max,
+                BindingBehavior.Implicit)
         {
         }
 
-        public LongType(NameString name, string description, long min, long max)
-            : base(name, min, max, BindingBehavior.Implicit)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LongType"/> class.
+        /// </summary>
+        public LongType(
+            NameString name,
+            string? description = null,
+            long min = long.MinValue,
+            long max = long.MaxValue,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name, min, max, bind)
         {
             Description = description;
         }
 
-        protected override long ParseLiteral(IntValueNode valueSyntax)
-        {
-            return valueSyntax.ToInt64();
-        }
+        protected override long ParseLiteral(IntValueNode valueSyntax) =>
+            valueSyntax.ToInt64();
 
-        protected override IntValueNode ParseValue(long runtimeValue)
-        {
-            return new IntValueNode(runtimeValue);
-        }
+        protected override IntValueNode ParseValue(long runtimeValue) =>
+            new(runtimeValue);
     }
 }

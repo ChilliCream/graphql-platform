@@ -9,16 +9,18 @@ namespace HotChocolate.Types
     /// GraphQL responses take the form of a hierarchical tree;
     /// the leaves on these trees are GraphQL scalars.
     /// </summary>
-    public abstract class ScalarType<TRuntimeType>
-        : ScalarType
+    public abstract class ScalarType<TRuntimeType> : ScalarType
     {
+        /// <inheritdoc />
         protected ScalarType(NameString name, BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, bind)
         {
         }
 
+        /// <inheritdoc />
         public sealed override Type RuntimeType => typeof(TRuntimeType);
 
+        /// <inheritdoc />
         public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
             if (runtimeValue is null)
@@ -37,6 +39,7 @@ namespace HotChocolate.Types
             return false;
         }
 
+        /// <inheritdoc />
         public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
             if (resultValue is null)

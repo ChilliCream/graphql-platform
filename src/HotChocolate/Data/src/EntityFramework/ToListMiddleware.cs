@@ -18,12 +18,14 @@ namespace HotChocolate.Data
         {
             await _next(context).ConfigureAwait(false);
 
-            if (context.Result is IQueryable<TEntity> queryable)
+            context.Result = context.Result switch
             {
-                context.Result = await queryable
-                    .ToListAsync(context.RequestAborted)
-                    .ConfigureAwait(false);
-            }
+                IQueryable<TEntity> queryable =>
+                    await queryable
+                        .ToListAsync(context.RequestAborted)
+                        .ConfigureAwait(false),
+                _ => context.Result
+            };
         }
     }
 }

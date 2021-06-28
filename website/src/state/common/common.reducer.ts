@@ -1,18 +1,20 @@
 import { createReducer, onAction } from "../state.helpers";
-import { CommonState, initialState } from "./common.state";
 import {
   changeSearchQuery,
   closeAside,
   closeTOC,
   expandNavigationGroup,
+  hasScrolled,
   hideCookieConsent,
   hideLegacyDocHeader,
+  setArticleHeight,
   showCookieConsent,
   showLegacyDocInfo,
   toggleAside,
-  toggleTOC,
   toggleNavigationGroup,
+  toggleTOC,
 } from "./common.actions";
+import { CommonState, initialState } from "./common.state";
 
 export const commonReducer = createReducer<CommonState>(
   initialState,
@@ -77,6 +79,16 @@ export const commonReducer = createReducer<CommonState>(
     ...state,
     showAside: false,
     showTOC: !state.showTOC,
+  })),
+
+  onAction(hasScrolled, (state, { yScrollPosition }) => ({
+    ...state,
+    yScrollPosition,
+  })),
+
+  onAction(setArticleHeight, (state, { articleHeight }) => ({
+    ...state,
+    articleViewportHeight: articleHeight,
   })),
 
   onAction(toggleNavigationGroup, (state, { path }) => {

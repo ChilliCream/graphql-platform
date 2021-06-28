@@ -21,9 +21,9 @@ namespace StrawberryShake.Tools
                 "The directory where the client shall be located.",
                 CommandOptionType.SingleValue);
 
-            CommandOption schemaArg = init.Option(
-                "-n|--SchemaName",
-                "The schema name.",
+            CommandOption nameArg = init.Option(
+                "-n|--clientName",
+                "The GraphQL client name.",
                 CommandOptionType.SingleValue);
 
             CommandOption jsonArg = init.Option(
@@ -38,7 +38,7 @@ namespace StrawberryShake.Tools
                 var arguments = new InitCommandArguments(
                     uriArg,
                     pathArg,
-                    schemaArg,
+                    nameArg,
                     authArguments);
                 InitCommandHandler handler =
                     CommandTools.CreateHandler<InitCommandHandler>(jsonArg);

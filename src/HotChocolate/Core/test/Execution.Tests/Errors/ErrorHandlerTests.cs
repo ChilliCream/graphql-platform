@@ -41,7 +41,7 @@ namespace HotChocolate.Execution.Errors
                         }
                         return error;
                     }),
-                
+
                 expectedErrorCount: 2);
         }
 
@@ -56,6 +56,42 @@ namespace HotChocolate.Execution.Errors
                     .AddResolver("Query", "foo", ctx => throw new Exception("Foo"))
                     .Services
                     .AddErrorFilter<DummyErrorFilter>());
+        }
+
+        [Fact]
+        public async Task AddClassErrorFilter_SchemaBuiltViaServiceExtensions_ErrorFilterWorks()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+            var schema = await serviceCollection
+                .AddGraphQLServer()
+                .AddErrorFilter<DummyErrorFilter>()
+                .AddQueryType<Query>()
+                .BuildRequestExecutorAsync();
+
+            // act
+            var resp = await schema.ExecuteAsync("{ foo }");
+
+            // assert
+            resp.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task AddClassErrorFilterUsingFactory_SchemaBuiltViaServiceExtensions_ErrorFilterWorks()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+            var schema = await serviceCollection
+                .AddGraphQLServer()
+                .AddErrorFilter(f => new DummyErrorFilter())
+                .AddQueryType<Query>()
+                .BuildRequestExecutorAsync();
+
+            // act
+            var resp = await schema.ExecuteAsync("{ foo }");
+
+            // assert
+            resp.MatchSnapshot();
         }
 
         [Fact]
@@ -80,7 +116,7 @@ namespace HotChocolate.Execution.Errors
 
             await TestHelper.ExpectError(
                 query,
-                b => 
+                b =>
                 {
                     configure(b);
                     b.AddErrorFilter(error =>
@@ -100,6 +136,11 @@ namespace HotChocolate.Execution.Errors
             {
                 return error.WithCode("Foo123");
             }
+        }
+
+        public class Query
+        {
+            public string GetFoo() => throw new Exception("FooError");
         }
     }
 }

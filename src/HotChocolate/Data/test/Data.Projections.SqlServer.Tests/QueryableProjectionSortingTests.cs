@@ -324,6 +324,7 @@ namespace HotChocolate.Data.Projections.Expressions
 
             public bool BarBool { get; set; }
 
+            [UseFiltering]
             [UseSorting]
             public List<BarDeep> ObjectArray { get; set; }
 

@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
+
+#nullable enable
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -13,17 +16,19 @@ namespace HotChocolate.Types.Descriptors
         where TDefinition : OutputFieldDefinitionBase
     {
         private bool _deprecatedDependencySet;
-        private DirectiveDefinition _deprecatedDirective;
+        private DirectiveDefinition? _deprecatedDirective;
+        private ICollection<ArgumentDescriptor>? _arguments;
 
         protected OutputFieldDescriptorBase(IDescriptorContext context)
             : base(context)
         {
         }
 
-        protected ICollection<ArgumentDescriptor> Arguments { get; } =
-            new List<ArgumentDescriptor>();
+        protected ICollection<ArgumentDescriptor> Arguments =>
+            _arguments ??= new List<ArgumentDescriptor>();
 
-        protected IReadOnlyDictionary<NameString, ParameterInfo> Parameters { get; set; }
+        protected IReadOnlyDictionary<NameString, ParameterInfo> Parameters { get; set; } =
+            ImmutableDictionary<NameString, ParameterInfo>.Empty;
 
         protected override void OnCreateDefinition(TDefinition definition)
         {
@@ -35,8 +40,7 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        protected void SyntaxNode(
-            FieldDefinitionNode syntaxNode)
+        protected void SyntaxNode(FieldDefinitionNode? syntaxNode)
         {
             Definition.SyntaxNode = syntaxNode;
         }
@@ -46,7 +50,7 @@ namespace HotChocolate.Types.Descriptors
             Definition.Name = name.EnsureNotEmpty(nameof(name));
         }
 
-        protected void Description(string description)
+        protected void Description(string? description)
         {
             Definition.Description = description;
         }
@@ -109,10 +113,10 @@ namespace HotChocolate.Types.Descriptors
 
             name.EnsureNotEmpty(nameof(name));
 
-            ParameterInfo parameter = null;
+            ParameterInfo? parameter = null;
             Parameters?.TryGetValue(name, out parameter);
 
-            ArgumentDescriptor descriptor = parameter is null
+            ArgumentDescriptor? descriptor = parameter is null
                 ? Arguments.FirstOrDefault(t => t.Definition.Name.Equals(name))
                 : Arguments.FirstOrDefault(t => t.Definition.Parameter == parameter);
 
@@ -127,7 +131,7 @@ namespace HotChocolate.Types.Descriptors
             argument(descriptor);
         }
 
-        public void Deprecated(string reason)
+        public void Deprecated(string? reason)
         {
             if (string.IsNullOrEmpty(reason))
             {
@@ -147,7 +151,7 @@ namespace HotChocolate.Types.Descriptors
             AddDeprecatedDirective(null);
         }
 
-        private void AddDeprecatedDirective(string reason)
+        private void AddDeprecatedDirective(string? reason)
         {
             if (_deprecatedDirective != null)
             {

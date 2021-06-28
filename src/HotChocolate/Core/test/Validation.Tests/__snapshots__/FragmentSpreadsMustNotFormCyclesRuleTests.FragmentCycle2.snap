@@ -17,6 +17,26 @@
       "fragment": "nameFragment",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spreads-must-not-form-cycles"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentSpread",
+      "Location": {
+        "Start": 657,
+        "End": 690,
+        "Line": 25,
+        "Column": 21
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 660,
+          "End": 690,
+          "Line": 25,
+          "Column": 24
+        },
+        "Value": "nameFragment"
+      },
+      "Directives": []
+    }
   }
 ]

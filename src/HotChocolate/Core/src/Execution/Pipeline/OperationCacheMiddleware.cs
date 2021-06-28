@@ -44,9 +44,9 @@ namespace HotChocolate.Execution.Pipeline
                     context.OperationId = operationId;
                 }
 
-                if (_operationCache.TryGetOperation(
-                    operationId,
-                    out IPreparedOperation? operation))
+                string cacheId = $"{context.Schema.Name}-{context.ExecutorVersion}-{operationId}";
+
+                if (_operationCache.TryGetOperation(cacheId, out IPreparedOperation? operation))
                 {
                     context.Operation = operation;
                     addToCache = false;
@@ -61,7 +61,7 @@ namespace HotChocolate.Execution.Pipeline
                     context.Document is { } &&
                     context.ValidationResult is { HasErrors: false })
                 {
-                    _operationCache.TryAddOperation(operationId, context.Operation);
+                    _operationCache.TryAddOperation(cacheId, context.Operation);
                     _diagnosticEvents.AddedOperationToCache(context);
                 }
             }

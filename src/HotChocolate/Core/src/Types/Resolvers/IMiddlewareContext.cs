@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using HotChocolate.Types;
 
 #nullable enable
@@ -6,7 +7,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Resolvers
 {
     /// <summary>
-    /// The middleware context represent the execution context for a field middleware.
+    /// Encapsulates all resolver-specific information about the execution of an individual field selection.
     /// </summary>
     public interface IMiddlewareContext : IResolverContext
     {
@@ -33,5 +34,13 @@ namespace HotChocolate.Resolvers
         /// Returns the resolved field value.
         /// </returns>
         ValueTask<T> ResolveAsync<T>();
+
+        /// <summary>
+        /// Register cleanup tasks that will be executed after resolver execution is finished.
+        /// </summary>
+        /// <param name="action">
+        /// Cleanup action.
+        /// </param>
+        void RegisterForCleanup(Action action);
     }
 }

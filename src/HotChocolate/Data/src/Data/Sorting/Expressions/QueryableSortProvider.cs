@@ -44,39 +44,32 @@ namespace HotChocolate.Data.Sorting.Expressions
                 IValueNode sort = context.ArgumentLiteral<IValueNode>(argumentName);
 
                 // if no sort is defined we can stop here and yield back control.
-                if (sort.IsNull() ||
-                    (context.LocalContextData.TryGetValue(
-                            SkipSortingKey,
-                            out object? skipObject) &&
-                        skipObject is bool skip &&
-                        skip))
+                var skipSorting =
+                    context.LocalContextData.TryGetValue(SkipSortingKey, out object? skip) &&
+                    skip is true;
+
+                if (sort.IsNull() || skipSorting)
                 {
                     return;
                 }
 
-                IQueryable<TEntityType>? source = null;
-
-                if (context.Result is IQueryable<TEntityType> q)
-                {
-                    source = q;
-                }
-                else if (context.Result is IEnumerable<TEntityType> e)
-                {
-                    source = e.AsQueryable();
-                }
-
-                if (source != null &&
-                    argument.Type is ListType lt &&
-                    lt.ElementType is ISortInputType sortInput &&
+                if (argument.Type is ListType lt &&
+                    lt.ElementType is NonNullType nn &&
+                    nn.NamedType() is ISortInputType sortInput &&
                     context.Field.ContextData.TryGetValue(
                         ContextVisitSortArgumentKey,
                         out object? executorObj) &&
                     executorObj is VisitSortArgument executor)
                 {
+                    var inMemory =
+                        context.Result is QueryableExecutable<TEntityType> { InMemory: true } ||
+                        context.Result is not IQueryable ||
+                        context.Result is EnumerableQuery;
+
                     QueryableSortContext visitorContext = executor(
                         sort,
                         sortInput,
-                        source is EnumerableQuery);
+                        inMemory);
 
                     // compile expression tree
                     if (visitorContext.Errors.Count > 0)
@@ -89,7 +82,14 @@ namespace HotChocolate.Data.Sorting.Expressions
                     }
                     else
                     {
-                        context.Result = visitorContext.Sort(source);
+                        context.Result = context.Result switch
+                        {
+                            IQueryable<TEntityType> q => visitorContext.Sort(q),
+                            IEnumerable<TEntityType> e => visitorContext.Sort(e.AsQueryable()),
+                            QueryableExecutable<TEntityType> ex =>
+                                ex.WithSource(visitorContext.Sort(ex.Source)),
+                            _ => context.Result
+                        };
                     }
                 }
             }

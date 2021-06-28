@@ -162,7 +162,9 @@ namespace MarshmallowPie.BackgroundServices
             foreach (Guid queryId in clientVersion.QueryIds)
             {
                 QueryDocument document = documents[queryId];
-                string sourceText = await fileContainer.ReadAllTextAsync(queryId);
+                string sourceText = await fileContainer
+                    .ReadAllTextAsync(queryId)
+                    .ConfigureAwait(false);
                 DocumentHash hash = document.ExternalHashes.Count > 0
                     ? document.ExternalHashes.First()
                     : document.Hash;

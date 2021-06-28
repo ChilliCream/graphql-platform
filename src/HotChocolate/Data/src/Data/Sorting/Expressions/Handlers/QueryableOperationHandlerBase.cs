@@ -18,7 +18,7 @@ namespace HotChocolate.Data.Sorting.Expressions
         }
 
         public override bool CanHandle(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             EnumTypeDefinition typeDefinition,
             SortEnumValueDefinition valueDefinition)
         {

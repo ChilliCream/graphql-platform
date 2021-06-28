@@ -1,8 +1,13 @@
 using System;
+using System.IO;
+using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using StrawberryShake.Tools.Configuration;
 using StrawberryShake.Tools.OAuth;
+using static StrawberryShake.Tools.Configuration.FileContents;
 
 namespace StrawberryShake.Tools
 {
@@ -12,12 +17,10 @@ namespace StrawberryShake.Tools
         public InitCommandHandler(
             IFileSystem fileSystem,
             IHttpClientFactory httpClientFactory,
-            IConfigurationStore configurationStore,
             IConsoleOutput output)
         {
             FileSystem = fileSystem;
             HttpClientFactory = httpClientFactory;
-            ConfigurationStore = configurationStore;
             Output = output;
         }
 
@@ -25,13 +28,11 @@ namespace StrawberryShake.Tools
 
         public IHttpClientFactory HttpClientFactory { get; }
 
-        public IConfigurationStore ConfigurationStore { get; }
-
         public IConsoleOutput Output { get; }
 
         public override async Task<int> ExecuteAsync(
             InitCommandArguments arguments,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
             using IDisposable command = Output.WriteCommand();
 
@@ -41,7 +42,7 @@ namespace StrawberryShake.Tools
                     .ConfigureAwait(false);
 
             var context = new InitCommandContext(
-                arguments.Schema.Value()?.Trim() ?? "schema",
+                arguments.Name.Value()?.Trim() ?? Path.GetFileName(Environment.CurrentDirectory),
                 FileSystem.ResolvePath(arguments.Path.Value()?.Trim()),
                 new Uri(arguments.Uri.Value!),
                 accessToken?.Token,
@@ -74,7 +75,7 @@ namespace StrawberryShake.Tools
             InitCommandContext context,
             CancellationToken cancellationToken)
         {
-            if(context.Uri == null)
+            if(context.Uri is null)
             {
                 return true;
             }
@@ -83,14 +84,25 @@ namespace StrawberryShake.Tools
 
             string schemaFilePath = FileSystem.CombinePath(
                 context.Path, context.SchemaFileName);
+            string schemaExtensionFilePath = FileSystem.CombinePath(
+                context.Path, context.SchemaExtensionFileName);
 
             HttpClient client = HttpClientFactory.Create(
                 context.Uri, context.Token, context.Scheme);
 
-            return await IntrospectionHelper.DownloadSchemaAsync(
+            if (await IntrospectionHelper.DownloadSchemaAsync(
                 client, FileSystem, activity, schemaFilePath,
                 cancellationToken)
-                .ConfigureAwait(false);
+                .ConfigureAwait(false))
+            {
+                await FileSystem.WriteTextAsync(
+                    schemaExtensionFilePath,
+                    SchemaExtensionFileContent)
+                    .ConfigureAwait(false);
+                return true;
+            }
+
+            return false;
         }
 
         private async Task WriteConfigurationAsync(
@@ -99,18 +111,28 @@ namespace StrawberryShake.Tools
         {
             using IActivity activity = Output.WriteActivity("Client configuration");
 
-            Configuration configuration = ConfigurationStore.New();
+            string configFilePath = FileSystem.CombinePath(
+                context.Path, context.ConfigFileName);
 
-            configuration.ClientName = context.ClientName;
-            configuration.Schemas.Add(new SchemaFile
+            var configuration = new GraphQLConfig
             {
-                Type = "http",
-                Name = context.SchemaName,
-                File = context.SchemaFileName,
-                Url = context.Uri.ToString()
-            });
+                Schema = context.SchemaFileName,
+                Extensions =
+                {
+                    StrawberryShake =
+                    {
+                        Name = context.ClientName,
+                        Namespace = context.CustomNamespace,
+                        Url = context.Uri!.ToString(),
+                        DependencyInjection = context.UseDependencyInjection
+                    }
+                }
+            };
 
-            await ConfigurationStore.SaveAsync(context.Path, configuration).ConfigureAwait(false);
+            await FileSystem.WriteTextAsync(
+                configFilePath,
+                configuration.ToString())
+                .ConfigureAwait(false);
         }
     }
 }

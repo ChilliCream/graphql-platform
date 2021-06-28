@@ -23,6 +23,16 @@
       "locationType": "Float",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "EnumValue",
+      "Location": {
+        "Start": 99,
+        "End": 103,
+        "Line": 4,
+        "Column": 49
+      },
+      "Value": "BAR"
+    }
   }
 ]

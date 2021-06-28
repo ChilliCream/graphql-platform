@@ -1,22 +1,22 @@
-﻿namespace HotChocolate.Types
+﻿using HotChocolate.Properties;
+
+namespace HotChocolate.Types
 {
     public sealed class IncludeDirectiveType
         : DirectiveType
     {
         protected override void Configure(IDirectiveTypeDescriptor descriptor)
         {
-            descriptor.Name(WellKnownDirectives.Include);
-
-            descriptor.Description(
-                "Directs the executor to include this field or fragment " +
-                "only when the `if` argument is true.");
-
-            descriptor.Location(DirectiveLocation.Field)
+            descriptor
+                .Name(WellKnownDirectives.Include)
+                .Description(TypeResources.IncludeDirectiveType_TypeDescription)
+                .Location(DirectiveLocation.Field)
                 .Location(DirectiveLocation.FragmentSpread)
                 .Location(DirectiveLocation.InlineFragment);
 
-            descriptor.Argument(WellKnownDirectives.IfArgument)
-                .Description("Included when true.")
+            descriptor
+                .Argument(WellKnownDirectives.IfArgument)
+                .Description(TypeResources.IncludeDirectiveType_IfDescription)
                 .Type<NonNullType<BooleanType>>();
         }
     }

@@ -1,15 +1,14 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
     public class SubscriptionManager : ISubscriptionManager
     {
-        private readonly ConcurrentDictionary<string, ISubscription> _subs =
-            new ConcurrentDictionary<string, ISubscription>();
+        private readonly ConcurrentDictionary<string, ISubscriptionSession> _subs = new();
         private readonly ISocketConnection _connection;
         private bool _disposed;
 
@@ -18,11 +17,11 @@ namespace HotChocolate.AspNetCore.Subscriptions
             _connection = connection ?? throw new ArgumentNullException(nameof(connection));
         }
 
-        public void Register(ISubscription subscription)
+        public void Register(ISubscriptionSession subscriptionSession)
         {
-            if (subscription == null)
+            if (subscriptionSession == null)
             {
-                throw new ArgumentNullException(nameof(subscription));
+                throw new ArgumentNullException(nameof(subscriptionSession));
             }
 
             if (_disposed)
@@ -30,11 +29,11 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 throw new ObjectDisposedException(nameof(SubscriptionManager));
             }
 
-            if (_subs.TryAdd(subscription.Id, subscription))
+            if (_subs.TryAdd(subscriptionSession.Id, subscriptionSession))
             {
-                subscription.Completed += (sender, eventArgs) =>
+                subscriptionSession.Completed += (_, _) =>
                 {
-                    Unregister(subscription.Id);
+                    Unregister(subscriptionSession.Id);
                 };
             }
         }
@@ -51,7 +50,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 throw new ObjectDisposedException(nameof(SubscriptionManager));
             }
 
-            if (_subs.TryRemove(subscriptionId, out ISubscription? subscription))
+            if (_subs.TryRemove(subscriptionId, out ISubscriptionSession? subscription))
             {
                 subscription.Dispose();
             }
@@ -69,10 +68,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
             {
                 if (disposing && _subs.Count > 0)
                 {
-                    ISubscription?[] subs = _subs.Values.ToArray();
+                    ISubscriptionSession?[] subs = _subs.Values.ToArray();
                     _subs.Clear();
 
-                    for (int i = 0; i < subs.Length; i++)
+                    for (var i = 0; i < subs.Length; i++)
                     {
                         subs[i]?.Dispose();
                         subs[i] = null;
@@ -82,7 +81,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             }
         }
 
-        public IEnumerator<ISubscription> GetEnumerator()
+        public IEnumerator<ISubscriptionSession> GetEnumerator()
         {
             return _subs.Values.GetEnumerator();
         }

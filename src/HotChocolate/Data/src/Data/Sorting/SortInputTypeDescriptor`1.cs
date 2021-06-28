@@ -55,6 +55,7 @@ namespace HotChocolate.Data.Sorting
                     fields,
                     handledProperties,
                     include: (members, member) => member is PropertyInfo &&
+                        !handledProperties.Contains(member) &&
                         !Context.TypeInspector.GetReturnType(member).IsArrayOrList);
             }
 
@@ -135,11 +136,10 @@ namespace HotChocolate.Data.Sorting
 
                 if (fieldDescriptor is null)
                 {
-                    fieldDescriptor = SortFieldDescriptor.New(Context, Definition.Scope, p);
+                    fieldDescriptor = IgnoreSortFieldDescriptor.New(Context, Definition.Scope, p);
                     Fields.Add(fieldDescriptor);
                 }
 
-                fieldDescriptor.Ignore();
                 return this;
             }
 

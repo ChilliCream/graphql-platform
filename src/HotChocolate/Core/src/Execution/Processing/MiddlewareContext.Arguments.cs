@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -24,7 +25,7 @@ namespace HotChocolate.Execution.Processing
                 }
 
                 throw ResolverContext_LiteralNotCompatible(
-                    FieldSelection, Path, name,  typeof(T), literal.GetType());
+                    _selection.SyntaxNode, Path, name,  typeof(T), literal.GetType());
             }
 
             return ArgumentValue<T>(name);
@@ -34,7 +35,7 @@ namespace HotChocolate.Execution.Processing
         {
             if (!Arguments.TryGetValue(name, out ArgumentValue? argument))
             {
-                throw ResolverContext_ArgumentDoesNotExist(FieldSelection, Path, name);
+                throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
             }
 
             return CoerceArgumentValue<T>(argument);
@@ -44,7 +45,7 @@ namespace HotChocolate.Execution.Processing
         {
             if (!Arguments.TryGetValue(name, out ArgumentValue? argument))
             {
-                throw ResolverContext_ArgumentDoesNotExist(FieldSelection, Path, name);
+                throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
             }
 
             return argument.IsImplicit
@@ -56,7 +57,7 @@ namespace HotChocolate.Execution.Processing
         {
             if (!Arguments.TryGetValue(name, out ArgumentValue? argument))
             {
-                throw ResolverContext_ArgumentDoesNotExist(FieldSelection, Path, name);
+                throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
             }
 
             IValueNode literal = argument.ValueLiteral!;
@@ -67,14 +68,14 @@ namespace HotChocolate.Execution.Processing
             }
 
             throw ResolverContext_LiteralNotCompatible(
-                FieldSelection, Path, name,  typeof(T), literal.GetType());
+                _selection.SyntaxNode, Path, name,  typeof(T), literal.GetType());
         }
 
         public ValueKind ArgumentKind(NameString name)
         {
             if (!Arguments.TryGetValue(name, out ArgumentValue? argument))
             {
-                throw ResolverContext_ArgumentDoesNotExist(FieldSelection, Path, name);
+                throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
             }
 
             // There can only be no kind if there was an error which would have
@@ -112,7 +113,7 @@ namespace HotChocolate.Execution.Processing
             if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
             {
                 throw ResolverContext_LiteralsNotSupported(
-                    FieldSelection, Path, argument.Argument.Name, typeof(T));
+                    _selection.SyntaxNode, Path, argument.Argument.Name, typeof(T));
             }
 
             // If the object is internally held as a dictionary structure we will try to
@@ -140,7 +141,7 @@ namespace HotChocolate.Execution.Processing
 
             // we are unable to convert the argument to the request type.
             throw ResolverContext_CannotConvertArgument(
-                FieldSelection, Path, argument.Argument.Name, typeof(T));
+                _selection.SyntaxNode, Path, argument.Argument.Name, typeof(T));
         }
     }
 }

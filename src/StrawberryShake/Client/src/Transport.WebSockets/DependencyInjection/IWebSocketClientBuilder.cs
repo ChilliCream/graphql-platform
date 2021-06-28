@@ -3,8 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 namespace StrawberryShake.Transport.WebSockets
 {
     /// <summary>
-    /// A builder for configuring named <see cref="IWebSocketClient"/>
-    /// instances returned by <see cref="IWebSocketClientFactory"/>.
+    /// A builder for configuring named <see cref="ISocketClient"/>
+    /// instances returned by <see cref="ISocketClientFactory"/>.
     /// </summary>
     public interface IWebSocketClientBuilder
     {

@@ -1,9 +1,9 @@
 import { graphql } from "gatsby";
 import React, { FunctionComponent } from "react";
 import { BlogArticleFragment } from "../../graphql-types";
+import { BlogArticle } from "../components/blog-article/blog-article";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
-import { BlogArticle } from "../components/widgets/blog-article";
 
 interface BlogArticleTemplateProperties {
   data: BlogArticleFragment;
@@ -14,7 +14,15 @@ const BlogArticleTemplate: FunctionComponent<BlogArticleTemplateProperties> = ({
 }) => {
   return (
     <Layout>
-      <SEO title={data.markdownRemark!.frontmatter!.title!} />
+      <SEO
+        description={data.mdx!.excerpt || undefined}
+        imageUrl={
+          data.mdx!.frontmatter!.featuredImage?.childImageSharp!
+            .gatsbyImageData!.src
+        }
+        isArticle
+        title={data.mdx!.frontmatter!.title!}
+      />
       <BlogArticle data={data} />
     </Layout>
   );

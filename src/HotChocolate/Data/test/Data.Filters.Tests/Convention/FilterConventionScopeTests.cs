@@ -62,16 +62,16 @@ namespace HotChocolate.Data.Filters
             protected override void Configure(IFilterConventionDescriptor descriptor)
             {
                 descriptor.AddDefaults();
-                descriptor.Operation(DefaultOperations.Equals).Name("EQUALS");
+                descriptor.Operation(DefaultFilterOperations.Equals).Name("EQUALS");
             }
         }
 
 
-        public class TestOperationFilterType : StringOperationFilterInput
+        public class TestOperationFilterInputType : StringOperationFilterInputType
         {
             protected override void Configure(IFilterInputTypeDescriptor descriptor)
             {
-                descriptor.Operation(DefaultOperations.Equals).Type<StringType>();
+                descriptor.Operation(DefaultFilterOperations.Equals).Type<StringType>();
                 descriptor.AllowAnd(false).AllowOr(false);
             }
         }
@@ -94,7 +94,7 @@ namespace HotChocolate.Data.Filters
             public string Bar { get; set; }
         }
 
-        public class FooFilterType
+        public class FooFilterInput
             : FilterInputType<Foo>
         {
             protected override void Configure(

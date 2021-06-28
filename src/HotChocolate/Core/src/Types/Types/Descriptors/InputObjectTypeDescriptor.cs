@@ -43,20 +43,20 @@ namespace HotChocolate.Types.Descriptors
         }
 
         protected internal override InputObjectTypeDefinition Definition { get; protected set; } =
-            new InputObjectTypeDefinition();
+            new();
 
-        protected List<InputFieldDescriptor> Fields { get; } =
-            new List<InputFieldDescriptor>();
+        protected List<InputFieldDescriptor> Fields { get; } = new();
 
         protected override void OnCreateDefinition(
             InputObjectTypeDefinition definition)
         {
-            if (Definition.RuntimeType is not null)
+            if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
             {
                 Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.RuntimeType);
+                Definition.AttributesAreApplied = true;
             }
 
             var fields = new Dictionary<NameString, InputFieldDefinition>();

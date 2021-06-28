@@ -12,8 +12,7 @@ namespace HotChocolate.Fetching
         : IBatchScheduler
         , IBatchDispatcher
     {
-        private readonly ConcurrentQueue<Func<ValueTask>> _queue =
-            new ConcurrentQueue<Func<ValueTask>>();
+        private readonly ConcurrentQueue<Func<ValueTask>> _queue = new();
 
         public bool HasTasks => _queue.Count > 0;
 

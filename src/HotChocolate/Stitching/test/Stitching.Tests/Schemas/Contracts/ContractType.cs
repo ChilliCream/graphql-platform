@@ -3,8 +3,7 @@ using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Stitching.Schemas.Contracts
 {
-    public class ContractType
-        : InterfaceType
+    public class ContractType : InterfaceType
     {
         protected override void Configure(IInterfaceTypeDescriptor descriptor)
         {

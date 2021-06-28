@@ -75,7 +75,7 @@ namespace HotChocolate.Data.Sorting
         {
         }
 
-        protected override void OnComplete(IConventionContext context)
+        protected override void Complete(IConventionContext context)
         {
             if (Definition?.Provider is null)
             {
@@ -119,14 +119,14 @@ namespace HotChocolate.Data.Sorting
                     CollectExtensions(context.Services, Definition);
                 init.Initialize(context);
                 MergeExtensions(context, init, extensions);
-                init.OnComplete(context);
+                init.Complete(context);
             }
 
             _typeInspector = context.DescriptorContext.TypeInspector;
 
             // It is important to always call base to continue the cleanup and the disposal of the
             // definition
-            base.OnComplete(context);
+            base.Complete(context);
         }
 
 
@@ -222,11 +222,6 @@ namespace HotChocolate.Data.Sorting
                 {
                     configure(descriptor);
                 }
-
-                if (descriptor is SortEnumTypeDescriptor inputTypeDescriptor)
-                {
-                    inputTypeDescriptor.CreateDefinition();
-                }
             }
         }
 
@@ -237,7 +232,7 @@ namespace HotChocolate.Data.Sorting
             _provider.ConfigureField(_argumentName, descriptor);
 
         public bool TryGetOperationHandler(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             EnumTypeDefinition typeDefinition,
             SortEnumValueDefinition fieldDefinition,
             [NotNullWhen(true)] out ISortOperationHandler? handler)
@@ -256,7 +251,7 @@ namespace HotChocolate.Data.Sorting
         }
 
         public bool TryGetFieldHandler(
-            ITypeDiscoveryContext context,
+            ITypeCompletionContext context,
             ISortInputTypeDefinition typeDefinition,
             ISortFieldDefinition fieldDefinition,
             [NotNullWhen(true)] out ISortFieldHandler? handler)
@@ -288,7 +283,8 @@ namespace HotChocolate.Data.Sorting
                 return false;
             }
 
-            if (runtimeType.Type.IsClass)
+            if (runtimeType.Type.IsClass ||
+                runtimeType.Type.IsInterface)
             {
                 type = typeof(SortInputType<>).MakeGenericType(runtimeType.Source);
                 return true;
@@ -336,7 +332,7 @@ namespace HotChocolate.Data.Sorting
                     {
                         extensionConvention.Initialize(context);
                         extensions[m].Merge(context, providerConvention);
-                        extensionConvention.OnComplete(context);
+                        extensionConvention.Complete(context);
                     }
                 }
             }

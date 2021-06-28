@@ -6,8 +6,7 @@ namespace HotChocolate.Language
     public class Sha256DocumentHashProvider
         : DocumentHashProviderBase
     {
-        private readonly ThreadLocal<SHA256> _sha =
-            new ThreadLocal<SHA256>(() => SHA256.Create());
+        private readonly ThreadLocal<SHA256> _sha = new(SHA256.Create);
 
         public Sha256DocumentHashProvider()
            : this(HashFormat.Base64)

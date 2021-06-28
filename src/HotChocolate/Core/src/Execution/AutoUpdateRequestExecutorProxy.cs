@@ -97,6 +97,11 @@ namespace HotChocolate.Execution
         public IServiceProvider Services => _executor.Services;
 
         /// <summary>
+        /// Gets the version of the executor.
+        /// </summary>
+        public ulong Version => _executor.Version;
+
+        /// <summary>
         /// Executes the given GraphQL <paramref name="request" />.
         /// </summary>
         /// <param name="request">

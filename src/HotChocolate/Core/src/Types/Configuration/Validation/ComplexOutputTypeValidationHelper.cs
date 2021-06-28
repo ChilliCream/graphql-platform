@@ -26,7 +26,7 @@ namespace HotChocolate.Configuration.Validation
             IComplexOutputType type,
             ICollection<ISchemaError> errors)
         {
-            for (int i = 0; i < type.Fields.Count; i++)
+            for (var i = 0; i < type.Fields.Count; i++)
             {
                 IOutputField field = type.Fields[i];
 
@@ -37,7 +37,7 @@ namespace HotChocolate.Configuration.Validation
                         errors.Add(TwoUnderscoresNotAllowedField(type, field));
                     }
 
-                    for (int j = 0; j < field.Arguments.Count; j++)
+                    for (var j = 0; j < field.Arguments.Count; j++)
                     {
                         IInputField argument = field.Arguments[j];
 
@@ -55,9 +55,9 @@ namespace HotChocolate.Configuration.Validation
             IComplexOutputType type,
             ICollection<ISchemaError> errors)
         {
-            if (type.Interfaces.Count > 0)
+            if (type.Implements.Count > 0)
             {
-                foreach (IInterfaceType implementedType in type.Interfaces)
+                foreach (IInterfaceType implementedType in type.Implements)
                 {
                     ValidateImplementation(type, implementedType, errors);
                 }
@@ -77,7 +77,7 @@ namespace HotChocolate.Configuration.Validation
 
             foreach (IOutputField implementedField in implementedType.Fields)
             {
-                if (type.Fields.TryGetField(implementedField.Name, out IOutputField field))
+                if (type.Fields.TryGetField(implementedField.Name, out IOutputField? field))
                 {
                     ValidateArguments(field, implementedField, errors);
 
@@ -100,10 +100,9 @@ namespace HotChocolate.Configuration.Validation
         {
             var implArgs = implementedField.Arguments.ToDictionary(t => t.Name);
 
-            foreach (Argument argument in field.Arguments)
+            foreach (var argument in field.Arguments)
             {
-                if (implArgs.TryGetValue(
-                    argument.Name, out IInputField? implementedArgument))
+                if (implArgs.TryGetValue(argument.Name, out IInputField? implementedArgument))
                 {
                     implArgs.Remove(argument.Name);
                     if (!argument.Type.IsEqualTo(implementedArgument.Type))
@@ -121,7 +120,7 @@ namespace HotChocolate.Configuration.Validation
                 }
             }
 
-            foreach (Argument missingArgument in implArgs.Values)
+            foreach (var missingArgument in implArgs.Values)
             {
                 errors.Add(ArgumentNotImplemented(
                     field, implementedField, missingArgument));
@@ -132,7 +131,7 @@ namespace HotChocolate.Configuration.Validation
             IComplexOutputType type,
             IInterfaceType implementedType)
         {
-            foreach (InterfaceType interfaceType in implementedType.Interfaces)
+            foreach (var interfaceType in implementedType.Implements)
             {
                 if (!type.IsImplementing(interfaceType))
                 {

@@ -63,11 +63,11 @@ var executor = schema.MakeExecutable();
 Console.WriteLine(executor.Execute("{ hello }").ToJson());
 ```
 
-[Learn more](/docs/hotchocolate/v10/schema/schema-first)
+[Learn more](/docs/hotchocolate/v10/schema-first)
 
 ## Mix it all together
 
-With the _Hot Chocolate_ `SchemaBuilder` you can declare types however you want. Define a type schema-first and extend that same type with code-first.
+With the Hot Chocolate `SchemaBuilder` you can declare types however you want. Define a type schema-first and extend that same type with code-first.
 
 > Make sure to add the following usings to your project in order to get the `Execute` extension method:
 > using HotChocolate;
@@ -128,7 +128,7 @@ public class PersonResolvers
 }
 ```
 
-[Learn more](/docs/hotchocolate/v10/data-fetching/dataloaders)
+[Learn more](/docs/hotchocolate/v10/data-fetching)
 
 ## Support for Custom Directives
 
@@ -174,7 +174,7 @@ public class QueryType : ObjectType<Query>
 }
 ```
 
-[Learn more](/docs/hotchocolate/v10/security/authorization)
+[Learn more](/docs/hotchocolate/v10/security#authorization)
 
 ## Built-in Support for Filters
 

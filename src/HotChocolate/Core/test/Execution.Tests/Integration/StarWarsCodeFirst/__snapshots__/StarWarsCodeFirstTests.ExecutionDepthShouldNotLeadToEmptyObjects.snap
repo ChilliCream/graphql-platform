@@ -1,7 +1,7 @@
 ﻿{
   "errors": [
     {
-      "message": "The GraphQL document has an operation complexity of 6 which exceeds the max allowed operation complexity of 3.",
+      "message": "The GraphQL document has an execution depth of 6 which exceeds the max allowed execution depth of 3.",
       "locations": [
         {
           "line": 2,
@@ -9,8 +9,8 @@
         }
       ],
       "extensions": {
-        "allowedComplexity": 3,
-        "detectedComplexity": 6
+        "allowedExecutionDepth": 3,
+        "detectedExecutionDepth": 6
       }
     }
   ]

@@ -2,84 +2,164 @@
 title: "Fetching from Databases"
 ---
 
-Use this section as an introduction to explain what a reader can expect of this document.
+import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-# Headlines
+In this section, you find a simple example on how you can fetch data from a database and expose it as a GraphQL API.
 
-Use headlines to separate a document into several sections. First level headlines will appear in the left hand navigation. This will help the reader to quickly skip sections or jump to a particular section.
+**Hot Chocolate is not bound to a specific database, pattern or architecture.**
+[We do have a few integrations](/docs/hotchocolate/integrations), that help with a variety of databases, though these are just additions on top of HotChocolate.
+You can couple your business logic close to the GraphQL server, or cleanly decouple your domain layer from the GraphQL layer over abstractions.
+The GraphQL server only knows its schema, types and resolvers, what you do in these resolvers and what types you expose, is up to you.
 
-# Use Diagrams
+In this example, we will directly fetch data from MongoDB in a resolver.
 
-Use [mermaid diagrams](https://mermaid-js.github.io/mermaid) to help a reader understand complex problems. Jump over to the [mermaid playground](https://mermaid-js.github.io/mermaid-live-editor) to test your diagrams.
+# Setting up the Query
 
-```mermaid
-graph TD
-  A[Christmas] -->|Get money| B(Go shopping)
-  B --> C{Let me think}
-  C -->|One| D[Laptop]
-  C -->|Two| E[iPhone]
-  C -->|Three| F[fa:fa-car Car]
-```
+The query type in a GraphQL schema is the root type. Each field defined on this type is available at the root of a query.
+If a field is requested, the resolver of the field is called.
+The data of this resolver is used for further execution.
+If you return a scalar, value (e.g. `string`, `int` ...) the value is serialized and added to the response.
+If you return an object, this object is the parent of the resolver in the subtree.
 
-# Use Code Examples
-
-A code example is another tool to help readers following the document and understanding the problem. Here is an list of code blocks that are used often with the ChilliCream GraphQL platform.
-
-Use `sdl` to describe GraphQL schemas.
-
-```sdl
-type Author {
-  name: String!
-}
-```
-
-Use `graphql` to describe GraphQL operations.
-
-```graphql
-query {
-  author(id: 1) {
-    name
-  }
-}
-```
-
-Use `json` for everything JSON related for example a GraphQL result.
-
-```json
-{
-  "data": {
-    "author": {
-      "name": "ChilliCream"
-    }
-  }
-}
-```
-
-Use `sql` for SQL queries.
-
-```sql
-SELECT id FROM Authors WHERE id = 1
-```
-
-Use `csharp` for C# code.
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
 ```csharp
-public interface Author
+// Query.cs
+public class Query
 {
-    int Id { get; }
+    public Task<Book?> GetBookById(
+        [Service] IMongoCollection<Book> collection,
+        Guid id)
+    {
+        return collection.Find(x => x.Id == id).FirstOrDefaultAsync();
+    }
+}
 
-    string Name { get; }
+// Book.cs
+public class Book
+{
+    public string Title { get; set; }
+
+    public string Author { get; set; }
+}
+
+// Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddQueryType<Query>();
+    }
+
+    // Omitted code for brevity
 }
 ```
 
-# Use Images
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
 
-When using images make sure it's a PNG file which is at least 800 pixels wide.
+```csharp
+// Query.cs
+public class Query
+{
+    public Task<Book?> GetBookById(
+        [Service] IMongoCollection<Book> collection,
+        Guid id)
+    {
+        return collection.Find(x => x.Id == id).FirstOrDefaultAsync();
+    }
+}
 
-# Use Tables
+// QueryType.cs
+public class QueryType : ObjectType<Query>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    {
+        descriptor
+            .Field(f => f.GetBookById(default!, default!))
+            .Type<BookType>();
+    }
+}
 
-When using tables make sure you always use titles.
+// Book.cs
+public class Book
+{
+    public string Title { get; set; }
 
-| Name        | Description        |
-| ----------- | ------------------ |
-| ChilliCream | A GraphQL platform |
+    public string Author { get; set; }
+}
+
+// BookType.cs
+public class BookType : ObjectType<Book>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    {
+        descriptor
+            .Field(f => f.Title)
+            .Type<StringType>();
+
+        descriptor
+            .Field(f => f.Author)
+            .Type<StringType>();
+    }
+}
+
+
+// Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddQueryType<QueryType>();
+    }
+
+    // Omitted code for brevity
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+```csharp
+// Query.cs
+public class Query
+{
+    public Task<Book?> GetBookById(
+        [Service] IMongoCollection<Book> collection,
+        Guid id)
+    {
+        return collection.Find(x => x.Id == id).FirstOrDefaultAsync();
+    }
+}
+
+// Startup.cs
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddDocumentFromString(@"
+                type Query {
+                  bookById(id: Uuid): Book
+                }
+
+                type Book {
+                  title: String
+                  author: String
+                }
+            ")
+            .BindComplexType<Query>();
+    }
+
+    // Omitted code for brevity
+}
+```
+
+</ExampleTabs.Schema>
+</ExampleTabs>

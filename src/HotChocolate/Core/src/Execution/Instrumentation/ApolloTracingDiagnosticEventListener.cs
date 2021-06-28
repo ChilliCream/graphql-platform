@@ -6,8 +6,7 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Instrumentation
 {
-    internal class ApolloTracingDiagnosticEventListener
-        : DiagnosticEventListener
+    internal class ApolloTracingDiagnosticEventListener : DiagnosticEventListener
     {
         private const string _extensionKey = "tracing";
         private readonly TracingPreference _tracingPreference;
@@ -88,7 +87,7 @@ namespace HotChocolate.Execution.Instrumentation
         {
             return (_tracingPreference == TracingPreference.Always ||
                 (_tracingPreference == TracingPreference.OnDemand &&
-                    contextData.ContainsKey(ContextDataKeys.EnableTracing)));
+                    contextData.ContainsKey(WellKnownContextData.EnableTracing)));
         }
 
         private class RequestScope : IActivityScope
@@ -208,7 +207,7 @@ namespace HotChocolate.Execution.Instrumentation
             {
                 if (!_disposed)
                 {
-                    long stopTimestamp = _timestampProvider.NowInNanoseconds();
+                    var stopTimestamp = _timestampProvider.NowInNanoseconds();
 
                     _builder.AddResolverResult(
                         new ApolloTracingResolverRecord(

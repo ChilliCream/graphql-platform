@@ -3,27 +3,24 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Execution
 {
-    public class QueryDocument
-        : IQuery
+    public class QueryDocument : IQuery
     {
         public QueryDocument(DocumentNode document)
         {
-            Document = document
-                ?? throw new ArgumentNullException(nameof(document));
+            Document = document ?? throw new ArgumentNullException(nameof(document));
         }
 
         public DocumentNode Document { get; }
 
         public void WriteTo(Stream output)
         {
-            using (var sw = new StreamWriter(output))
-            {
-                QuerySyntaxSerializer.Serialize(Document, sw, false);
-                sw.Flush();
-            }
+            using var sw = new StreamWriter(output);
+            sw.Write(Document.Print(false));
+            sw.Flush();
         }
 
         public Task WriteToAsync(Stream output) =>
@@ -33,25 +30,23 @@ namespace HotChocolate.Execution
             Stream output,
             CancellationToken cancellationToken)
         {
-            using (var sw = new StreamWriter(output))
-            {
-                await Task.Run(() =>
-                    QuerySyntaxSerializer.Serialize(Document, sw, false))
-                    .ConfigureAwait(false);
-                await sw.FlushAsync().ConfigureAwait(false);
-            }
+            await Document
+                .PrintToAsync(output, false, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         public ReadOnlySpan<byte> AsSpan()
         {
-            using (var stream = new MemoryStream())
-            {
-                WriteTo(stream);
-                return stream.ToArray();
-            }
+            using var stream = new MemoryStream();
+            using var sw = new StreamWriter(stream);
+
+            sw.Write(Document.Print(false));
+            sw.Flush();
+
+            return stream.ToArray();
         }
 
         public override string ToString() =>
-            QuerySyntaxSerializer.Serialize(Document, false);
+            Document.Print(true);
     }
 }

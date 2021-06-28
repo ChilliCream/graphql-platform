@@ -16,7 +16,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barShort: { eq: 12 }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -35,7 +35,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barShort: { neq: 12 }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -56,7 +56,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barShort: { gt: 12 }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -78,7 +78,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barShort: { ngt: 12 }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -101,7 +101,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barShort: { gte: 12 }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -123,7 +123,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barShort: { ngte: 12 }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -147,7 +147,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barShort: { lt: 12 }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -169,7 +169,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barShort: { nlt: 12 }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -192,7 +192,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barShort: { lte: 12 }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -214,7 +214,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barShort: { nlte: 12 }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -236,7 +236,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barShort: { in: [13, 14] }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -255,7 +255,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barShort: { nin: [13, 14] }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooFilterInput());
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -274,7 +274,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barShort: { eq: 12 }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
 
             // act
             Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
@@ -297,7 +297,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barShort: { neq: 12 }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
 
             // act
             Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
@@ -320,7 +320,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barShort: { gt: 12 }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
 
             // act
             Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
@@ -345,7 +345,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barShort: { ngt: 12 }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
 
             // act
             Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
@@ -370,7 +370,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barShort: { gte: 12 }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
 
             // act
             Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
@@ -395,7 +395,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barShort: { ngte: 12 }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
 
             // act
             Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
@@ -422,7 +422,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barShort: { lt: 12 }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
 
             // act
             Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
@@ -447,7 +447,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barShort: { nlt: 12 }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
 
             // act
             Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
@@ -473,7 +473,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barShort: { lte: 12 }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
 
             // act
             Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
@@ -498,7 +498,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barShort: { nlte: 12 }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
 
             // act
             Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
@@ -523,7 +523,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barShort: { in: [13, 14] }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
 
             // act
             Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
@@ -545,7 +545,7 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ barShort: { nin: [13, 14] }}");
-            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterType());
+            ExecutorBuilder? tester = CreateProviderTester(new FooNullableFilterInput());
 
             // act
             Func<FooNullable, bool>? func = tester.Build<FooNullable>(value);
@@ -587,12 +587,12 @@ namespace HotChocolate.Data.Filters.Expressions
             public short? BarShort { get; set; }
         }
 
-        public class FooFilterType
+        public class FooFilterInput
             : FilterInputType<Foo>
         {
         }
 
-        public class FooNullableFilterType
+        public class FooNullableFilterInput
             : FilterInputType<FooNullable>
         {
         }

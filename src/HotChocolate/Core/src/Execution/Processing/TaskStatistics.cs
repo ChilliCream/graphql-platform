@@ -5,7 +5,6 @@ namespace HotChocolate.Execution.Processing
 {
     internal class TaskStatistics : ITaskStatistics
     {
-        private readonly object _sync = new object();
         private readonly EventArgs _empty = EventArgs.Empty;
 
         private int _allTasks;

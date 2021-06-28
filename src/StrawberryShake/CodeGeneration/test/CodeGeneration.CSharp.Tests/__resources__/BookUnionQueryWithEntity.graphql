@@ -1,0 +1,15 @@
+query getStore2 {
+  searchableStore {
+    id
+    books {
+      isbn
+      title
+    }
+    search {
+      ...on Book {
+        title
+        isbn
+      }
+    }
+  }
+}

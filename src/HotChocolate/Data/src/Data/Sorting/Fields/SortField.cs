@@ -12,7 +12,7 @@ namespace HotChocolate.Data.Sorting
           ISortField
     {
         internal SortField(SortFieldDefinition definition)
-            : base(definition)
+            : base(definition, default)
         {
             Member = definition.Member;
             Handler = definition.Handler ??

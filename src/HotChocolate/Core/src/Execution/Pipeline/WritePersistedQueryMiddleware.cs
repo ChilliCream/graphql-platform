@@ -29,7 +29,7 @@ namespace HotChocolate.Execution.Pipeline
                 throw new ArgumentNullException(nameof(next));
             _diagnosticEvents = diagnosticEvents ??
                 throw new ArgumentNullException(nameof(diagnosticEvents));
-            _hashProvider = documentHashProvider ?? 
+            _hashProvider = documentHashProvider ??
                 throw new ArgumentNullException(nameof(documentHashProvider));
             _persistedQueryStore = persistedQueryStore ??
                 throw new ArgumentNullException(nameof(persistedQueryStore));
@@ -67,7 +67,7 @@ namespace HotChocolate.Execution.Pipeline
                             { _persisted, true }
                         });
 
-                    context.ContextData[ContextDataKeys.DocumentSaved] = true;
+                    context.ContextData[WellKnownContextData.DocumentSaved] = true;
                 }
                 else
                 {

@@ -21,22 +21,29 @@ namespace HotChocolate.Types
             IDirectiveTypeDescriptor<DeferDirective> descriptor)
         {
             descriptor
-                .Name("defer")
+                .Name(Names.Defer)
                 .Description(TypeResources.DeferDirectiveType_Description)
                 .Location(DirectiveLocation.FragmentSpread)
                 .Location(DirectiveLocation.InlineFragment);
 
             descriptor
                 .Argument(t => t.Label)
-                .Name(WellKnownDirectives.LabelArgument)
+                .Name(Names.Label)
                 .Description(TypeResources.DeferDirectiveType_Label_Description)
                 .Type<StringType>();
 
             descriptor
                 .Argument(t => t.If)
-                .Name(WellKnownDirectives.IfArgument)
+                .Name(Names.If)
                 .Description(TypeResources.DeferDirectiveType_If_Description)
                 .Type<BooleanType>();
+        }
+
+        public static class Names
+        {
+            public const string Defer = "defer";
+            public const string Label = "label";
+            public const string If = "if";
         }
     }
 }

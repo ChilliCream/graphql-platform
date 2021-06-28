@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { IsMobile, IsSmallDesktop } from "../../shared-style";
 
 export const Intro = styled.header`
   display: flex;
@@ -7,8 +8,8 @@ export const Intro = styled.header`
   align-items: center;
   padding: 25px 0;
   width: 100%;
-  background-color: #f40010;
-  background: linear-gradient(180deg, #f40010 70%, #ff892a 100%);
+  background-color: var(--brand-color);
+  background: linear-gradient(180deg, var(--brand-color) 70%, #ff892a 100%);
 
   @media only screen and (min-width: 992px) {
     padding: 60px 0;
@@ -25,20 +26,33 @@ export const Title = styled.h3`
 
 export const Hero = styled.h1`
   flex: 0 0 auto;
-  margin: 0 60px 20px;
+  margin-bottom: 20px;
   max-width: 800px;
   font-size: 2.222em;
   text-align: center;
   text-shadow: 0px 3px 6px rgba(0, 0, 0, 0.25);
   color: #fff;
+  ${IsSmallDesktop(`
+    padding: 0 40px;
+  `)}
+
+  ${IsMobile(`
+    padding: 0 15px;
+  `)}
 `;
 
 export const Teaser = styled.p`
   flex: 0 0 auto;
-  margin: 0 60px 20px;
   max-width: 800px;
   font-size: 1.222em;
   text-align: center;
   text-shadow: 0px 3px 6px rgba(0, 0, 0, 0.25);
   color: #fff;
+  ${IsSmallDesktop(`
+    padding: 0 40px;
+  `)}
+
+  ${IsMobile(`
+    padding: 0 15px;
+  `)}
 `;

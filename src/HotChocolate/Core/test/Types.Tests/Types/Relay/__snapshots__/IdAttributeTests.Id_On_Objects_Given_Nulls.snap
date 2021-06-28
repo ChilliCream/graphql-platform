@@ -1,0 +1,5 @@
+﻿{
+  "result": "{\n  \"data\": {\n    \"foo\": {\n      \"someId\": \"QmFyCmQx\",\n      \"someNullableId\": null,\n      \"someIds\": [\n        \"QmFyCmkx\"\n      ],\n      \"someNullableIds\": [\n        null,\n        \"QmFyCmkx\"\n      ]\n    }\n  }\n}",
+  "someId": "U29tZQpkMQ==",
+  "someIntId": "U29tZQppMQ=="
+}

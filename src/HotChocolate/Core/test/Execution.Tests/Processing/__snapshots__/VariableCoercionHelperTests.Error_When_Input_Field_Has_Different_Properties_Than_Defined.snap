@@ -6,8 +6,10 @@
     "Locations": null,
     "Extensions": {
       "code": "HC0016",
-      "variable": "abc"
+      "variable": "abc",
+      "underlyingError": "The field `abc` does not exist on the type `ReviewInput`."
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": null
   }
 ]

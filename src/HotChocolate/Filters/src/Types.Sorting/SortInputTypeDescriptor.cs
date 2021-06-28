@@ -9,10 +9,12 @@ using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Sorting.Extensions;
+using HotChocolate.Types.Sorting.Properties;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class SortInputTypeDescriptor<T>
         : DescriptorBase<SortInputTypeDefinition>
         , ISortInputTypeDescriptor<T>
@@ -102,7 +104,7 @@ namespace HotChocolate.Types.Sorting
 
             // TODO : resources
             throw new ArgumentException(
-                "Only properties are allowed for input types.",
+                SortingResources.SortInputTypeDescriptor_Ignore_OnlyPopertiesAreAllowed,
                 nameof(property));
         }
 
@@ -118,7 +120,7 @@ namespace HotChocolate.Types.Sorting
 
             // TODO : resources
             throw new ArgumentException(
-                "Only properties are allowed for input types.",
+                SortingResources.SortInputTypeDescriptor_Ignore_OnlyPopertiesAreAllowed,
                 nameof(property));
         }
 
@@ -131,18 +133,18 @@ namespace HotChocolate.Types.Sorting
                 return this;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                "Only properties are allowed for input types.",
+                SortingResources.SortInputTypeDescriptor_Ignore_OnlyPopertiesAreAllowed,
                 nameof(property));
         }
 
         protected override void OnCreateDefinition(
             SortInputTypeDefinition definition)
         {
-            if (Definition.EntityType is { })
+            if (!Definition.AttributesAreApplied && Definition.EntityType is not null)
             {
                 Context.TypeInspector.ApplyAttributes(Context, this, Definition.EntityType);
+                Definition.AttributesAreApplied = true;
             }
 
             var fields = new Dictionary<NameString, SortOperationDefintion>();
@@ -181,7 +183,7 @@ namespace HotChocolate.Types.Sorting
             }
 
             foreach (PropertyInfo property in Context.TypeInspector
-                .GetMembers(Definition.EntityType)
+                .GetMembers(Definition.EntityType!)
                 .OfType<PropertyInfo>())
             {
                 if (handledProperties.Contains(property))
@@ -204,10 +206,11 @@ namespace HotChocolate.Types.Sorting
             Type type = property.PropertyType;
 
             if (type.IsGenericType
-                && System.Nullable.GetUnderlyingType(type) is Type nullableType)
+                && System.Nullable.GetUnderlyingType(type) is { } nullableType)
             {
                 type = nullableType;
             }
+
             if (typeof(IComparable).IsAssignableFrom(type))
             {
                 definition = SortOperationDescriptor

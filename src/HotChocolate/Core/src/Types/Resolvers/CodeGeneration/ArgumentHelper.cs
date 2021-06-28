@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
+using System.Security.Claims;
 using System.Threading;
 using GreenDonut;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Resolvers.CodeGeneration
 {
@@ -17,8 +20,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 throw new ArgumentNullException(nameof(parameter));
             }
 
-            ArgumentKind argumentKind;
-            if (TryCheckForResolverArguments(parameter, sourceType, out argumentKind)
+            if (TryCheckForResolverArguments(parameter, sourceType, out ArgumentKind argumentKind)
                 || TryCheckForSubscription(parameter, out argumentKind)
                 || TryCheckForSchemaTypes(parameter, out argumentKind)
                 || TryCheckForQueryTypes(parameter, out argumentKind)
@@ -49,7 +51,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
             if (sourceType is null)
             {
-                argumentKind = default(ArgumentKind);
+                argumentKind = default;
                 return false;
             }
 
@@ -60,7 +62,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 return true;
             }
 
-            argumentKind = default(ArgumentKind);
+            argumentKind = default;
             return false;
         }
 
@@ -87,7 +89,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 return true;
             }
 
-            argumentKind = default(ArgumentKind);
+            argumentKind = default;
             return false;
         }
 
@@ -113,7 +115,13 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 return true;
             }
 
-            argumentKind = default(ArgumentKind);
+            if (parameter.ParameterType == typeof(Path))
+            {
+                argumentKind = ArgumentKind.Path;
+                return true;
+            }
+
+            argumentKind = default;
             return false;
         }
 
@@ -121,6 +129,12 @@ namespace HotChocolate.Resolvers.CodeGeneration
             this ParameterInfo parameter,
             out ArgumentKind argumentKind)
         {
+            if (parameter.ParameterType == typeof(ClaimsPrincipal))
+            {
+                argumentKind = ArgumentKind.Claims;
+                return true;
+            }
+
             if (IsDataLoader(parameter))
             {
                 argumentKind = ArgumentKind.DataLoader;
@@ -138,14 +152,13 @@ namespace HotChocolate.Resolvers.CodeGeneration
             }
 #pragma warning restore CS0612
 
-            if (IsService(parameter)
-                || IsScopedService(parameter))
+            if (IsService(parameter) || IsScopedService(parameter))
             {
                 argumentKind = ArgumentKind.Service;
                 return true;
             }
 
-            argumentKind = default(ArgumentKind);
+            argumentKind = default;
             return false;
         }
 
@@ -159,7 +172,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 return true;
             }
 
-            argumentKind = default(ArgumentKind);
+            argumentKind = default;
             return false;
         }
 
@@ -197,7 +210,18 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
         internal static bool IsService(ParameterInfo parameter)
         {
-            return parameter.IsDefined(typeof(ServiceAttribute));
+            if (parameter.IsDefined(typeof(ServiceAttribute)))
+            {
+                return true;
+            }
+
+            if (parameter.GetCustomAttributesData()
+                .Any(t => t.AttributeType.Name.EqualsOrdinal("FromServicesAttribute")))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         internal static bool IsParent(ParameterInfo parameter, Type sourceType)

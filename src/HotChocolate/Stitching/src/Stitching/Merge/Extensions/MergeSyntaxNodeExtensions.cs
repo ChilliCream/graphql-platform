@@ -486,10 +486,10 @@ namespace HotChocolate.Stitching.Merge
 
             schemaName.EnsureNotEmpty(nameof(schemaName));
 
-            DirectiveNode sourceDirective = typeDefinition.Directives
+            DirectiveNode? sourceDirective = typeDefinition.Directives
                 .FirstOrDefault(t => HasSourceDirective(t, schemaName));
 
-            if (sourceDirective != null)
+            if (sourceDirective is not null)
             {
                 ArgumentNode argument = sourceDirective.Arguments.First(t =>
                     DirectiveFieldNames.Source_Name.Equals(t.Name.Value));

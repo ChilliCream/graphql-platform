@@ -38,7 +38,7 @@ namespace HotChocolate.Data.Filters
                         .Field("foo")
                         .Type<StringType>()
                         .Resolver("foo")
-                        .Argument("test", a => a.Type<ExplicitFilterType>()))
+                        .Argument("test", a => a.Type<ExplicitFilterInput>()))
                 .TryAddConvention<IFilterConvention>(
                     (sp) => new FilterConvention(x => x.UseMock()))
                 .AddFiltering()
@@ -48,7 +48,7 @@ namespace HotChocolate.Data.Filters
             schema.ToString().MatchSnapshot();
         }
 
-        public class ExplicitFilterType : FilterInputType
+        public class ExplicitFilterInput : FilterInputType
         {
             protected override void Configure(IFilterInputTypeDescriptor descriptor)
             {

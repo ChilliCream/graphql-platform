@@ -1,24 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Reflection;
 using HotChocolate.Internal;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Configuration
 {
-    internal sealed class TypeDiscoveryContext
-        : ITypeDiscoveryContext
+    internal sealed class TypeDiscoveryContext : ITypeDiscoveryContext
     {
         private readonly TypeRegistry _typeRegistry;
         private readonly TypeLookup _typeLookup;
-        private readonly List<TypeDependency> _typeDependencies =
-            new List<TypeDependency>();
-        private readonly List<IDirectiveReference> _directiveReferences =
-            new List<IDirectiveReference>();
+        private readonly List<TypeDependency> _typeDependencies = new();
+        private readonly List<IDirectiveReference> _directiveReferences = new();
 
         public TypeDiscoveryContext(
             ITypeSystemObject type,
@@ -71,9 +65,6 @@ namespace HotChocolate.Configuration
         public IReadOnlyList<TypeDependency> TypeDependencies => _typeDependencies;
 
         public ICollection<IDirectiveReference> DirectiveReferences => _directiveReferences;
-
-        public IDictionary<FieldReference, RegisteredResolver> Resolvers { get; } =
-            new Dictionary<FieldReference, RegisteredResolver>();
 
         public ICollection<ISchemaError> Errors { get; } =
             new List<ISchemaError>();
@@ -148,56 +139,6 @@ namespace HotChocolate.Configuration
             }
 
             _directiveReferences.AddRange(references);
-        }
-
-        public void RegisterResolver(
-            NameString fieldName,
-            MemberInfo member,
-            Type sourceType,
-            Type resolverType)
-        {
-            if (member is null)
-            {
-                throw new ArgumentNullException(nameof(member));
-            }
-
-            if (sourceType is null)
-            {
-                throw new ArgumentNullException(nameof(sourceType));
-            }
-
-            fieldName.EnsureNotEmpty(nameof(fieldName));
-
-            var fieldMember = new FieldMember(InternalName, fieldName, member);
-
-            Resolvers[fieldMember.ToFieldReference()] = resolverType is null
-                ? new RegisteredResolver(sourceType, fieldMember)
-                : new RegisteredResolver(resolverType, sourceType, fieldMember);
-        }
-
-        public void RegisterResolver(
-            NameString fieldName,
-            Expression expression,
-            Type sourceType,
-            Type resolverType)
-        {
-            if (expression == null)
-            {
-                throw new ArgumentNullException(nameof(expression));
-            }
-
-            if (sourceType == null)
-            {
-                throw new ArgumentNullException(nameof(sourceType));
-            }
-
-            fieldName.EnsureNotEmpty(nameof(fieldName));
-
-            var fieldMember = new FieldMember(InternalName, fieldName, expression);
-
-            Resolvers[fieldMember.ToFieldReference()] = resolverType == null
-                ? new RegisteredResolver(sourceType, fieldMember)
-                : new RegisteredResolver(resolverType, sourceType, fieldMember);
         }
 
         public void ReportError(ISchemaError error)

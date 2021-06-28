@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
+#nullable enable
+
 namespace HotChocolate.Utilities
 {
     internal sealed class CombinedServiceProvider : IServiceProvider
@@ -24,16 +26,21 @@ namespace HotChocolate.Utilities
             _second = second ?? throw new ArgumentNullException(nameof(second));
         }
 
-        public object GetService(Type serviceType)
+        public object? GetService(Type serviceType)
         {
+            if (serviceType is null)
+            {
+                throw new ArgumentNullException(nameof(serviceType));
+            }
+
             TypeInfo serviceTypeInfo = serviceType.GetTypeInfo();
 
             if (serviceTypeInfo.IsGenericType &&
                 _iEnumerableTypeInfo.IsAssignableFrom(serviceTypeInfo) &&
                 _genericIEnumerableType == serviceTypeInfo.GetGenericTypeDefinition())
             {
-                object firstResult = _first.GetService(serviceType);
-                object secondResult = _second.GetService(serviceType);
+                object? firstResult = _first.GetService(serviceType);
+                object? secondResult = _second.GetService(serviceType);
                 return Concat(serviceType, firstResult, secondResult);
             }
 
@@ -54,10 +61,10 @@ namespace HotChocolate.Utilities
             return (bool)info.Invoke(null, new[] { enumerable })!;
         }
 
-        private static object Concat(
+        private static object? Concat(
             Type enumerableType,
-            object enumerableA,
-            object enumerableB)
+            object? enumerableA,
+            object? enumerableB)
         {
             if (enumerableA != null && Any(enumerableType, enumerableA))
             {

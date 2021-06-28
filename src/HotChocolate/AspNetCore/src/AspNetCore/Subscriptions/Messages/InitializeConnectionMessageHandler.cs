@@ -1,6 +1,5 @@
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {
@@ -31,7 +30,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             }
             else
             {
-                var rejectMessage = connectionStatus.Extensions == null
+                RejectConnectionMessage rejectMessage = connectionStatus.Extensions == null
                     ? new RejectConnectionMessage(connectionStatus.Message)
                     : new RejectConnectionMessage(
                         connectionStatus.Message,

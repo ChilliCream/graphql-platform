@@ -216,7 +216,6 @@ namespace HotChocolate.Types.Spatial
         private InputObjectType CreateInputType()
         {
             ISchema schema = CreateSchema();
-
             return schema.GetType<InputObjectType>("GeoJSONMultiPolygonInput");
         }
     }

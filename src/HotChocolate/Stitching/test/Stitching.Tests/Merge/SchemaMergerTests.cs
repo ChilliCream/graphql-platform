@@ -6,6 +6,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using Snapshooter;
 using System.Collections.Generic;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Stitching.Merge
 {
@@ -27,7 +28,7 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+            schema.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -48,7 +49,7 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+            schema.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -70,7 +71,7 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+            schema.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -92,7 +93,7 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+            schema.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -114,7 +115,7 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+            schema.Print().MatchSnapshot();
         }
 
 
@@ -137,7 +138,7 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+            schema.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -159,7 +160,7 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+            schema.Print().MatchSnapshot();
         }
 
 
@@ -182,7 +183,7 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+            schema.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -204,7 +205,7 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+            schema.Print().MatchSnapshot();
         }
 
 
@@ -227,7 +228,7 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+            schema.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -249,7 +250,7 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+            schema.Print().MatchSnapshot();
         }
 
 
@@ -272,7 +273,7 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+            schema.Print().MatchSnapshot();
         }
 
         [Fact(Skip =  "Fix It")]
@@ -303,10 +304,8 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(a).MatchSnapshot(
-                SnapshotNameExtension.Create("A"));
-            SchemaSyntaxSerializer.Serialize(b).MatchSnapshot(
-                SnapshotNameExtension.Create("B"));
+            a.Print().MatchSnapshot(SnapshotNameExtension.Create("A"));
+            b.Print().MatchSnapshot(SnapshotNameExtension.Create("B"));
         }
 
         [Fact]
@@ -326,7 +325,7 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+            merged.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -347,7 +346,7 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+            merged.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -373,7 +372,7 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(a).MatchSnapshot();
+            a.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -399,7 +398,7 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(a).MatchSnapshot();
+            a.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -425,7 +424,7 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(a).MatchSnapshot();
+            a.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -461,10 +460,8 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(a).MatchSnapshot(
-                SnapshotNameExtension.Create("A"));
-            SchemaSyntaxSerializer.Serialize(b).MatchSnapshot(
-                SnapshotNameExtension.Create("B"));
+            a.Print().MatchSnapshot(SnapshotNameExtension.Create("A"));
+            b.Print().MatchSnapshot(SnapshotNameExtension.Create("B"));
         }
 
         [Fact]
@@ -489,7 +486,7 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(a).MatchSnapshot();
+            a.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -509,7 +506,7 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(a).MatchSnapshot();
+            a.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -527,7 +524,7 @@ namespace HotChocolate.Stitching.Merge
                 .AddSchema("B", schema_b)
                 .AddTypeMergeRule(next => (context, types) =>
                 {
-                    var typeInfos = types.OfType<ObjectTypeInfo>().ToArray();
+                    ObjectTypeInfo[] typeInfos = types.OfType<ObjectTypeInfo>().ToArray();
                     var fields = typeInfos[0].Definition.Fields.ToList();
                     fields.AddRange(typeInfos[1].Definition.Fields);
                     context.AddType(
@@ -536,7 +533,7 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(a).MatchSnapshot();
+            a.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -556,7 +553,7 @@ namespace HotChocolate.Stitching.Merge
                 .Merge();
 
             // assert
-            SchemaSyntaxSerializer.Serialize(a).MatchSnapshot();
+            a.Print().MatchSnapshot();
         }
 
         public class CustomDirectiveMergeHandler
@@ -587,7 +584,7 @@ namespace HotChocolate.Stitching.Merge
                 ISchemaMergeContext context,
                 IReadOnlyList<ITypeInfo> types)
             {
-                var typeInfos = types.OfType<ObjectTypeInfo>().ToArray();
+                ObjectTypeInfo[] typeInfos = types.OfType<ObjectTypeInfo>().ToArray();
                 var fields = typeInfos[0].Definition.Fields.ToList();
                 fields.AddRange(typeInfos[1].Definition.Fields);
                 context.AddType(

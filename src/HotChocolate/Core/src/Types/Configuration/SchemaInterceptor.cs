@@ -1,4 +1,7 @@
+using System;
 using HotChocolate.Types.Descriptors;
+
+#nullable  enable
 
 namespace HotChocolate.Configuration
 {
@@ -17,6 +20,12 @@ namespace HotChocolate.Configuration
         public virtual void OnAfterCreate(
             IDescriptorContext context,
             ISchema schema)
+        {
+        }
+
+        public virtual void OnError(
+            IDescriptorContext context,
+            Exception exception)
         {
         }
     }

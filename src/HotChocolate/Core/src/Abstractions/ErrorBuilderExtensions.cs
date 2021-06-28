@@ -17,11 +17,16 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (syntaxNode is { Location: { } })
+            if (syntaxNode is { Location: not null })
             {
-                return builder.AddLocation(
-                    syntaxNode.Location.Line,
-                    syntaxNode.Location.Column);
+                builder.SetSyntaxNode(syntaxNode);
+
+                if (syntaxNode.Location is not null)
+                {
+                    return builder.AddLocation(
+                        syntaxNode.Location.Line,
+                        syntaxNode.Location.Column);
+                }
             }
 
             return builder;

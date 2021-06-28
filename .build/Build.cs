@@ -1,3 +1,4 @@
+using System.IO;
 using Nuke.Common;
 using Nuke.Common.CI;
 using Nuke.Common.CI.AzurePipelines;
@@ -12,8 +13,8 @@ using static Helpers;
     AzurePipelinesImage.UbuntuLatest,
     InvokedTargets = new[] { nameof(Sonar) },
     PullRequestsAutoCancel = true,
-    PullRequestsBranchesInclude = new [] { "master" },
-    AutoGenerate =  false)]
+    PullRequestsBranchesInclude = new[] { "master" },
+    AutoGenerate = false)]
 [GitHubActions(
     "sonar-pr-hotchocolate",
     GitHubActionsImage.UbuntuLatest,
@@ -36,7 +37,7 @@ partial class Build : NukeBuild
     public static int Main() => Execute<Build>(x => x.Compile);
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
-    readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
+    readonly string Configuration = IsLocalBuild ? Debug : Release;
 
     [CI] readonly AzurePipelines DevOpsPipeLine;
 
@@ -71,4 +72,24 @@ partial class Build : NukeBuild
                 .SetInformationalVersion(GitVersion.InformationalVersion)
                 .SetVersion(GitVersion.SemVer));
         });
+
+    Target Reset => _ => _
+        .Executes(() =>
+        {
+            TryDelete(AllSolutionFile);
+            TryDelete(SonarSolutionFile);
+            TryDelete(TestSolutionFile);
+            TryDelete(PackSolutionFile);
+
+            DotNetBuildSonarSolution(AllSolutionFile);
+            DotNetRestore(c => c.SetProjectFile(AllSolutionFile));
+        });
+
+    private static void TryDelete(string fileName) 
+    {
+        if(File.Exists(fileName))
+        {
+            File.Delete(fileName);
+        }
+    }
 }

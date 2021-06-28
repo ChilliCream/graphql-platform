@@ -7,6 +7,7 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class QueryableSortMiddleware<T>
     {
         private readonly SortMiddlewareContext _contextData;
@@ -25,9 +26,9 @@ namespace HotChocolate.Types.Sorting
         {
             await _next(context).ConfigureAwait(false);
 
-            IValueNode sortArgument = context.Argument<IValueNode>(_contextData.ArgumentName);
+            IValueNode sortArgument = context.ArgumentLiteral<IValueNode>(_contextData.ArgumentName);
 
-            if (sortArgument is null || sortArgument is NullValueNode)
+            if (sortArgument is NullValueNode)
             {
                 return;
             }
@@ -45,8 +46,7 @@ namespace HotChocolate.Types.Sorting
 
             if (source is not null &&
                 context.Field.Arguments[_contextData.ArgumentName].Type is InputObjectType iot &&
-                iot is ISortInputType fit &&
-                fit.EntityType is { })
+                iot is ISortInputType { EntityType: not null! } fit)
             {
                 var visitorCtx = new QueryableSortVisitorContext(
                     iot,

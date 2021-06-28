@@ -5,7 +5,10 @@ using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
 namespace HotChocolate.Types.Spatial
 {
-    public sealed class GeometryType : ScalarType<Geometry>
+    public sealed class GeometryType
+        : ScalarType<Geometry>
+        , IGeoJsonObjectType
+        , IGeoJsonInputType
     {
         public GeometryType() : base(GeometryTypeName)
         {

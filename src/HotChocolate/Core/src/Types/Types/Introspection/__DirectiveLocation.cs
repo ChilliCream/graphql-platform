@@ -1,86 +1,122 @@
+#pragma warning disable IDE1006 // Naming Styles
 using HotChocolate.Properties;
+using Lang = HotChocolate.Language.DirectiveLocation;
 
+#nullable enable
 namespace HotChocolate.Types.Introspection
 {
     [Introspection]
-#pragma warning disable IDE1006 // Naming Styles
-    internal sealed class __DirectiveLocation
-#pragma warning restore IDE1006 // Naming Styles
-        : EnumType<DirectiveLocation>
+    internal sealed class __DirectiveLocation : EnumType<DirectiveLocation>
     {
         protected override void Configure(IEnumTypeDescriptor<DirectiveLocation> descriptor)
         {
-            descriptor.Name("__DirectiveLocation");
+            descriptor
+                .Name(Names.__DirectiveLocation)
+                .Description(TypeResources.DirectiveLocation_Description)
+                // Introspection types must always be bound explicitly so that we
+                // do not get any interference with conventions.
+                .BindValues(BindingBehavior.Explicit);
 
-            descriptor.Description(
-                TypeResources.DirectiveLocation_Description);
-
-            descriptor.Item(DirectiveLocation.Query)
+            descriptor
+                .Value(DirectiveLocation.Query)
+                .Name(Lang.Query.Value)
                 .Description(TypeResources.DirectiveLocation_Query);
 
-            descriptor.Item(DirectiveLocation.Mutation)
+            descriptor
+                .Value(DirectiveLocation.Mutation)
+                .Name(Lang.Mutation.Value)
                 .Description(TypeResources.DirectiveLocation_Mutation);
 
-            descriptor.Item(DirectiveLocation.Subscription)
+            descriptor
+                .Value(DirectiveLocation.Subscription)
+                .Name(Lang.Subscription.Value)
                 .Description(TypeResources.DirectiveLocation_Subscription);
 
-            descriptor.Item(DirectiveLocation.Field)
+            descriptor
+                .Value(DirectiveLocation.Field)
+                .Name(Lang.Field.Value)
                 .Description(TypeResources.DirectiveLocation_Field);
 
-            // TODO : Resources
-            descriptor.Item(DirectiveLocation.VariableDefinition)
-                .Name("VARIABLE_DEFINITION")
-                .Description("Location adjacent to a variable definition.");
-
-            descriptor.Item(DirectiveLocation.FragmentDefinition)
-                .Name("FRAGMENT_DEFINITION")
+            descriptor
+                .Value(DirectiveLocation.FragmentDefinition)
+                .Name(Lang.FragmentDefinition.Value)
                 .Description(TypeResources.DirectiveLocation_FragmentDefinition);
 
-            descriptor.Item(DirectiveLocation.FragmentSpread)
-                .Name("FRAGMENT_SPREAD")
+            descriptor
+                .Value(DirectiveLocation.FragmentSpread)
+                .Name(Lang.FragmentSpread.Value)
                 .Description(TypeResources.DirectiveLocation_FragmentSpread);
 
-            descriptor.Item(DirectiveLocation.InlineFragment)
-                .Name("INLINE_FRAGMENT")
+            descriptor
+                .Value(DirectiveLocation.InlineFragment)
+                .Name(Lang.InlineFragment.Value)
                 .Description(TypeResources.DirectiveLocation_InlineFragment);
 
-            descriptor.Item(DirectiveLocation.Schema)
+            descriptor
+                .Value(DirectiveLocation.VariableDefinition)
+                .Name(Lang.VariableDefinition.Value)
+                .Description("Location adjacent to a variable definition.");
+
+            descriptor
+                .Value(DirectiveLocation.Schema)
+                .Name(Lang.Schema.Value)
                 .Description(TypeResources.DirectiveLocation_Schema);
 
-            descriptor.Item(DirectiveLocation.Scalar)
+            descriptor
+                .Value(DirectiveLocation.Scalar)
+                .Name(Lang.Scalar.Value)
                 .Description(TypeResources.DirectiveLocation_Scalar);
 
-            descriptor.Item(DirectiveLocation.Object)
+            descriptor
+                .Value(DirectiveLocation.Object)
+                .Name(Lang.Object.Value)
                 .Description(TypeResources.DirectiveLocation_Object);
 
-            descriptor.Item(DirectiveLocation.FieldDefinition)
-                .Name("FIELD_DEFINITION")
+            descriptor
+                .Value(DirectiveLocation.FieldDefinition)
+                .Name(Lang.FieldDefinition.Value)
                 .Description(TypeResources.DirectiveLocation_FieldDefinition);
 
-            descriptor.Item(DirectiveLocation.ArgumentDefinition)
-                .Name("ARGUMENT_DEFINITION")
+            descriptor
+                .Value(DirectiveLocation.ArgumentDefinition)
+                .Name(Lang.ArgumentDefinition.Value)
                 .Description(TypeResources.DirectiveLocation_ArgumentDefinition);
 
-            descriptor.Item(DirectiveLocation.Interface)
+            descriptor
+                .Value(DirectiveLocation.Interface)
+                .Name(Lang.Interface.Value)
                 .Description(TypeResources.DirectiveLocation_Interface);
 
-            descriptor.Item(DirectiveLocation.Union)
+            descriptor
+                .Value(DirectiveLocation.Union)
+                .Name(Lang.Union.Value)
                 .Description(TypeResources.DirectiveLocation_Union);
 
-            descriptor.Item(DirectiveLocation.Enum)
+            descriptor
+                .Value(DirectiveLocation.Enum)
+                .Name(Lang.Enum.Value)
                 .Description(TypeResources.DirectiveLocation_Enum);
 
-            descriptor.Item(DirectiveLocation.EnumValue)
-                .Name("ENUM_VALUE")
+            descriptor
+                .Value(DirectiveLocation.EnumValue)
+                .Name(Lang.EnumValue.Value)
                 .Description(TypeResources.DirectiveLocation_EnumValue);
 
-            descriptor.Item(DirectiveLocation.InputObject)
-                .Name("INPUT_OBJECT")
+            descriptor
+                .Value(DirectiveLocation.InputObject)
+                .Name(Lang.InputObject.Value)
                 .Description(TypeResources.DirectiveLocation_InputObject);
 
-            descriptor.Item(DirectiveLocation.InputFieldDefinition)
-                .Name("INPUT_FIELD_DEFINITION")
+            descriptor
+                .Value(DirectiveLocation.InputFieldDefinition)
+                .Name(Lang.InputFieldDefinition.Value)
                 .Description(TypeResources.DirectiveLocation_InputFieldDefinition);
+        }
+
+        public static class Names
+        {
+            public const string __DirectiveLocation = "__DirectiveLocation";
         }
     }
 }
+#pragma warning restore IDE1006 // Naming Styles

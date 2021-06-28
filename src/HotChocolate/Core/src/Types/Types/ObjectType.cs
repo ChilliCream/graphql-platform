@@ -2,10 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Types.FieldInitHelper;
+using static HotChocolate.Types.CompleteInterfacesHelper;
 using static HotChocolate.Utilities.ErrorHelper;
 
 #nullable enable
@@ -16,7 +19,7 @@ namespace HotChocolate.Types
         : NamedTypeBase<ObjectTypeDefinition>
         , IObjectType
     {
-        private readonly List<InterfaceType> _interfaces = new List<InterfaceType>();
+        private InterfaceType[] _implements = Array.Empty<InterfaceType>();
         private Action<IObjectTypeDescriptor>? _configure;
         private IsOfType? _isOfType;
 
@@ -38,9 +41,9 @@ namespace HotChocolate.Types
 
         ISyntaxNode? IHasSyntaxNode.SyntaxNode => SyntaxNode;
 
-        public IReadOnlyList<InterfaceType> Interfaces => _interfaces;
+        public IReadOnlyList<InterfaceType> Implements => _implements;
 
-        IReadOnlyList<IInterfaceType> IComplexOutputType.Interfaces => Interfaces;
+        IReadOnlyList<IInterfaceType> IComplexOutputType.Implements => Implements;
 
         public FieldCollection<ObjectField> Fields { get; private set; }
 
@@ -52,13 +55,13 @@ namespace HotChocolate.Types
             _isOfType!.Invoke(context, resolverResult);
 
         public bool IsImplementing(NameString interfaceTypeName) =>
-            _interfaces.Any(t => t.Name.Equals(interfaceTypeName));
+            _implements.Any(t => t.Name.Equals(interfaceTypeName));
 
         public bool IsImplementing(InterfaceType interfaceType) =>
-            _interfaces.IndexOf(interfaceType) != -1;
+            Array.IndexOf(_implements, interfaceType) != -1;
 
         public bool IsImplementing(IInterfaceType interfaceType) =>
-            interfaceType is InterfaceType i && _interfaces.IndexOf(i) != -1;
+            interfaceType is InterfaceType i && _implements.Contains(i);
 
         protected override ObjectTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
@@ -93,19 +96,40 @@ namespace HotChocolate.Types
                 _isOfType = definition.IsOfType;
                 SyntaxNode = definition.SyntaxNode;
 
+                // create fields with the specified sorting settings ...
                 var sortByName = context.DescriptorContext.Options.SortFieldsByName;
-                var fields = definition.Fields.Select(t => new ObjectField(t, sortByName)).ToList();
-                Fields = new FieldCollection<ObjectField>(fields, sortByName);
+                var fields = definition.Fields.Where(t => !t.Ignore).Select(
+                    t => new ObjectField(
+                        t,
+                        new FieldCoordinate(Name, t.Name),
+                        sortByName)).ToList();
+                Fields = FieldCollection<ObjectField>.From(fields, sortByName);
 
-                CompleteInterfacesHelper.Complete(
-                    context, definition, RuntimeType, _interfaces, this, SyntaxNode);
+                // resolve interface references
+                IReadOnlyList<ITypeReference> interfaces = definition.GetInterfaces();
 
-                CompleteIsOfType(context);
-                FieldInitHelper.CompleteFields(context, definition, Fields);
+                if (interfaces.Count > 0)
+                {
+                    var implements = new List<InterfaceType>();
+
+                    CompleteInterfaces(
+                        context,
+                        interfaces,
+                        RuntimeType,
+                        implements,
+                        this,
+                        SyntaxNode);
+
+                    _implements = implements.ToArray();
+                }
+
+                // complete the type resolver and fields
+                CompleteTypeResolver(context);
+                CompleteFields(context, definition, Fields);
             }
         }
 
-        private void CompleteIsOfType(ITypeCompletionContext context)
+        private void CompleteTypeResolver(ITypeCompletionContext context)
         {
             if (_isOfType is null)
             {
@@ -120,7 +144,7 @@ namespace HotChocolate.Types
                 }
                 else
                 {
-                    _isOfType = IsOfTypeWithClrType;
+                    _isOfType = IsOfTypeWithRuntimeType;
                 }
             }
         }
@@ -129,27 +153,21 @@ namespace HotChocolate.Types
             ITypeCompletionContext context,
             ObjectTypeDefinition definition)
         {
-            ObjectFieldDefinition[] invalidFields =
-                definition.Fields.Where(t => t.Type is null).ToArray();
+            var hasErrors = false;
 
-            foreach (ObjectFieldDefinition field in invalidFields)
+            foreach (ObjectFieldDefinition field in definition.Fields.Where(t => t.Type is null))
             {
+                hasErrors = true;
                 context.ReportError(ObjectType_UnableToInferOrResolveType(Name, this, field));
             }
 
-            return invalidFields.Length == 0;
+            return !hasErrors;
         }
 
-        private bool IsOfTypeWithClrType(
+        private bool IsOfTypeWithRuntimeType(
             IResolverContext context,
-            object? result)
-        {
-            if (result is null)
-            {
-                return true;
-            }
-            return RuntimeType.IsInstanceOfType(result);
-        }
+            object? result) =>
+            result is null || RuntimeType == result.GetType();
 
         private bool IsOfTypeWithName(
             IResolverContext context,

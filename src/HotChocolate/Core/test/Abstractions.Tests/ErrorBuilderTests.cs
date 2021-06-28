@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Xunit;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 
 namespace HotChocolate
 {
@@ -257,6 +258,42 @@ namespace HotChocolate
             Assert.Collection(error.Locations,
                 t => Assert.Equal(2, t.Line),
                 t => Assert.Equal(4, t.Line));
+        }
+
+        [Fact]
+        public void AddLocation_From_SyntaxNode()
+        {
+            // arrange
+            var syntaxNode = new StringValueNode(
+                new HotChocolate.Language.Location(1, 2, 3, 4), 
+                "abc", 
+                false);
+
+            // act
+            IError error = ErrorBuilder.New()
+                .SetMessage("bar")
+                .AddLocation(syntaxNode)
+                .Build();
+
+            // assert
+            Assert.Collection(error.Locations,
+                t => Assert.Equal(3, t.Line));
+        }
+
+        [Fact]
+        public void AddLocation_From_SyntaxNode_No_Location()
+        {
+            // arrange
+            var syntaxNode = new StringValueNode("abc");
+
+            // act
+            IError error = ErrorBuilder.New()
+                .SetMessage("bar")
+                .AddLocation(syntaxNode)
+                .Build();
+
+            // assert
+            Assert.Null(error.Locations);
         }
 
         [Fact]

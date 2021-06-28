@@ -21,5 +21,13 @@ namespace HotChocolate.StarWars
         public static IRequestExecutorBuilder AddStarWarsTypes(
             this IRequestExecutorBuilder builder) =>
             builder.ConfigureSchema(b => b.AddStarWarsTypes());
+
+        public static IRequestExecutorBuilder AddStarWars(
+            this IRequestExecutorBuilder builder) 
+        {
+            return builder
+                .AddStarWarsRepositories()
+                .AddStarWarsTypes();
+        }
     }
 }

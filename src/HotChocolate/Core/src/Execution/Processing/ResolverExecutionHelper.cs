@@ -9,18 +9,34 @@ namespace HotChocolate.Execution.Processing
         public static async Task ExecuteTasksAsync(
             IOperationContext operationContext)
         {
-            var proposedTaskCount = operationContext.Operation.ProposedTaskCount;
-            var tasks = new Task[proposedTaskCount];
-
-            for (var i = 0; i < proposedTaskCount; i++)
+            if (operationContext.Execution.TaskBacklog.IsEmpty)
             {
-                tasks[i] = StartExecutionTaskAsync(
+                return;
+            }
+
+            var proposedTaskCount = operationContext.Operation.ProposedTaskCount;
+
+            if (proposedTaskCount == 1)
+            {
+                await ExecuteResolversAsync(
                     operationContext.Execution,
                     HandleError,
                     operationContext.RequestAborted);
             }
+            else
+            {
+                var tasks = new Task[proposedTaskCount];
 
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+                for (var i = 0; i < proposedTaskCount; i++)
+                {
+                    tasks[i] = ExecuteResolversAsync(
+                        operationContext.Execution,
+                        HandleError,
+                        operationContext.RequestAborted);
+                }
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+            }
 
             void HandleError(Exception exception)
             {
@@ -37,13 +53,7 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        private static Task StartExecutionTaskAsync(
-            IExecutionContext executionContext,
-            Action<Exception> handleError,
-            CancellationToken cancellationToken) =>
-            Task.Run(() => ExecuteResolvers(executionContext, handleError, cancellationToken));
-
-        private static async Task ExecuteResolvers(
+        private static async Task ExecuteResolversAsync(
             IExecutionContext executionContext,
             Action<Exception> handleError,
             CancellationToken cancellationToken)
@@ -63,7 +73,7 @@ namespace HotChocolate.Execution.Processing
                         .WaitForTaskAsync(cancellationToken)
                         .ConfigureAwait(false);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     if (!cancellationToken.IsCancellationRequested)
                     {

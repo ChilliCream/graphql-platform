@@ -24,5 +24,22 @@ namespace HotChocolate.Data.Projections
         /// </summary>
         /// <param name="provider">The projection provider type.</param>
         IProjectionConventionDescriptor Provider(Type provider);
+
+        /// <summary>
+        /// Add a extensions that is applied to <see cref="ProjectionProvider"/>
+        /// </summary>
+        /// <typeparam name="TExtension">The filter provider extension type.</typeparam>
+        IProjectionConventionDescriptor AddProviderExtension<TExtension>()
+            where TExtension : class, IProjectionProviderExtension;
+
+        /// <summary>
+        /// Add a extensions that is applied to <see cref="ProjectionProvider"/>
+        /// </summary>
+        /// <param name="provider">
+        /// The concrete filter provider extension that shall be used.
+        /// </param>
+        /// <typeparam name="TExtension">The filter provider extension type.</typeparam>
+        IProjectionConventionDescriptor AddProviderExtension<TExtension>(TExtension provider)
+            where TExtension : class, IProjectionProviderExtension;
     }
 }

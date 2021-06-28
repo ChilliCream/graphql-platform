@@ -1,0 +1,38 @@
+﻿{
+  "result": [
+    {
+      "Id": 1,
+      "Name": "Foo",
+      "Books": [
+        {
+          "Id": 1,
+          "AuthorId": 1,
+          "Title": "Foo1"
+        }
+      ]
+    },
+    {
+      "Id": 2,
+      "Name": "Bar",
+      "Books": [
+        {
+          "Id": 2,
+          "AuthorId": 2,
+          "Title": "Bar1"
+        }
+      ]
+    },
+    {
+      "Id": 3,
+      "Name": "Baz",
+      "Books": [
+        {
+          "Id": 3,
+          "AuthorId": 3,
+          "Title": "Baz1"
+        }
+      ]
+    }
+  ],
+  "executable": "SELECT \"a\".\"Id\", \"a\".\"Name\"\nFROM \"Authors\" AS \"a\""
+}

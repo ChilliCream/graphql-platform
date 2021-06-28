@@ -1,0 +1,19 @@
+﻿{
+  "data": {
+    "fooExecutable": {
+      "items": [
+        {
+          "bar": "a"
+        },
+        {
+          "bar": "b"
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": true,
+        "hasPreviousPage": false
+      },
+      "totalCount": 6
+    }
+  }
+}

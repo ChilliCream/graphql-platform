@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Resolvers.Expressions
 {
@@ -15,13 +16,11 @@ namespace HotChocolate.Resolvers.Expressions
             return await task.ConfigureAwait(false);
         }
 
-        public static async ValueTask<object> AwaitValueTaskHelper<T>(ValueTask<T> task)
-        {
-            return await task.ConfigureAwait(false);
-        }
+        public static async ValueTask<object> AwaitValueTaskHelper<T>(ValueTask<T> task) =>
+            await task.ConfigureAwait(false);
 
-        public static ValueTask<object> WrapResultHelper<T>(T result) =>
-            new ValueTask<object>(result);
+
+        public static ValueTask<object> WrapResultHelper<T>(T result) => new(result);
 
         [Obsolete]
         public static TContextData ResolveContextData<TContextData>(
@@ -29,7 +28,7 @@ namespace HotChocolate.Resolvers.Expressions
             string key,
             bool defaultIfNotExists)
         {
-            if (contextData.TryGetValue(key, out object value))
+            if (contextData.TryGetValue(key, out var value))
             {
                 if (value is null)
                 {
@@ -48,13 +47,14 @@ namespace HotChocolate.Resolvers.Expressions
 
             // TODO : resources
             throw new ArgumentException(
-                "The specified context key does not exist.");
+                ExpressionHelper_ResolveScopedContextData_KeyDoesNotExist);
         }
 
         public static TContextData GetGlobalState<TContextData>(
             IDictionary<string, object> contextData,
-            string key) =>
-            GetGlobalStateWithDefault<TContextData>(contextData, key, false, default);
+            string key,
+            bool defaultIfNotExists = false) =>
+            GetGlobalStateWithDefault<TContextData>(contextData, key, defaultIfNotExists, default);
 
         public static TContextData GetGlobalStateWithDefault<TContextData>(
             IDictionary<string, object> contextData,
@@ -62,7 +62,7 @@ namespace HotChocolate.Resolvers.Expressions
             bool hasDefaultValue,
             TContextData defaultValue)
         {
-            if (contextData.TryGetValue(key, out object value))
+            if (contextData.TryGetValue(key, out var value))
             {
                 if (value is null)
                 {
@@ -79,30 +79,19 @@ namespace HotChocolate.Resolvers.Expressions
                 return defaultValue;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                $"The specified key `{key}` does not exist on `context.ContextData`.");
+                string.Format(ExpressionHelper_GetGlobalStateWithDefault_NoDefaults, key));
         }
 
         public static SetState<TContextData> SetGlobalStateGeneric<TContextData>(
             IDictionary<string, object> contextData,
-            string key)
-        {
-            return new SetState<TContextData>(value =>
-            {
-                contextData[key] = value;
-            });
-        }
+            string key) =>
+            value => contextData[key] = value;
 
         public static SetState SetGlobalState(
             IDictionary<string, object> contextData,
-            string key)
-        {
-            return new SetState(value =>
-            {
-                contextData[key] = value;
-            });
-        }
+            string key) =>
+            value => contextData[key] = value;
 
         [Obsolete]
         public static TContextData ResolveScopedContextData<TContextData>(
@@ -110,7 +99,7 @@ namespace HotChocolate.Resolvers.Expressions
             string key,
             bool defaultIfNotExists)
         {
-            if (contextData.TryGetValue(key, out object value))
+            if (contextData.TryGetValue(key, out var value))
             {
                 if (value is null)
                 {
@@ -127,15 +116,14 @@ namespace HotChocolate.Resolvers.Expressions
                 return default;
             }
 
-            // TODO : resources
-            throw new ArgumentException(
-                "The specified context key does not exist.");
+            throw new ArgumentException(ExpressionHelper_ResolveScopedContextData_KeyDoesNotExist);
         }
 
         public static TContextData GetScopedState<TContextData>(
             IReadOnlyDictionary<string, object> contextData,
-            string key) =>
-            GetScopedStateWithDefault<TContextData>(contextData, key, false, default);
+            string key,
+            bool defaultIfNotExists = false) =>
+            GetScopedStateWithDefault<TContextData>(contextData, key, defaultIfNotExists, default);
 
         public static TContextData GetScopedStateWithDefault<TContextData>(
             IReadOnlyDictionary<string, object> contextData,
@@ -143,7 +131,7 @@ namespace HotChocolate.Resolvers.Expressions
             bool hasDefaultValue,
             TContextData defaultValue)
         {
-            if (contextData.TryGetValue(key, out object value))
+            if (contextData.TryGetValue(key, out var value))
             {
                 if (value is null)
                 {
@@ -160,49 +148,28 @@ namespace HotChocolate.Resolvers.Expressions
                 return defaultValue;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                $"The specified key `{key}` does not exist on `context.ScopedContextData`.");
+                string.Format(ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue, key));
         }
 
         public static SetState<TContextData> SetScopedStateGeneric<TContextData>(
             IResolverContext context,
-            string key)
-        {
-            return new SetState<TContextData>(value =>
-            {
-                context.ScopedContextData = context.ScopedContextData.SetItem(key, value);
-            });
-        }
+            string key) =>
+            value => context.ScopedContextData = context.ScopedContextData.SetItem(key, value);
 
         public static SetState SetScopedState(
             IResolverContext context,
-            string key)
-        {
-            return new SetState(value =>
-            {
-                context.ScopedContextData = context.ScopedContextData.SetItem(key, value);
-            });
-        }
+            string key) =>
+            value => context.ScopedContextData = context.ScopedContextData.SetItem(key, value);
 
         public static SetState<TContextData> SetLocalStateGeneric<TContextData>(
             IResolverContext context,
-            string key)
-        {
-            return new SetState<TContextData>(value =>
-            {
-                context.LocalContextData = context.LocalContextData.SetItem(key, value);
-            });
-        }
+            string key) =>
+            value => context.LocalContextData = context.LocalContextData.SetItem(key, value);
 
         public static SetState SetLocalState(
             IResolverContext context,
-            string key)
-        {
-            return new SetState(value =>
-            {
-                context.LocalContextData = context.LocalContextData.SetItem(key, value);
-            });
-        }
+            string key) =>
+            value => context.LocalContextData = context.LocalContextData.SetItem(key, value);
     }
 }

@@ -9,9 +9,9 @@ authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
 ---
 
-Today we are releasing _Hot Chocolate_ version 10.3.0. Although the version number sounds like a small change, it is quite a nice update with lots of new features making _Hot Chocolate_ the most versatile and feature rich GraphQL server on the .NET platform.
+Today we are releasing Hot Chocolate version 10.3.0. Although the version number sounds like a small change, it is quite a nice update with lots of new features making Hot Chocolate the most versatile and feature rich GraphQL server on the .NET platform.
 
-We are now working for a long time on version 11. Work on that has begun long before version 10.0.0 was finished. As we progressed with version 11, we felt that we could push some nice productivity features down to the version 10 branch and make users of _Hot Chocolate_ much happier.
+We are now working for a long time on version 11. Work on that has begun long before version 10.0.0 was finished. As we progressed with version 11, we felt that we could push some nice productivity features down to the version 10 branch and make users of Hot Chocolate much happier.
 
 This decision culminated in version 10.3.0 and it really feels like a major update with an array of new possibilities that will make you smile.
 
@@ -21,7 +21,7 @@ We now really can for the first time build a fully-fledged GraphQL server just w
 
 > If you want to see how the Star Wars example looks like with the new 10.3.0 and _pure code-first_ then head over [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/PureCodeFirst).
 
-Let`s dive into the features and explore what we can do with the newest version of _Hot Chocolate_.
+Let`s dive into the features and explore what we can do with the newest version of Hot Chocolate.
 
 ## Nullability
 
@@ -70,7 +70,7 @@ public class Query
 }
 ```
 
-When activated either setting the _MSBuild_ property `<Nullable>enable</Nullable>` or by adding a preprocessor directive `#nullable enable` _Hot Chocolate_ will automatically infer the nullability of GraphQL types from the corresponding .NET types.
+When activated either setting the _MSBuild_ property `<Nullable>enable</Nullable>` or by adding a preprocessor directive `#nullable enable` Hot Chocolate will automatically infer the nullability of GraphQL types from the corresponding .NET types.
 
 Hence the above class is now correctly inferred and translates nicely into GraphQL types.
 
@@ -349,7 +349,7 @@ Object type extensions let us divide our GraphQL types into multiple .NET types.
 
 ## Interfaces
 
-_Hot Chocolate_ is able to infer interface types from C# APIs since version 10.0.0. But now with the new capabilities of _Hot Chocolate_ in 10.3.0 this becomes a really great feature.
+Hot Chocolate is able to infer interface types from C# APIs since version 10.0.0. But now with the new capabilities of Hot Chocolate in 10.3.0 this becomes a really great feature.
 
 ```csharp
 public class Query
@@ -564,7 +564,7 @@ The subscribe resolvers accepts `IAsyncEnumerable<T>`, `IEnumerable<T>` and `IOb
 
 ## Wrapping it up
 
-With _Hot Chocolate_ 10.3.0 we focused on productivity features that have a minor impact on the overall system. This means that we enable a whole bunch of new scenarios with the current _Hot Chocolate_ server generation.
+With Hot Chocolate 10.3.0 we focused on productivity features that have a minor impact on the overall system. This means that we enable a whole bunch of new scenarios with the current Hot Chocolate server generation.
 
 With version 11 we will take this to a whole new level with a completely new execution engine that is much more efficient and allows for completely new features like `@defer`.
 
@@ -572,11 +572,11 @@ Also, version 11 will introduce new tools and libraries to the platform like _Ba
 
 We have a lot more in our pipeline and are totally obsessed with GraphQL and .NET.
 
-I hope you will enjoy 10.3.0 as much as I already do and join the _Hot Chocolate_ fold.
+I hope you will enjoy 10.3.0 as much as I already do and join the Hot Chocolate fold.
 
 BTW, head over to our _pure code-first_ [Star Wars example](https://github.com/ChilliCream/hotchocolate-examples/tree/master/PureCodeFirst).
 
-If you want to get into contact with us head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and join our community.
+If you want to get into contact with us head over to our slack channel and join our community.
 
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

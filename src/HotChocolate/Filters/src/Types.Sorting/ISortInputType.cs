@@ -5,6 +5,7 @@ namespace HotChocolate.Types.Sorting
     /// <summary>
     /// Specifies a sort input type.
     /// </summary>
+    [Obsolete("Use HotChocolate.Data.")]
     public interface ISortInputType
         : INamedInputType
     {

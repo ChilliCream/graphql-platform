@@ -1,10 +1,12 @@
+using System;
+
 namespace HotChocolate.Types.Sorting
 {
-    internal sealed class SortOperationField
-        : InputField
+    [Obsolete("Use HotChocolate.Data.")]
+    internal sealed class SortOperationField : InputField
     {
         public SortOperationField(SortOperationDefintion definition)
-            : base(definition)
+            : base(definition, default)
         {
             Operation = definition.Operation;
         }

@@ -1557,7 +1557,7 @@ namespace HotChocolate
                         {
                             ObjectTypeDescriptor
                                 .From(c.DescriptorContext, def)
-                                .Name(c.ContextData["name"].ToString());
+                                .Name(c.ContextData["name"]?.ToString());
                         }
                     }))
                 .Create()
@@ -2169,10 +2169,10 @@ namespace HotChocolate
                 return new MockConventionDefinition();
             }
 
-            protected internal override void OnComplete(IConventionContext context)
+            protected internal override void Complete(IConventionContext context)
             {
                 IsExtended = Definition.IsExtended;
-                base.OnComplete(context);
+                base.Complete(context);
             }
         }
 

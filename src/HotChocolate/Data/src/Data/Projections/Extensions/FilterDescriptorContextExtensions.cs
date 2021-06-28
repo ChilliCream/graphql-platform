@@ -1,8 +1,9 @@
 using System;
 using HotChocolate.Configuration;
+using HotChocolate.Data.Projections;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.Data.Projections
+namespace HotChocolate.Data
 {
     public static class ProjectionDescriptorContextExtensions
     {

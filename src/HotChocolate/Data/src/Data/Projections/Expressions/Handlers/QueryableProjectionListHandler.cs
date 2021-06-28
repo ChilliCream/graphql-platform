@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using System.Reflection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 
@@ -10,7 +11,7 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
         : QueryableProjectionHandlerBase
     {
         public override bool CanHandle(ISelection selection) =>
-            selection.Field.Member is {} &&
+            selection.Field.Member is { } &&
             selection.Field.Type is ListType ||
             selection.Field.Type is NonNullType nonNullType &&
             nonNullType.InnerType() is ListType;
@@ -33,6 +34,12 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
             [NotNullWhen(true)] out ISelectionVisitorAction? action)
         {
             IObjectField field = selection.Field;
+
+            if (!(field.Member is PropertyInfo { CanWrite: true }))
+            {
+                action = SelectionVisitor.Skip;
+                return true;
+            }
 
             if (field.RuntimeType is null)
             {
@@ -90,8 +97,9 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
                 context.PopInstance(),
                 type);
 
-            parentScope.Level.Peek().Enqueue(
-                Expression.Bind(field.Member, select));
+            parentScope.Level.Peek()
+                .Enqueue(
+                    Expression.Bind(field.Member, select));
 
             action = SelectionVisitor.Continue;
             return true;

@@ -6,6 +6,7 @@ using HotChocolate.Types.Filters.Extensions;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class ArrayFilterFieldDescriptor
         : FilterFieldDescriptorBase
         , IArrayFilterFieldDescriptor

@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Data;
 using HotChocolate.Data.Filters;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
@@ -138,9 +139,14 @@ namespace HotChocolate.Types
                 .OnBeforeCreate(
                     (c, definition) =>
                     {
-                        Type? argumentType = filterType;
+                        IFilterConvention convention = c.GetFilterConvention(scope);
+                        ITypeReference argumentTypeReference;
 
-                        if (argumentType is null)
+                        if (filterTypeInstance is not null)
+                        {
+                            argumentTypeReference = TypeReference.Create(filterTypeInstance, scope);
+                        }
+                        else if (filterType is null)
                         {
                             if (definition.ResultType is null ||
                                 definition.ResultType == typeof(object) ||
@@ -153,30 +159,21 @@ namespace HotChocolate.Types
                                     nameof(descriptor));
                             }
 
-                            argumentType = typeof(FilterInputType<>)
-                                .MakeGenericType(typeInfo.NamedType);
+                            argumentTypeReference = convention.GetFieldType(typeInfo.NamedType);
                         }
-
-                        ITypeReference argumentTypeReference = filterTypeInstance is null
-                            ? (ITypeReference)c.TypeInspector.GetTypeRef(
-                                argumentType,
-                                TypeContext.Input,
-                                scope)
-                            : TypeReference.Create(filterTypeInstance, scope);
-
-                        if (argumentType == typeof(object))
+                        else
                         {
-                            throw FilterObjectFieldDescriptorExtensions_CannotInfer();
+                            argumentTypeReference = c.TypeInspector.GetTypeRef(
+                                filterType,
+                                TypeContext.Input,
+                                scope);
                         }
 
                         var argumentDefinition = new ArgumentDefinition
                         {
-                            Name = argumentPlaceholder,
-                            Type = c.TypeInspector.GetTypeRef(
-                                argumentType,
-                                TypeContext.Input,
-                                scope)
+                            Name = argumentPlaceholder, Type = argumentTypeReference
                         };
+
                         definition.Arguments.Add(argumentDefinition);
 
                         definition.Configurations.Add(
@@ -184,7 +181,7 @@ namespace HotChocolate.Types
                                 .New<ObjectFieldDefinition>()
                                 .Definition(definition)
                                 .Configure(
-                                    (context, defintion) =>
+                                    (context, definition) =>
                                         CompileMiddleware(
                                             context,
                                             definition,
@@ -195,12 +192,12 @@ namespace HotChocolate.Types
                                 .DependsOn(argumentTypeReference, true)
                                 .Build());
 
-                        definition.Configurations.Add(
+                        argumentDefinition.Configurations.Add(
                             LazyTypeConfigurationBuilder
-                                .New<ObjectFieldDefinition>()
-                                .Definition(definition)
+                                .New<ArgumentDefinition>()
+                                .Definition(argumentDefinition)
                                 .Configure(
-                                    (context, defintion) =>
+                                    (context, argumentDefinition) =>
                                         argumentDefinition.Name =
                                             context.GetFilterConvention(scope).GetArgumentName())
                                 .On(ApplyConfigurationOn.Naming)
@@ -224,13 +221,16 @@ namespace HotChocolate.Types
             convention.ConfigureField(fieldDescriptor);
 
             MethodInfo factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
-            var middleware = (FieldMiddleware)factory.Invoke(null, new object[] { convention })!;
+            var middleware = (FieldMiddleware)factory.Invoke(null,
+                new object[]
+                {
+                    convention
+                })!;
             var index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
         }
 
-        private static FieldMiddleware CreateMiddleware<TEntity>(
-            IFilterConvention convention) =>
+        private static FieldMiddleware CreateMiddleware<TEntity>(IFilterConvention convention) =>
             convention.CreateExecutor<TEntity>();
     }
 }

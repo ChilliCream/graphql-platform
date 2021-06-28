@@ -2,6 +2,7 @@ using System;
 using Snapshooter.Xunit;
 using Xunit;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Stitching.Merge
 {
@@ -417,7 +418,7 @@ namespace HotChocolate.Stitching.Merge
                 Utf8GraphQLParser.Parse(extensions));
 
             // assert
-            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+            merged.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -435,7 +436,7 @@ namespace HotChocolate.Stitching.Merge
                 Utf8GraphQLParser.Parse(extensions));
 
             // assert
-            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+            merged.Print().MatchSnapshot();
         }
 
         [Fact]

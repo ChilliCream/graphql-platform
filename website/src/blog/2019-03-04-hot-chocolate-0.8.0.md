@@ -14,7 +14,7 @@ Today we are releasing Hot Chocolate version 8 (0.8.0) which mainly focused on s
 
 Since, my last blog post we were heavily at work ironing out bugs and making schema stitching easier.
 
-Now, with the release finished, schema stitching with ASP.Net core has become super easy and feels quite nice to use.
+Now, with the release finished, schema stitching with ASP.NET core has become super easy and feels quite nice to use.
 
 Head over to our new documentation for [schema stitching](https://hotchocolate.io/docs/stitching).
 
@@ -28,9 +28,9 @@ Also, with version 8 we have invested some time to smooth out the `@authorize`-d
 
 The `@authorize`-directive does now mirror almost the behavior of the authorize directive.
 
-In contrast to the ASP.Net attribute we can specify the directive on field definitions and thereby have a fine-grained control over what data we want to give access to.
+In contrast to the ASP.NET attribute we can specify the directive on field definitions and thereby have a fine-grained control over what data we want to give access to.
 
-If you are using ASP.Net core then you can use authorization-policies with your `@authorize`-directive giving you even more control over your data.
+If you are using ASP.NET core then you can use authorization-policies with your `@authorize`-directive giving you even more control over your data.
 
 Head over to our [authorization documentation](https://hotchocolate.io/docs/authorization) to learn more.
 
@@ -54,7 +54,7 @@ On top of the new type system we will add new filter types that will allow you t
 
 ### Advanced Relay Support
 
-With version 9 creating relay compliant schemas will be as easy as eating pie. You will no longer be bothered handling schema unique identifiers, since _Hot Chocolate_ will do all of that for you. Also, the node field on the `Query` type will be automatically integrated. So, what we are doing here is removing boilerplate code for you so that you can focus on implementing a great API without having to worry about the relay server spec details.
+With version 9 creating relay compliant schemas will be as easy as eating pie. You will no longer be bothered handling schema unique identifiers, since Hot Chocolate will do all of that for you. Also, the node field on the `Query` type will be automatically integrated. So, what we are doing here is removing boilerplate code for you so that you can focus on implementing a great API without having to worry about the relay server spec details.
 
 ### Subscription Stitching
 
@@ -66,7 +66,7 @@ With the schema stitching version 8 you have to handle the node field on your ow
 
 ### Hot Chocolate UI
 
-GraphQL is really awesome, but we are really not happy with the tooling situation. As of now we support GraphiQL, Playground and Voyager for _Hot Chocolate_, but none of these is a complete solution.
+GraphQL is really awesome, but we are really not happy with the tooling situation. As of now we support GraphiQL, Playground and Voyager for Hot Chocolate, but none of these is a complete solution.
 
 We have started some time ago to create a new developer tool for GraphQL that will replace all of these. We did not base our new UI on GraphiQL since we want to achieve more and create something unique. Look for instance at the tooling around rest, with _Postman_ developers have quite a good tool that enables them to do a lot.
 
@@ -102,7 +102,7 @@ We are planning around four to six weeks for version 9 with the first previews c
 
 We will really start hammering out the details on version 9 in the next three weeks.
 
-If you have ideas or suggestions pleas head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) and join the discussion.
+If you have ideas or suggestions pleas head over to our slack channel and join the discussion.
 
 [hot chocolate]: https://hotchocolate.io
 [hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

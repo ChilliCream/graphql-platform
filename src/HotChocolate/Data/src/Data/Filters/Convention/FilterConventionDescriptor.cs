@@ -20,8 +20,7 @@ namespace HotChocolate.Data.Filters
 
         protected IDescriptorContext Context { get; }
 
-        protected FilterConventionDefinition Definition { get; } =
-            new FilterConventionDefinition();
+        protected FilterConventionDefinition Definition { get; } = new();
 
         public FilterConventionDefinition CreateDefinition()
         {
@@ -74,7 +73,7 @@ namespace HotChocolate.Data.Filters
                     nameof(filterType));
             }
 
-            Definition.Bindings.Add(runtimeType, filterType);
+            Definition.Bindings[runtimeType] = filterType;
             return this;
         }
 

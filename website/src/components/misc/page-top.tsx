@@ -1,32 +1,44 @@
-import React, { createRef, FunctionComponent, useCallback } from "react";
+import React, { FunctionComponent, useEffect, useRef } from "react";
 import styled from "styled-components";
-import { useScroll } from "./useScroll";
-
 import ArrowUpIconSvg from "../../images/arrow-up.svg";
+import { useObservable } from "../../state";
 
-export const PageTop: FunctionComponent = () => {
-  const ref = createRef<HTMLButtonElement>();
+export const PageTop: FunctionComponent<{ onTopScroll: () => void }> = ({
+  onTopScroll,
+}) => {
+  const ref = useRef<HTMLButtonElement>(null);
 
-  const handleClick = useCallback(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
-  useScroll((top) => {
-    ref.current!.style.display = top > 60 ? "initial" : "none";
+  const showButton$ = useObservable((state) => {
+    return state.common.yScrollPosition > 60;
   });
 
+  useEffect(() => {
+    const classes = ref.current?.className ?? "";
+
+    const subscription = showButton$.subscribe((showButton) => {
+      if (ref.current) {
+        ref.current.className = classes + (showButton ? " show" : "");
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [showButton$]);
+
   return (
-    <JumpToTop ref={ref} onClick={handleClick}>
+    <JumpToTop ref={ref} onClick={onTopScroll}>
       <ArrowUpIconSvg />
     </JumpToTop>
   );
 };
 
 const JumpToTop = styled.button`
+  display: none;
   position: fixed;
   right: 50px;
   bottom: 50px;
-  z-index: 20;
+  z-index: 29;
   display: none;
   border-radius: 50%;
   padding: 8px;
@@ -36,6 +48,10 @@ const JumpToTop = styled.button`
   opacity: 0.6;
   box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
   transition: opacity 0.2s ease-in-out;
+
+  &.show {
+    display: initial;
+  }
 
   &:hover {
     opacity: 1;

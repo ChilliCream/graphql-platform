@@ -130,9 +130,9 @@ namespace HotChocolate.Data
         {
             // arrange
             var convention = new MockFilterConvention(
-                x => x.BindRuntimeType<int, ComparableOperationFilterInput<int>>());
+                x => x.BindRuntimeType<int, ComparableOperationFilterInputType<int>>());
             var extension = new FilterConventionExtension(
-                x => x.BindRuntimeType<double, ComparableOperationFilterInput<double>>());
+                x => x.BindRuntimeType<double, ComparableOperationFilterInputType<double>>());
             var context = new ConventionContext(
                 "Scope",
                 new ServiceCollection().BuildServiceProvider(),
@@ -155,9 +155,9 @@ namespace HotChocolate.Data
         {
             // arrange
             var convention = new MockFilterConvention(
-                x => x.Configure<ComparableOperationFilterInput<int>>(d => d.Name("Foo")));
+                x => x.Configure<ComparableOperationFilterInputType<int>>(d => d.Name("Foo")));
             var extension = new FilterConventionExtension(
-                x => x.Configure<ComparableOperationFilterInput<int>>(d => d.Name("Bar")));
+                x => x.Configure<ComparableOperationFilterInputType<int>>(d => d.Name("Bar")));
             var context = new ConventionContext(
                 "Scope",
                 new ServiceCollection().BuildServiceProvider(),
@@ -181,9 +181,9 @@ namespace HotChocolate.Data
         {
             // arrange
             var convention = new MockFilterConvention(
-                x => x.Configure<ComparableOperationFilterInput<int>>(d => d.Name("Foo")));
+                x => x.Configure<ComparableOperationFilterInputType<int>>(d => d.Name("Foo")));
             var extension = new FilterConventionExtension(
-                x => x.Configure<ComparableOperationFilterInput<double>>(d => d.Name("Bar")));
+                x => x.Configure<ComparableOperationFilterInputType<double>>(d => d.Name("Bar")));
             var context = new ConventionContext(
                 "Scope",
                 new ServiceCollection().BuildServiceProvider(),

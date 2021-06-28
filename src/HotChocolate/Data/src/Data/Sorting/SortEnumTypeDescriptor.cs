@@ -19,6 +19,7 @@ namespace HotChocolate.Data.Sorting
         {
             Definition.Name = context.Naming.GetTypeName(clrType, TypeKind.Enum);
             Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Enum);
+            Definition.EntityType = clrType;
             Definition.RuntimeType = typeof(object);
             Definition.Values.BindingBehavior = context.Options.DefaultBindingBehavior;
             Definition.Scope = scope;
@@ -41,12 +42,13 @@ namespace HotChocolate.Data.Sorting
         protected override void OnCreateDefinition(
             SortEnumTypeDefinition definition)
         {
-            if (Definition.RuntimeType is { })
+            if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
             {
                 Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.RuntimeType);
+                Definition.AttributesAreApplied = true;
             }
 
             var values = Values.Select(t => t.CreateDefinition())

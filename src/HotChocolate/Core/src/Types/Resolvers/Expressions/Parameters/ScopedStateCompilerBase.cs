@@ -2,6 +2,8 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
+#nullable enable
+
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
     internal abstract class ScopedStateCompilerBase<T>
@@ -13,7 +15,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             ParameterInfo parameter,
             Type sourceType)
         {
-            string explicitKey = GetKey(parameter);
+            var explicitKey = GetKey(parameter);
 
             ConstantExpression key =
                 explicitKey is null
@@ -28,6 +30,6 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             ParameterInfo parameter,
             ConstantExpression key);
 
-        protected abstract string GetKey(ParameterInfo parameter);
+        protected abstract string? GetKey(ParameterInfo parameter);
     }
 }

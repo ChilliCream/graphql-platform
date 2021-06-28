@@ -1,0 +1,29 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barBool": null
+        }
+      },
+      {
+        "foo": null
+      },
+      {
+        "foo": {
+          "barBool": false
+        }
+      },
+      {
+        "foo": {
+          "barBool": false
+        }
+      },
+      {
+        "foo": {
+          "barBool": true
+        }
+      }
+    ]
+  }
+}

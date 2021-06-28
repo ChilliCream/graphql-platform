@@ -1,5 +1,0 @@
-﻿[
-  "HotChocolate.DataLoader.IDataLoaderRegistry",
-  "HotChocolate.Execution.IBatchOperation",
-  "HotChocolate.Integration.DataLoader.ITestDataLoader"
-]

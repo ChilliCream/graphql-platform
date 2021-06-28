@@ -6,7 +6,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
     public enum TypeDependencyKind
     {
         /// <summary>
-        /// The dependency instance does not be completed.
+        /// The dependency instance does not need to be completed.
         /// </summary>
         Default,
 

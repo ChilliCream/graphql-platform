@@ -1,0 +1,12 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "fooNested": null
+      },
+      {
+        "fooNested": []
+      }
+    ]
+  }
+}
