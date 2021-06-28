@@ -15,8 +15,8 @@ namespace HotChocolate
         public async Task DescriptionsAreCorrectlyRead()
         {
             // arrange
-            string source = FileResource.Open("schema_with_multiline_descriptions.graphql");
-            string query = FileResource.Open("IntrospectionQuery.graphql");
+            var source = FileResource.Open("schema_with_multiline_descriptions.graphql");
+            var query = FileResource.Open("IntrospectionQuery.graphql");
 
             // act
             ISchema schema = Schema.Create(
@@ -24,7 +24,8 @@ namespace HotChocolate
                 c =>
                 {
                     c.Options.StrictValidation = false;
-                    c.Use(next => context => next(context));
+                    c.Options.SortFieldsByName = true;
+                    c.Use(next => next);
                 });
 
             // assert
