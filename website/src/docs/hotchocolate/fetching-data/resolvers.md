@@ -256,20 +256,13 @@ We can access all registered services in our resolvers.
 Let's assume we have created a `UserService` and registered it as a service.
 
 ```csharp
-public class UserService
-{
-    public List<User> GetUsers()
-    {
-        // Omitted code for brevity
-    }
-}
-
 public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
+        services.AddSingleton<UserService>()
+  
         services
-            .AddSingleton<UserService>()
             .AddGraphQLServer()
             .AddQueryType<Query>();
     }
