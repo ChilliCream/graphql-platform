@@ -2,7 +2,7 @@
   query: PetQuery
 }
 
-interface Canina {
+interface Canina implements Pet {
   name: String
 }
 
