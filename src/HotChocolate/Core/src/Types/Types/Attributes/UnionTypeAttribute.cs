@@ -10,7 +10,7 @@ namespace HotChocolate.Types
         AttributeTargets.Interface)]
     public sealed class UnionTypeAttribute
         : UnionTypeDescriptorAttribute
-        , IInheritableAttribute
+        , ITypeAttribute
     {
         public UnionTypeAttribute(string? name = null)
         {
@@ -26,6 +26,10 @@ namespace HotChocolate.Types
         /// Defines if this attribute is inherited. The default is <c>false</c>.
         /// </summary>
         public bool Inherited { get; set; }
+
+        TypeKind ITypeAttribute.Kind => TypeKind.Union;
+
+        bool ITypeAttribute.IsTypeExtension => false;
 
         public override void OnConfigure(
             IDescriptorContext context,

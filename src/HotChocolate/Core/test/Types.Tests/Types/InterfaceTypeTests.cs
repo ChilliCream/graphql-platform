@@ -170,7 +170,8 @@ namespace HotChocolate.Types
             // arrange
             // act
             InterfaceType<IFoo> fooType = CreateType(
-                new InterfaceType<IFoo>(t => {
+                new InterfaceType<IFoo>(t =>
+                {
                     t.Ignore(p => p.Bar);
                     t.Field(p => p.Bar).Ignore(false);
                 }),
@@ -232,8 +233,8 @@ namespace HotChocolate.Types
                     .Directive("foo")
                     .Field(f => f.Bar)
                     .Directive("foo")),
-                    b => b.AddDirectiveType<FooDirectiveType>()
-                        .ModifyOptions(o => o.StrictValidation = false));
+                b => b.AddDirectiveType<FooDirectiveType>()
+                    .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -250,8 +251,8 @@ namespace HotChocolate.Types
                     .Directive(new NameString("foo"))
                     .Field(f => f.Bar)
                     .Directive(new NameString("foo"))),
-                    b => b.AddDirectiveType<FooDirectiveType>()
-                        .ModifyOptions(o => o.StrictValidation = false));
+                b => b.AddDirectiveType<FooDirectiveType>()
+                    .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -268,8 +269,8 @@ namespace HotChocolate.Types
                     .Directive(new DirectiveNode("foo"))
                     .Field(f => f.Bar)
                     .Directive(new DirectiveNode("foo"))),
-                    b => b.AddDirectiveType<FooDirectiveType>()
-                        .ModifyOptions(o => o.StrictValidation = false));
+                b => b.AddDirectiveType<FooDirectiveType>()
+                    .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -300,9 +301,9 @@ namespace HotChocolate.Types
             // arrange
             // act
             InterfaceType<IFoo> fooType = CreateType(new InterfaceType<IFoo>(d => d
-                .Directive<FooDirective>()
-                .Field(f => f.Bar)
-                .Directive<FooDirective>()),
+                    .Directive<FooDirective>()
+                    .Field(f => f.Bar)
+                    .Directive<FooDirective>()),
                 b => b.AddDirectiveType<FooDirectiveType>()
                     .ModifyOptions(o => o.StrictValidation = false));
 
@@ -317,11 +318,11 @@ namespace HotChocolate.Types
             // arrange
             // act
             InterfaceType fooType = CreateType(new InterfaceType(d => d
-                .Name("FooInt")
-                .Directive("foo")
-                .Field("id")
-                .Type<StringType>()
-                .Directive("foo")),
+                    .Name("FooInt")
+                    .Directive("foo")
+                    .Field("id")
+                    .Type<StringType>()
+                    .Directive("foo")),
                 b => b.AddDirectiveType<FooDirectiveType>()
                     .ModifyOptions(o => o.StrictValidation = false));
 
@@ -336,11 +337,11 @@ namespace HotChocolate.Types
             // arrange
             // act
             InterfaceType fooType = CreateType(new InterfaceType(d => d
-                .Name("FooInt")
-                .Directive(new NameString("foo"))
-                .Field("bar")
-                .Type<StringType>()
-                .Directive(new NameString("foo"))),
+                    .Name("FooInt")
+                    .Directive(new NameString("foo"))
+                    .Field("bar")
+                    .Type<StringType>()
+                    .Directive(new NameString("foo"))),
                 b => b.AddDirectiveType<FooDirectiveType>()
                     .ModifyOptions(o => o.StrictValidation = false));
 
@@ -355,11 +356,11 @@ namespace HotChocolate.Types
             // arrange
             // act
             InterfaceType fooType = CreateType(new InterfaceType(d => d
-                .Name("FooInt")
-                .Directive(new DirectiveNode("foo"))
-                .Field("id")
-                .Type<StringType>()
-                .Directive(new DirectiveNode("foo"))),
+                    .Name("FooInt")
+                    .Directive(new DirectiveNode("foo"))
+                    .Field("id")
+                    .Type<StringType>()
+                    .Directive(new DirectiveNode("foo"))),
                 b => b.AddDirectiveType<FooDirectiveType>()
                     .ModifyOptions(o => o.StrictValidation = false));
 
@@ -374,11 +375,11 @@ namespace HotChocolate.Types
             // arrange
             // act
             InterfaceType fooType = CreateType(new InterfaceType(d => d
-                .Name("FooInt")
-                .Directive(new FooDirective())
-                .Field("id")
-                .Type<StringType>()
-                .Directive(new FooDirective())),
+                    .Name("FooInt")
+                    .Directive(new FooDirective())
+                    .Field("id")
+                    .Type<StringType>()
+                    .Directive(new FooDirective())),
                 b => b.AddDirectiveType<FooDirectiveType>()
                     .ModifyOptions(o => o.StrictValidation = false));
 
@@ -393,11 +394,11 @@ namespace HotChocolate.Types
             // arrange
             // act
             InterfaceType fooType = CreateType(new InterfaceType(d => d
-                .Name("FooInt")
-                .Directive<FooDirective>()
-                .Field("id")
-                .Type<StringType>()
-                .Directive<FooDirective>()),
+                    .Name("FooInt")
+                    .Directive<FooDirective>()
+                    .Field("id")
+                    .Type<StringType>()
+                    .Directive<FooDirective>()),
                 b => b.AddDirectiveType<FooDirectiveType>()
                     .ModifyOptions(o => o.StrictValidation = false));
 
@@ -535,6 +536,18 @@ namespace HotChocolate.Types
                 .MatchSnapshot();
         }
 
+        [Fact]
+        public void AnnotationBased_Interface_Issue_3577_Inheritance_Control()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<PetQuery>()
+                .AddType<Canina>()
+                .AddType<Dog>()
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
         public interface IFoo
         {
             bool Bar { get; }
@@ -570,7 +583,9 @@ namespace HotChocolate.Types
             }
         }
 
-        public class FooDirective { }
+        public class FooDirective
+        {
+        }
 
         public class FooObsolete
         {
@@ -590,7 +605,7 @@ namespace HotChocolate.Types
         {
             public string Hello => "World!";
 
-            public IEnumerable<Fruit> GetFruits() => new Fruit[] {new Orange(), new Pineapple()};
+            public IEnumerable<Fruit> GetFruits() => new Fruit[] { new Orange(), new Pineapple() };
         }
 
         [InterfaceType]
@@ -607,6 +622,28 @@ namespace HotChocolate.Types
         public class Pineapple : Fruit
         {
             public string Shape { get; } = "Strange";
+        }
+
+        public class PetQuery
+        {
+            public Pet GetDog() => new Dog { Name = "Foo" };
+        }
+
+        [InterfaceType(Inherited = true)]
+        public class Pet
+        {
+            public string Name { get; set; }
+        }
+
+        public class Canina : Pet
+        {
+
+        }
+
+        [ObjectType]
+        public class Dog : Canina
+        {
+
         }
     }
 }

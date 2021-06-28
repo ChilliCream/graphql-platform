@@ -1,8 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+
+#nullable enable
 
 namespace HotChocolate.Configuration
 {
@@ -13,7 +18,7 @@ namespace HotChocolate.Configuration
         public static bool TryInferSchemaType(
             ITypeInspector typeInspector,
             ExtendedTypeReference unresolvedType,
-            out ExtendedTypeReference schemaType)
+            [NotNullWhen(true)] out ExtendedTypeReference? schemaType)
         {
             if (typeInspector is null)
             {
@@ -25,46 +30,47 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(unresolvedType));
             }
 
-            if (IsObjectTypeExtension(unresolvedType))
+            var typeInfo = new TypeInfo(unresolvedType);
+
+            if (IsObjectTypeExtension(typeInfo))
             {
                 schemaType = unresolvedType.With(
-                    type: typeInspector.GetType(
-                        typeof(ObjectTypeExtension<>).MakeGenericType(unresolvedType.Type.Type)));
+                    typeInspector.GetType(
+                        typeof(ObjectTypeExtension<>).MakeGenericType(typeInfo.RuntimeType)));
             }
-            else if (IsUnionType(unresolvedType))
+            else if (IsUnionType(typeInfo))
             {
                 schemaType = unresolvedType.With(
-                    type: typeInspector.GetType(
-                        typeof(UnionType<>).MakeGenericType(unresolvedType.Type.Type)));
+                    typeInspector.GetType(
+                        typeof(UnionType<>).MakeGenericType(typeInfo.RuntimeType)));
             }
-            else if (IsInterfaceType(unresolvedType))
+            else if (IsInterfaceType(typeInfo))
             {
                 schemaType = unresolvedType.With(
-                    type: typeInspector.GetType(
-                        typeof(InterfaceType<>).MakeGenericType(unresolvedType.Type.Type)));
+                    typeInspector.GetType(
+                        typeof(InterfaceType<>).MakeGenericType(typeInfo.RuntimeType)));
             }
-            else if (IsObjectType(unresolvedType))
+            else if (IsObjectType(typeInfo))
             {
                 schemaType = unresolvedType.With(
-                    type: typeInspector.GetType(
-                        typeof(ObjectType<>).MakeGenericType(unresolvedType.Type.Type)));
+                    typeInspector.GetType(
+                        typeof(ObjectType<>).MakeGenericType(typeInfo.RuntimeType)));
             }
-            else if (IsInputObjectType(unresolvedType))
+            else if (IsInputObjectType(typeInfo))
             {
                 schemaType = unresolvedType.With(
-                    type: typeInspector.GetType(
-                        typeof(InputObjectType<>).MakeGenericType(unresolvedType.Type.Type)));
+                    typeInspector.GetType(
+                        typeof(InputObjectType<>).MakeGenericType(typeInfo.RuntimeType)));
             }
-            else if (IsEnumType(unresolvedType))
+            else if (IsEnumType(typeInfo))
             {
                 schemaType = unresolvedType.With(
-                    type: typeInspector.GetType(
-                        typeof(EnumType<>).MakeGenericType(unresolvedType.Type.Type)));
+                    typeInspector.GetType(
+                        typeof(EnumType<>).MakeGenericType(typeInfo.RuntimeType)));
             }
-            else if (Scalars.TryGetScalar(unresolvedType.Type.Type, out Type scalarType))
+            else if (Scalars.TryGetScalar(unresolvedType.Type.Type, out Type? scalarType))
             {
-                schemaType = unresolvedType.With(
-                    type: typeInspector.GetType(scalarType));
+                schemaType = unresolvedType.With(typeInspector.GetType(scalarType));
             }
             else
             {
@@ -83,37 +89,39 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(unresolvedType));
             }
 
-            if (IsObjectTypeExtension(unresolvedType))
+            var typeInfo = new TypeInfo(unresolvedType);
+
+            if (IsObjectTypeExtension(typeInfo))
             {
                 kind = TypeKind.Object;
                 return true;
             }
 
-            if (IsUnionType(unresolvedType))
+            if (IsUnionType(typeInfo))
             {
                 kind = TypeKind.Union;
                 return true;
             }
 
-            if (IsInterfaceType(unresolvedType))
+            if (IsInterfaceType(typeInfo))
             {
                 kind = TypeKind.Interface;
                 return true;
             }
 
-            if (IsObjectType(unresolvedType))
+            if (IsObjectType(typeInfo))
             {
                 kind = TypeKind.Object;
                 return true;
             }
 
-            if (IsInputObjectType(unresolvedType))
+            if (IsInputObjectType(typeInfo))
             {
                 kind = TypeKind.InputObject;
                 return true;
             }
 
-            if (IsEnumType(unresolvedType))
+            if (IsEnumType(typeInfo))
             {
                 kind = TypeKind.Enum;
                 return true;
@@ -129,79 +137,110 @@ namespace HotChocolate.Configuration
             return false;
         }
 
-        private static bool IsObjectType(ExtendedTypeReference unresolvedType)
-        {
-            return (IsComplexType(unresolvedType)
-                || HasAttribute<ObjectTypeAttribute>(unresolvedType.Type.Type))
-                && unresolvedType.Context is TypeContext.Output or TypeContext.None;
-        }
+        private static bool IsObjectType(TypeInfo typeInfo)
+            => (typeInfo.Attribute is { Kind: TypeKind.Object, IsTypeExtension: false } ||
+                    typeInfo.Attribute is null && typeInfo.IsComplex) &&
+               typeInfo is { Context: TypeContext.Output or TypeContext.None };
 
-        private static bool IsObjectTypeExtension(ExtendedTypeReference unresolvedType) =>
-            HasAttribute<ExtendObjectTypeAttribute>(unresolvedType.Type.Type);
+        private static bool IsObjectTypeExtension(TypeInfo typeInfo)
+            => typeInfo.Attribute is { Kind: TypeKind.Object, IsTypeExtension: true };
 
-        private static bool IsUnionType(ExtendedTypeReference unresolvedType)
-        {
-            return HasAttribute<UnionTypeAttribute>(unresolvedType.Type.Type)
-                && unresolvedType.Context is TypeContext.Output or TypeContext.None;
-        }
+        private static bool IsUnionType(TypeInfo typeInfo)
+            => typeInfo.Attribute is { Kind: TypeKind.Object, IsTypeExtension: false } &&
+               typeInfo is { Context: TypeContext.Output or TypeContext.None };
 
-        private static bool IsInterfaceType(ExtendedTypeReference unresolvedType)
-        {
-            return (unresolvedType.Type.IsInterface
-                || HasAttribute<InterfaceTypeAttribute>(unresolvedType.Type.Type))
-                && unresolvedType.Context is TypeContext.Output or TypeContext.None;
-        }
+        private static bool IsInterfaceType(TypeInfo typeInfo)
+            => (typeInfo.Attribute is { Kind: TypeKind.Interface, IsTypeExtension: false } ||
+                    typeInfo.Attribute is null && typeInfo.IsInterface) &&
+               typeInfo is { Context: TypeContext.Output or TypeContext.None };
 
-        private static bool IsInputObjectType(ExtendedTypeReference unresolvedType)
-        {
-            return (IsComplexType(unresolvedType)
-                || HasAttribute<InputObjectTypeAttribute>(unresolvedType.Type.Type))
-                && !unresolvedType.Type.Type.IsAbstract
-                && unresolvedType.Context == TypeContext.Input;
-        }
+        private static bool IsInputObjectType(TypeInfo typeInfo)
+            => (typeInfo.Attribute is { Kind: TypeKind.InputObject, IsTypeExtension: false } ||
+                    typeInfo.Attribute is null && typeInfo.IsComplex) &&
+               typeInfo is { IsAbstract: false, Context: TypeContext.Input };
 
-        private static bool IsEnumType(ExtendedTypeReference unresolvedType)
-        {
-            return (unresolvedType.Type.Type.IsEnum
-                || HasAttribute<EnumTypeAttribute>(unresolvedType.Type.Type))
-                && IsPublic(unresolvedType);
-        }
+        private static bool IsEnumType(TypeInfo typeInfo)
+            => (typeInfo.Attribute is { Kind: TypeKind.Enum, IsTypeExtension: false } ||
+                typeInfo.Attribute is null && typeInfo.IsEnum) &&
+               typeInfo.IsPublic;
 
-        private static bool IsComplexType(ExtendedTypeReference unresolvedType)
+        private readonly ref struct TypeInfo
         {
-            var isComplexType =
-                unresolvedType.Type.Type.IsClass
-                    && IsPublic(unresolvedType)
+            public TypeInfo(ExtendedTypeReference typeReference)
+            {
+                RuntimeType = typeReference.Type.Type;
+                IsPublic = IsPublicInternal(typeReference);
+                IsComplex = IsComplexTypeInternal(typeReference, IsPublic);
+                IsInterface = RuntimeType.IsInterface;
+                IsAbstract = RuntimeType.IsAbstract;
+                IsEnum = RuntimeType.IsEnum;
+                Attribute = GetTypeAttributeInternal(typeReference);
+                Context = typeReference.Context;
+            }
+
+            public Type RuntimeType { get; }
+
+            public ITypeAttribute? Attribute { get; }
+
+            public bool IsInterface { get; }
+
+            public bool IsComplex { get; }
+
+            public bool IsAbstract { get; }
+
+            public bool IsEnum { get; }
+
+            public bool IsPublic { get; }
+
+            public TypeContext Context { get; }
+
+            private static ITypeAttribute? GetTypeAttributeInternal(
+                ExtendedTypeReference unresolvedType)
+            {
+                Type runtimeType = unresolvedType.Type.Type;
+
+                foreach (var attribute in
+                    runtimeType.GetCustomAttributes(typeof(DescriptorAttribute), false))
+                {
+                    if (attribute is ITypeAttribute typeAttribute)
+                    {
+                        return typeAttribute;
+                    }
+                }
+
+                foreach (var attribute in
+                    runtimeType.GetCustomAttributes(typeof(DescriptorAttribute), true))
+                {
+                    if (attribute is ITypeAttribute { Inherited: true } typeAttribute)
+                    {
+                        return typeAttribute;
+                    }
+                }
+
+                return null;
+            }
+
+            private static bool IsComplexTypeInternal(
+                ExtendedTypeReference unresolvedType,
+                bool isPublic)
+            {
+                var isComplexType =
+                    unresolvedType.Type.Type.IsClass
+                    && isPublic
                     && unresolvedType.Type.Type != typeof(string);
 
-            if (!isComplexType && unresolvedType.Type.IsGeneric)
-            {
-                Type typeDefinition = unresolvedType.Type.Definition;
-                return typeDefinition == _keyValuePair;
+                if (!isComplexType && unresolvedType.Type.IsGeneric)
+                {
+                    Type? typeDefinition = unresolvedType.Type.Definition;
+                    return typeDefinition == _keyValuePair;
+                }
+
+                return isComplexType;
             }
 
-            return isComplexType;
-        }
-
-        private static bool IsPublic(ExtendedTypeReference unresolvedType)
-        {
-            return unresolvedType.Type.Type.IsPublic
-                || unresolvedType.Type.Type.IsNestedPublic;
-        }
-
-        private static bool HasAttribute<T>(Type type) where T : Attribute, IInheritableAttribute
-        {
-            if (type.IsDefined(typeof(T)))
-            {
-                return true;
-            }
-
-            if (type.IsDefined(typeof(T), true))
-            {
-                return type.GetCustomAttribute<T>(true)!.Inherited;
-            }
-
-            return false;
+            private static bool IsPublicInternal(ExtendedTypeReference unresolvedType)
+                => unresolvedType.Type.Type.IsPublic ||
+                   unresolvedType.Type.Type.IsNestedPublic;
         }
     }
 }

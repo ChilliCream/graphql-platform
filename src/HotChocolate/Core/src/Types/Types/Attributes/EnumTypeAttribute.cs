@@ -11,7 +11,7 @@ namespace HotChocolate.Types
         AttributeTargets.Struct)]
     public sealed class EnumTypeAttribute
         : EnumTypeDescriptorAttribute
-        , IInheritableAttribute
+        , ITypeAttribute
     {
         public EnumTypeAttribute(string? name = null)
         {
@@ -27,6 +27,10 @@ namespace HotChocolate.Types
         /// Defines if this attribute is inherited. The default is <c>false</c>.
         /// </summary>
         public bool Inherited { get; set; }
+
+        TypeKind ITypeAttribute.Kind => TypeKind.Enum;
+
+        bool ITypeAttribute.IsTypeExtension => false;
 
         public override void OnConfigure(
             IDescriptorContext context,

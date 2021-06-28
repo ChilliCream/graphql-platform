@@ -8,7 +8,7 @@ namespace HotChocolate.Types
 {
     public sealed class ExtendObjectTypeAttribute
         : ObjectTypeDescriptorAttribute
-        , IInheritableAttribute
+        , ITypeAttribute
     {
         private string? _name;
 
@@ -35,6 +35,10 @@ namespace HotChocolate.Types
         /// Defines if this attribute is inherited. The default is <c>false</c>.
         /// </summary>
         public bool Inherited { get; set; }
+
+        TypeKind ITypeAttribute.Kind => TypeKind.Object;
+
+        bool ITypeAttribute.IsTypeExtension => true;
 
         /// <summary>
         /// Gets the .NET type to which this extension is bound to.

@@ -15,7 +15,7 @@ namespace HotChocolate.Types
         AttributeTargets.Interface)]
     public sealed class ObjectTypeAttribute
         : ObjectTypeDescriptorAttribute
-        , IInheritableAttribute
+        , ITypeAttribute
     {
         public ObjectTypeAttribute(string? name = null)
         {
@@ -31,6 +31,10 @@ namespace HotChocolate.Types
         /// Defines if this attribute is inherited. The default is <c>false</c>.
         /// </summary>
         public bool Inherited { get; set; }
+
+        TypeKind ITypeAttribute.Kind => TypeKind.Object;
+
+        bool ITypeAttribute.IsTypeExtension => false;
 
         public override void OnConfigure(
             IDescriptorContext context,
