@@ -107,9 +107,7 @@ type User @authorize {
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-If we do not specify any arguments to the `@authorize` directive, it will only enforce that the requestor is authenticated, nothing more.
-
-A GraphQL error will be raised and the field result set to `null`, if the requestor is unauthenticated and tries to access an authorized field.
+If we do not specify any arguments to the `@authorize` directive, it will only enforce that the requestor is authenticated, nothing more. If he is not and he tries to access an authorized field, a GraphQL error will be raised and the field result set to `null`.
 
 ## Roles
 
@@ -204,7 +202,7 @@ public class Startup
 }
 ```
 
-When can then use these policies to restrict access to our fields.
+We can then use these policies to restrict access to our fields.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
