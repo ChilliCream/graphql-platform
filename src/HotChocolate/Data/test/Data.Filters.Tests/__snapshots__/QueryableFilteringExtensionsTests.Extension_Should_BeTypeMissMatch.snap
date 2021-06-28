@@ -1,0 +1,200 @@
+﻿{
+  "Label": null,
+  "Path": null,
+  "Data": null,
+  "Errors": [
+    {
+      "Message": "Cannot return null for non-nullable field.",
+      "Code": "EXEC_NON_NULL_VIOLATION",
+      "Path": {
+        "Parent": null,
+        "Depth": 0,
+        "Name": "typeMissmatch"
+      },
+      "Locations": [
+        {
+          "Line": 1,
+          "Column": 3
+        }
+      ],
+      "Extensions": {
+        "code": "EXEC_NON_NULL_VIOLATION"
+      },
+      "Exception": null,
+      "SyntaxNode": {
+        "Kind": "Field",
+        "Alias": null,
+        "Arguments": [
+          {
+            "Kind": "Argument",
+            "Location": {
+              "Start": 16,
+              "End": 41,
+              "Line": 1,
+              "Column": 17
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 16,
+                "End": 22,
+                "Line": 1,
+                "Column": 17
+              },
+              "Value": "where"
+            },
+            "Value": {
+              "Kind": "ObjectValue",
+              "Location": {
+                "Start": 23,
+                "End": 41,
+                "Line": 1,
+                "Column": 24
+              },
+              "Fields": [
+                {
+                  "Kind": "ObjectField",
+                  "Location": {
+                    "Start": 24,
+                    "End": 40,
+                    "Line": 1,
+                    "Column": 25
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 24,
+                      "End": 28,
+                      "Line": 1,
+                      "Column": 25
+                    },
+                    "Value": "bar"
+                  },
+                  "Value": {
+                    "Kind": "ObjectValue",
+                    "Location": {
+                      "Start": 29,
+                      "End": 40,
+                      "Line": 1,
+                      "Column": 30
+                    },
+                    "Fields": [
+                      {
+                        "Kind": "ObjectField",
+                        "Location": {
+                          "Start": 30,
+                          "End": 39,
+                          "Line": 1,
+                          "Column": 31
+                        },
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": {
+                            "Start": 30,
+                            "End": 33,
+                            "Line": 1,
+                            "Column": 31
+                          },
+                          "Value": "eq"
+                        },
+                        "Value": {
+                          "Kind": "BooleanValue",
+                          "Location": {
+                            "Start": 34,
+                            "End": 39,
+                            "Line": 1,
+                            "Column": 35
+                          },
+                          "Value": true
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "SelectionSet": {
+          "Kind": "SelectionSet",
+          "Location": {
+            "Start": 42,
+            "End": 54,
+            "Line": 1,
+            "Column": 43
+          },
+          "Selections": [
+            {
+              "Kind": "Field",
+              "Alias": null,
+              "Arguments": [],
+              "SelectionSet": null,
+              "Location": {
+                "Start": 44,
+                "End": 51,
+                "Line": 1,
+                "Column": 45
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 44,
+                  "End": 51,
+                  "Line": 1,
+                  "Column": 45
+                },
+                "Value": "bar"
+              },
+              "Directives": []
+            },
+            {
+              "Kind": "Field",
+              "Alias": null,
+              "Arguments": [],
+              "SelectionSet": null,
+              "Location": {
+                "Start": 48,
+                "End": 53,
+                "Line": 1,
+                "Column": 49
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 48,
+                  "End": 53,
+                  "Line": 1,
+                  "Column": 49
+                },
+                "Value": "baz"
+              },
+              "Directives": []
+            }
+          ]
+        },
+        "Location": {
+          "Start": 2,
+          "End": 54,
+          "Line": 1,
+          "Column": 3
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 2,
+            "End": 16,
+            "Line": 1,
+            "Column": 3
+          },
+          "Value": "typeMissmatch"
+        },
+        "Directives": []
+      }
+    }
+  ],
+  "Extensions": null,
+  "ContextData": {
+    "ex": "For more details look at the `Errors` property.\n\n1. Filtering is expected to be of type System.Collections.Generic.IEnumerable`1[[HotChocolate.Data.Filtering.QueryableFilteringExtensionsTests+Foo, HotChocolate.Data.Filters.Tests, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], but was of type System.Object\n"
+  },
+  "HasNext": null
+}

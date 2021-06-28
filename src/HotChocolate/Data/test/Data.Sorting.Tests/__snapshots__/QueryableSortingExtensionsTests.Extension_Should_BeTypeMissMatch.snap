@@ -1,0 +1,170 @@
+﻿{
+  "Label": null,
+  "Path": null,
+  "Data": null,
+  "Errors": [
+    {
+      "Message": "Cannot return null for non-nullable field.",
+      "Code": "EXEC_NON_NULL_VIOLATION",
+      "Path": {
+        "Parent": null,
+        "Depth": 0,
+        "Name": "typeMissmatch"
+      },
+      "Locations": [
+        {
+          "Line": 1,
+          "Column": 3
+        }
+      ],
+      "Extensions": {
+        "code": "EXEC_NON_NULL_VIOLATION"
+      },
+      "Exception": null,
+      "SyntaxNode": {
+        "Kind": "Field",
+        "Alias": null,
+        "Arguments": [
+          {
+            "Kind": "Argument",
+            "Location": {
+              "Start": 16,
+              "End": 35,
+              "Line": 1,
+              "Column": 17
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 16,
+                "End": 22,
+                "Line": 1,
+                "Column": 17
+              },
+              "Value": "order"
+            },
+            "Value": {
+              "Kind": "ObjectValue",
+              "Location": {
+                "Start": 23,
+                "End": 35,
+                "Line": 1,
+                "Column": 24
+              },
+              "Fields": [
+                {
+                  "Kind": "ObjectField",
+                  "Location": {
+                    "Start": 24,
+                    "End": 34,
+                    "Line": 1,
+                    "Column": 25
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 24,
+                      "End": 28,
+                      "Line": 1,
+                      "Column": 25
+                    },
+                    "Value": "bar"
+                  },
+                  "Value": {
+                    "Kind": "EnumValue",
+                    "Location": {
+                      "Start": 29,
+                      "End": 34,
+                      "Line": 1,
+                      "Column": 30
+                    },
+                    "Value": "DESC"
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "SelectionSet": {
+          "Kind": "SelectionSet",
+          "Location": {
+            "Start": 36,
+            "End": 48,
+            "Line": 1,
+            "Column": 37
+          },
+          "Selections": [
+            {
+              "Kind": "Field",
+              "Alias": null,
+              "Arguments": [],
+              "SelectionSet": null,
+              "Location": {
+                "Start": 38,
+                "End": 45,
+                "Line": 1,
+                "Column": 39
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 38,
+                  "End": 45,
+                  "Line": 1,
+                  "Column": 39
+                },
+                "Value": "bar"
+              },
+              "Directives": []
+            },
+            {
+              "Kind": "Field",
+              "Alias": null,
+              "Arguments": [],
+              "SelectionSet": null,
+              "Location": {
+                "Start": 42,
+                "End": 47,
+                "Line": 1,
+                "Column": 43
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 42,
+                  "End": 47,
+                  "Line": 1,
+                  "Column": 43
+                },
+                "Value": "baz"
+              },
+              "Directives": []
+            }
+          ]
+        },
+        "Location": {
+          "Start": 2,
+          "End": 48,
+          "Line": 1,
+          "Column": 3
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 2,
+            "End": 16,
+            "Line": 1,
+            "Column": 3
+          },
+          "Value": "typeMissmatch"
+        },
+        "Directives": []
+      }
+    }
+  ],
+  "Extensions": null,
+  "ContextData": {
+    "ex": "For more details look at the `Errors` property.\n\n1. Sorting is expected to be of type System.Collections.Generic.IEnumerable`1[[HotChocolate.Data.Sorting.QueryableSortingExtensionsTests+Foo, HotChocolate.Data.Sorting.Tests, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], but was of type System.Object\n"
+  },
+  "HasNext": null
+}

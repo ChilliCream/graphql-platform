@@ -249,6 +249,18 @@ namespace HotChocolate.Data {
             }
         }
         
+        internal static string Sorting_SortingWasNotFound {
+            get {
+                return ResourceManager.GetString("Sorting_SortingWasNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string Sorting_TypeMissmatch {
+            get {
+                return ResourceManager.GetString("Sorting_TypeMissmatch", resourceCulture);
+            }
+        }
+        
         internal static string FilterConvention_NoProviderFound {
             get {
                 return ResourceManager.GetString("FilterConvention_NoProviderFound", resourceCulture);
@@ -288,6 +300,18 @@ namespace HotChocolate.Data {
         internal static string FilterProvider_NoHandlersConfigured {
             get {
                 return ResourceManager.GetString("FilterProvider_NoHandlersConfigured", resourceCulture);
+            }
+        }
+        
+        internal static string Filtering_FilteringWasNotFound {
+            get {
+                return ResourceManager.GetString("Filtering_FilteringWasNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string Filtering_TypeMissmatch {
+            get {
+                return ResourceManager.GetString("Filtering_TypeMissmatch", resourceCulture);
             }
         }
         
@@ -420,6 +444,18 @@ namespace HotChocolate.Data {
         internal static string ProjectionVisitor_NodeFieldWasNotFound {
             get {
                 return ResourceManager.GetString("ProjectionVisitor_NodeFieldWasNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string Projection_ProjectionWasNotFound {
+            get {
+                return ResourceManager.GetString("Projection_ProjectionWasNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string Projection_TypeMissmatch {
+            get {
+                return ResourceManager.GetString("Projection_TypeMissmatch", resourceCulture);
             }
         }
         

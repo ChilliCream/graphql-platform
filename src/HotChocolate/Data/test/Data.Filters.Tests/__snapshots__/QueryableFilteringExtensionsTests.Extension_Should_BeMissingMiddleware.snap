@@ -1,0 +1,110 @@
+﻿{
+  "Label": null,
+  "Path": null,
+  "Data": null,
+  "Errors": [
+    {
+      "Message": "Cannot return null for non-nullable field.",
+      "Code": "EXEC_NON_NULL_VIOLATION",
+      "Path": {
+        "Parent": null,
+        "Depth": 0,
+        "Name": "missingMiddleware"
+      },
+      "Locations": [
+        {
+          "Line": 1,
+          "Column": 3
+        }
+      ],
+      "Extensions": {
+        "code": "EXEC_NON_NULL_VIOLATION"
+      },
+      "Exception": null,
+      "SyntaxNode": {
+        "Kind": "Field",
+        "Alias": null,
+        "Arguments": [],
+        "SelectionSet": {
+          "Kind": "SelectionSet",
+          "Location": {
+            "Start": 20,
+            "End": 32,
+            "Line": 1,
+            "Column": 21
+          },
+          "Selections": [
+            {
+              "Kind": "Field",
+              "Alias": null,
+              "Arguments": [],
+              "SelectionSet": null,
+              "Location": {
+                "Start": 22,
+                "End": 29,
+                "Line": 1,
+                "Column": 23
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 22,
+                  "End": 29,
+                  "Line": 1,
+                  "Column": 23
+                },
+                "Value": "bar"
+              },
+              "Directives": []
+            },
+            {
+              "Kind": "Field",
+              "Alias": null,
+              "Arguments": [],
+              "SelectionSet": null,
+              "Location": {
+                "Start": 26,
+                "End": 31,
+                "Line": 1,
+                "Column": 27
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 26,
+                  "End": 31,
+                  "Line": 1,
+                  "Column": 27
+                },
+                "Value": "baz"
+              },
+              "Directives": []
+            }
+          ]
+        },
+        "Location": {
+          "Start": 2,
+          "End": 32,
+          "Line": 1,
+          "Column": 3
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 2,
+            "End": 21,
+            "Line": 1,
+            "Column": 3
+          },
+          "Value": "missingMiddleware"
+        },
+        "Directives": []
+      }
+    }
+  ],
+  "Extensions": null,
+  "ContextData": {
+    "ex": "For more details look at the `Errors` property.\n\n1. Filtering was not found. Register filtering with [UseFiltering] or descriptor.UseFiltering().\n"
+  },
+  "HasNext": null
+}

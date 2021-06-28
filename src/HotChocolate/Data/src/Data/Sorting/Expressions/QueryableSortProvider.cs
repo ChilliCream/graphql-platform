@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Language;
@@ -8,12 +9,16 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Sorting.Expressions
 {
+    [return: NotNullIfNotNull("input")]
+    public delegate object? ApplySorting(IResolverContext context, object? input);
+
     public class QueryableSortProvider
         : SortProvider<QueryableSortContext>
     {
         public const string ContextArgumentNameKey = "SortArgumentName";
         public const string ContextVisitSortArgumentKey = nameof(VisitSortArgument);
         public const string SkipSortingKey = "SkipSorting";
+        public const string ContextApplySortingKey = nameof(ApplySorting);
 
         public QueryableSortProvider()
         {
@@ -26,19 +31,32 @@ namespace HotChocolate.Data.Sorting.Expressions
         }
 
         protected virtual SortVisitor<QueryableSortContext, QueryableSortOperation> Visitor { get; }
-            = new SortVisitor<QueryableSortContext, QueryableSortOperation>();
+            = new();
 
         public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
         {
+            ApplySorting applySorting = CreateApplicatorAsync<TEntityType>(argumentName);
+
             return next => context => ExecuteAsync(next, context);
 
             async ValueTask ExecuteAsync(
                 FieldDelegate next,
                 IMiddlewareContext context)
             {
+                context.LocalContextData =
+                    context.LocalContextData.SetItem(ContextApplySortingKey, applySorting);
+
                 // first we let the pipeline run and produce a result.
                 await next(context).ConfigureAwait(false);
 
+                context.Result = applySorting(context, context.Result);
+            }
+        }
+
+        private static ApplySorting CreateApplicatorAsync<TEntityType>(NameString argumentName)
+        {
+            return (context, input) =>
+            {
                 // next we get the sort argument.
                 IInputField argument = context.Field.Arguments[argumentName];
                 IValueNode sort = context.ArgumentLiteral<IValueNode>(argumentName);
@@ -48,9 +66,13 @@ namespace HotChocolate.Data.Sorting.Expressions
                     context.LocalContextData.TryGetValue(SkipSortingKey, out object? skip) &&
                     skip is true;
 
+                // ensure sorting is only applied once
+                context.LocalContextData =
+                    context.LocalContextData.SetItem(SkipSortingKey, true);
+
                 if (sort.IsNull() || skipSorting)
                 {
-                    return;
+                    return input;
                 }
 
                 if (argument.Type is ListType lt &&
@@ -62,9 +84,9 @@ namespace HotChocolate.Data.Sorting.Expressions
                     executorObj is VisitSortArgument executor)
                 {
                     var inMemory =
-                        context.Result is QueryableExecutable<TEntityType> { InMemory: true } ||
-                        context.Result is not IQueryable ||
-                        context.Result is EnumerableQuery;
+                        input is QueryableExecutable<TEntityType> { InMemory: true } ||
+                        input is not IQueryable ||
+                        input is EnumerableQuery;
 
                     QueryableSortContext visitorContext = executor(
                         sort,
@@ -74,7 +96,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                     // compile expression tree
                     if (visitorContext.Errors.Count > 0)
                     {
-                        context.Result = Array.Empty<TEntityType>();
+                        input = Array.Empty<TEntityType>();
                         foreach (IError error in visitorContext.Errors)
                         {
                             context.ReportError(error.WithPath(context.Path));
@@ -82,17 +104,19 @@ namespace HotChocolate.Data.Sorting.Expressions
                     }
                     else
                     {
-                        context.Result = context.Result switch
+                        input = input switch
                         {
                             IQueryable<TEntityType> q => visitorContext.Sort(q),
                             IEnumerable<TEntityType> e => visitorContext.Sort(e.AsQueryable()),
                             QueryableExecutable<TEntityType> ex =>
                                 ex.WithSource(visitorContext.Sort(ex.Source)),
-                            _ => context.Result
+                            _ => input
                         };
                     }
                 }
-            }
+
+                return input;
+            };
         }
 
         public override void ConfigureField(
