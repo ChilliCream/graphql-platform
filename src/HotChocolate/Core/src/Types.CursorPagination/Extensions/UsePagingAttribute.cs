@@ -13,8 +13,7 @@ namespace HotChocolate.Types
         private int? _defaultPageSize;
         private int? _maxPageSize;
         private bool? _includeTotalCount;
-        private bool? _forward;
-        private bool? _backward;
+        private bool? _allowBackwardPagination;
 
         /// <summary>
         /// Applies the offset paging middleware to the annotated property.
@@ -30,11 +29,13 @@ namespace HotChocolate.Types
         /// <summary>
         /// The schema type representation of the item type.
         /// </summary>
-        
-        public Type? SchemaType 
-        { 
-            [Obsolete("Use Type.")] get => Type; 
-            [Obsolete("Use the new constructor.")] set => Type = value; 
+
+        public Type? SchemaType
+        {
+            [Obsolete("Use Type.")]
+            get => Type;
+            [Obsolete("Use the new constructor.")]
+            set => Type = value;
         }
 
         /// <summary>
@@ -70,21 +71,12 @@ namespace HotChocolate.Types
         }
 
         /// <summary>
-        /// Allow forward paging using <c>first</c> and <c>after</c>
+        /// Allow backward paging using <c>last</c> and <c>before</c>
         /// </summary>
-        public bool Forward
+        public bool AllowBackwardPagination
         {
-            get => _forward ?? PagingDefaults.Forward;
-            set => _forward = value;
-        }
-
-        /// <summary>
-        /// Allow Backward paging using <c>last</c> and <c>before</c>
-        /// </summary>
-        public bool Backward
-        {
-            get => _backward ?? PagingDefaults.Backward;
-            set => _backward = value;
+            get => _allowBackwardPagination ?? PagingDefaults.AllowBackwardPagination;
+            set => _allowBackwardPagination = value;
         }
 
         protected override void TryConfigure(
@@ -103,8 +95,7 @@ namespace HotChocolate.Types
                             DefaultPageSize = _defaultPageSize,
                             MaxPageSize = _maxPageSize,
                             IncludeTotalCount = _includeTotalCount,
-                            Backward = Backward,
-                            Forward = Forward
+                            AllowBackwardPagination = AllowBackwardPagination
                         });
                 }
                 else if (descriptor is IInterfaceFieldDescriptor ifd)
@@ -116,8 +107,7 @@ namespace HotChocolate.Types
                             DefaultPageSize = _defaultPageSize,
                             MaxPageSize = _maxPageSize,
                             IncludeTotalCount = _includeTotalCount,
-                            Backward = Backward,
-                            Forward = Forward
+                            AllowBackwardPagination = AllowBackwardPagination
                         });
                 }
             }

@@ -21,8 +21,9 @@ namespace HotChocolate.Types.Pagination
         /// </summary>
         public bool? IncludeTotalCount { get; set; }
 
-        public bool Forward { get; set; }
-
-        public bool Backward { get; set; }
+        /// <summary>
+        /// Defines if backward pagination is allowed or deactivated
+        /// </summary>
+        public bool? AllowBackwardPagination { get; set; }
     }
 }
