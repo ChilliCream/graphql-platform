@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Reflection;
-using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -146,7 +143,7 @@ namespace HotChocolate.Configuration
             => typeInfo.Attribute is { Kind: TypeKind.Object, IsTypeExtension: true };
 
         private static bool IsUnionType(TypeInfo typeInfo)
-            => typeInfo.Attribute is { Kind: TypeKind.Object, IsTypeExtension: false } &&
+            => typeInfo.Attribute is { Kind: TypeKind.Union, IsTypeExtension: false } &&
                typeInfo is { Context: TypeContext.Output or TypeContext.None };
 
         private static bool IsInterfaceType(TypeInfo typeInfo)
@@ -161,7 +158,7 @@ namespace HotChocolate.Configuration
 
         private static bool IsEnumType(TypeInfo typeInfo)
             => (typeInfo.Attribute is { Kind: TypeKind.Enum, IsTypeExtension: false } ||
-                typeInfo.Attribute is null && typeInfo.IsEnum) &&
+                    typeInfo.Attribute is null && typeInfo.IsEnum) &&
                typeInfo.IsPublic;
 
         private readonly ref struct TypeInfo
