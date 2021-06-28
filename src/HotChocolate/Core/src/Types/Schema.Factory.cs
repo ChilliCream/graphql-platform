@@ -6,6 +6,7 @@ namespace HotChocolate
 {
     public partial class Schema
     {
+        [Obsolete("Use SchemaBuilder.")]
         public static Schema Create(
             string schema,
             Action<ISchemaConfiguration> configure)
@@ -23,6 +24,7 @@ namespace HotChocolate
             return Create(Utf8GraphQLParser.Parse(schema), configure);
         }
 
+        [Obsolete("Use SchemaBuilder.")]
         public static Schema Create(
             DocumentNode schemaDocument,
             Action<ISchemaConfiguration> configure)
@@ -38,10 +40,11 @@ namespace HotChocolate
             }
 
             SchemaBuilder builder = CreateSchemaBuilder(configure);
-            builder.AddDocument(sp => schemaDocument);
+            builder.AddDocument(_ => schemaDocument);
             return builder.Create();
         }
 
+        [Obsolete("Use SchemaBuilder.")]
         public static Schema Create(
             Action<ISchemaConfiguration> configure)
         {

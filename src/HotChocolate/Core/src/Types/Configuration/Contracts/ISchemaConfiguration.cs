@@ -5,8 +5,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
 {
-    public interface ISchemaConfiguration
-        : IFluent
+    public interface ISchemaConfiguration : IFluent
     {
         ISchemaOptions Options { get; }
 
