@@ -1,0 +1,14 @@
+﻿{
+  "type": "Operation",
+  "root": {
+    "type": "Resolver",
+    "strategy": "Parallel",
+    "selections": [
+      {
+        "id": 0,
+        "field": "ParallelQuery.foo",
+        "responseName": "foo"
+      }
+    ]
+  }
+}

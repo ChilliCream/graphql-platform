@@ -1,3 +1,4 @@
+using System;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 
@@ -6,9 +7,10 @@ using HotChocolate.Types.Descriptors;
 namespace HotChocolate.Types
 {
     /// <summary>
-    /// Marks a resolver as parallel executable which will allow the execution engine 
+    /// Marks a resolver as parallel executable which will allow the execution engine
     /// to execute this resolver in parallel with other resolvers.
     /// </summary>
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Method)]
     public sealed class ParallelAttribute : ObjectFieldDescriptorAttribute
     {
         public override void OnConfigure(
@@ -16,7 +18,7 @@ namespace HotChocolate.Types
             IObjectFieldDescriptor descriptor,
             MemberInfo member)
         {
-            descriptor.Serial();
+            descriptor.Parallel();
         }
     }
 }
