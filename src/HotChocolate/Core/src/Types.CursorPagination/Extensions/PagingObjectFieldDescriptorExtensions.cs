@@ -95,13 +95,13 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            descriptor = descriptor
+            descriptor
                 .Argument(CursorPagingArgumentNames.First, a => a.Type<IntType>())
                 .Argument(CursorPagingArgumentNames.After, a => a.Type<StringType>());
 
             if (allowBackwardPagination)
             {
-                descriptor = descriptor
+                descriptor
                     .Argument(CursorPagingArgumentNames.Last, a => a.Type<IntType>())
                     .Argument(CursorPagingArgumentNames.Before, a => a.Type<StringType>());
             }
@@ -118,13 +118,13 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            descriptor = descriptor
+            descriptor
                 .Argument(CursorPagingArgumentNames.First, a => a.Type<IntType>())
                 .Argument(CursorPagingArgumentNames.After, a => a.Type<StringType>());
 
             if (allowBackwardPagination)
             {
-                descriptor = descriptor
+                descriptor
                     .Argument(CursorPagingArgumentNames.Last, a => a.Type<IntType>())
                     .Argument(CursorPagingArgumentNames.Before, a => a.Type<StringType>());
             }
