@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -131,30 +132,30 @@ namespace HotChocolate.Configuration
         private static bool IsObjectType(ExtendedTypeReference unresolvedType)
         {
             return (IsComplexType(unresolvedType)
-                || unresolvedType.Type.Type.IsDefined(typeof(ObjectTypeAttribute), false))
+                || HasAttribute<ObjectTypeAttribute>(unresolvedType.Type.Type))
                 && unresolvedType.Context is TypeContext.Output or TypeContext.None;
         }
 
         private static bool IsObjectTypeExtension(ExtendedTypeReference unresolvedType) =>
-            unresolvedType.Type.Type.IsDefined(typeof(ExtendObjectTypeAttribute), false);
+            HasAttribute<ExtendObjectTypeAttribute>(unresolvedType.Type.Type);
 
         private static bool IsUnionType(ExtendedTypeReference unresolvedType)
         {
-            return unresolvedType.Type.Type.IsDefined(typeof(UnionTypeAttribute), false)
+            return HasAttribute<UnionTypeAttribute>(unresolvedType.Type.Type)
                 && unresolvedType.Context is TypeContext.Output or TypeContext.None;
         }
 
         private static bool IsInterfaceType(ExtendedTypeReference unresolvedType)
         {
             return (unresolvedType.Type.IsInterface
-                || unresolvedType.Type.Type.IsDefined(typeof(InterfaceTypeAttribute), false))
+                || HasAttribute<InterfaceTypeAttribute>(unresolvedType.Type.Type))
                 && unresolvedType.Context is TypeContext.Output or TypeContext.None;
         }
 
         private static bool IsInputObjectType(ExtendedTypeReference unresolvedType)
         {
             return (IsComplexType(unresolvedType)
-                || unresolvedType.Type.Type.IsDefined(typeof(InputObjectTypeAttribute), false))
+                || HasAttribute<InputObjectTypeAttribute>(unresolvedType.Type.Type))
                 && !unresolvedType.Type.Type.IsAbstract
                 && unresolvedType.Context == TypeContext.Input;
         }
@@ -162,7 +163,7 @@ namespace HotChocolate.Configuration
         private static bool IsEnumType(ExtendedTypeReference unresolvedType)
         {
             return (unresolvedType.Type.Type.IsEnum
-                || unresolvedType.Type.Type.IsDefined(typeof(EnumTypeAttribute), false))
+                || HasAttribute<EnumTypeAttribute>(unresolvedType.Type.Type))
                 && IsPublic(unresolvedType);
         }
 
@@ -185,7 +186,22 @@ namespace HotChocolate.Configuration
         private static bool IsPublic(ExtendedTypeReference unresolvedType)
         {
             return unresolvedType.Type.Type.IsPublic
-                   || unresolvedType.Type.Type.IsNestedPublic;
+                || unresolvedType.Type.Type.IsNestedPublic;
+        }
+
+        private static bool HasAttribute<T>(Type type) where T : Attribute, IInheritableAttribute
+        {
+            if (type.IsDefined(typeof(T)))
+            {
+                return true;
+            }
+
+            if (type.IsDefined(typeof(T), true))
+            {
+                return type.GetCustomAttribute<T>(true)!.Inherited;
+            }
+
+            return false;
         }
     }
 }
