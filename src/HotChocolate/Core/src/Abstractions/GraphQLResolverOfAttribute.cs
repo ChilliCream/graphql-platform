@@ -5,8 +5,7 @@ namespace HotChocolate
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     [Obsolete("Use ExtendObjectTypeAttribute.")]
-    public sealed class GraphQLResolverOfAttribute
-        : Attribute
+    public sealed class GraphQLResolverOfAttribute : Attribute
     {
         public GraphQLResolverOfAttribute(params Type[] types)
         {
