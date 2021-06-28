@@ -3189,6 +3189,7 @@ static HotChocolate.ResolverContextExtensions.GetOrAddGlobalValue<T>(this HotCho
 static HotChocolate.ResolverContextExtensions.GetOrAddLocalValue<T>(this HotChocolate.Resolvers.IResolverContext! context, string! name, System.Func<string!, T>! createValue) -> T
 static HotChocolate.ResolverContextExtensions.GetOrAddScopedValue<T>(this HotChocolate.Resolvers.IResolverContext! context, string! name, System.Func<string!, T>! createValue) -> T
 static HotChocolate.ResolverContextExtensions.GetScopedValue<T>(this HotChocolate.Resolvers.IResolverContext! context, string! name) -> T
+static HotChocolate.ResolverContextExtensions.GetUser(this HotChocolate.Resolvers.IResolverContext! context) -> System.Security.Claims.ClaimsPrincipal?
 static HotChocolate.ResolverContextExtensions.RemoveGlobalValue(this HotChocolate.Resolvers.IResolverContext! context, string! name) -> void
 static HotChocolate.ResolverContextExtensions.RemoveLocalValue(this HotChocolate.Resolvers.IResolverContext! context, string! name) -> void
 static HotChocolate.ResolverContextExtensions.RemoveScopedValue(this HotChocolate.Resolvers.IResolverContext! context, string! name) -> void
