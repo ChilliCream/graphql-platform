@@ -1,4 +1,0 @@
-HotChocolate.Fetching.BatchScheduler.DispatchOnSchedule.get -> bool
-HotChocolate.Fetching.BatchScheduler.DispatchOnSchedule.set -> void
-HotChocolate.Fetching.IBatchDispatcher.DispatchOnSchedule.get -> bool
-HotChocolate.Fetching.IBatchDispatcher.DispatchOnSchedule.set -> void

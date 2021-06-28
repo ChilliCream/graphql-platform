@@ -1,3 +1,4 @@
-override StrawberryShake.Serialization.UUIDSerializer.Format(System.Guid runtimeValue) -> string!
-override StrawberryShake.Serialization.UUIDSerializer.Parse(string! serializedValue) -> System.Guid
-StrawberryShake.Serialization.UUIDSerializer.UUIDSerializer(string! typeName = "UUID", string! format = "D") -> void
+override StrawberryShake.Serialization.UuidSerializer.Format(System.Guid runtimeValue) -> string!
+override StrawberryShake.Serialization.UuidSerializer.Parse(string! serializedValue) -> System.Guid
+StrawberryShake.Serialization.UuidSerializer.UuidSerializer(string! typeName = "Uuid", string! format = "D") -> void
+*REMOVED*StrawberryShake.Serialization.UuidSerializer.UuidSerializer(string! typeName = "Uuid") -> void
