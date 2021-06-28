@@ -1,0 +1,1 @@
+static HotChocolate.ResolverContextExtensions.GetUser(this HotChocolate.Resolvers.IResolverContext! context) -> System.Security.Claims.ClaimsPrincipal?
