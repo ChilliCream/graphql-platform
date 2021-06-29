@@ -244,7 +244,7 @@ public class QueryType : ObjectType
 
 We can access the arguments we defined in the schema in our resolver, like regular arguments of a function.
 
-There are also specific arguments that will be automatically populated by Hot Chocolate, when the resolver is executed. These include [Dependency injection services](#injecting-services), [DataLoaders](/docs/hotchocolate/fetching-data/dataloader), state, or even context like a [_parent_](#accessing-parent-values) value.
+There are also specific arguments that will be automatically populated by Hot Chocolate when the resolver is executed. These include [Dependency injection services](#injecting-services), [DataLoaders](/docs/hotchocolate/fetching-data/dataloader), state, or even context like a [_parent_](#accessing-parent-values) value.
 
 [Learn more about arguments](/docs/hotchocolate/defining-a-schema/arguments)
 
