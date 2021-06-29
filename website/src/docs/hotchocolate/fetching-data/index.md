@@ -44,6 +44,6 @@ Similar to filtering, Hot Chocolate can also autogenerate input types related to
 
 Projections allow Hot Chocolate to project incoming GraphQL queries to the database.
 
-If we for example only select the `Name` and `Id` of a user in our GraphQL query, Hot Chocolate will only select those two fields when querying the user in the database.
+For example, if the client only requests the `name` and `id` of a user in their GraphQL query, Hot Chocolate will only query the database for those two columns.
 
 [Learn more about projections](/docs/hotchocolate/fetching-data/projections)
