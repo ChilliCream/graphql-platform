@@ -171,7 +171,7 @@ Most data fetching operations, like calling a service or communicating with a da
 
 In Hot Chocolate, we can simply mark our resolver methods and delegates as `async` or return a `Task<T>` and it becomes an async-capable resolver.
 
-We can also add a `CancellationToken` as argument to our resolver. Hot Chocolate will automatically cancel this token, if the request has been aborted.
+We can also add a `CancellationToken` argument to our resolver. Hot Chocolate will automatically cancel this token if the request has been aborted.
 
 ```csharp
 public class Query
