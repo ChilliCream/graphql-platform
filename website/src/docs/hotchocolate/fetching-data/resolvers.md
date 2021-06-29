@@ -149,7 +149,7 @@ public class Startup
 }
 ```
 
-We can also add a resolver, by calling `AddResolver()` on the `IRequestExecutorBuilder`.
+We can also add a resolver by calling `AddResolver()` on the `IRequestExecutorBuilder`.
 
 ```csharp
 services
