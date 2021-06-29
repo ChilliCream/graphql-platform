@@ -61,7 +61,7 @@ namespace HotChocolate.Data.Projections
 
             ISchemaBuilder builder = SchemaBuilder.New();
 
-            if (objectType is { })
+            if (objectType is not null)
             {
                 builder.AddType(objectType);
             }
