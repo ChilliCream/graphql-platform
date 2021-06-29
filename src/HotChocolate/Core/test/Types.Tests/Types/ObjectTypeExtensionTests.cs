@@ -1,16 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
+using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
@@ -86,8 +91,7 @@ namespace HotChocolate.Types
         public void ObjectTypeExtension_OverrideResolver()
         {
             // arrange
-            FieldResolverDelegate resolver =
-                ctx => new ValueTask<object>(null);
+            ValueTask<object?> Resolver(IResolverContext ctx) => new(null!);
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -96,12 +100,12 @@ namespace HotChocolate.Types
                     .Name("Foo")
                     .Field("description")
                     .Type<StringType>()
-                    .Resolve(resolver)))
+                    .Resolve(Resolver)))
                 .Create();
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
-            Assert.Equal(resolver, type.Fields["description"].Resolver);
+            Assert.Equal(Resolver, type.Fields["description"].Resolver);
         }
 
         [Fact]
@@ -125,7 +129,7 @@ namespace HotChocolate.Types
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
-            object value = await type.Fields["name2"].Resolver(context.Object);
+            var value = await type.Fields["name2"].Resolver!.Invoke(context.Object);
             Assert.Equal("FooResolver.GetName2", value);
         }
 
@@ -140,10 +144,10 @@ namespace HotChocolate.Types
                     .Name("Foo")
                     .Field("description")
                     .Type<StringType>()
-                    .Use(next => context =>
+                    .Use(_ => context =>
                     {
                         context.Result = "BAR";
-                        return default(ValueTask);
+                        return default;
                     })))
                 .Create();
 
@@ -157,9 +161,6 @@ namespace HotChocolate.Types
         public void ObjectTypeExtension_DeprecateField_Obsolete()
         {
             // arrange
-            FieldResolverDelegate resolver =
-                ctx => new ValueTask<object>(null);
-
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<FooType>()
@@ -180,9 +181,6 @@ namespace HotChocolate.Types
         public void ObjectTypeExtension_DeprecateField_With_Reason()
         {
             // arrange
-            FieldResolverDelegate resolver =
-                ctx => new ValueTask<object>(null);
-
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<FooType>()
@@ -204,9 +202,6 @@ namespace HotChocolate.Types
         public void ObjectTypeExtension_DeprecateField_Without_Reason()
         {
             // arrange
-            FieldResolverDelegate resolver =
-                ctx => new ValueTask<object>(null);
-
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<FooType>()
@@ -248,9 +243,6 @@ namespace HotChocolate.Types
         public void ObjectTypeExtension_SetFieldContextData()
         {
             // arrange
-            FieldResolverDelegate resolver =
-                ctx => new ValueTask<object>(null);
-
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<FooType>()
@@ -271,9 +263,6 @@ namespace HotChocolate.Types
         public void ObjectTypeExtension_SetArgumentContextData()
         {
             // arrange
-            FieldResolverDelegate resolver =
-                ctx => new ValueTask<object>(null);
-
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<FooType>()
@@ -389,7 +378,7 @@ namespace HotChocolate.Types
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
-            int count = type.Directives["dummy_rep"].Count();
+            var count = type.Directives["dummy_rep"].Count();
             Assert.Equal(2, count);
         }
 
@@ -411,7 +400,7 @@ namespace HotChocolate.Types
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
-            int count = type.Fields["description"].Directives["dummy_rep"].Count();
+            var count = type.Fields["description"].Directives["dummy_rep"].Count();
             Assert.Equal(2, count);
         }
 
@@ -422,7 +411,7 @@ namespace HotChocolate.Types
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType(new ObjectType<Foo>(t => t
-                    .Field(f => f.GetName(default))
+                    .Field(f => f.GetName(default!))
                     .Argument("a", a => a
                         .Type<StringType>()
                         .Directive("dummy_rep", new ArgumentNode("a", "a")))))
@@ -631,25 +620,34 @@ namespace HotChocolate.Types
             Assert.Equal("GetFoo", field.ResolverMember?.Name);
         }
 
-        public class FooType
-            : ObjectType<Foo>
+        [Fact]
+        public async Task Descriptor_Attributes_Are_Applied_On_Resolvers()
         {
-            protected override void Configure(
-                IObjectTypeDescriptor<Foo> descriptor)
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<FooQueryType>()
+                .ExecuteRequestAsync("{ sayHello }")
+                .MatchSnapshotAsync();
+        }
+
+        public class FooType : ObjectType<Foo>
+        {
+            protected override void Configure(IObjectTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Field(t => t.Description);
             }
         }
 
-        public class FooTypeExtension
-            : ObjectTypeExtension
+        public class FooTypeExtension : ObjectTypeExtension
         {
             protected override void Configure(
                 IObjectTypeDescriptor descriptor)
             {
                 descriptor.Name("Foo");
                 descriptor.Field("test")
-                    .Resolver(() => new List<string>())
+                    .Resolve(() => new List<string>())
                     .Type<ListType<StringType>>();
             }
         }
@@ -666,12 +664,9 @@ namespace HotChocolate.Types
 
         public class Foo
         {
-            public string Description { get; } = "hello";
+            public string? Description { get; } = "hello";
 
-            public string GetName(string a)
-            {
-                return null;
-            }
+            public string? GetName(string? a) => default!;
         }
 
         public class FooExtension
@@ -731,12 +726,12 @@ namespace HotChocolate.Types
 
         public class Query : IMarker
         {
-            public string Foo { get; } = "abc";
+            public string? Foo { get; } = "abc";
         }
 
         public class Bar : IMarker
         {
-            public string Baz { get; } = "def";
+            public string? Baz { get; } = "def";
         }
 
         [ExtendObjectType(
@@ -745,7 +740,7 @@ namespace HotChocolate.Types
         public class Extensions
         {
             // introduces a new field on all types that apply the parent
-            public string Any([Parent] object parent)
+            public string? Any([Parent] object parent)
             {
                 if (parent is Query q)
                 {
@@ -762,15 +757,15 @@ namespace HotChocolate.Types
 
             // replaces the original field baz on bar
             [GraphQLName("baz")]
-            public string BazEx([Parent] Bar bar)
+            public string? BazEx([Parent] Bar bar)
             {
                 return bar.Baz;
             }
 
             // introduces a new field to query
-            public Bar FooEx([Parent] Query query)
+            public Bar? FooEx([Parent] Query query)
             {
-                return new Bar();
+                return new();
             }
         }
 
@@ -788,8 +783,8 @@ namespace HotChocolate.Types
         public class BindResolver_With_Property_PersonResolvers
         {
             [BindMember(nameof(BindResolver_With_Property_PersonDto.FriendId))]
-            public List<BindResolver_With_Property_PersonDto> Friends() =>
-                new List<BindResolver_With_Property_PersonDto>();
+            public List<BindResolver_With_Property_PersonDto?>? Friends() =>
+                new();
         }
 
         public class Remove_Properties_Globally_PersonDto
@@ -860,7 +855,7 @@ namespace HotChocolate.Types
         public class Replace_Field_PersonResolvers
         {
             [BindMember(nameof(Replace_Field_PersonDto.InternalId))]
-            public string SomeId { get; } = "abc";
+            public string? SomeId { get; } = "abc";
         }
 
         public interface IPersonDto
@@ -871,7 +866,7 @@ namespace HotChocolate.Types
         [ExtendObjectType("Query")]
         public class Replace_Field_PersonDto_2_Query
         {
-            public Replace_Field_PersonDto_2 GetPerson() => new();
+            public Replace_Field_PersonDto_2? GetPerson() => new();
         }
 
         public class Replace_Field_PersonDto_2 : IPersonDto
@@ -883,7 +878,7 @@ namespace HotChocolate.Types
         public class Replace_Field_PersonResolvers_2
         {
             [BindMember(nameof(Replace_Field_PersonDto_2.SomeId))]
-            public string SomeId([Parent] IPersonDto dto, string arg = "abc") =>
+            public string? SomeId([Parent] IPersonDto dto, string? arg = "abc") =>
                 dto.SomeId() + arg;
         }
 
@@ -901,14 +896,44 @@ namespace HotChocolate.Types
 
         public class ObjectField_Test_Query
         {
-            public string GetFoo() => null;
+            public string GetFoo() => null!;
         }
 
         [ExtendObjectType(typeof(ObjectField_Test_Query))]
         public class ObjectField_Test_Query_Extension
         {
             [BindMember(nameof(ObjectField_Test_Query.GetFoo))]
-            public string GetFoo1() => null;
+            public string GetFoo1() => null!;
+        }
+
+        public class FooQueryType : ObjectType
+        {
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                descriptor.Name("Query");
+                descriptor.Field("sayHello").ResolveWith<FooBar>(t => t.SayHello());
+            }
+        }
+
+        public class FooBar
+        {
+            [Foo]
+            public string SayHello() => "Huhu";
+        }
+
+        public class FooAttribute : ObjectFieldDescriptorAttribute
+        {
+            public override void OnConfigure(
+                IDescriptorContext context,
+                IObjectFieldDescriptor descriptor,
+                MemberInfo member)
+            {
+                descriptor.Use(_ => ctx =>
+                {
+                    ctx.Result = "Hello";
+                    return default;
+                });
+            }
         }
     }
 }
