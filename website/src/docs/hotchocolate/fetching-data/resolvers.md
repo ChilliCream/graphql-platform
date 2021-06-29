@@ -28,7 +28,7 @@ query {
 }
 ```
 
-In Hot Chocolate this query results in the following resolver tree.
+In Hot Chocolate, this query results in the following resolver tree.
 
 ```mermaid
 graph LR
