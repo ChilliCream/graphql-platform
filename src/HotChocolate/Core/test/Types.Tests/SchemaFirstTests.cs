@@ -2,10 +2,13 @@ using System;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
+using HotChocolate.Tests;
 using HotChocolate.Types.Introspection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualBasic.CompilerServices;
 using Snapshooter.Xunit;
 using Xunit;
+using Snapshot = Snapshooter.Xunit.Snapshot;
 
 namespace HotChocolate
 {
@@ -15,23 +18,18 @@ namespace HotChocolate
         public async Task DescriptionsAreCorrectlyRead()
         {
             // arrange
+            Snapshot.FullName();
             var source = FileResource.Open("schema_with_multiline_descriptions.graphql");
             var query = FileResource.Open("IntrospectionQuery.graphql");
 
-            // act
-            ISchema schema = Schema.Create(
-                source,
-                c =>
-                {
-                    c.Options.StrictValidation = false;
-                    c.Options.SortFieldsByName = true;
-                    c.Use(next => next);
-                });
-
-            // assert
-            IRequestExecutor executor = schema.MakeExecutable();
-            IExecutionResult result = await executor.ExecuteAsync(query);
-            result.ToJson().MatchSnapshot();
+            // act & act
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(source)
+                .ModifyOptions(o => o.SortFieldsByName = true)
+                .UseField(next => next)
+                .ExecuteRequestAsync(query)
+                .MatchSnapshotAsync();
         }
 
         [Fact]

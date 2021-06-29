@@ -404,11 +404,11 @@ namespace HotChocolate.Execution
 
                 descriptor.Field("a")
                     .Type<StringType>()
-                    .Resolver(() => "a");
+                    .Resolve(() => "a");
 
                 descriptor.Field("b")
                     .Type<Foo>()
-                    .Resolver(() => new object());
+                    .Resolve(() => new object());
             }
         }
 
@@ -420,7 +420,7 @@ namespace HotChocolate.Execution
 
                 descriptor.Field("a")
                     .Type<StringType>()
-                    .Resolver(() => "foo.a");
+                    .Resolve(() => "foo.a");
             }
         }
 
@@ -433,7 +433,7 @@ namespace HotChocolate.Execution
                     .Type<StringType>()
                     .Argument("b", a => a.Type<BazType>()
                         .DefaultValue(new Baz { Qux = "fooBar" }))
-                    .Resolver(() => "foo.a");
+                    .Resolve(() => "foo.a");
             }
         }
 

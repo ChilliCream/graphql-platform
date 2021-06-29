@@ -107,7 +107,8 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         public static IValidationBuilder TryAddValidationVisitor<T>(
-            this IValidationBuilder builder)
+            this IValidationBuilder builder,
+            bool isCacheable = true)
             where T : DocumentValidatorVisitor, new()
         {
             return builder.ConfigureValidation(m =>
@@ -115,14 +116,15 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     if (o.Rules.All(t => t.GetType() != typeof(DocumentValidatorRule<T>)))
                     {
-                        o.Rules.Add(new DocumentValidatorRule<T>(new T()));
+                        o.Rules.Add(new DocumentValidatorRule<T>(new T(), isCacheable));
                     }
                 }));
         }
 
         public static IValidationBuilder TryAddValidationVisitor<T>(
             this IValidationBuilder builder,
-            Func<IServiceProvider, ValidationOptions, T> factory)
+            Func<IServiceProvider, ValidationOptions, T> factory,
+            bool isCacheable = true)
             where T : DocumentValidatorVisitor
         {
             return builder.ConfigureValidation((s, m) =>
@@ -130,7 +132,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     if (o.Rules.All(t => t.GetType() != typeof(DocumentValidatorRule<T>)))
                     {
-                        o.Rules.Add(new DocumentValidatorRule<T>(factory(s, o)));
+                        o.Rules.Add(new DocumentValidatorRule<T>(factory(s, o), isCacheable));
                     }
                 }));
         }

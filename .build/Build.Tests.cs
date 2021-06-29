@@ -29,7 +29,7 @@ partial class Build : NukeBuild
         "HotChocolate.Data.Neo4J.Integration.Tests"
     };
 
-    [Partition(2)] readonly Partition TestPartition;
+    [Partition(3)] readonly Partition TestPartition;
 
     IEnumerable<Project> TestProjects => TestPartition.GetCurrent(
         ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
