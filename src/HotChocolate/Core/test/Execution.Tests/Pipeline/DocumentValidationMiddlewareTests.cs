@@ -20,7 +20,7 @@ namespace HotChocolate.Execution.Pipeline
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
                 It.IsAny<IDictionary<string, object>>(),
-                It.IsAny<bool>()))
+                It.Is<bool>(b => true)))
                 .Returns(DocumentValidatorResult.Ok);
 
             var middleware = new DocumentValidationMiddleware(
@@ -46,7 +46,8 @@ namespace HotChocolate.Execution.Pipeline
             await middleware.InvokeAsync(requestContext.Object);
 
             // assert
-            Assert.Equal(validationResult, requestContext.Object.ValidationResult);
+            Assert.NotEqual(validationResult, requestContext.Object.ValidationResult);
+            Assert.False(requestContext.Object.ValidationResult!.HasErrors);
         }
 
         [Fact]
