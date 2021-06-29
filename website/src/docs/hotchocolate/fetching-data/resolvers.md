@@ -169,7 +169,7 @@ services
 
 Most data fetching operations, like calling a service or communicating with a database, will be asynchronous.
 
-In Hot Chocolate we can simply mark our resolver methods and delegates as `async` or return a `Task<T>` and everything works out of the box.
+In Hot Chocolate, we can simply mark our resolver methods and delegates as `async` or return a `Task<T>` and it becomes an async-capable resolver.
 
 We can also add a `CancellationToken` as argument to our resolver. Hot Chocolate will automatically cancel this token, if the request has been aborted.
 
