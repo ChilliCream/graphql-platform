@@ -6,7 +6,7 @@ In this section we will learn everything about fetching data with Hot Chocolate.
 
 # Resolvers
 
-Resolvers are the main building blocks when it comes to fetching data. Every field in our GraphQL schema is backed by such a resolver function, responsible for fetching the data associated with this field. Since a resolver is just a function we can use it to retrieve data from a database, a REST service or any other data source.
+Resolvers are the main building blocks when it comes to fetching data. Every field in our GraphQL schema is backed by such a resolver function, responsible for returning the field's value. Since a resolver is just a function, we can use it to retrieve data from a database, a REST service, or any other data source as needed. 
 
 [Learn more about resolvers](/docs/hotchocolate/fetching-data/resolvers)
 
