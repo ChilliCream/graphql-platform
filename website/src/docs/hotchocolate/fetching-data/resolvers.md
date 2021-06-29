@@ -55,7 +55,7 @@ Resolvers can be defined in a way that should feel very familiar to C# developer
 
 ## Properties
 
-Hot Chocolate automatically convertes properties with a public get accessor to default resolvers, returning the properties value.
+Hot Chocolate automatically converts properties with a public get accessor to a resolver that simply returns its value.
 
 Properties are also covered in detail by the [object type documentation](/docs/hotchocolate/defining-a-schema/object-types).
 
