@@ -12,7 +12,7 @@ Hot Chocolate fully embraces the authentication capabilities of ASP.NET Core, ma
 
 # Setup
 
-Setting up authentication is largly the same as in any other ASP.NET Core application.
+Setting up authentication is largely the same as in any other ASP.NET Core application.
 
 **In the following example we are using JWTs, but we could use any other authentication scheme supported by ASP.NET Core.**
 
