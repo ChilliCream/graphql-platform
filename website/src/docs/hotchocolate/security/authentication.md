@@ -51,7 +51,7 @@ public class Startup
 
 > ⚠️ Note: This is an example configuration that's not intended for use in a real world application.
 
-3. Register the `UseAuthentication` middleware with the request pipeline
+3. Register the ASP.NET Core authentication middleware with the request pipeline by calling `UseAuthentication`
 
 ```csharp
 public class Startup
