@@ -59,8 +59,6 @@ public class Startup
 
 At the core of authorization with Hot Chocolate is the `@authorize` directive. It can be applied to fields and types to denote that they require authorization.
 
-If the `@authorize` directive is specified on a type, it is applied to all fields of that type. Specified on an individual field the directive overrules the one on the type.
-
 <ExampleTabs>
 <ExampleTabs.Annotation>
 
@@ -107,7 +105,9 @@ type User @authorize {
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-If we do not specify any arguments to the `@authorize` directive, it will only enforce that the requestor is authenticated, nothing more. If he is not and he tries to access an authorized field, a GraphQL error will be raised and the field result set to `null`.
+Specified on a type the `@authorize` directive will be applied to each field of that type. Its authorization logic is executed once for each individual field, depending on whether it was selected by the requestor or not. If the directive is placed on an individual field, it overrules the one on the type.
+
+If we do not specify any arguments to the `@authorize` directive, it will only enforce that the requestor is authenticated, nothing more. If he is not and tries to access an authorized field, a GraphQL error will be raised and the field result set to `null`.
 
 ## Roles
 
@@ -290,6 +290,8 @@ type User
 
 </ExampleTabs.Schema>
 </ExampleTabs>
+
+[Learn more about policy-based authorization in ASP.NET Core](https://docs.microsoft.com/aspnet/core/security/authorization/policies)
 
 ### IResolverContext within an AuthorizationHandler
 
