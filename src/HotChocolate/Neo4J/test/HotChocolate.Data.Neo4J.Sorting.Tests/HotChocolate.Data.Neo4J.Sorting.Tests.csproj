@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Shouldly" Version="$(ShouldlyVersion)" />
-    <PackageReference Include="Squadron.Neo4j" Version="$(Neo4jDriverVersion)" />
+    <PackageReference Include="Squadron.Neo4j" Version="$(SquadronNeo4jVersion)" />
   </ItemGroup>
 
   <ItemGroup>
