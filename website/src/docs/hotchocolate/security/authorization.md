@@ -119,7 +119,7 @@ When building our `ClaimsPrincipal`, we just have to add one or more role claims
 claims.Add(new Claim(ClaimTypes.Role, "Administrator"));
 ```
 
-We can then check, whether an authenticated user has these role claims.
+We can then check whether an authenticated user has these role claims.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
