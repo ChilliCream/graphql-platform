@@ -35,7 +35,7 @@ public class Startup
 
 > ⚠️ Note: We need to call `AddAuthorization()` on the `IServiceCollection`, to register the services needed by ASP.NET Core, and on the `IRequestExecutorBuilder` to register the `@authorize` directive and middleware.
 
-2. Register the `UseAuthorization` middleware with the request pipeline
+2. Register the ASP.NET Core authorization middleware with the request pipeline by calling `UseAuthorization`
 
 ```csharp
 public class Startup
