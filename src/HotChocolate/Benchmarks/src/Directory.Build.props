@@ -1,8 +1,11 @@
 <Project>
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <LangVersion>9.0</LangVersion>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('PackageVersions.props', '$(MSBuildThisFileDirectory)..\'))" />
+
 </Project>

@@ -10,8 +10,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Shouldly" Version="4.0.3" />
-    <PackageReference Include="Squadron.Neo4j" Version="0.9.1-preview.3" />
+    <PackageReference Include="Shouldly" Version="$(ShouldlyVersion)" />
+    <PackageReference Include="Squadron.Neo4j" Version="$(SquadronNeo4jVersion)" />
   </ItemGroup>
 
 </Project>

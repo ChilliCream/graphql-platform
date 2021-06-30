@@ -10,8 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
-    <ProjectReference Include="..\..\..\Core\src\Types.CursorPagination\HotChocolate.Types.CursorPagination.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

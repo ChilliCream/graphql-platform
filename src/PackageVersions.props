@@ -1,10 +1,9 @@
 <Project>
 
   <PropertyGroup>
-    <EntityFrameworkVersion Condition="'$(TargetFramework)' == 'net6.0'">6.0.0-preview.5.21301.9</EntityFrameworkVersion>
+    <EntityFrameworkVersion Condition="'$(TargetFramework)' == 'net6.0'">5.0.0</EntityFrameworkVersion>
     <EntityFrameworkVersion Condition="'$(TargetFramework)' == 'net5.0'">5.0.0</EntityFrameworkVersion>
-    <EntityFrameworkVersion Condition="'$(TargetFramework)' == 'netstandard2.1'">5.0.0</EntityFrameworkVersion>
-    <EntityFrameworkVersion Condition="'$(EntityFrameworkVersion)' == ''">3.1.4</EntityFrameworkVersion>
+    <EntityFrameworkVersion Condition="'$(EntityFrameworkVersion)' == ''">5.0.0</EntityFrameworkVersion>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -57,9 +56,18 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <MicrosoftAspNetCoreTestHostVersion Condition="'$(TargetFramework)' == 'net6.0'">6.0.0-preview.5.21301.5</MicrosoftAspNetCoreTestHostVersion>
+    <MicrosoftAspNetCoreTestHostVersion Condition="'$(TargetFramework)' == 'net6.0'">6.0.0-preview.5.21301.17</MicrosoftAspNetCoreTestHostVersion>
     <MicrosoftAspNetCoreTestHostVersion Condition="'$(TargetFramework)' == 'net5.0'">5.0.0</MicrosoftAspNetCoreTestHostVersion>
-    <MicrosoftAspNetCoreTestHostVersion Condition="'$(MicrosoftAspNetCoreTestHostVersion)' == ''">1.7.0</MicrosoftAspNetCoreTestHostVersion>
+    <MicrosoftAspNetCoreTestHostVersion Condition="'$(MicrosoftAspNetCoreTestHostVersion)' == ''">3.1.14</MicrosoftAspNetCoreTestHostVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <MicrosoftAspNetCoreComponentsVersion Condition="'$(MicrosoftAspNetCoreComponentsVersion)' == ''">5.0.4</MicrosoftAspNetCoreComponentsVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <SystemIOPipelinesVersion Condition="'$(TargetFramework)' == 'net6.0'">6.0.0-preview.5.21301.5</SystemIOPipelinesVersion>
+    <SystemIOPipelinesVersion Condition="'$(SystemIOPipelinesVersion)' == ''">5.0.0</SystemIOPipelinesVersion>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -87,7 +95,6 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <SystemReactiveVersion Condition="'$(TargetFramework)' == 'net6.0'">6.0.0-preview.5.21301.5</SystemReactiveVersion>
     <SystemReactiveVersion Condition="'$(SystemReactiveVersion)' == ''">5.0.0</SystemReactiveVersion>
   </PropertyGroup>
 
@@ -101,11 +108,14 @@
     <SystemMemoryVersion>4.5.4</SystemMemoryVersion>
     <SystemThreadingTasksExtensionsVersion>4.5.4</SystemThreadingTasksExtensionsVersion>
     <BenchmarkDotNetVersion>0.13.0</BenchmarkDotNetVersion>
-    <NewtonsoftJsonVersion>12.0.3</NewtonsoftJsonVersion>
+    <!--We keep 9.0.1 here for visual studio compatibility.-->
+    <NewtonsoftJsonVersion>9.0.1</NewtonsoftJsonVersion>
     <StackExchangeRedisVersion>2.1.30</StackExchangeRedisVersion>
     <NodaTimeVersion>3.0.0</NodaTimeVersion>
-    <SquadronRedisVersion>0.5.0</SquadronRedisVersion>
-    <SquadronPostgreSqlVersion>0.8.1</SquadronPostgreSqlVersion>
+    <SquadronRedisVersion>0.10.2</SquadronRedisVersion>
+    <SquadronPostgreSqlVersion>0.10.2</SquadronPostgreSqlVersion>
+    <SquadronMongoVersion>0.10.2</SquadronMongoVersion>
+    <SquadronNeo4jVersion>0.10.2</SquadronNeo4jVersion>
     <MicrosoftAzureServiceBusVersion>4.1.1</MicrosoftAzureServiceBusVersion>
     <CoverletVersion>3.0.3</CoverletVersion>
     <MoqVersion>4.13.1</MoqVersion>
@@ -114,6 +124,16 @@
     <SnapshooterVersion>0.5.4</SnapshooterVersion>
     <ChilliCreamTestingUtilitiesVersion>0.2.0</ChilliCreamTestingUtilitiesVersion>
     <MicrosoftDataSqliteCoreVersion>5.0.0</MicrosoftDataSqliteCoreVersion>
+    <MongoDBDriverVersion>2.11.2</MongoDBDriverVersion>
+    <Neo4jDriverVersion>4.2.0</Neo4jDriverVersion>
+    <ServiceStackTextVersion>5.10.4</ServiceStackTextVersion>
+    <ShouldlyVersion>4.0.3</ShouldlyVersion>
+    <NetTopologySuiteVersion>2.0.0</NetTopologySuiteVersion>
+    <ProjNETVersion>2.0.0</ProjNETVersion>
+    <sqlitenetpclVersion>1.7.335</sqlitenetpclVersion>
+    <MicrosoftCodeAnalysisCSharpVersion>3.8.0</MicrosoftCodeAnalysisCSharpVersion>
+    <MicrosoftCodeAnalysisAnalyzersVersion>3.3.2</MicrosoftCodeAnalysisAnalyzersVersion>
+    <DotNetGlobVersion>3.1.2</DotNetGlobVersion>
   </PropertyGroup>
 
 </Project>

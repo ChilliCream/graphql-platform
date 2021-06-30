@@ -10,17 +10,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\src\Abstractions\HotChocolate.Abstractions.csproj" />
-    <ProjectReference Include="..\..\..\Core\src\Types.OffsetPagination\HotChocolate.Types.OffsetPagination.csproj" />
-    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
     <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Neo4j.Driver" Version="4.2.0" />
-    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.1" />
-    <PackageReference Include="ServiceStack.Text" Version="5.10.4" />
-    <PackageReference Include="System.Linq.Async" Version="5.0.0" />
+    <PackageReference Include="Neo4j.Driver" Version="$(Neo4jDriverVersion)" />
+    <PackageReference Include="ServiceStack.Text" Version="$(ServiceStackTextVersion)" />
+    <PackageReference Include="System.Linq.Async" Version="$(SystemReactiveVersion)" />
   </ItemGroup>
 
   <ItemGroup>

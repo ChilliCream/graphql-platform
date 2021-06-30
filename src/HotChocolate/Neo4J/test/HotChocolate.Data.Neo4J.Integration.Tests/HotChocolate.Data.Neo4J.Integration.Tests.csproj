@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Squadron.Neo4j" Version="0.9.1-preview.3" />
+    <PackageReference Include="Squadron.Neo4j" Version="$(SquadronNeo4jVersion)" />
   </ItemGroup>
 
   <ItemGroup>

@@ -9,13 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
-    <ProjectReference Include="..\..\..\Core\src\Types.OffsetPagination\HotChocolate.Types.OffsetPagination.csproj" />
     <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MongoDB.Driver" Version="2.11.2" />
+    <PackageReference Include="MongoDB.Driver" Version="$(MongoDBDriverVersion)" />
   </ItemGroup>
 
   <ItemGroup>

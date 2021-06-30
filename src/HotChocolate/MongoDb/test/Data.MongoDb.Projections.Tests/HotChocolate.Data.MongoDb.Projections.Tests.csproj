@@ -12,8 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Squadron.Mongo" Version="0.5.0" />
-    <PackageReference Include="MongoDB.Driver.Core" Version="2.11.2" />
-    <PackageReference Include="MongoDB.Bson" Version="2.11.2" />
+    <PackageReference Include="Squadron.Mongo" Version="$(SquadronMongoVersion)" />
+    <PackageReference Include="MongoDB.Driver.Core" Version="$(MongoDBDriverVersion)" />
+    <PackageReference Include="MongoDB.Bson" Version="$(MongoDBDriverVersion)" />
   </ItemGroup>
 </Project>

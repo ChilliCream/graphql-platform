@@ -6,19 +6,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Squadron.Mongo" Version="0.8.1" />
+    <PackageReference Include="Squadron.Mongo" Version="$(SquadronMongoVersion)" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
-    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
+  <ItemGroup>    
     <ProjectReference Include="..\..\..\Core\test\Types.Tests\HotChocolate.Types.Tests.csproj" />
     <ProjectReference Include="..\..\src\Types.Sorting\HotChocolate.Types.Sorting.csproj" />
   </ItemGroup>
 
   <!--For Visual Studio for Mac Test Explorer we need this reference here-->
   <ItemGroup>
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(XunitVersion)" />
   </ItemGroup>
 
   <ItemGroup>
