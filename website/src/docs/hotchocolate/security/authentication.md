@@ -49,7 +49,7 @@ public class Startup
 }
 ```
 
-> ⚠️ Note: This is an exemplary configuration, not intended for use in a real world application.
+> ⚠️ Note: This is an example configuration that's not intended for use in a real world application.
 
 3. Register the `UseAuthentication` middleware with the request pipeline
 
