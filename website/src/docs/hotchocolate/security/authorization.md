@@ -248,7 +248,7 @@ type User @authorize(policy: "AllEmployees") {
 
 This essentially uses the provided policy and runs it against the `ClaimsPrinciple` that is associated with the current request.
 
-The `@authorize` directive is also repeatable, which means that we are able to chain the directive and a user is only allowed to access the field, if he meets all of the specified conditions.
+The `@authorize` directive is also repeatable, which means that we are able to chain the directive and a user is only allowed to access the field if they meet all of the specified conditions.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
