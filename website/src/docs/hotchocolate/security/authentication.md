@@ -166,7 +166,7 @@ services
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-After retrieving the `ClaimsPrincipal` we can access specific claims of the authenticated user.
+With the authenticated user's `ClaimsPrincipal`, we can now access their claims.
 
 ```csharp
 var userId = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
