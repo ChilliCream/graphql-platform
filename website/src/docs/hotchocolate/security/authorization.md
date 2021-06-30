@@ -311,7 +311,7 @@ public class MinimumAgeHandler
 }
 ```
 
-## Global authorization
+# Global authorization
 
 We can also apply authorization to our entire GraphQL endpoint. To do this, simply call `RequireAuthorization()` on the `GraphQLEndpointConventionBuilder`.
 
@@ -337,22 +337,40 @@ public class Startup
 
 This method also accepts [roles](#roles) and [policies](#policies) as arguments, similiar to the `Authorize` attribute / methods.
 
-<!-- ## Adding claims dynamically
+# Modifying the ClaimsPrincipal
 
-TODO: Rework and test
+Sometimes we might want to add additional [ClaimsIdentity](https://docs.microsoft.com/dotnet/api/system.security.claims.claimsidentity) to our `ClaimsPrincipal` or modify the default identity.
 
-Our query middleware creates a request and passes the request with additional meta-data to the query-engine. For example we provide a property called `ClaimsIdentity` that contains the user associated with the current request. These meta-data or custom request properties can be used within a field-middleware like the authorize middleware to change the default execution of a field resolver.
-
-So, we could use an authentication-middleware in ASP.NET core to add all the user meta-data that we need to our claim-identity or we could hook up some code in our middleware and add additional meta-data or even modify the `ClaimsPrincipal`.
+Hot Chocolate provides the ability to register an `IHttpRequestInterceptor`, allowing us to modify the incoming HTTP request, before it is passed along to the execution engine.
 
 ```csharp
-services.AddQueryRequestInterceptor((ctx, builder, ct) =>
+public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
 {
-    var identity = new ClaimsIdentity();
-    identity.AddClaim(new Claim(ClaimTypes.Country, "us"));
-    ctx.User.AddIdentity(identity);
-    return Task.CompletedTask;
-});
+    public override ValueTask OnCreateAsync(HttpContext context,
+        IRequestExecutor requestExecutor, IQueryRequestBuilder requestBuilder,
+        CancellationToken cancellationToken)
+    {
+        var identity = new ClaimsIdentity();
+        identity.AddClaim(new Claim(ClaimTypes.Country, "us"));
+
+        context.User.AddIdentity(identity);
+
+        return base.OnCreateAsync(context, requestExecutor, requestBuilder,
+            cancellationToken);
+    }
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddHttpRequestInterceptor<HttpRequestInterceptor>();
+
+        // Omitted code for brevity
+    }
+}
 ```
 
-The `OnCreateRequestAsync`-delegate can be used for many other things and is not really for authorization but can be useful in dev-scenarios where we want to simulate a certain user etc.. -->
+The `IHttpRequestInterceptor` can be used for many other things as well, not just for modifying the `ClaimsPrincipal`.
