@@ -187,13 +187,10 @@ module.exports = {
             ...options,
             id: baseUrl,
             title,
-            link: baseUrl,
+            site_url: baseUrl,
             description,
             copyright: `All rights reserved ${currentYear}, ${company}`,
-            author: {
-              name: author,
-              link: "https://twitter.com/Chilli_Cream",
-            },
+            author,
             generator: "ChilliCream",
             image: `${baseUrl}/favicon-32x32.png`,
             favicon: `${baseUrl}/favicon-32x32.png`,
@@ -242,37 +239,31 @@ module.exports = {
                 },
               },
             }) =>
-              allMdx.edges.map(({ node }) => {
-                const date = new Date(Date.parse(node.frontmatter.date));
+              allMdx.edges.map(({ node: { excerpt, frontmatter, body } }) => {
+                const date = new Date(Date.parse(frontmatter.date));
                 const imgSrcPattern = new RegExp(
                   `(${pathPrefix})?/static/`,
                   "g"
                 );
-                const link = siteUrl + pathPrefix + node.frontmatter.path;
-                let image = node.frontmatter.featuredImage
+                const link = siteUrl + pathPrefix + frontmatter.path;
+                let image = frontmatter.featuredImage
                   ? siteUrl +
-                    node.frontmatter.featuredImage.childImageSharp
+                    frontmatter.featuredImage.childImageSharp
                       .gatsbyImageData.src
                   : null;
 
                 return {
-                  id: node.frontmatter.path,
-                  link,
-                  title: node.frontmatter.title,
+                  url: link,
+                  title: frontmatter.title,
                   date,
                   published: date,
-                  description: node.excerpt,
-                  content: node.body.replace(
+                  description: excerpt,
+                  content: body.replace(
                     imgSrcPattern,
                     `${siteUrl}/static/`
                   ),
                   image,
-                  author: [
-                    {
-                      name: node.frontmatter.author,
-                      link: node.frontmatter.authorUrl,
-                    },
-                  ],
+                  author: frontmatter.author,
                 };
               }),
             title: "ChilliCream Blog",
