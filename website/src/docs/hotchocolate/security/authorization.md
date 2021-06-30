@@ -311,7 +311,7 @@ public class MinimumAgeHandler
 
 ## Global authorization
 
-We can also apply authorization to our entire GraphQL endpoint, by calling `RequireAuthorization()` on the `GraphQLEndpointConventionBuilder`.
+We can also apply authorization to our entire GraphQL endpoint. To do this, simply call `RequireAuthorization()` on the `GraphQLEndpointConventionBuilder`.
 
 ```csharp
 public class Startup
