@@ -199,12 +199,12 @@ public class QueryType : ObjectType<Query>
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-# AND / OR Filter
+# "and" / "or" Filter
 
 There are two built in fields.
 
-- `AND`: Every condition has to be valid
-- `OR` : At least one condition has to be valid
+- `and`: Every condition has to be valid
+- `or` : At least one condition has to be valid
 
 Example:
 
@@ -213,7 +213,7 @@ query {
   posts(
     first: 5
     where: {
-      OR: [{ title: { contains: "Doe" } }, { title: { contains: "John" } }]
+      or: [{ title: { contains: "Doe" } }, { title: { contains: "John" } }]
     }
   ) {
     edges {
@@ -226,13 +226,13 @@ query {
 }
 ```
 
-**⚠️ OR does not work when you use it like this: **
+**⚠️ "or" does not work when you use it like this: **
 
 ```graphql
 query {
   posts(
     first: 5
-    where: { title: { contains: "John", OR: { title: { contains: "Doe" } } } }
+    where: { title: { contains: "John", or: { title: { contains: "Doe" } } } }
   ) {
     edges {
       node {
