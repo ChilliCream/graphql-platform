@@ -59,7 +59,7 @@ public class Startup
 
 At the core of authorization with Hot Chocolate is the `@authorize` directive. It can be applied to fields and types to denote that they require authorization.
 
-If the `@authorize` directive is specified on a type, it is applied to all fields of that type. Specified on an individual field the directive precedences the one on the type.
+If the `@authorize` directive is specified on a type, it is applied to all fields of that type. Specified on an individual field the directive overrules the one on the type.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
