@@ -72,7 +72,7 @@ public class Startup
 
 The above takes care of parsing and validating an incoming HTTP request.
 
-In order to make the authentication result available to our resolvers we need to complete some additional, Hot Chocolate specific, steps.
+In order to make the authentication result available to our resolvers, we need to complete some additional, Hot Chocolate specific steps.
 
 1. Install the `HotChocolate.AspNetCore.Authorization` package
 
