@@ -22,7 +22,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// The max allowed GraphQL request size.
         /// </param>
         /// <returns>
-        /// Returns the <see cref="IServiceCollection"/> so that configuration can be chained.
+        /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
         /// </returns>
         /// <exception cref="ArgumentNullException">
         /// The <see cref="IServiceCollection"/> is <c>null</c>.
@@ -61,7 +61,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// The max allowed GraphQL request size.
         /// </param>
         /// <returns>
-        /// Returns the <see cref="IServiceCollection"/> so that configuration can be chained.
+        /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
         /// </returns>
         public static IRequestExecutorBuilder AddGraphQLServer(
             this IServiceCollection services,
@@ -73,6 +73,18 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddDefaultHttpRequestInterceptor()
                 .AddSubscriptionServices();
 
+        /// <summary>
+        /// Adds a GraphQL server configuration to the DI.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IServiceCollection"/>.
+        /// </param>
+        /// <param name="schemaName">
+        /// The name of the schema. Use explicit schema names if you host multiple schemas.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
+        /// </returns>
         public static IRequestExecutorBuilder AddGraphQLServer(
             this IRequestExecutorBuilder builder,
             NameString schemaName = default) =>
