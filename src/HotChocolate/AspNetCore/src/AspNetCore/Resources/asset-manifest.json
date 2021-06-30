@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "./static/css/main.cc3afb38.chunk.css",
-    "main.js": "./static/js/main.7a3c091f.chunk.js",
+    "main.js": "./static/js/main.f7c7d3e3.chunk.js",
     "runtime-main.js": "./static/js/runtime-main.1a468d80.js",
     "static/css/2.7792b7b7.chunk.css": "./static/css/2.7792b7b7.chunk.css",
-    "static/js/2.0c376436.chunk.js": "./static/js/2.0c376436.chunk.js",
+    "static/js/2.d5c5f293.chunk.js": "./static/js/2.d5c5f293.chunk.js",
     "static/js/3.c050aeb7.chunk.js": "./static/js/3.c050aeb7.chunk.js",
     "index.html": "./index.html",
-    "static/js/2.0c376436.chunk.js.LICENSE.txt": "./static/js/2.0c376436.chunk.js.LICENSE.txt",
+    "static/js/2.d5c5f293.chunk.js.LICENSE.txt": "./static/js/2.d5c5f293.chunk.js.LICENSE.txt",
     "static/js/editor.worker.455af92e.js": "./static/js/editor.worker.455af92e.js",
     "static/js/graphql.worker.d820ea0e.js": "./static/js/graphql.worker.d820ea0e.js",
     "static/js/graphql.worker.d820ea0e.js.LICENSE.txt": "./static/js/graphql.worker.d820ea0e.js.LICENSE.txt",
@@ -20,8 +20,8 @@
   "entrypoints": [
     "static/js/runtime-main.1a468d80.js",
     "static/css/2.7792b7b7.chunk.css",
-    "static/js/2.0c376436.chunk.js",
+    "static/js/2.d5c5f293.chunk.js",
     "static/css/main.cc3afb38.chunk.css",
-    "static/js/main.7a3c091f.chunk.js"
+    "static/js/main.f7c7d3e3.chunk.js"
   ]
 }
