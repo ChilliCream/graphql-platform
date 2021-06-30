@@ -1,0 +1,119 @@
+<Project>
+
+  <PropertyGroup>
+    <EntityFrameworkVersion Condition="'$(TargetFramework)' == 'net6.0'">6.0.0-preview.5.21301.9</EntityFrameworkVersion>
+    <EntityFrameworkVersion Condition="'$(TargetFramework)' == 'net5.0'">5.0.0</EntityFrameworkVersion>
+    <EntityFrameworkVersion Condition="'$(TargetFramework)' == 'netstandard2.1'">5.0.0</EntityFrameworkVersion>
+    <EntityFrameworkVersion Condition="'$(EntityFrameworkVersion)' == ''">3.1.4</EntityFrameworkVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <NpgsqlEntityFrameworkCoreVersion Condition="'$(TargetFramework)' == 'net6.0'">6.0.0-preview4</NpgsqlEntityFrameworkCoreVersion>
+    <NpgsqlEntityFrameworkCoreVersion Condition="'$(TargetFramework)' == 'net5.0'">5.0.0</NpgsqlEntityFrameworkCoreVersion>
+    <NpgsqlEntityFrameworkCoreVersion Condition="'$(TargetFramework)' == 'netstandard2.1'">5.0.0</NpgsqlEntityFrameworkCoreVersion>
+    <NpgsqlEntityFrameworkCoreVersion Condition="'$(NpgsqlEntityFrameworkCoreVersion)' == ''">3.1.4</NpgsqlEntityFrameworkCoreVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <MicrosoftExtensionsDIVersion Condition="'$(TargetFramework)' == 'net6.0'">6.0.0-preview.5.21301.5</MicrosoftExtensionsDIVersion>
+    <MicrosoftExtensionsDIVersion Condition="'$(TargetFramework)' == 'net5.0'">5.0.0</MicrosoftExtensionsDIVersion>
+    <MicrosoftExtensionsDIVersion Condition="'$(MicrosoftExtensionsDIVersion)' == ''">3.1.4</MicrosoftExtensionsDIVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <MicrosoftExtensionsHttpVersion Condition="'$(TargetFramework)' == 'net6.0'">6.0.0-preview.5.21301.5</MicrosoftExtensionsHttpVersion>
+    <MicrosoftExtensionsHttpVersion Condition="'$(TargetFramework)' == 'net5.0'">5.0.0</MicrosoftExtensionsHttpVersion>
+    <MicrosoftExtensionsHttpVersion Condition="'$(MicrosoftExtensionsHttpVersion)' == ''">3.1.4</MicrosoftExtensionsHttpVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <MicrosoftExtensionsCachingMemoryVersion Condition="'$(TargetFramework)' == 'net6.0'">6.0.0-preview.5.21301.5</MicrosoftExtensionsCachingMemoryVersion>
+    <MicrosoftExtensionsCachingMemoryVersion Condition="'$(TargetFramework)' == 'net5.0'">5.0.0</MicrosoftExtensionsCachingMemoryVersion>
+    <MicrosoftExtensionsCachingMemoryVersion Condition="'$(MicrosoftExtensionsCachingMemoryVersion)' == ''">3.1.4</MicrosoftExtensionsCachingMemoryVersion>
+  </PropertyGroup>
+
+   <PropertyGroup>
+    <MicrosoftExtensionsOptionsVersion Condition="'$(TargetFramework)' == 'net6.0'">6.0.0-preview.5.21301.5</MicrosoftExtensionsOptionsVersion>
+    <MicrosoftExtensionsOptionsVersion Condition="'$(TargetFramework)' == 'net5.0'">5.0.0</MicrosoftExtensionsOptionsVersion>
+    <MicrosoftExtensionsOptionsVersion Condition="'$(MicrosoftExtensionsOptionsVersion)' == ''">3.1.4</MicrosoftExtensionsOptionsVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <MicrosoftExtensionsObjectPoolVersion Condition="'$(TargetFramework)' == 'net6.0'">6.0.0-preview.5.21301.17</MicrosoftExtensionsObjectPoolVersion>
+    <MicrosoftExtensionsObjectPoolVersion Condition="'$(TargetFramework)' == 'net5.0'">5.0.0</MicrosoftExtensionsObjectPoolVersion>
+    <MicrosoftExtensionsObjectPoolVersion Condition="'$(MicrosoftExtensionsObjectPoolVersion)' == ''">3.1.4</MicrosoftExtensionsObjectPoolVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <SystemDiagnosticsDiagnosticSourceVersion Condition="'$(TargetFramework)' == 'net6.0'">6.0.0-preview.5.21301.5</SystemDiagnosticsDiagnosticSourceVersion>
+    <SystemDiagnosticsDiagnosticSourceVersion Condition="'$(TargetFramework)' == 'net5.0'">5.0.0</SystemDiagnosticsDiagnosticSourceVersion>
+    <SystemDiagnosticsDiagnosticSourceVersion Condition="'$(SystemDiagnosticsDiagnosticSourceVersion)' == ''">4.7.0</SystemDiagnosticsDiagnosticSourceVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <MicrosoftAspNetCoreAuthorizationVersion Condition="'$(TargetFramework)' == 'net6.0'">6.0.0-preview.5.21301.5</MicrosoftAspNetCoreAuthorizationVersion>
+    <MicrosoftAspNetCoreAuthorizationVersion Condition="'$(TargetFramework)' == 'net5.0'">5.0.0</MicrosoftAspNetCoreAuthorizationVersion>
+    <MicrosoftAspNetCoreAuthorizationVersion Condition="'$(MicrosoftAspNetCoreAuthorizationVersion)' == ''">4.7.0</MicrosoftAspNetCoreAuthorizationVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <MicrosoftAspNetCoreTestHostVersion Condition="'$(TargetFramework)' == 'net6.0'">6.0.0-preview.5.21301.5</MicrosoftAspNetCoreTestHostVersion>
+    <MicrosoftAspNetCoreTestHostVersion Condition="'$(TargetFramework)' == 'net5.0'">5.0.0</MicrosoftAspNetCoreTestHostVersion>
+    <MicrosoftAspNetCoreTestHostVersion Condition="'$(MicrosoftAspNetCoreTestHostVersion)' == ''">1.7.0</MicrosoftAspNetCoreTestHostVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <SystemThreadingChannelsVersion Condition="'$(TargetFramework)' == 'net6.0'">6.0.0-preview.5.21301.5</SystemThreadingChannelsVersion>
+    <SystemThreadingChannelsVersion Condition="'$(TargetFramework)' == 'net5.0'">5.0.0</SystemThreadingChannelsVersion>
+    <SystemThreadingChannelsVersion Condition="'$(SystemThreadingChannelsVersion)' == ''">4.7.0</SystemThreadingChannelsVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <MicrosoftBclAsyncInterfacesVersion Condition="'$(TargetFramework)' == 'net6.0'">6.0.0-preview.5.21301.5</MicrosoftBclAsyncInterfacesVersion>
+    <MicrosoftBclAsyncInterfacesVersion Condition="'$(TargetFramework)' == 'net5.0'">5.0.0</MicrosoftBclAsyncInterfacesVersion>
+    <MicrosoftBclAsyncInterfacesVersion Condition="'$(MicrosoftBclAsyncInterfacesVersion)' == ''">1.1.0</MicrosoftBclAsyncInterfacesVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <SystemCollectionsImmutableVersion Condition="'$(TargetFramework)' == 'net6.0'">6.0.0-preview.5.21301.5</SystemCollectionsImmutableVersion>
+    <SystemCollectionsImmutableVersion Condition="'$(TargetFramework)' == 'net5.0'">5.0.0</SystemCollectionsImmutableVersion>
+    <SystemCollectionsImmutableVersion Condition="'$(SystemCollectionsImmutableVersion)' == ''">1.7.0</SystemCollectionsImmutableVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <SystemTextJsonVersion Condition="'$(TargetFramework)' == 'net6.0'">5.0.0</SystemTextJsonVersion>
+    <SystemTextJsonVersion Condition="'$(TargetFramework)' == 'net5.0'">5.0.0</SystemTextJsonVersion>
+    <SystemTextJsonVersion Condition="'$(SystemTextJsonVersion)' == ''">4.7.0</SystemTextJsonVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <SystemReactiveVersion Condition="'$(TargetFramework)' == 'net6.0'">6.0.0-preview.5.21301.5</SystemReactiveVersion>
+    <SystemReactiveVersion Condition="'$(SystemReactiveVersion)' == ''">5.0.0</SystemReactiveVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <SystemComponentModelAnnotationsVersion Condition="'$(TargetFramework)' == 'net6.0'">6.0.0-preview.4.21253.7</SystemComponentModelAnnotationsVersion>
+    <SystemComponentModelAnnotationsVersion Condition="'$(TargetFramework)' == 'net5.0'">5.0.0</SystemComponentModelAnnotationsVersion>
+    <SystemComponentModelAnnotationsVersion Condition="'$(SystemComponentModelAnnotationsVersion)' == ''">4.7.0</SystemComponentModelAnnotationsVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <SystemMemoryVersion>4.5.4</SystemMemoryVersion>
+    <SystemThreadingTasksExtensionsVersion>4.5.4</SystemThreadingTasksExtensionsVersion>
+    <BenchmarkDotNetVersion>0.13.0</BenchmarkDotNetVersion>
+    <NewtonsoftJsonVersion>12.0.3</NewtonsoftJsonVersion>
+    <StackExchangeRedisVersion>2.1.30</StackExchangeRedisVersion>
+    <NodaTimeVersion>3.0.0</NodaTimeVersion>
+    <SquadronRedisVersion>0.5.0</SquadronRedisVersion>
+    <SquadronPostgreSqlVersion>0.8.1</SquadronPostgreSqlVersion>
+    <MicrosoftAzureServiceBusVersion>4.1.1</MicrosoftAzureServiceBusVersion>
+    <CoverletVersion>3.0.3</CoverletVersion>
+    <MoqVersion>4.13.1</MoqVersion>
+    <MicrosoftNETTestSdkVersion>16.7.0</MicrosoftNETTestSdkVersion>
+    <XunitVersion>2.4.1</XunitVersion>
+    <SnapshooterVersion>0.5.4</SnapshooterVersion>
+    <ChilliCreamTestingUtilitiesVersion>0.2.0</ChilliCreamTestingUtilitiesVersion>
+    <MicrosoftDataSqliteCoreVersion>5.0.0</MicrosoftDataSqliteCoreVersion>
+  </PropertyGroup>
+
+</Project>

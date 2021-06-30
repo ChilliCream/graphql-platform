@@ -7,14 +7,12 @@ using HotChocolate.StarWars;
 namespace HotChocolate.Validation.Benchmarks
 {
     [RPlotExporter, CategoriesColumn, RankColumn, MeanColumn, MedianColumn, MemoryDiagnoser]
-    public class ValidationBenchmarks
-            : IDisposable
+    public class ValidationBenchmarks : IDisposable
     {
         private readonly IServiceProvider _services;
         private readonly IDocumentValidator _validator;
         private readonly ISchema _schema;
         private readonly DocumentNode _introspectionQuery;
-        private readonly DocumentNode _starWarsQuery;
 
         public ValidationBenchmarks()
         {
@@ -32,8 +30,6 @@ namespace HotChocolate.Validation.Benchmarks
             var resources = new ResourceHelper();
             _introspectionQuery = Utf8GraphQLParser.Parse(
                 resources.GetResourceString("IntrospectionQuery.graphql"));
-            _starWarsQuery = Utf8GraphQLParser.Parse(
-                resources.GetResourceString("StarWarsQuery.graphql"));
         }
 
         [GlobalSetup]

@@ -13,9 +13,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.1.4"/>
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="3.1.4"/>
-    <PackageReference Include="Squadron.PostgreSql" Version="0.8.1"/>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="$(NpgsqlEntityFrameworkCoreVersion)"/>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="$(NpgsqlEntityFrameworkCoreVersion)"/>
+    <PackageReference Include="Squadron.PostgreSql" Version="$(SquadronPostgreSqlVersion)"/>
   </ItemGroup>
 
     <!--For Visual Studio for Mac Test Explorer we need this reference here-->

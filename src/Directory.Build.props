@@ -33,6 +33,8 @@
     <TestTargetFrameworks>net6.0; net5.0; netcoreapp3.1</TestTargetFrameworks>
   </PropertyGroup>
 
+  <Import Project="PackageVersions.props" />
+  
   <PropertyGroup>
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>

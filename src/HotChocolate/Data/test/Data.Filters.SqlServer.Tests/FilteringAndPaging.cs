@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using Xunit;
 

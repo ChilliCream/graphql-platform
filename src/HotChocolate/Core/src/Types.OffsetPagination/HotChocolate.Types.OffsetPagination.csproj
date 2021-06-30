@@ -17,13 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!--PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference-->
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Update="Properties\OffsetResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>OffsetResources.Designer.cs</LastGenOutput>

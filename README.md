@@ -40,10 +40,6 @@ Our GraphQL IDE to explore, request and analyze any GraphQL endpoint.
 
 [Learn more](https://chillicream.com/docs/bananacakepop/)
 
-### Marshmellow Pie
-
-Our schema registry for any GraphQL client and server.
-
 ## Roadmap
 
 If you are interested in upcoming releases, check out our [Roadmap](https://github.com/ChilliCream/hotchocolate/projects/28).

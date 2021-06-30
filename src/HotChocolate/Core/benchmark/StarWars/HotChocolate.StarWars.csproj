@@ -5,8 +5,4 @@
     <RootNamespace>HotChocolate.StarWars</RootNamespace>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Core\HotChocolate.Core.csproj" />
-  </ItemGroup>
-
 </Project>

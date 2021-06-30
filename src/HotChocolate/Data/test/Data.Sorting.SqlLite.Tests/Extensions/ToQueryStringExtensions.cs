@@ -1,10 +1,16 @@
+#if NET5_0_OR_GREATER
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+#else
 using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Query;
 using System;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+#endif
 
 namespace HotChocolate.Data.Sorting
 {
@@ -14,8 +20,11 @@ namespace HotChocolate.Data.Sorting
             this IQueryable<TEntity> query)
             where TEntity : class
         {
-            IEnumerator<TEntity>? enumerator = query
-                .Provider
+
+#if NET5_0_OR_GREATER
+            var sql = EntityFrameworkQueryableExtensions.ToQueryString(query);
+#else
+            using IEnumerator<TEntity> enumerator = query.Provider
                 .Execute<IEnumerable<TEntity>>(query.Expression)
                 .GetEnumerator();
 
@@ -29,11 +38,12 @@ namespace HotChocolate.Data.Sorting
 
             QuerySqlGenerator? sqlGenerator = factory.Create();
             IRelationalCommand? command = sqlGenerator.GetCommand(selectExpression);
-
             var sql = command.CommandText;
+#endif
             return sql;
         }
 
+#if !NET5_0_OR_GREATER
         private static object Private(
             this object? obj,
             string privateField) =>
@@ -54,5 +64,6 @@ namespace HotChocolate.Data.Sorting
                     BindingFlags.Instance | BindingFlags.NonPublic)
                 ?.GetValue(obj) ??
             throw new InvalidOperationException();
+#endif
     }
 }
