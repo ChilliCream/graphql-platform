@@ -23,12 +23,14 @@ namespace HotChocolate.Fetching
         /// </summary>
         bool DispatchOnSchedule { get; set; }
 
+        void Initialize(IExecutionTaskContext context);
+
         /// <summary>
         /// Dispatches execution tasks to the execution engine work backlog.
         /// </summary>
         /// <param name="enqueue">
         /// The task enqueue delegate.
         /// </param>
-        void Dispatch(Action<IExecutionTaskDefinition> enqueue);
+        void Dispatch();
     }
 }

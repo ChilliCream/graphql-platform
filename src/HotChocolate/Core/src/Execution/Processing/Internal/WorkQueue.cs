@@ -8,16 +8,14 @@ namespace HotChocolate.Execution.Processing.Internal
     internal sealed class WorkQueue
     {
         private readonly Stack<IExecutionTask> _stack = new();
-        private IExecutionTask? _head;
-        private int _count;
-
-        public event EventHandler<EventArgs>? BacklogEmpty;
+        private IExecutionTask? _runningHead;
 
         public bool IsEmpty => _stack.Count == 0;
 
-        public bool IsRunning => _head is not null;
+        public bool HasRunningTasks => _runningHead is not null;
 
-        public int Count => _count;
+
+        public int Count => _stack.Count;
 
         public void Complete(IExecutionTask executionTask)
         {
@@ -26,14 +24,70 @@ namespace HotChocolate.Execution.Processing.Internal
                 throw new ArgumentNullException(nameof(executionTask));
             }
 
+            Remove(ref _runningHead, executionTask);
+        }
+
+        public bool TryPeekInProgress([MaybeNullWhen(false)] out IExecutionTask executionTask)
+        {
+            executionTask = _runningHead;
+            return executionTask is not null;
+        }
+
+        public bool TryTake([MaybeNullWhen(false)] out IExecutionTask executionTask)
+        {
+#if NETSTANDARD2_0
+            if (_stack.Count > 0)
+            {
+                executionTask = _stack.Pop();
+                Add(ref _runningHead, executionTask);
+                return true;
+            }
+
+            executionTask = default;
+#else
+            if (_stack.TryPop(out executionTask))
+            {
+                Add(ref _runningHead, executionTask);
+                return true;
+            }
+#endif
+            return false;
+        }
+
+        public int Push(IExecutionTask executionTask)
+        {
+            if (executionTask is null)
+            {
+                throw new ArgumentNullException(nameof(executionTask));
+            }
+
+            _stack.Push(executionTask);
+            return _stack.Count;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void Add(ref IExecutionTask? head, IExecutionTask executionTask)
+        {
+            executionTask.Next = head;
+
+            if (head is not null)
+            {
+                head.Previous = executionTask;
+            }
+
+            head = executionTask;
+        }
+
+        private static void Remove(ref IExecutionTask? head, IExecutionTask executionTask)
+        {
             IExecutionTask? previous = executionTask.Previous;
             IExecutionTask? next = executionTask.Next;
 
             if (previous is null)
             {
-                if (ReferenceEquals(_head, executionTask))
+                if (ReferenceEquals(head, executionTask))
                 {
-                    _head = next;
+                    head = next;
 
                     if (next is not null)
                     {
@@ -52,91 +106,10 @@ namespace HotChocolate.Execution.Processing.Internal
             }
         }
 
-        public bool TryPeekInProgress([MaybeNullWhen(false)] out IExecutionTask executionTask)
-        {
-            executionTask = _head;
-            return executionTask is not null;
-        }
-
-        public bool TryTake([MaybeNullWhen(false)] out IExecutionTask executionTask)
-        {
-#if NETSTANDARD2_0
-            if (_stack.Count > 0)
-            {
-                executionTask = _stack.Pop();
-                MarkInProgress(executionTask);
-                _count = _stack.Count;
-
-                if (IsEmpty)
-                {
-                    BacklogEmpty?.Invoke(this, EventArgs.Empty);
-                }
-
-                return true;
-            }
-
-            executionTask = default;
-#else
-            if (_stack.TryPop(out executionTask))
-            {
-                MarkInProgress(executionTask);
-                _count = _stack.Count;
-
-                if (IsEmpty)
-                {
-                    BacklogEmpty?.Invoke(this, EventArgs.Empty);
-                }
-
-                return true;
-            }
-#endif
-            return false;
-        }
-
-        public int Push(IExecutionTask executionTask)
-        {
-            if (executionTask is null)
-            {
-                throw new ArgumentNullException(nameof(executionTask));
-            }
-
-            _stack.Push(executionTask);
-            return _count = _stack.Count;
-        }
-
-        public int PushMany(IReadOnlyList<IExecutionTask> executionTasks)
-        {
-            if (executionTasks is null)
-            {
-                throw new ArgumentNullException(nameof(executionTasks));
-            }
-
-            for (var i = 0; i < executionTasks.Count; i++)
-            {
-                _stack.Push(executionTasks[i]);
-            }
-
-            return _count = _stack.Count;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void MarkInProgress(IExecutionTask executionTask)
-        {
-            executionTask.Next = _head;
-
-            if (_head is not null)
-            {
-                _head.Previous = executionTask;
-            }
-
-            _head = executionTask;
-        }
-
         public void Clear()
         {
             _stack.Clear();
-            _count = 0;
-            _head = null;
+            _runningHead = null;
         }
     }
 }

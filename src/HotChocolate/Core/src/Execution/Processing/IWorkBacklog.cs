@@ -1,6 +1,4 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace HotChocolate.Execution.Processing
@@ -22,6 +20,11 @@ namespace HotChocolate.Execution.Processing
         event EventHandler<EventArgs>? BacklogEmpty;
 
         /// <summary>
+        /// A task that can be awaited to wait for the completion of the current work backlog.
+        /// </summary>
+        Task Completion { get; }
+
+        /// <summary>
         /// Defines if the backlog is empty and has no more tasks.
         /// </summary>
         bool IsEmpty { get; }
@@ -29,7 +32,7 @@ namespace HotChocolate.Execution.Processing
         /// <summary>
         /// Defines if the backlog has running tasks.
         /// </summary>
-        bool IsRunning { get; }
+        bool HasRunningTasks { get; }
 
         /// <summary>
         /// Tries to get some work from the backlog.
@@ -59,16 +62,6 @@ namespace HotChocolate.Execution.Processing
         /// Complete a task
         /// </summary>
         void Complete(IExecutionTask task);
-
-        /// <summary>
-        /// Waits for either the <paramref name="cancellationToken" /> to raise or
-        /// for a task to be added to the backlog.
-        /// </summary>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>
-        /// Returns a boolean indicating if there is something new to read on this queue.
-        /// </returns>
-        Task WaitForWorkAsync(CancellationToken cancellationToken);
 
         /// <summary>
         /// Signal that a processor wants to complete.

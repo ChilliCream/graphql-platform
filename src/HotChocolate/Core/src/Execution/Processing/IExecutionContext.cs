@@ -1,6 +1,3 @@
-using System.Threading.Tasks;
-using HotChocolate.Execution.Processing.Internal;
-using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Execution.Processing.Tasks;
 using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Fetching;

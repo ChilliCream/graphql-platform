@@ -21,95 +21,59 @@ namespace HotChocolate.Execution.Processing
                 return Task.CompletedTask;
             }
 
-            return new ExecutionTaskProcessor(operationContext).ExecuteMainProcessorAsync();
+            BeginExecute(operationContext);
+
+            return operationContext.Execution.Work.Completion;
         }
-        private async Task ExecuteMainProcessorAsync()
+
+        private static void BeginExecute(IOperationContext operationContext) =>
+            Task.Run(() => new ExecutionTaskProcessor(operationContext).ExecuteProcessorAsync());
+
+        private async Task ExecuteProcessorAsync()
         {
             IExecutionContext executionContext = _context.Execution;
             CancellationToken cancellationToken = _context.RequestAborted;
             IExecutionTask?[] buffer = executionContext.TaskBuffers.Get();
-
-            do
-            {
-                try
-                {
-                    do
-                    {
-                        var work = executionContext.Work.TryTake(buffer, true);
-
-                        if (work == 0)
-                        {
-                            break;
-                        }
-
-                        if (buffer[0]!.IsSerial)
-                        {
-                            try
-                            {
-                                executionContext.BatchDispatcher.DispatchOnSchedule = true;
-
-                                for (var i = 0; i < work; i++)
-                                {
-                                    IExecutionTask task = buffer[i]!;
-                                    task.BeginExecute(cancellationToken);
-                                    await task.WaitForCompletionAsync(cancellationToken);
-                                }
-                            }
-                            finally
-                            {
-                                executionContext.BatchDispatcher.DispatchOnSchedule = false;
-                            }
-                        }
-                        else
-                        {
-                            for (var i = 0; i < work; i++)
-                            {
-                                buffer[i]!.BeginExecute(cancellationToken);
-                            }
-                        }
-                    } while (!cancellationToken.IsCancellationRequested);
-
-                    await executionContext.Work
-                        .WaitForWorkAsync(cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    if (!cancellationToken.IsCancellationRequested)
-                    {
-                        HandleError(ex);
-                    }
-                }
-            } while (!cancellationToken.IsCancellationRequested &&
-                !executionContext.IsCompleted);
-
-            executionContext.TaskBuffers.Return(buffer);
-        }
-
-        private async Task ExecuteSecondaryProcessorAsync()
-        {
-            IExecutionContext executionContext = _context.Execution;
-            CancellationToken cancellationToken = _context.RequestAborted;
 
             await Task.Yield();
-
-            IExecutionTask?[] buffer = executionContext.TaskBuffers.Get();
 
             RESTART:
             try
             {
                 do
                 {
-                    var work = executionContext.Work.TryTake(buffer, false);
+                    var work = executionContext.Work.TryTake(buffer, true);
 
                     if (work == 0)
                     {
                         break;
                     }
 
-                    for (var i = 0; i < work; i++)
+                    if (buffer[0]!.IsSerial)
                     {
-                        buffer[i]!.BeginExecute(cancellationToken);
+                        try
+                        {
+                            executionContext.BatchDispatcher.DispatchOnSchedule = true;
+
+                            for (var i = 0; i < work; i++)
+                            {
+                                IExecutionTask task = buffer[i]!;
+                                task.BeginExecute(cancellationToken);
+                                await task.WaitForCompletionAsync(cancellationToken)
+                                    .ConfigureAwait(false);
+                            }
+                        }
+                        finally
+                        {
+                            executionContext.BatchDispatcher.DispatchOnSchedule = false;
+                        }
+                    }
+                    else
+                    {
+                        for (var i = 0; i < work; i++)
+                        {
+                            buffer[i]!.BeginExecute(cancellationToken);
+                        }
                     }
                 } while (!cancellationToken.IsCancellationRequested);
             }
@@ -121,7 +85,8 @@ namespace HotChocolate.Execution.Processing
                 }
             }
 
-            if (!executionContext.Work.TryCompleteProcessor())
+            if (!cancellationToken.IsCancellationRequested &&
+                !executionContext.Work.TryCompleteProcessor())
             {
                 goto RESTART;
             }
@@ -144,7 +109,7 @@ namespace HotChocolate.Execution.Processing
         private void ScaleProcessors(object? sender, EventArgs eventArgs)
         {
 #pragma warning disable 4014
-            ExecuteSecondaryProcessorAsync();
+            ExecuteProcessorAsync();
 #pragma warning restore 4014
         }
     }

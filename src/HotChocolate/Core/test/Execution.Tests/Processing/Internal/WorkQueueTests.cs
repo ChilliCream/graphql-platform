@@ -20,7 +20,7 @@ namespace HotChocolate.Execution.Processing.Internal
 
             // assert
             Assert.Equal(1, count);
-            Assert.False(queue.IsRunning);
+            Assert.False(queue.HasRunningTasks);
             Assert.False(queue.IsEmpty);
         }
 
@@ -39,7 +39,7 @@ namespace HotChocolate.Execution.Processing.Internal
             // assert
             Assert.Equal(1, count1);
             Assert.Equal(2, count2);
-            Assert.False(queue.IsRunning);
+            Assert.False(queue.HasRunningTasks);
             Assert.False(queue.IsEmpty);
         }
 
@@ -59,7 +59,7 @@ namespace HotChocolate.Execution.Processing.Internal
             // assert
             Assert.Same(task2, task);
             Assert.True(success);
-            Assert.True(queue.IsRunning);
+            Assert.True(queue.HasRunningTasks);
             Assert.False(queue.IsEmpty);
         }
 
@@ -80,7 +80,7 @@ namespace HotChocolate.Execution.Processing.Internal
             // assert
             Assert.Same(task1, task);
             Assert.True(success);
-            Assert.True(queue.IsRunning);
+            Assert.True(queue.HasRunningTasks);
             Assert.True(queue.IsEmpty);
         }
 
@@ -102,7 +102,7 @@ namespace HotChocolate.Execution.Processing.Internal
 
             // assert
             Assert.Same(task1, task);
-            Assert.False(queue.IsRunning);
+            Assert.False(queue.HasRunningTasks);
             Assert.True(queue.IsEmpty);
         }
 
@@ -121,7 +121,7 @@ namespace HotChocolate.Execution.Processing.Internal
 
             // assert
             Assert.Equal(0, queue.Count);
-            Assert.False(queue.IsRunning);
+            Assert.False(queue.HasRunningTasks);
             Assert.True(queue.IsEmpty);
         }
 
@@ -130,7 +130,7 @@ namespace HotChocolate.Execution.Processing.Internal
         {
             var queue = new WorkQueue();
             Assert.Equal(0, queue.Count);
-            Assert.False(queue.IsRunning);
+            Assert.False(queue.HasRunningTasks);
             Assert.True(queue.IsEmpty);
         }
 
