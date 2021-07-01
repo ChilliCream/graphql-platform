@@ -209,10 +209,7 @@ namespace HotChocolate.Execution.Processing
                     }
                 }
 
-                if (HasCompleted())
-                {
-                    _completion.TrySetResult(true);
-                }
+                TryCompleteUnsafe();
             }
 
             if (scaled)
@@ -247,8 +244,6 @@ namespace HotChocolate.Execution.Processing
                    _serial.IsEmpty &&
                    !_work.HasRunningTasks &&
                    !_serial.HasRunningTasks;
-
-            bool HasCompleted() => IsEmpty && !HasRunningTasks;
         }
 
         /// <inheritdoc/>
@@ -289,6 +284,12 @@ namespace HotChocolate.Execution.Processing
                     changedScale = true;
                     processors = --_processors;
                     backlogSize = _work.Count;
+
+                    if (processors == 0)
+                    {
+                        TryCompleteUnsafe();
+                    }
+
                     return true;
                 }
             }
@@ -328,6 +329,7 @@ namespace HotChocolate.Execution.Processing
             return false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int CalculateScalePressure() =>
             _processors switch
             {
@@ -340,5 +342,16 @@ namespace HotChocolate.Execution.Processing
                 7 => 256,
                 _ => 512
             };
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void TryCompleteUnsafe()
+        {
+            if (HasCompleted())
+            {
+                _completion.TrySetResult(true);
+            }
+
+            bool HasCompleted() => IsEmpty && !HasRunningTasks && _processors == 0;
+        }
     }
 }
