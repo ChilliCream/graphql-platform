@@ -6,7 +6,7 @@ In this section we will learn everything about fetching data with Hot Chocolate.
 
 # Resolvers
 
-Resolvers are the main building blocks when it comes to fetching data. Every field in our GraphQL schema is backed by such a resolver function, responsible for returning the field's value. Since a resolver is just a function, we can use it to retrieve data from a database, a REST service, or any other data source as needed. 
+Resolvers are the main building blocks when it comes to fetching data. Every field in our GraphQL schema is backed by such a resolver function, responsible for returning the field's value. Since a resolver is just a function, we can use it to retrieve data from a database, a REST service, or any other data source as needed.
 
 [Learn more about resolvers](/docs/hotchocolate/fetching-data/resolvers)
 
@@ -42,7 +42,7 @@ Similar to filtering, Hot Chocolate can also autogenerate input types related to
 
 # Projections
 
-Projections allow Hot Chocolate to project incoming GraphQL queries to the database.
+Projections allow Hot Chocolate to transform an incoming GraphQL query with a subselection of fields into an optimized database operation.
 
 For example, if the client only requests the `name` and `id` of a user in their GraphQL query, Hot Chocolate will only query the database for those two columns.
 

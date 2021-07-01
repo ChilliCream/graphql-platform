@@ -261,7 +261,7 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddSingleton<UserService>()
-  
+
         services
             .AddGraphQLServer()
             .AddQueryType<Query>();
@@ -347,20 +347,6 @@ services
 
 </ExampleTabs.Schema>
 </ExampleTabs>
-
-## Scoped Services
-
-Scoped services can be injected in a similar fashion. The only difference is that we are now using the `[ScopedService]` instead of the `[Service]` attribute.
-
-```csharp
-public class Query
-{
-    public List<User> GetUsers([ScopedService] UserService userService)
-        => userService.GetUsers();
-}
-```
-
-TODO: How is this done in Code-first?
 
 ## IHttpContextAccessor
 
@@ -520,5 +506,3 @@ TODO: Both bindcomplextype and addresolver
 
 </ExampleTabs.Schema>
 </ExampleTabs>
-
-Due to how Hot Chocolate's execution engine works, we can not only access the _parent_ directly above us, but also _parents_ further up in the tree.
