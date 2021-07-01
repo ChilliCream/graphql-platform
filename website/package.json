@@ -27,7 +27,7 @@
     "@mdx-js/mdx": "^1.6.22",
     "@mdx-js/react": "^1.6.22",
     "algoliasearch": "^4.9.1",
-    "gatsby": "^3.6.2",
+    "gatsby": "^3.8.1",
     "gatsby-plugin-disqus": "^1.2.2",
     "gatsby-plugin-feed": "^3.6.0",
     "gatsby-plugin-google-analytics": "^3.6.0",
