@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -8,7 +7,6 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Data.Projections.Expressions
 {
-    [return: NotNullIfNotNull("input")]
     public delegate object? ApplyProjection(IResolverContext context, object? input);
 
     public class QueryableProjectionProvider

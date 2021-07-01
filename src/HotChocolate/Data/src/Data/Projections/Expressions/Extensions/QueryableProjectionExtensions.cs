@@ -4,13 +4,32 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Data.Projections.Expressions
 {
+    /// <summary>
+    /// Extensions for projection for <see cref="IEnumerable{T}"/>
+    /// </summary>
     public static class QueryableProjectExtensions
     {
+        /// <summary>
+        /// Projects the selection set of the request onto the enumerable.
+        /// </summary>
+        /// <param name="enumerable">The enumerable</param>
+        /// <param name="context">
+        /// The resolver context of the resolver that is annotated with UseProjection
+        /// </param>
+        /// <returns>The projected enumerable</returns>
         public static IEnumerable<T> Project<T>(
             this IEnumerable<T> enumerable,
             IResolverContext context) =>
             ExecuteProject(enumerable, context, typeof(IEnumerable<T>));
 
+        /// <summary>
+        /// Projects the selection set of the request onto the enumerable.
+        /// </summary>
+        /// <param name="enumerable">The enumerable</param>
+        /// <param name="context">
+        /// The resolver context of the resolver that is annotated with UseProjection
+        /// </param>
+        /// <returns>The projected enumerable</returns>
         public static QueryableExecutable<T> Project<T>(
             this QueryableExecutable<T> enumerable,
             IResolverContext context) =>

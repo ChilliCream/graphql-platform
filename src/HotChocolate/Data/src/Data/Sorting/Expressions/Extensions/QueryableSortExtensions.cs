@@ -4,13 +4,32 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Data.Sorting.Expressions
 {
+    /// <summary>
+    /// Extensions for sorting for <see cref="IEnumerable{T}"/>
+    /// </summary>
     public static class QueryableSortExtensions
     {
+        /// <summary>
+        /// Sorts the selection set of the request onto the enumerable.
+        /// </summary>
+        /// <param name="enumerable">The enumerable</param>
+        /// <param name="context">
+        /// The resolver context of the resolver that is annotated with UseSorting
+        /// </param>
+        /// <returns>The sorted enumerable</returns>
         public static IEnumerable<T> Sort<T>(
             this IEnumerable<T> enumerable,
             IResolverContext context) =>
             ExecuteSort(enumerable, context, typeof(IEnumerable<T>));
 
+        /// <summary>
+        /// Sorts the selection set of the request onto the enumerable.
+        /// </summary>
+        /// <param name="enumerable">The enumerable</param>
+        /// <param name="context">
+        /// The resolver context of the resolver that is annotated with UseSorting
+        /// </param>
+        /// <returns>The sorted enumerable</returns>
         public static QueryableExecutable<T> Sort<T>(
             this QueryableExecutable<T> enumerable,
             IResolverContext context) =>
