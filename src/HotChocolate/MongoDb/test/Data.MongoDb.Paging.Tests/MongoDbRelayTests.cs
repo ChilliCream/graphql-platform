@@ -1,221 +1,87 @@
 using HotChocolate.Execution;
 using HotChocolate.Data.MongoDb.Filters;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Driver;
 using Snapshooter.Xunit;
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Squadron;
+using MongoDB.Bson;
 using Xunit;
 
 namespace HotChocolate.Data.MongoDb.Paging
 {
-    public class MongoDbRelayTests : IClassFixture<MongoResource>
+    public class MongoDbRelayTests
     {
-        private readonly List<Foo> foos = new List<Foo>
-        {
-            new Foo { Bar = "a" },
-            new Foo { Bar = "b" },
-            new Foo { Bar = "d" },
-            new Foo { Bar = "e" },
-            new Foo { Bar = "f" }
-        };
-
-        private readonly MongoResource _resource;
-
-        public MongoDbRelayTests(MongoResource resource)
-        {
-            _resource = resource;
-        }
-
         [Fact]
-        public async Task Simple_StringList_Default_Items()
+        public async Task Return_BsonId()
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor = await CreateSchemaAsync();
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddTransient<OffsetPagingProvider, MongoDbOffsetPagingProvider>()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .AddType<FooType>()
+                .AddTypeConverter<ObjectId, string>(x => x.ToString())
+                .BuildRequestExecutorAsync();
 
             IExecutionResult result = await executor
-                .ExecuteAsync(
-                    @"
-                {
-                    foos {
-                        items {
-                            bar
+                .ExecuteAsync(@"
+                    {
+                        foo {
+                           id
                         }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                        }
-                        totalCount
-                    }
-                }");
-            result.MatchDocumentSnapshot();
+                    }");
+
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
-        public async Task Simple_StringList_Take_2()
+        public async Task Return_Node()
         {
             Snapshot.FullName();
 
-            IRequestExecutor executor = await CreateSchemaAsync();
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddTransient<OffsetPagingProvider, MongoDbOffsetPagingProvider>()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .AddType<FooType>()
+                .AddTypeConverter<ObjectId, string>(x => x.ToString())
+                .AddTypeConverter<string, ObjectId>(x => ObjectId.Parse(x.ToString()))
+                .EnableRelaySupport()
+                .BuildRequestExecutorAsync();
 
             IExecutionResult result = await executor
-                .ExecuteAsync(
-                    @"
-                {
-                    foos(take: 2) {
-                        items {
-                            bar
+                .ExecuteAsync(@"
+                    {
+                        node(id:""Rm9vCmQ2MGRmMTYyZWQwNzY2ZTE1Y2NlNmIxMGU="") {
+                           id
                         }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                        }
-                    }
-                }");
-            result.MatchDocumentSnapshot();
+                    }");
+
+            result.ToJson().MatchSnapshot();
         }
 
-        [Fact]
-        public async Task Simple_StringList_Take_2_After()
+        public class Query
         {
-            Snapshot.FullName();
-
-            IRequestExecutor executor = await CreateSchemaAsync();
-
-            IExecutionResult result = await executor
-                .ExecuteAsync(
-                    @"
-                {
-                    foos(take: 2 skip: 2) {
-                        items {
-                            bar
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                        }
-                    }
-                }");
-            result.MatchDocumentSnapshot();
+            public Foo GetFoo() => new Foo { Id = ObjectId.Parse("507f191e810c19729de860ea") };
         }
 
-        [Fact]
-        public async Task Simple_StringList_Global_DefaultItem_2()
+        public class FooType : ObjectType<Foo>
         {
-            Snapshot.FullName();
-
-            IRequestExecutor executor = await CreateSchemaAsync();
-
-
-            IExecutionResult result = await executor
-                .ExecuteAsync(
-                    @"
-                {
-                    foos {
-                        items {
-                            bar
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                        }
-                    }
-                }");
-            result.MatchDocumentSnapshot();
-        }
-
-        [Fact]
-        public async Task JustTotalCount()
-        {
-            Snapshot.FullName();
-
-            IRequestExecutor executor = await CreateSchemaAsync();
-
-
-            IExecutionResult result = await executor
-                .ExecuteAsync(
-                    @"
-                {
-                    foos {
-                        totalCount
-                    }
-                }");
-            result.MatchDocumentSnapshot();
+            protected override void Configure(IObjectTypeDescriptor<Foo> descriptor)
+            {
+                descriptor.ImplementsNode()
+                    .IdField(x => x.Id)
+                    .ResolveNode((_, objectId) => Task.FromResult(new Foo { Id = objectId }));
+            }
         }
 
         public class Foo
         {
             [BsonId]
-            public Guid Id { get; set; } = Guid.NewGuid();
-
-            public string Bar { get; set; } = default!;
-        }
-
-        private Func<IResolverContext, MongoDbCollectionExecutable<TResult>> BuildResolver<TResult>(
-            MongoResource mongoResource,
-            IEnumerable<TResult> results)
-            where TResult : class
-        {
-            IMongoCollection<TResult> collection =
-                mongoResource.CreateCollection<TResult>("data_" + Guid.NewGuid().ToString("N"));
-
-            collection.InsertMany(results);
-
-            return ctx => collection.AsExecutable();
-        }
-
-        private ValueTask<IRequestExecutor> CreateSchemaAsync()
-        {
-            return new ServiceCollection()
-                .AddTransient<OffsetPagingProvider, MongoDbOffsetPagingProvider>()
-                .AddGraphQL()
-                .AddFiltering(x => x.AddMongoDbDefaults())
-                .AddQueryType(
-                    descriptor =>
-                    {
-                        descriptor
-                            .Field("foos")
-                            .Resolver(BuildResolver(_resource, foos))
-                            .Type<ListType<ObjectType<Foo>>>()
-                            .Use(
-                                next => async context =>
-                                {
-                                    await next(context);
-                                    if (context.Result is IExecutable executable)
-                                    {
-                                        context.ContextData["query"] = executable.Print();
-                                    }
-                                })
-                            .UseMongoDbOffsetPaging<ObjectType<Foo>>(
-                                options: new PagingOptions { IncludeTotalCount = true });
-                    })
-                .UseRequest(
-                    next => async context =>
-                    {
-                        await next(context);
-                        if (context.Result is IReadOnlyQueryResult result &&
-                            context.ContextData.TryGetValue("query", out object? queryString))
-                        {
-                            context.Result =
-                                QueryResultBuilder
-                                    .FromResult(result)
-                                    .SetContextData("query", queryString)
-                                    .Create();
-                        }
-                    })
-                .ModifyRequestOptions(x => x.IncludeExceptionDetails = true)
-                .UseDefaultPipeline()
-                .Services
-                .BuildServiceProvider()
-                .GetRequiredService<IRequestExecutorResolver>()
-                .GetRequestExecutorAsync();
+            public ObjectId Id { get; set; }
         }
     }
 }

@@ -61,6 +61,7 @@ namespace HotChocolate.Types.Relay.Descriptors
                 }
 
                 return null;
+
             });
         }
 
