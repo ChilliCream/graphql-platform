@@ -270,4 +270,7 @@
   <data name="WorkBacklog_NotFullyInitialized" xml:space="preserve">
     <value>The WorkBacklog is not fully initialized.</value>
   </data>
+  <data name="ErrorHelper_OperationCanceled_Message" xml:space="preserve">
+    <value>The GraphQL request execution was canceled.</value>
+  </data>
 </root>

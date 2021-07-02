@@ -350,5 +350,11 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("WorkBacklog_NotFullyInitialized", resourceCulture);
             }
         }
+        
+        internal static string ErrorHelper_OperationCanceled_Message {
+            get {
+                return ResourceManager.GetString("ErrorHelper_OperationCanceled_Message", resourceCulture);
+            }
+        }
     }
 }

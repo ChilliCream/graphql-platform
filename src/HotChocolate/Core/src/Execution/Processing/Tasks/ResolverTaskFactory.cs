@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing.Tasks
@@ -46,7 +48,13 @@ namespace HotChocolate.Execution.Processing.Tasks
                     }
                 }
 
-                if (buffered > 0)
+                if (buffered == 0)
+                {
+                    // in the case all root fields are skipped we execute a dummy task in order
+                    // to not have to many extra API for this special case.
+                    backlog.Register(new NoOpExecutionTask(operationContext));
+                }
+                else
                 {
                     backlog.Register(buffer, buffered);
                 }
@@ -255,7 +263,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             return task;
         }
 
-        public static IExecutionTask CreateResolverTask(
+        private static IExecutionTask CreateResolverTask(
             IOperationContext operationContext,
             ISelection selection,
             object? parent,
@@ -326,6 +334,19 @@ namespace HotChocolate.Execution.Processing.Tasks
                     }
                 }
             }
+        }
+
+        private sealed class NoOpExecutionTask : ParallelExecutionTask
+        {
+            public NoOpExecutionTask(IOperationContext context)
+            {
+                Context = (IExecutionTaskContext)context;
+            }
+
+            protected override IExecutionTaskContext Context { get; }
+
+            protected override ValueTask ExecuteAsync(CancellationToken cancellationToken)
+                => default;
         }
     }
 }
