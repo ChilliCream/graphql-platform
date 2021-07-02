@@ -1100,6 +1100,48 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Input_IgnoreField()
+        {
+            // arrange
+            // act
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithInterfaceInput>()
+                .AddType<InputWithInterfaceType>()
+                .BuildSchemaAsync();
+
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        public class InputWithInterfaceType : InputObjectType<InputWithInterface>
+        {
+            protected override void Configure(
+                IInputObjectTypeDescriptor<InputWithInterface> descriptor)
+            {
+                descriptor.Field(x => x.Works);
+                descriptor.Field(x => x.DoesNotWork).Ignore();
+            }
+        }
+
+        public class QueryWithInterfaceInput
+        {
+            public string Test(InputWithInterface input) => "Foo";
+        }
+
+        public class InputWithInterface
+        {
+            public string Works { get; set; }
+            public IDoesNotWork DoesNotWork { get; set; }
+        }
+
+        public interface IDoesNotWork
+        {
+            public double? Member { get; set; }
+        }
+
         public class SimpleInput
         {
             public int Id { get; set; }
