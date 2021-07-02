@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
@@ -12,6 +13,8 @@ namespace HotChocolate.Configuration
         private void RemoveUnusedTypes()
         {
             // arrange
+            IReadOnlyCollection<TypeSystemObjectBase> removedTypes = null;
+
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType(c => c
@@ -39,11 +42,20 @@ namespace HotChocolate.Configuration
                     .Field("field")
                     .Type<StringType>())
                 .AddType<FloatType>()
-                .ModifyOptions(o => o.RemoveUnreachableTypes = true)
+                .ModifyOptions(o =>
+                {
+                    o.RemoveUnreachableTypes = true;
+                    o.ReportRemovedTypes = c => removedTypes = c;
+                })
                 .Create();
 
             // assert
             schema.ToString().MatchSnapshot();
+            Assert.Collection(
+                removedTypes,
+                x => Assert.Equal("thisTypeWillBeRemoved", x.Name.Value),
+                x => Assert.Equal("thisTypeWillBeRemovedInput", x.Name.Value),
+                x => Assert.Equal("Float", x.Name.Value));
         }
 
         [Fact]
@@ -222,7 +234,7 @@ namespace HotChocolate.Configuration
                     .Resolver("test"))
                 .AddDirectiveType(new DirectiveType(d => d
                     .Name("_abc")
-                    .Location(DirectiveLocation.Object| DirectiveLocation.Query)))
+                    .Location(DirectiveLocation.Object | DirectiveLocation.Query)))
                 .AddType<FloatType>()
                 .ModifyOptions(o => o.RemoveUnreachableTypes = true)
                 .Create();

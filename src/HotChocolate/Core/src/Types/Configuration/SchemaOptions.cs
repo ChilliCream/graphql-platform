@@ -1,8 +1,15 @@
+using System.Collections.Generic;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
 {
+    /// <summary>
+    /// Reports the removed types when <see cref="SchemaOptions.RemoveUnreachableTypes"/> is
+    /// set to true
+    /// </summary>
+    public delegate void ReportRemovedTypes(IReadOnlyCollection<TypeSystemObjectBase> removedTypes);
+
     /// <summary>
     /// Represents mutable schema options.
     /// </summary>
@@ -51,6 +58,12 @@ namespace HotChocolate.Configuration
         public bool RemoveUnreachableTypes { get; set; } = false;
 
         /// <summary>
+        /// Is called when <see cref="RemoveUnreachableTypes"/> is set to true with all types
+        /// that were removed
+        /// </summary>
+        public ReportRemovedTypes ReportRemovedTypes { get; set; }
+
+        /// <summary>
         /// Defines the default binding behavior.
         /// </summary>
         public BindingBehavior DefaultBindingBehavior { get; set; } =
@@ -79,7 +92,7 @@ namespace HotChocolate.Configuration
         public bool AllowInlining { get; set; } = true;
 
         /// <summary>
-        /// Defines that the default resolver execution strategy. 
+        /// Defines that the default resolver execution strategy.
         /// </summary>
         public ExecutionStrategy DefaultResolverStrategy { get; set; } =
             ExecutionStrategy.Parallel;
@@ -98,6 +111,7 @@ namespace HotChocolate.Configuration
                 PreserveSyntaxNodes = options.PreserveSyntaxNodes,
                 EnableDirectiveIntrospection = options.EnableDirectiveIntrospection,
                 DefaultDirectiveVisibility = options.DefaultDirectiveVisibility,
+                ReportRemovedTypes = options.ReportRemovedTypes,
                 AllowInlining = options.AllowInlining,
                 DefaultResolverStrategy = options.DefaultResolverStrategy
             };

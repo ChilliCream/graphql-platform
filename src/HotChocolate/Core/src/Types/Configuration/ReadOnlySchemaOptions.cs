@@ -32,6 +32,7 @@ namespace HotChocolate.Configuration
             SortFieldsByName = options.SortFieldsByName;
             UseXmlDocumentation = options.UseXmlDocumentation;
             RemoveUnreachableTypes = options.RemoveUnreachableTypes;
+            ReportRemovedTypes = options.ReportRemovedTypes;
             DefaultBindingBehavior = options.DefaultBindingBehavior;
             FieldMiddleware = options.FieldMiddleware;
             PreserveSyntaxNodes = options.PreserveSyntaxNodes;
@@ -84,6 +85,12 @@ namespace HotChocolate.Configuration
         public bool RemoveUnreachableTypes { get; }
 
         /// <summary>
+        /// Is called when <see cref="RemoveUnreachableTypes"/> is set to true with all types
+        /// that were removed
+        /// </summary>
+        public ReportRemovedTypes ReportRemovedTypes { get; set; }
+
+        /// <summary>
         /// Defines the default binding behavior.
         /// </summary>
         public BindingBehavior DefaultBindingBehavior { get; }
@@ -109,7 +116,7 @@ namespace HotChocolate.Configuration
         public bool AllowInlining { get; }
 
         /// <summary>
-        /// Defines that the default resolver execution strategy. 
+        /// Defines that the default resolver execution strategy.
         /// </summary>
         public ExecutionStrategy DefaultResolverStrategy { get; }
     }

@@ -49,6 +49,17 @@ namespace HotChocolate.Configuration
             return _touched;
         }
 
+        public IEnumerable<TypeSystemObjectBase> UnusedTypes()
+        {
+            foreach (var type in _discoveredTypes)
+            {
+                if (!_touched.Contains(type) && type is not ISchema)
+                {
+                    yield return type;
+                }
+            }
+        }
+
         private void VisitRoot(ObjectType rootType)
         {
             Visit(rootType);

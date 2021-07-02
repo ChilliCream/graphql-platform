@@ -51,6 +51,12 @@ namespace HotChocolate.Configuration
         new bool RemoveUnreachableTypes { get; set; }
 
         /// <summary>
+        /// Is called when <see cref="RemoveUnreachableTypes"/> is set to true with all types
+        /// that were removed
+        /// </summary>
+        new ReportRemovedTypes ReportRemovedTypes { get; set; }
+
+        /// <summary>
         /// Defines the default binding behavior.
         /// </summary>
         new BindingBehavior DefaultBindingBehavior { get; set; }
@@ -76,7 +82,7 @@ namespace HotChocolate.Configuration
         new bool AllowInlining { get; set; }
 
         /// <summary>
-        /// Defines that the default resolver execution strategy. 
+        /// Defines that the default resolver execution strategy.
         /// </summary>
         new ExecutionStrategy DefaultResolverStrategy { get; set; }
     }

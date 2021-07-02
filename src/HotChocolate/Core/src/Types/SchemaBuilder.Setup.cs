@@ -465,7 +465,20 @@ namespace HotChocolate
                     trimmer.AddOperationType(definition.QueryType);
                     trimmer.AddOperationType(definition.MutationType);
                     trimmer.AddOperationType(definition.SubscriptionType);
-                    return trimmer.Trim();
+
+                    IReadOnlyCollection<TypeSystemObjectBase> usedTypes = trimmer.Trim();
+
+                    if (builder._options.ReportRemovedTypes is { })
+                    {
+                        IReadOnlyCollection<TypeSystemObjectBase> unusedTypes =
+                            trimmer.UnusedTypes().ToArray();
+                        if (unusedTypes.Count > 0)
+                        {
+                            builder._options.ReportRemovedTypes(unusedTypes);
+                        }
+                    }
+
+                    return usedTypes;
                 }
 
                 return typeRegistry.Types.Select(t => t.Type).ToList();
