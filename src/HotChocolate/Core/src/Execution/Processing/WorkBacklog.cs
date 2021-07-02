@@ -342,37 +342,13 @@ namespace HotChocolate.Execution.Processing
 
         private void Cancel()
         {
-            int processors;
-
-            // first we need to ensure that the context is marked as completed.
             lock (_sync)
             {
-                processors = _processors;
                 _completed = true;
-            }
-
-            var iterations = 1;
-
-            // next we need to wait for the other processors to complete.
-            while (processors > 0)
-            {
-                Thread.SpinWait(iterations);
-
-                if (iterations < 100)
+                if (_completion is not null!)
                 {
-                    iterations *= 2;
+                    _completion.TrySetCanceled();
                 }
-
-                lock (_sync)
-                {
-                    processors = _processors;
-                }
-            }
-
-            // last we cancel the completion task.
-            if (_completion is not null!)
-            {
-                _completion.TrySetCanceled();
             }
         }
 
