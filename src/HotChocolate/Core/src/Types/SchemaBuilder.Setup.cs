@@ -472,6 +472,7 @@ namespace HotChocolate
                     {
                         IReadOnlyCollection<TypeSystemObjectBase> unusedTypes =
                             trimmer.UnusedTypes().ToArray();
+
                         if (unusedTypes.Count > 0)
                         {
                             builder._options.ReportRemovedTypes(unusedTypes);
