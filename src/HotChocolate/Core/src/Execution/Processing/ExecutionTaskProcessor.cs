@@ -2,53 +2,58 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Fetching;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing
 {
     internal sealed class ExecutionTaskProcessor
     {
         private readonly IOperationContext _context;
+        private readonly IWorkBacklog _backlog;
+        private readonly ObjectPool<IExecutionTask?[]> _bufferPool;
+        private IBatchDispatcher _batchDispatcher = default!;
+        private CancellationToken _cancellationToken;
 
-        private ExecutionTaskProcessor(IOperationContext context)
+        public ExecutionTaskProcessor(
+            IOperationContext context,
+            IWorkBacklog backlog,
+            ObjectPool<IExecutionTask?[]> bufferPool)
         {
             _context = context;
-            context.Execution.Work.BackPressureLimitExceeded += ScaleProcessors;
+            _backlog = backlog;
+            _bufferPool = bufferPool;
+            _backlog.BackPressureLimitExceeded += ScaleProcessors;
         }
 
-        public static Task ExecuteAsync(IOperationContext operationContext)
+        public void Initialize(
+            IBatchDispatcher batchDispatcher,
+            CancellationToken cancellationToken)
         {
-            if (operationContext.Execution.Work.IsEmpty)
-            {
-                return Task.CompletedTask;
-            }
-
-            BeginExecute(operationContext);
-
-            return operationContext.Execution.Work.Completion;
+            _batchDispatcher = batchDispatcher;
+            _cancellationToken = cancellationToken;
         }
 
-        private static void BeginExecute(IOperationContext operationContext) =>
-            Task.Run(() => new ExecutionTaskProcessor(operationContext).ExecuteProcessorAsync());
+        public void Clean()
+        {
+            _batchDispatcher = default!;
+            _cancellationToken = default;
+        }
 
         private async Task ExecuteProcessorAsync()
         {
             // we want to immediately yield control back to the caller.
             await Task.Yield();
 
-            IExecutionTask?[] buffer = _context.Execution.TaskBuffers.Get();
+            IExecutionTask?[] buffer = _bufferPool.Get();
 
             try
             {
-                await ProcessTasksAsync(
-                    _context.Execution.Work,
-                    _context.Execution.BatchDispatcher,
-                    buffer,
-                    _context.RequestAborted)
+                await ProcessTasksAsync(_backlog, _batchDispatcher, buffer, _cancellationToken)
                     .ConfigureAwait(false);
             }
             finally
             {
-                _context.Execution.TaskBuffers.Return(buffer);
+                _bufferPool.Return(buffer);
             }
         }
 

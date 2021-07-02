@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing.Internal;
 using HotChocolate.Execution.Processing.Plan;
+using HotChocolate.Execution.Properties;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -20,7 +21,7 @@ namespace HotChocolate.Execution.Processing
         private TaskCompletionSource<bool> _completion = default!;
 
         private bool _completed;
-        private int _processors = 1;
+        private int _processors;
         private IRequestContext _requestContext = default!;
         private IDiagnosticEvents _diagnosticEvents = default!;
 
@@ -45,6 +46,12 @@ namespace HotChocolate.Execution.Processing
         internal void Initialize(OperationContext operationContext, QueryPlan queryPlan)
         {
             Clear();
+
+            if (BackPressureLimitExceeded is null || BacklogEmpty is null)
+            {
+                throw new InvalidOperationException(
+                    Resources.WorkBacklog_NotFullyInitialized);
+            }
 
             _completion = new TaskCompletionSource<bool>();
             _requestContext = operationContext.RequestContext;
@@ -344,13 +351,13 @@ namespace HotChocolate.Execution.Processing
                 _completed = true;
             }
 
-            int iterations = 1;
+            var iterations = 1;
 
             // next we need to wait for the other processors to complete.
             while (processors > 0)
             {
                 Thread.SpinWait(iterations);
-                
+
                 if (iterations < 100)
                 {
                     iterations *= 2;
@@ -382,9 +389,8 @@ namespace HotChocolate.Execution.Processing
                 _work.Clear();
                 _suspended.Clear();
                 _stateMachine.Clear();
-                _processors = 1;
+                _processors = 0;
                 _completed = false;
-                BackPressureLimitExceeded = null;
             }
         }
 
