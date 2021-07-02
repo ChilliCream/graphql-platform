@@ -31,20 +31,35 @@ namespace HotChocolate.Execution.Processing
 
         private async Task ExecuteProcessorAsync()
         {
-            IExecutionContext executionContext = _context.Execution;
-            CancellationToken cancellationToken = _context.RequestAborted;
-            IExecutionTask?[] buffer = executionContext.TaskBuffers.Get();
-
+            // we want to immediately yield control back to the caller.
             await Task.Yield();
 
+            IExecutionTask?[] buffer = _context.Execution.TaskBuffers.Get();
+
+            try
+            {
+                await ProcessTasksAsync(_context.Execution, buffer, _context.RequestAborted)
+                    .ConfigureAwait(false);
+            }
+            finally
+            {
+                _context.Execution.TaskBuffers.Return(buffer);
+            }
+        }
+
+        private async Task ProcessTasksAsync(
+            IExecutionContext executionContext,
+            IExecutionTask?[] buffer,
+            CancellationToken cancellationToken)
+        {
             RESTART:
             try
             {
                 do
                 {
-                    var work = executionContext.Work.TryTake(buffer, true);
+                    var work = executionContext.Work.TryTake(buffer);
 
-                    if (work == 0)
+                    if (work is 0)
                     {
                         break;
                     }
@@ -61,6 +76,11 @@ namespace HotChocolate.Execution.Processing
                                 task.BeginExecute(cancellationToken);
                                 await task.WaitForCompletionAsync(cancellationToken)
                                     .ConfigureAwait(false);
+
+                                if (cancellationToken.IsCancellationRequested)
+                                {
+                                    break;
+                                }
                             }
                         }
                         finally
@@ -85,13 +105,12 @@ namespace HotChocolate.Execution.Processing
                 }
             }
 
+            // if there is no more work we will try to scale down.
             if (!cancellationToken.IsCancellationRequested &&
                 !executionContext.Work.TryCompleteProcessor())
             {
                 goto RESTART;
             }
-
-            executionContext.TaskBuffers.Return(buffer);
         }
 
         private void HandleError(Exception exception)

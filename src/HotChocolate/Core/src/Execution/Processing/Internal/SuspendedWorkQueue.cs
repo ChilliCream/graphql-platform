@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing.Plan;
 
 namespace HotChocolate.Execution.Processing.Internal
@@ -9,6 +10,8 @@ namespace HotChocolate.Execution.Processing.Internal
         private IExecutionTask? _head;
 
         public bool IsEmpty { get; private set; } = true;
+        
+        public bool HasWork => !IsEmpty;
 
         public void CopyTo(WorkQueue work, WorkQueue serial, QueryPlanStateMachine stateMachine)
         {

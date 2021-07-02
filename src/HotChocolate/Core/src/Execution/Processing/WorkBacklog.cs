@@ -50,13 +50,13 @@ namespace HotChocolate.Execution.Processing
         }
 
         /// <inheritdoc />
-        public int TryTake(IExecutionTask?[] buffer, bool main)
+        public int TryTake(IExecutionTask?[] buffer)
         {
             var size = 0;
 
             lock (_sync)
             {
-                WorkQueue work = main && _stateMachine.IsSerial ? _serial : _work;
+                WorkQueue work = _stateMachine.IsSerial ? _serial : _work;
 
                 for (var i = 0; i < buffer.Length; i++)
                 {
@@ -143,7 +143,9 @@ namespace HotChocolate.Execution.Processing
                     }
                 }
 
-                if (_stateMachine.IsSerial)
+                // if the state machine is in serial mode and we already ave one processor running
+                // we do not want to scale.
+                if (_stateMachine.IsSerial && _processors > 0)
                 {
                     return;
                 }
@@ -185,7 +187,7 @@ namespace HotChocolate.Execution.Processing
                 // we first complete the task on the state machine so that if we are completing
                 // the last task the state machine is marked as complete before the work queue
                 // signals that it is complete.
-                if (_stateMachine.Complete(task) && !_suspended.IsEmpty)
+                if (_stateMachine.Complete(task) && _suspended.HasWork)
                 {
                     TryEnqueueSuspendedUnsafe();
                 }
@@ -203,11 +205,12 @@ namespace HotChocolate.Execution.Processing
                 // are not enqueued.
                 while (NeedsCompletion())
                 {
-                    if (_stateMachine.CompleteNext() && !_suspended.IsEmpty)
+                    if (_stateMachine.CompleteNext() && _suspended.HasWork)
                     {
                         TryEnqueueSuspendedUnsafe();
                     }
                 }
+
 
                 TryCompleteUnsafe();
             }
@@ -226,7 +229,9 @@ namespace HotChocolate.Execution.Processing
                 _suspended.CopyTo(_work, _serial, _stateMachine);
                 backlogSize = _work.Count;
 
-                if (_stateMachine.IsSerial)
+                // if the state machine is in serial mode and we already ave one processor running
+                // we do not want to scale.
+                if (_stateMachine.IsSerial && _processors > 0)
                 {
                     return;
                 }
@@ -253,9 +258,18 @@ namespace HotChocolate.Execution.Processing
             var processors = _processors;
             var backlogSize = 0;
 
+            // if the execution is already completed or if the completion task is
+            // null we scale down.
             if (_completed || _completion is null!)
             {
                 return true;
+            }
+
+            // if there is still work we keep on working. We check this here to
+            // try to avoid the lock.
+            if (!_work.IsEmpty)
+            {
+                return false;
             }
 
             try
@@ -267,13 +281,13 @@ namespace HotChocolate.Execution.Processing
                         return false;
                     }
 
-                    // if the backlog is empty and all tasks are running we will signal that
-                    // there is no more work that we can do.
+                    // if the backlog is empty, this is the last processor and all tasks are
+                    // running we will signal that there is no more work that we can do.
                     if (_processors == 1 && _work.IsEmpty && _work.HasRunningTasks)
                     {
                         BacklogEmpty?.Invoke(this, EventArgs.Empty);
 
-                        // if the signal caused other components to store more work we will
+                        // if the signal caused other components to register new work we will
                         // keep this processor alive and deny its request to scale down.
                         if (!IsEmpty)
                         {
@@ -285,6 +299,8 @@ namespace HotChocolate.Execution.Processing
                     processors = --_processors;
                     backlogSize = _work.Count;
 
+                    // if we are the last processor to shut down we will check
+                    // if the execution is completed.
                     if (processors == 0)
                     {
                         TryCompleteUnsafe();
@@ -349,9 +365,10 @@ namespace HotChocolate.Execution.Processing
             if (HasCompleted())
             {
                 _completion.TrySetResult(true);
+                _completed = true;
             }
 
-            bool HasCompleted() => IsEmpty && !HasRunningTasks && _processors == 0;
+            bool HasCompleted() => !_completed && _processors == 0 && IsEmpty && !HasRunningTasks;
         }
     }
 }

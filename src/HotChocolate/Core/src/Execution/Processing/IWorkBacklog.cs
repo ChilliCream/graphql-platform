@@ -46,7 +46,7 @@ namespace HotChocolate.Execution.Processing
         /// <returns>
         /// Returns the amount of work that was put into the buffer.
         /// </returns>
-        int TryTake(IExecutionTask?[] buffer, bool main);
+        int TryTake(IExecutionTask?[] buffer);
 
         /// <summary>
         /// Registers work with the task backlog.
