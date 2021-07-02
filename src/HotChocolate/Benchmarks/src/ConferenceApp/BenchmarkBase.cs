@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -13,6 +12,7 @@ using HotChocolate.ConferencePlanner.Sessions;
 using HotChocolate.ConferencePlanner.Speakers;
 using HotChocolate.ConferencePlanner.Tracks;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using Microsoft.EntityFrameworkCore;
@@ -66,15 +66,15 @@ namespace HotChocolate.ConferencePlanner
             }
         }
 
-        public async Task<string> PrintQueryPlanAsync(string requestDocument) 
+        public async Task<string> PrintQueryPlanAsync(string requestDocument)
         {
             IRequestExecutor executor = await ExecutorResolver.GetRequestExecutorAsync();
 
             string hash = _md5.ComputeHash(Encoding.UTF8.GetBytes(requestDocument).AsSpan());
             DocumentNode document = Utf8GraphQLParser.Parse(requestDocument);
-            var operation =  document.Definitions.OfType<OperationDefinitionNode>().First();
+            var operation = document.Definitions.OfType<OperationDefinitionNode>().First();
 
-            IPreparedOperation preparedOperation = 
+            IPreparedOperation preparedOperation =
                 OperationCompiler.Compile(
                     hash,
                     document,
@@ -141,6 +141,8 @@ namespace HotChocolate.ConferencePlanner
                     .AddDataLoader<SpeakerByIdDataLoader>()
                     .AddDataLoader<TrackByIdDataLoader>()
 
+                    .AddDiagnosticEventListener<BatchDiagnostics>()
+
                     // we make sure that the db exists and prefill it with conference data.
                     .EnsureDatabaseIsCreated()
 
@@ -148,6 +150,29 @@ namespace HotChocolate.ConferencePlanner
                     // for our demo we are using a in-memory pub/sub system.
                     .AddInMemorySubscriptions();
 
+        }
+    }
+
+    public class BatchDiagnostics : DiagnosticEventListener
+    {
+        public override IActivityScope ExecuteRequest(IRequestContext context)
+        {
+            Console.WriteLine("Execute Request.");
+            return base.ExecuteRequest(context);
+        }
+
+        public override void BatchDispatched(
+            IRequestContext context)
+        {
+            Console.WriteLine("Batch Dispatched.");
+        }
+
+        public override void ScaleTaskProcessors(
+            IRequestContext context, 
+            int backlogSize, 
+            int processors)
+        {
+            Console.WriteLine($"Scaled Task Processors to {processors} with backlog size {backlogSize}.");
         }
     }
 }

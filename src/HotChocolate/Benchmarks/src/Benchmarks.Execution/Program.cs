@@ -7,8 +7,8 @@ using HotChocolate.Benchmarks;
 public static class Program
 {
     static void Main(string[] args) =>
-        // Run().Wait();
-        BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
+        Run().Wait();
+        // BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
 
 
     private static async Task Run()
@@ -18,7 +18,7 @@ public static class Program
         for (int i = 0; i < 1000; i++)
         {
             Console.WriteLine($"Executing {i} ...");
-            await queryBench.Sessions_TitleAndAbstractAndTrackName();
+            await queryBench.Sessions_Medium();
         }
     }
 }

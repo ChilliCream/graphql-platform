@@ -61,6 +61,7 @@ namespace HotChocolate.Execution.Processing
 
             _executionContext.Initialize(
                 batchDispatcher,
+                _requestContext.DiagnosticEvents,
                 requestContext.RequestAborted);
         }
 

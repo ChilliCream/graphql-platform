@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Pipeline.Complexity;
 using HotChocolate.Execution.Processing.Internal;
 using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Execution.Properties;
@@ -272,6 +273,7 @@ namespace HotChocolate.Execution.Processing
         /// <inheritdoc/>
         public bool TryCompleteProcessor()
         {
+            SCALE_DOWN:
             var changedScale = false;
             var processors = _processors;
             var backlogSize = 0;
@@ -309,10 +311,7 @@ namespace HotChocolate.Execution.Processing
 
                         // if the signal caused other components to register new work we will
                         // keep this processor alive and deny its request to scale down.
-                        if (!IsEmpty)
-                        {
-                            return false;
-                        }
+                        goto WAIT_FOR_BATCH;
                     }
 
                     changedScale = true;
@@ -338,6 +337,19 @@ namespace HotChocolate.Execution.Processing
                     _diagnosticEvents.ScaleTaskProcessors(_requestContext, backlogSize, processors);
                 }
             }
+
+            WAIT_FOR_BATCH:
+            for (var i = 1; i < 4; i++)
+            {
+                if (!IsEmpty)
+                {
+                    return false;
+                }
+
+                Thread.SpinWait(5 * i);
+            }
+
+            goto SCALE_DOWN;
         }
 
         private void Cancel()
@@ -387,14 +399,14 @@ namespace HotChocolate.Execution.Processing
         private int CalculateScalePressure()
             => _processors switch
             {
-                1 => 4,
-                2 => 8,
-                3 => 16,
-                4 => 32,
-                5 => 64,
-                6 => 128,
-                7 => 256,
-                _ => 512
+                1 => 8,
+                2 => 16,
+                3 => 32,
+                4 => 64,
+                5 => 128,
+                6 => 256,
+                7 => 512,
+                _ => 1024
             };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
