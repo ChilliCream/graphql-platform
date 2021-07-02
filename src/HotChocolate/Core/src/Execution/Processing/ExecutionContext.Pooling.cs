@@ -56,9 +56,6 @@ namespace HotChocolate.Execution.Processing
                 _batchDispatcher = default!;
             }
 
-            _workBacklog.Clear();
-            _deferredWorkBacklog.Clear();
-
             if (_completed is not null!)
             {
                 TryComplete();
@@ -66,26 +63,26 @@ namespace HotChocolate.Execution.Processing
                 _completed = default!;
             }
 
+            _workBacklog.Clear();
+            _deferredWorkBacklog.Clear();
+
             _isInitialized = false;
         }
 
         public void Reset()
         {
-            ResetStateMachine();
-
             if (_completed is not null!)
             {
                 TryComplete();
                 _completed.Dispose();
                 _completed = new CancellationTokenSource();
             }
+
+            ResetStateMachine();
         }
 
         public void ResetStateMachine()
-        {
-            _workBacklog.Clear();
-            _workBacklog.Initialize(_operationContext, _operationContext.QueryPlan);
-        }
+            => _workBacklog.Initialize(_operationContext, _operationContext.QueryPlan);
 
         private void TryComplete()
         {

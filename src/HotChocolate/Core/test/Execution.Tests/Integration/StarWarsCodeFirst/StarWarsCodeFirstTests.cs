@@ -550,15 +550,14 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                     "{ stars } }");
 
             // assert
-            IExecutionResult result =
-                await executor.ExecuteAsync(@"
-                    mutation {
-                        createReview(episode: NEW_HOPE,
-                            review: { stars: 5 commentary: ""foo"" }) {
-                            stars
-                            commentary
-                        }
-                    }");
+            await executor.ExecuteAsync(@"
+                mutation {
+                    createReview(episode: NEW_HOPE,
+                        review: { stars: 5 commentary: ""foo"" }) {
+                        stars
+                        commentary
+                    }
+                }");
 
             IReadOnlyQueryResult eventResult = null;
 
@@ -844,7 +843,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                         height
                     }
                 }",
-                request: r=> r.SetVariableValue("if", true))
+                request: r => r.SetVariableValue("if", true))
                 .MatchSnapshotAsync();
         }
 

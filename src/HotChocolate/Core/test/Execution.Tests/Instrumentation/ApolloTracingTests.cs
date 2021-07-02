@@ -44,10 +44,10 @@ namespace HotChocolate.Execution.Instrumentation
                 .AddApolloTracing(TracingPreference.Always, new TestTimestampProvider()));
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync("{ a }");
+            await executor.ExecuteAsync("{ a }");
 
             // the second execution will not parse or validate since these steps are cached.
-            result = await executor.ExecuteAsync("{ a }");
+            IExecutionResult result = await executor.ExecuteAsync("{ a }");
 
             // assert
             result.ToJson().MatchSnapshot();

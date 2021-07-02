@@ -115,9 +115,10 @@ namespace HotChocolate.Execution.Batching
                     .Field("foo")
                     .Argument("bar", a => a.Type<ListType<StringType>>())
                     .Type<ListType<StringType>>()
-                    .Resolver<List<string>>(c =>
+                    .Resolve(ctx =>
                     {
-                        var list = c.ArgumentValue<List<string>>("bar");
+                        List<string> list = ctx.ArgumentValue<List<string>>("bar");
+
                         if (list is null)
                         {
                             return new List<string>
@@ -126,11 +127,9 @@ namespace HotChocolate.Execution.Batching
                                 "456"
                             };
                         }
-                        else
-                        {
-                            list.Add("789");
-                            return list;
-                        }
+
+                        list.Add("789");
+                        return list;
                     }))
                 .AddExportDirectiveType());
 
@@ -177,9 +176,10 @@ namespace HotChocolate.Execution.Batching
                     input FooInput {
                         bar: String!
                     }")
-                .AddResolver("Query", "foo", c =>
+                .AddResolver("Query", "foo", ctx =>
                 {
-                    var list = c.ArgumentValue<List<object>>("f");
+                    List<object> list = ctx.ArgumentValue<List<object>>("f");
+
                     if (list is null)
                     {
                         return new List<object>
@@ -190,22 +190,18 @@ namespace HotChocolate.Execution.Batching
                             }
                         };
                     }
-                    else
+
+                    list.Add(new Dictionary<string, object>
                     {
-                        list.Add(new Dictionary<string, object>
-                        {
-                            { "bar" , "456" }
-                        });
-                        return list;
-                    }
+                        { "bar" , "456" }
+                    });
+                    return list;
                 })
                 .UseField(next => context =>
                 {
-                    object o = context.Parent<object>();
-                    if (o is Dictionary<string, object> d
-                        && d.TryGetValue(
-                            context.ResponseName,
-                            out object v))
+                    var o = context.Parent<object>();
+                    if (o is Dictionary<string, object> d &&
+                        d.TryGetValue(context.ResponseName, out var v))
                     {
                         context.Result = v;
                     }
@@ -254,9 +250,9 @@ namespace HotChocolate.Execution.Batching
                     .Field("foo")
                     .Argument("bar", a => a.Type<ListType<StringType>>())
                     .Type<ListType<StringType>>()
-                    .Resolver(c =>
+                    .Resolve(ctx =>
                     {
-                        List<string> list = c.ArgumentValue<List<string>>("bar");
+                        List<string> list = ctx.ArgumentValue<List<string>>("bar");
                         list.Add("789");
                         return list;
                     }))
@@ -300,16 +296,16 @@ namespace HotChocolate.Execution.Batching
                     d.Field("foo")
                         .Argument("bar", a => a.Type<ListType<StringType>>())
                         .Type<ListType<StringType>>()
-                        .Resolver<List<string>>(c =>
+                        .Resolve(ctx =>
                         {
-                            var list = c.ArgumentValue<List<string>>("bar");
+                            List<string> list = ctx.ArgumentValue<List<string>>("bar");
                             list.Add("789");
                             return list;
                         });
 
                     d.Field("baz")
                         .Argument("bar", a => a.Type<StringType>())
-                        .Resolver(c => c.ArgumentValue<string>("bar"));
+                        .Resolve(c => c.ArgumentValue<string>("bar"));
                 })
                 .AddExportDirectiveType());
 
@@ -350,10 +346,10 @@ namespace HotChocolate.Execution.Batching
                 .AddStarWarsRepositories());
 
             // act
-            Func<Task> action = () => executor.ExecuteBatchAsync(null);
+            Task Action() => executor.ExecuteBatchAsync(null!);
 
             // assert
-            await Assert.ThrowsAsync<ArgumentNullException>(action);
+            await Assert.ThrowsAsync<ArgumentNullException>(Action);
         }
     }
 }

@@ -129,9 +129,10 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(requestBatch));
             }
 
-            return Task.FromResult<IBatchQueryResult>(new BatchQueryResult(
-                () => _batchExecutor.ExecuteAsync(requestBatch, cancellationToken),
-                null));
+            return Task.FromResult<IBatchQueryResult>(
+                new BatchQueryResult(
+                    () => _batchExecutor.ExecuteAsync(requestBatch),
+                    null));
         }
     }
 }

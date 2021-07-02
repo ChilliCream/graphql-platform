@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing.Internal;
@@ -17,8 +18,8 @@ namespace HotChocolate.Execution.Processing
         private readonly SuspendedWorkQueue _suspended = new();
         private readonly QueryPlanStateMachine _stateMachine = new();
         private TaskCompletionSource<bool> _completion = default!;
-        private bool _completed;
 
+        private bool _completed;
         private int _processors = 1;
         private IRequestContext _requestContext = default!;
         private IDiagnosticEvents _diagnosticEvents = default!;
@@ -43,16 +44,24 @@ namespace HotChocolate.Execution.Processing
 
         internal void Initialize(OperationContext operationContext, QueryPlan queryPlan)
         {
+            Clear();
+
             _completion = new TaskCompletionSource<bool>();
             _requestContext = operationContext.RequestContext;
             _diagnosticEvents = operationContext.RequestContext.DiagnosticEvents;
             _stateMachine.Initialize(operationContext, queryPlan);
+            _requestContext.RequestAborted.Register(Cancel);
         }
 
         /// <inheritdoc />
         public int TryTake(IExecutionTask?[] buffer)
         {
             var size = 0;
+
+            if (_completed)
+            {
+                return default;
+            }
 
             lock (_sync)
             {
@@ -211,8 +220,10 @@ namespace HotChocolate.Execution.Processing
                     }
                 }
 
-
-                TryCompleteUnsafe();
+                if (TryCompleteUnsafe())
+                {
+                    return;
+                }
             }
 
             if (scaled)
@@ -260,7 +271,9 @@ namespace HotChocolate.Execution.Processing
 
             // if the execution is already completed or if the completion task is
             // null we scale down.
-            if (_completed || _completion is null!)
+            if (_completed ||
+                _completion is null! ||
+                _requestContext.RequestAborted.IsCancellationRequested)
             {
                 return true;
             }
@@ -283,7 +296,7 @@ namespace HotChocolate.Execution.Processing
 
                     // if the backlog is empty, this is the last processor and all tasks are
                     // running we will signal that there is no more work that we can do.
-                    if (_processors == 1 && _work.IsEmpty && _work.HasRunningTasks)
+                    if (_processors == 1 && _work.HasRunningTasks)
                     {
                         BacklogEmpty?.Invoke(this, EventArgs.Empty);
 
@@ -320,16 +333,59 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
+        private void Cancel()
+        {
+            int processors;
+
+            // first we need to ensure that the context is marked as completed.
+            lock (_sync)
+            {
+                processors = _processors;
+                _completed = true;
+            }
+
+            int iterations = 1;
+
+            // next we need to wait for the other processors to complete.
+            while (processors > 0)
+            {
+                Thread.SpinWait(iterations);
+                
+                if (iterations < 100)
+                {
+                    iterations *= 2;
+                }
+
+                lock (_sync)
+                {
+                    processors = _processors;
+                }
+            }
+
+            // last we cancel the completion task.
+            if (_completion is not null!)
+            {
+                _completion.TrySetCanceled();
+            }
+        }
+
         public void Clear()
         {
-            _completion.TrySetCanceled();
-            _completion = default!;
-            _work.Clear();
-            _suspended.Clear();
-            _stateMachine.Clear();
-            _processors = 1;
-            _completed = false;
-            BackPressureLimitExceeded = null;
+            lock (_sync)
+            {
+                if (_completion is not null!)
+                {
+                    _completion.TrySetCanceled();
+                    _completion = default!;
+                }
+
+                _work.Clear();
+                _suspended.Clear();
+                _stateMachine.Clear();
+                _processors = 1;
+                _completed = false;
+                BackPressureLimitExceeded = null;
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -346,8 +402,8 @@ namespace HotChocolate.Execution.Processing
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int CalculateScalePressure() =>
-            _processors switch
+        private int CalculateScalePressure()
+            => _processors switch
             {
                 1 => 4,
                 2 => 8,
@@ -360,15 +416,34 @@ namespace HotChocolate.Execution.Processing
             };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void TryCompleteUnsafe()
+        private bool TryCompleteUnsafe()
         {
             if (HasCompleted())
             {
-                _completion.TrySetResult(true);
                 _completed = true;
+                _completion.TrySetResult(true);
+                return true;
             }
 
-            bool HasCompleted() => !_completed && _processors == 0 && IsEmpty && !HasRunningTasks;
+            if (IsCanceled())
+            {
+                _completed = true;
+                _completion.TrySetCanceled();
+                return true;
+            }
+
+            return false;
+
+            bool HasCompleted()
+                => !_completed &&
+                _processors == 0 &&
+                IsEmpty &&
+                !HasRunningTasks;
+
+            bool IsCanceled()
+                => !_completed &&
+                _processors == 0 &&
+                _requestContext.RequestAborted.IsCancellationRequested;
         }
     }
 }

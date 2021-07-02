@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Fetching;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -38,7 +39,11 @@ namespace HotChocolate.Execution.Processing
 
             try
             {
-                await ProcessTasksAsync(_context.Execution, buffer, _context.RequestAborted)
+                await ProcessTasksAsync(
+                    _context.Execution.Work,
+                    _context.Execution.BatchDispatcher,
+                    buffer,
+                    _context.RequestAborted)
                     .ConfigureAwait(false);
             }
             finally
@@ -48,7 +53,8 @@ namespace HotChocolate.Execution.Processing
         }
 
         private async Task ProcessTasksAsync(
-            IExecutionContext executionContext,
+            IWorkBacklog backlog,
+            IBatchDispatcher batchDispatcher,
             IExecutionTask?[] buffer,
             CancellationToken cancellationToken)
         {
@@ -57,7 +63,7 @@ namespace HotChocolate.Execution.Processing
             {
                 do
                 {
-                    var work = executionContext.Work.TryTake(buffer);
+                    var work = backlog.TryTake(buffer);
 
                     if (work is 0)
                     {
@@ -68,7 +74,7 @@ namespace HotChocolate.Execution.Processing
                     {
                         try
                         {
-                            executionContext.BatchDispatcher.DispatchOnSchedule = true;
+                            batchDispatcher.DispatchOnSchedule = true;
 
                             for (var i = 0; i < work; i++)
                             {
@@ -85,7 +91,7 @@ namespace HotChocolate.Execution.Processing
                         }
                         finally
                         {
-                            executionContext.BatchDispatcher.DispatchOnSchedule = false;
+                            batchDispatcher.DispatchOnSchedule = false;
                         }
                     }
                     else
@@ -106,8 +112,8 @@ namespace HotChocolate.Execution.Processing
             }
 
             // if there is no more work we will try to scale down.
-            if (!cancellationToken.IsCancellationRequested &&
-                !executionContext.Work.TryCompleteProcessor())
+            // Note: we always trigger this method, even if the request was canceled.
+            if (!backlog.TryCompleteProcessor())
             {
                 goto RESTART;
             }
