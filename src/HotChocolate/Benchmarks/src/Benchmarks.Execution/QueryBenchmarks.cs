@@ -63,5 +63,14 @@ namespace HotChocolate.Benchmarks
                     }
                 }
             ");
+
+        [Benchmark]
+        public async Task Sessions_Medium() =>
+            await BenchmarkAsync(SessionsMediumQuery);
+
+        public async Task Print_Sessions_Medium() =>
+            await PrintQueryPlanAsync(SessionsMediumQuery);
+
+        public string SessionsMediumQuery { get; } = Resources.SessionMediumQuery;
     }
 }
