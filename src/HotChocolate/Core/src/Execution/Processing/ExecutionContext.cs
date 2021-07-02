@@ -78,17 +78,15 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        private bool TryDispatchBatches()
+        private void TryDispatchBatches()
         {
             AssertNotPooled();
 
             if (Work.IsEmpty && BatchDispatcher.HasTasks)
             {
                 BatchDispatcher.Dispatch();
-                return true;
+                _diagnosticEvents.BatchDispatched(_operationContext.RequestContext);
             }
-
-            return false;
         }
 
         private void BatchDispatcherEventHandler(

@@ -1,4 +1,5 @@
 using System.Threading;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
@@ -15,6 +16,7 @@ namespace HotChocolate.Execution.Processing
         private readonly ObjectPool<PureResolverTask> _pureResolverTasks;
         private readonly ObjectPool<IExecutionTask?[]> _taskBuffers;
         private readonly ExecutionTaskProcessor _taskProcessor;
+        private IDiagnosticEvents _diagnosticEvents;
 
         private CancellationTokenSource _completed = default!;
         private IBatchDispatcher _batchDispatcher = default!;
@@ -36,6 +38,7 @@ namespace HotChocolate.Execution.Processing
                 _operationContext,
                 _workBacklog,
                 _taskBuffers);
+            _diagnosticEvents = _operationContext.DiagnosticEvents;
             _workBacklog.BacklogEmpty += BatchDispatcherEventHandler;
         }
 
