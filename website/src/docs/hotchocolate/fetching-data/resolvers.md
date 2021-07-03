@@ -348,6 +348,8 @@ services
 </ExampleTabs.Schema>
 </ExampleTabs>
 
+Hot Chocolate will correctly instantiate the service, depending on its lifetime. A scoped service for example is only instantiated once per request and this instance is injected into all resolvers used during the request.
+
 ## IHttpContextAccessor
 
 The [IHttpContextAccessor](https://docs.microsoft.com/dotnet/api/microsoft.aspnetcore.http.ihttpcontextaccessor) allows us to access the [HttpContext](https://docs.microsoft.com/dotnet/api/microsoft.aspnetcore.http.httpcontext) of the current request from within our resolvers. This is useful, if we for example need to set a header or cookie.
@@ -500,7 +502,35 @@ public class UserType : ObjectType<User>
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-TODO: Both bindcomplextype and addresolver
+```csharp
+public class User
+{
+    public string Id { get; set; }
+
+    public List<User> GetFriends([Parent] User parent)
+    {
+        // Omitted code for brevity
+    }
+}
+```
+
+When using `AddResolver()`, we can access the parent through the `IResolverContext`.
+
+```csharp
+services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type User {
+          friends: [User!]!
+        }
+    ")
+    .AddResolver("User", "friends", (context) =>
+    {
+        User parent = context.Parent<User>();
+
+        // Omitted code for brevity
+    });
+```
 
 </ExampleTabs.Schema>
 </ExampleTabs>
