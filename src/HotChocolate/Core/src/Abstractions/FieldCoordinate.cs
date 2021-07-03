@@ -119,7 +119,7 @@ namespace HotChocolate
         /// true if <paramref name="obj">obj</paramref> and this instance
         /// are the same type and represent the same value; otherwise, false.
         /// </returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is FieldCoordinate other && Equals(other);
         }

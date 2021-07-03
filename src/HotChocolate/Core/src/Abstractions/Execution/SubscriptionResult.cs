@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Properties;
@@ -59,7 +59,7 @@ namespace HotChocolate.Execution
             _contextData = subscriptionResult._contextData;
             _session = session is null
                 ? subscriptionResult
-                : subscriptionResult.Combine(session);
+                : DisposableExtensions.Combine((IAsyncDisposable)subscriptionResult, session);
         }
 
         public IReadOnlyList<IError>? Errors => _errors;
@@ -112,6 +112,13 @@ namespace HotChocolate.Execution
                 }
                 _disposed = true;
             }
+        }
+
+        public void Dispose()
+        {
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            DisposeAsync();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
         }
     }
 }

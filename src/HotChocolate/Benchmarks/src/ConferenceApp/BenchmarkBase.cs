@@ -68,7 +68,7 @@ namespace HotChocolate.ConferencePlanner
 
             if (result is IDisposable d)
             {
-                d.Dispose();
+                // d.Dispose();
             }
         }
 

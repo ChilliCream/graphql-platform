@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -91,12 +91,17 @@ namespace HotChocolate.Execution
 
         public ValueTask DisposeAsync()
         {
+            Dispose();
+            return default;
+        }
+
+        public void Dispose()
+        {
             if (!_disposed)
             {
                 _session?.Dispose();
                 _disposed = true;
             }
-            return default;
         }
 
         private class EnumerateResults : IAsyncEnumerable<IQueryResult>

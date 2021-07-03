@@ -16,13 +16,13 @@ namespace HotChocolate
         /// Initializes a new instance of the <see cref="Optional{T}"/> struct.
         /// </summary>
         /// <param name="value">The actual value.</param>
-        public Optional(T value)
+        public Optional(T? value)
         {
             Value = value;
             HasValue = true;
         }
 
-        private Optional(T value, bool hasValue)
+        private Optional(T? value, bool hasValue)
         {
             Value = value;
             HasValue = hasValue;
@@ -32,7 +32,7 @@ namespace HotChocolate
         /// The name value.
         /// </summary>
         [MaybeNull]
-        public T Value { get; }
+        public T? Value { get; }
 
         object? IOptional.Value => Value;
 
@@ -154,7 +154,7 @@ namespace HotChocolate
         /// Creates an empty optional that provides a default value.
         /// </summary>
         /// <param name="defaultValue">The default value.</param>
-        public static Optional<T> Empty([MaybeNull]T defaultValue = default!) =>
+        public static Optional<T> Empty(T? defaultValue = default) =>
             new Optional<T>(defaultValue, false);
     }
 }
