@@ -16,6 +16,10 @@ module.exports = {
         link: `/docs/hotchocolate/`,
       },
       {
+        name: `Tutorial`,
+        link: `/tutorial/hotchocolate/`,
+      },
+      {
         name: `Support`,
         link: `/support`,
       },
@@ -173,13 +177,8 @@ module.exports = {
         }`,
         setup: (options) => {
           const { pathPrefix } = options.query.site;
-          const {
-            author,
-            company,
-            description,
-            siteUrl,
-            title,
-          } = options.query.site.siteMetadata;
+          const { author, company, description, siteUrl, title } =
+            options.query.site.siteMetadata;
           const baseUrl = siteUrl + pathPrefix;
           const currentYear = new Date().getUTCFullYear();
 
