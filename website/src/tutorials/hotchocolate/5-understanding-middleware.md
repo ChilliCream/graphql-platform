@@ -1,3 +1,7 @@
+---
+title: "Understanding middleware"
+---
+
 # Understanding middleware
 
 The field middleware is one of the foundational components in Hot Chocolate. Many features that you use like, for instance, the `ID` transformation from internal IDs to global object identifiers, are a field middleware. Even resolvers are compiled into a field middleware.
@@ -160,4 +164,4 @@ That also means that the order of middleware attributes is important since they 
 
 In this session, we have looked at what field middleware are and how we can use them to add additional processing logic to our field resolver pipeline.
 
-[**<< Session #4 - GraphQL schema design**](4-schema-design.md) | [**Session #6 - Adding complex filter capabilities >>**](6-adding-complex-filter-capabilities.md) 
+[**<< Session #4 - GraphQL schema design**](4-schema-design.md) | [**Session #6 - Adding complex filter capabilities >>**](6-adding-complex-filter-capabilities.md)

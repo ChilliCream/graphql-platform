@@ -1,5 +1,6 @@
-
-# Controlling nullability
+---
+title: "Controlling nullability"
+---
 
 ## Configure Nullability
 
@@ -35,6 +36,7 @@ The GraphQL type system distinguishes between nullable and non-nullable types. T
    ```
 
 1. Build your project.
+
    1. `dotnet build`
 
    > The compiler will now output a lot of warnings about properties that are now not nullable that are likely to be null. In GraphQL types are by default nullable whereas in C# types are per default not nullable.
@@ -49,39 +51,39 @@ The GraphQL type system distinguishes between nullable and non-nullable types. T
 
    > The schema still will infer nullability correct since the schema understands the data annotations.
 
-    ```csharp
-    using System.ComponentModel.DataAnnotations;
+   ```csharp
+   using System.ComponentModel.DataAnnotations;
 
-    namespace ConferencePlanner.GraphQL.Data
-    {
-        public class Speaker
-        {
-            public int Id { get; set; }
+   namespace ConferencePlanner.GraphQL.Data
+   {
+       public class Speaker
+       {
+           public int Id { get; set; }
 
-            [Required]
-            [StringLength(200)]
-            public string? Name { get; set; }
+           [Required]
+           [StringLength(200)]
+           public string? Name { get; set; }
 
-            [StringLength(4000)]
-            public string? Bio { get; set; }
+           [StringLength(4000)]
+           public string? Bio { get; set; }
 
-            [StringLength(1000)]
-            public virtual string? WebSite { get; set; }
-        }
-    }
-    ```
+           [StringLength(1000)]
+           public virtual string? WebSite { get; set; }
+       }
+   }
+   ```
 
 1. Now update the input type by marking nullable fields.
 
-    ```csharp
-    namespace ConferencePlanner.GraphQL
-    {
-        public record AddSpeakerInput(
-            string Name,
-            string? Bio,
-            string? WebSite);
-    }
-    ```
+   ```csharp
+   namespace ConferencePlanner.GraphQL
+   {
+       public record AddSpeakerInput(
+           string Name,
+           string? Bio,
+           string? WebSite);
+   }
+   ```
 
    > The payload type can stay for now as it is.
 
@@ -95,4 +97,4 @@ The GraphQL type system distinguishes between nullable and non-nullable types. T
 
 In this session, we have further discovered the GraphQL type system, by understanding how nullability works in GraphQL and how Hot Chocolate infers nullability from .NET types.
 
-[**<< Session #1 - Building a basic GraphQL server API**](1-creating-a-graphql-server-project.md) | [**Session #3 - Understanding GraphQL query execution and DataLoader >>**](3-understanding-dataLoader.md) 
+[**<< Session #1 - Building a basic GraphQL server API**](1-creating-a-graphql-server-project.md) | [**Session #3 - Understanding GraphQL query execution and DataLoader >>**](3-understanding-dataLoader.md)

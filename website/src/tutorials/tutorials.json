@@ -1,0 +1,12 @@
+[
+  {
+    "path": "hotchocolate",
+    "title": "Hot Chocolate Tutorials",
+    "tutorials": [
+      {
+        "path": "1-creating-a-graphql-server-project",
+        "title": "Getting started"
+      }
+    ]
+  }
+]
