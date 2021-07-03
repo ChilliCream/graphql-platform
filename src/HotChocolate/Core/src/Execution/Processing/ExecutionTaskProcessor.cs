@@ -41,9 +41,6 @@ namespace HotChocolate.Execution.Processing
 
         private async Task ExecuteProcessorAsync()
         {
-            // we want to immediately yield control back to the caller.
-            await Task.Yield();
-
             IExecutionTask?[] buffer = _bufferPool.Get();
 
             try
@@ -139,7 +136,7 @@ namespace HotChocolate.Execution.Processing
         private void ScaleProcessors(object? sender, EventArgs eventArgs)
         {
 #pragma warning disable 4014
-            ExecuteProcessorAsync();
+            Task.Run(ExecuteProcessorAsync, _cancellationToken);
 #pragma warning restore 4014
         }
     }

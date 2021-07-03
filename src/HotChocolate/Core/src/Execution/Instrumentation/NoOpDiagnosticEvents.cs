@@ -39,7 +39,17 @@ namespace HotChocolate.Execution.Instrumentation
         {
         }
 
-        public void ScaleTaskProcessors(IRequestContext context, int backlogSize, int processors)
+        public void ScaleTaskProcessorsUp(
+            IRequestContext context,
+            int backlogSize,
+            int processors)
+        {
+        }
+
+        public void ScaleTaskProcessorsDown(
+            IRequestContext context,
+            int backlogSize,
+            int processors)
         {
         }
 
@@ -79,9 +89,7 @@ namespace HotChocolate.Execution.Instrumentation
         {
         }
 
-        public void BatchDispatched(IRequestContext context)
-        {
-        }
+        public IActivityScope DispatchBatch(IRequestContext context) => this;
 
         public void ExecutorCreated(string name, IRequestExecutor executor)
         {

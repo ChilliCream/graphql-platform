@@ -128,13 +128,28 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public void ScaleTaskProcessors(IRequestContext context, int backlogSize, int processors)
+        public void ScaleTaskProcessorsUp(
+            IRequestContext context,
+            int backlogSize,
+            int processors)
         {
             for (var i = 0; i < _listeners.Length; i++)
             {
-                _listeners[i].ScaleTaskProcessors(context, backlogSize, processors);
+                _listeners[i].ScaleTaskProcessorsUp(context, backlogSize, processors);
             }
         }
+
+        public void ScaleTaskProcessorsDown(
+            IRequestContext context,
+            int backlogSize,
+            int processors)
+        {
+            for (var i = 0; i < _listeners.Length; i++)
+            {
+                _listeners[i].ScaleTaskProcessorsDown(context, backlogSize, processors);
+            }
+        }
+
 
         public IActivityScope ExecuteSubscription(ISubscription subscription)
         {
@@ -224,12 +239,16 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public void BatchDispatched(IRequestContext context)
+        public IActivityScope DispatchBatch(IRequestContext context)
         {
+            var scopes = new IActivityScope[_listeners.Length];
+
             for (var i = 0; i < _listeners.Length; i++)
             {
-                _listeners[i].BatchDispatched(context);
+                scopes[i] = _listeners[i].DispatchBatch(context);
             }
+
+            return new AggregateActivityScope(scopes);
         }
 
         public void ExecutorCreated(string name, IRequestExecutor executor)

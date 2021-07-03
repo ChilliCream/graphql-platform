@@ -134,8 +134,6 @@ namespace HotChocolate.Fetching
 
                 async Task ExecuteBatchAsync(Func<ValueTask> executeBatchAsync)
                 {
-                    await Task.Yield();
-
                     try
                     {
                         await executeBatchAsync.Invoke().ConfigureAwait(false);

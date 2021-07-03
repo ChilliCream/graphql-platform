@@ -125,7 +125,7 @@ namespace HotChocolate.Execution.Processing
             {
                 // we invoke the scale diagnostic event after leaving the lock to not block
                 // if a an event listener is badly implemented.
-                _diagnosticEvents.ScaleTaskProcessors(_requestContext, backlogSize, processors);
+                _diagnosticEvents.ScaleTaskProcessorsUp(_requestContext, backlogSize, processors);
             }
         }
 
@@ -178,7 +178,7 @@ namespace HotChocolate.Execution.Processing
             {
                 // we invoke the scale diagnostic event after leaving the lock to not block
                 // if a an event listener is badly implemented.
-                _diagnosticEvents.ScaleTaskProcessors(_requestContext, backlogSize, processors);
+                _diagnosticEvents.ScaleTaskProcessorsUp(_requestContext, backlogSize, processors);
             }
         }
 
@@ -238,7 +238,7 @@ namespace HotChocolate.Execution.Processing
             {
                 // we invoke the scale diagnostic event after leaving the lock to not block
                 // if a an event listener is badly implemented.
-                _diagnosticEvents.ScaleTaskProcessors(_requestContext, backlogSize, processors);
+                _diagnosticEvents.ScaleTaskProcessorsUp(_requestContext, backlogSize, processors);
             }
 
             void TryEnqueueSuspendedUnsafe()
@@ -273,10 +273,11 @@ namespace HotChocolate.Execution.Processing
         /// <inheritdoc/>
         public bool TryCompleteProcessor()
         {
-            SCALE_DOWN:
-            var changedScale = false;
-            var processors = _processors;
-            var backlogSize = 0;
+            var firstTry = true;
+            int processors;
+            int backlogSize;
+
+            RETRY:
 
             // if the execution is already completed or if the completion task is
             // null we scale down.
@@ -294,62 +295,42 @@ namespace HotChocolate.Execution.Processing
                 return false;
             }
 
-            try
+            lock (_sync)
             {
-                lock (_sync)
-                {
-                    if (!_work.IsEmpty)
-                    {
-                        return false;
-                    }
-
-                    // if the backlog is empty, this is the last processor and all tasks are
-                    // running we will signal that there is no more work that we can do.
-                    if (_processors == 1 && _work.HasRunningTasks)
-                    {
-                        BacklogEmpty?.Invoke(this, EventArgs.Empty);
-
-                        // if the signal caused other components to register new work we will
-                        // keep this processor alive and deny its request to scale down.
-                        goto WAIT_FOR_BATCH;
-                    }
-
-                    changedScale = true;
-                    processors = --_processors;
-                    backlogSize = _work.Count;
-
-                    // if we are the last processor to shut down we will check
-                    // if the execution is completed.
-                    if (processors == 0)
-                    {
-                        TryCompleteUnsafe();
-                    }
-
-                    return true;
-                }
-            }
-            finally
-            {
-                if (changedScale)
-                {
-                    // we invoke the scale diagnostic event after leaving the lock to not block
-                    // if a an event listener is badly implemented.
-                    _diagnosticEvents.ScaleTaskProcessors(_requestContext, backlogSize, processors);
-                }
-            }
-
-            WAIT_FOR_BATCH:
-            for (var i = 1; i < 4; i++)
-            {
-                if (!IsEmpty)
+                if (!_work.IsEmpty)
                 {
                     return false;
                 }
 
-                Thread.SpinWait(5 * i);
+                processors = _processors;
+
+                // if the backlog is empty, this is the last processor and all tasks are
+                // running we will signal that there is no more work that we can do.
+                if (firstTry && processors == 1 && _work.HasRunningTasks)
+                {
+                    firstTry = false;
+                    BacklogEmpty?.Invoke(this, EventArgs.Empty);
+                    goto RETRY;
+                }
+
+                processors = --_processors;
+                backlogSize = _work.Count;
+
+                // if we are the last processor to shut down we will check
+                // if the execution is completed.
+                if (processors == 0)
+                {
+                    TryCompleteUnsafe();
+                }
             }
 
-            goto SCALE_DOWN;
+            // we invoke the scale diagnostic event after leaving the lock to not block
+            // if a an event listener is badly implemented.
+            _diagnosticEvents.ScaleTaskProcessorsDown(
+                _requestContext,
+                backlogSize,
+                processors);
+            return true;
         }
 
         private void Cancel()
@@ -399,14 +380,12 @@ namespace HotChocolate.Execution.Processing
         private int CalculateScalePressure()
             => _processors switch
             {
-                1 => 8,
+                0 => 1,
+                1 => 4,
                 2 => 16,
-                3 => 32,
-                4 => 64,
-                5 => 128,
-                6 => 256,
-                7 => 512,
-                _ => 1024
+                3 => 64,
+                4 => 128,
+                _ => throw new NotSupportedException("The scale size is not supported.")
             };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -84,8 +84,10 @@ namespace HotChocolate.Execution.Processing
 
             if (Work.IsEmpty && BatchDispatcher.HasTasks)
             {
-                BatchDispatcher.Dispatch();
-                _diagnosticEvents.BatchDispatched(_operationContext.RequestContext);
+                using (_diagnosticEvents.DispatchBatch(_operationContext.RequestContext))
+                {
+                    BatchDispatcher.Dispatch();
+                }
             }
         }
 

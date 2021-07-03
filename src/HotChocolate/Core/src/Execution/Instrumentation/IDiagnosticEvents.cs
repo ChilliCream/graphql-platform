@@ -139,6 +139,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// </param>
         void TaskError(IExecutionTask task, IError error);
 
+        /// <summary>
         /// This event is called when the request execution pipeline scales
         /// the task processors up or down.
         /// </summary>
@@ -151,7 +152,22 @@ namespace HotChocolate.Execution.Instrumentation
         /// <param name="processors">
         /// The new processor count.
         /// </param>
-        void ScaleTaskProcessors(IRequestContext context, int backlogSize, int processors);
+        void ScaleTaskProcessorsUp(IRequestContext context, int backlogSize, int processors);
+
+        /// <summary>
+        /// This event is called when the request execution pipeline scales
+        /// the task processors up or down.
+        /// </summary>
+        /// <param name="context">
+        /// The request that is being executed.
+        /// </param>
+        /// <param name="backlogSize">
+        /// The current backlog size.
+        /// </param>
+        /// <param name="processors">
+        /// The new processor count.
+        /// </param>
+        void ScaleTaskProcessorsDown(IRequestContext context, int backlogSize, int processors);
 
         /// <summary>
         /// Called when a subscription was created.
@@ -206,7 +222,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// <param name="exception">
         /// The exception that occurred.
         /// </param>
-        void SubscriptionTransportError(ISubscription subscription, Exception exception);       
+        void SubscriptionTransportError(ISubscription subscription, Exception exception);
 
         /// <summary>
         /// A GraphQL request document was added to the document cache.
@@ -259,7 +275,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
-        void BatchDispatched(IRequestContext context);
+        IActivityScope DispatchBatch(IRequestContext context);
 
         /// <summary>
         /// A GraphQL request executor was created and is now able to execute GraphQL requests.

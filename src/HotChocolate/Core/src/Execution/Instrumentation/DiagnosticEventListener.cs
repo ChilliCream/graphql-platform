@@ -26,7 +26,8 @@ namespace HotChocolate.Execution.Instrumentation
         protected IActivityScope EmptyScope { get; } = new EmptyActivityScope();
 
         /// <inheritdoc />
-        public virtual IActivityScope ExecuteRequest(IRequestContext context) => EmptyScope;
+        public virtual IActivityScope ExecuteRequest(IRequestContext context)
+            => EmptyScope;
 
         /// <inheritdoc />
         public virtual void RequestError(IRequestContext context, Exception exception)
@@ -34,7 +35,8 @@ namespace HotChocolate.Execution.Instrumentation
         }
 
         /// <inheritdoc />
-        public virtual IActivityScope ParseDocument(IRequestContext context) => EmptyScope;
+        public virtual IActivityScope ParseDocument(IRequestContext context)
+            => EmptyScope;
 
         /// <inheritdoc />
         public virtual void SyntaxError(IRequestContext context, IError error)
@@ -42,7 +44,8 @@ namespace HotChocolate.Execution.Instrumentation
         }
 
         /// <inheritdoc />
-        public virtual IActivityScope ValidateDocument(IRequestContext context) => EmptyScope;
+        public virtual IActivityScope ValidateDocument(IRequestContext context)
+            => EmptyScope;
 
         /// <inheritdoc />
         public virtual void ValidationErrors(IRequestContext context, IReadOnlyList<IError> errors)
@@ -50,7 +53,8 @@ namespace HotChocolate.Execution.Instrumentation
         }
 
         /// <inheritdoc />
-        public virtual IActivityScope ResolveFieldValue(IMiddlewareContext context) => EmptyScope;
+        public virtual IActivityScope ResolveFieldValue(IMiddlewareContext context)
+            => EmptyScope;
 
         /// <inheritdoc />
         public virtual void ResolverError(IMiddlewareContext context, IError error)
@@ -58,7 +62,8 @@ namespace HotChocolate.Execution.Instrumentation
         }
 
         /// <inheritdoc />
-        public virtual IActivityScope RunTask(IExecutionTask task) => EmptyScope;
+        public virtual IActivityScope RunTask(IExecutionTask task)
+            => EmptyScope;
 
         /// <inheritdoc />
         public virtual void TaskError(IExecutionTask task, IError error)
@@ -66,7 +71,15 @@ namespace HotChocolate.Execution.Instrumentation
         }
 
         /// <inheritdoc />
-        public virtual void ScaleTaskProcessors(
+        public virtual void ScaleTaskProcessorsUp(
+            IRequestContext context,
+            int backlogSize,
+            int processors)
+        {
+        }
+
+        /// <inheritdoc />
+        public virtual void ScaleTaskProcessorsDown(
             IRequestContext context,
             int backlogSize,
             int processors)
@@ -75,13 +88,13 @@ namespace HotChocolate.Execution.Instrumentation
 
         /// <inheritdoc />
         public virtual IActivityScope ExecuteSubscription(
-            ISubscription subscription) =>
-            EmptyScope;
+            ISubscription subscription)
+            => EmptyScope;
 
         /// <inheritdoc />
         public virtual IActivityScope OnSubscriptionEvent(
-            SubscriptionEventContext context) =>
-            EmptyScope;
+            SubscriptionEventContext context)
+            => EmptyScope;
 
         /// <inheritdoc />
         public virtual void SubscriptionEventResult(
@@ -130,9 +143,8 @@ namespace HotChocolate.Execution.Instrumentation
         }
 
         /// <inheritdoc />
-        public virtual void BatchDispatched(IRequestContext context)
-        {
-        }
+        public virtual IActivityScope DispatchBatch(IRequestContext context)
+            => EmptyScope;
 
         /// <inheritdoc />
         public virtual void ExecutorCreated(string name, IRequestExecutor executor)

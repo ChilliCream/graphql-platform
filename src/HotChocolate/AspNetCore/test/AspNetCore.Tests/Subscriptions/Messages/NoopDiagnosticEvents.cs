@@ -41,7 +41,17 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         {
         }
 
-        public void ScaleTaskProcessors(IRequestContext context, int backlogSize, int processors)
+        public void ScaleTaskProcessorsUp(
+            IRequestContext context,
+            int backlogSize,
+            int processors)
+        {
+        }
+
+        public void ScaleTaskProcessorsDown(
+            IRequestContext context,
+            int backlogSize,
+            int processors)
         {
         }
 
@@ -81,9 +91,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         {
         }
 
-        public void BatchDispatched(IRequestContext context)
-        {
-        }
+        public IActivityScope DispatchBatch(IRequestContext context) => this;
 
         public void ExecutorCreated(string name, IRequestExecutor executor)
         {
