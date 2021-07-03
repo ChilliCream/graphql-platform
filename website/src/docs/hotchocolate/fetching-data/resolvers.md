@@ -426,8 +426,6 @@ We can access this so called _parent_ value like the following.
 <ExampleTabs>
 <ExampleTabs.Annotation>
 
-TODO: Is the following discouraged?
-
 In the Annotation-based approach we can just access the properties using the `this` keyword.
 
 ```csharp
