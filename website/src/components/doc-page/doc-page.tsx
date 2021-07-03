@@ -39,6 +39,30 @@ import { DocPageCommunity } from "./doc-page-community";
 import { DocPageLegacy } from "./doc-page-legacy";
 import { DocPageNavigation, Navigation } from "./doc-page-navigation";
 
+const productAndVersionPattern = /^\/docs\/([\w-]+)(?:\/(v\d+))?/;
+
+interface ProductInformation {
+  readonly name: string;
+  readonly version: string;
+}
+
+function useProductInformation(slug: string): ProductInformation | null {
+  if (!slug) {
+    return null;
+  }
+
+  const result = productAndVersionPattern.exec(slug);
+
+  if (!result) {
+    return null;
+  }
+
+  return {
+    name: result[1] || "",
+    version: result[2] || "",
+  };
+}
+
 interface DocPageProperties {
   readonly data: DocPageFragment;
   readonly originPath: string;
@@ -49,19 +73,13 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
   originPath,
 }) => {
   const dispatch = useDispatch();
+  const responsiveMenuRef = useRef<HTMLDivElement>(null);
+
   const { fields, frontmatter, body } = data.file!.childMdx!;
   const slug = fields!.slug!;
-  const productAndVersionPattern = /^\/docs\/([\w-]+)(?:\/(v\d+))?/g;
-  const result = productAndVersionPattern.exec(slug);
-
-  if (!result) {
-    throw new Error(`Slug ${slug} could not be parsed`);
-  }
-
-  const selectedProduct = result[1] || "";
-  const selectedVersion = result[2] || "";
   const title = frontmatter!.title!;
-  const responsiveMenuRef = useRef<HTMLDivElement>(null);
+
+  const product = useProductInformation(slug);
 
   const hasScrolled$ = useObservable((state) => {
     return state.common.yScrollPosition > 20;
@@ -90,14 +108,20 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
     };
   }, [hasScrolled$]);
 
+  if (!product) {
+    throw new Error(
+      `Product information could not be parsed from slug: '${slug}'`
+    );
+  }
+
   return (
     <TabGroupProvider>
       <Container>
         <DocPageNavigation
           data={data}
           selectedPath={slug}
-          selectedProduct={selectedProduct}
-          selectedVersion={selectedVersion}
+          selectedProduct={product.name}
+          selectedVersion={product.version}
         />
         <ArticleWrapper>
           <ArticleContainer>
