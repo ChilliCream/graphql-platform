@@ -34,6 +34,23 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
           }
         }
       }
+      tutorials: allFile(
+        limit: 1000
+        filter: {
+          sourceInstanceName: { eq: "tutorials" }
+          extension: { eq: "md" }
+        }
+      ) {
+        pages: nodes {
+          name
+          relativeDirectory
+          childMdx {
+            fields {
+              slug
+            }
+          }
+        }
+      }
     }
   `);
 
@@ -45,6 +62,7 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
 
   createBlogArticles(createPage, result.data.blog);
   createDocPages(createPage, result.data.docs);
+  createTutorialPages(createPage, result.data.tutorials);
 
   createRedirect({
     fromPath: "/blog/2019/03/18/entity-framework",
@@ -230,6 +248,25 @@ function createBlogArticles(createPage, data) {
 }
 
 function createDocPages(createPage, data) {
+  const docTemplate = path.resolve(`src/templates/doc-page-template.tsx`);
+  const { pages } = data;
+
+  // Create Single Pages
+  pages.forEach((page) => {
+    const path = page.childMdx.fields.slug;
+    const originPath = `${page.relativeDirectory}/${page.name}.md`;
+
+    createPage({
+      path,
+      component: docTemplate,
+      context: {
+        originPath,
+      },
+    });
+  });
+}
+
+function createTutorialPages(createPage, data) {
   const docTemplate = path.resolve(`src/templates/doc-page-template.tsx`);
   const { pages } = data;
 
