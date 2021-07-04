@@ -7,18 +7,14 @@ import React, {
   useState,
 } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { DocPageNavigationFragment } from "../../../graphql-types";
 import ArrowDownIconSvg from "../../images/arrow-down.svg";
 import ArrowUpIconSvg from "../../images/arrow-up.svg";
 import ProductSwitcherIconSvg from "../../images/th-large.svg";
 import { BoxShadow, IsTablet } from "../../shared-style";
 import { State } from "../../state";
-import {
-  closeTOC,
-  expandNavigationGroup,
-  toggleNavigationGroup,
-} from "../../state/common";
+import { closeTOC } from "../../state/common";
 import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
 import {
@@ -26,6 +22,93 @@ import {
   MostProminentSection,
 } from "./doc-page-elements";
 import { DocPagePaneHeader } from "./doc-page-pane-header";
+
+interface BruhProperties {
+  readonly basePath: string;
+  readonly selectedPath: string;
+  readonly items: Item[];
+}
+
+const Bruh: FunctionComponent<BruhProperties> = ({
+  items,
+  basePath,
+  selectedPath,
+}) => {
+  const [expandedPaths, setExpandedPaths] = useState<string[]>([]);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    for (const item of items) {
+      // todo: this logic is duplicated
+      let itemPath = basePath;
+
+      if (item.path !== "index") {
+        itemPath += "/" + item.path;
+      }
+
+      if (containsActiveItem(selectedPath, itemPath)) {
+        setExpandedPaths((old) => [...old, itemPath]);
+      }
+    }
+  }, [selectedPath, basePath]);
+
+  const toggleItem = (itemPath: string) => () => {
+    if (expandedPaths.includes(itemPath)) {
+      setExpandedPaths((old) => old.filter((e) => e !== itemPath));
+    } else {
+      setExpandedPaths((old) => [...old, itemPath]);
+    }
+  };
+
+  const handleNavigationItemClick = () => {
+    dispatch(closeTOC());
+  };
+
+  return (
+    <NavigationList>
+      {items.map(({ path, title, items: subItems }) => {
+        let itemPath = basePath;
+
+        if (path !== "index") {
+          itemPath += "/" + path;
+        }
+
+        const isActive = subItems ? containsActiveItem : isActiveItem;
+
+        return (
+          <NavigationItem
+            key={itemPath}
+            active={isActive(selectedPath, itemPath)}
+            onClick={handleNavigationItemClick}
+          >
+            {subItems ? (
+              <NavigationGroup expanded={expandedPaths.includes(itemPath)}>
+                <NavigationGroupToggle onClick={toggleItem(itemPath)}>
+                  {title}
+
+                  <IconContainer size={16}>
+                    <ArrowDownIconSvg className="arrow-down" />
+                    <ArrowUpIconSvg className="arrow-up" />
+                  </IconContainer>
+                </NavigationGroupToggle>
+
+                <NavigationGroupContent>
+                  <Bruh
+                    items={subItems}
+                    basePath={itemPath}
+                    selectedPath={selectedPath}
+                  />
+                </NavigationGroupContent>
+              </NavigationGroup>
+            ) : (
+              <NavigationLink to={itemPath}>{title}</NavigationLink>
+            )}
+          </NavigationItem>
+        );
+      })}
+    </NavigationList>
+  );
+};
 
 interface DocPageNavigationProperties {
   data: DocPageNavigationFragment;
@@ -36,9 +119,6 @@ interface DocPageNavigationProperties {
 
 export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
   ({ data, selectedPath, selectedProduct, selectedVersion }) => {
-    const expandedPaths = useSelector<State, string[]>(
-      (state) => state.common.expandedPaths
-    );
     const height = useSelector<State, string>((state) => {
       return state.common.articleViewportHeight;
     });
@@ -55,100 +135,6 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
     const activeVersion = activeProduct?.versions?.find(
       (v) => v?.path === selectedVersion
     );
-
-    const handleClickNavigationItem = useCallback(() => {
-      dispatch(closeTOC());
-    }, []);
-
-    const handleToggleExpand = useCallback(
-      (event: MouseEvent<HTMLDivElement>, path: string) => {
-        event.stopPropagation();
-        dispatch(toggleNavigationGroup({ path }));
-      },
-      []
-    );
-
-    const buildNavigationStructure = (items: Item[], basePath: string) => (
-      <NavigationList>
-        {items.map(({ path, title, items: subItems }) => {
-          const itemPath =
-            !subItems && path === "index" ? basePath : basePath + "/" + path;
-
-          return (
-            <NavigationItem
-              key={itemPath + (subItems ? "/parent" : "")}
-              className={
-                subItems
-                  ? containsActiveItem(selectedPath, itemPath)
-                    ? "active"
-                    : ""
-                  : isActive(selectedPath, itemPath)
-                  ? "active"
-                  : ""
-              }
-              onClick={handleClickNavigationItem}
-            >
-              {subItems ? (
-                <NavigationGroup
-                  expanded={expandedPaths.indexOf(itemPath) !== -1}
-                >
-                  <NavigationGroupToggle
-                    onClick={(e) => handleToggleExpand(e, itemPath)}
-                  >
-                    {title}
-                    <IconContainer size={16}>
-                      <ArrowDownIconSvg className="arrow-down" />
-                      <ArrowUpIconSvg className="arrow-up" />
-                    </IconContainer>
-                  </NavigationGroupToggle>
-                  <NavigationGroupContent>
-                    {buildNavigationStructure(subItems, itemPath)}
-                  </NavigationGroupContent>
-                </NavigationGroup>
-              ) : (
-                <NavigationLink to={itemPath + "/"}>{title}</NavigationLink>
-              )}
-            </NavigationItem>
-          );
-        })}
-      </NavigationList>
-    );
-
-    useEffect(() => {
-      /*
-      Ensures that all groups along the selected path are expanded on page load.
-    */
-      if (activeVersion?.items) {
-        const selectedVersionLength =
-          selectedVersion.length > 0 ? selectedVersion.length + 1 : 0;
-        const index =
-          selectedPath.indexOf(selectedProduct) +
-          selectedProduct.length +
-          1 +
-          selectedVersionLength;
-        const parts = selectedPath
-          .substring(index)
-          .split("/")
-          .filter((part) => part.length > 0);
-
-        if (parts.length > 0) {
-          const rootFolder = activeVersion.items.find(
-            (item) => item!.path === parts[0] && item!.items
-          );
-
-          if (rootFolder) {
-            const path = selectedPath.substring(
-              0,
-              parts.length > 1
-                ? selectedPath.lastIndexOf(parts[parts.length - 1]) - 1
-                : selectedPath.length - 1
-            );
-
-            dispatch(expandNavigationGroup({ path }));
-          }
-        }
-      }
-    }, [activeProduct, selectedPath, selectedProduct]);
 
     // catch if someone clicks outside of the product switcher
     // to close the modal
@@ -181,6 +167,22 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
 
     const hasVersions =
       !activeProduct?.versions || activeProduct.versions.length > 1;
+
+    const subItems: Item[] =
+      activeVersion?.items
+        ?.filter((item) => !!item)
+        .map<Item>((item) => ({
+          path: item!.path!,
+          title: item!.title!,
+          items: item!.items
+            ? item?.items
+                .filter((item) => !!item)
+                .map<Item>((item) => ({
+                  path: item!.path!,
+                  title: item!.title!,
+                }))
+            : undefined,
+        })) ?? [];
 
     return (
       // todo: use show flag
@@ -256,39 +258,25 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
 
         {!productSwitcherOpen && activeVersion?.items && (
           <MostProminentSection>
-            {buildNavigationStructure(
-              activeVersion.items
-                .filter((item) => !!item)
-                .map<Item>((item) => ({
-                  path: item!.path!,
-                  title: item!.title!,
-                  items: item!.items
-                    ? item?.items
-                        .filter((item) => !!item)
-                        .map<Item>((item) => ({
-                          path: item!.path!,
-                          title: item!.title!,
-                        }))
-                    : undefined,
-                })),
-              `/docs/${activeProduct!.path!}${
+            <Bruh
+              basePath={`/docs/${activeProduct!.path!}${
                 !!activeVersion?.path?.length ? "/" + activeVersion.path! : ""
-              }`
-            )}
+              }`}
+              items={subItems}
+              selectedPath={selectedPath}
+            />
           </MostProminentSection>
         )}
       </Navigation>
     );
   };
 
-function containsActiveItem(selectedPath: string, itemPath: string) {
-  const itemPathWithSlash = itemPath.endsWith("/") ? itemPath : itemPath + "/";
-
-  return selectedPath.startsWith(itemPathWithSlash);
+function isActiveItem(selectedPath: string, itemPath: string) {
+  return selectedPath === itemPath;
 }
 
-function isActive(selectedPath: string, itemPath: string) {
-  return itemPath === selectedPath;
+function containsActiveItem(selectedPath: string, itemPath: string) {
+  return selectedPath.startsWith(itemPath);
 }
 
 export const DocPageNavigationGraphQLFragment = graphql`
@@ -542,16 +530,18 @@ const NavigationLink = styled(Link)`
   }
 `;
 
-const NavigationItem = styled.li`
+const NavigationItem = styled.li<{ active: boolean }>`
   flex: 0 0 auto;
   margin: 5px 0;
   padding: 0;
   min-height: 20px;
   line-height: initial;
 
-  &.active {
-    > ${NavigationLink}, > ${NavigationGroup} > ${NavigationGroupToggle} {
-      font-weight: bold;
-    }
-  }
+  ${({ active }) =>
+    active &&
+    css`
+      > ${NavigationLink}, > ${NavigationGroup} > ${NavigationGroupToggle} {
+        font-weight: bold;
+      }
+    `}
 `;

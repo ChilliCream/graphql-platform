@@ -3,7 +3,6 @@ import {
   changeSearchQuery,
   closeAside,
   closeTOC,
-  expandNavigationGroup,
   hasScrolled,
   hideCookieConsent,
   hideLegacyDocHeader,
@@ -11,7 +10,6 @@ import {
   showCookieConsent,
   showLegacyDocInfo,
   toggleAside,
-  toggleNavigationGroup,
   toggleTOC,
 } from "./common.actions";
 import { CommonState, initialState } from "./common.state";
@@ -35,19 +33,6 @@ export const commonReducer = createReducer<CommonState>(
     ...state,
     showTOC: false,
   })),
-
-  onAction(expandNavigationGroup, (state, { path }) => {
-    if (state.expandedPaths.indexOf(path) !== -1) {
-      return state;
-    }
-
-    const expandedPaths = [...state.expandedPaths, path];
-
-    return {
-      ...state,
-      expandedPaths,
-    };
-  }),
 
   onAction(hideCookieConsent, (state) => ({
     ...state,
@@ -89,21 +74,5 @@ export const commonReducer = createReducer<CommonState>(
   onAction(setArticleHeight, (state, { articleHeight }) => ({
     ...state,
     articleViewportHeight: articleHeight,
-  })),
-
-  onAction(toggleNavigationGroup, (state, { path }) => {
-    const expandedPaths = [...state.expandedPaths];
-    const index = expandedPaths.indexOf(path);
-
-    if (index !== -1) {
-      expandedPaths.splice(index, 1);
-    } else {
-      expandedPaths.push(path);
-    }
-
-    return {
-      ...state,
-      expandedPaths,
-    };
-  })
+  }))
 );
