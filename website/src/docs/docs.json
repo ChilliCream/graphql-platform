@@ -495,7 +495,7 @@
     "versions": [
       {
         "path": "",
-        "title": "v1 (preview)",
+        "title": "v1",
         "items": [
           {
             "path": "index",
@@ -512,7 +512,7 @@
     "versions": [
       {
         "path": "",
-        "title": "v11 (preview)",
+        "title": "v11",
         "items": [
           {
             "path": "index",
