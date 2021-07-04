@@ -4,6 +4,7 @@ import React, {
   MouseEvent,
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -23,34 +24,44 @@ import {
 } from "./doc-page-elements";
 import { DocPagePaneHeader } from "./doc-page-pane-header";
 
-interface BruhProperties {
-  readonly basePath: string;
-  readonly selectedPath: string;
-  readonly items: Item[];
+interface NavigationContainerProperties {
+  basePath: string;
+  selectedPath: string;
+  items: Item[];
 }
 
-const Bruh: FunctionComponent<BruhProperties> = ({
-  items,
+const NavigationContainer: FunctionComponent<NavigationContainerProperties> = ({
+  items: rawItems,
   basePath,
   selectedPath,
 }) => {
   const [expandedPaths, setExpandedPaths] = useState<string[]>([]);
   const dispatch = useDispatch();
 
+  const items = useMemo(
+    () =>
+      rawItems.map<EnhancedItem>((i) => {
+        let fullpath = basePath;
+
+        if (i.path && i.path !== "index") {
+          fullpath += "/" + i.path;
+        }
+
+        return {
+          ...i,
+          fullpath,
+        };
+      }),
+    [rawItems]
+  );
+
   useEffect(() => {
     for (const item of items) {
-      // todo: this logic is duplicated
-      let itemPath = basePath;
-
-      if (item.path !== "index") {
-        itemPath += "/" + item.path;
-      }
-
-      if (containsActiveItem(selectedPath, itemPath)) {
-        setExpandedPaths((old) => [...old, itemPath]);
+      if (containsActiveItem(selectedPath, item.fullpath)) {
+        setExpandedPaths((old) => [...old, item.fullpath]);
       }
     }
-  }, [selectedPath, basePath]);
+  }, [selectedPath, basePath, items]);
 
   const toggleItem = (itemPath: string) => () => {
     if (expandedPaths.includes(itemPath)) {
@@ -60,30 +71,20 @@ const Bruh: FunctionComponent<BruhProperties> = ({
     }
   };
 
-  const handleNavigationItemClick = () => {
-    dispatch(closeTOC());
-  };
-
   return (
     <NavigationList>
-      {items.map(({ path, title, items: subItems }) => {
-        let itemPath = basePath;
-
-        if (path !== "index") {
-          itemPath += "/" + path;
-        }
-
+      {items.map(({ fullpath, title, items: subItems }) => {
         const isActive = subItems ? containsActiveItem : isActiveItem;
 
         return (
           <NavigationItem
-            key={itemPath}
-            active={isActive(selectedPath, itemPath)}
-            onClick={handleNavigationItemClick}
+            key={fullpath}
+            active={isActive(selectedPath, fullpath)}
+            onClick={() => !subItems && dispatch(closeTOC())}
           >
             {subItems ? (
-              <NavigationGroup expanded={expandedPaths.includes(itemPath)}>
-                <NavigationGroupToggle onClick={toggleItem(itemPath)}>
+              <NavigationGroup expanded={expandedPaths.includes(fullpath)}>
+                <NavigationGroupToggle onClick={toggleItem(fullpath)}>
                   {title}
 
                   <IconContainer size={16}>
@@ -93,15 +94,15 @@ const Bruh: FunctionComponent<BruhProperties> = ({
                 </NavigationGroupToggle>
 
                 <NavigationGroupContent>
-                  <Bruh
+                  <NavigationContainer
                     items={subItems}
-                    basePath={itemPath}
+                    basePath={fullpath}
                     selectedPath={selectedPath}
                   />
                 </NavigationGroupContent>
               </NavigationGroup>
             ) : (
-              <NavigationLink to={itemPath}>{title}</NavigationLink>
+              <NavigationLink to={fullpath}>{title}</NavigationLink>
             )}
           </NavigationItem>
         );
@@ -130,7 +131,7 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
     const [productSwitcherOpen, setProductSwitcherOpen] = useState(false);
     const [versionSwitcherOpen, setVersionSwitcherOpen] = useState(false);
 
-    const products = data.config?.products ?? [];
+    const products = data.config?.products || [];
     const activeProduct = products.find((p) => p?.path === selectedProduct);
     const activeVersion = activeProduct?.versions?.find(
       (v) => v?.path === selectedVersion
@@ -185,11 +186,10 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
         })) ?? [];
 
     return (
-      // todo: use show flag
-      <Navigation calculatedHeight={height} className={showTOC ? "show" : ""}>
+      <Navigation height={height} show={showTOC}>
         <DocPagePaneHeader
           title="Table of contents"
-          showWhenScreenWidthIsSmallerThan={1111}
+          showWhenScreenWidthIsSmallerThan={1070}
           onClose={() => dispatch(closeTOC())}
         />
 
@@ -258,7 +258,7 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
 
         {!productSwitcherOpen && activeVersion?.items && (
           <MostProminentSection>
-            <Bruh
+            <NavigationContainer
               basePath={`/docs/${activeProduct!.path!}${
                 !!activeVersion?.path?.length ? "/" + activeVersion.path! : ""
               }`}
@@ -276,7 +276,7 @@ function isActiveItem(selectedPath: string, itemPath: string) {
 }
 
 function containsActiveItem(selectedPath: string, itemPath: string) {
-  return selectedPath.startsWith(itemPath);
+  return (selectedPath + "/").startsWith(itemPath + "/");
 }
 
 export const DocPageNavigationGraphQLFragment = graphql`
@@ -312,26 +312,28 @@ interface Item {
   items?: Item[];
 }
 
-export const Navigation = styled.nav<{ calculatedHeight: string }>`
+type EnhancedItem = Item & {
+  fullpath: string;
+};
+
+export const Navigation = styled.nav<{ height: string; show: boolean }>`
   ${DocPageStickySideBarStyle}
   padding: 25px 0 0;
   transition: margin-left 250ms;
   background-color: white;
   min-height: 50%;
 
-  &.show {
-    margin-left: 0;
-  }
+  ${({ show }) => show && `margin-left: 0 !important;`}
 
-  ${({ calculatedHeight }) =>
+  ${({ height }) =>
     IsTablet(`
       margin-left: -105%;
-      height: ${calculatedHeight};
+      height: ${height};
       position: fixed;
       top: 60px;
       left: 0;
       ${BoxShadow}
-    `)}
+  `)}
 `;
 
 const ProductSwitcherButton = styled.button`
@@ -453,7 +455,7 @@ const VersionLink = styled(Link)`
   font-size: 0.833em;
   color: #666;
   cursor: pointer;
-  padding: 4px 9px;
+  padding: 6px 9px;
   transition: background-color 0.2s ease-in-out;
   border-radius: 5px;
 
