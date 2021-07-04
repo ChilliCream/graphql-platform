@@ -1,4 +1,4 @@
-import { graphql } from "gatsby";
+import { graphql, Link } from "gatsby";
 import { MDXRenderer } from "gatsby-plugin-mdx";
 import React, {
   FunctionComponent,
@@ -141,6 +141,18 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
                     </Button>
                   </ResponsiveMenu>
                 </ResponsiveMenuWrapper>
+                {product.version !== "" ? (
+                  <OutdatedDocumentationWarning>
+                    <div>
+                      This is documentation for{" "}
+                      <strong>{product.version}</strong>.
+                    </div>
+                    <div>
+                      For up-to-date documentation, see the{" "}
+                      <Link to={`/docs/${product.name}`}>latest version</Link>.
+                    </div>
+                  </OutdatedDocumentationWarning>
+                ) : null}
                 <ArticleTitle>{title}</ArticleTitle>
               </ArticleHeader>
               <ArticleContent>
@@ -334,5 +346,25 @@ const Button = styled.button`
     height: 16px;
     fill: #666;
     transition: fill 0.2s ease-in-out;
+  }
+`;
+
+const OutdatedDocumentationWarning = styled.div`
+  padding: 20px 50px;
+  background-color: #ffba00;
+  color: #fff;
+
+  > div {
+    line-height: 1.4;
+  }
+
+  > div:not(:last-child) {
+    margin-bottom: 16px;
+  }
+
+  > div > a {
+    color: white !important;
+    font-weight: bold;
+    text-decoration: underline;
   }
 `;
