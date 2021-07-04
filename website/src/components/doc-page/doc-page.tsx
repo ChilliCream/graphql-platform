@@ -39,30 +39,6 @@ import { DocPageCommunity } from "./doc-page-community";
 import { DocPageLegacy } from "./doc-page-legacy";
 import { DocPageNavigation, Navigation } from "./doc-page-navigation";
 
-const productAndVersionPattern = /^\/docs\/([\w-]+)(?:\/(v\d+))?/;
-
-interface ProductInformation {
-  readonly name: string;
-  readonly version: string;
-}
-
-function useProductInformation(slug: string): ProductInformation | null {
-  if (!slug) {
-    return null;
-  }
-
-  const result = productAndVersionPattern.exec(slug);
-
-  if (!result) {
-    return null;
-  }
-
-  return {
-    name: result[1] || "",
-    version: result[2] || "",
-  };
-}
-
 interface DocPageProperties {
   readonly data: DocPageFragment;
   readonly originPath: string;
@@ -200,6 +176,30 @@ export const DocPageGraphQLFragment = graphql`
     ...DocPageNavigation
   }
 `;
+
+const productAndVersionPattern = /^\/docs\/([\w-]+)(?:\/(v\d+))?/;
+
+interface ProductInformation {
+  readonly name: string;
+  readonly version: string;
+}
+
+function useProductInformation(slug: string): ProductInformation | null {
+  if (!slug) {
+    return null;
+  }
+
+  const result = productAndVersionPattern.exec(slug);
+
+  if (!result) {
+    return null;
+  }
+
+  return {
+    name: result[1] || "",
+    version: result[2] || "",
+  };
+}
 
 const ResponsiveMenuWrapper = styled.div`
   position: absolute;
