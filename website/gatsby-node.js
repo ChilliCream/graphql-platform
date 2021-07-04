@@ -154,6 +154,10 @@ exports.onCreateNode = async ({ node, actions, getNode, reporter }) => {
       path = "/docs" + path;
     }
 
+    if (parent && parent.sourceInstanceName === "tutorials") {
+      path = "/tutorials" + path;
+    }
+
     // remove trailing slashes
     path = path.replace(/\/+$/, "");
   }
@@ -267,7 +271,7 @@ function createDocPages(createPage, data) {
 }
 
 function createTutorialPages(createPage, data) {
-  const docTemplate = path.resolve(`src/templates/doc-page-template.tsx`);
+  const docTemplate = path.resolve(`src/templates/tutorial-page-template.tsx`);
   const { pages } = data;
 
   // Create Single Pages

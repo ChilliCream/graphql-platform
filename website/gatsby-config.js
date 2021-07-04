@@ -16,8 +16,8 @@ module.exports = {
         link: `/docs/hotchocolate/`,
       },
       {
-        name: `Tutorial`,
-        link: `/tutorial/hotchocolate/`,
+        name: `Tutorials`,
+        link: `/tutorials/hotchocolate/`,
       },
       {
         name: `Support`,
