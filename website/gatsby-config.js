@@ -12,20 +12,29 @@ module.exports = {
         link: `/platform`,
       },
       {
-        name: `Docs`,
-        link: `/docs/hotchocolate/`,
-      },
-      {
-        name: `Tutorials`,
-        link: `/tutorials/hotchocolate/`,
+        name: `Developers`,
+        items: [
+          {
+            name: `Docs`,
+            link: `/docs/hotchocolate/`,
+          },
+          {
+            name: `Tutorials`,
+            link: `/tutorials/hotchocolate/`,
+          },
+          {
+            name: `Blog`,
+            link: `/blog`,
+          },
+          {
+            name: `GitHub discussions`,
+            link: `https://github.com/ChilliCream/hotchocolate/discussions`,
+          },
+        ],
       },
       {
         name: `Support`,
         link: `/support`,
-      },
-      {
-        name: `Blog`,
-        link: `/blog`,
       },
       {
         name: `Shop`,

@@ -2,14 +2,13 @@ import { graphql, useStaticQuery } from "gatsby";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
 import { GetFooterDataQuery } from "../../../../graphql-types";
-import { IconContainer } from "../../misc/icon-container";
-import { Link } from "../../misc/link";
-
-import GithubIconSvg from "../../../images/github.svg";
-import LogoIconSvg from "../../../images/chillicream.svg";
 import LogoTextSvg from "../../../images/chillicream-text.svg";
+import LogoIconSvg from "../../../images/chillicream.svg";
+import GithubIconSvg from "../../../images/github.svg";
 import SlackIconSvg from "../../../images/slack.svg";
 import TwitterIconSvg from "../../../images/twitter.svg";
+import { IconContainer } from "../../misc/icon-container";
+import { Link } from "../../misc/link";
 
 export const Footer: FunctionComponent = () => {
   const data = useStaticQuery<GetFooterDataQuery>(graphql`
@@ -19,6 +18,10 @@ export const Footer: FunctionComponent = () => {
           topnav {
             name
             link
+            items {
+              name
+              link
+            }
           }
           tools {
             github
@@ -43,6 +46,10 @@ export const Footer: FunctionComponent = () => {
   `);
   const { topnav, tools } = data.site!.siteMetadata!;
   const { products } = data.docNav!;
+
+  const generalLinks = (topnav ?? [])
+    .map((i) => (i?.items ? i.items : [i]))
+    .flat();
 
   return (
     <Container>
@@ -83,7 +90,7 @@ export const Footer: FunctionComponent = () => {
         <Links>
           <Title>General Links</Title>
           <Navigation>
-            {topnav!.map((item, index) => (
+            {generalLinks!.map((item, index) => (
               <NavLink key={`topnav-item-${index}`} to={item!.link!}>
                 {item!.name}
               </NavLink>
