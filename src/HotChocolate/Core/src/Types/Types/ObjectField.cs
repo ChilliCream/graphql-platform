@@ -69,13 +69,6 @@ namespace HotChocolate.Types
         public PureFieldDelegate? PureResolver { get; private set; }
 
         /// <summary>
-        /// Gets a field resolver that can be used to inline the resolver execution into the parent
-        /// resolver. Resolvers can only be inlined if they abide to the rules of the pure-resolver.
-        /// Further inline resolvers cannot have arguments and do not have access to context data.
-        /// </summary>
-        public InlineFieldDelegate? InlineResolver { get; private set; }
-
-        /// <summary>
         /// Gets the subscription resolver.
         /// </summary>
         public SubscribeResolverDelegate? SubscribeResolver { get; }
@@ -194,13 +187,7 @@ namespace HotChocolate.Types
 
             if (resolvers.PureResolver is not null && IsPureContext())
             {
-                PureFieldResolverDelegate? pure = resolvers.PureResolver;
-                PureResolver = ctx => ctx.Result = pure(ctx);
-            }
-
-            if (resolvers.InlineResolver is not null && IsPureContext())
-            {
-                InlineResolver = resolvers.InlineResolver;
+                PureResolver = resolvers.PureResolver;
             }
 
             // by definition fields with pure resolvers are parallel executable.

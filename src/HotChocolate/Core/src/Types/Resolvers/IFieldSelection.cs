@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -21,6 +20,11 @@ namespace HotChocolate.Resolvers
         IObjectField Field { get; }
 
         /// <summary>
+        /// Gets the type of the selection.
+        /// </summary>
+        IType Type { get; }
+
+        /// <summary>
         /// Gets the field selection syntax node.
         /// </summary>
         FieldNode SyntaxNode { get; }
@@ -29,11 +33,5 @@ namespace HotChocolate.Resolvers
         /// Gets the merged field selections.
         /// </summary>
         IReadOnlyList<FieldNode> SyntaxNodes { get; }
-
-        /// <summary>
-        /// Gets the merged field selections.
-        /// </summary>
-        [Obsolete("Use SyntaxNodes.")]
-        IReadOnlyList<FieldNode> Nodes { get; }
     }
 }

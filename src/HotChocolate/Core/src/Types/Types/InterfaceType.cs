@@ -33,6 +33,19 @@ namespace HotChocolate.Types
             Fields = FieldCollection<InterfaceField>.Empty;
         }
 
+        /// <summary>
+        /// Create an object type from a type definition.
+        /// </summary>
+        /// <param name="definition">
+        /// The object type definition that specifies the properties of the
+        /// newly created object type.
+        /// </param>
+        /// <returns>
+        /// Returns the newly created object type.
+        /// </returns>
+        public static InterfaceType CreateUnsafe(InterfaceTypeDefinition definition)
+            => new() { Definition = definition };
+
         public override TypeKind Kind => TypeKind.Interface;
 
         ISyntaxNode? IHasSyntaxNode.SyntaxNode => SyntaxNode;

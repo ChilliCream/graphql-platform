@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -12,6 +11,19 @@ namespace HotChocolate.Resolvers.CodeGeneration
 {
     internal static class ArgumentHelper
     {
+        internal static bool IsPure(ParameterInfo[] parameters, Type sourceType)
+        {
+            foreach (ParameterInfo parameter in parameters)
+            {
+                if (!IsPure(parameter, sourceType))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         internal static bool IsPure(ParameterInfo parameterInfo, Type sourceType)
         {
             switch (LookupKind(parameterInfo, sourceType))

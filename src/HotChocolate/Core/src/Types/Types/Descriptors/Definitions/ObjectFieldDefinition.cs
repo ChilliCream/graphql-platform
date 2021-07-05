@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Resolvers;
-using HotChocolate.Resolvers.Expressions;
 
 #nullable enable
 
@@ -31,15 +30,13 @@ namespace HotChocolate.Types.Descriptors.Definitions
             string? description = null,
             ITypeReference? type = null,
             FieldResolverDelegate? resolver = null,
-            PureFieldResolverDelegate? pureResolver = null,
-            InlineFieldDelegate? inlineResolver = null)
+            PureFieldDelegate? pureResolver = null)
         {
             Name = name;
             Description = description;
             Type = type;
             Resolver = resolver;
             PureResolver = pureResolver;
-            InlineResolver = inlineResolver;
         }
 
         /// <summary>
@@ -85,12 +82,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// <summary>
         /// The delegate that represents an optional pure resolver.
         /// </summary>
-        public PureFieldResolverDelegate? PureResolver { get; set; }
-
-        /// <summary>
-        /// The delegate that represents an optional inline resolver.
-        /// </summary>
-        public InlineFieldDelegate? InlineResolver { get; set; }
+        public PureFieldDelegate? PureResolver { get; set; }
 
         /// <summary>
         /// Gets or sets all resolvers at once.
@@ -102,7 +94,6 @@ namespace HotChocolate.Types.Descriptors.Definitions
             {
                 Resolver = value.Resolver;
                 PureResolver = value.PureResolver;
-                InlineResolver = value.InlineResolver;
             }
         }
 
@@ -163,7 +154,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         }
 
         internal FieldResolverDelegates GetResolvers() =>
-            new(Resolver, PureResolver, InlineResolver);
+            new(Resolver, PureResolver);
 
         internal void CopyTo(ObjectFieldDefinition target)
         {

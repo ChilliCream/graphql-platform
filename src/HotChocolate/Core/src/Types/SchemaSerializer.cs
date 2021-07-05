@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
@@ -63,7 +62,8 @@ namespace HotChocolate
 
         public static DocumentNode SerializeSchema(
             ISchema schema,
-            bool includeSpecScalars = false)
+            bool includeSpecScalars = false,
+            bool printResolverKind = false)
         {
             if (schema is null)
             {
@@ -71,7 +71,7 @@ namespace HotChocolate
             }
 
             var typeDefinitions = GetNonScalarTypes(schema)
-                .Select(SerializeNonScalarTypeDefinition)
+                .Select(t => SerializeNonScalarTypeDefinition(t, printResolverKind))
                 .OfType<IDefinitionNode>()
                 .ToList();
 
@@ -152,8 +152,7 @@ namespace HotChocolate
             );
         }
 
-        private static SchemaDefinitionNode SerializeSchemaTypeDefinition(
-            ISchema schema)
+        private static SchemaDefinitionNode SerializeSchemaTypeDefinition(ISchema schema)
         {
             var operations = new List<OperationTypeDefinitionNode>();
 
@@ -202,10 +201,11 @@ namespace HotChocolate
         }
 
         private static ITypeDefinitionNode SerializeNonScalarTypeDefinition(
-            INamedType namedType) =>
+            INamedType namedType,
+            bool printResolverKind) =>
             namedType switch
             {
-                ObjectType type => SerializeObjectType(type),
+                ObjectType type => SerializeObjectType(type, printResolverKind),
                 InterfaceType type => SerializeInterfaceType(type),
                 InputObjectType type => SerializeInputObjectType(type),
                 UnionType type => SerializeUnionType(type),
@@ -214,7 +214,8 @@ namespace HotChocolate
             };
 
         private static ObjectTypeDefinitionNode SerializeObjectType(
-            ObjectType objectType)
+            ObjectType objectType,
+            bool printResolverKind)
         {
             var directives = objectType.Directives
                 .Select(SerializeDirective)
@@ -226,7 +227,7 @@ namespace HotChocolate
 
             var fields = objectType.Fields
                 .Where(t => !t.IsIntrospectionField)
-                .Select(SerializeObjectField)
+                .Select(f => SerializeObjectField(f, printResolverKind))
                 .ToList();
 
             return new ObjectTypeDefinitionNode
@@ -252,7 +253,7 @@ namespace HotChocolate
                 .ToList();
 
             var fields = interfaceType.Fields
-                .Select(SerializeObjectField)
+                .Select(SerializeInterfaceField)
                 .ToList();
 
             return new InterfaceTypeDefinitionNode
@@ -357,7 +358,36 @@ namespace HotChocolate
                 directives);
         }
 
-        private static FieldDefinitionNode SerializeObjectField(IOutputField field)
+        private static FieldDefinitionNode SerializeObjectField(
+            ObjectField field,
+            bool printResolverKind)
+        {
+            var arguments = field.Arguments
+                .Select(SerializeInputField)
+                .ToList();
+
+            var directives = field.Directives
+                .Select(SerializeDirective)
+                .ToList();
+
+            if (printResolverKind && field.PureResolver is not null)
+            {
+                directives.Add(new DirectiveNode("pureResolver"));
+            }
+
+            return new FieldDefinitionNode
+            (
+                null,
+                new NameNode(field.Name),
+                SerializeDescription(field.Description),
+                arguments,
+                SerializeType(field.Type),
+                directives
+            );
+        }
+
+        private static FieldDefinitionNode SerializeInterfaceField(
+            InterfaceField field)
         {
             var arguments = field.Arguments
                 .Select(SerializeInputField)

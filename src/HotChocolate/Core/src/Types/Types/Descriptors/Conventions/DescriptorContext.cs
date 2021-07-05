@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using HotChocolate.Configuration;
+using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
@@ -31,12 +32,14 @@ namespace HotChocolate.Types.Descriptors
             SchemaInterceptor schemaInterceptor,
             TypeInterceptor typeInterceptor)
         {
+            Schema = schema;
             Options = options;
             _cFactories = conventionFactories;
             _services = services;
             ContextData = contextData;
             SchemaInterceptor = schemaInterceptor;
             TypeInterceptor = typeInterceptor;
+            ResolverCompiler = new DefaultResolverCompilerService();
 
             schema.Completed += OnSchemaOnCompleted;
 
@@ -46,10 +49,15 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
+        internal SchemaBuilder.LazySchema Schema { get; }
+
+        /// <inheritdoc />
         public IServiceProvider Services => _services;
 
+        /// <inheritdoc />
         public IReadOnlySchemaOptions Options { get; }
 
+        /// <inheritdoc />
         public INamingConventions Naming
         {
             get
@@ -71,6 +79,7 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
+        /// <inheritdoc />
         public ITypeInspector TypeInspector
         {
             get
@@ -85,12 +94,19 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
+        /// <inheritdoc />
         public SchemaInterceptor SchemaInterceptor { get; }
 
+        /// <inheritdoc />
         public TypeInterceptor TypeInterceptor { get; }
 
+        /// <inheritdoc />
+        public IResolverCompilerService ResolverCompiler { get; }
+
+        /// <inheritdoc />
         public IDictionary<string, object?> ContextData { get; }
 
+        /// <inheritdoc />
         public T GetConventionOrDefault<T>(
             Func<T> defaultConvention,
             string? scope = null)

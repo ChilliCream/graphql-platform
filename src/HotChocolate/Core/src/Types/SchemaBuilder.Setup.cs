@@ -22,18 +22,50 @@ namespace HotChocolate
         {
             public static Schema Create(SchemaBuilder builder)
             {
-                var lazySchema = new LazySchema();
-                DescriptorContext context = CreateContext(builder, lazySchema);
+                LazySchema schema = new();
+                IDescriptorContext context = CreateContext(builder, schema);
+                return Create(builder, schema, context);
+            }
 
+            public static Schema Create(
+                SchemaBuilder builder,
+                LazySchema lazySchema,
+                IDescriptorContext context)
+            {
                 try
                 {
+                    var schemaInterceptors = new List<ISchemaInterceptor>();
+                    var typeInterceptors = new List<ITypeInitializationInterceptor>();
+
+                    InitializeInterceptors(
+                        context.Services,
+                        builder._schemaInterceptors,
+                        schemaInterceptors);
+
+                    InitializeInterceptors(
+                        context.Services,
+                        builder._typeInterceptors,
+                        typeInterceptors);
+
+                    ((AggregateSchemaInterceptor)context.SchemaInterceptor)
+                        .SetInterceptors(schemaInterceptors);
+
+                    ((AggregateTypeInterceptor)context.TypeInterceptor)
+                        .SetInterceptors(typeInterceptors);
+
+                    context.SchemaInterceptor.OnBeforeCreate(context, builder);
+
                     IBindingLookup bindingLookup = builder._bindingCompiler.Compile(context);
 
                     IReadOnlyList<ITypeReference> typeReferences =
                         CreateTypeReferences(builder, context, bindingLookup);
 
                     TypeRegistry typeRegistry =
-                        InitializeTypes(builder, context, bindingLookup, typeReferences,
+                        InitializeTypes(
+                            builder,
+                            context,
+                            bindingLookup,
+                            typeReferences,
                             lazySchema);
 
                     return CompleteSchema(builder, context, lazySchema, typeRegistry);
@@ -45,19 +77,14 @@ namespace HotChocolate
                 }
             }
 
-            private static DescriptorContext CreateContext(
+            public static DescriptorContext CreateContext(
                 SchemaBuilder builder,
                 LazySchema lazySchema)
             {
                 IServiceProvider services = builder._services ?? new EmptyServiceProvider();
-                var schemaInterceptors = new List<ISchemaInterceptor>();
-                var typeInterceptors = new List<ITypeInitializationInterceptor>();
 
-                InitializeInterceptors(services, builder._schemaInterceptors, schemaInterceptors);
-                InitializeInterceptors(services, builder._typeInterceptors, typeInterceptors);
-
-                var schemaInterceptor = new AggregateSchemaInterceptor(schemaInterceptors);
-                var typeInterceptor = new AggregateTypeInterceptor(typeInterceptors);
+                var schemaInterceptor = new AggregateSchemaInterceptor();
+                var typeInterceptor = new AggregateTypeInterceptor();
 
                 DescriptorContext context = DescriptorContext.Create(
                     builder._options,
@@ -68,14 +95,12 @@ namespace HotChocolate
                     schemaInterceptor,
                     typeInterceptor);
 
-                schemaInterceptor.OnBeforeCreate(context, builder);
-
                 return context;
             }
 
             private static IReadOnlyList<ITypeReference> CreateTypeReferences(
                 SchemaBuilder builder,
-                DescriptorContext context,
+                IDescriptorContext context,
                 IBindingLookup bindingLookup)
             {
                 var types = new List<ITypeReference>();
@@ -173,7 +198,7 @@ namespace HotChocolate
 
             private static TypeRegistry InitializeTypes(
                 SchemaBuilder builder,
-                DescriptorContext context,
+                IDescriptorContext context,
                 IBindingLookup bindingLookup,
                 IReadOnlyList<ITypeReference> types,
                 LazySchema lazySchema)
@@ -255,7 +280,7 @@ namespace HotChocolate
                     {
                         if (interceptorOrType is Type type)
                         {
-                            object? obj = serviceFactory.CreateInstance(type);
+                            var obj = serviceFactory.CreateInstance(type);
                             if (obj is T casted)
                             {
                                 interceptors.Add(casted);
@@ -349,7 +374,7 @@ namespace HotChocolate
 
             private static Schema CompleteSchema(
                 SchemaBuilder builder,
-                DescriptorContext context,
+                IDescriptorContext context,
                 LazySchema lazySchema,
                 TypeRegistry typeRegistry)
             {
@@ -375,7 +400,7 @@ namespace HotChocolate
 
             private static SchemaTypesDefinition CreateSchemaDefinition(
                 SchemaBuilder builder,
-                DescriptorContext context,
+                IDescriptorContext context,
                 TypeRegistry typeRegistry)
             {
                 var definition = new SchemaTypesDefinition();

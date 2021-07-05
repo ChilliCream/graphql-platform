@@ -4,14 +4,13 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Properties;
-using HotChocolate.Resolvers.CodeGeneration;
 using HotChocolate.Resolvers.Expressions.Parameters;
 
 #nullable enable
 
 namespace HotChocolate.Resolvers.Expressions
 {
-    public abstract class ResolverCompiler
+    internal abstract class ResolverCompiler
     {
         private readonly IResolverParameterCompiler[] _compilers;
 
@@ -40,12 +39,14 @@ namespace HotChocolate.Resolvers.Expressions
         protected static MethodInfo Resolver { get; } =
             typeof(IResolverContext).GetMethod(nameof(IResolverContext.Resolver))!;
 
-        protected IEnumerable<Expression> CreateParameters(
-            IEnumerable<ParameterInfo> parameters,
-            Type sourceType)
+        protected Expression[] CreateParameters(ParameterInfo[] parameters, Type sourceType)
         {
-            foreach (ParameterInfo parameter in parameters)
+            var parameterResolvers = new Expression[parameters.Length];
+
+            for (var i = 0; i < parameters.Length; i++)
             {
+                ParameterInfo parameter = parameters[i];
+
                 IResolverParameterCompiler? parameterCompiler =
                     _compilers.FirstOrDefault(t =>
                         t.CanHandle(parameter, sourceType));
@@ -56,9 +57,10 @@ namespace HotChocolate.Resolvers.Expressions
                         TypeResources.ResolverCompiler_UnknownParameterType);
                 }
 
-                yield return parameterCompiler.Compile(
-                    Context, parameter, sourceType);
+                parameterResolvers[i] = parameterCompiler.Compile(Context, parameter, sourceType);
             }
+
+            return parameterResolvers;
         }
 
         public static SubscribeCompiler Subscribe { get; } = new();

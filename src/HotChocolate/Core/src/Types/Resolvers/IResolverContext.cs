@@ -15,7 +15,7 @@ namespace HotChocolate.Resolvers
     /// The resolver context represent the execution context for a specific
     /// field that is being resolved.
     /// </summary>
-    public interface IResolverContext : IHasContextData
+    public interface IResolverContext : IPureResolverContext
     {
         /// <summary>
         /// Gets the scoped request service provider.
@@ -23,23 +23,16 @@ namespace HotChocolate.Resolvers
         IServiceProvider Services { get; set; }
 
         /// <summary>
-        /// Gets the GraphQL schema on which the query is executed.
-        /// </summary>
-        ISchema Schema { get; }
-
-        /// <summary>
-        /// Gets the root object type of the currently execution operation.
-        /// </summary>
-        IObjectType RootType { get; }
-
-        /// <summary>
         /// Gets the object type on which the field resolver is being executed.
         /// </summary>
         IObjectType ObjectType { get; }
 
+
+
         /// <summary>
         /// Gets the field on which the field resolver is being executed.
         /// </summary>
+        [Obsolete("Use Selection.Field")]
         IObjectField Field { get; }
 
         /// <summary>
@@ -80,13 +73,6 @@ namespace HotChocolate.Resolvers
         /// Indicates that the context has errors. To report new errors use <see cref="ReportError(IError)"/>
         /// </summary>
         bool HasErrors { get; }
-
-        /// <summary>
-        /// The scoped context data dictionary can be used by middlewares and
-        /// resolvers to store and retrieve data during execution scoped to the
-        /// hierarchy
-        /// </summary>
-        IImmutableDictionary<string, object?> ScopedContextData { get; set; }
 
         /// <summary>
         /// The local context data dictionary can be used by middlewares and
@@ -130,8 +116,8 @@ namespace HotChocolate.Resolvers
         /// Returns the value of the specified field argument.
         /// </returns>
         [Obsolete("Use ArgumentValue<T>(name) or " +
-            "ArgumentLiteral<TValueNode>(name) or " +
-            "ArgumentOptional<T>(name).")]
+                  "ArgumentLiteral<TValueNode>(name) or " +
+                  "ArgumentOptional<T>(name).")]
         [return: MaybeNull]
         T Argument<T>(NameString name);
 
@@ -191,33 +177,11 @@ namespace HotChocolate.Resolvers
         /// <summary>
         /// Gets as required service from the dependency injection container.
         /// </summary>
-        /// <typeparam name="T">
-        /// The service type.
-        /// </typeparam>
-        /// <returns>
-        /// Returns the specified service.
-        /// </returns>
-        T Service<T>();
-
-        /// <summary>
-        /// Gets as required service from the dependency injection container.
-        /// </summary>
         /// <param name="service">The service type.</param>
         /// <returns>
         /// Returns the specified service.
         /// </returns>
         object Service(Type service);
-
-        /// <summary>
-        /// Gets a resolver object containing one or more resolvers.
-        /// </summary>
-        /// <typeparam name="T">
-        /// The type of the resolver object.
-        /// </typeparam>
-        /// <returns>
-        /// Returns a resolver object containing one or more resolvers.
-        /// </returns>
-        T Resolver<T>();
 
         /// <summary>
         /// Report a non-terminating resolver error to the execution engine.

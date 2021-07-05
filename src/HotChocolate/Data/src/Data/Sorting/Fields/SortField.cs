@@ -8,8 +8,8 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Data.Sorting
 {
     public class SortField
-        : InputField,
-          ISortField
+        : InputField
+        , ISortField
     {
         internal SortField(SortFieldDefinition definition)
             : base(definition, default)

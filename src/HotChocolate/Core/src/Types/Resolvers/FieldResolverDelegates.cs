@@ -12,22 +12,15 @@ namespace HotChocolate.Resolvers
         /// </summary>
         public FieldResolverDelegates(
             FieldResolverDelegate? resolver = null,
-            PureFieldResolverDelegate? pureResolver = null,
-            InlineFieldDelegate? inlineResolver = null)
+            PureFieldDelegate? pureResolver = null)
         {
-            if (inlineResolver is not null && pureResolver is null)
-            {
-                pureResolver = context => inlineResolver(context.Parent<object>());
-            }
-
             if (pureResolver is not null && resolver is null)
             {
-                resolver = context => new(pureResolver(context));
+                resolver = context => new(pureResolver(context, context.Parent<object?>()));
             }
 
             Resolver = resolver;
             PureResolver = pureResolver;
-            InlineResolver = inlineResolver;
             HasResolvers = resolver is not null;
         }
 
@@ -35,7 +28,7 @@ namespace HotChocolate.Resolvers
         /// Initializes a new instance of <see cref="FieldResolverDelegates"/>.
         /// </summary>
         internal FieldResolverDelegates(FieldResolver resolver)
-            : this(resolver.Resolver, resolver.PureResolver, resolver.InlineResolver)
+            : this(resolver.Resolver, resolver.PureResolver)
         {
         }
 
@@ -48,13 +41,7 @@ namespace HotChocolate.Resolvers
         /// Gets a sync resolver which can be used in contexts where no services are needed
         /// and the method is considered pure.
         /// </summary>
-        public PureFieldResolverDelegate? PureResolver { get; }
-
-        /// <summary>
-        /// Gets a inline resolver which allows the execution engine to inline a field into its
-        /// parents field execution.
-        /// </summary>
-        public InlineFieldDelegate? InlineResolver { get; }
+        public PureFieldDelegate? PureResolver { get; }
 
         /// <summary>
         /// Defines if this instance has at least one resolver specified.

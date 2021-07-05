@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Configuration;
+using HotChocolate.Resolvers;
 
 #nullable enable
 
@@ -42,6 +43,11 @@ namespace HotChocolate.Types.Descriptors
         /// Gets the type interceptor.
         /// </summary>
         TypeInterceptor TypeInterceptor { get; }
+
+        /// <summary>
+        /// Gets the resolver compiler.
+        /// </summary>
+        IResolverCompilerService ResolverCompiler { get; }
 
         /// <summary>
         /// Gets a custom convention.

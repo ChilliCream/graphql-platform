@@ -10,11 +10,12 @@ namespace HotChocolate.Configuration
 {
     internal sealed class AggregateTypeInterceptor : TypeInterceptor
     {
-        private readonly IReadOnlyCollection<ITypeInitializationInterceptor> _initInterceptors;
-        private readonly IReadOnlyCollection<ITypeInitializationInterceptor> _agrInterceptors;
-        private readonly IReadOnlyCollection<ITypeScopeInterceptor> _scopeInterceptors;
-        private readonly IReadOnlyCollection<ITypeInitializationFlowInterceptor> _flowInterceptors;
-        private readonly IReadOnlyCollection<ITypeRegistryInterceptor> _registryInterceptors;
+        private IReadOnlyCollection<ITypeInitializationInterceptor> _initInterceptors;
+        private IReadOnlyCollection<ITypeInitializationInterceptor> _agrInterceptors;
+        private IReadOnlyCollection<ITypeScopeInterceptor> _scopeInterceptors;
+        private IReadOnlyCollection<ITypeInitializationFlowInterceptor> _flowInterceptors;
+        private IReadOnlyCollection<ITypeRegistryInterceptor> _registryInterceptors;
+        private bool _triggerAggregations;
 
         public AggregateTypeInterceptor()
         {
@@ -23,25 +24,20 @@ namespace HotChocolate.Configuration
             _scopeInterceptors = Array.Empty<ITypeScopeInterceptor>();
             _flowInterceptors = Array.Empty<ITypeInitializationFlowInterceptor>();
             _registryInterceptors = Array.Empty<ITypeRegistryInterceptor>();
-            TriggerAggregations = false;
+            _triggerAggregations = false;
         }
 
-        public AggregateTypeInterceptor(object interceptor)
-            : this(new[] { interceptor })
-        {
-        }
-
-        public AggregateTypeInterceptor(IReadOnlyCollection<object> interceptors)
+        public void SetInterceptors(IReadOnlyCollection<object> interceptors)
         {
             _initInterceptors = interceptors.OfType<ITypeInitializationInterceptor>().ToList();
             _agrInterceptors = _initInterceptors.Where(t => t.TriggerAggregations).ToList();
             _scopeInterceptors = interceptors.OfType<ITypeScopeInterceptor>().ToList();
             _flowInterceptors = interceptors.OfType<ITypeInitializationFlowInterceptor>().ToList();
             _registryInterceptors = interceptors.OfType<ITypeRegistryInterceptor>().ToList();
-            TriggerAggregations = _agrInterceptors.Count > 0;
+            _triggerAggregations = _agrInterceptors.Count > 0;
         }
 
-        public override bool TriggerAggregations { get; }
+        public override bool TriggerAggregations => _triggerAggregations;
 
         public override bool CanHandle(ITypeSystemObjectContext context) => true;
 

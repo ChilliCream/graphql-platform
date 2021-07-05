@@ -22,8 +22,7 @@ namespace HotChocolate.Configuration.Bindings
                 bindings.TryGetValue(enumTypeDef.Name, out EnumTypeBindingDefinition? binding))
             {
                 enumTypeDef.RuntimeType = binding.RuntimeType ?? typeof(object);
-                IDictionary<NameString, object?> values =
-                    binding.Values.ToDictionary(v => v.Name, v => v.RuntimeValue);
+                var values = binding.Values.ToDictionary(v => v.Name, v => v.RuntimeValue);
 
                 foreach (EnumValueDefinition value in enumTypeDef.Values)
                 {

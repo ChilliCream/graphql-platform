@@ -11,7 +11,7 @@ using HotChocolate.Execution;
 namespace HotChocolate.Resolvers.Expressions
 {
 
-    public sealed class SubscribeCompiler : ResolverCompiler
+    internal sealed class SubscribeCompiler : ResolverCompiler
     {
         private static readonly MethodInfo _awaitTaskSourceStreamGeneric =
             typeof(SubscribeExpressionHelper)

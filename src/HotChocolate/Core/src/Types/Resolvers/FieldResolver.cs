@@ -14,46 +14,40 @@ namespace HotChocolate.Resolvers
             NameString typeName,
             NameString fieldName,
             FieldResolverDelegate resolver,
-            PureFieldResolverDelegate? pureResolver = null,
-            InlineFieldDelegate? inlineResolver = null)
+            PureFieldDelegate? pureResolver = null)
             : base(typeName, fieldName)
         {
             Resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
             PureResolver = pureResolver;
-            InlineResolver = inlineResolver;
         }
 
         public FieldResolver(
             FieldReference fieldReference,
             FieldResolverDelegate resolver,
-            PureFieldResolverDelegate? pureResolver = null,
-            InlineFieldDelegate? inlineResolver = null)
+            PureFieldDelegate? pureResolver = null)
             : base(fieldReference)
         {
             _fieldReference = fieldReference;
             Resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));
             PureResolver = pureResolver;
-            InlineResolver = inlineResolver;
         }
 
         public FieldResolverDelegate Resolver { get; }
 
-        public PureFieldResolverDelegate? PureResolver { get; }
+        public PureFieldDelegate? PureResolver { get; }
 
-        public InlineFieldDelegate? InlineResolver { get; }
-
-        public FieldResolver WithTypeName(NameString typeName) =>
-            string.Equals(TypeName, typeName, StringComparison.Ordinal)
+        public FieldResolver WithTypeName(NameString typeName)
+            => string.Equals(TypeName, typeName, StringComparison.Ordinal)
                 ? this
                 : new FieldResolver(typeName, FieldName, Resolver);
 
-        public FieldResolver WithFieldName(NameString fieldName) =>
-            string.Equals(FieldName, fieldName, StringComparison.Ordinal)
+        public FieldResolver WithFieldName(NameString fieldName)
+            => string.Equals(FieldName, fieldName, StringComparison.Ordinal)
                 ? this
                 : new FieldResolver(TypeName, fieldName, Resolver);
 
-        public FieldResolver WithResolver(FieldResolverDelegate resolver) =>
-            Equals(Resolver, resolver)
+        public FieldResolver WithResolver(FieldResolverDelegate resolver)
+            => Equals(Resolver, resolver)
                 ? this
                 : new FieldResolver(TypeName, FieldName, resolver);
 
@@ -70,9 +64,8 @@ namespace HotChocolate.Resolvers
                 || IsEqualTo(obj as FieldResolver);
         }
 
-        private bool IsEqualTo(FieldResolver? other) =>
-            base.IsEqualTo(other) &&
-                (other?.Resolver.Equals(Resolver) ?? false);
+        private bool IsEqualTo(FieldResolver? other)
+            => base.IsEqualTo(other) && (other?.Resolver.Equals(Resolver) ?? false);
 
         public override int GetHashCode()
         {
@@ -83,10 +76,10 @@ namespace HotChocolate.Resolvers
             }
         }
 
-        public override string ToString() =>
-            $"{TypeName}.{FieldName}";
+        public override string ToString()
+            => $"{TypeName}.{FieldName}";
 
-        public FieldReference ToFieldReference() =>
-            _fieldReference ??= new FieldReference(TypeName, FieldName);
+        public FieldReference ToFieldReference()
+            => _fieldReference ??= new FieldReference(TypeName, FieldName);
     }
 }

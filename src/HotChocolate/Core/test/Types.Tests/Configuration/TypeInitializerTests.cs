@@ -16,8 +16,10 @@ namespace HotChocolate.Configuration
         public void Register_SchemaType_ClrTypeExists()
         {
             // arrange
+            var typeInterceptor = new AggregateTypeInterceptor();
+            typeInterceptor.SetInterceptors(new[] { new IntrospectionTypeInterceptor() });
             IDescriptorContext context = DescriptorContext.Create(
-                typeInterceptor: new AggregateTypeInterceptor(new IntrospectionTypeInterceptor()));
+                typeInterceptor: typeInterceptor);
             var typeRegistry = new TypeRegistry(context.TypeInterceptor);
 
             var typeInitializer = new TypeInitializer(
@@ -62,8 +64,10 @@ namespace HotChocolate.Configuration
         public void Register_ClrType_InferSchemaTypes()
         {
             // arrange
+            var typeInterceptor = new AggregateTypeInterceptor();
+            typeInterceptor.SetInterceptors(new[] { new IntrospectionTypeInterceptor() });
             IDescriptorContext context = DescriptorContext.Create(
-                typeInterceptor: new AggregateTypeInterceptor(new IntrospectionTypeInterceptor()));
+                typeInterceptor: typeInterceptor);
             var typeRegistry = new TypeRegistry(context.TypeInterceptor);
 
             var typeInitializer = new TypeInitializer(
@@ -115,8 +119,10 @@ namespace HotChocolate.Configuration
         public void Initializer_SchemaResolver_Is_Null()
         {
             // arrange
+            var typeInterceptor = new AggregateTypeInterceptor();
+            typeInterceptor.SetInterceptors(new[] { new IntrospectionTypeInterceptor() });
             IDescriptorContext context = DescriptorContext.Create(
-                typeInterceptor: new AggregateTypeInterceptor(new IntrospectionTypeInterceptor()));
+                typeInterceptor: typeInterceptor);
             var typeRegistry = new TypeRegistry(context.TypeInterceptor);
 
             var typeInitializer = new TypeInitializer(
@@ -148,8 +154,10 @@ namespace HotChocolate.Configuration
         public void Initializer_SchemaOptions_Are_Null()
         {
             // arrange
+            var typeInterceptor = new AggregateTypeInterceptor();
+            typeInterceptor.SetInterceptors(new[] { new IntrospectionTypeInterceptor() });
             IDescriptorContext context = DescriptorContext.Create(
-                typeInterceptor: new AggregateTypeInterceptor(new IntrospectionTypeInterceptor()));
+                typeInterceptor: typeInterceptor);
             var typeRegistry = new TypeRegistry(context.TypeInterceptor);
 
             var typeInitializer = new TypeInitializer(
