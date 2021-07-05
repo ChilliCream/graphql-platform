@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import styled, { createGlobalStyle } from "styled-components";
+import styled, { createGlobalStyle, css } from "styled-components";
 import { GetHeaderDataQuery } from "../../../graphql-types";
 import BarsIconSvg from "../../images/bars.svg";
 import LogoTextSvg from "../../images/chillicream-text.svg";
@@ -31,6 +31,11 @@ export const Header: FunctionComponent = () => {
           topnav {
             name
             link
+            items {
+              name
+              link
+              icon
+            }
           }
           tools {
             github
@@ -88,17 +93,47 @@ export const Header: FunctionComponent = () => {
             </HamburgerCloseButton>
           </NavigationHeader>
           <Nav>
-            {topnav!.map((item, index) => (
-              <NavItem key={`topnav-item-${index}`}>
-                <NavLink
-                  to={item!.link!}
-                  activeClassName="active"
-                  partiallyActive
-                >
-                  {item!.name}
-                </NavLink>
-              </NavItem>
-            ))}
+            {topnav!.map((item, index) =>
+              item!.items ? (
+                <NavItem key={`topnav-item-${item!.name}`}>
+                  <NavDropDown>
+                    <NavDropDownTitle>{item!.name}</NavDropDownTitle>
+
+                    <NavDropDownContent>
+                      <NavDropDownArrow />
+
+                      <NavDropDownContentInner>
+                        {item!.items.map((dropdownItem) => (
+                          <NavDropDownLink
+                            key={`drop-down-item-${dropdownItem!.name}`}
+                            to={dropdownItem!.link!}
+                          >
+                            <IconContainer
+                              size={24}
+                              dangerouslySetInnerHTML={{
+                                __html: dropdownItem!.icon!,
+                              }}
+                            />
+
+                            {dropdownItem!.name}
+                          </NavDropDownLink>
+                        ))}
+                      </NavDropDownContentInner>
+                    </NavDropDownContent>
+                  </NavDropDown>
+                </NavItem>
+              ) : (
+                <NavItem key={`topnav-item-${index}`}>
+                  <NavLink
+                    to={item!.link!}
+                    activeClassName="active"
+                    partiallyActive
+                  >
+                    {item!.name}
+                  </NavLink>
+                </NavItem>
+              )
+            )}
           </Nav>
         </Navigation>
         <Group>
@@ -305,7 +340,7 @@ const NavItem = styled.li`
   }
 `;
 
-const NavLink = styled(Link)`
+const NavLinkStyle = css`
   flex: 0 0 auto;
   border-radius: 4px;
   padding: 10px 15px;
@@ -319,6 +354,67 @@ const NavLink = styled(Link)`
   &.active,
   &:hover {
     background-color: var(--brand-color-hover);
+  }
+`;
+
+const NavLink = styled(Link)`
+  ${NavLinkStyle}
+`;
+
+const NavDropDownArrow = styled.div`
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 7px 10px 7px;
+  border-color: transparent transparent #fff transparent;
+`;
+
+const NavDropDownContent = styled.div`
+  display: none;
+  position: fixed;
+  z-index: 1;
+  margin-left: -20px;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 3px 6px 0 rgba(0, 0, 0, 0.25);
+`;
+
+const NavDropDownContentInner = styled.div`
+  border-radius: 4px;
+  padding: 10px;
+  background-color: #fff;
+  color: black;
+`;
+
+const NavDropDownLink = styled(Link)`
+  ${NavLinkStyle}
+  color: #666;
+  display: flex;
+  align-items: center;
+
+  &.active,
+  &:hover {
+    background-color: #ddd;
+  }
+
+  > ${IconContainer} {
+    margin-right: 10px;
+
+    > svg {
+      fill: #666;
+    }
+  }
+`;
+
+const NavDropDownTitle = styled.div`
+  ${NavLinkStyle}
+`;
+
+const NavDropDown = styled.div`
+  position: relative;
+
+  :hover ${NavDropDownContent} {
+    display: flex;
   }
 `;
 

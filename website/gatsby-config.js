@@ -17,18 +17,26 @@ module.exports = {
           {
             name: `Docs`,
             link: `/docs/hotchocolate/`,
+            icon: `
+              <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M13,9H18.5L13,3.5V9M6,2H14L20,8V20A2,2 0 0,1 18,22H6C4.89,22 4,21.1 4,20V4C4,2.89 4.89,2 6,2M15,18V16H6V18H15M18,14V12H6V14H18Z" />
+              </svg>`,
           },
           {
             name: `Tutorials`,
             link: `/tutorials/hotchocolate/`,
+            icon: `
+              <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M12,3L1,9L12,15L21,10.09V17H23V9M5,13.18V17.18L12,21L19,17.18V13.18L12,17L5,13.18Z" />
+              </svg>`,
           },
           {
             name: `Blog`,
             link: `/blog`,
-          },
-          {
-            name: `GitHub discussions`,
-            link: `https://github.com/ChilliCream/hotchocolate/discussions`,
+            icon: `
+            <svg style="width:24px;height:24px" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M4 7V19H19V21H4C2 21 2 19 2 19V7H4M21.3 3H7.7C6.76 3 6 3.7 6 4.55V15.45C6 16.31 6.76 17 7.7 17H21.3C22.24 17 23 16.31 23 15.45V4.55C23 3.7 22.24 3 21.3 3M8 5H13V11H8V5M21 15H8V13H21V15M21 11H15V9H21V11M21 7H15V5H21V7Z" />
+        </svg>`,
           },
         ],
       },
