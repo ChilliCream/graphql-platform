@@ -29,17 +29,11 @@ namespace HotChocolate.Types.Introspection
         {
             var descriptor = ObjectFieldDescriptor.New(context, Schema);
 
-            IObjectFieldDescriptor fieldDescriptor = descriptor
+            descriptor
                 .Description(TypeResources.SchemaField_Description)
                 .Type<NonNullType<__Schema>>()
-                .Resolve(ctx => ctx.Schema);
-
-            if (context.Options.FieldMiddleware == FieldMiddlewareApplication.UserDefinedFields)
-            {
-                fieldDescriptor
-                    .Extend()
-                    .OnBeforeCreate(definition => definition.PureResolver = (ctx, p) => ctx.Schema);
-            }
+                .Extend()
+                .OnBeforeCreate(definition => definition.PureResolver = (ctx, _) => ctx.Schema);
 
             return CreateDefinition(descriptor);
         }
@@ -48,19 +42,13 @@ namespace HotChocolate.Types.Introspection
         {
             var descriptor = ObjectFieldDescriptor.New(context, Type);
 
-            IObjectFieldDescriptor fieldDescriptor = descriptor
+            descriptor
                 .Description(TypeResources.TypeField_Description)
                 .Argument("name", a => a.Type<NonNullType<StringType>>())
-                .Type<__Type>();
+                .Type<__Type>()
+                .Resolve(Resolve);
 
-            if (context.Options.FieldMiddleware == FieldMiddlewareApplication.UserDefinedFields)
-            {
-                fieldDescriptor
-                    .Extend()
-                    .OnBeforeCreate(definition => definition.PureResolver = Resolve);
-            }
-
-            INamedType? Resolve(IPureResolverContext ctx, object? parent)
+            INamedType? Resolve(IResolverContext ctx)
             {
                 var name = ctx.ArgumentValue<string>("name");
                 return ctx.Schema.TryGetType<INamedType>(name, out var type) ? type : null;
@@ -73,18 +61,12 @@ namespace HotChocolate.Types.Introspection
         {
             var descriptor = ObjectFieldDescriptor.New(context, TypeName);
 
-            IObjectFieldDescriptor fieldDescriptor = descriptor
+            descriptor
                 .Description(TypeResources.TypeNameField_Description)
-                .Type<NonNullType<StringType>>();
+                .Type<NonNullType<StringType>>()
+                .Resolve(Resolve);
 
-            if (context.Options.FieldMiddleware == FieldMiddlewareApplication.UserDefinedFields)
-            {
-                fieldDescriptor
-                    .Extend()
-                    .OnBeforeCreate(definition => definition.PureResolver = Resolve);
-            }
-
-            string Resolve(IPureResolverContext ctx, object? parent)
+            string Resolve(IResolverContext ctx)
                 => ctx.ObjectType.Name.Value;
 
             return CreateDefinition(descriptor);
