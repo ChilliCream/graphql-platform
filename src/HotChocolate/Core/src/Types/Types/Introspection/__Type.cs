@@ -102,13 +102,13 @@ namespace HotChocolate.Types.Introspection
 
         private static class Resolvers
         {
-            public static object? Kind(object? parent)
+            public static object? Kind(IPureResolverContext context, object? parent)
                 => ((IType)parent!).Kind;
 
-            public static object? Name(object? parent)
+            public static object? Name(IPureResolverContext context, object? parent)
                 => parent is INamedType n ? n.Name.Value : null;
 
-            public static object? Description(object? parent)
+            public static object? Description(IPureResolverContext context, object? parent)
                 => parent is INamedType n ? n.Description : null;
 
             public static object? Fields(IResolverContext context)
@@ -126,14 +126,13 @@ namespace HotChocolate.Types.Introspection
                 return null;
             }
 
-            public static object? Interfaces(object? parent)
+            public static object? Interfaces(IPureResolverContext context, object? parent)
                 => parent is IComplexOutputType complexType ? complexType.Implements : null;
 
-            public static object? PossibleTypes(IResolverContext context)
+            public static object? PossibleTypes(IPureResolverContext context, object? parent)
             {
-                ISchema schema = context.Schema;
-                INamedType type = context.Parent<INamedType>();
-                return type.IsAbstractType() ? schema.GetPossibleTypes(type) : null;
+                var type = (INamedType)parent!;
+                return type.IsAbstractType() ? context.Schema.GetPossibleTypes(type) : null;
             }
 
             public static object? EnumValues(IResolverContext context)
