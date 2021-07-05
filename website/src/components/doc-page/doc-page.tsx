@@ -117,18 +117,7 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
                     </Button>
                   </ResponsiveMenu>
                 </ResponsiveMenuWrapper>
-                {product.version !== "" ? (
-                  <OutdatedDocumentationWarning>
-                    <div>
-                      This is documentation for{" "}
-                      <strong>{product.version}</strong>.
-                    </div>
-                    <div>
-                      For up-to-date documentation, see the{" "}
-                      <Link to={`/docs/${product.name}`}>latest version</Link>.
-                    </div>
-                  </OutdatedDocumentationWarning>
-                ) : null}
+                <DocumentationNotes product={product} />
                 <ArticleTitle>{title}</ArticleTitle>
               </ArticleHeader>
               <ArticleContent>
@@ -350,21 +339,43 @@ const Button = styled.button`
 `;
 
 const OutdatedDocumentationWarning = styled.div`
-  padding: 20px 50px;
+  padding: 20px 20px;
   background-color: #ffba00;
   color: #fff;
+  line-height: 1.4;
 
-  > div {
-    line-height: 1.4;
-  }
-
-  > div:not(:last-child) {
+  > br {
     margin-bottom: 16px;
   }
 
-  > div > a {
+  > a {
     color: white !important;
     font-weight: bold;
     text-decoration: underline;
   }
+
+  @media only screen and (min-width: 820px) {
+    padding: 20px 50px;
+  }
 `;
+
+interface DocumentationNotesProperties {
+  readonly product: ProductInformation;
+}
+
+const DocumentationNotes: FunctionComponent<DocumentationNotesProperties> = ({
+  product,
+}) => {
+  if (product.version === "") {
+    return null;
+  }
+
+  return (
+    <OutdatedDocumentationWarning>
+      This is documentation for <strong>{product.version}</strong>
+      .<br />
+      For up-to-date documentation, see the{" "}
+      <Link to={`/docs/${product.name}`}>latest version</Link>.
+    </OutdatedDocumentationWarning>
+  );
+};

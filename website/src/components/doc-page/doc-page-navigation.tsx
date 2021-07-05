@@ -476,12 +476,12 @@ const NavigationList = styled.ol`
   display: flex;
   flex-direction: column;
   margin: 0;
-  padding: 0 14px 20px;
+  padding: 0 18px 20px;
   list-style-type: none;
 
   @media only screen and (min-width: 1070px) {
     display: flex;
-    padding: 0;
+    padding: 0 4px 20px;
   }
 `;
 
