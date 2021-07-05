@@ -1,0 +1,44 @@
+{
+  "projects": [
+    {
+      "schema": [
+        "HotChocolate/Analyzers/test/Analyzers.Tests/TypeDefinitions.graphql"
+      ],
+      "documents": [
+        "HotChocolate/Analyzers/test/Analyzers.Tests/**/*.graphql"
+      ]
+    },
+    {
+      "schema": [
+        "HotChocolate/Neo4J/schema.graphql"
+      ],
+      "documents": [
+        "HotChocolate/Neo4J/**/*.graphql"
+      ]
+    },
+    {
+      "schema": [
+        "HotChocolate/Neo4J/test/HotChocolate.Data.Neo4J.Integration.Tests/SchemaFirst/TypeDefinitions.graphql"
+      ],
+      "documents": [
+        "HotChocolate/Neo4J/test/HotChocolate.Data.Neo4J.Integration.Tests/SchemaFirst/**/*.graphql"
+      ]
+    },
+    {
+      "schema": [
+        "StrawberryShake/SourceGenerator/test/CodeGeneration.CSharp.Analyzers.Tests/CustomScalar/Schema.graphql"
+      ],
+      "documents": [
+        "StrawberryShake/SourceGenerator/test/CodeGeneration.CSharp.Analyzers.Tests/CustomScalar/**/*.graphql"
+      ]
+    },
+    {
+      "schema": [
+        "StrawberryShake/SourceGenerator/test/CodeGeneration.CSharp.Analyzers.Tests/StarWars/Schema.graphql"
+      ],
+      "documents": [
+        "StrawberryShake/SourceGenerator/test/CodeGeneration.CSharp.Analyzers.Tests/StarWars/**/*.graphql"
+      ]
+    }
+  ]
+}

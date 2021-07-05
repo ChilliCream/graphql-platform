@@ -15,11 +15,11 @@ using SyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 namespace HotChocolate.Analyzers
 {
     [Generator]
-    public partial class PostgreSQLSourceGenerator : ISourceGenerator
+    public partial class EFCoreSourceGenerator : ISourceGenerator
     {
         public void Initialize(GeneratorInitializationContext context)
         {
-
+            
         }
 
         public void Execute(GeneratorExecutionContext context)

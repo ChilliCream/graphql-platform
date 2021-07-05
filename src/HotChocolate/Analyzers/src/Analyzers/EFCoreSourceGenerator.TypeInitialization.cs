@@ -4,13 +4,13 @@ using static System.IO.Path;
 
 namespace HotChocolate.Analyzers
 {
-    public partial class PostgreSQLSourceGenerator
+    public partial class EFCoreSourceGenerator
     {
         private const string _dll = ".dll";
         private static string _location =
-            GetDirectoryName(typeof(PostgreSQLSourceGenerator).Assembly.Location)!;
+            GetDirectoryName(typeof(EFCoreSourceGenerator).Assembly.Location)!;
 
-        static PostgreSQLSourceGenerator()
+        static EFCoreSourceGenerator()
         {
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainOnAssemblyResolve;
         }

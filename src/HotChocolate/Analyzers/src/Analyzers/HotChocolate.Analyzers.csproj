@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <IncludeBuildOutput>false</IncludeBuildOutput>
@@ -30,9 +30,5 @@
   <ItemGroup>
     <None Include="$(OutputPath)\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Types\Neo4J" />
-  </ItemGroup>
-
+  
 </Project>
