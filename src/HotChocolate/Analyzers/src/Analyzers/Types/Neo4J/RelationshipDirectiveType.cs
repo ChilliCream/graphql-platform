@@ -1,6 +1,6 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.Analyzers.Types
+namespace HotChocolate.Analyzers.Types.Neo4J
 {
     public class RelationshipDirectiveType : DirectiveType<RelationshipDirective>
     {

@@ -34,12 +34,12 @@ namespace HotChocolate.Analyzers
             {
                 foreach (GraphQLConfig config in context.GetConfigurations())
                 {
-                    if (config.Extensions.Neo4J is not null &&
+                    if (config.Extensions.EF is not null &&
                         context.GetSchemaDocuments(config) is { Count: > 0 } schemaDocuments)
                     {
-                        ISchema schema = SchemaHelper.CreateSchema(schemaDocuments);
+                        ISchema schema = SchemaHelper.CreateEFCoreSchema(schemaDocuments);
                         DataGeneratorContext dataContext = DataGeneratorContext.FromSchema(schema);
-                        GenerateTypes(context, dataContext, config.Extensions.Neo4J, schema);
+                        GenerateTypes(context, dataContext, config.Extensions.EF, schema);
                     }
                 }
             }
@@ -52,10 +52,55 @@ namespace HotChocolate.Analyzers
         private static void GenerateTypes(
             GeneratorExecutionContext context,
             DataGeneratorContext dataContext,
-            Neo4JSettings settings,
+            EFCoreSettings settings,
             ISchema schema)
         {
+            foreach (ObjectType objectType in schema.Types
+                .OfType<ObjectType>()
+                .Where(type => !IntrospectionTypes.IsIntrospectionType(type))
+                .ToList())
+            {
+                GenerateModel(context, settings.Namespace, objectType);
+            }
+        }
 
+        private static void GenerateModel(
+            GeneratorExecutionContext context,
+            string @namespace,
+            IObjectType objectType)
+        {
+            TypeNameDirective? typeNameDirective =
+                objectType.GetFirstDirective<TypeNameDirective>("typeName");
+            string typeName = typeNameDirective?.Name ?? objectType.Name.Value;
+
+            ClassDeclarationSyntax modelDeclaration =
+                ClassDeclaration(typeName)
+                    .AddModifiers(
+                        Token(SyntaxKind.PublicKeyword),
+                        Token(SyntaxKind.PartialKeyword))
+                    .AddGeneratedAttribute();
+
+            foreach (IObjectField field in objectType.Fields.Where(t => !t.IsIntrospectionField))
+            {               
+                modelDeclaration =
+                    modelDeclaration.AddProperty(
+                        field.GetPropertyName(),
+                        IdentifierName(field.GetTypeName(@namespace)),
+                        field.Description,
+                        setable: true);
+            }
+
+            NamespaceDeclarationSyntax namespaceDeclaration =
+                NamespaceDeclaration(IdentifierName(@namespace))
+                    .AddMembers(modelDeclaration);
+
+            CompilationUnitSyntax compilationUnit =
+                CompilationUnit()
+                    .AddMembers(namespaceDeclaration);
+
+            compilationUnit = compilationUnit.NormalizeWhitespace(elasticTrivia: true);
+
+            context.AddSource(@namespace + $".{typeName}.cs", compilationUnit.ToFullString());
         }
     }
 }

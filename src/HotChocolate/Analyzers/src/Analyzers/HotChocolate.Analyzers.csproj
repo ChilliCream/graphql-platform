@@ -30,5 +30,9 @@
   <ItemGroup>
     <None Include="$(OutputPath)\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Types\EFCore\" />
+  </ItemGroup>
   
 </Project>

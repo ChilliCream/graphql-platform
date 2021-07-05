@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using HotChocolate.Analyzers.Types;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using static HotChocolate.Analyzers.TypeNames;
+using HotChocolate.Analyzers.Types.Neo4J;
 
 namespace HotChocolate.Analyzers
 {

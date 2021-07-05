@@ -4,6 +4,7 @@ using System.Linq;
 using HotChocolate.Analyzers.Configuration;
 using HotChocolate.Analyzers.Diagnostics;
 using HotChocolate.Analyzers.Types;
+using HotChocolate.Analyzers.Types.Neo4J;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 using Microsoft.CodeAnalysis;
@@ -37,7 +38,7 @@ namespace HotChocolate.Analyzers
                     if (config.Extensions.Neo4J is not null &&
                         context.GetSchemaDocuments(config) is { Count: > 0 } schemaDocuments)
                     {
-                        ISchema schema = SchemaHelper.CreateSchema(schemaDocuments);
+                        ISchema schema = SchemaHelper.CreateNeo4JSchema(schemaDocuments);
                         DataGeneratorContext dataContext = DataGeneratorContext.FromSchema(schema);
                         GenerateTypes(context, dataContext, config.Extensions.Neo4J, schema);
                     }
@@ -84,7 +85,7 @@ namespace HotChocolate.Analyzers
                     .AddGeneratedAttribute()
                     .AddExtendObjectTypeAttribute("Query");
 
-            foreach (var objectType in objectTypes)
+            foreach (IObjectType objectType in objectTypes)
             {
                 queryDeclaration = queryDeclaration.AddMembers(
                     CreateQueryResolver(dataContext, settings, objectType));

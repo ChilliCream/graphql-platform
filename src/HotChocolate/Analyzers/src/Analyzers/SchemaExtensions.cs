@@ -14,7 +14,7 @@ namespace HotChocolate.Analyzers
             string name,
             T? defaultValue = default)
         {
-            var directive = hasDirectives.Directives[name].FirstOrDefault();
+            IDirective? directive = hasDirectives.Directives[name].FirstOrDefault();
 
             if (directive is null)
             {
