@@ -20,7 +20,7 @@ namespace HotChocolate.Types.Introspection
         {
             descriptor
                 .Name(Names.__DirectiveArgument)
-                .Description(TypeResources.___DirectiveArgument_Description)
+                .Description(TypeResources.__DirectiveArgument_Description)
                 // Introspection types must always be bound explicitly so that we
                 // do not get any interference with conventions.
                 .BindFieldsExplicitly();
