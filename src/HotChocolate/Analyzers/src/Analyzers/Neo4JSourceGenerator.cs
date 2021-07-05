@@ -34,7 +34,6 @@ namespace HotChocolate.Analyzers
             {
                 foreach (GraphQLConfig config in context.GetConfigurations())
                 {
-
                     if (config.Extensions.Neo4J is not null &&
                         context.GetSchemaDocuments(config) is { Count: > 0 } schemaDocuments)
                     {

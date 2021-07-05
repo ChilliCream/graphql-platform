@@ -1,6 +1,5 @@
 namespace HotChocolate.Analyzers.Configuration
 {
-
     /// <summary>
     /// The Neo4J generator settings.
     /// </summary>
