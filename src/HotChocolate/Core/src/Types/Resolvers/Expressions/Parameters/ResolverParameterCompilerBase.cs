@@ -2,21 +2,21 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
+#nullable enable
+
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
-    internal abstract class ResolverParameterCompilerBase<T>
-        : IResolverParameterCompiler
-        where T : IResolverContext
+    internal abstract class ResolverParameterCompilerBase : IResolverParameterCompiler
     {
         protected ResolverParameterCompilerBase()
         {
-            ContextType = typeof(T);
-            ContextTypeInfo = ContextType.GetTypeInfo();
+            ContextType = typeof(IResolverContext);
+            PureContextType = typeof(IPureResolverContext);
         }
 
         protected Type ContextType { get; }
 
-        protected TypeInfo ContextTypeInfo { get; }
+        protected Type PureContextType { get; }
 
         public abstract bool CanHandle(
             ParameterInfo parameter,

@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 
+#nullable enable
+
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
     internal static class ParameterCompilerFactory
@@ -14,29 +16,30 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         {
 #pragma warning disable CS0612
             // this compile is obsolete
-            yield return new GetCustomContextCompiler<T>();
+            yield return new GetCustomContextCompiler();
 #pragma warning restore CS0612
 
-            yield return new GetCancellationTokenCompiler<T>();
-            yield return new GetContextCompiler<T, IResolverContext>();
-            yield return new GetGlobalStateCompiler<T>();
-            yield return new SetGlobalStateCompiler<T>();
-            yield return new GetScopedStateCompiler<T>();
-            yield return new SetScopedStateCompiler<T>();
-            yield return new GetLocalStateCompiler<T>();
-            yield return new SetLocalStateCompiler<T>();
-            yield return new GetDataLoaderCompiler<T>();
-            yield return new GetEventMessageCompiler<T>();
-            yield return new GetFieldSelectionCompiler<T>();
-            yield return new GetObjectTypeCompiler<T>();
-            yield return new GetOperationCompiler<T>();
-            yield return new GetOutputFieldCompiler<T>();
-            yield return new GetParentCompiler<T>();
-            yield return new GetQueryCompiler<T>();
-            yield return new GetSchemaCompiler<T>();
-            yield return new ScopedServiceCompiler<T>();
-            yield return new GetServiceCompiler<T>();
-            yield return new GetArgumentCompiler<T>();
+            yield return new GetCancellationTokenCompiler();
+            yield return new GetContextCompiler<IResolverContext>();
+            yield return new GetGlobalStateCompiler();
+            yield return new SetGlobalStateCompiler();
+            yield return new GetScopedStateCompiler();
+            yield return new SetScopedStateCompiler();
+            yield return new GetLocalStateCompiler();
+            yield return new SetLocalStateCompiler();
+            yield return new GetDataLoaderCompiler();
+            yield return new GetEventMessageCompiler();
+            yield return new GetFieldSelectionCompiler();
+            yield return new GetFieldSyntaxCompiler();
+            yield return new GetObjectTypeCompiler();
+            yield return new GetOperationCompiler();
+            yield return new GetOutputFieldCompiler();
+            yield return new GetParentCompiler();
+            yield return new GetQueryCompiler();
+            yield return new GetSchemaCompiler();
+            yield return new ScopedServiceCompiler();
+            yield return new GetServiceCompiler();
+            yield return new GetArgumentCompiler();
         }
     }
 }

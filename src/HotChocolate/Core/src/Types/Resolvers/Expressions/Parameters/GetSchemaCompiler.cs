@@ -3,31 +3,26 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Resolvers.CodeGeneration;
 
+#nullable enable
+
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
-    internal sealed class GetSchemaCompiler<T>
-        : ResolverParameterCompilerBase<T>
-        where T : IResolverContext
+    internal sealed class GetSchemaCompiler: ResolverParameterCompilerBase
     {
         private readonly PropertyInfo _schema;
 
         public GetSchemaCompiler()
-        {
-            _schema = ContextTypeInfo.GetProperty(
-                nameof(IResolverContext.Schema));
-        }
+            => _schema = PureContextType.GetProperty(nameof(IPureResolverContext.Schema))!;
 
         public override bool CanHandle(
             ParameterInfo parameter,
-            Type sourceType) =>
-            ArgumentHelper.IsSchema(parameter);
+            Type sourceType)
+            => ArgumentHelper.IsSchema(parameter);
 
         public override Expression Compile(
             Expression context,
             ParameterInfo parameter,
             Type sourceType)
-        {
-            return Expression.Property(context, _schema);
-        }
+            => Expression.Property(context, _schema);
     }
 }

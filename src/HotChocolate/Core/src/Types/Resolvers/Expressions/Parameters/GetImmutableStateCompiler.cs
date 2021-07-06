@@ -3,19 +3,19 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Utilities;
 
+#nullable enable
+
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
-    internal abstract class GetImmutableStateCompiler<T>
-        : ScopedStateCompilerBase<T>
-        where T : IResolverContext
+    internal abstract class GetImmutableStateCompiler : ScopedStateCompilerBase
     {
         private static readonly MethodInfo _getScopedState =
             typeof(ExpressionHelper).GetMethod(
-                nameof(ExpressionHelper.GetScopedState));
+                nameof(ExpressionHelper.GetScopedState))!;
 
         private static readonly MethodInfo _getScopedStateWithDefault =
             typeof(ExpressionHelper).GetMethod(
-                nameof(ExpressionHelper.GetScopedStateWithDefault));
+                nameof(ExpressionHelper.GetScopedStateWithDefault))!;
 
         protected override Expression Compile(
             Expression context,

@@ -7,9 +7,7 @@ using HotChocolate.Resolvers.CodeGeneration;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
-    internal sealed class SetLocalStateCompiler<T>
-        : ScopedStateCompilerBase<T>
-        where T : IResolverContext
+    internal sealed class SetLocalStateCompiler : ScopedStateCompilerBase
     {
         private static readonly MethodInfo _setScopedState =
             typeof(ExpressionHelper).GetMethod(
@@ -22,10 +20,8 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         public override bool CanHandle(
             ParameterInfo parameter,
             Type sourceType)
-        {
-            return ArgumentHelper.IsLocalState(parameter)
-                && IsSetter(parameter.ParameterType);
-        }
+            => ArgumentHelper.IsLocalState(parameter) &&
+               ArgumentHelper.IsStateSetter(parameter.ParameterType);
 
         protected override Expression Compile(
             Expression context,
@@ -44,7 +40,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
                 key);
         }
 
-        protected override string? GetKey(ParameterInfo parameter) =>
-            parameter.GetCustomAttribute<LocalStateAttribute>()?.Key;
+        protected override string? GetKey(ParameterInfo parameter)
+            => parameter.GetCustomAttribute<LocalStateAttribute>()?.Key;
     }
 }

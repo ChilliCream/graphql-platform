@@ -67,9 +67,6 @@ namespace HotChocolate.Execution.Processing
             public IDictionary<string, object?> ContextData
                 => _parentContext.ContextData;
 
-            public IImmutableDictionary<string, object?> ScopedContextData
-                => _parentContext.ScopedContextData;
-
             public T Parent<T>()
             {
                 if (_parent is T casted)

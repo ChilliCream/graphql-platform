@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types;
@@ -34,7 +35,7 @@ namespace HotChocolate.Resolvers.Expressions
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-            string result = (string)await resolver.Resolver(context.Object);
+            var result = (string)await resolver.Resolver(context.Object);
             Assert.Equal("ObjectResolverResult", result);
         }
 
@@ -511,7 +512,6 @@ namespace HotChocolate.Resolvers.Expressions
             Assert.True(result);
         }
 
-        [Obsolete]
         [Fact]
         public async Task Compile_Arguments_FieldSelection()
         {
@@ -527,19 +527,79 @@ namespace HotChocolate.Resolvers.Expressions
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
+            var selection = new Mock<IFieldSelection>();
+
             var context = new Mock<IResolverContext>();
-            context.Setup(t => t.Parent<Resolvers>())
-                .Returns(new Resolvers());
-            context.SetupGet(t => t.FieldSelection)
-                .Returns(new FieldNode(
-                    null,
-                    new NameNode("foo"),
-                    null,
-                    Array.Empty<DirectiveNode>(),
-                    Array.Empty<ArgumentNode>(),
-                    null));
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.SetupGet(t => t.Selection).Returns(selection.Object);
+
             var result = (bool)(await resolver.Resolver(context.Object))!;
             Assert.True(result);
+        }
+
+        [Fact]
+        public async Task Compile_Arguments_Selection()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember = type.GetMethod(nameof(Resolvers.ResolverWithSelection));
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember!));
+
+            // act
+            var compiler = new ResolveCompiler();
+            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+
+            // assert
+            var selection = new Mock<ISelection>();
+
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.SetupGet(t => t.Selection).Returns(selection.Object);
+
+            var result = (bool)(await resolver.Resolver(context.Object))!;
+            Assert.True(result, "Standard Resolver");
+
+            result = (bool)resolver.PureResolver(context.Object)!;
+            Assert.True(result, "Pure Resolver");
+        }
+
+        [Fact]
+        public async Task Compile_Arguments_FieldSyntax()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember = type.GetMethod(nameof(Resolvers.ResolverWithFieldSyntax));
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember!));
+
+            // act
+            var compiler = new ResolveCompiler();
+            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+
+            // assert
+            var fieldSyntax = new FieldNode(
+                null,
+                new NameNode("foo"),
+                null,
+                Array.Empty<DirectiveNode>(),
+                Array.Empty<ArgumentNode>(),
+                null);
+
+            var selection = new Mock<IFieldSelection>();
+            selection.SetupGet(t => t.SyntaxNode).Returns(fieldSyntax);
+
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.SetupGet(t => t.Selection).Returns(selection.Object);
+
+            var result = (bool)(await resolver.Resolver(context.Object))!;
+            Assert.True(result, "Standard Resolver");
+
+            result = (bool)resolver.PureResolver(context.Object)!;
+            Assert.True(result, "Pure Resolver");
         }
 
         [Fact]
@@ -626,9 +686,14 @@ namespace HotChocolate.Resolvers.Expressions
                 .Create();
 
             ObjectType queryType = schema.GetType<ObjectType>("Query");
+
+            var selection = new Mock<IFieldSelection>();
+            selection.SetupGet(t => t.Field).Returns(queryType.Fields.First());
+
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-            context.SetupGet(t => t.Field).Returns(queryType.Fields.First());
+            context.SetupGet(t => t.Selection).Returns(selection.Object);
+
             var result = (bool)(await resolver.Resolver(context.Object))!;
             Assert.True(result);
         }
@@ -655,9 +720,14 @@ namespace HotChocolate.Resolvers.Expressions
                 .Create();
 
             ObjectType queryType = schema.GetType<ObjectType>("Query");
+            
+            var selection = new Mock<IFieldSelection>();
+            selection.SetupGet(t => t.Field).Returns(queryType.Fields.First());
+
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-            context.SetupGet(t => t.Field).Returns(queryType.Fields.First());
+            context.SetupGet(t => t.Selection).Returns(selection.Object);
+
             var result = (bool)(await resolver.Resolver(context.Object))!;
             Assert.True(result);
         }
@@ -678,13 +748,10 @@ namespace HotChocolate.Resolvers.Expressions
             FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
+            var document = new DocumentNode(Array.Empty<IDefinitionNode>());
             var context = new Mock<IResolverContext>();
-            context.Setup(t => t.Parent<Resolvers>())
-                .Returns(new Resolvers());
-            context.SetupGet(t => t.Document)
-                .Returns(new DocumentNode(
-                    null,
-                    Array.Empty<IDefinitionNode>()));
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.SetupGet(t => t.Document).Returns(document);
             var result = (bool)(await resolver.Resolver(context.Object))!;
             Assert.True(result);
         }
@@ -1225,7 +1292,10 @@ namespace HotChocolate.Resolvers.Expressions
 
             // assert
             var context = new Mock<IResolverContext>();
-            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.Setup(t => t.Parent<Resolvers>()).Returns(() =>
+            {
+                return new Resolvers();
+            });
             context.SetupProperty(t => t.ScopedContextData, contextData);
             object value = await resolver.Resolver(context.Object);
             Assert.Null(value);
@@ -1513,8 +1583,16 @@ namespace HotChocolate.Resolvers.Expressions
                 IResolverContext context) =>
                 context != null;
 
+            public bool ResolverWithFieldSyntax(
+                FieldNode fieldSyntax) =>
+                fieldSyntax != null;
+
             public bool ResolverWithFieldSelection(
-                FieldNode fieldSelection) =>
+                IFieldSelection fieldSelection) =>
+                fieldSelection != null;
+
+            public bool ResolverWithSelection(
+                ISelection fieldSelection) =>
                 fieldSelection != null;
 
             public bool ResolverWithObjectType(
@@ -1542,18 +1620,18 @@ namespace HotChocolate.Resolvers.Expressions
                 schema != null;
 
             public bool ResolverWithService(
-                [Service]MyService service) =>
+                [Service] MyService service) =>
                 service != null;
 
 #pragma warning disable CS0618
             public string ResolveWithContextData(
-                [State("foo")]string s) => s;
+                [State("foo")] string s) => s;
 
             public string ResolveWithContextDataDefault(
-                [State("foo", DefaultIfNotExists = true)]string s) => s;
+                [State("foo", DefaultIfNotExists = true)] string s) => s;
 
             public string ResolveWithScopedContextData(
-                [State("foo", IsScoped = true)]string s) => s;
+                [State("foo", IsScoped = true)] string s) => s;
 
             public string ResolveWithScopedContextDataDefault(
                 [State("foo", IsScoped = true, DefaultIfNotExists = true)]
@@ -1576,11 +1654,11 @@ namespace HotChocolate.Resolvers.Expressions
                 [GlobalState]
                 string foo = default) => foo;
 
-            #nullable  enable
+#nullable enable
             public string GetGlobalStateNullable(
                 [GlobalState]
                 string? foo) => foo!;
-            #nullable  disable
+#nullable disable
 
             public string SetGlobalStateGeneric(
                 [GlobalState]
@@ -1614,11 +1692,11 @@ namespace HotChocolate.Resolvers.Expressions
                 [ScopedState]
                 string foo = default) => foo;
 
-            #nullable  enable
+#nullable enable
             public string GetScopedStateNullable(
                 [ScopedState]
                 string? foo) => foo!;
-            #nullable disable
+#nullable disable
 
             public string SetScopedStateGeneric(
                 [ScopedState]

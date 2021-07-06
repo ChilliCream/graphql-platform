@@ -7,26 +7,28 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
-    internal sealed class GetFieldSelectionCompiler : ResolverParameterCompilerBase
+    internal sealed class GetFieldSyntaxCompiler : ResolverParameterCompilerBase
     {
         private readonly PropertyInfo _fieldSelection;
+        private readonly PropertyInfo _fieldSyntax;
 
-        public GetFieldSelectionCompiler()
+        public GetFieldSyntaxCompiler()
         {
             _fieldSelection = PureContextType.GetProperty(nameof(IPureResolverContext.Selection))!;
+            _fieldSyntax = typeof(IFieldSelection).GetProperty(nameof(IFieldSelection.SyntaxNode))!;
         }
 
         public override bool CanHandle(
             ParameterInfo parameter,
             Type sourceType)
-            => typeof(IFieldSelection).IsAssignableFrom(parameter.ParameterType);
+            => typeof(FieldNode) == parameter.ParameterType;
 
         public override Expression Compile(
             Expression context,
             ParameterInfo parameter,
             Type sourceType)
-            => Expression.Convert(
+            => Expression.Property(
                 Expression.Property(context, _fieldSelection),
-                parameter.ParameterType);
+                _fieldSyntax);
     }
 }

@@ -3,22 +3,26 @@ using System.Linq;
 using System.Reflection;
 using HotChocolate.Resolvers.CodeGeneration;
 
+#nullable enable
+
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
-    internal sealed class GetServiceCompiler<T>
-        : GetFromGenericMethodCompilerBase<T>
-        where T : IResolverContext
+    internal sealed class GetServiceCompiler : GetFromGenericMethodCompilerBase
     {
+        private const string _service = nameof(IPureResolverContext.Service);
+
         public GetServiceCompiler()
         {
-            GenericMethod = ContextTypeInfo.GetDeclaredMethods(
-                nameof(IResolverContext.Service))
-                .First(t => t.IsGenericMethod);
+            GenericMethod = PureContextType.GetMethods().First(IsServiceMethod);
+
+            bool IsServiceMethod(MethodInfo method)
+                => method.Name.Equals(_service, StringComparison.Ordinal) &&
+                    method.IsGenericMethod;
         }
 
         public override bool CanHandle(
             ParameterInfo parameter,
-            Type sourceType) =>
-            ArgumentHelper.IsService(parameter);
+            Type sourceType)
+            => ArgumentHelper.IsService(parameter);
     }
 }

@@ -7,9 +7,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
-    internal sealed class GetArgumentCompiler<T>
-        : ResolverParameterCompilerBase<T>
-        where T : IResolverContext
+    internal sealed class GetArgumentCompiler : ResolverParameterCompilerBase
     {
         private readonly MethodInfo _argument;
         private readonly MethodInfo _argumentLiteral;
@@ -18,17 +16,18 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
         public GetArgumentCompiler()
         {
-            _argument = ContextTypeInfo.GetDeclaredMethod(
-                nameof(IResolverContext.ArgumentValue))!;
-            _argumentLiteral = ContextTypeInfo.GetDeclaredMethod(
-                nameof(IResolverContext.ArgumentLiteral))!;
-            _argumentOptional = ContextTypeInfo.GetDeclaredMethod(
-                nameof(IResolverContext.ArgumentOptional))!;
+            _argument = PureContextType.GetMethod(
+                nameof(IPureResolverContext.ArgumentValue))!;
+            _argumentLiteral = PureContextType.GetMethod(
+                nameof(IPureResolverContext.ArgumentLiteral))!;
+            _argumentOptional = PureContextType.GetMethod(
+                nameof(IPureResolverContext.ArgumentOptional))!;
         }
 
         public override bool CanHandle(
             ParameterInfo parameter,
-            Type sourceType) => true;
+            Type sourceType)
+            => true;
 
         public override Expression Compile(
             Expression context,

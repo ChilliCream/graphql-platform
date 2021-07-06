@@ -3,33 +3,30 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Resolvers.CodeGeneration;
 
+#nullable enable
+
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
     [Obsolete]
-    internal sealed class GetCustomContextCompiler<T>
-        : CustomContextCompilerBase<T>
-        where T : IResolverContext
+    internal sealed class GetCustomContextCompiler : CustomContextCompilerBase
     {
         private static readonly MethodInfo _resolveContextData =
-            typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.ResolveContextData));
+            typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.ResolveContextData))!;
         private static readonly MethodInfo _resolveScopedContextData =
-            typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.ResolveScopedContextData));
+            typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.ResolveScopedContextData))!;
 
         public override bool CanHandle(
             ParameterInfo parameter,
-            Type sourceType) =>
-            ArgumentHelper.IsState(parameter);
+            Type sourceType)
+            => ArgumentHelper.IsState(parameter);
 
         public override Expression Compile(
             Expression context,
             ParameterInfo parameter,
             Type sourceType)
         {
-            StateAttribute attribute =
-                parameter.GetCustomAttribute<StateAttribute>();
-
-            ConstantExpression key =
-                Expression.Constant(attribute.Key);
+            StateAttribute attribute = parameter.GetCustomAttribute<StateAttribute>()!;
+            ConstantExpression key = Expression.Constant(attribute.Key);
 
             ConstantExpression defaultIfNotExists =
                 Expression.Constant(attribute.DefaultIfNotExists);

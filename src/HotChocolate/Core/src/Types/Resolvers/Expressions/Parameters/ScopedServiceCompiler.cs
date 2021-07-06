@@ -5,26 +5,24 @@ using System.Reflection;
 using HotChocolate.Resolvers.CodeGeneration;
 using HotChocolate.Utilities;
 
+#nullable enable
+
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
-    internal class ScopedServiceCompiler<T>
-        : CustomContextCompilerBase<T>
-        where T : IResolverContext
+    internal class ScopedServiceCompiler : CustomContextCompilerBase
     {
         private static readonly MethodInfo _getScopedState =
             typeof(ExpressionHelper).GetMethod(
-                nameof(ExpressionHelper.GetScopedState));
+                nameof(ExpressionHelper.GetScopedState))!;
 
         private static readonly MethodInfo _getScopedStateWithDefault =
             typeof(ExpressionHelper).GetMethod(
-                nameof(ExpressionHelper.GetScopedStateWithDefault));
+                nameof(ExpressionHelper.GetScopedStateWithDefault))!;
 
         public override bool CanHandle(
             ParameterInfo parameter,
             Type sourceType)
-        {
-            return ArgumentHelper.IsScopedService(parameter);
-        }
+            => ArgumentHelper.IsScopedService(parameter);
 
         public override Expression Compile(
             Expression context,

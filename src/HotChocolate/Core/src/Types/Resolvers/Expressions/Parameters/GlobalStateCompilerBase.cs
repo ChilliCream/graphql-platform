@@ -3,19 +3,17 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Resolvers.CodeGeneration;
 
+#nullable enable
+
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
-    internal abstract class GlobalStateCompilerBase<T>
-        : CustomContextCompilerBase<T>
-        where T : IResolverContext
+    internal abstract class GlobalStateCompilerBase : CustomContextCompilerBase
     {
         public override bool CanHandle(
             ParameterInfo parameter,
             Type sourceType)
-        {
-            return ArgumentHelper.IsGlobalState(parameter)
-                && CanHandle(parameter.ParameterType);
-        }
+            => ArgumentHelper.IsGlobalState(parameter) && 
+               CanHandle(parameter.ParameterType);
 
         protected abstract bool CanHandle(Type parameterType);
 
@@ -24,8 +22,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             ParameterInfo parameter,
             Type sourceType)
         {
-            GlobalStateAttribute attribute =
-                parameter.GetCustomAttribute<GlobalStateAttribute>();
+            GlobalStateAttribute attribute = parameter.GetCustomAttribute<GlobalStateAttribute>()!;
 
             ConstantExpression key =
                 attribute.Key is null

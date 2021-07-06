@@ -43,7 +43,7 @@ namespace HotChocolate.Types.Descriptors
             where TMember : MemberInfo
             where TField : FieldDefinitionBase
         {
-            AddImplicitFields<TDescriptor, TMember, TField>(
+            AddImplicitFields(
                 descriptor,
                 descriptor.RuntimeType,
                 createdFieldDefinition,

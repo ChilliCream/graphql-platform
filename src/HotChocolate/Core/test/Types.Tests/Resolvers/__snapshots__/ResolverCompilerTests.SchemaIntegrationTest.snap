@@ -16,12 +16,14 @@ type Resolvers {
   resolverWithCancellationToken: String
   resolverWithDocument: Boolean!
   resolverWithFieldSelection: Boolean!
+  resolverWithFieldSyntax: Boolean!
   resolverWithObjectField: Boolean!
   resolverWithObjectType: Boolean!
   resolverWithOperationDefinition: Boolean!
   resolverWithOutputField: Boolean!
   resolverWithResolverContext: Boolean!
   resolverWithSchema: Boolean!
+  resolverWithSelection: Boolean!
   resolverWithService: Boolean!
   resolveWithContextData: String
   resolveWithContextDataDefault: String

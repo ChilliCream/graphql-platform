@@ -23,7 +23,7 @@ namespace HotChocolate.Resolvers.Expressions
         private static readonly MethodInfo _wrapResultHelper =
             typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.WrapResultHelper))!;
 
-        internal FieldResolver Compile(ResolverDescriptor descriptor)
+        public FieldResolver Compile(ResolverDescriptor descriptor)
         {
             if (descriptor.Field.Member is not null)
             {
@@ -32,23 +32,16 @@ namespace HotChocolate.Resolvers.Expressions
 
                 if (descriptor.Field.Member is MethodInfo { IsStatic: true })
                 {
-                    resolver = CreateResolver(
-                        descriptor.Field.Member,
-                        descriptor.SourceType);
+                    resolver = CreateStaticResolver(descriptor.Field.Member, descriptor.SourceType);
                 }
                 else
                 {
-                    Expression resolverInstance = CreateResolver(
-                        descriptor.SourceType,
-                        descriptor.ResolverType);
-
                     resolver = CreateResolver(
-                        resolverInstance,
                         descriptor.Field.Member,
-                        descriptor.SourceType);
+                        descriptor.SourceType,
+                        descriptor.ResolverType ?? descriptor.SourceType);
 
                     pureResolver = CreatePureResolver(
-                        resolverInstance,
                         descriptor.Field.Member,
                         descriptor.SourceType,
                         descriptor.ResolverType ?? descriptor.SourceType);
@@ -63,7 +56,8 @@ namespace HotChocolate.Resolvers.Expressions
 
             if (descriptor.Field.Expression is LambdaExpression lambda)
             {
-                Expression resolver = CreateResolver(
+                Expression resolver = CreateResolverClassInstance(
+                    Context,
                     descriptor.SourceType,
                     descriptor.ResolverType);
 
@@ -103,19 +97,12 @@ namespace HotChocolate.Resolvers.Expressions
 
             if (member is MethodInfo { IsStatic: true })
             {
-                resolver = CreateResolver(member, sourceType);
+                resolver = CreateStaticResolver(member, sourceType);
             }
             else
             {
-                Expression resolverInstance = CreateResolver(sourceType, resolverType);
-
-                resolver = CreateResolver(resolverInstance, member, sourceType);
-
-                pureResolver = CreatePureResolver(
-                    resolverInstance,
-                    member,
-                    sourceType,
-                    resolverType ?? sourceType);
+                resolver = CreateResolver(member, sourceType, resolverType ?? sourceType);
+                pureResolver = CreatePureResolver(member, sourceType, resolverType ?? sourceType);
             }
 
             return new(resolver, pureResolver);
@@ -144,37 +131,17 @@ namespace HotChocolate.Resolvers.Expressions
                 nameof(member));
         }
 
-        private Expression CreateResolver(Type sourceType, Type? resolverType = null)
-        {
-            MethodInfo resolverMethod = resolverType is null
-                ? Parent.MakeGenericMethod(sourceType)
-                : Resolver.MakeGenericMethod(resolverType);
-            return Call(Context, resolverMethod);
-        }
-
         private FieldResolverDelegate CreateResolver(
             MemberInfo member,
-            Type sourceType)
+            Type sourceType,
+            Type resolverType)
         {
             if (member is MethodInfo method)
             {
-                Expression[] parameters = CreateParameters(method.GetParameters(), sourceType);
-                MethodCallExpression resolverExpression = Call(method, parameters);
-                Expression handleResult = HandleResult(resolverExpression, method.ReturnType);
-                return Lambda<FieldResolverDelegate>(handleResult, Context).Compile();
-            }
-
-            throw new NotSupportedException();
-        }
-
-        private FieldResolverDelegate CreateResolver(
-            Expression resolver,
-            MemberInfo member,
-            Type sourceType)
-        {
-            if (member is MethodInfo method)
-            {
-                Expression[] parameters = CreateParameters(method.GetParameters(), sourceType);
+                Expression resolver =
+                    CreateResolverClassInstance(Context, sourceType, resolverType);
+                Expression[] parameters =
+                    CreateParameters(Context, method.GetParameters(), sourceType);
                 MethodCallExpression resolverExpression = Call(resolver, method, parameters);
                 Expression handleResult = HandleResult(resolverExpression, method.ReturnType);
                 return Lambda<FieldResolverDelegate>(handleResult, Context).Compile();
@@ -182,6 +149,8 @@ namespace HotChocolate.Resolvers.Expressions
 
             if (member is PropertyInfo property)
             {
+                Expression resolver =
+                    CreateResolverClassInstance(Context, sourceType, resolverType);
                 MemberExpression propertyAccessor = Property(resolver, property);
                 Expression handleResult = HandleResult(propertyAccessor, property.PropertyType);
                 return Lambda<FieldResolverDelegate>(handleResult, Context).Compile();
@@ -190,17 +159,32 @@ namespace HotChocolate.Resolvers.Expressions
             throw new NotSupportedException();
         }
 
+        private FieldResolverDelegate CreateStaticResolver(MemberInfo member, Type sourceType)
+        {
+            if (member is MethodInfo method)
+            {
+                Expression[] parameters =
+                    CreateParameters(Context, method.GetParameters(), sourceType);
+                MethodCallExpression resolverExpression = Call(method, parameters);
+                Expression handleResult = HandleResult(resolverExpression, method.ReturnType);
+                return Lambda<FieldResolverDelegate>(handleResult, Context).Compile();
+            }
+
+            throw new NotSupportedException();
+        }
+
         private PureFieldDelegate? CreatePureResolver(
-            Expression resolver,
             MemberInfo member,
             Type sourceType,
             Type resolverType)
         {
             if (member is PropertyInfo property && IsPureResult(property.PropertyType))
             {
+                Expression resolver =
+                    CreateResolverClassInstance(PureContext, sourceType, resolverType);
                 MemberExpression propertyAccessor = Property(resolver, property);
                 Expression result = Convert(propertyAccessor, typeof(object));
-                return Lambda<PureFieldDelegate>(result, Context).Compile();
+                return Lambda<PureFieldDelegate>(result, PureContext).Compile();
             }
 
             if (member is MethodInfo method &&
@@ -211,14 +195,29 @@ namespace HotChocolate.Resolvers.Expressions
 
                 if (IsPure(parameters, sourceType))
                 {
-                    Expression[] parameterResolvers = CreateParameters(parameters, sourceType);
+                    Expression resolver =
+                        CreateResolverClassInstance(PureContext, sourceType, resolverType);
+                    Expression[] parameterResolvers =
+                        CreateParameters(PureContext, method.GetParameters(), sourceType);
                     MethodCallExpression resolverCall = Call(resolver, method, parameterResolvers);
                     Expression result = Convert(resolverCall, typeof(object));
-                    return Lambda<PureFieldDelegate>(result, Context).Compile();
+                    return Lambda<PureFieldDelegate>(result, PureContext).Compile();
                 }
             }
 
             return null;
+        }
+
+        // Create an expression to get the resolver class instance.
+        private static Expression CreateResolverClassInstance(
+            ParameterExpression context,
+            Type sourceType,
+            Type resolverType)
+        {
+            MethodInfo resolverMethod = sourceType == resolverType
+                ? Parent.MakeGenericMethod(sourceType)
+                : Resolver.MakeGenericMethod(resolverType);
+            return Call(context, resolverMethod);
         }
 
         private static Expression HandleResult(

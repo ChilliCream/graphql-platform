@@ -14,8 +14,7 @@ namespace HotChocolate.Resolvers.Expressions
     {
         private readonly IResolverParameterCompiler[] _compilers;
 
-        protected ResolverCompiler()
-            : this(ParameterCompilerFactory.Create())
+        protected ResolverCompiler() : this(ParameterCompilerFactory.Create())
         {
         }
 
@@ -29,17 +28,23 @@ namespace HotChocolate.Resolvers.Expressions
 
             _compilers = compilers.ToArray();
             Context = Expression.Parameter(typeof(IResolverContext), "context");
+            PureContext = Expression.Parameter(typeof(IPureResolverContext), "context");
         }
 
         protected ParameterExpression Context { get; }
 
+        protected ParameterExpression PureContext { get; }
+
         protected static MethodInfo Parent { get; } =
-            typeof(IResolverContext).GetMethod(nameof(IResolverContext.Parent))!;
+            typeof(IPureResolverContext).GetMethod(nameof(IPureResolverContext.Parent))!;
 
         protected static MethodInfo Resolver { get; } =
-            typeof(IResolverContext).GetMethod(nameof(IResolverContext.Resolver))!;
+            typeof(IPureResolverContext).GetMethod(nameof(IPureResolverContext.Resolver))!;
 
-        protected Expression[] CreateParameters(ParameterInfo[] parameters, Type sourceType)
+        protected Expression[] CreateParameters(
+            ParameterExpression context, 
+            ParameterInfo[] parameters, 
+            Type sourceType)
         {
             var parameterResolvers = new Expression[parameters.Length];
 
@@ -48,8 +53,7 @@ namespace HotChocolate.Resolvers.Expressions
                 ParameterInfo parameter = parameters[i];
 
                 IResolverParameterCompiler? parameterCompiler =
-                    _compilers.FirstOrDefault(t =>
-                        t.CanHandle(parameter, sourceType));
+                    _compilers.FirstOrDefault(t => t.CanHandle(parameter, sourceType));
 
                 if (parameterCompiler is null)
                 {
@@ -57,7 +61,7 @@ namespace HotChocolate.Resolvers.Expressions
                         TypeResources.ResolverCompiler_UnknownParameterType);
                 }
 
-                parameterResolvers[i] = parameterCompiler.Compile(Context, parameter, sourceType);
+                parameterResolvers[i] = parameterCompiler.Compile(context, parameter, sourceType);
             }
 
             return parameterResolvers;

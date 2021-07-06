@@ -24,14 +24,21 @@ namespace HotChocolate.Resolvers.CodeGeneration
             return true;
         }
 
-        internal static bool IsPure(ParameterInfo parameterInfo, Type sourceType)
+        internal static bool IsPure(ParameterInfo parameter, Type sourceType)
         {
-            switch (LookupKind(parameterInfo, sourceType))
+            switch (LookupKind(parameter, sourceType))
             {
                 case ArgumentKind.Argument:
                 case ArgumentKind.Source:
-                case ArgumentKind.CustomContext:
+                case ArgumentKind.Service:
+                case ArgumentKind.Schema:
+                case ArgumentKind.Field:
+                case ArgumentKind.FieldSelection:
+                case ArgumentKind.FieldSyntax:
                     return true;
+
+                case ArgumentKind.CustomContext:
+                    return IsGlobalState(parameter);
 
                 default:
                     return false;
@@ -115,6 +122,12 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 return true;
             }
 
+            if (typeof(IFieldSelection).IsAssignableFrom(parameter.ParameterType))
+            {
+                argumentKind = ArgumentKind.FieldSelection;
+                return true;
+            }
+
             argumentKind = default;
             return false;
         }
@@ -137,7 +150,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
             if (parameter.ParameterType == typeof(FieldNode))
             {
-                argumentKind = ArgumentKind.FieldSelection;
+                argumentKind = ArgumentKind.FieldSyntax;
                 return true;
             }
 
@@ -199,9 +212,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
         [Obsolete]
         internal static bool IsState(ParameterInfo parameter)
-        {
-            return parameter.IsDefined(typeof(StateAttribute));
-        }
+            => parameter.IsDefined(typeof(StateAttribute));
 
         internal static bool IsGlobalState(ParameterInfo parameter)
         {
@@ -253,5 +264,21 @@ namespace HotChocolate.Resolvers.CodeGeneration
 
         internal static bool IsSchema(ParameterInfo parameter) =>
             typeof(ISchema).IsAssignableFrom(parameter.ParameterType);
+
+        internal static bool IsStateSetter(Type parameterType)
+        {
+            if (parameterType == typeof(SetState))
+            {
+                return true;
+            }
+
+            if (parameterType.IsGenericType &&
+                parameterType.GetGenericTypeDefinition() == typeof(SetState<>))
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }

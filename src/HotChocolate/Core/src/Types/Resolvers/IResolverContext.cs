@@ -70,7 +70,7 @@ namespace HotChocolate.Resolvers
         /// resolvers to store and retrieve data during execution scoped to the
         /// hierarchy
         /// </summary>
-        new IImmutableDictionary<string, object?> ScopedContextData { get; set; }
+        IImmutableDictionary<string, object?> ScopedContextData { get; set; }
 
         /// <summary>
         /// The local context data dictionary can be used by middlewares and

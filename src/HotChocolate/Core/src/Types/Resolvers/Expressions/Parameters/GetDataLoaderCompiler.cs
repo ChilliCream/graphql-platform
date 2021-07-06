@@ -7,9 +7,7 @@ using HotChocolate.Resolvers.CodeGeneration;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
-    internal sealed class GetDataLoaderCompiler<T>
-        : ResolverParameterCompilerBase<T>
-        where T : IResolverContext
+    internal sealed class GetDataLoaderCompiler : ResolverParameterCompilerBase
     {
         private readonly MethodInfo _dataLoader;
         private readonly MethodInfo _dataLoaderWithKey;
@@ -32,15 +30,15 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
         public override bool CanHandle(
             ParameterInfo parameter,
-            Type sourceType) =>
-            ArgumentHelper.IsDataLoader(parameter);
+            Type sourceType)
+            => ArgumentHelper.IsDataLoader(parameter);
 
         public override Expression Compile(
             Expression context,
             ParameterInfo parameter,
             Type sourceType)
         {
-            var attribute = parameter.GetCustomAttribute<DataLoaderAttribute>();
+            DataLoaderAttribute? attribute = parameter.GetCustomAttribute<DataLoaderAttribute>();
 
             return string.IsNullOrEmpty(attribute?.Key)
                 ? Expression.Call(

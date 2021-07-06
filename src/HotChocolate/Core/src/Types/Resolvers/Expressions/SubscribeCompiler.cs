@@ -74,8 +74,7 @@ namespace HotChocolate.Resolvers.Expressions
                 ? Parent.MakeGenericMethod(sourceType)
                 : Resolver.MakeGenericMethod(resolverType);
 
-            Expression resolverInstance = Expression.Call(
-                Context, resolverMethod);
+            Expression resolverInstance = Expression.Call(Context, resolverMethod);
 
             return CreateResolver(
                 resolverInstance,
@@ -91,7 +90,7 @@ namespace HotChocolate.Resolvers.Expressions
             if (member is MethodInfo method)
             {
                 IEnumerable<Expression> parameters = CreateParameters(
-                    method.GetParameters(), sourceType);
+                    Context, method.GetParameters(), sourceType);
 
                 MethodCallExpression resolverExpression =
                     Expression.Call(resolverInstance, method, parameters);

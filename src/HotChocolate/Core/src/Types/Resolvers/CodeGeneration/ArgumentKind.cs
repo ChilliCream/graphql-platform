@@ -10,6 +10,7 @@
         Field,
         QueryDocument,
         OperationDefinition,
+        FieldSyntax,
         FieldSelection,
         Context,
         CancellationToken,

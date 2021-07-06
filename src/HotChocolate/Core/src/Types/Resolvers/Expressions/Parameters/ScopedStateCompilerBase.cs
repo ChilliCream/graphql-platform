@@ -6,9 +6,7 @@ using System.Reflection;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
-    internal abstract class ScopedStateCompilerBase<T>
-        : CustomContextCompilerBase<T>
-        where T : IResolverContext
+    internal abstract class ScopedStateCompilerBase : CustomContextCompilerBase
     {
         public override Expression Compile(
             Expression context,
