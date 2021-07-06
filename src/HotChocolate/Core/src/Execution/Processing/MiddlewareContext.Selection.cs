@@ -36,7 +36,7 @@ namespace HotChocolate.Execution.Processing
         {
             if (_childContext.Initialize(selection, path, parent))
             {
-                context = this;
+                context = _childContext;
                 return true;
             }
 
