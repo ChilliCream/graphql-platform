@@ -31,6 +31,7 @@ namespace HotChocolate.Execution.Processing
                 _selection = selection;
                 _path = path;
                 _parent = parent;
+                _argumentValues = selection.Arguments;
 
                 if (selection.Arguments.IsFinalNoErrors)
                 {
