@@ -59,7 +59,7 @@ namespace HotChocolate.Resolvers.Expressions
                 Expression resolver = CreateResolverClassInstance(
                     Context,
                     descriptor.SourceType,
-                    descriptor.ResolverType);
+                    descriptor.ResolverType ?? descriptor.SourceType);
 
                 Expression<FieldResolverDelegate> resolve =
                     Lambda<FieldResolverDelegate>(
