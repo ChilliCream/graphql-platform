@@ -34,6 +34,8 @@ override StrawberryShake.Serialization.TimeSpanSerializer.Format(System.TimeSpan
 override StrawberryShake.Serialization.TimeSpanSerializer.Parse(string! serializedValue) -> System.TimeSpan
 override StrawberryShake.Serialization.UrlSerializer.Format(System.Uri! runtimeValue) -> string!
 override StrawberryShake.Serialization.UrlSerializer.Parse(string! serializedValue) -> System.Uri!
+override StrawberryShake.Serialization.UuidSerializer.Format(System.Guid runtimeValue) -> string!
+override StrawberryShake.Serialization.UuidSerializer.Parse(string! serializedValue) -> System.Guid
 static readonly StrawberryShake.Json.JsonOperationRequestSerializer.Default -> StrawberryShake.Json.JsonOperationRequestSerializer!
 static StrawberryShake.CachePolicy.Default(StrawberryShake.IStoreAccessor! storeAccessor, System.TimeSpan timeToLive) -> StrawberryShake.CachePolicy!
 static StrawberryShake.CachePolicy.Default(StrawberryShake.IStoreAccessor! storeAccessor) -> StrawberryShake.CachePolicy!
@@ -355,7 +357,7 @@ StrawberryShake.Serialization.TimeSpanSerializer.TimeSpanSerializer(string! type
 StrawberryShake.Serialization.UrlSerializer
 StrawberryShake.Serialization.UrlSerializer.UrlSerializer(string! typeName = "Url") -> void
 StrawberryShake.Serialization.UuidSerializer
-StrawberryShake.Serialization.UuidSerializer.UuidSerializer(string! typeName = "Uuid") -> void
+StrawberryShake.Serialization.UuidSerializer.UuidSerializer(string! typeName = "Uuid", string! format = "D") -> void
 StrawberryShake.StoreAccessor
 StrawberryShake.StoreAccessor.EntityIdSerializer.get -> StrawberryShake.IEntityIdSerializer!
 StrawberryShake.StoreAccessor.EntityStore.get -> StrawberryShake.IEntityStore!
