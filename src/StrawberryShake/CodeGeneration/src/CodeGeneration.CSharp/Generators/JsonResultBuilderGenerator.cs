@@ -299,14 +299,23 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             buildMethod.AddEmptyLine();
 
-
-
             buildMethod.AddEmptyLine();
             buildMethod.AddCode(
                 IfBuilder.New()
                     .SetCondition("response.Exception is null")
                     .AddCode(CreateBuildDataSerialization())
-                    .AddElse(CreateDataError("response.Exception"))
+                    .AddElse(
+                        IfBuilder
+                            .New()
+                            .SetCondition(
+                                ConditionBuilder
+                                    .New()
+                                    .Set(
+                                        "response.Body.RootElement.TryGetProperty(" +
+                                        $"\"errors\", out {TypeNames.JsonElement} " +
+                                        "errorsElement)"))
+                            .AddCode($"errors = {TypeNames.ParseError}(errorsElement);")
+                            .AddElse(CreateDataError("response.Exception")))
                 );
 
             buildMethod.AddEmptyLine();
