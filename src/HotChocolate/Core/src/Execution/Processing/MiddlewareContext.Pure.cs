@@ -138,65 +138,66 @@ namespace HotChocolate.Execution.Processing
             public T Resolver<T>() => _parentContext.Resolver<T>();
 
             private T CoerceArgumentValue<T>(ArgumentValue argument)
-        {
-            var value = argument.Value;
-
-            // if the argument is final and has an already coerced
-            // runtime version we can skip over parsing it.
-            if (!argument.IsFinal)
             {
-                value = argument.Type.ParseLiteral(argument.ValueLiteral!);
-                value = argument.Formatter is not null
-                    ? argument.Formatter.OnAfterDeserialize(value)
-                    : value;
-            }
+                var value = argument.Value;
 
-            if (value is null)
-            {
-                // if there was a non-null violation the exception would already been triggered.
-                return default!;
-            }
-
-            if (value is T castedValue ||
-                _operationContext.Converter.TryConvert(value, out castedValue))
-            {
-                return castedValue;
-            }
-
-            // GraphQL literals are not allowed.
-            if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
-            {
-                throw ResolverContext_LiteralsNotSupported(
-                    _selection.SyntaxNode, Path, argument.Argument.Name, typeof(T));
-            }
-
-            // If the object is internally held as a dictionary structure we will try to
-            // create from this the required argument value.
-            // This however comes with a performance impact of traversing the dictionary structure
-            // and creating from this the object.
-            if (value is IReadOnlyDictionary<string, object> || value is IReadOnlyList<object>)
-            {
-                var dictToObjConverter = new DictionaryToObjectConverter(
-                    _operationContext.Converter);
-
-                if (typeof(T).IsInterface)
+                // if the argument is final and has an already coerced
+                // runtime version we can skip over parsing it.
+                if (!argument.IsFinal)
                 {
-                    object o = dictToObjConverter.Convert(value, argument.Type.RuntimeType);
-                    if (o is T c)
+                    value = argument.Type.ParseLiteral(argument.ValueLiteral!);
+                    value = argument.Formatter is not null
+                        ? argument.Formatter.OnAfterDeserialize(value)
+                        : value;
+                }
+
+                if (value is null)
+                {
+                    // if there was a non-null violation the exception would already been triggered.
+                    return default!;
+                }
+
+                ITypeConverter converter = _parentContext.GetTypeConverter();
+
+                if (value is T castedValue ||
+                    converter.TryConvert(value, out castedValue))
+                {
+                    return castedValue;
+                }
+
+                // GraphQL literals are not allowed.
+                if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
+                {
+                    throw ResolverContext_LiteralsNotSupported(
+                        _selection.SyntaxNode, _path, argument.Argument.Name, typeof(T));
+                }
+
+                // If the object is internally held as a dictionary structure we will try to
+                // create from this the required argument value.
+                // This however comes with a performance impact of traversing the dictionary structure
+                // and creating from this the object.
+                if (value is IReadOnlyDictionary<string, object> || value is IReadOnlyList<object>)
+                {
+                    var dictToObjConverter = new DictionaryToObjectConverter(converter);
+
+                    if (typeof(T).IsInterface)
                     {
-                        return c;
+                        object o = dictToObjConverter.Convert(value, argument.Type.RuntimeType);
+                        if (o is T c)
+                        {
+                            return c;
+                        }
+                    }
+                    else
+                    {
+                        return (T)dictToObjConverter.Convert(value, typeof(T));
                     }
                 }
-                else
-                {
-                    return (T)dictToObjConverter.Convert(value, typeof(T));
-                }
-            }
 
-            // we are unable to convert the argument to the request type.
-            throw ResolverContext_CannotConvertArgument(
-                _selection.SyntaxNode, Path, argument.Argument.Name, typeof(T));
-        }
+                // we are unable to convert the argument to the request type.
+                throw ResolverContext_CannotConvertArgument(
+                    _selection.SyntaxNode, _path, argument.Argument.Name, typeof(T));
+            }
         }
     }
 }

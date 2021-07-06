@@ -155,20 +155,17 @@ namespace HotChocolate.Execution.Processing.Tasks
 
             try
             {
-                IPureResolverContext pureResolverContext =
-                    resolverContext.CreatePureContext(selection, parent);
-                var resolverResult = selection.PureResolver!(pureResolverContext);
-
-                if (ValueCompletion.TryComplete(
-                    operationContext,
-                    resolverContext,
-                    selection,
-                    path,
-                    selection.Type,
-                    selection.ResponseName,
-                    responseIndex,
-                    resolverResult,
-                    out completedValue) &&
+                if (TryExecute(out var resolverResult) &&
+                    ValueCompletion.TryComplete(
+                        operationContext,
+                        resolverContext,
+                        selection,
+                        path,
+                        selection.Type,
+                        selection.ResponseName,
+                        responseIndex,
+                        resolverResult,
+                        out completedValue) &&
                     selection.TypeKind is not TypeKind.Scalar and not TypeKind.Enum &&
                     completedValue is IHasResultDataParent result)
                 {
@@ -211,9 +208,35 @@ namespace HotChocolate.Execution.Processing.Tasks
             {
                 resultMap.SetValue(
                     responseIndex,
-                    responseName,
+                    selection.ResponseName,
                     completedValue,
-                    fieldType.IsNullableType());
+                    selection.Type.IsNullableType());
+            }
+
+            bool TryExecute(out object? result)
+            {
+                try
+                {
+                    if (resolverContext.TryCreatePureContext(
+                        selection, path, parent,
+                        out IPureResolverContext? childContext))
+                    {
+                        result = selection.PureResolver!(childContext);
+                        return true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ValueCompletion.ReportError(
+                        operationContext,
+                        resolverContext,
+                        selection,
+                        path,
+                        ex);
+                }
+
+                result = null;
+                return false;
             }
         }
 
