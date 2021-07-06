@@ -25,5 +25,10 @@ namespace HotChocolate.Execution.Processing
         public FieldDelegate? ResolverPipeline => _selection.ResolverPipeline;
 
         public PureFieldDelegate? PureResolver => _selection.PureResolver;
+
+        public IPureResolverContext CreatePureContext(ISelection selection, object? parent)
+        {
+
+        }
     }
 }

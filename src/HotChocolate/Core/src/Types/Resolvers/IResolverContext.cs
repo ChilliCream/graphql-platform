@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -27,12 +26,10 @@ namespace HotChocolate.Resolvers
         /// </summary>
         IObjectType ObjectType { get; }
 
-
-
         /// <summary>
         /// Gets the field on which the field resolver is being executed.
         /// </summary>
-        [Obsolete("Use Selection.Field")]
+        [Obsolete("Use Selection.Field or Selection.Type.")]
         IObjectField Field { get; }
 
         /// <summary>
@@ -53,12 +50,6 @@ namespace HotChocolate.Resolvers
         FieldNode FieldSelection { get; }
 
         /// <summary>
-        /// Gets the field selection for which a field resolver is
-        /// being executed.
-        /// </summary>
-        IFieldSelection Selection { get; }
-
-        /// <summary>
         /// Gets the name that the field will have in the response map.
         /// </summary>
         /// <value></value>
@@ -75,6 +66,13 @@ namespace HotChocolate.Resolvers
         bool HasErrors { get; }
 
         /// <summary>
+        /// The scoped context data dictionary can be used by middlewares and
+        /// resolvers to store and retrieve data during execution scoped to the
+        /// hierarchy
+        /// </summary>
+        new IImmutableDictionary<string, object?> ScopedContextData { get; set; }
+
+        /// <summary>
         /// The local context data dictionary can be used by middlewares and
         /// resolvers to store and retrieve data during execution scoped to the
         /// field
@@ -82,26 +80,10 @@ namespace HotChocolate.Resolvers
         IImmutableDictionary<string, object?> LocalContextData { get; set; }
 
         /// <summary>
-        /// Gets access to the coerced variable values of the request.
-        /// </summary>
-        IVariableValueCollection Variables { get; }
-
-        /// <summary>
         /// Notifies when the connection underlying this request is aborted
         /// and thus request operations should be cancelled.
         /// </summary>
         CancellationToken RequestAborted { get; }
-
-        /// <summary>
-        /// Gets the previous (parent) resolver result.
-        /// </summary>
-        /// <typeparam name="T">
-        /// The type to which the result shall be casted.
-        /// </typeparam>
-        /// <returns>
-        /// Returns the previous (parent) resolver result.
-        /// </returns>
-        T Parent<T>();
 
         /// <summary>
         /// Gets a specific field argument.
@@ -120,59 +102,6 @@ namespace HotChocolate.Resolvers
                   "ArgumentOptional<T>(name).")]
         [return: MaybeNull]
         T Argument<T>(NameString name);
-
-        /// <summary>
-        /// Gets a specific field argument value.
-        /// </summary>
-        /// <param name="name">
-        /// The argument name.
-        /// </param>
-        /// <typeparam name="T">
-        /// The type to which the argument shall be casted to.
-        /// </typeparam>
-        /// <returns>
-        /// Returns the value of the specified field argument as literal.
-        /// </returns>
-        T ArgumentValue<T>(NameString name);
-
-        /// <summary>
-        /// Gets a specific field argument as literal.
-        /// </summary>
-        /// <param name="name">
-        /// The argument name.
-        /// </param>
-        /// <typeparam name="TValueNode">
-        /// The type to which the argument shall be casted to.
-        /// </typeparam>
-        /// <returns>
-        /// Returns the value of the specified field argument as literal.
-        /// </returns>
-        TValueNode ArgumentLiteral<TValueNode>(NameString name) where TValueNode : IValueNode;
-
-        /// <summary>
-        /// Gets a specific field argument as optional.
-        /// </summary>
-        /// <param name="name">
-        /// The argument name.
-        /// </param>
-        /// <typeparam name="T">
-        /// The type to which the argument shall be casted to.
-        /// </typeparam>
-        /// <returns>
-        /// Returns the value of the specified field argument as optional.
-        /// </returns>
-        Optional<T> ArgumentOptional<T>(NameString name);
-
-        /// <summary>
-        /// Gets the value kind of a specific field argument.
-        /// </summary>
-        /// <param name="name">
-        /// The argument name.
-        /// </param>
-        /// <returns>
-        /// Returns the value kind of the specified field argument kind.
-        /// </returns>
-        ValueKind ArgumentKind(NameString name);
 
         /// <summary>
         /// Gets as required service from the dependency injection container.

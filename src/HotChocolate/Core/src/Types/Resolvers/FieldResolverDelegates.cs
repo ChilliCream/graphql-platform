@@ -16,7 +16,7 @@ namespace HotChocolate.Resolvers
         {
             if (pureResolver is not null && resolver is null)
             {
-                resolver = context => new(pureResolver(context, context.Parent<object?>()));
+                resolver = context => new(pureResolver(context));
             }
 
             Resolver = resolver;

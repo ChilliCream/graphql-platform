@@ -4,6 +4,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Properties;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Properties.TypeResources;
@@ -30,21 +31,22 @@ namespace HotChocolate.Types.Introspection
             {
                 Fields =
                 {
-                    new(Names.Name, type: nonNullStringType, inlineResolver: Resolvers.Name),
-                    new(Names.Description, type: stringType, inlineResolver: Resolvers.Description),
-                    new(Names.Type, type: nonNullTypeType, inlineResolver: Resolvers.Type),
+                    new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
+                    new(Names.Description, type: stringType, pureResolver: Resolvers.Description),
+                    new(Names.Type, type: nonNullTypeType, pureResolver: Resolvers.Type),
                     new(Names.DefaultValue,
                         InputValue_DefaultValue,
                         stringType,
-                        inlineResolver: Resolvers.DefaultValue),
+                        pureResolver: Resolvers.DefaultValue),
                 }
             };
 
             if (context.DescriptorContext.Options.EnableDirectiveIntrospection)
             {
-                def.Fields.Add(new(Names.AppliedDirectives,
+                def.Fields.Add(new(
+                    Names.AppliedDirectives,
                     type: appDirectiveListType,
-                    inlineResolver: Resolvers.AppliedDirectives));
+                    pureResolver: Resolvers.AppliedDirectives));
             }
 
             return def;
@@ -52,27 +54,25 @@ namespace HotChocolate.Types.Introspection
 
         private static class Resolvers
         {
-            public static object Name(object? parent)
-                => ((IInputField)parent!).Name.Value;
+            public static object Name(IPureResolverContext context)
+                => context.Parent<IInputField>().Name.Value;
 
-            public static object? Description(object? parent)
-                => ((IInputField)parent!).Description;
+            public static object? Description(IPureResolverContext context)
+                => context.Parent<IInputField>().Description;
 
-            public static object Type(object? parent)
-                => ((IInputField)parent!).Type;
+            public static object Type(IPureResolverContext context)
+                => context.Parent<IInputField>().Type;
 
-            public static object? DefaultValue(object? parent)
+            public static object? DefaultValue(IPureResolverContext context)
             {
-                var field = (IInputField)parent!;
-                return field.DefaultValue.IsNull()
-                    ? null
-                    : field.DefaultValue!.Print();
+                IInputField field = context.Parent<IInputField>();
+                return field.DefaultValue.IsNull() ? null : field.DefaultValue!.Print();
             }
 
-            public static object AppliedDirectives(object? parent)
-                => parent is IHasDirectives hasDirectives
-                    ? hasDirectives.Directives.Where(t => t.Type.IsPublic).Select(d => d.ToNode())
-                    : Enumerable.Empty<DirectiveNode>();
+            public static object AppliedDirectives(IPureResolverContext context)
+                => context.Parent<IHasDirectives>().Directives
+                    .Where(t => t.Type.IsPublic)
+                    .Select(d => d.ToNode());
         }
 
         public static class Names

@@ -19,5 +19,5 @@ namespace HotChocolate.Resolvers
     /// <returns>
     /// Returns the resolver result.
     /// </returns>
-    public delegate object? PureFieldDelegate(IPureResolverContext context, object? parent);
+    public delegate object? PureFieldDelegate(IPureResolverContext context);
 }

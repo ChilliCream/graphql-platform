@@ -1,5 +1,6 @@
 #pragma warning disable IDE1006 // Naming Styles
 using System.Linq;
+using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -36,13 +37,13 @@ namespace HotChocolate.Types.Introspection
                 {
                     new(Names.Kind,
                         type: kindType,
-                        inlineResolver: Resolvers.Kind),
+                        pureResolver: Resolvers.Kind),
                     new(Names.Name,
                         type: stringType,
-                        inlineResolver: Resolvers.Name),
+                        pureResolver: Resolvers.Name),
                     new(Names.Description,
                         type: stringType,
-                        inlineResolver: Resolvers.Description),
+                        pureResolver: Resolvers.Description),
                     new(Names.Fields,
                         type: fieldListType,
                         pureResolver: Resolvers.Fields)
@@ -58,7 +59,7 @@ namespace HotChocolate.Types.Introspection
                     },
                     new(Names.Interfaces,
                         type: typeListType,
-                        inlineResolver:Resolvers.Interfaces),
+                        pureResolver:Resolvers.Interfaces),
                     new(Names.PossibleTypes,
                         type: typeListType,
                         pureResolver: Resolvers.PossibleTypes),
@@ -79,14 +80,14 @@ namespace HotChocolate.Types.Introspection
                     },
                     new(Names.InputFields,
                         type: inputValueListType,
-                        inlineResolver: Resolvers.InputFields),
+                        pureResolver: Resolvers.InputFields),
                     new(Names.OfType,
                         type: typeType,
-                        inlineResolver: Resolvers.OfType),
+                        pureResolver: Resolvers.OfType),
                     new(Names.SpecifiedByUrl,
                         TypeResources.Type_SpecifiedByUrl_Description,
                         stringType,
-                        inlineResolver: Resolvers.SpecifiedBy)
+                        pureResolver: Resolvers.SpecifiedBy)
                 }
             };
 
@@ -102,16 +103,16 @@ namespace HotChocolate.Types.Introspection
 
         private static class Resolvers
         {
-            public static object? Kind(IPureResolverContext context, object? parent)
-                => ((IType)parent!).Kind;
+            public static object? Kind(IPureResolverContext context)
+                => context.Parent<IType>().Kind;
 
-            public static object? Name(IPureResolverContext context, object? parent)
-                => parent is INamedType n ? n.Name.Value : null;
+            public static object? Name(IPureResolverContext context)
+                => context.Parent<IType>() is INamedType n ? n.Name.Value : null;
 
-            public static object? Description(IPureResolverContext context, object? parent)
-                => parent is INamedType n ? n.Description : null;
+            public static object? Description(IPureResolverContext context)
+                => context.Parent<IType>() is INamedType n ? n.Description : null;
 
-            public static object? Fields(IResolverContext context)
+            public static object? Fields(IPureResolverContext context)
             {
                 IType type = context.Parent<IType>();
                 var includeDeprecated = context.ArgumentValue<bool>(Names.IncludeDeprecated);
@@ -123,43 +124,46 @@ namespace HotChocolate.Types.Introspection
                         : ct.Fields.Where(t => !t.IsIntrospectionField);
                 }
 
-                return null;
+                return default;
             }
 
-            public static object? Interfaces(IPureResolverContext context, object? parent)
-                => parent is IComplexOutputType complexType ? complexType.Implements : null;
+            public static object? Interfaces(IPureResolverContext context)
+                => context.Parent<IType>() is IComplexOutputType complexType
+                    ? complexType.Implements
+                    : null;
 
-            public static object? PossibleTypes(IPureResolverContext context, object? parent)
-            {
-                var type = (INamedType)parent!;
-                return type.IsAbstractType() ? context.Schema.GetPossibleTypes(type) : null;
-            }
+            public static object? PossibleTypes(IPureResolverContext context)
+                => context.Parent<IType>() is INamedType nt
+                    ? nt.IsAbstractType()
+                        ? context.Schema.GetPossibleTypes(nt)
+                        : null
+                    : null;
 
-            public static object? EnumValues(IResolverContext context)
+            public static object? EnumValues(IPureResolverContext context)
                 => context.Parent<IType>() is EnumType et
                     ? context.ArgumentValue<bool>(Names.IncludeDeprecated)
                         ? et.Values
                         : et.Values.Where(t => !t.IsDeprecated)
                     : null;
 
-            public static object? InputFields(object? parent)
-                => parent is IInputObjectType iot ? iot.Fields : null;
+            public static object? InputFields(IPureResolverContext context)
+                => context.Parent<IType>() is IInputObjectType iot ? iot.Fields : null;
 
-            public static object? OfType(object? parent)
-                => parent switch
+            public static object? OfType(IPureResolverContext context)
+                => context.Parent<IType>() switch
                 {
                     ListType lt => lt.ElementType,
                     NonNullType nnt => nnt.Type,
                     _ => null
                 };
 
-            public static object? SpecifiedBy(object? parent)
-                => parent is ScalarType scalar
+            public static object? SpecifiedBy(IPureResolverContext context)
+                => context.Parent<IType>() is ScalarType scalar
                     ? scalar.SpecifiedBy?.ToString()
                     : null;
 
-            public static object AppliedDirectives(object? parent) =>
-                parent is IHasDirectives hasDirectives
+            public static object AppliedDirectives(IPureResolverContext context) =>
+                context.Parent<IType>() is IHasDirectives hasDirectives
                     ? hasDirectives.Directives.Where(t => t.Type.IsPublic).Select(d => d.ToNode())
                     : Enumerable.Empty<DirectiveNode>();
         }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing.Tasks
@@ -96,15 +97,13 @@ namespace HotChocolate.Execution.Processing.Tasks
                             buffered = 0;
                         }
 
-                        if (selection.Strategy is SelectionExecutionStrategy.Inline)
+                        if (selection.Strategy is SelectionExecutionStrategy.Pure)
                         {
                             ResolveAndCompleteInline(
                                 operationContext,
                                 resolverContext,
                                 selection,
                                 path.Append(selection.ResponseName),
-                                selection.Field.Type,
-                                selection.ResponseName,
                                 responseIndex++,
                                 result,
                                 resultMap);
@@ -147,9 +146,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             IOperationContext operationContext,
             MiddlewareContext resolverContext,
             ISelection selection,
-            Path path ,
-            IType fieldType ,
-            string responseName,
+            Path path,
             int responseIndex,
             object parent,
             ResultMap resultMap)
@@ -158,19 +155,21 @@ namespace HotChocolate.Execution.Processing.Tasks
 
             try
             {
-                var resolverResult = selection.PureResolver!(resolverContext, parent);
+                IPureResolverContext pureResolverContext =
+                    resolverContext.CreatePureContext(selection, parent);
+                var resolverResult = selection.PureResolver!(pureResolverContext);
 
                 if (ValueCompletion.TryComplete(
                     operationContext,
                     resolverContext,
                     selection,
                     path,
-                    fieldType,
-                    responseName,
+                    selection.Type,
+                    selection.ResponseName,
                     responseIndex,
                     resolverResult,
                     out completedValue) &&
-                    fieldType.Kind is not TypeKind.Scalar and not TypeKind.Enum &&
+                    selection.TypeKind is not TypeKind.Scalar and not TypeKind.Enum &&
                     completedValue is IHasResultDataParent result)
                 {
                     result.Parent = resultMap;

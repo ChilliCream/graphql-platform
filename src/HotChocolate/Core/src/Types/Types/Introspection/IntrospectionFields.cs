@@ -1,5 +1,4 @@
-﻿using HotChocolate.Configuration;
-using HotChocolate.Properties;
+﻿using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -32,8 +31,10 @@ namespace HotChocolate.Types.Introspection
             descriptor
                 .Description(TypeResources.SchemaField_Description)
                 .Type<NonNullType<__Schema>>()
-                .Extend()
-                .OnBeforeCreate(definition => definition.PureResolver = (ctx, _) => ctx.Schema);
+                .Resolve(Resolve);
+
+            static ISchema Resolve(IResolverContext ctx)
+                => ctx.Schema;
 
             return CreateDefinition(descriptor);
         }
@@ -48,7 +49,7 @@ namespace HotChocolate.Types.Introspection
                 .Type<__Type>()
                 .Resolve(Resolve);
 
-            INamedType? Resolve(IResolverContext ctx)
+            static INamedType? Resolve(IResolverContext ctx)
             {
                 var name = ctx.ArgumentValue<string>("name");
                 return ctx.Schema.TryGetType<INamedType>(name, out var type) ? type : null;
@@ -66,7 +67,7 @@ namespace HotChocolate.Types.Introspection
                 .Type<NonNullType<StringType>>()
                 .Resolve(Resolve);
 
-            string Resolve(IResolverContext ctx)
+            static string Resolve(IResolverContext ctx)
                 => ctx.ObjectType.Name.Value;
 
             return CreateDefinition(descriptor);

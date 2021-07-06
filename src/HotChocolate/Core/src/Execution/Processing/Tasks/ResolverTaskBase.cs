@@ -81,19 +81,17 @@ namespace HotChocolate.Execution.Processing.Tasks
                 // we will only try to complete the resolver value if there are no known errors.
                 if (success)
                 {
-                    IType fieldType = _resolverContext.Field.Type;
-
                     if (ValueCompletion.TryComplete(
                         _operationContext,
                         _resolverContext,
                         (ISelection)_resolverContext.Selection,
                         _resolverContext.Path,
-                        fieldType,
+                        _selection.Type,
                         _resolverContext.ResponseName,
                         _resolverContext.ResponseIndex,
                         _resolverContext.Result,
                         out completedValue) &&
-                        fieldType.Kind is not TypeKind.Scalar and not TypeKind.Enum &&
+                        _selection.TypeKind is not TypeKind.Scalar and not TypeKind.Enum &&
                         completedValue is IHasResultDataParent result)
                     {
                         result.Parent = _resolverContext.ResultMap;

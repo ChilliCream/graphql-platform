@@ -116,6 +116,9 @@ namespace HotChocolate.Execution.Processing
         public IType Type => Field.Type;
 
         /// <inheritdoc />
+        public TypeKind TypeKind => Field.Type.Kind;
+
+        /// <inheritdoc />
         public FieldNode SyntaxNode { get; private set; }
 
         public SelectionSetNode? SelectionSet => SyntaxNode.SelectionSet;

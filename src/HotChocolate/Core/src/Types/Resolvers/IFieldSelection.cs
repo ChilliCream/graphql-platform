@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -23,6 +24,11 @@ namespace HotChocolate.Resolvers
         /// Gets the type of the selection.
         /// </summary>
         IType Type { get; }
+
+        /// <summary>
+        /// Gets the type kind of the selection.
+        /// </summary>
+        TypeKind TypeKind { get; }
 
         /// <summary>
         /// Gets the field selection syntax node.
