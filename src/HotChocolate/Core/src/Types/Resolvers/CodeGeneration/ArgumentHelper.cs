@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Threading;
 using GreenDonut;
 using HotChocolate.Language;
+using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
@@ -138,13 +139,13 @@ namespace HotChocolate.Resolvers.CodeGeneration
         {
             if (parameter.ParameterType == typeof(DocumentNode))
             {
-                argumentKind = ArgumentKind.QueryDocument;
+                argumentKind = ArgumentKind.DocumentSyntax;
                 return true;
             }
 
             if (parameter.ParameterType == typeof(OperationDefinitionNode))
             {
-                argumentKind = ArgumentKind.OperationDefinition;
+                argumentKind = ArgumentKind.OperationDefinitionSyntax;
                 return true;
             }
 
@@ -179,8 +180,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             }
 #pragma warning restore CS0612
 
-            if (IsService(parameter)
-                || IsScopedService(parameter))
+            if (IsService(parameter) || IsScopedService(parameter))
             {
                 argumentKind = ArgumentKind.Service;
                 return true;
@@ -234,36 +234,14 @@ namespace HotChocolate.Resolvers.CodeGeneration
             return parameter.IsDefined(typeof(ScopedServiceAttribute));
         }
 
-        internal static bool IsService(ParameterInfo parameter)
-        {
-            if (parameter.IsDefined(typeof(ServiceAttribute)))
-            {
-                return true;
-            }
+        internal static bool IsEventMessage(ParameterInfo parameter)
+            => parameter.IsDefined(typeof(EventMessageAttribute));
 
-            if (parameter.GetCustomAttributesData()
-                .Any(t => t.AttributeType.Name.EqualsOrdinal("FromServicesAttribute")))
-            {
-                return true;
-            }
+        internal static bool IsOutputField(ParameterInfo parameter)
+            => typeof(IOutputField).IsAssignableFrom(parameter.ParameterType);
 
-            return false;
-        }
-
-        internal static bool IsParent(ParameterInfo parameter, Type sourceType)
-        {
-            return parameter.ParameterType.IsAssignableFrom(sourceType)
-                || parameter.IsDefined(typeof(ParentAttribute));
-        }
-
-        internal static bool IsEventMessage(ParameterInfo parameter) =>
-            parameter.IsDefined(typeof(EventMessageAttribute));
-
-        internal static bool IsOutputField(ParameterInfo parameter) =>
-            typeof(IOutputField).IsAssignableFrom(parameter.ParameterType);
-
-        internal static bool IsSchema(ParameterInfo parameter) =>
-            typeof(ISchema).IsAssignableFrom(parameter.ParameterType);
+        internal static bool IsSchema(ParameterInfo parameter)
+            => typeof(ISchema).IsAssignableFrom(parameter.ParameterType);
 
         internal static bool IsStateSetter(Type parameterType)
         {

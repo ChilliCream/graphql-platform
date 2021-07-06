@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Resolvers.CodeGeneration
+﻿namespace HotChocolate.Resolvers.Expressions
 {
     internal enum ArgumentKind
     {
@@ -8,15 +8,16 @@
         Schema,
         ObjectType,
         Field,
-        QueryDocument,
-        OperationDefinition,
+        DocumentSyntax,
+        OperationDefinitionSyntax,
         FieldSyntax,
         FieldSelection,
         Context,
         CancellationToken,
-        CustomContext,
-        DataLoader,
-        DirectiveObject,
-        EventMessage
+        GlobalState,
+        ScopedState,
+        LocalState,
+        EventMessage,
+        Custom
     }
 }

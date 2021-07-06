@@ -720,7 +720,7 @@ namespace HotChocolate.Resolvers.Expressions
                 .Create();
 
             ObjectType queryType = schema.GetType<ObjectType>("Query");
-            
+
             var selection = new Mock<IFieldSelection>();
             selection.SetupGet(t => t.Field).Returns(queryType.Fields.First());
 
@@ -1379,7 +1379,7 @@ namespace HotChocolate.Resolvers.Expressions
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
             context.SetupProperty(t => t.LocalContextData, contextData);
-            object value = await resolver.Resolver(context.Object);
+            var value = await resolver.Resolver(context.Object);
             Assert.Equal("bar", Assert.IsType<string>(value));
         }
 

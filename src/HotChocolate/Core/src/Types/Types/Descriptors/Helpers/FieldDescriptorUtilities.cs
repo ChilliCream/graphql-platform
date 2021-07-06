@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Resolvers.CodeGeneration;
+using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
