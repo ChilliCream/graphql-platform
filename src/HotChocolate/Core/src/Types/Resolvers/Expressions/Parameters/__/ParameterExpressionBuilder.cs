@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -191,6 +192,28 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             => context;
     }
 
+    internal sealed class SchemaParameterExpressionBuilder : IParameterExpressionBuilder
+    {
+        private static readonly PropertyInfo _schema;
+
+        static SchemaParameterExpressionBuilder()
+        {
+            _schema = PureContextType.GetProperty(nameof(IPureResolverContext.Schema))!;
+            Debug.Assert(_schema is not null!, "Schema property is missing." );
+        }
+
+        public ArgumentKind Kind => ArgumentKind.Schema;
+
+        public bool IsPure => true;
+
+        public bool CanHandle(ParameterInfo parameter, Type source)
+            => typeof(ISchema) == parameter.ParameterType ||
+               typeof(Schema) == parameter.ParameterType;
+
+        public Expression Build(ParameterInfo parameter, Type source, Expression context)
+            => Expression.Convert(Expression.Property(context, _schema), parameter.ParameterType);
+    }
+
     internal sealed class GlobalStateParameterExpressionBuilder : IParameterExpressionBuilder
     {
         private static readonly PropertyInfo _contextData =
@@ -209,7 +232,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             typeof(ExpressionHelper)
                 .GetMethod(nameof(ExpressionHelper.SetGlobalStateGeneric))!;
 
-        public ArgumentKind Kind => ArgumentKind.Context;
+        public ArgumentKind Kind => ArgumentKind.GlobalState;
 
         public bool IsPure => true;
 
@@ -231,10 +254,8 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             {
                 return BuildSetter(parameter, key, contextData);
             }
-            else
-            {
-                return BuildGetter(parameter, key, contextData);
-            }
+
+            return BuildGetter(parameter, key, contextData);
         }
 
         private Expression BuildSetter(
