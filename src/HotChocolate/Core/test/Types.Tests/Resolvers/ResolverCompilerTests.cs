@@ -5,14 +5,16 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types;
-using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
+
+#nullable enable
 
 namespace HotChocolate.Resolvers.Expressions
 {
@@ -23,19 +25,16 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember = type.GetMethod(nameof(Resolvers.ObjectTaskResolver));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+            MemberInfo member = type.GetMethod(nameof(Resolvers.ObjectTaskResolver))!;
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-            var result = (string)await resolver.Resolver(context.Object);
+            var result = (string)(await resolver(context.Object))!;
             Assert.Equal("ObjectResolverResult", result);
         }
 
@@ -44,19 +43,16 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember = type.GetMethod(nameof(Resolvers.StringTaskResolver));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+            MemberInfo member = type.GetMethod(nameof(Resolvers.StringTaskResolver))!;
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-            string result = (string)await resolver.Resolver(context.Object);
+            string result = (string)(await resolver(context.Object))!;
             Assert.Equal("StringTaskResolver", result);
         }
 
@@ -65,21 +61,18 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
-                type.GetMethod(nameof(Resolvers.StringTaskResolverWithArg));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+            MemberInfo member = type.GetMethod(nameof(Resolvers.StringTaskResolverWithArg));
+
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
             context.Setup(t => t.ArgumentValue<string>("a")).Returns("abc");
-            var result = (string)await resolver.Resolver(context.Object);
+            var result = (string)(await resolver(context.Object))!;
             Assert.Equal("abc", result);
         }
 
@@ -88,19 +81,17 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember = type.GetMethod(nameof(Resolvers.ObjectResolver));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+            MemberInfo member = type.GetMethod(nameof(Resolvers.ObjectResolver));
+
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-            var result = (string)await resolver.Resolver(context.Object);
+            var result = (string)(await resolver(context.Object))!;
             Assert.Equal("ObjectResolverResult", result);
         }
 
@@ -109,19 +100,17 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember = type.GetMethod(nameof(Resolvers.StringResolver));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+            MemberInfo member = type.GetMethod(nameof(Resolvers.StringResolver));
+
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-            var result = (string)await resolver.Resolver(context.Object);
+            var result = (string)(await resolver(context.Object))!;
             Assert.Equal("StringTaskResolver", result);
         }
 
@@ -130,21 +119,19 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.StringResolverWithArg));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
             context.Setup(t => t.ArgumentValue<string>("a")).Returns("abc");
-            var result = (string)await resolver.Resolver(context.Object);
+            var result = (string)(await resolver(context.Object))!;
             Assert.Equal("abc", result);
         }
 
@@ -153,22 +140,20 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.StringValueNodeResolverWithArg));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
             context.Setup(t => t.ArgumentLiteral<StringValueNode>("a"))
                 .Returns(new StringValueNode("abc"));
-            var result = (string)await resolver.Resolver(context.Object);
+            var result = (string)(await resolver(context.Object))!;
             Assert.Equal("abc", result);
         }
 
@@ -177,22 +162,20 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.OptionalStringResolverWithArg));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
             context.Setup(t => t.ArgumentOptional<string>("a"))
                 .Returns(new Optional<string>("abc"));
-            var result = (string)await resolver.Resolver(context.Object);
+            var result = (string)(await resolver(context.Object))!;
             Assert.Equal("abc", result);
         }
 
@@ -201,20 +184,18 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetProperty("ObjectTaskStringProp");
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-            var result = (string)await resolver.Resolver(context.Object);
+            var result = (string)(await resolver(context.Object))!;
             Assert.Equal("ObjectTaskStringProp", result);
         }
 
@@ -223,20 +204,18 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetProperty("StringTaskResolverProp");
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-            var result = (string)await resolver.Resolver(context.Object);
+            var result = (string)(await resolver(context.Object))!;
             Assert.Equal("StringTaskResolverProp", result);
         }
 
@@ -245,20 +224,18 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetProperty("StringProp");
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
-            var result = (string)await resolver.Resolver(context.Object);
+            var result = (string)(await resolver(context.Object))!;
             Assert.Equal("StringProp", result);
         }
 
@@ -267,20 +244,20 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember = type.GetMethod(nameof(Resolvers.ObjectTaskResolver));
+            MemberInfo member = type.GetMethod(nameof(Resolvers.ObjectTaskResolver));
             var resolverDescriptor = new ResolverDescriptor(
                 typeof(Entity),
                 new FieldMember("A", "b", resolverMember!),
                 resolverType: type);
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Resolver<Resolvers>()).Returns(new Resolvers());
-            var result = (string)await resolver.Resolver(context.Object);
+            var result = (string)(await resolver(context.Object))!;
             Assert.Equal("ObjectResolverResult", result);
         }
 
@@ -289,20 +266,20 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember = type.GetMethod(nameof(Resolvers.StringTaskResolver));
+            MemberInfo member = type.GetMethod(nameof(Resolvers.StringTaskResolver));
             var resolverDescriptor = new ResolverDescriptor(
                 typeof(Entity),
                 new FieldMember("A", "b", resolverMember!),
                 resolverType: type);
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Resolver<Resolvers>()).Returns(new Resolvers());
-            var result = (string)await resolver.Resolver(context.Object);
+            var result = (string)(await resolver(context.Object))!;
             Assert.Equal("StringTaskResolver", result);
         }
 
@@ -311,7 +288,7 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.StringTaskResolverWithArg));
             var resolverDescriptor = new ResolverDescriptor(
                 typeof(Entity),
@@ -319,14 +296,14 @@ namespace HotChocolate.Resolvers.Expressions
                 resolverType: type);
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Resolver<Resolvers>()).Returns(new Resolvers());
             context.Setup(t => t.ArgumentValue<string>("a")).Returns("abc");
-            var result = (string)await resolver.Resolver(context.Object);
+            var result = (string)(await resolver(context.Object))!;
             Assert.Equal("abc", result);
         }
 
@@ -335,20 +312,20 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember = type.GetMethod(nameof(Resolvers.ObjectResolver));
+            MemberInfo member = type.GetMethod(nameof(Resolvers.ObjectResolver));
             var resolverDescriptor = new ResolverDescriptor(
                 typeof(Entity),
                 new FieldMember("A", "b", resolverMember!),
                 resolverType: type);
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Resolver<Resolvers>()).Returns(new Resolvers());
-            var result = (string)await resolver.Resolver(context.Object);
+            var result = (string)(await resolver(context.Object))!;
             Assert.Equal("ObjectResolverResult", result);
         }
 
@@ -357,20 +334,20 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember = type.GetMethod(nameof(Resolvers.StringResolver));
+            MemberInfo member = type.GetMethod(nameof(Resolvers.StringResolver));
             var resolverDescriptor = new ResolverDescriptor(
                 typeof(Entity),
                 new FieldMember("A", "b", resolverMember!),
                 type);
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Resolver<Resolvers>()).Returns(new Resolvers());
-            var result = (string)await resolver.Resolver(context.Object);
+            var result = (string)(await resolver(context.Object))!;
             Assert.Equal("StringTaskResolver", result);
         }
 
@@ -379,7 +356,7 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.StringResolverWithArg));
             var resolverDescriptor = new ResolverDescriptor(
                 typeof(Entity),
@@ -387,14 +364,14 @@ namespace HotChocolate.Resolvers.Expressions
                 type);
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Resolver<Resolvers>()).Returns(new Resolvers());
             context.Setup(t => t.ArgumentValue<string>("a")).Returns("abc");
-            var result = (string)await resolver.Resolver(context.Object);
+            var result = (string)(await resolver(context.Object))!;
             Assert.Equal("abc", result);
         }
 
@@ -403,7 +380,7 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetProperty("ObjectTaskStringProp");
             var resolverDescriptor = new ResolverDescriptor(
                 typeof(Entity),
@@ -411,13 +388,13 @@ namespace HotChocolate.Resolvers.Expressions
                 resolverType: type);
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Resolver<Resolvers>()).Returns(new Resolvers());
-            var result = (string)await resolver.Resolver(context.Object);
+            var result = (string)(await resolver(context.Object))!;
             Assert.Equal("ObjectTaskStringProp", result);
         }
 
@@ -426,7 +403,7 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetProperty("StringTaskResolverProp");
             var resolverDescriptor = new ResolverDescriptor(
                 typeof(Entity),
@@ -434,13 +411,13 @@ namespace HotChocolate.Resolvers.Expressions
                 resolverType: type);
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Resolver<Resolvers>()).Returns(new Resolvers());
-            var result = (string)await resolver.Resolver(context.Object);
+            var result = (string)(await resolver(context.Object))!;
             Assert.Equal("StringTaskResolverProp", result);
         }
 
@@ -449,7 +426,7 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetProperty("StringProp");
             var resolverDescriptor = new ResolverDescriptor(
                 typeof(Entity),
@@ -457,13 +434,13 @@ namespace HotChocolate.Resolvers.Expressions
                 resolverType: type);
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Resolver<Resolvers>()).Returns(new Resolvers());
-            var result = (string)await resolver.Resolver(context.Object);
+            var result = (string)(await resolver(context.Object))!;
             Assert.Equal("StringProp", result);
         }
 
@@ -472,21 +449,19 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.ResolverWithCancellationToken));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
             context.SetupGet(t => t.RequestAborted).Returns(CancellationToken.None);
-            var result = (string)await resolver.Resolver(context.Object);
+            var result = (string)(await resolver(context.Object))!;
             Assert.Equal("cancel", result);
         }
 
@@ -495,15 +470,13 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.ResolverWithResolverContext));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
@@ -517,14 +490,12 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember = type.GetMethod(nameof(Resolvers.ResolverWithFieldSelection));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+            MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithFieldSelection));
+
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var selection = new Mock<IFieldSelection>();
@@ -542,14 +513,12 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember = type.GetMethod(nameof(Resolvers.ResolverWithSelection));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+            MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithSelection));
+
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var selection = new Mock<ISelection>();
@@ -570,14 +539,12 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember = type.GetMethod(nameof(Resolvers.ResolverWithFieldSyntax));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+            MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithFieldSyntax));
+
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var fieldSyntax = new FieldNode(
@@ -607,15 +574,13 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.ResolverWithObjectType));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             ISchema schema = SchemaBuilder.New()
@@ -636,15 +601,13 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.ResolverWithOperationDefinition));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
@@ -669,15 +632,13 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.ResolverWithObjectField));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             ISchema schema = SchemaBuilder.New()
@@ -703,15 +664,13 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.ResolverWithOutputField));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             ISchema schema = SchemaBuilder.New()
@@ -737,15 +696,13 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.ResolverWithDocument));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var document = new DocumentNode(Array.Empty<IDefinitionNode>());
@@ -761,15 +718,13 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.ResolverWithSchema));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             ISchema schema = SchemaBuilder.New()
@@ -789,15 +744,13 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.ResolverWithService));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
@@ -812,25 +765,23 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.ResolveWithContextData));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             var contextData = new Dictionary<string, object>
             {
                 { "foo", "bar"}
             };
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
             context.Setup(t => t.ContextData).Returns(contextData);
-            var result = (string)await resolver.Resolver(context.Object);
+            var result = (string)(await resolver(context.Object))!;
             Assert.Equal("bar", result);
         }
 
@@ -839,16 +790,14 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.ResolveWithContextDataDefault));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             var contextData = new Dictionary<string, object>();
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
@@ -863,16 +812,14 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.ResolveWithContextData));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             var contextData = new Dictionary<string, object>();
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
@@ -887,23 +834,21 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.ResolveWithScopedContextData));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             ImmutableDictionary<string, object> contextData =
                 ImmutableDictionary<string, object>.Empty.SetItem("foo", "bar");
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
             context.Setup(t => t.ScopedContextData).Returns(contextData);
-            var result = (string)await resolver.Resolver(context.Object);
+            var result = (string)(await resolver(context.Object))!;
             Assert.Equal("bar", result);
         }
 
@@ -912,17 +857,15 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.ResolveWithScopedContextDataDefault));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             ImmutableDictionary<string, object> contextData =
                 ImmutableDictionary<string, object>.Empty;
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
@@ -937,17 +880,15 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.ResolveWithScopedContextData));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             ImmutableDictionary<string, object> contextData =
                 ImmutableDictionary<string, object>.Empty;
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompilerService(new IParameterExpressionBuilder[0]);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
@@ -962,11 +903,9 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.GetGlobalStateWithKey));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             var contextData = new Dictionary<string, object>
             {
                 { "foo", "bar" }
@@ -988,11 +927,9 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.GetGlobalState));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             var contextData = new Dictionary<string, object>
             {
                 { "foo", "bar" }
@@ -1014,11 +951,9 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.GetGlobalState));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             var contextData = new Dictionary<string, object>();
 
             // act
@@ -1037,11 +972,9 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.GetGlobalStateWithDefaultAbc));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             var contextData = new Dictionary<string, object>();
 
             // act
@@ -1060,11 +993,9 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.GetGlobalStateWithDefault));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             var contextData = new Dictionary<string, object>();
 
             // act
@@ -1083,11 +1014,9 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.GetGlobalStateNullable));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             var contextData = new Dictionary<string, object>();
 
             // act
@@ -1106,11 +1035,9 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.SetGlobalState));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             var contextData = new Dictionary<string, object>();
 
             // act
@@ -1131,11 +1058,9 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.SetGlobalStateGeneric));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             var contextData = new Dictionary<string, object>();
 
             // act
@@ -1156,11 +1081,9 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.GetScopedStateWithKey));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             var contextData = new Dictionary<string, object>
             {
                 { "foo", "bar" }
@@ -1182,11 +1105,9 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.GetScopedState));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             var contextData = new Dictionary<string, object>
             {
                 { "foo", "bar" }
@@ -1208,11 +1129,9 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.GetScopedState));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             var contextData = ImmutableDictionary<string, object>.Empty;
 
             // act
@@ -1231,11 +1150,9 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.GetScopedStateWithDefaultAbc));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             ImmutableDictionary<string, object> contextData =
                 ImmutableDictionary<string, object>.Empty;
 
@@ -1255,11 +1172,9 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.GetScopedStateWithDefault));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             ImmutableDictionary<string, object> contextData =
                 ImmutableDictionary<string, object>.Empty;
 
@@ -1279,11 +1194,9 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.GetScopedStateNullable));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             ImmutableDictionary<string, object> contextData =
                 ImmutableDictionary<string, object>.Empty;
 
@@ -1306,11 +1219,9 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.SetScopedState));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             ImmutableDictionary<string, object> contextData =
                 ImmutableDictionary<string, object>.Empty;
 
@@ -1334,11 +1245,9 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.SetScopedStateGeneric));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             ImmutableDictionary<string, object> contextData =
                 ImmutableDictionary<string, object>.Empty;
 
@@ -1362,11 +1271,9 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.GetLocalStateWithKey));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             var contextData = new Dictionary<string, object>
             {
                 { "foo", "bar" }
@@ -1388,11 +1295,9 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.GetLocalState));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             var contextData = new Dictionary<string, object>
             {
                 { "foo", "bar" }
@@ -1414,11 +1319,9 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.GetLocalState));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             var contextData = ImmutableDictionary<string, object>.Empty;
 
             // act
@@ -1437,11 +1340,9 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.GetLocalStateWithDefaultAbc));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             var contextData = ImmutableDictionary<string, object>.Empty;
 
             // act
@@ -1460,11 +1361,9 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.GetLocalStateWithDefault));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             var contextData = ImmutableDictionary<string, object>.Empty;
 
             // act
@@ -1483,11 +1382,9 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.SetLocalState));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             ImmutableDictionary<string, object> contextData =
                 ImmutableDictionary<string, object>.Empty;
 
@@ -1511,11 +1408,9 @@ namespace HotChocolate.Resolvers.Expressions
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
+            MemberInfo member =
                 type.GetMethod(nameof(Resolvers.SetLocalStateGeneric));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+
             ImmutableDictionary<string, object> contextData =
                 ImmutableDictionary<string, object>.Empty;
 
