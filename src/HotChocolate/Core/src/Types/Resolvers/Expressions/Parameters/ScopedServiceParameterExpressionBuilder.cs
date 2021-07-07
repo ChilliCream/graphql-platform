@@ -17,7 +17,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         private static readonly MethodInfo _getScopedState =
             typeof(ExpressionHelper).GetMethod(
                 nameof(ExpressionHelper.GetScopedState))!;
-                
+
         private static readonly MethodInfo _getScopedStateWithDefault =
             typeof(ExpressionHelper).GetMethod(
                 nameof(ExpressionHelper.GetScopedStateWithDefault))!;
@@ -26,10 +26,10 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
         public bool IsPure => false;
 
-        public virtual bool CanHandle(ParameterInfo parameter, Type source)
+        public virtual bool CanHandle(ParameterInfo parameter)
             => parameter.IsDefined(typeof(ScopedStateAttribute));
 
-        public Expression Build(ParameterInfo parameter, Type source, Expression context)
+        public Expression Build(ParameterInfo parameter, Expression context)
         {
             ConstantExpression key = Expression.Constant(
                 parameter.ParameterType.FullName ?? parameter.ParameterType.Name,

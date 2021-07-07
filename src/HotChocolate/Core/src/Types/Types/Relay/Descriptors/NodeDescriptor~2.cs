@@ -3,7 +3,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 
@@ -48,7 +47,7 @@ namespace HotChocolate.Types.Relay.Descriptors
             {
                 if (ctx.LocalContextData.TryGetValue(
                     WellKnownContextData.InternalId,
-                    out object? o) && o is TId id)
+                    out var o) && o is TId id)
                 {
                     return await fieldResolver(ctx, id).ConfigureAwait(false);
                 }
@@ -68,12 +67,8 @@ namespace HotChocolate.Types.Relay.Descriptors
 
             if (member is MethodInfo m)
             {
-                FieldResolver resolver =
-                    ResolverCompiler.Resolve.Compile(
-                        new ResolverDescriptor(
-                            typeof(object),
-                            new FieldMember("_", "_", m),
-                            resolverType: typeof(TResolver)));
+                FieldResolverDelegates resolver =
+                    Context.ResolverCompiler.CompileResolve(m, typeof(object), typeof(TResolver));
                 return ResolveNode(resolver.Resolver);
             }
 
@@ -90,12 +85,11 @@ namespace HotChocolate.Types.Relay.Descriptors
                 throw new ArgumentNullException(nameof(method));
             }
 
-            FieldResolver resolver =
-                ResolverCompiler.Resolve.Compile(
-                    new ResolverDescriptor(
-                        typeof(object),
-                        new FieldMember("_", "_", method),
-                        resolverType: method.DeclaringType ?? typeof(object)));
+            FieldResolverDelegates resolver =
+                Context.ResolverCompiler.CompileResolve(
+                    method,
+                    typeof(object),
+                    method.DeclaringType ?? typeof(object));
             return ResolveNode(resolver.Resolver);
         }
 

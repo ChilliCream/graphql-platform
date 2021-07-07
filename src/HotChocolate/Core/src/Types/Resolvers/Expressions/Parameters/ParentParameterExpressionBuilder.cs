@@ -33,10 +33,10 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
         public bool IsPure => true;
 
-        public bool CanHandle(ParameterInfo parameter, Type source)
+        public bool CanHandle(ParameterInfo parameter)
             => parameter.IsDefined(typeof(ParentAttribute));
 
-        public Expression Build(ParameterInfo parameter, Type source, Expression context)
+        public Expression Build(ParameterInfo parameter, Expression context)
         {
             Type parameterType = parameter.ParameterType;
             MethodInfo argumentMethod = _getParentMethod.MakeGenericMethod(parameterType);

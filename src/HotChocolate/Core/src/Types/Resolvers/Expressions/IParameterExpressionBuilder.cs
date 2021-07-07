@@ -35,7 +35,7 @@ namespace HotChocolate.Resolvers.Expressions
         /// <c>true</c> if the parameter can be handled by this expression builder;
         /// otherwise <c>false</c>.
         /// </returns>
-        bool CanHandle(ParameterInfo parameter, Type source);
+        bool CanHandle(ParameterInfo parameter);
 
         /// <summary>
         /// Builds an expression that resolves a resolver parameter.
@@ -52,6 +52,6 @@ namespace HotChocolate.Resolvers.Expressions
         /// <returns>
         /// Returns an expression that resolves the value for this <paramref name="parameter"/>.
         /// </returns>
-        Expression Build(ParameterInfo parameter, Type source, Expression context);
+        Expression Build(ParameterInfo parameter, Expression context);
     }
 }

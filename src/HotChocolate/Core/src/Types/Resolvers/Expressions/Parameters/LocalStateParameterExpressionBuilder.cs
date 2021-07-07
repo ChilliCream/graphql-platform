@@ -22,7 +22,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             typeof(ExpressionHelper)
                 .GetMethod(nameof(ExpressionHelper.SetLocalStateGeneric))!;
 
-        public override bool CanHandle(ParameterInfo parameter, Type source)
+        public override bool CanHandle(ParameterInfo parameter)
             => parameter.IsDefined(typeof(LocalStateAttribute));
 
         protected override string? GetKey(ParameterInfo parameter)

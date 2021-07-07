@@ -32,10 +32,10 @@ namespace HotChocolate.Internal
         bool IParameterExpressionBuilder.IsPure
             => _internalBuilder.IsPure;
 
-        public bool CanHandle(ParameterInfo parameter, Type source)
+        public bool CanHandle(ParameterInfo parameter)
             => _serviceType == parameter.ParameterType;
 
-        public Expression Build(ParameterInfo parameter, Type source, Expression context)
-            => _internalBuilder.Build(parameter, source, context);
+        public Expression Build(ParameterInfo parameter, Expression context)
+            => _internalBuilder.Build(parameter, context);
     }
 }

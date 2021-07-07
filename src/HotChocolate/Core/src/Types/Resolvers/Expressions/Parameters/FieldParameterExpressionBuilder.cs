@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Types;
@@ -17,12 +16,12 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
         public override ArgumentKind Kind => ArgumentKind.Field;
 
-        public override bool CanHandle(ParameterInfo parameter, Type source)
+        public override bool CanHandle(ParameterInfo parameter)
             => typeof(IOutputField).IsAssignableFrom(parameter.ParameterType);
 
-        public override Expression Build(ParameterInfo parameter, Type source, Expression context)
+        public override Expression Build(ParameterInfo parameter, Expression context)
         {
-            Expression expression = base.Build(parameter, source, context);
+            Expression expression = base.Build(parameter, context);
 
             return parameter.ParameterType != typeof(IOutputField)
                 ? Expression.Convert(expression, parameter.ParameterType)

@@ -25,9 +25,9 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
         public bool IsPure { get; }
 
-        public abstract bool CanHandle(ParameterInfo parameter, Type source);
+        public abstract bool CanHandle(ParameterInfo parameter);
 
-        public virtual Expression Build(ParameterInfo parameter, Type source, Expression context)
+        public virtual Expression Build(ParameterInfo parameter, Expression context)
             => CreateInvokeExpression(context);
 
         private InvocationExpression CreateInvokeExpression(Expression context)

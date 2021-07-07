@@ -12,10 +12,10 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
         public bool IsPure => false;
 
-        public bool CanHandle(ParameterInfo parameter, Type source)
+        public bool CanHandle(ParameterInfo parameter)
             => typeof(IResolverContext) == parameter.ParameterType;
 
-        public Expression Build(ParameterInfo parameter, Type source, Expression context)
+        public Expression Build(ParameterInfo parameter, Expression context)
             => context;
     }
 }

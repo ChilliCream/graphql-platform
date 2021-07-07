@@ -104,8 +104,6 @@ namespace HotChocolate.Resolvers
         /// <returns>
         /// Returns only the parameters representing GraphQL field arguments.
         /// </returns>
-        IEnumerable<ParameterInfo> GetArgumentParameters(
-            ParameterInfo[] parameters,
-            Type sourceType);
+        IEnumerable<ParameterInfo> GetArgumentParameters(ParameterInfo[] parameters);
     }
 }

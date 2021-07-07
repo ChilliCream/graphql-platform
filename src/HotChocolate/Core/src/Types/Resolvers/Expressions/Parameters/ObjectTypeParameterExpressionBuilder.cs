@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Types;
@@ -17,13 +16,13 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
         public override ArgumentKind Kind => ArgumentKind.ObjectType;
 
-        public override bool CanHandle(ParameterInfo parameter, Type source)
+        public override bool CanHandle(ParameterInfo parameter)
             => typeof(ObjectType) == parameter.ParameterType ||
                typeof(IObjectType) == parameter.ParameterType;
 
-        public override Expression Build(ParameterInfo parameter, Type source, Expression context)
+        public override Expression Build(ParameterInfo parameter, Expression context)
         {
-            Expression expression = base.Build(parameter, source, context);
+            Expression expression = base.Build(parameter, context);
 
             return parameter.ParameterType == typeof(ObjectType)
                 ? Expression.Convert(expression, typeof(ObjectType))

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
+using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
@@ -43,7 +44,8 @@ namespace HotChocolate.Types.Descriptors
             ContextData = contextData;
             SchemaInterceptor = schemaInterceptor;
             TypeInterceptor = typeInterceptor;
-            ResolverCompiler = new DefaultResolverCompilerService();
+            ResolverCompiler = new DefaultResolverCompilerService(
+                services.GetServices<IParameterExpressionBuilder>());
 
             schema.Completed += OnSchemaOnCompleted;
 
@@ -205,6 +207,11 @@ namespace HotChocolate.Types.Descriptors
                     extensionConvention.Complete(context);
                 }
             }
+        }
+
+        public void Dispose()
+        {
+            ResolverCompiler.Dispose();
         }
 
         internal static DescriptorContext Create(

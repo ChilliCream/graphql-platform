@@ -6,16 +6,17 @@ using System.Reflection;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
-    internal sealed class PureResolverContextParameterExpressionBuilder : IParameterExpressionBuilder
+    internal sealed class PureResolverContextParameterExpressionBuilder
+        : IParameterExpressionBuilder
     {
         public ArgumentKind Kind => ArgumentKind.Context;
 
         public bool IsPure => true;
 
-        public bool CanHandle(ParameterInfo parameter, Type source)
+        public bool CanHandle(ParameterInfo parameter)
             => typeof(IPureResolverContext) == parameter.ParameterType;
 
-        public Expression Build(ParameterInfo parameter, Type source, Expression context)
+        public Expression Build(ParameterInfo parameter, Expression context)
             => context;
     }
 }

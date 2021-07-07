@@ -48,10 +48,10 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
         public bool IsPure => true;
 
-        public virtual bool CanHandle(ParameterInfo parameter, Type source)
+        public virtual bool CanHandle(ParameterInfo parameter)
             => parameter.IsDefined(typeof(ArgumentAttribute));
 
-        public Expression Build(ParameterInfo parameter, Type source, Expression context)
+        public Expression Build(ParameterInfo parameter, Expression context)
         {
             string name = parameter.IsDefined(typeof(ArgumentAttribute))
                 ? parameter.GetCustomAttribute<ArgumentAttribute>()!.Name ?? parameter.Name!

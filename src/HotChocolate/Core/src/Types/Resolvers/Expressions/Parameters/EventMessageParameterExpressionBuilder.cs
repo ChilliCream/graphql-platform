@@ -18,11 +18,11 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
         public override ArgumentKind Kind => ArgumentKind.EventMessage;
 
-        public override bool CanHandle(ParameterInfo parameter, Type source)
+        public override bool CanHandle(ParameterInfo parameter)
             => parameter.IsDefined(typeof(EventMessageAttribute));
 
-        public override Expression Build(ParameterInfo parameter, Type source, Expression context)
-            => Expression.Convert(base.Build(parameter, source, context), parameter.ParameterType);
+        public override Expression Build(ParameterInfo parameter, Expression context)
+            => Expression.Convert(base.Build(parameter, context), parameter.ParameterType);
 
         private static object GetEventMessage(IImmutableDictionary<string, object?> contextData)
         {

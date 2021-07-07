@@ -33,10 +33,10 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
         public bool IsPure => false;
 
-        public virtual bool CanHandle(ParameterInfo parameter, Type source)
+        public virtual bool CanHandle(ParameterInfo parameter)
             => parameter.IsDefined(typeof(ScopedStateAttribute));
 
-        public Expression Build(ParameterInfo parameter, Type source, Expression context)
+        public Expression Build(ParameterInfo parameter, Expression context)
         {
             var key = GetKey(parameter);
 

@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -23,10 +22,10 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
         public bool IsPure => false;
 
-        public bool CanHandle(ParameterInfo parameter, Type source)
+        public bool CanHandle(ParameterInfo parameter)
             => typeof(DocumentNode) == parameter.ParameterType;
 
-        public Expression Build(ParameterInfo parameter, Type source, Expression context)
+        public Expression Build(ParameterInfo parameter, Expression context)
             => Expression.Property(context, _document);
     }
 }

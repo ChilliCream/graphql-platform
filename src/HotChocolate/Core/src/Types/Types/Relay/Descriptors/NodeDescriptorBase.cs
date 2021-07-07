@@ -66,12 +66,11 @@ namespace HotChocolate.Types.Relay.Descriptors
 
             if (member is MethodInfo m)
             {
-                FieldResolver resolver =
-                    ResolverCompiler.Resolve.Compile(
-                        new ResolverDescriptor(
-                            typeof(object),
-                            new FieldMember("_", "_", m),
-                            resolverType: typeof(TResolver)));
+                FieldResolverDelegates resolver =
+                    Context.ResolverCompiler.CompileResolve(
+                        m,
+                        typeof(object),
+                        typeof(TResolver));
                 return ResolveNode(resolver.Resolver);
             }
 

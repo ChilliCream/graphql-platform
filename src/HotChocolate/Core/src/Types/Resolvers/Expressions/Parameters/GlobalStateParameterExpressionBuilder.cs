@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -31,10 +30,10 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
         public bool IsPure => true;
 
-        public bool CanHandle(ParameterInfo parameter, Type source)
+        public bool CanHandle(ParameterInfo parameter)
             => parameter.IsDefined(typeof(GlobalStateAttribute));
 
-        public Expression Build(ParameterInfo parameter, Type source, Expression context)
+        public Expression Build(ParameterInfo parameter, Expression context)
         {
             GlobalStateAttribute attribute = parameter.GetCustomAttribute<GlobalStateAttribute>()!;
 

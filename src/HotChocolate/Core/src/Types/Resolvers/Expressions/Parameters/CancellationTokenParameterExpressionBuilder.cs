@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -19,14 +18,14 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             Debug.Assert(_cancellationToken is not null!, "RequestAborted property is missing." );
         }
 
-        public ArgumentKind Kind => ArgumentKind.DocumentSyntax;
+        public ArgumentKind Kind => ArgumentKind.CancellationToken;
 
         public bool IsPure => false;
 
-        public bool CanHandle(ParameterInfo parameter, Type source)
+        public bool CanHandle(ParameterInfo parameter)
             => typeof(CancellationToken) == parameter.ParameterType;
 
-        public Expression Build(ParameterInfo parameter, Type source, Expression context)
+        public Expression Build(ParameterInfo parameter, Expression context)
             => Expression.Property(context, _cancellationToken);
     }
 }

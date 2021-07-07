@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using HotChocolate.Language;
 
@@ -16,7 +15,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
         public override ArgumentKind Kind => ArgumentKind.FieldSyntax;
 
-        public override bool CanHandle(ParameterInfo parameter, Type source)
+        public override bool CanHandle(ParameterInfo parameter)
             => typeof(FieldNode) == parameter.ParameterType;
     }
 }
