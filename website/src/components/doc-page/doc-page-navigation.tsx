@@ -341,8 +341,8 @@ const ProductSwitcherButton = styled.button`
   flex: 0 0 auto;
   flex-direction: row;
   align-items: center;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  border: 1px solid var(--box-border-color);
+  border-radius: var(--border-radius);
   padding: 7px 10px;
   height: 38px;
   font-size: 0.833em;
@@ -353,12 +353,12 @@ const ProductSwitcherButton = styled.button`
     padding-left: 6px;
 
     > svg {
-      fill: #666;
+      fill: var(--text-color);
     }
   }
 
   :hover:enabled {
-    background-color: #ddd;
+    background-color: var(--box-highlight-color);
   }
 
   :disabled {
@@ -387,7 +387,7 @@ const ProductSwitcherDialog = styled.div<{ open: boolean }>`
   flex: 1 1 100%;
   flex-direction: column;
   padding: 0 10px;
-  background-color: #fff;
+  background-color: var(--text-color-contrast);
 
   @media only screen and (min-width: 1070px) {
     top: 135px;
@@ -395,7 +395,7 @@ const ProductSwitcherDialog = styled.div<{ open: boolean }>`
     z-index: 10;
     flex-direction: row;
     flex-wrap: wrap;
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     padding: 10px;
     width: 700px;
     height: initial;
@@ -407,10 +407,10 @@ const ProductVersionDialog = styled.div<{ open: boolean }>`
   display: ${({ open }) => (open ? "flex" : "none")};
   flex-direction: column;
   padding: 10px;
-  background-color: #fff;
+  background-color: var(--text-color-contrast);
   position: absolute;
-  border-radius: 5px;
-  border: 1px solid #ccc;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--box-border-color);
   top: 110px;
   right: 14px;
 
@@ -430,12 +430,12 @@ interface LinkProperties {
 
 const ProductLink = styled(Link)<LinkProperties>`
   flex: 0 0 auto;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  border: 1px solid var(--box-border-color);
+  border-radius: var(--border-radius);
   margin: 5px;
   padding: 10px;
   font-size: 0.833em;
-  color: #666;
+  color: var(--text-color);
   cursor: pointer;
 
   @media only screen and (min-width: 1070px) {
@@ -444,23 +444,23 @@ const ProductLink = styled(Link)<LinkProperties>`
 
   transition: background-color 0.2s ease-in-out;
 
-  ${({ active }) => active && `background-color: #ddd;`}
+  ${({ active }) => active && `background-color: var(--box-highlight-color);`}
 
   :hover {
-    background-color: #ddd;
+    background-color: var(--box-highlight-color);
   }
 `;
 
 const VersionLink = styled(Link)`
   font-size: 0.833em;
-  color: #666;
+  color: var(--text-color);
   cursor: pointer;
   padding: 6px 9px;
   transition: background-color 0.2s ease-in-out;
-  border-radius: 5px;
+  border-radius: var(--border-radius);
 
   :hover {
-    background-color: #ddd;
+    background-color: var(--box-highlight-color);
   }
 `;
 
@@ -513,19 +513,19 @@ const NavigationGroup = styled.div<{ expanded: boolean }>`
 
     > .arrow-down {
       display: ${({ expanded }) => (expanded ? "none" : "initial")};
-      fill: #666;
+      fill: var(--text-color);
     }
 
     > .arrow-up {
       display: ${({ expanded }) => (expanded ? "initial" : "none")};
-      fill: #666;
+      fill: var(--text-color);
     }
   }
 `;
 
 const NavigationLink = styled(Link)`
   font-size: 0.833em;
-  color: #666;
+  color: var(--text-color);
 
   :hover {
     color: #000;

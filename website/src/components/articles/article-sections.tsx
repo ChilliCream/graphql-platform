@@ -21,9 +21,10 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
 }) => {
   const dispatch = useDispatch();
 
-  const tocItems = useMemo(() => getTocItemsFromHeadings(data.headings), [
-    data.headings,
-  ]);
+  const tocItems = useMemo(
+    () => getTocItemsFromHeadings(data.headings),
+    [data.headings]
+  );
 
   const activeHeadingLink = useActiveHeadingLink(tocItems);
 
@@ -116,7 +117,7 @@ const TocItemContainer = styled.ul`
 
 const TocLink = styled((props) => <Link {...props} />)`
   font-size: 0.833em;
-  color: #666;
+  color: var(--text-color);
 
   :hover {
     color: #000;

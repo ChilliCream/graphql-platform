@@ -272,7 +272,7 @@ const ResponsiveMenu = styled.div`
   width: 820px;
   height: 60px;
   padding: 0 20px;
-  border-radius: 4px 4px 0 0;
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
   background: linear-gradient(
     180deg,
     #ffffff 30%,
@@ -314,7 +314,7 @@ const Button = styled.button`
   display: flex;
   flex-direction: row;
   align-items: center;
-  color: #666;
+  color: var(--text-color);
   transition: color 0.2s ease-in-out;
 
   &.aside-toggle {
@@ -333,15 +333,15 @@ const Button = styled.button`
     margin-right: 5px;
     width: 16px;
     height: 16px;
-    fill: #666;
+    fill: var(--text-color);
     transition: fill 0.2s ease-in-out;
   }
 `;
 
 const OutdatedDocumentationWarning = styled.div`
   padding: 20px 20px;
-  background-color: #ffba00;
-  color: #fff;
+  background-color: var(--warning-color);
+  color: var(--text-color-contrast);
   line-height: 1.4;
 
   > br {

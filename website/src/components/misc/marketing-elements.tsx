@@ -119,7 +119,7 @@ export const EnvelopeIcon = styled(EnvelopeIconSvg)`
   width: 24px;
   height: 24px;
   vertical-align: middle;
-  fill: #666;
+  fill: var(--text-color);
 
   &:hover {
     fill: #000;
@@ -130,7 +130,7 @@ export const SlackIcon = styled(SlackIconSvg)`
   width: 24px;
   height: 24px;
   vertical-align: middle;
-  fill: #666;
+  fill: var(--text-color);
 
   &:hover {
     fill: #000;
