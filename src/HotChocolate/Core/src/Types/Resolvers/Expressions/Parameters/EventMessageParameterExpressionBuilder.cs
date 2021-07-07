@@ -1,0 +1,38 @@
+using System;
+using System.Collections.Immutable;
+using System.Linq.Expressions;
+using System.Reflection;
+using static HotChocolate.Properties.TypeResources;
+
+#nullable enable
+
+namespace HotChocolate.Resolvers.Expressions.Parameters
+{
+    internal sealed class EventMessageParameterExpressionBuilder
+        : LambdaParameterExpressionBuilder<IResolverContext, object>
+    {
+        public EventMessageParameterExpressionBuilder()
+            : base(ctx => GetEventMessage(ctx.ScopedContextData))
+        {
+        }
+
+        public override ArgumentKind Kind => ArgumentKind.EventMessage;
+
+        public override bool CanHandle(ParameterInfo parameter, Type source)
+            => parameter.IsDefined(typeof(EventMessageAttribute));
+
+        public override Expression Build(ParameterInfo parameter, Type source, Expression context)
+            => Expression.Convert(base.Build(parameter, source, context), parameter.ParameterType);
+
+        private static object GetEventMessage(IImmutableDictionary<string, object?> contextData)
+        {
+            if (!contextData.TryGetKey(WellKnownContextData.EventMessage, out var message))
+            {
+                throw new InvalidOperationException(
+                    EventMessageParameterExpressionBuilder_MessageNotFound);
+            }
+
+            return message;
+        }
+    }
+}
