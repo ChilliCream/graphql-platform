@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -22,9 +21,7 @@ namespace HotChocolate
         private readonly List<FieldMiddleware> _globalComponents = new();
         private readonly List<LoadSchemaDocument> _documents = new();
         private readonly List<CreateRef> _types = new();
-        private readonly List<Type> _resolverTypes = new();
         private readonly Dictionary<OperationType, CreateRef> _operations = new();
-        private readonly Dictionary<FieldReference, FieldResolver> _resolvers = new();
         private readonly Dictionary<(Type, string), List<CreateConvention>> _conventions = new();
         private readonly Dictionary<Type, (CreateRef, CreateRef)> _clrTypes = new();
         private readonly List<object> _schemaInterceptors = new();
@@ -140,14 +137,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (type.IsDefined(typeof(GraphQLResolverOfAttribute), true))
-            {
-                AddResolverType(type);
-            }
-            else
-            {
-                _types.Add(ti => ti.GetTypeRef(type));
-            }
+            _types.Add(ti => ti.GetTypeRef(type));
 
             return this;
         }
@@ -221,26 +211,6 @@ namespace HotChocolate
                 ti => ti.GetTypeRef(schemaType, context));
 
             return this;
-        }
-
-        private void AddResolverType(Type type)
-        {
-            GraphQLResolverOfAttribute attribute =
-                type.GetCustomAttribute<GraphQLResolverOfAttribute>(true);
-
-            _resolverTypes.Add(type);
-
-            if (attribute?.Types != null)
-            {
-                foreach (Type schemaType in attribute.Types)
-                {
-                    if (typeof(ObjectType).IsAssignableFrom(schemaType) &&
-                        schemaType.IsSchemaType())
-                    {
-                        _types.Add(ti => ti.GetTypeRef(schemaType));
-                    }
-                }
-            }
         }
 
         public ISchemaBuilder AddType(INamedType type)
@@ -342,17 +312,6 @@ namespace HotChocolate
             SchemaTypeReference reference = TypeReference.Create(type);
             _operations.Add(operation, _ => reference);
             _types.Add(_ => reference);
-            return this;
-        }
-
-        public ISchemaBuilder AddResolver(FieldResolver fieldResolver)
-        {
-            if (fieldResolver is null)
-            {
-                throw new ArgumentNullException(nameof(fieldResolver));
-            }
-
-            _resolvers.Add(fieldResolver.ToFieldReference(), fieldResolver);
             return this;
         }
 

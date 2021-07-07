@@ -162,28 +162,14 @@ namespace HotChocolate.Types
             var isIntrospectionField = IsIntrospectionField || DeclaringType.IsIntrospectionType();
             IReadOnlyList<FieldMiddleware> fieldComponents = definition.GetMiddlewareComponents();
             IReadOnlySchemaOptions options = context.DescriptorContext.Options;
-            NameString typeName = context.Type.Name;
 
             var skipMiddleware =
                 options.FieldMiddleware != FieldMiddlewareApplication.AllFields &&
                 isIntrospectionField;
 
-            FieldResolverDelegates resolvers = definition.Resolvers;
+            FieldResolverDelegates resolvers = CompileResolver(context, definition);
+
             Resolver = resolvers.Resolver;
-
-            if (!isIntrospectionField || !resolvers.HasResolvers)
-            {
-                // gets resolvers that were provided via type extensions,
-                // explicit resolver results or are provided through the
-                // resolver compiler.
-                FieldResolver? resolver = context.GetResolver(definition.Name);
-                Resolver = GetMostSpecificResolver(typeName, Resolver, resolver, out var external)!;
-
-                if(resolver is not null && external)
-                {
-                    resolvers = new(resolver);
-                }
-            }
 
             if (resolvers.PureResolver is not null && IsPureContext())
             {
@@ -221,42 +207,53 @@ namespace HotChocolate.Types
 
             bool IsPureContext()
             {
-                return (skipMiddleware ||
-                    (context.GlobalComponents.Count == 0 &&
-                    fieldComponents.Count == 0 &&
-                    _executableDirectives.Length == 0));
+                return skipMiddleware ||
+                   context.GlobalComponents.Count == 0 &&
+                   fieldComponents.Count == 0 &&
+                   _executableDirectives.Length == 0;
             }
         }
 
-        /// <summary>
-        /// Gets the most relevant overwrite of a resolver.
-        /// </summary>
-        private static FieldResolverDelegate? GetMostSpecificResolver(
-            NameString typeName,
-            FieldResolverDelegate? currentResolver,
-            FieldResolver? externalCompiledResolver,
-            out bool externalResolver)
+        private static FieldResolverDelegates CompileResolver(
+            ITypeCompletionContext context,
+            ObjectFieldDefinition definition)
         {
-            // if there is no external compiled resolver then we will pick
-            // the internal resolver delegate.
-            if (externalCompiledResolver is null)
+            FieldResolverDelegates resolvers = definition.Resolvers;
+
+            if (!resolvers.HasResolvers)
             {
-                externalResolver = false;
-                return currentResolver;
+                if (definition.Expression is LambdaExpression lambdaExpression)
+                {
+                    resolvers = context.DescriptorContext.ResolverCompiler.CompileResolve(
+                        lambdaExpression,
+                        definition.SourceType ??
+                        definition.Member?.ReflectedType ??
+                        definition.Member?.DeclaringType ??
+                        definition.ResolverType!,
+                        definition.ResolverType);
+                }
+                else if (definition.ResolverMember is not null)
+                {
+                    resolvers = context.DescriptorContext.ResolverCompiler.CompileResolve(
+                        definition.ResolverMember,
+                        definition.SourceType ??
+                        definition.Member?.ReflectedType ??
+                        definition.Member?.DeclaringType ??
+                        definition.ResolverType!,
+                        definition.ResolverType);
+                }
+                else if (definition.Member is not null)
+                {
+                    resolvers = context.DescriptorContext.ResolverCompiler.CompileResolve(
+                        definition.Member,
+                        definition.SourceType ??
+                        definition.Member.ReflectedType ??
+                        definition.Member.DeclaringType,
+                        definition.ResolverType);
+                }
             }
 
-            // if the internal resolver is null or if the external compiled
-            // resolver represents an explicit overwrite of the type resolver
-            // then we will pick the external compiled resolver.
-            if (currentResolver is null || externalCompiledResolver.TypeName.Equals(typeName))
-            {
-                externalResolver = true;
-                return externalCompiledResolver.Resolver;
-            }
-
-            // in all other cases we will pick the internal resolver delegate.
-            externalResolver = false;
-            return currentResolver;
+            return resolvers;
         }
 
         public override string ToString() => $"{Name}:{Type.Visualize()}";

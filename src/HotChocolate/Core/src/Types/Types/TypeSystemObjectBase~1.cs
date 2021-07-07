@@ -54,6 +54,12 @@ namespace HotChocolate.Types
                     TypeResources.TypeSystemObjectBase_DefinitionIsNull);
             }
 
+            // if we at this point already know the name we will just commit it.
+            if (_definition.Name.HasValue)
+            {
+                Name = _definition.Name;
+            }
+
             RegisterConfigurationDependencies(context, _definition);
 
             OnAfterInitialize(context, _definition, _definition.ContextData);

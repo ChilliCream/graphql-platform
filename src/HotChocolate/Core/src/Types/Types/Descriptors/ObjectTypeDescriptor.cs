@@ -90,73 +90,7 @@ namespace HotChocolate.Types.Descriptors
             IDictionary<NameString, ObjectFieldDefinition> fields,
             ISet<MemberInfo> handledMembers)
         {
-            DiscoverResolvers(fields);
-        }
 
-        protected void DiscoverResolvers(
-            IDictionary<NameString, ObjectFieldDefinition> fields)
-        {
-            var processed = new HashSet<string>();
-
-            if (Definition.RuntimeType != typeof(object))
-            {
-                foreach (Type resolverType in Context.TypeInspector
-                    .GetResolverTypes(Definition.RuntimeType))
-                {
-                    ResolverTypes.Add(resolverType);
-                }
-            }
-
-            foreach (Type resolverType in ResolverTypes)
-            {
-                AddResolvers(
-                    fields,
-                    processed,
-                    Definition.RuntimeType ?? typeof(object),
-                    resolverType);
-            }
-        }
-
-        private void AddResolvers(
-            IDictionary<NameString, ObjectFieldDefinition> fields,
-            ISet<string> processed,
-            Type sourceType,
-            Type resolverType)
-        {
-            foreach (MemberInfo member in Context.TypeInspector.GetMembers(resolverType))
-            {
-                if (IsResolverRelevant(sourceType, member))
-                {
-                    ObjectFieldDefinition fieldDefinition =
-                        ObjectFieldDescriptor
-                            .New(Context, member, sourceType, resolverType)
-                            .CreateDefinition();
-
-                    if (processed.Add(fieldDefinition.Name))
-                    {
-                        fields[fieldDefinition.Name] = fieldDefinition;
-                    }
-                }
-            }
-        }
-
-        private static bool IsResolverRelevant(
-            Type sourceType,
-            MemberInfo resolver)
-        {
-            switch (resolver)
-            {
-                case PropertyInfo:
-                    return true;
-
-                case MethodInfo m:
-                    ParameterInfo? parent = m.GetParameters().FirstOrDefault(
-                        t => t.IsDefined(typeof(ParentAttribute)));
-                    return parent is null || parent.ParameterType.IsAssignableFrom(sourceType);
-
-                default:
-                    return false;
-            }
         }
 
         public IObjectTypeDescriptor SyntaxNode(

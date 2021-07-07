@@ -29,7 +29,6 @@ namespace HotChocolate.Configuration
                 {
                     context.TypeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
                 },
-                new List<Type>(),
                 null,
                 t => t is FooType ? RootTypeKind.Query : RootTypeKind.None);
 
@@ -77,7 +76,6 @@ namespace HotChocolate.Configuration
                 {
                     context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
                 },
-                new List<Type>(),
                 null,
                 t =>
                 {
@@ -132,7 +130,6 @@ namespace HotChocolate.Configuration
                 {
                     context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
                 },
-                new List<Type>(),
                 null!,
                 t =>
                 {
@@ -167,7 +164,6 @@ namespace HotChocolate.Configuration
                 {
                     context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
                 },
-                new List<Type>(),
                 null!,
                 t =>
                 {

@@ -64,7 +64,6 @@ namespace HotChocolate
                         InitializeTypes(
                             builder,
                             context,
-                            bindingLookup,
                             typeReferences,
                             lazySchema);
 
@@ -199,13 +198,12 @@ namespace HotChocolate
             private static TypeRegistry InitializeTypes(
                 SchemaBuilder builder,
                 IDescriptorContext context,
-                IBindingLookup bindingLookup,
                 IReadOnlyList<ITypeReference> types,
                 LazySchema lazySchema)
             {
                 var typeRegistry = new TypeRegistry(context.TypeInterceptor);
                 TypeInitializer initializer =
-                    CreateTypeInitializer(builder, context, bindingLookup, types, typeRegistry);
+                    CreateTypeInitializer(builder, context, types, typeRegistry);
                 initializer.Initialize(() => lazySchema.Schema, builder._options);
                 return typeRegistry;
             }
@@ -213,7 +211,6 @@ namespace HotChocolate
             private static TypeInitializer CreateTypeInitializer(
                 SchemaBuilder builder,
                 IDescriptorContext context,
-                IBindingLookup bindingLookup,
                 IReadOnlyList<ITypeReference> typeReferences,
                 TypeRegistry typeRegistry)
             {
@@ -226,28 +223,12 @@ namespace HotChocolate
                     context,
                     typeRegistry,
                     typeReferences,
-                    builder._resolverTypes,
                     builder._isOfType,
                     type => GetOperationKind(type, context.TypeInspector, operations));
 
                 foreach (FieldMiddleware component in builder._globalComponents)
                 {
                     initializer.GlobalComponents.Add(component);
-                }
-
-                foreach (FieldReference reference in builder._resolvers.Keys)
-                {
-                    initializer.Resolvers[reference] = new RegisteredResolver(
-                        typeof(object), typeof(object), builder._resolvers[reference]);
-                }
-
-                foreach (RegisteredResolver resolver in
-                    bindingLookup.Bindings.SelectMany(t => t.CreateResolvers()))
-                {
-                    var reference = new FieldReference(
-                        resolver.Field.TypeName,
-                        resolver.Field.FieldName);
-                    initializer.Resolvers[reference] = resolver;
                 }
 
                 foreach (KeyValuePair<Type, (CreateRef, CreateRef)> binding in builder._clrTypes)

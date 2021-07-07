@@ -20,8 +20,10 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return builder.AddResolver(
-                new FieldResolver(typeName, fieldName, resolver));
+            // return builder.AddResolver(
+            //     new FieldResolver(typeName, fieldName, resolver));
+
+            throw new NotImplementedException();
         }
 
         // AddResolver(IResolverContext)

@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq.Expressions;
-using System.Reflection;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -86,8 +84,6 @@ namespace HotChocolate.Configuration
             [NotNullWhen(true)] out DirectiveType? directiveType);
 
         DirectiveType GetDirectiveType(IDirectiveReference directiveRef);
-
-        FieldResolver? GetResolver(NameString fieldName);
 
         Func<ISchema> GetSchemaResolver();
     }

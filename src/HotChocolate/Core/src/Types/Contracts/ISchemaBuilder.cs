@@ -44,8 +44,6 @@ namespace HotChocolate
 
         ISchemaBuilder AddDirectiveType(DirectiveType type);
 
-        ISchemaBuilder AddResolver(FieldResolver fieldResolver);
-
         ISchemaBuilder AddBinding(IBindingInfo binding);
 
         ISchemaBuilder SetTypeResolver(IsOfTypeFallback isOfType);

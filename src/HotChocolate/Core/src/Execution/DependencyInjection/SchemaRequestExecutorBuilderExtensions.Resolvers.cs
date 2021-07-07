@@ -23,7 +23,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(fieldResolver));
             }
 
-            return builder.ConfigureSchema(b => b.AddResolver(fieldResolver));
+            // return builder.ConfigureSchema(b => b.AddResolver(fieldResolver));
+            throw new NotImplementedException();
         }
 
         public static IRequestExecutorBuilder AddResolver(

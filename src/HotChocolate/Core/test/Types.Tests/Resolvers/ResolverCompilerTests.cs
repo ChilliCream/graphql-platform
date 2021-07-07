@@ -1623,21 +1623,6 @@ namespace HotChocolate.Resolvers.Expressions
                 [Service] MyService service) =>
                 service != null;
 
-#pragma warning disable CS0618
-            public string ResolveWithContextData(
-                [State("foo")] string s) => s;
-
-            public string ResolveWithContextDataDefault(
-                [State("foo", DefaultIfNotExists = true)] string s) => s;
-
-            public string ResolveWithScopedContextData(
-                [State("foo", IsScoped = true)] string s) => s;
-
-            public string ResolveWithScopedContextDataDefault(
-                [State("foo", IsScoped = true, DefaultIfNotExists = true)]
-                string s) => s;
-#pragma warning restore CS0618
-
             public string GetGlobalStateWithKey(
                 [GlobalState("foo")]
                 string s) => s;
