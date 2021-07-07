@@ -159,12 +159,12 @@ const Container = styled.div`
 
 const SearchField = styled.input`
   border: 0;
-  border-radius: 4px;
+  border-radius: var(--border-radius);
   padding: 10px 15px;
   width: 100%;
   font-family: "Roboto", sans-serif;
   font-size: 0.833em;
-  background-color: #fff;
+  background-color: var(--text-color-contrast);
 `;
 
 interface HitComponentProperties {
@@ -227,7 +227,7 @@ const HitsWrapper = styled.div<{ show: boolean }>`
   @media only screen and (min-width: 600px) {
     right: initial;
     left: initial;
-    border-radius: 4px;
+    border-radius: var(--border-radius);
     padding: 10px 15px;
     width: 400px;
   }

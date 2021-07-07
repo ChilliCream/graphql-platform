@@ -30,7 +30,11 @@ export const GlobalStyle = createGlobalStyle`
     --brand-color-hover: #b7020a;
     --text-color: #667;
     --heading-text-color: #334;
+    --footer-text-color: #c6c6ce;
     --text-color-contrast: #fff;
+    --box-highlight-color: #ddd;
+    --box-border-color: #ccc;
+    --warning-color: #ffba00;
     --border-radius: 4px;
     --font-size: .833rem;
   }
@@ -232,10 +236,10 @@ export const GlobalStyle = createGlobalStyle`
 
   /* Inline code style */
   :not(pre) > code {
-    border: 1px solid #aaa;
+    border: 1px solid var(--box-border-color);
     border-radius: .3em;
     background-color: initial;
-    color: #666;
+    color: var(--text-color);
   }
 
   a.anchor {

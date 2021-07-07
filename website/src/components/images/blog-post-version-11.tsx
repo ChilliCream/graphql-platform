@@ -38,7 +38,7 @@ const Container = styled.div`
   padding: 30px;
 
   .gatsby-image-wrapper {
-    border-radius: 4px;
+    border-radius: var(--border-radius);
     box-shadow: 0 9px 18px rgba(0, 0, 0, 0.25);
   }
 `;
