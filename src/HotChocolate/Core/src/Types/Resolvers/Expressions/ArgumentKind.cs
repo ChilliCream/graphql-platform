@@ -11,7 +11,7 @@
         DocumentSyntax,
         OperationDefinitionSyntax,
         FieldSyntax,
-        FieldSelection,
+        Selection,
         Context,
         CancellationToken,
         GlobalState,

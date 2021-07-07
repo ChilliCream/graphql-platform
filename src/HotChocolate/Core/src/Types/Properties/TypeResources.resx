@@ -726,4 +726,16 @@ Type: `{0}`</value>
   <data name="CostDirective_DefaultMultiplierCannotBeBelowTwo" xml:space="preserve">
     <value>Default multiplier cannot be below two.</value>
   </data>
+  <data name="EventMessageParameterExpressionBuilder_MessageNotFound" xml:space="preserve">
+    <value>The event message parameter can only be used in a subscription context.</value>
+  </data>
+  <data name="DefaultResolverCompilerService_Misconfigured" xml:space="preserve">
+    <value>The resolver compiler is misconfigured and could not find an expression builder for the specified parameter.</value>
+  </data>
+  <data name="DefaultResolverCompilerService_CreateResolver_ArgumentValudationError" xml:space="preserve">
+    <value>The public method should already have ensured that we do not have members other than method or property at this point.</value>
+  </data>
+  <data name="DefaultResolverCompilerService_CompileSubscribe_OnlyMethodsAllowed" xml:space="preserve">
+    <value>Only methods are allowed.</value>
+  </data>
 </root>

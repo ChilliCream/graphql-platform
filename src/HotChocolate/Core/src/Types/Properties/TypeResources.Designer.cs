@@ -1250,5 +1250,29 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("CostDirective_DefaultMultiplierCannotBeBelowTwo", resourceCulture);
             }
         }
+        
+        internal static string EventMessageParameterExpressionBuilder_MessageNotFound {
+            get {
+                return ResourceManager.GetString("EventMessageParameterExpressionBuilder_MessageNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string DefaultResolverCompilerService_Misconfigured {
+            get {
+                return ResourceManager.GetString("DefaultResolverCompilerService_Misconfigured", resourceCulture);
+            }
+        }
+        
+        internal static string DefaultResolverCompilerService_CreateResolver_ArgumentValudationError {
+            get {
+                return ResourceManager.GetString("DefaultResolverCompilerService_CreateResolver_ArgumentValudationError", resourceCulture);
+            }
+        }
+        
+        internal static string DefaultResolverCompilerService_CompileSubscribe_OnlyMethodsAllowed {
+            get {
+                return ResourceManager.GetString("DefaultResolverCompilerService_CompileSubscribe_OnlyMethodsAllowed", resourceCulture);
+            }
+        }
     }
 }

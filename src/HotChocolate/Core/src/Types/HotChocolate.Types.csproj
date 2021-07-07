@@ -42,4 +42,8 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Resolvers\CodeGeneration" />
+  </ItemGroup>
+
 </Project>

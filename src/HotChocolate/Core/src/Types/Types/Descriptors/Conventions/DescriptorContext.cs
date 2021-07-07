@@ -11,6 +11,10 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Types.Descriptors
 {
+    /// <summary>
+    /// The descriptor context is passed around during the schema creation and
+    /// allows access to conventions and context data.
+    /// </summary>
     public sealed class DescriptorContext : IDescriptorContext
     {
         private readonly Dictionary<(Type, string?), IConvention> _conventions = new();
