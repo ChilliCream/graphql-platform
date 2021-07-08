@@ -10,15 +10,10 @@ namespace HotChocolate.Types.Factories
         : SyntaxVisitor<SchemaSyntaxVisitorContext>
     {
         private readonly ObjectTypeFactory _objectTypeFactory = new();
-        private readonly ObjectTypeExtensionFactory _objectTypeExtensionFactory = new();
         private readonly InterfaceTypeFactory _interfaceTypeFactory = new();
-        private readonly InterfaceTypeExtensionFactory _interfaceTypeExtensionFactory = new();
         private readonly UnionTypeFactory _unionTypeFactory = new();
-        private readonly UnionTypeExtensionFactory _unionTypeExtensionFactory = new();
         private readonly InputObjectTypeFactory _inputObjectTypeFactory = new();
-        private readonly InputObjectTypeExtensionFactory _inputObjectTypeExtensionFactory = new();
         private readonly EnumTypeFactory _enumTypeFactory = new();
-        private readonly EnumTypeExtensionFactory _enumTypeExtensionFactory = new();
         private readonly DirectiveTypeFactory _directiveTypeFactory = new();
 
         protected override ISyntaxVisitorAction DefaultAction => Continue;
@@ -30,8 +25,7 @@ namespace HotChocolate.Types.Factories
             context.Types.Add(
                 TypeReference.Create(
                     _objectTypeFactory.Create(
-                        context.BindingLookup,
-                        context.SchemaOptions,
+                        context.DirectiveContext,
                         node)));
 
             return base.VisitChildren(node, context);
@@ -43,9 +37,8 @@ namespace HotChocolate.Types.Factories
         {
             context.Types.Add(
                 TypeReference.Create(
-                    _objectTypeExtensionFactory.Create(
-                        context.BindingLookup,
-                        context.SchemaOptions,
+                    _objectTypeFactory.Create(
+                        context.DirectiveContext,
                         node)));
 
             return base.VisitChildren(node, context);
@@ -58,8 +51,7 @@ namespace HotChocolate.Types.Factories
             context.Types.Add(
                 TypeReference.Create(
                     _interfaceTypeFactory.Create(
-                        context.BindingLookup,
-                        context.SchemaOptions,
+                        context.DirectiveContext,
                         node)));
 
             return base.VisitChildren(node, context);
@@ -71,9 +63,8 @@ namespace HotChocolate.Types.Factories
         {
             context.Types.Add(
                 TypeReference.Create(
-                    _interfaceTypeExtensionFactory.Create(
-                        context.BindingLookup,
-                        context.SchemaOptions,
+                    _interfaceTypeFactory.Create(
+                        context.DirectiveContext,
                         node)));
 
             return base.VisitChildren(node, context);
@@ -86,8 +77,7 @@ namespace HotChocolate.Types.Factories
             context.Types.Add(
                 TypeReference.Create(
                     _unionTypeFactory.Create(
-                        context.BindingLookup,
-                        context.SchemaOptions,
+                        context.DirectiveContext,
                         node)));
 
             return base.VisitChildren(node, context);
@@ -99,9 +89,8 @@ namespace HotChocolate.Types.Factories
         {
             context.Types.Add(
                 TypeReference.Create(
-                    _unionTypeExtensionFactory.Create(
-                        context.BindingLookup,
-                        context.SchemaOptions,
+                    _unionTypeFactory.Create(
+                        context.DirectiveContext,
                         node)));
 
             return base.VisitChildren(node, context);
@@ -114,8 +103,7 @@ namespace HotChocolate.Types.Factories
             context.Types.Add(
                 TypeReference.Create(
                     _inputObjectTypeFactory.Create(
-                        context.BindingLookup,
-                        context.SchemaOptions,
+                        context.DirectiveContext,
                         node)));
 
             return base.VisitChildren(node, context);
@@ -127,9 +115,8 @@ namespace HotChocolate.Types.Factories
         {
             context.Types.Add(
                 TypeReference.Create(
-                    _inputObjectTypeExtensionFactory.Create(
-                        context.BindingLookup,
-                        context.SchemaOptions,
+                    _inputObjectTypeFactory.Create(
+                        context.DirectiveContext,
                         node)));
 
             return base.VisitChildren(node, context);
@@ -142,8 +129,7 @@ namespace HotChocolate.Types.Factories
             context.Types.Add(
                 TypeReference.Create(
                     _enumTypeFactory.Create(
-                        context.BindingLookup,
-                        context.SchemaOptions,
+                        context.DirectiveContext,
                         node)));
 
             return base.VisitChildren(node, context);
@@ -155,9 +141,8 @@ namespace HotChocolate.Types.Factories
         {
             context.Types.Add(
                 TypeReference.Create(
-                    _enumTypeExtensionFactory.Create(
-                        context.BindingLookup,
-                        context.SchemaOptions,
+                    _enumTypeFactory.Create(
+                        context.DirectiveContext,
                         node)));
 
             return base.VisitChildren(node, context);
@@ -170,8 +155,7 @@ namespace HotChocolate.Types.Factories
             context.Types.Add(
                 TypeReference.Create(
                     _directiveTypeFactory.Create(
-                        context.BindingLookup,
-                        context.SchemaOptions,
+                        context.DirectiveContext,
                         node)));
 
             return base.VisitChildren(node, context);
