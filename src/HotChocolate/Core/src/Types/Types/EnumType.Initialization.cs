@@ -28,6 +28,9 @@ namespace HotChocolate.Types
         private Action<IEnumTypeDescriptor>? _configure;
         private INamingConventions _naming = default!;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="EnumType"/>.
+        /// </summary>
         protected EnumType()
         {
             _configure = Configure;
@@ -51,7 +54,7 @@ namespace HotChocolate.Types
         /// The enum type definition that specifies the properties of the newly created enum type.
         /// </param>
         /// <returns>
-        /// Returns the newly created object type.
+        /// Returns the newly created enum type.
         /// </returns>
         public static EnumType CreateUnsafe(EnumTypeDefinition definition)
             => new() { Definition = definition};

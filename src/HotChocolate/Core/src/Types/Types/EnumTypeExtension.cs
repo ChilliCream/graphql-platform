@@ -12,25 +12,47 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types
 {
     /// <summary>
-    /// This is not a full type and is used to split the type configuration into multiple part.
-    /// Any type extension instance is will not survive the initialization and instead is
-    /// merged into the target type.
+    /// Enum type extensions are used to represent an enum type which has been extended from
+    /// some original enum type. For example, this might be used to represent additional local data,
+    /// or by a GraphQL service which is itself an extension of another GraphQL service.
     /// </summary>
     public class EnumTypeExtension : NamedTypeExtensionBase<EnumTypeDefinition>
     {
         private Action<IEnumTypeDescriptor>? _configure;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="EnumTypeExtension"/>.
+        /// </summary>
         protected EnumTypeExtension()
         {
             _configure = Configure;
         }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="EnumTypeExtension"/>.
+        /// </summary>
+        /// <param name="configure">
+        /// A delegate defining the configuration.
+        /// </param>
         public EnumTypeExtension(Action<IEnumTypeDescriptor> configure)
         {
-            _configure = configure
-                ?? throw new ArgumentNullException(nameof(configure));
+            _configure = configure ?? throw new ArgumentNullException(nameof(configure));
         }
 
+        /// <summary>
+        /// Create an enum type extension from a type definition.
+        /// </summary>
+        /// <param name="definition">
+        /// The enum type definition that specifies the properties of
+        /// the newly created enum type extension.
+        /// </param>
+        /// <returns>
+        /// Returns the newly created enum type extension.
+        /// </returns>
+        public static EnumTypeExtension CreateUnsafe(EnumTypeDefinition definition)
+            => new() { Definition = definition};
+
+        /// <inheritdoc />
         public override TypeKind Kind => TypeKind.Enum;
 
         protected override EnumTypeDefinition CreateDefinition(
@@ -61,7 +83,7 @@ namespace HotChocolate.Types
         {
             if (type is EnumType enumType)
             {
-                // we first assert that extension and type are mutable and by 
+                // we first assert that extension and type are mutable and by
                 // this that they do have a type definition.
                 AssertMutable();
                 enumType.AssertMutable();

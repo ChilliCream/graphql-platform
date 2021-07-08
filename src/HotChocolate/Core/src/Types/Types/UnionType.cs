@@ -23,6 +23,26 @@ namespace HotChocolate.Types
     /// This is the same as for unions, but unions do not define any fields,
     /// so no fields may be queried on this type without the use of type refining
     /// fragments or inline fragments (with the exception of the meta-field __typename).
+    ///
+    /// For example, we might define the following types:
+    ///
+    /// <code>
+    /// union SearchResult = Photo | Person
+    ///
+    /// type Person {
+    ///   name: String
+    ///   age: Int
+    /// }
+    ///
+    /// type Photo {
+    ///   height: Int
+    ///   width: Int
+    /// }
+    ///
+    /// type SearchQuery {
+    ///   firstSearchResult: SearchResult
+    /// }
+    /// </code>
     /// </summary>
     public class UnionType
         : NamedTypeBase<UnionTypeDefinition>

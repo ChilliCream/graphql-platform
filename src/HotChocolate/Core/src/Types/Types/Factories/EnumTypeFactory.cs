@@ -2,78 +2,74 @@
 using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Factories
 {
     internal sealed class EnumTypeFactory
         : ITypeFactory<EnumTypeDefinitionNode, EnumType>
+        , ITypeFactory<EnumTypeExtensionNode, EnumTypeExtension>
     {
-        public EnumType Create(
-            IBindingLookup bindingLookup,
-            IReadOnlySchemaOptions schemaOptions,
-            EnumTypeDefinitionNode node)
+
+        public EnumType Create(IDescriptorContext context, EnumTypeDefinitionNode node)
         {
-            if (bindingLookup is null)
+            var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
+
+            var typeDefinition = new EnumTypeDefinition(
+                node.Name.Value,
+                node.Description?.Value);
+
+            if (preserveSyntaxNodes)
             {
-                throw new ArgumentNullException(nameof(bindingLookup));
+                typeDefinition.SyntaxNode = node;
             }
 
-            if (node is null)
-            {
-                throw new ArgumentNullException(nameof(node));
-            }
+            SdlToTypeSystemHelper.AddDirectives(typeDefinition, node);
 
-            ITypeBindingInfo bindingInfo =
-                bindingLookup.GetBindingInfo(node.Name.Value);
+            DeclareValues(typeDefinition, node.Values, preserveSyntaxNodes);
 
-            return new EnumType(d =>
-            {
-                d.SyntaxNode(schemaOptions.PreserveSyntaxNodes ? node : null)
-                    .Name(node.Name.Value)
-                    .Description(node.Description?.Value);
+            return EnumType.CreateUnsafe(typeDefinition);
+        }
 
-                if (bindingInfo.SourceType != null)
-                {
-                    d.Extend().OnBeforeCreate(
-                        t => t.RuntimeType = bindingInfo.SourceType);
-                }
+        public EnumTypeExtension Create(IDescriptorContext context, EnumTypeExtensionNode node)
+        {
+            var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
 
-                foreach (DirectiveNode directive in node.Directives)
-                {
-                    if (!directive.IsDeprecationReason())
-                    {
-                        d.Directive(directive);
-                    }
-                }
+            var typeDefinition = new EnumTypeDefinition(node.Name.Value);
 
-                DeclareValues(d, node.Values);
-            });
+            SdlToTypeSystemHelper.AddDirectives(typeDefinition, node);
+
+            DeclareValues(typeDefinition, node.Values, preserveSyntaxNodes);
+
+            return EnumTypeExtension.CreateUnsafe(typeDefinition);
         }
 
         private static void DeclareValues(
-            IEnumTypeDescriptor typeDescriptor,
-            IReadOnlyCollection<EnumValueDefinitionNode> values)
+            EnumTypeDefinition parent,
+            IReadOnlyCollection<EnumValueDefinitionNode> values,
+            bool preserveSyntaxNodes)
         {
             foreach (EnumValueDefinitionNode value in values)
             {
-                IEnumValueDescriptor valueDescriptor =
-                    typeDescriptor
-                        .Value(value.Name.Value)
-                        .Description(value.Description?.Value)
-                        .Name(value.Name.Value);
+                var valueDefinition = new EnumValueDefinition(
+                    value.Name.Value,
+                    value.Description?.Value,
+                    value.Name.Value);
 
-                if (value.DeprecationReason() is { Length: > 0 } s)
+                if (preserveSyntaxNodes)
                 {
-                    valueDescriptor.Deprecated(s);
+                    valueDefinition.SyntaxNode = value;
                 }
 
-                foreach (DirectiveNode directive in value.Directives)
+                SdlToTypeSystemHelper.AddDirectives(valueDefinition, value);
+
+                if (value.DeprecationReason() is { Length: > 0 } reason)
                 {
-                    if (!directive.IsDeprecationReason())
-                    {
-                        valueDescriptor.Directive(directive);
-                    }
+                    valueDefinition.DeprecationReason = reason;
                 }
+
+                parent.Values.Add(valueDefinition);
             }
         }
     }

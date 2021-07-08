@@ -84,14 +84,14 @@ namespace HotChocolate.Types
         }
 
         /// <summary>
-        /// Create an object type from a type definition.
+        /// Create an interface type from a type definition.
         /// </summary>
         /// <param name="definition">
-        /// The object type definition that specifies the properties of the
-        /// newly created object type.
+        /// The interface type definition that specifies the properties of the
+        /// newly created interface type.
         /// </param>
         /// <returns>
-        /// Returns the newly created object type.
+        /// Returns the newly created interface type.
         /// </returns>
         public static InterfaceType CreateUnsafe(InterfaceTypeDefinition definition)
             => new() { Definition = definition };

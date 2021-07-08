@@ -4,7 +4,9 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Factories
 {
-    internal sealed class UnionTypeFactory : ITypeFactory<UnionTypeDefinitionNode, UnionType>
+    internal sealed class UnionTypeFactory
+        : ITypeFactory<UnionTypeDefinitionNode, UnionType>
+        , ITypeFactory<UnionTypeExtensionNode, UnionTypeExtension>
     {
         public UnionType Create(IDescriptorContext context, UnionTypeDefinitionNode node)
         {
@@ -27,6 +29,20 @@ namespace HotChocolate.Types.Factories
             SdlToTypeSystemHelper.AddDirectives(typeDefinition, node);
 
             return UnionType.CreateUnsafe(typeDefinition);
+        }
+
+        public UnionTypeExtension Create(IDescriptorContext context, UnionTypeExtensionNode node)
+        {
+            var typeDefinition = new UnionTypeDefinition(node.Name.Value);
+
+            foreach (NamedTypeNode namedType in node.Types)
+            {
+                typeDefinition.Types.Add(TypeReference.Create(namedType));
+            }
+
+            SdlToTypeSystemHelper.AddDirectives(typeDefinition, node);
+
+            return UnionTypeExtension.CreateUnsafe(typeDefinition);
         }
     }
 }

@@ -29,7 +29,7 @@ namespace HotChocolate.Types.Factories
 
             SdlToTypeSystemHelper.AddDirectives(typeDefinition, node);
 
-            DeclareFields(node.Fields, preserveSyntaxNodes);
+            DeclareFields(typeDefinition, node.Fields, preserveSyntaxNodes);
 
             return InterfaceType.CreateUnsafe(typeDefinition);
         }
@@ -47,12 +47,13 @@ namespace HotChocolate.Types.Factories
 
             SdlToTypeSystemHelper.AddDirectives(typeDefinition, node);
 
-            DeclareFields(node.Fields, preserveSyntaxNodes);
+            DeclareFields(typeDefinition, node.Fields, preserveSyntaxNodes);
 
             return InterfaceTypeExtension.CreateUnsafe(typeDefinition);
         }
 
         private static void DeclareFields(
+            InterfaceTypeDefinition parent,
             IReadOnlyCollection<FieldDefinitionNode> fields,
             bool preserveSyntaxNodes)
         {
@@ -76,6 +77,8 @@ namespace HotChocolate.Types.Factories
                 }
 
                 DeclareFieldArguments(fieldDefinition, field, preserveSyntaxNodes);
+
+                parent.Fields.Add(fieldDefinition);
             }
         }
 
