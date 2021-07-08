@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -131,17 +132,33 @@ namespace HotChocolate.DependencyInjection
         {
             Snapshot.FullName();
 
-            await new ServiceCollection()
-                .AddGraphQLServer()
-                .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
-                .AddIntrospectionAllowedRule()
-                .ExecuteRequestAsync(
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQLServer()
+                    .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
+                    .AddIntrospectionAllowedRule()
+                    .BuildRequestExecutorAsync();
+
+            var results = new List<string>();
+
+            IExecutionResult result =
+                await executor.ExecuteAsync(
                     QueryRequestBuilder
                         .New()
                         .SetQuery("{ __schema { description } }")
                         .AllowIntrospection()
-                        .Create())
-                .MatchSnapshotAsync();
+                        .Create());
+            results.Add(result.ToJson());
+
+            result =
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder
+                        .New()
+                        .SetQuery("{ __schema { description } }")
+                        .Create());
+            results.Add(result.ToJson());
+
+            results.MatchSnapshot();
         }
 
         public class MockVisitor : DocumentValidatorVisitor
@@ -150,6 +167,8 @@ namespace HotChocolate.DependencyInjection
 
         public class MockRule : IDocumentValidatorRule
         {
+            public bool IsCacheable => true;
+
             public void Validate(IDocumentValidatorContext context, DocumentNode document)
             {
                 throw new NotImplementedException();

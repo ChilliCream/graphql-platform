@@ -42,9 +42,11 @@ export const SEO: FunctionComponent<SEOProperties> = ({
           sourceInstanceName: { eq: "images" }
         ) {
           childImageSharp {
-            fixed(width: 1200, pngQuality: 90) {
-              src
-            }
+            gatsbyImageData(
+              layout: FIXED
+              width: 1200
+              pngOptions: { quality: 90 }
+            )
           }
         }
       }
@@ -54,7 +56,7 @@ export const SEO: FunctionComponent<SEOProperties> = ({
   const metaAuthor = `@${site.siteMetadata.author}`;
   const metaDescription = description || site.siteMetadata.description;
   const metaImageUrl = `${site.siteMetadata.siteUrl}${
-    imageUrl || image?.childImageSharp!.fixed!.src
+    imageUrl || image?.childImageSharp!.gatsbyImageData!.src
   }`;
 
   return (

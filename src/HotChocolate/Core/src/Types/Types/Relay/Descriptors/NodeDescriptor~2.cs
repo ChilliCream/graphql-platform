@@ -28,12 +28,10 @@ namespace HotChocolate.Types.Relay.Descriptors
 
         private NodeDefinition Definition { get; }
 
-        public IObjectFieldDescriptor NodeResolver(
-            NodeResolverDelegate<TNode, TId> nodeResolver) =>
+        public IObjectFieldDescriptor NodeResolver(NodeResolverDelegate<TNode, TId> nodeResolver) =>
             ResolveNode(nodeResolver);
 
-        public IObjectFieldDescriptor ResolveNode(
-            FieldResolverDelegate fieldResolver)
+        public IObjectFieldDescriptor ResolveNode(FieldResolverDelegate fieldResolver)
         {
             Definition.Resolver = fieldResolver ??
                 throw new ArgumentNullException(nameof(fieldResolver));
@@ -41,19 +39,30 @@ namespace HotChocolate.Types.Relay.Descriptors
             return _configureNodeField();
         }
 
-        public IObjectFieldDescriptor ResolveNode(
-            NodeResolverDelegate<TNode, TId> fieldResolver) =>
-            ResolveNode(async ctx =>
+        public IObjectFieldDescriptor ResolveNode(NodeResolverDelegate<TNode, TId> fieldResolver)
+        {
+            ITypeConverter? typeConverter = null;
+
+            return ResolveNode(async ctx =>
             {
                 if (ctx.LocalContextData.TryGetValue(
                     WellKnownContextData.InternalId,
-                    out var o) && o is TId id)
+                    out object? id))
                 {
-                    return await fieldResolver(ctx, id).ConfigureAwait(false);
+                    if (id is TId c)
+                    {
+                        return await fieldResolver(ctx, c).ConfigureAwait(false);
+                    }
+
+                    typeConverter ??= ctx.GetTypeConverter();
+                    c = typeConverter.Convert<object, TId>(id);
+                    return await fieldResolver(ctx, c).ConfigureAwait(false);
                 }
 
                 return null;
+
             });
+        }
 
         public IObjectFieldDescriptor ResolveNodeWith<TResolver>(
             Expression<Func<TResolver, object?>> method)
@@ -77,8 +86,7 @@ namespace HotChocolate.Types.Relay.Descriptors
                 nameof(member));
         }
 
-        public IObjectFieldDescriptor ResolveNodeWith(
-            MethodInfo method)
+        public IObjectFieldDescriptor ResolveNodeWith(MethodInfo method)
         {
             if (method is null)
             {

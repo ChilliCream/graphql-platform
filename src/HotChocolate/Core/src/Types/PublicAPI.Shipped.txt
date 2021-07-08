@@ -176,14 +176,14 @@
 ~HotChocolate.Resolvers.FieldReferenceBase.FieldReferenceBase(HotChocolate.Resolvers.FieldReferenceBase fieldReference) -> void
 ~HotChocolate.Resolvers.FieldReferenceBase.IsEqualTo(HotChocolate.Resolvers.FieldReferenceBase other) -> bool
 ~HotChocolate.Resolvers.FieldReferenceBase.IsReferenceEqualTo<T>(T value) -> bool
-~HotChocolate.Resolvers.FieldResolver.Equals(HotChocolate.Resolvers.FieldResolver other) -> bool
+HotChocolate.Resolvers.FieldResolver.Equals(HotChocolate.Resolvers.FieldResolver? other) -> bool
 ~HotChocolate.Resolvers.FieldResolver.FieldResolver(HotChocolate.NameString typeName, HotChocolate.NameString fieldName, HotChocolate.Resolvers.FieldResolverDelegate resolver) -> void
-~HotChocolate.Resolvers.FieldResolver.FieldResolver(HotChocolate.Resolvers.FieldReference fieldReference, HotChocolate.Resolvers.FieldResolverDelegate resolver) -> void
-~HotChocolate.Resolvers.FieldResolver.Resolver.get -> HotChocolate.Resolvers.FieldResolverDelegate
-~HotChocolate.Resolvers.FieldResolver.ToFieldReference() -> HotChocolate.Resolvers.FieldReference
-~HotChocolate.Resolvers.FieldResolver.WithFieldName(HotChocolate.NameString fieldName) -> HotChocolate.Resolvers.FieldResolver
-~HotChocolate.Resolvers.FieldResolver.WithResolver(HotChocolate.Resolvers.FieldResolverDelegate resolver) -> HotChocolate.Resolvers.FieldResolver
-~HotChocolate.Resolvers.FieldResolver.WithTypeName(HotChocolate.NameString typeName) -> HotChocolate.Resolvers.FieldResolver
+HotChocolate.Resolvers.FieldResolver.FieldResolver(HotChocolate.Resolvers.FieldReference! fieldReference, HotChocolate.Resolvers.FieldResolverDelegate! resolver) -> void
+HotChocolate.Resolvers.FieldResolver.Resolver.get -> HotChocolate.Resolvers.FieldResolverDelegate!
+HotChocolate.Resolvers.FieldResolver.ToFieldReference() -> HotChocolate.Resolvers.FieldReference!
+HotChocolate.Resolvers.FieldResolver.WithFieldName(HotChocolate.NameString fieldName) -> HotChocolate.Resolvers.FieldResolver!
+HotChocolate.Resolvers.FieldResolver.WithResolver(HotChocolate.Resolvers.FieldResolverDelegate! resolver) -> HotChocolate.Resolvers.FieldResolver!
+HotChocolate.Resolvers.FieldResolver.WithTypeName(HotChocolate.NameString typeName) -> HotChocolate.Resolvers.FieldResolver!
 ~HotChocolate.Resolvers.IDirectiveContext.Directive.get -> HotChocolate.Types.IDirective
 ~HotChocolate.Resolvers.IFieldSelection.Field.get -> HotChocolate.Types.IObjectField
 ~HotChocolate.Resolvers.IFieldSelection.Nodes.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldNode>
@@ -848,8 +848,8 @@ override HotChocolate.Resolvers.FieldResolver.ToString() -> string!
 ~static HotChocolate.Configuration.Bindings.ResolverFieldBindingBuilder.New() -> HotChocolate.Configuration.Bindings.ResolverFieldBindingBuilder
 ~static HotChocolate.Configuration.Bindings.ResolverTypeBindingBuilder.New() -> HotChocolate.Configuration.Bindings.ResolverTypeBindingBuilder
 ~static HotChocolate.Configuration.SchemaOptions.FromOptions(HotChocolate.Configuration.IReadOnlySchemaOptions options) -> HotChocolate.Configuration.SchemaOptions
-~static HotChocolate.Configuration.SchemaTypeResolver.TryInferSchemaType(HotChocolate.Types.Descriptors.ITypeInspector typeInspector, HotChocolate.Types.Descriptors.ExtendedTypeReference unresolvedType, out HotChocolate.Types.Descriptors.ExtendedTypeReference schemaType) -> bool
-~static HotChocolate.Configuration.SchemaTypeResolver.TryInferSchemaTypeKind(HotChocolate.Types.Descriptors.ExtendedTypeReference unresolvedType, out HotChocolate.Types.TypeKind kind) -> bool
+static HotChocolate.Configuration.SchemaTypeResolver.TryInferSchemaType(HotChocolate.Types.Descriptors.ITypeInspector! typeInspector, HotChocolate.Types.Descriptors.ExtendedTypeReference! unresolvedType, out HotChocolate.Types.Descriptors.ExtendedTypeReference? schemaType) -> bool
+static HotChocolate.Configuration.SchemaTypeResolver.TryInferSchemaTypeKind(HotChocolate.Types.Descriptors.ExtendedTypeReference! unresolvedType, out HotChocolate.Types.TypeKind kind) -> bool
 static HotChocolate.IdSchemaBuilderExtensions.EnableRelaySupport(this HotChocolate.ISchemaBuilder! schemaBuilder, HotChocolate.Types.Relay.RelayOptions? options = null) -> HotChocolate.ISchemaBuilder!
 ~static HotChocolate.Internal.TypeComponent.implicit operator HotChocolate.Internal.TypeComponent((HotChocolate.Internal.TypeComponentKind, HotChocolate.Internal.IExtendedType) component) -> HotChocolate.Internal.TypeComponent
 ~static HotChocolate.Internal.TypeDependencyHelper.RegisterDependencies(this HotChocolate.Configuration.ITypeDiscoveryContext context, HotChocolate.Types.Descriptors.Definitions.EnumTypeDefinition definition) -> void

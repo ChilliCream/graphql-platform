@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Resolvers.Expressions
 {
@@ -32,7 +33,7 @@ namespace HotChocolate.Resolvers.Expressions
             bool hasDefaultValue,
             TContextData defaultValue)
         {
-            if (contextData.TryGetValue(key, out object value))
+            if (contextData.TryGetValue(key, out var value))
             {
                 if (value is null)
                 {
@@ -49,9 +50,8 @@ namespace HotChocolate.Resolvers.Expressions
                 return defaultValue;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                $"The specified key `{key}` does not exist on `context.ContextData`.");
+                string.Format(ExpressionHelper_GetGlobalStateWithDefault_NoDefaults, key));
         }
 
         public static SetState<TContextData> SetGlobalStateGeneric<TContextData>(
@@ -93,9 +93,8 @@ namespace HotChocolate.Resolvers.Expressions
                 return defaultValue;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                $"The specified key `{key}` does not exist on `context.ScopedContextData`.");
+                string.Format(ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue, key));
         }
 
         public static SetState<TContextData> SetScopedStateGeneric<TContextData>(

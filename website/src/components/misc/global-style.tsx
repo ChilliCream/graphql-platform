@@ -2,22 +2,16 @@ import { createGlobalStyle } from "styled-components";
 
 export const GlobalLayoutStyle = createGlobalStyle`
  html {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
     overflow: hidden;
     height: 100%;
   }
 
   body {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
     overflow: hidden;
     height: 100%;
     margin: 0;
 
-    > div {
+    > div:first-child {
         height: 100%;
         display: block;
         > div {

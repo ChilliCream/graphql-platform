@@ -3,7 +3,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
+using HotChocolate.Tests;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -97,6 +100,44 @@ namespace HotChocolate
                 .MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Default_Type_Resolution_Shall_Be_Exact()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("shouldBeCat").Type<InterfaceType<IPet>>().Resolve(new Cat());
+                    d.Field("shouldBeDog").Type<InterfaceType<IPet>>().Resolve(new Dog());
+                })
+                .AddType<Dog>()
+                .AddType<Cat>()
+                .ExecuteRequestAsync("{ shouldBeCat { __typename } shouldBeDog { __typename } }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Default_Type_Resolution_Shall_Be_Exact_Schema()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("shouldBeCat").Type<InterfaceType<IPet>>().Resolve(new Cat());
+                    d.Field("shouldBeDog").Type<InterfaceType<IPet>>().Resolve(new Dog());
+                })
+                .AddType<Dog>()
+                .AddType<Cat>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
         public class Query
         {
             public string SayHello(string name) =>
@@ -161,6 +202,10 @@ namespace HotChocolate
         {
             public string? Name =>
                 throw new NotImplementedException();
+        }
+
+        public class Cat : Dog
+        {
         }
 
         public class QueryWithDateTimeType : ObjectType<QueryWithDateTime>

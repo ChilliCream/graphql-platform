@@ -38,12 +38,16 @@ namespace HotChocolate.Validation
         /// <param name="contextData">
         /// Arbitrary execution context data that can be used during the document validation.
         /// </param>
+        /// <param name="onlyNonCacheable">
+        /// Defines that only rules shall be evaluated that are not cacheable.
+        /// </param>
         /// <returns>
         /// The result of the document validation.
         /// </returns>
         DocumentValidatorResult Validate(
             ISchema schema,
             DocumentNode document,
-            IDictionary<string, object?> contextData);
+            IDictionary<string, object?> contextData,
+            bool onlyNonCacheable = false);
     }
 }

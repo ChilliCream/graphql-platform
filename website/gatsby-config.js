@@ -35,7 +35,7 @@ module.exports = {
     },
   },
   plugins: [
-    `gatsby-plugin-ts`,
+    `gatsby-plugin-graphql-codegen`,
     `gatsby-plugin-styled-components`,
     `gatsby-plugin-react-helmet`,
     `gatsby-remark-reading-time`,
@@ -73,10 +73,9 @@ module.exports = {
                       </svg>`,
             },
           },
-          // todo: enable and fix
-          // note: disabled for now, because # hash links are not recognized.
-          // we probably need this plugin again gatsby-remark-autolink-headers.
-          // `gatsby-remark-check-links`,
+          {
+            resolve: require.resolve(`./plugins/gatsby-remark-gather-links`),
+          },
         ],
       },
     },
@@ -108,6 +107,9 @@ module.exports = {
       },
     },
     {
+      resolve: require.resolve(`./plugins/gatsby-plugin-validate-links`),
+    },
+    {
       resolve: `gatsby-plugin-react-svg`,
       options: {
         rule: {
@@ -122,8 +124,9 @@ module.exports = {
       },
     },
     `gatsby-transformer-json`,
-    `gatsby-transformer-sharp`,
+    `gatsby-plugin-image`,
     `gatsby-plugin-sharp`,
+    `gatsby-transformer-sharp`,
     {
       resolve: "gatsby-plugin-web-font-loader",
       options: {
@@ -153,7 +156,7 @@ module.exports = {
     },
     `gatsby-plugin-sitemap`,
     {
-      resolve: `@darth-knoppix/gatsby-plugin-feed`,
+      resolve: `gatsby-plugin-feed`,
       options: {
         baseUrl: `https://chillicream.com`,
         query: `{
@@ -184,13 +187,10 @@ module.exports = {
             ...options,
             id: baseUrl,
             title,
-            link: baseUrl,
+            site_url: baseUrl,
             description,
             copyright: `All rights reserved ${currentYear}, ${company}`,
-            author: {
-              name: author,
-              link: "https://twitter.com/Chilli_Cream",
-            },
+            author,
             generator: "ChilliCream",
             image: `${baseUrl}/favicon-32x32.png`,
             favicon: `${baseUrl}/favicon-32x32.png`,
@@ -213,7 +213,7 @@ module.exports = {
                 edges {
                   node {
                     excerpt
-                    html
+                    body
                     frontmatter {
                       title
                       author
@@ -222,9 +222,7 @@ module.exports = {
                       path
                       featuredImage {
                         childImageSharp {
-                          fluid(maxWidth: 800, pngQuality: 90) {
-                            src
-                          }
+                          gatsbyImageData(layout: CONSTRAINED, width: 800, pngOptions: { quality: 90 })
                         }
                       }
                     }
@@ -241,39 +239,35 @@ module.exports = {
                 },
               },
             }) =>
-              allMdx.edges.map(({ node }) => {
-                const date = new Date(Date.parse(node.frontmatter.date));
+              allMdx.edges.map(({ node: { excerpt, frontmatter, body } }) => {
+                const date = new Date(Date.parse(frontmatter.date));
                 const imgSrcPattern = new RegExp(
                   `(${pathPrefix})?/static/`,
                   "g"
                 );
-                const link = siteUrl + pathPrefix + node.frontmatter.path;
-                let image = node.frontmatter.featuredImage
+                const link = siteUrl + pathPrefix + frontmatter.path;
+                let image = frontmatter.featuredImage
                   ? siteUrl +
-                    node.frontmatter.featuredImage.childImageSharp.fluid.src
+                    frontmatter.featuredImage.childImageSharp
+                      .gatsbyImageData.src
                   : null;
 
                 return {
-                  id: node.frontmatter.path,
-                  link,
-                  title: node.frontmatter.title,
+                  url: link,
+                  title: frontmatter.title,
                   date,
                   published: date,
-                  description: node.excerpt,
-                  content: node.html.replace(
+                  description: excerpt,
+                  content: body.replace(
                     imgSrcPattern,
                     `${siteUrl}/static/`
                   ),
                   image,
-                  author: [
-                    {
-                      name: node.frontmatter.author,
-                      link: node.frontmatter.authorUrl,
-                    },
-                  ],
+                  author: frontmatter.author,
                 };
               }),
             title: "ChilliCream Blog",
+            output: "/rss.xml",
           },
         ],
       },

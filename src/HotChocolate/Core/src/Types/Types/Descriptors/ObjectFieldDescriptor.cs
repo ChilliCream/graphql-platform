@@ -126,15 +126,13 @@ namespace HotChocolate.Types.Descriptors
         protected internal override ObjectFieldDefinition Definition { get; protected set; } =
             new();
 
-        protected override void OnCreateDefinition(
-            ObjectFieldDefinition definition)
+        protected override void OnCreateDefinition(ObjectFieldDefinition definition)
         {
-            if (!Definition.AttributesAreApplied && Definition.Member is not null)
+            MemberInfo? member = definition.ResolverMember ?? definition.Member;
+
+            if (!Definition.AttributesAreApplied && member is not null)
             {
-                Context.TypeInspector.ApplyAttributes(
-                    Context,
-                    this,
-                    Definition.Member);
+                Context.TypeInspector.ApplyAttributes(Context, this, member);
                 Definition.AttributesAreApplied = true;
             }
 
@@ -156,8 +154,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         /// <inheritdoc />
-        public new IObjectFieldDescriptor SyntaxNode(
-            FieldDefinitionNode? fieldDefinition)
+        public new IObjectFieldDescriptor SyntaxNode(FieldDefinitionNode? fieldDefinition)
         {
             base.SyntaxNode(fieldDefinition);
             return this;
@@ -171,8 +168,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         /// <inheritdoc />
-        public new IObjectFieldDescriptor Description(
-            string? value)
+        public new IObjectFieldDescriptor Description(string? value)
         {
             base.Description(value);
             return this;
@@ -280,7 +276,7 @@ namespace HotChocolate.Types.Descriptors
 
             Definition.Resolver = fieldResolver;
 
-            if (resultType != null)
+            if (resultType is not null)
             {
                 Definition.SetMoreSpecificType(
                     Context.TypeInspector.GetType(resultType),

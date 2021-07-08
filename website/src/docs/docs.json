@@ -259,6 +259,10 @@
               {
                 "path": "migrate-from-10-to-11",
                 "title": "Migrate from 10.5 to 11.0"
+              },
+              {
+                "path": "migrate-from-11-to-12",
+                "title": "Migrate from 11 to 12"
               }
             ]
           }

@@ -160,8 +160,7 @@ namespace HotChocolate.Configuration
                 {
                     if (interfaceType.RuntimeType.IsAssignableFrom(objectType.RuntimeType))
                     {
-                        ITypeReference typeReference =
-                            _typeInspector.GetOutputTypeRef(interfaceType.RuntimeType);
+                        SchemaTypeReference typeReference = TypeReference.Create(interfaceType.Type);
                         ((ObjectType)objectType.Type).Definition!.Interfaces.Add(typeReference);
                         dependencies.Add(new(typeReference, TypeDependencyKind.Completed));
                     }
@@ -171,6 +170,27 @@ namespace HotChocolate.Configuration
                 {
                     objectType.AddDependencies(dependencies);
                     _typeRegistry.Register(objectType);
+                    dependencies.Clear();
+                }
+            }
+
+            foreach (RegisteredType implementing in interfaceTypes)
+            {
+                foreach (RegisteredType interfaceType in interfaceTypes)
+                {
+                    if (!ReferenceEquals(implementing, interfaceType) &&
+                        interfaceType.RuntimeType.IsAssignableFrom(implementing.RuntimeType))
+                    {
+                        SchemaTypeReference typeReference = TypeReference.Create(interfaceType.Type);
+                        ((InterfaceType)implementing.Type).Definition!.Interfaces.Add(typeReference);
+                        dependencies.Add(new(typeReference, TypeDependencyKind.Completed));
+                    }
+                }
+
+                if (dependencies.Count > 0)
+                {
+                    implementing.AddDependencies(dependencies);
+                    _typeRegistry.Register(implementing);
                     dependencies.Clear();
                 }
             }

@@ -8,6 +8,8 @@ namespace HotChocolate.Data.Projections.Expressions
     public class QueryableProjectionScope
         : ProjectionScope<Expression>
     {
+        private Dictionary<Type, Queue<MemberAssignment>>? _abstractType;
+
         public QueryableProjectionScope(
             Type type,
             string parameterName)
@@ -28,5 +30,24 @@ namespace HotChocolate.Data.Projections.Expressions
         public Stack<Queue<MemberAssignment>> Level { get; }
 
         public ParameterExpression Parameter { get; }
+
+        public void AddAbstractType(Type type, Queue<MemberAssignment> memberAssignments)
+        {
+            _abstractType ??= new Dictionary<Type, Queue<MemberAssignment>>();
+            _abstractType[type] = memberAssignments;
+        }
+
+        public IEnumerable<KeyValuePair<Type, Queue<MemberAssignment>>> GetAbstractTypes()
+        {
+            if (_abstractType is not null)
+            {
+                foreach (KeyValuePair<Type, Queue<MemberAssignment>> elm in _abstractType)
+                {
+                    yield return elm;
+                }
+            }
+        }
+
+        public bool HasAbstractTypes() => _abstractType is not null;
     }
 }

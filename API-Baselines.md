@@ -35,7 +35,7 @@ It can be resolved by adding the new symbol to the `PublicAPI.Unshipped.txt` fil
 Microsoft.AspNetCore.Builder.NewApplicationBuilder.New() -> Microsoft.AspNetCore.Builder.IApplicationBuilder!
 ```
 
-This change can be performed automatically by your IDE or using a [script](#AddUnshipped).
+This change can be performed automatically by your IDE or using a [script](#AddUnshippedApi).
 
 > Note: Be sure to apply the Code-Fix on a solution level, if there are many new APIs that need to be documented.
 > ![image](https://user-images.githubusercontent.com/45513122/119241399-47bbbe80-bb56-11eb-9253-92e2878cd428.png)
@@ -113,12 +113,12 @@ Executes a build and fails if there are undocumented changes.
 ./build.sh CheckPublicApi
 ```
 
-### AddUnshipped
+### AddUnshippedApi
 
 This will use the `dotnet-format` tool to fix all the `RS0016` warnings of the `Microsoft.CodeAnalysis.PublicApiAnalyzers`.
 
 ```bash
-./build.sh AddUnshipped
+./build.sh AddUnshippedApi
 ```
 
 ### DiffShippedApi

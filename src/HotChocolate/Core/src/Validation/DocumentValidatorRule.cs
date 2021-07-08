@@ -9,10 +9,13 @@ namespace HotChocolate.Validation
     {
         private readonly TVisitor _visitor;
 
-        public DocumentValidatorRule(TVisitor visitor)
+        public DocumentValidatorRule(TVisitor visitor, bool isCacheable = true)
         {
             _visitor = visitor;
+            IsCacheable = isCacheable;
         }
+
+        public bool IsCacheable { get; }
 
         public void Validate(IDocumentValidatorContext context, DocumentNode document)
         {

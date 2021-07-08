@@ -1,0 +1,36 @@
+﻿{
+  "type": "Operation",
+  "root": {
+    "type": "Sequence",
+    "nodes": [
+      {
+        "type": "Resolver",
+        "strategy": "Serial",
+        "selections": [
+          {
+            "id": 0,
+            "field": "Mutation.bar",
+            "responseName": "bar"
+          }
+        ]
+      },
+      {
+        "type": "Resolver",
+        "strategy": "Parallel",
+        "selections": [
+          {
+            "id": 1,
+            "field": "Bar.test",
+            "responseName": "test"
+          },
+          {
+            "id": 2,
+            "field": "Bar.__typename",
+            "responseName": "__typename",
+            "pure": true
+          }
+        ]
+      }
+    ]
+  }
+}

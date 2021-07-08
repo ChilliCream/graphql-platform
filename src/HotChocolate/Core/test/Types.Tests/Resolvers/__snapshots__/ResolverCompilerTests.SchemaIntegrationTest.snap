@@ -3,7 +3,8 @@
 }
 
 type Resolvers {
-  globalState: String!
+  claimsPrincipal: Boolean!
+  globalState: String
   globalStateNullable: String!
   globalStateWithDefault: String!
   globalStateWithDefaultAbc: String!
@@ -21,6 +22,7 @@ type Resolvers {
   resolverWithObjectType: Boolean!
   resolverWithOperationDefinition: Boolean!
   resolverWithOutputField: Boolean!
+  resolverWithPath: Boolean!
   resolverWithResolverContext: Boolean!
   resolverWithSchema: Boolean!
   resolverWithSelection: Boolean!
