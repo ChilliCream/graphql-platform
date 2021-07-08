@@ -53,7 +53,7 @@ namespace HotChocolate.Execution.Errors
                 "{ foo }",
                 b => b
                     .AddDocumentFromString("type Query { foo: String }")
-                    .AddResolver("Query", "foo", ctx => throw new Exception("Foo"))
+                    .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
                     .Services
                     .AddErrorFilter<DummyErrorFilter>());
         }

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
@@ -167,16 +168,19 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services)
             where T : class, IParameterExpressionBuilder
         {
-            services.TryAddSingleton<IParameterExpressionBuilder, T>();
+            if(services.All(t => t.ImplementationType != typeof(T)))
+            {
+                services.AddSingleton<IParameterExpressionBuilder, T>();
+            }
             return services;
         }
 
-        internal static IServiceCollection TryAddParameterExpressionBuilder<T>(
+        internal static IServiceCollection AddParameterExpressionBuilder<T>(
             this IServiceCollection services,
             Func<IServiceProvider, T> factory)
             where T : class, IParameterExpressionBuilder
         {
-            services.TryAddSingleton<IParameterExpressionBuilder>(factory);
+            services.AddSingleton<IParameterExpressionBuilder>(factory);
             return services;
         }
     }

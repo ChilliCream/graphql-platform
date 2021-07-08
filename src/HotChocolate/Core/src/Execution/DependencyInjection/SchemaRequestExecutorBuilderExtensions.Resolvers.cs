@@ -4,6 +4,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using System.Threading.Tasks;
 using System.Threading;
+using HotChocolate.Types;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

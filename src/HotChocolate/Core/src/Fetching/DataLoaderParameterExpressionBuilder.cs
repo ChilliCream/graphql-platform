@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using GreenDonut;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 
@@ -23,7 +24,8 @@ namespace HotChocolate.Fetching
         }
 
         public override bool CanHandle(ParameterInfo parameter)
-            => parameter.IsDefined(typeof(DataLoaderAttribute));
+            => parameter.IsDefined(typeof(DataLoaderAttribute)) ||
+               typeof(IDataLoader).IsAssignableFrom(parameter.ParameterType);
 
         public override Expression Build(ParameterInfo parameter, Expression context)
         {

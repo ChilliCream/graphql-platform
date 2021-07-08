@@ -40,12 +40,12 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             if (canHandle is null)
             {
-                builder.RequestExecutorBuilder.Services.TryAddParameterExpressionBuilder(
+                builder.RequestExecutorBuilder.Services.AddParameterExpressionBuilder(
                     _ => new CustomParameterExpressionBuilder<T>(expression));
             }
             else
             {
-                builder.RequestExecutorBuilder.Services.TryAddParameterExpressionBuilder(
+                builder.RequestExecutorBuilder.Services.AddParameterExpressionBuilder(
                     _ => new CustomParameterExpressionBuilder<T>(expression, canHandle));
             }
             return builder;

@@ -36,7 +36,7 @@ namespace HotChocolate.Resolvers
         private readonly List<IParameterExpressionBuilder> _parameterExpressionBuilders;
 
         public DefaultResolverCompilerService(
-            IEnumerable<IParameterExpressionBuilder> customParameterExpressionBuilders)
+            IEnumerable<IParameterExpressionBuilder>? customParameterExpressionBuilders)
         {
             // explicit internal expression builders will be added first.
             var list = new List<IParameterExpressionBuilder>
