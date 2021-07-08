@@ -4,8 +4,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Factories
 {
-    internal sealed class UnionTypeFactory
-        : ITypeFactory<UnionTypeDefinitionNode, UnionType>
+    internal sealed class UnionTypeFactory : ITypeFactory<UnionTypeDefinitionNode, UnionType>
     {
         public UnionType Create(
             IBindingLookup bindingLookup,
