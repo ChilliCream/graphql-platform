@@ -12,6 +12,18 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
+    /// <summary>
+    /// GraphQL Unions represent an object that could be one of a list of GraphQL Object types,
+    /// but provides for no guaranteed fields between those types.
+    /// They also differ from interfaces in that Object types declare what interfaces
+    /// they implement, but are not aware of what unions contain them.
+    ///
+    /// With interfaces and objects, only those fields defined on the type can be queried directly;
+    /// to query other fields on an interface, typed fragments must be used.
+    /// This is the same as for unions, but unions do not define any fields,
+    /// so no fields may be queried on this type without the use of type refining
+    /// fragments or inline fragments (with the exception of the meta-field __typename).
+    /// </summary>
     public class UnionType
         : NamedTypeBase<UnionTypeDefinition>
         , IUnionType
@@ -23,25 +35,56 @@ namespace HotChocolate.Types
         private Action<IUnionTypeDescriptor>? _configure;
         private ResolveAbstractType? _resolveAbstractType;
 
+        /// <summary>
+        /// Initializes a new  instance of <see cref="UnionType"/>.
+        /// </summary>
         protected UnionType()
         {
             _configure = Configure;
         }
 
+        /// <summary>
+        /// Initializes a new  instance of <see cref="UnionType"/>.
+        /// </summary>
+        /// <param name="configure">
+        /// A delegate to specify the properties of this type.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="configure"/> is <c>null</c>.
+        /// </exception>
         public UnionType(Action<IUnionTypeDescriptor> configure)
         {
             _configure = configure
                 ?? throw new ArgumentNullException(nameof(configure));
         }
 
+        /// <summary>
+        /// Create a union type from a type definition.
+        /// </summary>
+        /// <param name="definition">
+        /// The union type definition that specifies the properties of the
+        /// newly created union type.
+        /// </param>
+        /// <returns>
+        /// Returns the newly created union type.
+        /// </returns>
+        public static UnionType CreateUnsafe(UnionTypeDefinition definition)
+            => new() { Definition = definition };
+
+        /// <inheritdoc />
         public override TypeKind Kind => TypeKind.Union;
 
+        /// <inheritdoc />
         public UnionTypeDefinitionNode? SyntaxNode { get; private set; }
 
+        /// <summary>
+        /// Gets the <see cref="IObjectType" /> set of this union type.
+        /// </summary>
         public IReadOnlyDictionary<NameString, ObjectType> Types => _typeMap;
 
         IReadOnlyCollection<IObjectType> IUnionType.Types => _typeMap.Values;
 
+        /// <inheritdoc />
         public override bool IsAssignableFrom(INamedType namedType)
         {
             switch (namedType.Kind)
@@ -57,6 +100,17 @@ namespace HotChocolate.Types
             }
         }
 
+        /// <summary>
+        /// Checks if the type set of this union type contains the
+        /// specified <paramref name="objectType"/>.
+        /// </summary>
+        /// <param name="objectType">
+        /// The object type.
+        /// </param>
+        /// <returns>
+        /// Returns <c>true</c>, if the type set of this union type contains the
+        /// specified <paramref name="objectType"/>; otherwise, <c>false</c> is returned.
+        /// </returns>
         public bool ContainsType(ObjectType objectType)
         {
             if (objectType is null)
@@ -78,9 +132,24 @@ namespace HotChocolate.Types
             return _typeMap.ContainsKey(objectType.Name);
         }
 
+        /// <inheritdoc />
         public bool ContainsType(NameString typeName) =>
             _typeMap.ContainsKey(typeName.EnsureNotEmpty(nameof(typeName)));
 
+        /// <summary>
+        /// Resolves the concrete type for the value of a type
+        /// that implements this interface.
+        /// </summary>
+        /// <param name="context">
+        /// The resolver context.
+        /// </param>
+        /// <param name="resolverResult">
+        /// The value for which the type shall be resolved.
+        /// </param>
+        /// <returns>
+        /// Returns <c>null</c> if the value is not of a type
+        /// implementing this interface.
+        /// </returns>
         public ObjectType? ResolveConcreteType(
             IResolverContext context,
             object resolverResult) =>
@@ -128,6 +197,8 @@ namespace HotChocolate.Types
         {
             base.OnCompleteType(context, definition);
 
+            SyntaxNode = definition.SyntaxNode;
+
             CompleteTypeSet(context, definition);
             CompleteResolveAbstractType(definition.ResolveAbstractType);
         }
@@ -145,7 +216,7 @@ namespace HotChocolate.Types
                 _typeMap[objectType.Name] = objectType;
             }
 
-            if (typeSet.Count == 0)
+            if (typeSet.Count is 0)
             {
                 context.ReportError(SchemaErrorBuilder.New()
                     .SetMessage(TypeResources.UnionType_MustHaveTypes)
@@ -181,7 +252,7 @@ namespace HotChocolate.Types
         }
 
         private void CompleteResolveAbstractType(
-            ResolveAbstractType resolveAbstractType)
+            ResolveAbstractType? resolveAbstractType)
         {
             if (resolveAbstractType is null)
             {

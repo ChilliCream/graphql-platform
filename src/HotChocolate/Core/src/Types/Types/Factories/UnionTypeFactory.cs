@@ -1,50 +1,32 @@
-﻿using System;
-using HotChocolate.Configuration;
-using HotChocolate.Language;
+﻿using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Factories
 {
     internal sealed class UnionTypeFactory : ITypeFactory<UnionTypeDefinitionNode, UnionType>
     {
-        public UnionType Create(
-            IBindingLookup bindingLookup,
-            IReadOnlySchemaOptions schemaOptions,
-            UnionTypeDefinitionNode node)
+        public UnionType Create(IDescriptorContext context, UnionTypeDefinitionNode node)
         {
-            if (bindingLookup is null)
+            var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
+
+            var typeDefinition = new UnionTypeDefinition(
+                node.Name.Value,
+                node.Description?.Value);
+
+            if (preserveSyntaxNodes)
             {
-                throw new ArgumentNullException(nameof(bindingLookup));
+                typeDefinition.SyntaxNode = node;
             }
 
-            if (node is null)
+            foreach (NamedTypeNode namedType in node.Types)
             {
-                throw new ArgumentNullException(nameof(node));
+                typeDefinition.Types.Add(TypeReference.Create(namedType));
             }
 
-            ITypeBindingInfo bindingInfo =
-                bindingLookup.GetBindingInfo(node.Name.Value);
+            SdlToTypeSystemHelper.AddDirectives(typeDefinition, node);
 
-            return new UnionType(d =>
-            {
-                d.SyntaxNode(schemaOptions.PreserveSyntaxNodes ? node : null)
-                    .Name(node.Name.Value)
-                    .Description(node.Description?.Value);
-
-                if (bindingInfo.SourceType != null)
-                {
-                    d.Extend().OnBeforeCreate(t => t.RuntimeType = bindingInfo.SourceType);
-                }
-
-                foreach (NamedTypeNode namedType in node.Types)
-                {
-                    d.Type(namedType);
-                }
-
-                foreach (DirectiveNode directive in node.Directives)
-                {
-                    d.Directive(directive);
-                }
-            });
+            return UnionType.CreateUnsafe(typeDefinition);
         }
     }
 }
