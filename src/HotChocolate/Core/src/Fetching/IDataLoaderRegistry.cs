@@ -3,7 +3,7 @@ using GreenDonut;
 
 #nullable enable
 
-namespace HotChocolate.DataLoader
+namespace HotChocolate.Fetching
 {
     /// <summary>
     /// The DataLoader-registry holds the instances of DataLoaders

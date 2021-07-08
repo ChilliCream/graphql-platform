@@ -47,7 +47,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 .TryAddDefaultBatchDispatcher()
                 .TryAddRequestContextAccessor()
                 .TryAddDefaultDataLoaderRegistry()
-                .TryAddIdSerializer();
+                .TryAddIdSerializer()
+                .TryAddDataLoaderParameterExpressionBuilder();
 
             // pools
             services

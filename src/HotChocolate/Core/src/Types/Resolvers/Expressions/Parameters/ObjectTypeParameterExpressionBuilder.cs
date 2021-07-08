@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Types;
 
 #nullable enable

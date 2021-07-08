@@ -1,4 +1,5 @@
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 
 #nullable enable

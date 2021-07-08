@@ -5,13 +5,13 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Internal;
 using HotChocolate.Language;
-using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Tests;
 using HotChocolate.Types;
-using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
@@ -532,7 +532,7 @@ namespace HotChocolate.Resolvers
             // assert
             ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString("type Query { a: String }")
-                .AddResolver("Query", "a", "foo")
+                .Use(next => next)
                 .Create();
 
             ObjectType queryType = schema.GetType<ObjectType>("Query");
@@ -586,7 +586,7 @@ namespace HotChocolate.Resolvers
             // assert
             ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString("type Query { a: String }")
-                .AddResolver("Query", "a", "foo")
+                .Use(next => next)
                 .Create();
 
             ObjectType queryType = schema.GetType<ObjectType>("Query");
@@ -616,7 +616,7 @@ namespace HotChocolate.Resolvers
             // assert
             ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString("type Query { a: String }")
-                .AddResolver("Query", "a", "foo")
+                .Use(next => next)
                 .Create();
 
             ObjectType queryType = schema.GetType<ObjectType>("Query");
@@ -666,7 +666,7 @@ namespace HotChocolate.Resolvers
             // assert
             ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString("type Query { a: String }")
-                .AddResolver("Query", "a", "foo")
+                .Use(next => next)
                 .Create();
 
             var context = new Mock<IResolverContext>();

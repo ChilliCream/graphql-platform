@@ -10,20 +10,19 @@ namespace HotChocolate.Internal
     /// This expression builder allows to map custom services as resolver parameters that do
     /// not need an attribute.
     /// </summary>
-    public sealed class CustomServiceParameterExpressionBuilder : IParameterExpressionBuilder
+    public sealed class CustomServiceParameterExpressionBuilder<TService>
+        : IParameterExpressionBuilder
     {
         private readonly Type _serviceType;
         private readonly ServiceParameterExpressionBuilder _internalBuilder = new();
 
         /// <summary>
-        /// Initializes a new instance of <see cref="CustomServiceParameterExpressionBuilder"/>.
+        /// Initializes a new instance of
+        /// <see cref="CustomServiceParameterExpressionBuilder{TService}"/>.
         /// </summary>
-        /// <param name="serviceType">
-        /// The service type that shall be mapped.
-        /// </param>
-        public CustomServiceParameterExpressionBuilder(Type serviceType)
+        public CustomServiceParameterExpressionBuilder()
         {
-            _serviceType = serviceType;
+            _serviceType = typeof(TService);
         }
 
         ArgumentKind IParameterExpressionBuilder.Kind

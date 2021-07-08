@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 #nullable enable
 
-namespace HotChocolate.DataLoader
+namespace HotChocolate.Fetching
 {
     internal sealed class FetchCacheDataLoader<TKey, TValue>
         : CacheDataLoader<TKey, TValue>

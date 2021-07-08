@@ -6,7 +6,7 @@ using GreenDonut;
 
 #nullable enable
 
-namespace HotChocolate.DataLoader
+namespace HotChocolate.Fetching
 {
     internal sealed class FetchBatchDataLoader<TKey, TValue>
         : BatchDataLoader<TKey, TValue>

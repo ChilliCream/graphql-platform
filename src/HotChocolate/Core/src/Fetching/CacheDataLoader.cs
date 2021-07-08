@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
-using HotChocolate.Fetching;
 
 #nullable enable
 
-namespace HotChocolate.DataLoader
+namespace HotChocolate.Fetching
 {
     public abstract class CacheDataLoader<TKey, TValue>
         : DataLoaderBase<TKey, TValue>
@@ -25,7 +24,7 @@ namespace HotChocolate.DataLoader
         {
             var items = new Result<TValue>[keys.Count];
 
-            for (int i = 0; i < keys.Count; i++)
+            for (var i = 0; i < keys.Count; i++)
             {
                 try
                 {

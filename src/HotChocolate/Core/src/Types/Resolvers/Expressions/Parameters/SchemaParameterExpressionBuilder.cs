@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Internal;
 using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBuilderHelpers;
 
 #nullable enable

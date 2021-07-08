@@ -77,11 +77,12 @@ namespace HotChocolate.Internal
         /// The expression that shall be used to resolve the parameter value.
         /// </param>
         public CustomParameterExpressionBuilder(
-            Func<ParameterInfo, bool> canHandle,
-            Expression<Func<IResolverContext, TArg>> expression)
+            Expression<Func<IResolverContext, TArg>> expression,
+            Func<ParameterInfo, bool> canHandle)
         {
-            _canHandle = canHandle;
             _expression = expression;
+            _canHandle = canHandle;
+
         }
 
         public override bool CanHandle(ParameterInfo parameter)

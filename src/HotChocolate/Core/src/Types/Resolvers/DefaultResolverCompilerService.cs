@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Resolvers.Expressions.Parameters;
 using HotChocolate.Utilities;
@@ -50,9 +51,12 @@ namespace HotChocolate.Resolvers
                 new ScopedServiceParameterExpressionBuilder(),
             };
 
-            // then we will add custom parameter expression builder and
-            // give the user a chance to override our implicit expression builder.
-            list.AddRange(customParameterExpressionBuilders);
+            if (customParameterExpressionBuilders is not null)
+            {
+                // then we will add custom parameter expression builder and
+                // give the user a chance to override our implicit expression builder.
+                list.AddRange(customParameterExpressionBuilders);
+            }
 
             // then we add the internal implicit expression builder.
             list.Add(new DocumentParameterExpressionBuilder());
@@ -344,7 +348,7 @@ namespace HotChocolate.Resolvers
 
             foreach (IParameterExpressionBuilder builder in _parameterExpressionBuilders)
             {
-                if(builder.CanHandle(parameter))
+                if (builder.CanHandle(parameter))
                 {
 #if NETSTANDARD
                     _cache[parameter] = builder;

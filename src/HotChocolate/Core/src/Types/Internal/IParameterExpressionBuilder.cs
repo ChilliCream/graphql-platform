@@ -1,15 +1,14 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
 #nullable enable
 
-namespace HotChocolate.Resolvers.Expressions
+namespace HotChocolate.Internal
 {
     /// <summary>
     /// This interface represents an expression builder to resolver resolver parameter values.
     /// </summary>
-    internal interface IParameterExpressionBuilder
+    public interface IParameterExpressionBuilder
     {
         /// <summary>
         /// Defines the argument kind that is handled by this builder.

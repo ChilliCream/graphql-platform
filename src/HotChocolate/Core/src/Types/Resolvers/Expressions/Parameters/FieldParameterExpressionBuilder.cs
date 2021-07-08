@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Types;
 
 #nullable enable
@@ -7,7 +8,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
     internal sealed class FieldParameterExpressionBuilder
-        : LambdaParameterExpressionBuilder<IPureResolverContext, IOutputField>
+        : LambdaParameterExpressionBuilder<IPureResolverContext, IObjectField>
     {
         public FieldParameterExpressionBuilder()
             : base(ctx => ctx.Selection.Field)

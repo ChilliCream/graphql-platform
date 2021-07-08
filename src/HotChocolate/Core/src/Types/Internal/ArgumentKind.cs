@@ -1,6 +1,9 @@
-﻿namespace HotChocolate.Resolvers.Expressions
+﻿namespace HotChocolate.Internal
 {
-    internal enum ArgumentKind
+    /// <summary>
+    /// Specifies resolver parameter kind.
+    /// </summary>
+    public enum ArgumentKind
     {
         Argument,
         Source,

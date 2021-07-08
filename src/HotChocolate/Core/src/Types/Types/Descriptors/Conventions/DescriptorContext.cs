@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Utilities;
@@ -45,7 +46,7 @@ namespace HotChocolate.Types.Descriptors
             SchemaInterceptor = schemaInterceptor;
             TypeInterceptor = typeInterceptor;
             ResolverCompiler = new DefaultResolverCompilerService(
-                services.GetServices<IParameterExpressionBuilder>());
+                services.GetService<IEnumerable<IParameterExpressionBuilder>>());
 
             schema.Completed += OnSchemaOnCompleted;
 

@@ -7,7 +7,7 @@ using GreenDonut;
 
 #nullable enable
 
-namespace HotChocolate.DataLoader
+namespace HotChocolate.Fetching
 {
     internal sealed class FetchGroupedDataLoader<TKey, TValue>
         : GroupedDataLoader<TKey, TValue>

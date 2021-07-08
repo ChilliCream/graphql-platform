@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.DataLoader
+﻿namespace HotChocolate.Fetching
 {
     internal static class DataLoaderDefaults
     {

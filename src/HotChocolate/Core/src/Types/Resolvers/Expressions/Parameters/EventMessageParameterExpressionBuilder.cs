@@ -2,6 +2,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Internal;
 using static HotChocolate.Properties.TypeResources;
 
 #nullable enable

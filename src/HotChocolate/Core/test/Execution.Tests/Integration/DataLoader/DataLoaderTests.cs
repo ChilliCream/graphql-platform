@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using GreenDonut;
-using HotChocolate.DataLoader;
-using HotChocolate.Resolvers;
+using HotChocolate.Fetching;
 using HotChocolate.Tests;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
@@ -80,7 +80,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
                     .AddResolver(
                         "Query", "fetchItem",
                         async ctx => await ctx.GroupDataLoader<string, string>(
-                            (keys, ct) => Task.FromResult(
+                            (keys, _) => Task.FromResult(
                                 keys.ToLookup(t => t)))
                             .LoadAsync("fooBar"))
             )

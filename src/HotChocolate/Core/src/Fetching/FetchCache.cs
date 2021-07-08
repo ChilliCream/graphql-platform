@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 
 #nullable enable
 
-namespace HotChocolate.DataLoader
+namespace HotChocolate.Fetching
 {
-    public delegate Task<TValue> FetchCacheCt<TKey, TValue>(
+    public delegate Task<TValue> FetchCacheCt<in TKey, TValue>(
         TKey key,
         CancellationToken cancellationToken)
         where TKey : notnull;

@@ -7,7 +7,7 @@ using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using static HotChocolate.Utilities.ThrowHelper;
+using static HotChocolate.Fetching.Utilities.ThrowHelper;
 
 #nullable enable
 
@@ -18,9 +18,7 @@ namespace HotChocolate.Types
         public static IObjectFieldDescriptor UseDataloader<TDataLoader>(
             this IObjectFieldDescriptor descriptor)
             where TDataLoader : IDataLoader
-        {
-            return UseDataloader(descriptor, typeof(TDataLoader));
-        }
+            => UseDataloader(descriptor, typeof(TDataLoader));
 
         public static IObjectFieldDescriptor UseDataloader(
             this IObjectFieldDescriptor descriptor,

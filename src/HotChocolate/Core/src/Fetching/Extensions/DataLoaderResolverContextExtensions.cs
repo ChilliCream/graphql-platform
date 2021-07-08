@@ -1,15 +1,16 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using GreenDonut;
-using HotChocolate.DataLoader;
+using HotChocolate.Fetching;
+using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
-using static HotChocolate.Properties.TypeResources;
+using Microsoft.Extensions.DependencyInjection;
+using static HotChocolate.Fetching.Properties.FetchingResources;
 
 #nullable enable
 
-namespace HotChocolate.Resolvers
+namespace HotChocolate.Types
 {
     public static class DataLoaderResolverContextExtensions
     {
@@ -182,6 +183,7 @@ namespace HotChocolate.Resolvers
             return FetchOnceAsync(context, fetch, key);
         }
 
+        [GetDataLoaderWithKey]
         public static T DataLoader<T>(this IResolverContext context, string key)
             where T : IDataLoader
         {
@@ -200,6 +202,7 @@ namespace HotChocolate.Resolvers
             return reg.GetOrRegister(key, () => CreateDataLoader<T>(services));
         }
 
+        [GetDataLoader]
         public static T DataLoader<T>(this IResolverContext context)
             where T : IDataLoader
         {
@@ -243,4 +246,8 @@ namespace HotChocolate.Resolvers
             return registeredDataLoader;
         }
     }
+
+    internal sealed class GetDataLoaderWithKeyAttribute : Attribute { }
+
+    internal sealed class GetDataLoaderAttribute : Attribute { }
 }
