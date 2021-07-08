@@ -13,6 +13,44 @@ using static HotChocolate.Types.CompleteInterfacesHelper;
 
 namespace HotChocolate.Types
 {
+    /// <summary>
+    /// GraphQL interfaces represent a list of named fields and their arguments.
+    /// GraphQL objects and interfaces can then implement these interfaces
+    /// which requires that the implementing type will define all fields defined by those
+    /// interfaces.
+    ///
+    /// Fields on a GraphQL interface have the same rules as fields on a GraphQL object;
+    /// their type can be Scalar, Object, Enum, Interface, or Union, or any wrapping type
+    /// whose base type is one of those five.
+    ///
+    /// For example, an interface NamedEntity may describe a required field and types such
+    /// as Person or Business may then implement this interface to guarantee this field will
+    /// always exist.
+    ///
+    /// Types may also implement multiple interfaces. For example, Business implements both
+    /// the NamedEntity and ValuedEntity interfaces in the example below.
+    ///
+    /// <code>
+    /// interface NamedEntity {
+    ///   name: String
+    /// }
+    ///
+    /// interface ValuedEntity {
+    ///   value: Int
+    /// }
+    ///
+    /// type Person implements NamedEntity {
+    ///   name: String
+    ///   age: Int
+    /// }
+    ///
+    /// type Business implements NamedEntity & ValuedEntity {
+    ///   name: String
+    ///   value: Int
+    ///   employeeCount: Int
+    /// }
+    /// </code>
+    /// </summary>
     public class InterfaceType
         : NamedTypeBase<InterfaceTypeDefinition>
         , IInterfaceType
@@ -21,12 +59,24 @@ namespace HotChocolate.Types
         private Action<IInterfaceTypeDescriptor>? _configure;
         private ResolveAbstractType? _resolveAbstractType;
 
+        /// <summary>
+        /// Initializes a new  instance of <see cref="InterfaceType"/>.
+        /// </summary>
         protected InterfaceType()
         {
             _configure = Configure;
             Fields = FieldCollection<InterfaceField>.Empty;
         }
 
+        /// <summary>
+        /// Initializes a new  instance of <see cref="InterfaceType"/>.
+        /// </summary>
+        /// <param name="configure">
+        /// A delegate to specify the properties of this type.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="configure"/> is <c>null</c>.
+        /// </exception>
         public InterfaceType(Action<IInterfaceTypeDescriptor> configure)
         {
             _configure = configure ?? throw new ArgumentNullException(nameof(configure));
@@ -46,30 +96,60 @@ namespace HotChocolate.Types
         public static InterfaceType CreateUnsafe(InterfaceTypeDefinition definition)
             => new() { Definition = definition };
 
+        /// <inheritdoc />
         public override TypeKind Kind => TypeKind.Interface;
+
+        /// <inheritdoc />
+        public InterfaceTypeDefinitionNode? SyntaxNode { get; private set; }
 
         ISyntaxNode? IHasSyntaxNode.SyntaxNode => SyntaxNode;
 
+        /// <summary>
+        /// Gets the interfaces that are implemented by this type.
+        /// </summary>
         public IReadOnlyList<InterfaceType> Implements => _implements;
 
         IReadOnlyList<IInterfaceType> IComplexOutputType.Implements => _implements;
 
-        public InterfaceTypeDefinitionNode? SyntaxNode { get; private set; }
-
+        /// <summary>
+        /// Gets the field that this type exposes.
+        /// </summary>
         public FieldCollection<InterfaceField> Fields { get; private set; }
 
         IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
 
-        public bool IsImplementing(NameString interfaceTypeName) =>
-            _implements.Any(t => t.Name.Equals(interfaceTypeName));
+        /// <summary>
+        /// Defines if this type is implementing an interface
+        /// with the given <paramref name="typeName" />.
+        /// </summary>
+        /// <param name="typeName">
+        /// The interface type name.
+        /// </param>
+        public bool IsImplementing(NameString typeName)
+            => _implements.Any(t => t.Name.Equals(typeName));
 
-        public bool IsImplementing(InterfaceType interfaceType) =>
-            Array.IndexOf(_implements, interfaceType) != -1;
+        /// <summary>
+        /// Defines if this type is implementing the
+        /// the given <paramref name="interfaceType" />.
+        /// </summary>
+        /// <param name="interfaceType">
+        /// The interface type.
+        /// </param>
+        public bool IsImplementing(InterfaceType interfaceType)
+            => Array.IndexOf(_implements, interfaceType) != -1;
 
-        public bool IsImplementing(IInterfaceType interfaceType) =>
-            interfaceType is InterfaceType i &&
-            Array.IndexOf(_implements, i) != -1;
+        /// <summary>
+        /// Defines if this type is implementing the
+        /// the given <paramref name="interfaceType" />.
+        /// </summary>
+        /// <param name="interfaceType">
+        /// The interface type.
+        /// </param>
+        public bool IsImplementing(IInterfaceType interfaceType)
+            => interfaceType is InterfaceType i &&
+               Array.IndexOf(_implements, i) != -1;
 
+        /// <inheritdoc />
         public override bool IsAssignableFrom(INamedType namedType)
         {
             switch (namedType.Kind)
@@ -86,6 +166,20 @@ namespace HotChocolate.Types
             }
         }
 
+        /// <summary>
+        /// Resolves the concrete type for the value of a type
+        /// that implements this interface.
+        /// </summary>
+        /// <param name="context">
+        /// The resolver context.
+        /// </param>
+        /// <param name="resolverResult">
+        /// The value for which the type shall be resolved.
+        /// </param>
+        /// <returns>
+        /// Returns <c>null</c> if the value is not of a type
+        /// implementing this interface.
+        /// </returns>
         public ObjectType? ResolveConcreteType(
             IResolverContext context,
             object resolverResult)

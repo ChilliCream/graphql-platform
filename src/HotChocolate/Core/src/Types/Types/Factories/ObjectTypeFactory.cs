@@ -7,7 +7,9 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Factories
 {
-    internal sealed class ObjectTypeFactory : ITypeFactory<ObjectTypeDefinitionNode, ObjectType>
+    internal sealed class ObjectTypeFactory
+        : ITypeFactory<ObjectTypeDefinitionNode, ObjectType>
+        , ITypeFactory<ObjectTypeExtensionNode, ObjectTypeExtension>
     {
         public ObjectType Create(IDescriptorContext context, ObjectTypeDefinitionNode node)
         {
@@ -29,13 +31,30 @@ namespace HotChocolate.Types.Factories
 
             SdlToTypeSystemHelper.AddDirectives(typeDefinition, node);
 
-            DeclareFields(typeDefinition, node.Fields, preserveSyntaxNodes);
+            DeclareFields(node.Fields, preserveSyntaxNodes);
 
             return ObjectType.CreateUnsafe(typeDefinition);
         }
 
+        public ObjectTypeExtension Create(IDescriptorContext context, ObjectTypeExtensionNode node)
+        {
+            var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
+
+            var typeDefinition = new ObjectTypeDefinition(node.Name.Value);
+
+            foreach (NamedTypeNode typeNode in node.Interfaces)
+            {
+                typeDefinition.Interfaces.Add(TypeReference.Create(typeNode));
+            }
+
+            SdlToTypeSystemHelper.AddDirectives(typeDefinition, node);
+
+            DeclareFields(node.Fields, preserveSyntaxNodes);
+
+            return ObjectTypeExtension.CreateUnsafe(typeDefinition);
+        }
+
         private static void DeclareFields(
-            ObjectTypeDefinition parent,
             IReadOnlyCollection<FieldDefinitionNode> fields,
             bool preserveSyntaxNodes)
         {
@@ -83,22 +102,6 @@ namespace HotChocolate.Types.Factories
                 SdlToTypeSystemHelper.AddDirectives(argumentDefinition, argument);
 
                 parent.Arguments.Add(argumentDefinition);
-            }
-        }
-    }
-
-    internal static class SdlToTypeSystemHelper
-    {
-        public static void AddDirectives(
-            IHasDirectiveDefinition owner,
-            HotChocolate.Language.IHasDirectives ownerSyntax)
-        {
-            foreach (DirectiveNode directive in ownerSyntax.Directives)
-            {
-                if (!directive.IsDeprecationReason())
-                {
-                    owner.Directives.Add(new(directive));
-                }
             }
         }
     }

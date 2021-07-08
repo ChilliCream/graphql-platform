@@ -104,7 +104,6 @@ namespace HotChocolate.Types
             if (context is null)
             {
                 throw new ArgumentNullException(nameof(context));
-
             }
 
             if (resolverResult is null)
@@ -130,12 +129,12 @@ namespace HotChocolate.Types
         /// otherwise, <c>false</c>.
         /// </returns>
         [Obsolete("Use IsInstanceOfType")]
-        public bool IsOfType(IResolverContext context, object resolverResult) =>
-            IsInstanceOfType(context, resolverResult);
+        public bool IsOfType(IResolverContext context, object resolverResult)
+            => IsInstanceOfType(context, resolverResult);
 
         /// <inheritdoc />
-        public bool IsImplementing(NameString interfaceTypeName) =>
-            _implements.Any(t => t.Name.Equals(interfaceTypeName));
+        public bool IsImplementing(NameString interfaceTypeName)
+            => _implements.Any(t => t.Name.Equals(interfaceTypeName));
 
         /// <summary>
         /// Defines if this type is implementing the
@@ -144,12 +143,12 @@ namespace HotChocolate.Types
         /// <param name="interfaceType">
         /// The interface type.
         /// </param>
-        public bool IsImplementing(InterfaceType interfaceType) =>
-            Array.IndexOf(_implements, interfaceType) != -1;
+        public bool IsImplementing(InterfaceType interfaceType)
+            => Array.IndexOf(_implements, interfaceType) != -1;
 
         /// <inheritdoc />
-        public bool IsImplementing(IInterfaceType interfaceType) =>
-            interfaceType is InterfaceType i && _implements.Contains(i);
+        public bool IsImplementing(IInterfaceType interfaceType)
+            => interfaceType is InterfaceType i && _implements.Contains(i);
 
         protected override ObjectTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)

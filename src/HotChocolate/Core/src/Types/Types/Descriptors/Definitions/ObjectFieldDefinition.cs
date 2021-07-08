@@ -9,8 +9,8 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.Types.Descriptors.Definitions
 {
     /// <summary>
-    /// The <see cref="ObjectFieldDefinition"/> represents the configuration data for an
-    /// output field (interface- or object-field).
+    /// The <see cref="ObjectFieldDefinition"/> contains the settings
+    /// to create a <see cref="ObjectField"/>.
     /// </summary>
     public class ObjectFieldDefinition : OutputFieldDefinitionBase
     {

@@ -1,119 +1,105 @@
-using System;
 using System.Collections.Generic;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Factories
 {
     internal sealed class InterfaceTypeFactory
         : ITypeFactory<InterfaceTypeDefinitionNode, InterfaceType>
+        , ITypeFactory<InterfaceTypeExtensionNode, InterfaceTypeExtension>
     {
-        public InterfaceType Create(
-            IBindingLookup bindingLookup,
-            IReadOnlySchemaOptions schemaOptions,
-            InterfaceTypeDefinitionNode node)
+        public InterfaceType Create(IDescriptorContext context, InterfaceTypeDefinitionNode node)
         {
-            if (bindingLookup is null)
+            var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
+
+            var typeDefinition = new InterfaceTypeDefinition(
+                node.Name.Value,
+                node.Description?.Value);
+
+            if (preserveSyntaxNodes)
             {
-                throw new ArgumentNullException(nameof(bindingLookup));
+                typeDefinition.SyntaxNode = node;
             }
 
-            if (node is null)
+            foreach (NamedTypeNode typeNode in node.Interfaces)
             {
-                throw new ArgumentNullException(nameof(node));
+                typeDefinition.Interfaces.Add(TypeReference.Create(typeNode));
             }
 
-            ITypeBindingInfo bindingInfo =
-                bindingLookup.GetBindingInfo(node.Name.Value);
+            SdlToTypeSystemHelper.AddDirectives(typeDefinition, node);
 
-            return new InterfaceType(d =>
-            {
-                d.SyntaxNode(schemaOptions.PreserveSyntaxNodes ? node : null)
-                    .Name(node.Name.Value)
-                    .Description(node.Description?.Value);
+            DeclareFields(node.Fields, preserveSyntaxNodes);
 
-                if (bindingInfo.SourceType != null)
-                {
-                    d.Extend().OnBeforeCreate(
-                        t => t.RuntimeType = bindingInfo.SourceType);
-                }
-
-                foreach (DirectiveNode directive in node.Directives)
-                {
-                    d.Directive(directive);
-                }
-
-                DeclareInterfaces(d, node.Interfaces);
-
-                DeclareFields(schemaOptions, d, node.Fields);
-            });
+            return InterfaceType.CreateUnsafe(typeDefinition);
         }
 
-        private static void DeclareInterfaces(
-            IInterfaceTypeDescriptor typeDescriptor,
-            IReadOnlyCollection<NamedTypeNode> interfaceReferences)
+        public InterfaceTypeExtension Create(IDescriptorContext context, InterfaceTypeExtensionNode node)
         {
-            foreach (NamedTypeNode typeNode in interfaceReferences)
+            var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
+
+            var typeDefinition = new InterfaceTypeDefinition(node.Name.Value);
+
+            foreach (NamedTypeNode typeNode in node.Interfaces)
             {
-                typeDescriptor.Interface(typeNode);
+                typeDefinition.Interfaces.Add(TypeReference.Create(typeNode));
             }
+
+            SdlToTypeSystemHelper.AddDirectives(typeDefinition, node);
+
+            DeclareFields(node.Fields, preserveSyntaxNodes);
+
+            return InterfaceTypeExtension.CreateUnsafe(typeDefinition);
         }
 
         private static void DeclareFields(
-            IReadOnlySchemaOptions schemaOptions,
-            IInterfaceTypeDescriptor typeDescriptor,
-            IReadOnlyCollection<FieldDefinitionNode> fieldDefinitions)
+            IReadOnlyCollection<FieldDefinitionNode> fields,
+            bool preserveSyntaxNodes)
         {
-            foreach (FieldDefinitionNode fieldDefinition in fieldDefinitions)
+            foreach (FieldDefinitionNode field in fields)
             {
-                IInterfaceFieldDescriptor fieldDescriptor = typeDescriptor
-                    .Field(fieldDefinition.Name.Value)
-                    .Description(fieldDefinition.Description?.Value)
-                    .Type(fieldDefinition.Type)
-                    .SyntaxNode(schemaOptions.PreserveSyntaxNodes ? fieldDefinition : null);
+                var fieldDefinition = new InterfaceFieldDefinition(
+                    field.Name.Value,
+                    field.Description?.Value,
+                    TypeReference.Create(field.Type));
 
-                foreach (DirectiveNode directive in fieldDefinition.Directives)
+                if (preserveSyntaxNodes)
                 {
-                    if (!directive.IsDeprecationReason())
-                    {
-                        fieldDescriptor.Directive(directive);
-                    }
+                    fieldDefinition.SyntaxNode = field;
                 }
 
-                string deprecactionReason = fieldDefinition.DeprecationReason();
-                if (!string.IsNullOrEmpty(deprecactionReason))
+                SdlToTypeSystemHelper.AddDirectives(fieldDefinition, field);
+
+                if (field.DeprecationReason() is { Length: > 0 } reason)
                 {
-                    fieldDescriptor.Deprecated(deprecactionReason);
+                    fieldDefinition.DeprecationReason = reason;
                 }
 
-                DeclareFieldArguments(schemaOptions, fieldDescriptor, fieldDefinition);
+                DeclareFieldArguments(fieldDefinition, field, preserveSyntaxNodes);
             }
         }
 
         private static void DeclareFieldArguments(
-            IReadOnlySchemaOptions schemaOptions,
-            IInterfaceFieldDescriptor fieldDescriptor,
-            FieldDefinitionNode fieldDefinition)
+            InterfaceFieldDefinition parent,
+            FieldDefinitionNode field,
+            bool preserveSyntaxNodes)
         {
-            foreach (InputValueDefinitionNode inputFieldDefinition in
-                fieldDefinition.Arguments)
+            foreach (InputValueDefinitionNode argument in field.Arguments)
             {
-                fieldDescriptor.Argument(inputFieldDefinition.Name.Value,
-                    a =>
-                    {
-                        foreach (DirectiveNode directive in
-                            inputFieldDefinition.Directives)
-                        {
-                            fieldDescriptor.Directive(directive);
-                        }
+                var argumentDefinition = new ArgumentDefinition(
+                    argument.Name.Value,
+                    argument.Description?.Value,
+                    TypeReference.Create(argument.Type),
+                    argument.DefaultValue);
 
-                        a.Description(inputFieldDefinition.Description?.Value)
-                            .Type(inputFieldDefinition.Type)
-                            .DefaultValue(inputFieldDefinition.DefaultValue)
-                            .SyntaxNode(schemaOptions.PreserveSyntaxNodes
-                                ? inputFieldDefinition
-                                : null);
-                    });
+                if (preserveSyntaxNodes)
+                {
+                    argumentDefinition.SyntaxNode = argument;
+                }
+
+                SdlToTypeSystemHelper.AddDirectives(argumentDefinition, argument);
+
+                parent.Arguments.Add(argumentDefinition);
             }
         }
     }

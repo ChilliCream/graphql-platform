@@ -10,25 +10,52 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types
 {
     /// <summary>
-    /// This is not a full type and is used to split the type configuration into multiple part.
-    /// Any type extension instance is will not survive the initialization and instead is
-    /// merged into the target type.
+    /// Interface type extensions are used to represent an interface which has been extended
+    /// from some original interface.
+    ///
+    /// For example, this might be used to represent common local data on many types,
+    /// or by a GraphQL service which is itself an extension of another GraphQL service.
     /// </summary>
     public class InterfaceTypeExtension : NamedTypeExtensionBase<InterfaceTypeDefinition>
     {
         private Action<IInterfaceTypeDescriptor>? _configure;
 
+        /// <summary>
+        /// Initializes a new  instance of <see cref="InterfaceTypeExtension"/>.
+        /// </summary>
         protected InterfaceTypeExtension()
         {
             _configure = Configure;
         }
 
-        public InterfaceTypeExtension(
-            Action<IInterfaceTypeDescriptor> configure)
+        /// <summary>
+        /// Initializes a new  instance of <see cref="InterfaceTypeExtension"/>.
+        /// </summary>
+        /// <param name="configure">
+        /// A delegate to specify the properties of this type.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="configure"/> is <c>null</c>.
+        /// </exception>
+        public InterfaceTypeExtension(Action<IInterfaceTypeDescriptor> configure)
         {
             _configure = configure;
         }
 
+        /// <summary>
+        /// Create an object type from a type definition.
+        /// </summary>
+        /// <param name="definition">
+        /// The object type definition that specifies the properties of the
+        /// newly created object type.
+        /// </param>
+        /// <returns>
+        /// Returns the newly created object type.
+        /// </returns>
+        public static InterfaceTypeExtension CreateUnsafe(InterfaceTypeDefinition definition)
+            => new() { Definition = definition };
+
+        /// <inheritdoc />
         public override TypeKind Kind => TypeKind.Interface;
 
         protected override InterfaceTypeDefinition CreateDefinition(
@@ -59,7 +86,7 @@ namespace HotChocolate.Types
         {
             if (type is InterfaceType interfaceType)
             {
-                // we first assert that extension and type are mutable and by 
+                // we first assert that extension and type are mutable and by
                 // this that they do have a type definition.
                 AssertMutable();
                 interfaceType.AssertMutable();
